@@ -49,7 +49,7 @@ class LLInventoryItem;
 class LLPanelPlace : public LLPanel
 {
 public:
-	LLPanelPlace();
+	LLPanelPlace(bool can_close_parent = true);
 	/*virtual*/ ~LLPanelPlace();
 
 	/*virtual*/ BOOL postBuild();
@@ -78,6 +78,8 @@ public:
 	static void processParcelInfoReply(LLMessageSystem* msg, void**);
 
 	LLTextureCtrl *getSnapshotCtrl() const { return mSnapshotCtrl; }
+
+	bool canCloseParent() { return mCanCloseParent; }
 
 protected:
 	static void onClickTeleport(void* data);
@@ -116,6 +118,8 @@ protected:
 
 	typedef std::list<LLPanelPlace*> panel_list_t;
 	static panel_list_t sAllPanels;
+
+	bool mCanCloseParent;
 };
 
 #endif // LL_LLPANELPLACE_H
