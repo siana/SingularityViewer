@@ -36,6 +36,7 @@
 
 // Library includes
 #include "indra_constants.h"
+#include "llspinctrl.h"
 
 // Viewer includes
 #include "llagent.h"
@@ -65,6 +66,8 @@ LLFloaterMove::LLFloaterMove(const LLSD& key)
 
 	const BOOL DONT_OPEN = FALSE;
 	LLUICtrlFactory::getInstance()->buildFloater(this,"floater_moveview.xml", NULL, DONT_OPEN); 
+
+	getChild<LLSpinCtrl>("z_offset")->setToolTip(getString("z_offset_tooltip"));
 
 	mForwardButton = getChild<LLJoystickAgentTurn>("forward btn"); 
 	mForwardButton->setHeldDownDelay(MOVE_BUTTON_DELAY);
