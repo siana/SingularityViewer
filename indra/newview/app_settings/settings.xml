@@ -1351,6 +1351,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>AvatarOffsetZ</key>
+    <map>
+      <key>Comment</key>
+      <string>Avatar Z offset (used to adjust animation height)</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.0</real>
+    </map>
     <key>AppearanceCameraMovement</key>
     <map>
       <key>Comment</key>
