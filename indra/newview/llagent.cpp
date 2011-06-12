@@ -7607,11 +7607,7 @@ void LLAgent::sendAgentSetAppearance()
 	// to compensate for the COLLISION_TOLERANCE ugliness we will have 
 	// to tweak this number again
 	LLVector3 body_size = mAvatarObject->mBodySize;
-
-	body_size.mV[VX] = body_size.mV[VX] + gSavedSettings.getF32("AscentAvatarXModifier");
-	body_size.mV[VY] = body_size.mV[VY] + gSavedSettings.getF32("AscentAvatarYModifier");
-	body_size.mV[VZ] = body_size.mV[VZ] + gSavedSettings.getF32("AscentAvatarZModifier");
-
+	body_size.mV[VZ] += gSavedSettings.getF32("AvatarOffsetZ");
 	msg->addVector3Fast(_PREHASH_Size, body_size);	
 
 	// To guard against out of order packets
