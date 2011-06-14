@@ -942,6 +942,7 @@ private:
 	bool      		mRenderGroupTitles;
 	std::string      mRenderedName;
 	std::string      mClientName;
+	std::string		 mIdleString;
 	S32		  mUsedNameSystem;
 
 	//--------------------------------------------------------------------
