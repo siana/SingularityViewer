@@ -33,6 +33,8 @@
 
 // TODO: create 2 classes for images w/ and w/o discard levels?
 
+#include <time.h>
+
 #include "linden_common.h"
 
 #include "llimagegl.h"
@@ -1636,12 +1638,16 @@ void LLImageGL::calcAlphaChannelOffsetAndStride()
 			mAlphaOffset = 0 ;
 		}
 	}
-
+	static clock_t last_info = 0;
 	if( mAlphaStride < 1 || //unsupported format
 		mAlphaOffset < 0 || //unsupported type
 		(mFormatPrimary == GL_BGRA_EXT && mFormatType != GL_UNSIGNED_BYTE)) //unknown situation
 	{
-		llwarns << "Cannot analyze alpha for image with format type " << std::hex << mFormatType << std::dec << llendl;
+		if (clock() - last_info > CLOCKS_PER_SEC)
+		{
+			llwarns << "Cannot analyze alpha for image with format type " << std::hex << mFormatType << std::dec << llendl;
+			last_info = clock();
+		}
 
 		mNeedsAlphaAndPickMask = FALSE ;
 		mIsMask = FALSE;
