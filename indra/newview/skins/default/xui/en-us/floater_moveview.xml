@@ -2,8 +2,7 @@
 <floater bottom="-976" can_close="true" can_drag_on_left="false" can_minimize="false"
      can_resize="false" can_tear_off="true" enabled="true" follows="bottom"
      height="58"  left="521" min_height="100" min_width="100"
-     mouse_opaque="true" name="move floater" rect_control="FloaterMoveRect2"
-     title="" width="135">
+     mouse_opaque="true" name="move floater" rect_control="FloaterMoveRect2" title="" width="185">
 	<button bottom="-54" enabled="true" follows="left|bottom" font="SansSerif"
 	     halign="center" height="25" image_disabled="UIImgBtnLeftOutUUID"
 	     image_disabled_selected="UIImgBtnLeftInUUID"
@@ -57,4 +56,9 @@
 	     image_unselected="move_backward_out.tga" left="45" mouse_opaque="true"
 	     name="backward btn" quadrant="down" scale_image="false"
 	     tool_tip="Move Backward" width="21" />
+	<string name="z_offset_tooltip">Avatar Z offset (animation height correction)</string>
+	<spinner control_name="AvatarOffsetZ" decimal_digits="2" enabled="true" hidden="false"
+		 bottom="-32" follows="bottom|left" height="16" width="50" left="120"
+		label="" label_width="1" max_val="2.0" min_val="-2.0" initial_val="0.0" increment="0.05"
+		mouse_opaque="true" name="z_offset" />
 </floater>

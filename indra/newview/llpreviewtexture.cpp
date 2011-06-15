@@ -393,6 +393,12 @@ void LLPreviewTexture::saveAs_continued(LLViewerInventoryItem const* item, AIFil
 
 	// remember the user-approved/edited file name.
 	mSaveFileName = filepicker->getFilename();
+	std::string filename = mSaveFileName;
+	LLStringUtil::toLower(filename);
+	if (filename.find(".tga") != filename.length() - 4)
+	{
+		mSaveFileName += ".tga";
+	}
 	mLoadingFullImage = TRUE;
 	getWindow()->incBusyCount();
 	mImage->forceToSaveRawImage(0) ;//re-fetch the raw image if the old one is removed.

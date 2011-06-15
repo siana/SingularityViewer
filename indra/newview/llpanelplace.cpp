@@ -64,8 +64,9 @@
 //static
 std::list<LLPanelPlace*> LLPanelPlace::sAllPanels;
 
-LLPanelPlace::LLPanelPlace()
+LLPanelPlace::LLPanelPlace(bool can_close_parent)
 :	LLPanel(std::string("Places Panel")),
+	mCanCloseParent(can_close_parent),
 	mParcelID(),
 	mRequestedID(),
 	mRegionID(),
@@ -414,7 +415,14 @@ void LLPanelPlace::onClickTeleport(void* data)
 	LLFloater* parent_floaterp = dynamic_cast<LLFloater*>(parent_viewp);
 	if (parent_floaterp)
 	{
-		parent_floaterp->close();
+		if (self->canCloseParent())
+		{
+			parent_floaterp->close();
+		}
+		else
+		{
+			parent_floaterp->setVisible(FALSE);
+		}
 	}
 	// LLFloater* parent_floaterp = (LLFloater*)self->getParent();
 	parent_viewp->setVisible(false);

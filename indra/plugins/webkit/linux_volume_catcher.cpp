@@ -132,7 +132,10 @@ void ungrab_pa_syms()
 		sSymPADSOHandleG = NULL;
 	}
 	
-	sSymPADSOMemoryPool.destroy();
+	if ( sSymPADSOMemoryPool )
+	{
+		sSymPADSOMemoryPool.destroy();
+	}
 	
 	// NULL-out all of the symbols we'd grabbed
 #define LL_PA_SYM(REQUIRED, PASYM, RTN, ...) do{ll##PASYM = NULL;}while(0)
