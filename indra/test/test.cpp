@@ -108,7 +108,7 @@ public:
 			++mFailedTests;
 			out << "abnormal termination";
 			break;
-		case tut::test_result::skip:
+		case tut::test_result::skipped:
 			++mSkippedTests;
 			out << "skipped known failure";
 			break;

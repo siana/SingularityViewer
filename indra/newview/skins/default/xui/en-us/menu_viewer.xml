@@ -196,11 +196,25 @@
 				<on_click function="Edit.TakeOff" userdata="skirt" />
 				<on_enable function="Edit.EnableTakeOff" userdata="skirt" />
 			</menu_item_call>
-      <menu_item_call bottom="-200" enabled="false" height="19" label="Physics" left="0"
+			<menu_item_call bottom="-185" enabled="false" height="19" label="Tattoo" left="0"
+			     mouse_opaque="true" name="Tattoo" width="118">
+				<on_click function="Edit.TakeOff" userdata="tattoo" />
+				<on_enable function="Edit.EnableTakeOff" userdata="tattoo" />
+			</menu_item_call>
+            <menu_item_separator bottom="-187" enabled="true" height="8" label="-----------" left="0"
+                mouse_opaque="true" name="separator51" width="153" />
+			<menu_item_call bottom="-190" enabled="false" height="19" label="Alpha" left="0"
+			     mouse_opaque="true" name="Alpha" width="118">
+				<on_click function="Edit.TakeOff" userdata="alpha" />
+				<on_enable function="Edit.EnableTakeOff" userdata="alpha" />
+			</menu_item_call>
+            <menu_item_call bottom="-200" enabled="false" height="19" label="Physics" left="0"
 			     mouse_opaque="true" name="Physics" width="118">
-        <on_click function="Edit.TakeOff" userdata="physics" />
-        <on_enable function="Edit.EnableTakeOff" userdata="physics" />
-      </menu_item_call>
+                <on_click function="Edit.TakeOff" userdata="physics" />
+                <on_enable function="Edit.EnableTakeOff" userdata="physics" />
+            </menu_item_call>
+            <menu_item_separator bottom="-195" enabled="true" height="8" label="-----------" left="0"
+                mouse_opaque="true" name="separator51" width="153" />
 			<menu_item_call bottom="-119" enabled="true" height="19" label="All Clothes" left="0"
 			     mouse_opaque="true" name="All Clothes" width="118">
 				<on_click function="Edit.TakeOff" userdata="all" />

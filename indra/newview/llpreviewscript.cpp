@@ -77,6 +77,7 @@
 #include "lldir.h"
 #include "llcombobox.h"
 //#include "llfloaterchat.h"
+#include "llfloatersearchreplace.h"
 #include "llviewerstats.h"
 #include "llviewertexteditor.h"
 #include "llviewerwindow.h"
@@ -134,10 +135,6 @@ const S32 SCRIPT_MIN_HEIGHT =
 
 const S32 MAX_EXPORT_SIZE = 1000;
 
-const S32 SCRIPT_SEARCH_WIDTH = 300;
-const S32 SCRIPT_SEARCH_HEIGHT = 120;
-const S32 SCRIPT_SEARCH_LABEL_WIDTH = 50;
-const S32 SCRIPT_SEARCH_BUTTON_WIDTH = 80;
 const S32 TEXT_EDIT_COLUMN_HEIGHT = 16;
 const S32 MAX_HISTORY_COUNT = 10;
 const F32 LIVE_HELP_REFRESH_TIME = 1.f;
@@ -147,148 +144,6 @@ static bool have_script_upload_cap(LLUUID& object_id)
 	LLViewerObject* object = gObjectList.findObject(object_id);
 	return object && (! object->getRegion()->getCapability("UpdateScriptTask").empty());
 }
-
-/// ---------------------------------------------------------------------------
-/// LLFloaterScriptSearch
-/// ---------------------------------------------------------------------------
-class LLFloaterScriptSearch : public LLFloater
-{
-public:
-	LLFloaterScriptSearch(std::string title, LLRect rect, LLScriptEdCore* editor_core);
-	~LLFloaterScriptSearch();
-
-	static void show(LLScriptEdCore* editor_core);
-	static void onBtnSearch(void* userdata);
-	void handleBtnSearch();
-
-	static void onBtnReplace(void* userdata);
-	void handleBtnReplace();
-
-	static void onBtnReplaceAll(void* userdata);
-	void handleBtnReplaceAll();
-
-	LLScriptEdCore* getEditorCore() { return mEditorCore; }
-	static LLFloaterScriptSearch* getInstance() { return sInstance; }
-
-	void open();		/*Flawfinder: ignore*/
-
-private:
-
-	LLScriptEdCore* mEditorCore;
-
-	static LLFloaterScriptSearch*	sInstance;
-};
-
-LLFloaterScriptSearch* LLFloaterScriptSearch::sInstance = NULL;
-
-LLFloaterScriptSearch::LLFloaterScriptSearch(std::string title, LLRect rect, LLScriptEdCore* editor_core)
-	: LLFloater("script	search",rect,title), mEditorCore(editor_core)
-{
-	
-	LLUICtrlFactory::getInstance()->buildFloater(this,"floater_script_search.xml");
-
-	childSetAction("search_btn", onBtnSearch,this);
-	childSetAction("replace_btn", onBtnReplace,this);
-	childSetAction("replace_all_btn", onBtnReplaceAll,this);
-	
-	setDefaultBtn("search_btn");
-
-	if (!getHost())
-	{
-		LLRect curRect = getRect();
-		translate(rect.mLeft - curRect.mLeft, rect.mTop - curRect.mTop);
-	}
-	
-	sInstance = this;
-
-	childSetFocus("search_text", TRUE);
-
-	// find floater in which script panel is embedded
-	LLView* viewp = (LLView*)editor_core;
-	while(viewp)
-	{
-		LLFloater* floaterp = dynamic_cast<LLFloater*>(viewp);
-		if (floaterp)
-		{
-			floaterp->addDependentFloater(this);
-			break;
-		}
-		viewp = viewp->getParent();
-	}
-}
-
-//static 
-void LLFloaterScriptSearch::show(LLScriptEdCore* editor_core)
-{
-	if (sInstance && sInstance->mEditorCore && sInstance->mEditorCore != editor_core)
-	{
-		sInstance->close();
-		delete sInstance;
-	}
-
-	if (!sInstance)
-	{
-		S32 left = 0;
-		S32 top = 0;
-		gFloaterView->getNewFloaterPosition(&left,&top);
-
-		// sInstance will be assigned in the constructor.
-		new LLFloaterScriptSearch("Script Search",LLRect(left,top,left + SCRIPT_SEARCH_WIDTH,top - SCRIPT_SEARCH_HEIGHT),editor_core);
-	}
-
-	sInstance->open();		/*Flawfinder: ignore*/
-}
-
-LLFloaterScriptSearch::~LLFloaterScriptSearch()
-{
-	sInstance = NULL;
-}
-
-// static 
-void LLFloaterScriptSearch::onBtnSearch(void *userdata)
-{
-	LLFloaterScriptSearch* self = (LLFloaterScriptSearch*)userdata;
-	self->handleBtnSearch();
-}
-
-void LLFloaterScriptSearch::handleBtnSearch()
-{
-	LLCheckBoxCtrl* caseChk = getChild<LLCheckBoxCtrl>("case_text");
-	mEditorCore->mEditor->selectNext(childGetText("search_text"), caseChk->get());
-}
-
-// static 
-void LLFloaterScriptSearch::onBtnReplace(void *userdata)
-{
-	LLFloaterScriptSearch* self = (LLFloaterScriptSearch*)userdata;
-	self->handleBtnReplace();
-}
-
-void LLFloaterScriptSearch::handleBtnReplace()
-{
-	LLCheckBoxCtrl* caseChk = getChild<LLCheckBoxCtrl>("case_text");
-	mEditorCore->mEditor->replaceText(childGetText("search_text"), childGetText("replace_text"), caseChk->get());
-}
-
-// static 
-void LLFloaterScriptSearch::onBtnReplaceAll(void *userdata)
-{
-	LLFloaterScriptSearch* self = (LLFloaterScriptSearch*)userdata;
-	self->handleBtnReplaceAll();
-}
-
-void LLFloaterScriptSearch::handleBtnReplaceAll()
-{
-	LLCheckBoxCtrl* caseChk = getChild<LLCheckBoxCtrl>("case_text");
-	mEditorCore->mEditor->replaceTextAll(childGetText("search_text"), childGetText("replace_text"), caseChk->get());
-}
-
-void LLFloaterScriptSearch::open()		/*Flawfinder: ignore*/
-{
-	LLFloater::open();		/*Flawfinder: ignore*/
-	childSetFocus("search_text", TRUE); 
-}
-
 
 /// ---------------------------------------------------------------------------
 /// LLScriptEdCore
@@ -433,14 +288,6 @@ LLScriptEdCore::LLScriptEdCore(
 LLScriptEdCore::~LLScriptEdCore()
 {
 	deleteBridges();
-
-	// If the search window is up for this editor, close it.
-	LLFloaterScriptSearch* script_search = LLFloaterScriptSearch::getInstance();
-	if (script_search && script_search->getEditorCore() == this)
-	{
-		script_search->close();
-		delete script_search;
-	}
 }
 
 BOOL LLScriptEdCore::tick()
@@ -483,6 +330,10 @@ void LLScriptEdCore::initMenu()
 	menuItem = getChild<LLMenuItemCallGL>("Select All");
 	menuItem->setMenuCallback(onSelectAllMenu, this);
 	menuItem->setEnabledCallback(enableSelectAllMenu);
+
+	menuItem = getChild<LLMenuItemCallGL>("Deselect");
+	menuItem->setMenuCallback(onDeselectMenu, this);
+	menuItem->setEnabledCallback(enableDeselectMenu);
 
 	menuItem = getChild<LLMenuItemCallGL>("Search / Replace...");
 	menuItem->setMenuCallback(onSearchMenu, this);
@@ -931,7 +782,10 @@ void LLScriptEdCore::onBtnUndoChanges( void* userdata )
 void LLScriptEdCore::onSearchMenu(void* userdata)
 {
 	LLScriptEdCore* sec = (LLScriptEdCore*)userdata;
-	LLFloaterScriptSearch::show(sec);
+	if (sec && sec->mEditor)
+	{
+		LLFloaterSearchReplace::show(sec->mEditor);
+	}
 }
 
 // static 
@@ -1339,7 +1193,10 @@ void LLPreviewLSL::onSearchReplace(void* userdata)
 {
 	LLPreviewLSL* self = (LLPreviewLSL*)userdata;
 	LLScriptEdCore* sec = self->mScriptEd; 
-	LLFloaterScriptSearch::show(sec);
+	if (sec && sec->mEditor)
+	{
+		LLFloaterSearchReplace::show(sec->mEditor);
+	}
 }
 
 // static
@@ -2193,7 +2050,10 @@ void LLLiveLSLEditor::onSearchReplace(void* userdata)
 	LLLiveLSLEditor* self = (LLLiveLSLEditor*)userdata;
 
 	LLScriptEdCore* sec = self->mScriptEd; 
-	LLFloaterScriptSearch::show(sec);
+	if (sec && sec->mEditor)
+	{
+		LLFloaterSearchReplace::show(sec->mEditor);
+	}
 }
 
 struct LLLiveLSLSaveData

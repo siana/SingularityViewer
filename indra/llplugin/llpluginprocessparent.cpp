@@ -40,6 +40,7 @@
 #include "llpluginmessageclasses.h"
 #if LL_LINUX
 #include <boost/program_options/parsers.hpp>
+#include <boost/tokenizer.hpp>
 #endif
 
 #include "llapr.h"
@@ -406,7 +407,23 @@ void LLPluginProcessParent::idle(void)
 						std::string const terminal_command = (env = getenv("LL_DEBUG_TERMINAL_COMMAND")) ? env : "/usr/bin/xterm -geometry 160x24+0+0 -e %s";
 						char const* const gdb_path = (env = getenv("LL_DEBUG_GDB_PATH")) ? env : "/usr/bin/gdb";
 						cmd << gdb_path << " -n /proc/" << mProcess.getProcessID() << "/exe " << mProcess.getProcessID();
-						std::vector<std::string> tokens = boost::program_options::split_unix(terminal_command, " ");
+
+                        typedef boost::tokenizer< boost::escaped_list_separator<
+                                char>, typename std::basic_string<
+                                char>::const_iterator, 
+                                std::basic_string<char> >  tokenizerT;
+
+                        tokenizerT tok(terminal_command.begin(),
+                                terminal_command.end(), 
+                                boost::escaped_list_separator< char >("\\",
+                                " ", "'\""));
+                        std::vector< std::basic_string<char> > tokens;
+                        for (typename tokenizerT::iterator
+                                cur_token(tok.begin()), end_token(tok.end());
+                                cur_token != end_token; ++cur_token) {
+                            if (!cur_token->empty())
+                                tokens.push_back(*cur_token);
+                        }
 						std::vector<std::string>::iterator token = tokens.begin();
 						mDebugger.setExecutable(*token);
 						while (++token != tokens.end())

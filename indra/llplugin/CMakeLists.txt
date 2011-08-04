@@ -65,6 +65,9 @@ endif (NOT WORD_SIZE EQUAL 32)
 list(APPEND llplugin_SOURCE_FILES ${llplugin_HEADER_FILES})
 
 add_library (llplugin ${llplugin_SOURCE_FILES})
+if(LINUX)
+    target_link_libraries (llplugin rt dl)
+endif(LINUX)
 
 add_dependencies(llplugin prepare)
 

@@ -529,6 +529,7 @@ void LLOverlayBar::toggleMediaPlay(void*)
 		LLParcel* parcel = LLViewerParcelMgr::getInstance()->getAgentParcel();
 		if (parcel)
 		{
+			LLViewerParcelMedia::sIsUserAction = true;
 			LLViewerParcelMedia::play(parcel);
 		}
 	}
@@ -554,7 +555,8 @@ void LLOverlayBar::toggleMusicPlay(void*)
 				// stream is stopped, it doesn't return the right thing - commenting out for now.
 	// 			if ( gAudiop->isInternetStreamPlaying() == 0 )
 				{
-					gAudiop->startInternetStream(parcel->getMusicURL());
+					LLViewerParcelMedia::sIsUserAction = true;
+					LLViewerParcelMedia::playStreamingMusic(parcel);
 				}
 			}
 		}

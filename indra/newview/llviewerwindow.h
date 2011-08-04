@@ -48,6 +48,7 @@
 #include "lltimer.h"
 #include "llstat.h"
 #include "llalertdialog.h"
+#include "llmousehandler.h"
 #include "llnotifications.h"
 
 class LLView;
@@ -59,7 +60,6 @@ class LLVelocityBar;
 class LLTextBox;
 class LLImageRaw;
 class LLHUDIcon;
-class LLMouseHandler;
 class AIFilePicker;
 
 #define PICK_HALF_WIDTH 5
@@ -84,7 +84,7 @@ public:
 
 	static bool isFlora(LLViewerObject* object);
 
-	typedef enum e_pick_type
+	typedef enum
 	{
 		PICK_OBJECT,
 		PICK_FLORA,
@@ -154,6 +154,7 @@ public:
 	/*virtual*/ BOOL handleTranslatedKeyUp(KEY key,  MASK mask);
 	/*virtual*/ void handleScanKey(KEY key, BOOL key_down, BOOL key_up, BOOL key_level);
 	/*virtual*/ BOOL handleUnicodeChar(llwchar uni_char, MASK mask);	// NOT going to handle extended 
+	/*virtual*/ BOOL handleAnyMouseClick(LLWindow *window,  LLCoordGL pos, MASK mask, LLMouseHandler::EClickType clicktype, BOOL down);
 	/*virtual*/ BOOL handleMouseDown(LLWindow *window,  LLCoordGL pos, MASK mask);
 	/*virtual*/ BOOL handleMouseUp(LLWindow *window,  LLCoordGL pos, MASK mask);
 	/*virtual*/ BOOL handleCloseRequest(LLWindow *window);
@@ -216,6 +217,7 @@ public:
 	LLCoordGL		getCurrentMouseDelta()	const	{ return mCurrentMouseDelta; }
 	LLStat *		getMouseVelocityStat()		{ return &mMouseVelocityStat; }
 	BOOL			getLeftMouseDown()	const	{ return mLeftMouseDown; }
+	BOOL			getMiddleMouseDown()	const	{ return mMiddleMouseDown; }
 	BOOL			getRightMouseDown()	const	{ return mRightMouseDown; }
 
 	const LLPickInfo&	getLastPick() const { return mLastPick; }
@@ -392,6 +394,7 @@ protected:
 	LLCoordGL		mCurrentMouseDelta;		//amount mouse moved this frame
 	LLStat			mMouseVelocityStat;
 	BOOL			mLeftMouseDown;
+	BOOL			mMiddleMouseDown;
 	BOOL			mRightMouseDown;
 
 	LLProgressView	*mProgressView;

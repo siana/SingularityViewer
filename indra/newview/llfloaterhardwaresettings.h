@@ -49,14 +49,11 @@ public:
 	
 	virtual BOOL postBuild();
 
-	/// initialize all the callbacks for the menu
-	void initCallbacks(void);
-
 	/// one and one instance only
 	static LLFloaterHardwareSettings* instance();
 	
-	/// callback for the menus help button
-	static void onClickHelp(void* data);
+	/// callback for the VBO-related settings checkboxes
+	static void onCommitCheckBoxVBO(LLUICtrl* ctrl, void* user_data);
 
 	/// OK button
 	static void onBtnOK( void* userdata );
@@ -87,11 +84,12 @@ public:
 	/// refresh the enabled values
 	void refreshEnabledState();
 
-protected:
+private:
 	LLSliderCtrl*	mCtrlVideoCardMem;
 
 	//Retained values for cancel/reset
 	BOOL mUseVBO;
+	BOOL mUseStreamVBO;
 	BOOL mUseFBO;
 	BOOL mUseAniso;
 	U32 mFSAASamples;
@@ -101,9 +99,9 @@ protected:
 	BOOL mProbeHardwareOnStartup;
 
 	bool mLastVBOState; //track changes to LLVertexBuffer::sEnableVBOs every frame. Bleh.
-private:
 	// one instance on the inside
 	static LLFloaterHardwareSettings* sHardwareSettings;
+	static BOOL sUseStreamVBOexists;
 };
 
 #endif

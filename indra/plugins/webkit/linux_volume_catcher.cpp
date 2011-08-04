@@ -52,6 +52,8 @@ extern "C" {
 
 #include "aiaprpool.h"
 #include "apr_dso.h"
+#include <dlfcn.h>
+#include <apr_portable.h>
 }
 
 ////////////////////////////////////////////////////
@@ -87,9 +89,10 @@ bool grab_pa_syms(std::string pulse_dso_name)
 	//attempt to load the shared library
 	sSymPADSOMemoryPool.create();
   
-	if ( APR_SUCCESS == (rv = apr_dso_load(&sSymPADSOHandle,
-					       pulse_dso_name.c_str(),
-					       sSymPADSOMemoryPool()) ))
+    void *dso_handle = dlopen(pulse_dso_name.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    rv = (!dso_handle)?APR_EDSOOPEN:apr_os_dso_handle_put(&sSymPADSOHandle,
+            dso_handle, sSymPADSOMemoryPool());
+	if ( APR_SUCCESS == rv )
 	{
 		INFOMSG("Found DSO: %s", pulse_dso_name.c_str());
 

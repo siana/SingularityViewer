@@ -2418,6 +2418,12 @@ BOOL LLTextEditor::handleEditKey(const KEY key, const MASK mask)
 		}
 	}
 
+	if( handled )
+	{
+		// take selection to 'primary' clipboard
+		updatePrimary();
+	}
+
 	return handled;
 }
 

@@ -116,10 +116,13 @@ fi
 
 export VIEWER_BINARY='singularity-do-not-run-directly'
 BINARY_TYPE=$(expr match "$(file -b bin/$VIEWER_BINARY)" '\(.*executable\)')
+QPP=qt4/plugins/imageformats/
 if [ "${BINARY_TYPE}" == "ELF 64-bit LSB executable" ]; then
-	export SL_ENV='LD_LIBRARY_PATH="`pwd`"/lib64:"`pwd`"/lib32:"${LD_LIBRARY_PATH}"'
+    QTPLUGINS=/usr/lib64/$QPP:/lib64/$QPP:/usr/local/lib64/$QPP
+	export SL_ENV='LD_LIBRARY_PATH="`pwd`"/lib64:"`pwd`"/lib32:$QTPLUGINS:"${LD_LIBRARY_PATH}"'
 else
-	export SL_ENV='LD_LIBRARY_PATH="`pwd`"/lib:"${LD_LIBRARY_PATH}"'
+    QTPLUGINS=/usr/lib/$QPP:/lib/$QPP:/usr/local/lib/$QPP
+	export SL_ENV='LD_LIBRARY_PATH="`pwd`"/lib:$QTPLUGINS:"${LD_LIBRARY_PATH}"'
 fi
 
 export SL_CMD='$LL_WRAPPER bin/$VIEWER_BINARY'

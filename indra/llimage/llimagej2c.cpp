@@ -28,6 +28,11 @@
  * COMPLETENESS OR PERFORMANCE.
  * $/LicenseInfo$
  */
+#if LL_LINUX
+#include <dlfcn.h>
+#include <apr_portable.h>
+#endif
+
 #include "linden_common.h"
 
 #include "apr_pools.h"
@@ -85,9 +90,15 @@ void LLImageJ2C::openDSO()
 	j2cimpl_dso_memory_pool.create();
 
 	//attempt to load the shared library
+#if LL_LINUX
+    void *dso_handle = dlopen(dso_path.c_str(), RTLD_NOW | RTLD_GLOBAL);
+    rv = (!dso_handle)?APR_EDSOOPEN:apr_os_dso_handle_put(&j2cimpl_dso_handle,
+            dso_handle, j2cimpl_dso_memory_pool());
+#else
 	rv = apr_dso_load(&j2cimpl_dso_handle,
 					  dso_path.c_str(),
 					  j2cimpl_dso_memory_pool());
+#endif
 
 	//now, check for success
 	if ( rv == APR_SUCCESS )

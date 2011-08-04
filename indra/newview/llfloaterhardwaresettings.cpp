@@ -47,27 +47,25 @@
 #include "pipeline.h"
 
 LLFloaterHardwareSettings* LLFloaterHardwareSettings::sHardwareSettings = NULL;
+BOOL LLFloaterHardwareSettings::sUseStreamVBOexists = FALSE;
 
 LLFloaterHardwareSettings::LLFloaterHardwareSettings() : LLFloater(std::string("Hardware Settings Floater"))
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_hardware_settings.xml");
-	
-	// load it up
-	initCallbacks();
 }
 
 LLFloaterHardwareSettings::~LLFloaterHardwareSettings()
 {
 }
 
-void LLFloaterHardwareSettings::onClickHelp(void* data)
+void LLFloaterHardwareSettings::onCommitCheckBoxVBO(LLUICtrl* ctrl, void* user_data)
 {
-	const char* xml_alert = "HardwareSettingsHelpButton";
-	LLNotifications::instance().add(xml_alert);
-}
-
-void LLFloaterHardwareSettings::initCallbacks(void) 
-{
+	LLFloaterHardwareSettings* self = (LLFloaterHardwareSettings*)user_data;
+	if (self && sUseStreamVBOexists)
+	{
+		gSavedSettings.setBOOL("RenderUseStreamVBO", self->childGetValue("stream_vbo").asBoolean());
+		self->refreshEnabledState();
+	}
 }
 
 // menu maintenance functions
@@ -77,6 +75,10 @@ void LLFloaterHardwareSettings::refresh()
 	LLPanel::refresh();
 
 	mUseVBO = gSavedSettings.getBOOL("RenderVBOEnable");
+	if (sUseStreamVBOexists)
+	{
+		mUseStreamVBO = gSavedSettings.getBOOL("RenderUseStreamVBO");
+	}
 	mUseFBO = gSavedSettings.getBOOL("RenderUseFBO");
 	mUseAniso = gSavedSettings.getBOOL("RenderAnisotropic");
 	mFSAASamples = gSavedSettings.getU32("RenderFSAASamples");
@@ -96,6 +98,7 @@ void LLFloaterHardwareSettings::refreshEnabledState()
 	childSetMinValue("GrapicsCardTextureMemory", min_tex_mem);
 	childSetMaxValue("GrapicsCardTextureMemory", max_tex_mem);
 
+	bool vbo_ok = true;
 	mLastVBOState = LLVertexBuffer::sEnableVBOs;
 	if (!LLFeatureManager::getInstance()->isFeatureAvailable("RenderVBOEnable") ||
 		!gGLManager.mHasVertexBufferObject)
@@ -103,6 +106,23 @@ void LLFloaterHardwareSettings::refreshEnabledState()
 		childSetEnabled("vbo", FALSE);
 		//Streaming VBOs -Shyotl
 		childSetEnabled("vbo_stream", FALSE);
+		vbo_ok = false;
+	}
+
+	if (sUseStreamVBOexists)
+	{
+		childSetVisible("stream_vbo", true);
+		childSetEnabled("stream_vbo", vbo_ok && childGetValue("vbo") &&
+						LLFeatureManager::getInstance()->isFeatureAvailable("RenderUseStreamVBO"));
+	}
+	else
+	{
+		childSetVisible("stream_vbo", false);
+	}
+
+	if (!LLFeatureManager::getInstance()->isFeatureAvailable("UseOcclusion"))
+	{
+		childSetEnabled("occlusion", false);
 	}
 	else
 	{
@@ -115,7 +135,7 @@ void LLFloaterHardwareSettings::refreshEnabledState()
 	childSetEnabled("gamma", !gPipeline.canUseWindLightShaders());
 	childSetEnabled("(brightness, lower is brighter)", !gPipeline.canUseWindLightShaders());
 	childSetEnabled("fog", !gPipeline.canUseWindLightShaders());
-
+	childSetVisible("note", gPipeline.canUseWindLightShaders());
 }
 
 // static instance of it
@@ -173,6 +193,13 @@ BOOL LLFloaterHardwareSettings::postBuild()
 {
 	childSetAction("OK", onBtnOK, this);
 
+	sUseStreamVBOexists = gSavedSettings.controlExists("RenderUseStreamVBO");
+	if (sUseStreamVBOexists)
+	{
+		childSetCommitCallback("vbo", onCommitCheckBoxVBO, this);
+		childSetCommitCallback("stream_vbo", onCommitCheckBoxVBO, this);
+	}
+
 	refresh();
 
 	return TRUE;
@@ -202,6 +229,10 @@ void LLFloaterHardwareSettings::apply()
 void LLFloaterHardwareSettings::cancel()
 {
 	gSavedSettings.setBOOL("RenderVBOEnable", mUseVBO);
+	if (sUseStreamVBOexists)
+	{
+		gSavedSettings.setBOOL("RenderUseStreamVBO", mUseStreamVBO);
+	}
 	gSavedSettings.setBOOL("RenderUseFBO", mUseFBO);
 	gSavedSettings.setBOOL("RenderAnisotropic", mUseAniso);
 	gSavedSettings.setU32("RenderFSAASamples", mFSAASamples);

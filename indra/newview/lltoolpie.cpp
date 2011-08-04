@@ -659,8 +659,6 @@ BOOL LLToolPie::handleHover(S32 x, S32 y, MASK mask)
 	*/
 
 	
-	gViewerWindow->getWindow()->setCursor(UI_CURSOR_ARROW);
-
 	LLViewerObject *object = NULL;
 	LLViewerObject *parent = NULL;
 //	object = gViewerWindow->getHoverPick().getObject();
