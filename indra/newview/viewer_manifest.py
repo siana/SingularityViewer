@@ -510,9 +510,14 @@ class DarwinManifest(ViewerManifest):
                                 "libexpat.0.5.0.dylib"):
                     self.path(os.path.join(libdir, libfile), libfile)
 
-                #libfmodwrapper.dylib
-                self.path(self.args['configuration'] + "/libfmodwrapper.dylib", "libfmodwrapper.dylib")
-                
+                # For using FMOD for sound...but, fmod is proprietary so some might not use it...
+                try:
+                    self.path(self.args['configuration'] + "/libfmodwrapper.dylib", "libfmodwrapper.dylib")
+                    pass
+                except:
+                    print "Skipping libfmodwrapper.dylib - not found"
+                    pass
+
                 # our apps
                 try:
                   self.path("../mac_crash_logger/" + self.args['configuration'] + "/mac-crash-logger.app", "mac-crash-logger.app")
