@@ -805,7 +805,7 @@ void init_menus()
 	menu->appendSeparator();
 	menu->append(new LLMenuItemCallGL(  "Fake Away Status", &handle_fake_away_status, NULL));
 	menu->append(new LLMenuItemCallGL(  "Force Ground Sit", &handle_force_ground_sit, NULL));
-	menu->append(new LLMenuItemCallGL(  "Phantom Avatar", &handle_phantom_avatar, NULL));
+	menu->append(new LLMenuItemCallGL(  "Phantom Avatar", &handle_phantom_avatar, NULL, NULL, 'P', MASK_CONTROL | MASK_ALT));
 	menu->appendSeparator();
 	menu->append(new LLMenuItemCallGL( "Animation Override...",
 									&handle_edit_ao, NULL));
