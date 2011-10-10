@@ -403,9 +403,9 @@
           <key>darwin</key>
           <map>
             <key>md5sum</key>
-            <string>a9ab0e2910e1a8fe06a2a42ffdc8b7da</string>
+            <string>2849e9dd6f26294371a27197972fd1cf</string>
             <key>url</key>
-			<uri>https://github.com/siana-osx/SingularityViewer/downloads/freetype-2.4.4-darwin-20110705.tar.bz2</uri>
+            <uri>https://github.com/downloads/siana/SingularityViewer/freetype-2.4.4-darwin-20111010.tar.bz2</uri>
           </map>
           <key>linux</key>
           <map>
