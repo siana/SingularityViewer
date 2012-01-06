@@ -53,6 +53,7 @@
 #include "llcombobox.h"
 #include "llfocusmgr.h"
 #include "llmanipscale.h"
+#include "llnotificationsutil.h"
 #include "llpanelinventory.h"
 #include "llpreviewscript.h"
 #include "llresmgr.h"
@@ -67,6 +68,7 @@
 #include "llviewerobject.h"
 #include "llviewerregion.h"
 #include "llviewerwindow.h"
+#include "llwindow.h"
 #include "llvovolume.h"
 #include "llworld.h"
 #include "pipeline.h"
@@ -76,8 +78,6 @@
 
 #include "lldrawpool.h"
 #include "hippolimits.h"
-
-
 
 
 // [RLVa:KB]
@@ -495,7 +495,7 @@ void LLPanelObject::getState( )
 // [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g)
 	if ( (rlv_handler_t::isEnabled()) && ((gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT)) || (gRlvHandler.hasBehaviour(RLV_BHVR_SITTP))) )
 	{
-		LLVOAvatar* pAvatar = gAgent.getAvatarObject();
+		LLVOAvatar* pAvatar = gAgentAvatarp;
 		if ( (pAvatar) && (pAvatar->isSitting()) && (pAvatar->getRoot() == objectp->getRootEdit()) )
 			enable_move = enable_scale = enable_rotate = FALSE;
 	}
@@ -560,6 +560,9 @@ void LLPanelObject::getState( )
 	mBtnCopySize->setEnabled( enable_scale );
 	mBtnPasteSize->setEnabled( enable_scale );
 	mBtnPasteSizeClip->setEnabled( enable_scale );
+	mCtrlScaleX->setMaxValue(gHippoLimits->getMaxPrimScale());
+	mCtrlScaleY->setMaxValue(gHippoLimits->getMaxPrimScale());
+	mCtrlScaleZ->setMaxValue(gHippoLimits->getMaxPrimScale());
 
 	LLQuaternion object_rot = objectp->getRotationEdit();
 	object_rot.getEulerAngles(&(mCurEulerDegrees.mV[VX]), &(mCurEulerDegrees.mV[VY]), &(mCurEulerDegrees.mV[VZ]));
@@ -726,7 +729,7 @@ void LLPanelObject::getState( )
 	BOOL enabled = FALSE;
 	BOOL hole_enabled = FALSE;
 	F32 scale_x=1.f, scale_y=1.f;
-	
+	BOOL isMesh = FALSE;
 	if( !objectp || !objectp->getVolume() || !editable || !single_volume)
 	{
 		// Clear out all geometry fields.
@@ -1391,15 +1394,9 @@ void LLPanelObject::getState( )
 	mCtrlSculptTexture->setVisible(sculpt_texture_visible);
 	mLabelSculptType->setVisible(sculpt_texture_visible);
 	mCtrlSculptType->setVisible(sculpt_texture_visible);
-	mCtrlSculptMirror->setVisible(sculpt_texture_visible);
-	mCtrlSculptInvert->setVisible(sculpt_texture_visible);
-
-
-	
 
 
 	// sculpt texture
-
 	if (selected_item == MI_SCULPT)
 	{
         LLUUID id;
@@ -1413,36 +1410,35 @@ void LLPanelObject::getState( )
 				mSculptTextureRevert = sculpt_params->getSculptTexture();
 				mSculptTypeRevert    = sculpt_params->getSculptType();
 			}
-		
+			U8 sculpt_type = sculpt_params->getSculptType();
+			U8 sculpt_stitching = sculpt_type & LL_SCULPT_TYPE_MASK;
+			BOOL sculpt_invert = sculpt_type & LL_SCULPT_FLAG_INVERT;
+			BOOL sculpt_mirror = sculpt_type & LL_SCULPT_FLAG_MIRROR;		
+			isMesh = (sculpt_stitching == LL_SCULPT_TYPE_MESH);
+
 			LLTextureCtrl*  mTextureCtrl = getChild<LLTextureCtrl>("sculpt texture control");
 			if(mTextureCtrl)
 			{
 				mTextureCtrl->setTentative(FALSE);
-				mTextureCtrl->setEnabled(editable);
+				mTextureCtrl->setEnabled(editable && !isMesh);
 				if (editable)
 					mTextureCtrl->setImageAssetID(sculpt_params->getSculptTexture());
 				else
 					mTextureCtrl->setImageAssetID(LLUUID::null);
 			}
 
-
-
-
-			U8 sculpt_type = sculpt_params->getSculptType();
-			U8 sculpt_stitching = sculpt_type & LL_SCULPT_TYPE_MASK;
-			BOOL sculpt_invert = sculpt_type & LL_SCULPT_FLAG_INVERT;
-			BOOL sculpt_mirror = sculpt_type & LL_SCULPT_FLAG_MIRROR;
+			mComboBaseType->setEnabled(!isMesh);
 			
 			if (mCtrlSculptType)
 			{
 				mCtrlSculptType->setCurrentByIndex(sculpt_stitching);
-				mCtrlSculptType->setEnabled(editable);
+				mCtrlSculptType->setEnabled(editable && !isMesh);
 			}
 
 			if (mCtrlSculptMirror)
 			{
 				mCtrlSculptMirror->set(sculpt_mirror);
-				mCtrlSculptMirror->setEnabled(editable);
+				mCtrlSculptMirror->setEnabled(editable && !isMesh);
 			}
 
 			if (mCtrlSculptInvert)
@@ -1455,18 +1451,16 @@ void LLPanelObject::getState( )
 			{
 				mLabelSculptType->setEnabled(TRUE);
 			}
+
 		}
 	}
-
-
-
-
-
 	else
 	{
-		mSculptTextureRevert = LLUUID::null;
+		mSculptTextureRevert = LLUUID::null;		
 	}
 
+	mCtrlSculptMirror->setVisible(sculpt_texture_visible && !isMesh);
+	mCtrlSculptInvert->setVisible(sculpt_texture_visible && !isMesh);
 	
 	//----------------------------------------------------------------------------
 
@@ -2123,9 +2117,9 @@ void LLPanelObject::sendScale(BOOL btn_down)
 
 	LLVector3 delta = newscale - mObject->getScale();
 	//Saw this changed in some viewers to be more touchy than this, but it would likely cause more updates and higher lag for the client. -HgB
-	if (delta.magVec() >= 0.0005f)
+	if (delta.magVec() >= 0.0001f) //CF: just a bit more touchy
 	{
-		// scale changed by more than 1/2 millimeter
+		// scale changed by more than 1/10 millimeter
 
 		// check to see if we aren't scaling the textures
 		// (in which case the tex coord's need to be recomputed)
@@ -2161,7 +2155,7 @@ void LLPanelObject::sendPosition(BOOL btn_down)
 		
 	// Clamp the Z height
 	const F32 height = newpos.mV[VZ];
-	const F32 min_height = LLWorld::getInstance()->getMinAllowedZ(mObject);
+	const F32 min_height = LLWorld::getInstance()->getMinAllowedZ(mObject, mObject->getPositionGlobal());
 	// <edit>
 	//const F32 max_height = LLWorld::getInstance()->getRegionMaxHeight();
 	const F32 max_height = F32(340282346638528859811704183484516925440.0f);
@@ -2197,9 +2191,9 @@ void LLPanelObject::sendPosition(BOOL btn_down)
 		// send only if the position is changed, that is, the delta vector is not zero
 		LLVector3d old_pos_global = mObject->getPositionGlobal();
 		LLVector3d delta = new_pos_global - old_pos_global;
-		// moved more than 1/2 millimeter
+		// moved more than 1/10 millimeter
 		//Saw this changed in some viewers to be more touchy than this, but it would likely cause more updates and higher lag for the client. -HgB
-		if (delta.magVec() >= 0.0005f)
+		if (delta.magVec() >= 0.0001f) //CF: just a bit more touchy
 		{			
 			if (mRootObject != mObject)
 			{
@@ -2254,6 +2248,18 @@ void LLPanelObject::sendSculpt()
 	if (mCtrlSculptType)
 		sculpt_type |= mCtrlSculptType->getCurrentIndex();
 
+	bool enabled = true;
+	enabled = sculpt_type != LL_SCULPT_TYPE_MESH;
+
+	if (mCtrlSculptMirror)
+	{
+		mCtrlSculptMirror->setEnabled(enabled ? TRUE : FALSE);
+	}
+	if (mCtrlSculptInvert)
+	{
+		mCtrlSculptInvert->setEnabled(enabled ? TRUE : FALSE);
+	}
+	
 	if ((mCtrlSculptMirror) && (mCtrlSculptMirror->get()))
 		sculpt_type |= LL_SCULPT_FLAG_MIRROR;
 
@@ -2536,7 +2542,7 @@ void LLPanelObject::onCommitSculptType(LLUICtrl *ctrl, void* userdata)
 // static
 void LLPanelObject::onClickBuildConstants(void *)
 {
-	LLNotifications::instance().add("ClickBuildConstants");
+	LLNotificationsUtil::add("ClickBuildConstants");
 }
 
 std::string shortfloat(F32 in)
@@ -2630,8 +2636,9 @@ void LLPanelObject::onPastePos(void* user_data)
 	
 	LLPanelObject* self = (LLPanelObject*) user_data;
 	LLCalc* calcp = LLCalc::getInstance();
-	mClipboardPos.mV[VX] = llclamp( mClipboardPos.mV[VX], -3.5f, 256.f);
-	mClipboardPos.mV[VY] = llclamp( mClipboardPos.mV[VY], -3.5f, 256.f);
+	float region_width = LLWorld::getInstance()->getRegionWidthInMeters();
+	mClipboardPos.mV[VX] = llclamp( mClipboardPos.mV[VX], -3.5f, region_width);
+	mClipboardPos.mV[VY] = llclamp( mClipboardPos.mV[VY], -3.5f, region_width);
 	mClipboardPos.mV[VZ] = llclamp( mClipboardPos.mV[VZ], -3.5f, 4096.f);
 	
 	self->mCtrlPosX->set( mClipboardPos.mV[VX] );
@@ -2650,9 +2657,9 @@ void LLPanelObject::onPasteSize(void* user_data)
 	
 	LLPanelObject* self = (LLPanelObject*) user_data;
 	LLCalc* calcp = LLCalc::getInstance();
-	mClipboardSize.mV[VX] = llclamp(mClipboardSize.mV[VX], 0.01f, 10.f);	
-	mClipboardSize.mV[VY] = llclamp(mClipboardSize.mV[VY], 0.01f, 10.f);	
-	mClipboardSize.mV[VZ] = llclamp(mClipboardSize.mV[VZ], 0.01f, 10.f);
+	mClipboardSize.mV[VX] = llclamp(mClipboardSize.mV[VX], 0.01f, gHippoLimits->getMaxPrimScale());	
+	mClipboardSize.mV[VY] = llclamp(mClipboardSize.mV[VY], 0.01f, gHippoLimits->getMaxPrimScale());	
+	mClipboardSize.mV[VZ] = llclamp(mClipboardSize.mV[VZ], 0.01f, gHippoLimits->getMaxPrimScale());
 	
 	self->mCtrlScaleX->set( mClipboardSize.mV[VX] );
 	self->mCtrlScaleY->set( mClipboardSize.mV[VY] );
@@ -2733,9 +2740,9 @@ void LLPanelObject::onPasteSizeClip(void* user_data)
 	std::string stringVec = wstring_to_utf8str(temp_string); 
 	if(!getvectorfromclip(stringVec, &mClipboardSize)) return;
 	
-	mClipboardSize.mV[VX] = llclamp(mClipboardSize.mV[VX], 0.01f, 10.f);	
-	mClipboardSize.mV[VY] = llclamp(mClipboardSize.mV[VY], 0.01f, 10.f);	
-	mClipboardSize.mV[VZ] = llclamp(mClipboardSize.mV[VZ], 0.01f, 10.f);
+	mClipboardSize.mV[VX] = llclamp(mClipboardSize.mV[VX], 0.01f, gHippoLimits->getMaxPrimScale());	
+	mClipboardSize.mV[VY] = llclamp(mClipboardSize.mV[VY], 0.01f, gHippoLimits->getMaxPrimScale());	
+	mClipboardSize.mV[VZ] = llclamp(mClipboardSize.mV[VZ], 0.01f, gHippoLimits->getMaxPrimScale());
 	
 	self->mCtrlScaleX->set( mClipboardSize.mV[VX] );
 	self->mCtrlScaleY->set( mClipboardSize.mV[VY] );

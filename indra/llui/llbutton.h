@@ -39,7 +39,7 @@
 #include "v4color.h"
 #include "llframetimer.h"
 #include "llfontgl.h"
-#include "llimage.h"
+#include "lluiimage.h"
 #include "lluistring.h"
 
 //

@@ -154,22 +154,6 @@ void LLPanelGeneral::apply()
 
 	LLComboBox* crash_behavior_combobox = getChild<LLComboBox>("crash_behavior_combobox");
 	gCrashSettings.setS32(CRASH_BEHAVIOR_SETTING, crash_behavior_combobox->getCurrentIndex());
-	
-	// if we have no agent, we can't let them choose anything
-	// if we have an agent, then we only let them choose if they have a choice
-	bool can_choose = gAgent.getID().notNull() &&
-					(gAgent.isMature() || gAgent.isGodlike());
-	
-	if (can_choose)
-	{
-		int preferred_maturity = childGetValue("maturity_desired_combobox").asInteger();
-		
-		if (preferred_maturity != gSavedSettings.getU32("PreferredMaturity"))
-		{
-			gSavedSettings.setU32("PreferredMaturity", preferred_maturity);
-			gAgent.sendMaturityPreferenceToServer(preferred_maturity);
-		}
-	}
 }
 
 void LLPanelGeneral::cancel()

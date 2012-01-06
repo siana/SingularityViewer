@@ -39,7 +39,7 @@
 #include "message.h"
 #include "llagent.h"
 #include "llagentcamera.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "lldrawable.h"
 #include "llviewerobjectlist.h"
 #include "llrendersphere.h"
@@ -339,15 +339,15 @@ void LLHUDEffectLookAt::unpackData(LLMessageSystem *mesgsys, S32 blocknum)
 	
 	htonmemcpy(source_id.mData, &(packed_data[SOURCE_AVATAR]), MVT_LLUUID, 16);
 
+	LLVOAvatar *avatarp = gObjectList.findAvatar(source_id);
+	if (avatarp)
 	{
-		LLVOAvatar *avatarp = gObjectList.findAvatar(source_id);
-		if (avatarp)
-			setSourceObject(avatarp);
-		else
-		{
-			//llwarns << "Could not find source avatar for lookat effect" << llendl;
-			return;
-		}
+		setSourceObject(avatarp);
+	}
+	else
+	{
+		//llwarns << "Could not find source avatar for lookat effect" << llendl;
+		return;
 	}
 
 	htonmemcpy(target_id.mData, &(packed_data[TARGET_OBJECT]), MVT_LLUUID, 16);
@@ -506,7 +506,7 @@ void LLHUDEffectLookAt::render()
 	static const LLCachedControl<bool> private_look_at("PrivateLookAt",false);
 	static const LLCachedControl<bool> show_look_at("AscentShowLookAt", false);
 
-    if (private_look_at && (gAgent.getAvatarObject() == ((LLVOAvatar*)(LLViewerObject*)mSourceObject)))
+    if (private_look_at && (gAgentAvatarp == ((LLVOAvatar*)(LLViewerObject*)mSourceObject)))
         return;
 
 	if (show_look_at && mSourceObject.notNull())
@@ -516,10 +516,10 @@ void LLHUDEffectLookAt::render()
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 
 		LLVector3 target = mTargetPos + ((LLVOAvatar*)(LLViewerObject*)mSourceObject)->mHeadp->getWorldPosition();
-		glMatrixMode(GL_MODELVIEW);
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
 		gGL.pushMatrix();
 		gGL.translatef(target.mV[VX], target.mV[VY], target.mV[VZ]);
-		glScalef(0.3f, 0.3f, 0.3f);
+		gGL.scalef(0.3f, 0.3f, 0.3f);
 		gGL.begin(LLRender::LINES);
 		{
 			LLColor3 color = (*mAttentions)[mTargetType].mColor;
@@ -542,12 +542,13 @@ void LLHUDEffectLookAt::render()
 		offset *= 0.5f;
 		const LLFontGL* font = LLResMgr::getInstance()->getRes(LLFONT_SANSSERIF);
 		LLGLEnable gl_blend(GL_BLEND);
-		glPushMatrix();
-		gViewerWindow->setupViewport();
+		gGL.pushMatrix();
+		gViewerWindow->setup2DViewport();
 		hud_render_utf8text(text,
 			target + shadow_offset,
 			*font,
 			LLFontGL::NORMAL,
+			LLFontGL::NO_SHADOW,
 			-0.5f * font->getWidthF32(text) + 2.0f,
 			-2.0f,
 			LLColor4::black,
@@ -556,11 +557,12 @@ void LLHUDEffectLookAt::render()
 			target + offset,
 			*font,
 			LLFontGL::NORMAL,
+			LLFontGL::NO_SHADOW,
 			-0.5f * font->getWidthF32(text),
 			0.0f,
 			(*mAttentions)[mTargetType].mColor,
 			FALSE);
-		glPopMatrix();
+		gGL.popMatrix();
 		// </edit>
 	}
 }

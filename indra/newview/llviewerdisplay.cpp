@@ -123,14 +123,19 @@ void render_disconnected_background();
 void display_startup()
 {
 	if (   !gViewerWindow->getActive()
-		|| !gViewerWindow->mWindow->getVisible() 
-		|| gViewerWindow->mWindow->getMinimized()
+		|| !gViewerWindow->getWindow()->getVisible() 
+		|| gViewerWindow->getWindow()->getMinimized()
 		|| gNoRender )
 	{
 		return; 
 	}
 
 	gPipeline.updateGL();
+
+	// Update images?
+	//gImageList.updateImages(0.01f);
+	LLTexUnit::sWhiteTexture = LLViewerFetchedTexture::sWhiteImagep->getTexName();
+
 	LLGLSDefault gls_default;
 
 	// Required for HTML update in login screen
@@ -163,7 +168,7 @@ void display_startup()
 	LLGLState::checkStates();
 	LLGLState::checkTextureChannels();
 
-	gViewerWindow->mWindow->swapBuffers();
+	gViewerWindow->getWindow()->swapBuffers();
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -191,8 +196,8 @@ void display_update_camera(bool tiling=false)
 	gViewerWindow->setup3DRender();
 	
 	// update all the sky/atmospheric/water settings
-	LLWLParamManager::instance()->update(LLViewerCamera::getInstance());
-	LLWaterParamManager::instance()->update(LLViewerCamera::getInstance());
+	LLWLParamManager::getInstance()->update(LLViewerCamera::getInstance());
+	LLWaterParamManager::getInstance()->update(LLViewerCamera::getInstance());
 
 	// Update land visibility too
 	LLWorld::getInstance()->setLandFarClip(final_far);
@@ -220,9 +225,10 @@ void display_stats()
 	F32 mem_log_freq = gSavedSettings.getF32("MemoryLogFrequency");
 	if (mem_log_freq > 0.f && gRecentMemoryTime.getElapsedTimeF32() >= mem_log_freq)
 	{
-		gMemoryAllocated = getCurrentRSS();
+		gMemoryAllocated = LLMemory::getCurrentRSS();
 		U32 memory = (U32)(gMemoryAllocated / (1024*1024));
 		llinfos << llformat("MEMORY: %d MB", memory) << llendl;
+		LLMemory::logMemoryInfo(TRUE) ;
 		gRecentMemoryTime.reset();
 	}
 }
@@ -236,7 +242,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	{ //skip render on frames where window has been resized
 		gGL.flush();
 		glClear(GL_COLOR_BUFFER_BIT);
-		gViewerWindow->mWindow->swapBuffers();
+		gViewerWindow->getWindow()->swapBuffers();
+		LLPipeline::refreshCachedSettings();
 		gPipeline.resizeScreenTexture();
 		gResizeScreenTexture = FALSE;
 		gWindowResized = FALSE;
@@ -264,23 +271,31 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	LLGLState::checkStates();
 	LLGLState::checkTextureChannels();
 	
+	stop_glerror();
+
 	gPipeline.disableLights();
 	
+	stop_glerror();
+
 	// Don't draw if the window is hidden or minimized.
 	// In fact, must explicitly check the minimized state before drawing.
 	// Attempting to draw into a minimized window causes a GL error. JC
 	if (   !gViewerWindow->getActive()
-		|| !gViewerWindow->mWindow->getVisible() 
-		|| gViewerWindow->mWindow->getMinimized() )
+		|| !gViewerWindow->getWindow()->getVisible() 
+		|| gViewerWindow->getWindow()->getMinimized() )
 	{
 		// Clean up memory the pools may have allocated
 		if (rebuild)
 		{
 			gFrameStats.start(LLFrameStats::REBUILD);
+			stop_glerror();
 			gPipeline.rebuildPools();
+			stop_glerror();
 		}
 
+		stop_glerror();
 		gViewerWindow->returnEmptyPicks();
+		stop_glerror();
 		return; 
 	}
 
@@ -364,9 +379,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		const F32 TELEPORT_ARRIVAL_DELAY = 2.f; // Time to preload the world before raising the curtain after we've actually already arrived.
 
 		S32 attach_count = 0;
-		if (gAgent.getAvatarObject())
+		if (isAgentAvatarValid())
 		{
-			attach_count = gAgent.getAvatarObject()->getAttachmentCount();
+			attach_count = gAgentAvatarp->getAttachmentCount();
 		}
 		F32 teleport_save_time = TELEPORT_EXPIRY + TELEPORT_EXPIRY_PER_ATTACHMENT * attach_count;
 		F32 teleport_elapsed = gTeleportDisplayTimer.getElapsedTimeF32();
@@ -546,7 +561,6 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	{
 		LLAppViewer::instance()->pingMainloopTimeout("Display:Disconnected");
 		render_ui();
-		render_disconnected_background();
 	}
 	
 	//////////////////////////
@@ -563,10 +577,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	// Note that these are not the same as GL defaults...
 
 	stop_glerror();
-	F32 one[4] =	{1.f, 1.f, 1.f, 1.f};
-	glLightModelfv (GL_LIGHT_MODEL_AMBIENT,one);
+	gGL.setAmbientLightColor(LLColor4::white);
 	stop_glerror();
-		
+			
 	/////////////////////////////////////
 	//
 	// Render
@@ -586,7 +599,7 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		}
 	}
 
-	gViewerWindow->setupViewport();
+	gViewerWindow->setup3DViewport();
 
 	gPipeline.resetFrameStats();	// Reset per-frame statistics.
 	if (!gDisconnected)
@@ -617,7 +630,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		gFrameStats.start(LLFrameStats::UPDATE_GEOM);
 		const F32 max_geom_update_time = 0.005f*10.f*gFrameIntervalSeconds; // 50 ms/second update time
 		gPipeline.createObjects(max_geom_update_time);
+		gPipeline.processPartitionQ();
 		gPipeline.updateGeom(max_geom_update_time);
+		stop_glerror();
 		gPipeline.updateGL();
 		stop_glerror();
 		
@@ -643,21 +658,12 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		LLDrawable::incrementVisible();
 
 		LLSpatialGroup::sNoDelete = TRUE;
-		LLPipeline::sUseOcclusion = 
-				(!gUseWireframe
-				&& LLFeatureManager::getInstance()->isFeatureAvailable("UseOcclusion") 
-				&& gSavedSettings.getBOOL("UseOcclusion") 
-				&& gGLManager.mHasOcclusionQuery) ? 2 : 0;
+		LLTexUnit::sWhiteTexture = LLViewerFetchedTexture::sWhiteImagep->getTexName();
 
 		/*if (LLPipeline::sUseOcclusion && LLPipeline::sRenderDeferred)
 		{ //force occlusion on for all render types if doing deferred render
 			LLPipeline::sUseOcclusion = 3;
 		}*/
-
-		LLPipeline::sFastAlpha = gSavedSettings.getBOOL("RenderFastAlpha");
-		LLPipeline::sUseFarClip = gSavedSettings.getBOOL("RenderUseFarClip");
-		LLVOAvatar::sMaxVisible = (U32)gSavedSettings.getS32("RenderAvatarMaxVisible");
-		LLPipeline::sDelayVBUpdate = gSavedSettings.getBOOL("RenderDelayVBUpdate");
 
 		S32 occlusion = LLPipeline::sUseOcclusion;
 		if (gDepthDirty)
@@ -679,15 +685,12 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		LLGLState::checkTextureChannels();
 		LLGLState::checkClientArrays();
 
-		BOOL to_texture = gPipeline.canUseVertexShaders() && LLPipeline::sRenderGlow;
+		BOOL to_texture = gPipeline.canUseVertexShaders() && 
+						LLPipeline::sRenderGlow;
 
 		LLAppViewer::instance()->pingMainloopTimeout("Display:Swap");
 		
 		{ 
-			{
- 				LLFastTimer ftm(LLFastTimer::FTM_CLIENT_COPY);
-				LLVertexBuffer::clientCopy(0.016);
-			}
 
 			if (gResizeScreenTexture)
 			{
@@ -720,15 +723,19 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 				glh::matrix4f mod = glh_get_current_modelview();
 				glViewport(0,0,512,512);
 				LLVOAvatar::updateFreezeCounter() ;
-				LLVOAvatar::updateImpostors();
+
+				if(!LLPipeline::sMemAllocationThrottled)
+				{		
+					LLVOAvatar::updateImpostors();
+				}
 
 				glh_set_current_projection(proj);
 				glh_set_current_modelview(mod);
-				glMatrixMode(GL_PROJECTION);
-				glLoadMatrixf(proj.m);
-				glMatrixMode(GL_MODELVIEW);
-				glLoadMatrixf(mod.m);
-				gViewerWindow->setupViewport();
+				gGL.matrixMode(LLRender::MM_PROJECTION);
+				gGL.loadMatrix(proj.m);
+				gGL.matrixMode(LLRender::MM_MODELVIEW);
+				gGL.loadMatrix(mod.m);
+				gViewerWindow->setup3DViewport();
 
 				LLGLState::checkStates();
 				LLGLState::checkTextureChannels();
@@ -738,11 +745,17 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		}
 
+		LLGLState::checkStates();
+		LLGLState::checkClientArrays();
+
 		if (!for_snapshot || tiling)
 		{
 			LLAppViewer::instance()->pingMainloopTimeout("Display:Imagery");
 			gPipeline.generateWaterReflection(*LLViewerCamera::getInstance());
 		}
+
+		LLGLState::checkStates();
+		LLGLState::checkClientArrays();
 
 		//////////////////////////////////////
 		//
@@ -773,6 +786,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			stop_glerror();
 		}
 		llpushcallstacks ;
+		LLGLState::checkStates();
+		LLGLState::checkClientArrays();
 		///////////////////////////////////
 		//
 		// StateSort
@@ -801,6 +816,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			}
 		}
 
+		LLGLState::checkStates();
+		LLGLState::checkClientArrays();
+
 		LLPipeline::sUseOcclusion = occlusion;
 
 		{
@@ -826,24 +844,24 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		//// assumes frontmost floater with focus is opaque
 		//if (frontmost_floaterp && gFocusMgr.childHasKeyboardFocus(frontmost_floaterp))
 		//{
-		//	glMatrixMode(GL_MODELVIEW);
-		//	glPushMatrix();
+		//	gGL.matrixMode(LLRender::MM_MODELVIEW);
+		//	gGL.pushMatrix();
 		//	{
 		//		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 
 		//		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-		//		glLoadIdentity();
+		//		gGL.loadIdentity();
 
-		//		LLRect floater_rect = frontmost_floaterp->getScreenRect();
+		//		LLRect floater_rect = frontmost_floaterp->calcScreenRect();
 		//		// deflate by one pixel so rounding errors don't occlude outside of floater extents
 		//		floater_rect.stretch(-1);
-		//		LLRectf floater_3d_rect((F32)floater_rect.mLeft / (F32)gViewerWindow->getWindowWidth(), 
-		//								(F32)floater_rect.mTop / (F32)gViewerWindow->getWindowHeight(),
-		//								(F32)floater_rect.mRight / (F32)gViewerWindow->getWindowWidth(),
-		//								(F32)floater_rect.mBottom / (F32)gViewerWindow->getWindowHeight());
+		//		LLRectf floater_3d_rect((F32)floater_rect.mLeft / (F32)gViewerWindow->getWindowWidthScaled(), 
+		//								(F32)floater_rect.mTop / (F32)gViewerWindow->getWindowHeightScaled(),
+		//								(F32)floater_rect.mRight / (F32)gViewerWindow->getWindowWidthScaled(),
+		//								(F32)floater_rect.mBottom / (F32)gViewerWindow->getWindowHeightScaled());
 		//		floater_3d_rect.translate(-0.5f, -0.5f);
-		//		glTranslatef(0.f, 0.f, -LLViewerCamera::getInstance()->getNear());
-		//		glScalef(LLViewerCamera::getInstance()->getNear() * LLViewerCamera::getInstance()->getAspect() / sinf(LLViewerCamera::getInstance()->getView()), LLViewerCamera::getInstance()->getNear() / sinf(LLViewerCamera::getInstance()->getView()), 1.f);
+		//		gGL.translatef(0.f, 0.f, -LLViewerCamera::getInstance()->getNear());
+		//		gGL.scalef(LLViewerCamera::getInstance()->getNear() * LLViewerCamera::getInstance()->getAspect() / sinf(LLViewerCamera::getInstance()->getView()), LLViewerCamera::getInstance()->getNear() / sinf(LLViewerCamera::getInstance()->getView()), 1.f);
 		//		gGL.color4fv(LLColor4::white.mV);
 		//		gGL.begin(LLVertexBuffer::QUADS);
 		//		{
@@ -855,12 +873,14 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		//		gGL.end();
 		//		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 		//	}
-		//	glPopMatrix();
+		//	gGL.popMatrix();
 		//}
 
 		LLPipeline::sUnderWaterRender = LLViewerCamera::getInstance()->cameraUnderWater() ? TRUE : FALSE;
-		LLPipeline::updateRenderDeferred();
 		
+		LLGLState::checkStates();
+		LLGLState::checkClientArrays();
+
 		stop_glerror();
 
 		if (to_texture)
@@ -869,12 +889,17 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			if (LLPipeline::sRenderDeferred && !LLPipeline::sUnderWaterRender)
 			{
 				gPipeline.mDeferredScreen.bindTarget();
-				glClearColor(0,0,0,0);
+				glClearColor(1,0,1,1);
 				gPipeline.mDeferredScreen.clear();
 			}
 			else if(!tiling)
 			{
 				gPipeline.mScreen.bindTarget();
+				if (LLPipeline::sUnderWaterRender && !gPipeline.canUseWindLightShaders())
+				{
+					const LLColor4 &col = LLDrawPoolWater::sWaterFogColor;
+					glClearColor(col.mV[0], col.mV[1], col.mV[2], 0.f);
+				}
 				gPipeline.mScreen.clear();
 			}
 			
@@ -909,6 +934,14 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			stop_glerror();
 		}
 
+		for (U32 i = 0; i < (U32)gGLManager.mNumTextureImageUnits; i++)
+		{ //dummy cleanup of any currently bound textures
+			if (gGL.getTexUnit(i)->getCurrType() != LLTexUnit::TT_NONE)
+			{
+				gGL.getTexUnit(i)->unbind(gGL.getTexUnit(i)->getCurrType());
+				gGL.getTexUnit(i)->disable();
+			}
+		}
 		LLAppViewer::instance()->pingMainloopTimeout("Display:RenderFlush");		
 		
 		if (to_texture)
@@ -979,10 +1012,10 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 
 void render_hud_attachments()
 {
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.pushMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.pushMatrix();
 		
 	glh::matrix4f current_proj = glh_get_current_projection();
 	glh::matrix4f current_mod = glh_get_current_modelview();
@@ -1030,7 +1063,6 @@ void render_hud_attachments()
 
 		S32 use_occlusion = LLPipeline::sUseOcclusion;
 		LLPipeline::sUseOcclusion = 0;
-		LLPipeline::sDisableShaders = TRUE;
 		
 		//cull, sort, and render hud objects
 		static LLCullResult result;
@@ -1059,6 +1091,7 @@ void render_hud_attachments()
 		gPipeline.renderGeom(hud_cam);
 
 		LLSpatialGroup::sNoDelete = FALSE;
+		//gPipeline.clearReferences();
 
 		render_hud_elements();
 
@@ -1070,12 +1103,11 @@ void render_hud_attachments()
 			gPipeline.toggleRenderDebugFeature((void*) LLPipeline::RENDER_DEBUG_FEATURE_UI);
 		}
 		LLPipeline::sUseOcclusion = use_occlusion;
-		LLPipeline::sDisableShaders = FALSE;
 	}
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.popMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.popMatrix();
 	
 	glh_set_current_projection(current_proj);
 	glh_set_current_modelview(current_mod);
@@ -1083,46 +1115,44 @@ void render_hud_attachments()
 
 LLRect get_whole_screen_region()
 {
-	LLRect whole_screen = gViewerWindow->getVirtualWindowRect();
-
+	LLRect whole_screen = gViewerWindow->getWorldViewRectScaled();
+	
 	// apply camera zoom transform (for high res screenshots)
 	F32 zoom_factor = LLViewerCamera::getInstance()->getZoomFactor();
 	S16 sub_region = LLViewerCamera::getInstance()->getZoomSubRegion();
 	if (zoom_factor > 1.f)
 	{
 		S32 num_horizontal_tiles = llceil(zoom_factor);
-		S32 tile_width = llround((F32)gViewerWindow->getWindowWidth() / zoom_factor);
-		S32 tile_height = llround((F32)gViewerWindow->getWindowHeight() / zoom_factor);
+		S32 tile_width = llround((F32)gViewerWindow->getWorldViewWidthScaled() / zoom_factor);
+		S32 tile_height = llround((F32)gViewerWindow->getWorldViewHeightScaled() / zoom_factor);
 		int tile_y = sub_region / num_horizontal_tiles;
 		int tile_x = sub_region - (tile_y * num_horizontal_tiles);
-
-		whole_screen.setLeftTopAndSize(tile_x * tile_width, gViewerWindow->getWindowHeight() - (tile_y * tile_height), tile_width, tile_height);
+			
+		whole_screen.setLeftTopAndSize(tile_x * tile_width, gViewerWindow->getWorldViewHeightScaled() - (tile_y * tile_height), tile_width, tile_height);
 	}
 	return whole_screen;
 }
 
 bool get_hud_matrices(const LLRect& screen_region, glh::matrix4f &proj, glh::matrix4f &model)
 {
-	LLVOAvatar* my_avatarp = gAgent.getAvatarObject();
-	if (my_avatarp && my_avatarp->hasHUDAttachment())
+	if (isAgentAvatarValid() && gAgentAvatarp->hasHUDAttachment())
 	{
 		F32 zoom_level = gAgentCamera.mHUDCurZoom;
-		LLBBox hud_bbox = my_avatarp->getHUDBBox();
-
-		// set up transform to keep HUD objects in front of camera
+		LLBBox hud_bbox = gAgentAvatarp->getHUDBBox();
+		
 		F32 hud_depth = llmax(1.f, hud_bbox.getExtentLocal().mV[VX] * 1.1f);
 		proj = gl_ortho(-0.5f * LLViewerCamera::getInstance()->getAspect(), 0.5f * LLViewerCamera::getInstance()->getAspect(), -0.5f, 0.5f, 0.f, hud_depth);
 		proj.element(2,2) = -0.01f;
 		
 		F32 aspect_ratio = LLViewerCamera::getInstance()->getAspect();
-
+		
 		glh::matrix4f mat;
-		F32 scale_x = (F32)gViewerWindow->getWindowWidth() / (F32)screen_region.getWidth();
-		F32 scale_y = (F32)gViewerWindow->getWindowHeight() / (F32)screen_region.getHeight();
+		F32 scale_x = (F32)gViewerWindow->getWorldViewWidthScaled() / (F32)screen_region.getWidth();
+		F32 scale_y = (F32)gViewerWindow->getWorldViewHeightScaled() / (F32)screen_region.getHeight();
 		mat.set_scale(glh::vec3f(scale_x, scale_y, 1.f));
 		mat.set_translate(
-			glh::vec3f(clamp_rescale((F32)screen_region.getCenterX(), 0.f, (F32)gViewerWindow->getWindowWidth(), 0.5f * scale_x * aspect_ratio, -0.5f * scale_x * aspect_ratio),
-						clamp_rescale((F32)screen_region.getCenterY(), 0.f, (F32)gViewerWindow->getWindowHeight(), 0.5f * scale_y, -0.5f * scale_y),
+			glh::vec3f(clamp_rescale((F32)(screen_region.getCenterX() - screen_region.mLeft), 0.f, (F32)gViewerWindow->getWorldViewWidthScaled(), 0.5f * scale_x * aspect_ratio, -0.5f * scale_x * aspect_ratio),
+					   clamp_rescale((F32)(screen_region.getCenterY() - screen_region.mBottom), 0.f, (F32)gViewerWindow->getWorldViewHeightScaled(), 0.5f * scale_y, -0.5f * scale_y),
 					   0.f));
 		proj *= mat;
 		
@@ -1160,12 +1190,12 @@ BOOL setup_hud_matrices(const LLRect& screen_region)
 	if (!result) return result;
 	
 	// set up transform to keep HUD objects in front of camera
-	glMatrixMode(GL_PROJECTION);
-	glLoadMatrixf(proj.m);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.loadMatrix(proj.m);
 	glh_set_current_projection(proj);
 	
-	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(model.m);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.loadMatrix(model.m);
 	glh_set_current_modelview(model);
 	return TRUE;
 }
@@ -1177,8 +1207,8 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 
 	if (!gSnapshot)
 	{
-		glPushMatrix();
-		glLoadMatrixd(gGLLastModelView);
+		gGL.pushMatrix();
+		gGL.loadMatrix(gGLLastModelView);
 		glh_set_current_modelview(glh_copy_matrix(gGLLastModelView));
 	}
 	
@@ -1195,7 +1225,7 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 		/// and then display it again with compositor effects.
 		/// Using render to texture would be faster/better, but I don't have a 
 		/// grasp of their full display stack just yet.
-		gPostProcess->apply(gViewerWindow->getWindowDisplayWidth(), gViewerWindow->getWindowDisplayHeight());
+		LLPostProcess::getInstance()->apply(gViewerWindow->getWindowDisplayWidth(), gViewerWindow->getWindowDisplayHeight());
 		
 		render_hud_elements();
 		render_hud_attachments();
@@ -1241,13 +1271,13 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 	if (!gSnapshot)
 	{
 		glh_set_current_modelview(saved_view);
-		glPopMatrix();
+		gGL.popMatrix();
 	}
 
 	if (gDisplaySwapBuffers)
 	{
 		LLFastTimer t(LLFastTimer::FTM_SWAP);
-		gViewerWindow->mWindow->swapBuffers();
+		gViewerWindow->getWindow()->swapBuffers();
 	}
 	gDisplaySwapBuffers = TRUE;
 }
@@ -1314,10 +1344,10 @@ void draw_axes()
 		gGL.vertex3f(0.0f, 0.0f, 40.0f);
 	gGL.end();
 	// Some coordinate axes
-	glPushMatrix();
-		glTranslatef( v.mV[VX], v.mV[VY], v.mV[VZ] );
+	gGL.pushMatrix();
+		gGL.translatef( v.mV[VX], v.mV[VY], v.mV[VZ] );
 		renderCoordinateAxes();
-	glPopMatrix();
+	gGL.popMatrix();
 }
 
 void render_ui_3d()
@@ -1339,14 +1369,19 @@ void render_ui_3d()
 
 	// Debugging stuff goes before the UI.
 
+	stop_glerror();
+	
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.bind();
+	}
+
 	// Coordinate axes
 	if (gSavedSettings.getBOOL("ShowAxes"))
 	{
 		draw_axes();
 	}
 
-	stop_glerror();
-		
 	gViewerWindow->renderSelections(FALSE, FALSE, TRUE); // Non HUD call in render_hud_elements
 	stop_glerror();
 }
@@ -1374,33 +1409,29 @@ void render_ui_2d()
 		int pos_y = sub_region / llceil(zoom_factor);
 		int pos_x = sub_region - (pos_y*llceil(zoom_factor));
 		// offset for this tile
-		LLFontGL::sCurOrigin.mX -= llround((F32)gViewerWindow->getWindowWidth() * (F32)pos_x / zoom_factor);
-		LLFontGL::sCurOrigin.mY -= llround((F32)gViewerWindow->getWindowHeight() * (F32)pos_y / zoom_factor);
+		LLFontGL::sCurOrigin.mX -= llround((F32)gViewerWindow->getWindowWidthScaled() * (F32)pos_x / zoom_factor);
+		LLFontGL::sCurOrigin.mY -= llround((F32)gViewerWindow->getWindowHeightScaled() * (F32)pos_y / zoom_factor);
 	}
 
 	stop_glerror();
-	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+	//gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
 
 	// render outline for HUD
-	if (gAgent.getAvatarObject() && gAgentCamera.mHUDCurZoom < 0.98f)
+	if (isAgentAvatarValid() && gAgentCamera.mHUDCurZoom < 0.98f)
 	{
 		gGL.pushMatrix();
-		S32 half_width = (gViewerWindow->getWindowWidth() / 2);
-		S32 half_height = (gViewerWindow->getWindowHeight() / 2);
-		glScalef(LLUI::sGLScaleFactor.mV[0], LLUI::sGLScaleFactor.mV[1], 1.f);
-		glTranslatef((F32)half_width, (F32)half_height, 0.f);
+		S32 half_width = (gViewerWindow->getWorldViewWidthScaled() / 2);
+		S32 half_height = (gViewerWindow->getWorldViewHeightScaled() / 2);
+		gGL.scalef(LLUI::sGLScaleFactor.mV[0], LLUI::sGLScaleFactor.mV[1], 1.f);
+		gGL.translatef((F32)half_width, (F32)half_height, 0.f);
 		F32 zoom = gAgentCamera.mHUDCurZoom;
-		glScalef(zoom,zoom,1.f);
+		gGL.scalef(zoom,zoom,1.f);
 		gGL.color4fv(LLColor4::white.mV);
 		gl_rect_2d(-half_width, half_height, half_width, -half_height, FALSE);
 		gGL.popMatrix();
 		stop_glerror();
 	}
 	gViewerWindow->draw();
-	if (gDebugSelect)
-	{
-		gViewerWindow->drawPickBuffer();
-	}
 
 	// reset current origin for font rendering, in case of tiling render
 	LLFontGL::sCurOrigin.set(0, 0);
@@ -1408,6 +1439,11 @@ void render_ui_2d()
 
 void render_disconnected_background()
 {
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.bind();
+	}
+
 	gGL.color4f(1,1,1,1);
 	if (!gDisconnectedImagep && gDisconnected)
 	{
@@ -1454,29 +1490,35 @@ void render_disconnected_background()
 	}
 
 	// Make sure the progress view always fills the entire window.
-	S32 width = gViewerWindow->getWindowWidth();
-	S32 height = gViewerWindow->getWindowHeight();
+	S32 width = gViewerWindow->getWindowWidthScaled();
+	S32 height = gViewerWindow->getWindowHeightScaled();
 
 	if (gDisconnectedImagep)
 	{
 		LLGLSUIDefault gls_ui;
 		gViewerWindow->setup2DRender();
-		glPushMatrix();
+		gGL.pushMatrix();
 		{
 			// scale ui to reflect UIScaleFactor
 			// this can't be done in setup2DRender because it requires a
 			// pushMatrix/popMatrix pair
 			const LLVector2& display_scale = gViewerWindow->getDisplayScale();
-			glScalef(display_scale.mV[VX], display_scale.mV[VY], 1.f);
+			gGL.scalef(display_scale.mV[VX], display_scale.mV[VY], 1.f);
 
 			gGL.getTexUnit(0)->bind(gDisconnectedImagep);
 			gGL.color4f(1.f, 1.f, 1.f, 1.f);
 			gl_rect_2d_simple_tex(width, height);
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 	}
 	gGL.flush();
+
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.unbind();
+	}
+
 }
 
 void display_cleanup()

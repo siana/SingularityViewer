@@ -14,17 +14,6 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>SianaRenderOmitBlankVBO</key>
-		<map>
-			<key>Comment</key>
-			<string>Optimization: omit prefilling VBOs with zeroes. Default: OFF</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
 		<key>SianaUnsitOnCamReset</key>
 		<map>
 			<key>Comment</key>

@@ -54,6 +54,7 @@
 #include "llalertdialog.h"
 #include "llselectmgr.h"
 #include "llscrolllistctrl.h"
+#include "llnotificationsutil.h"
 #include "lltextbox.h"
 #include "lluictrlfactory.h"
 #include "llviewerwindow.h"
@@ -425,7 +426,7 @@ void LLPanelGroups::leave()
 			args["GROUP"] = gAgent.mGroups.get(i).mName;
 			LLSD payload;
 			payload["group_id"] = group_id;
-			LLNotifications::instance().add("GroupLeaveConfirmMember", args, payload, callbackLeaveGroup);
+			LLNotificationsUtil::add("GroupLeaveConfirmMember", args, payload, callbackLeaveGroup);
 		}
 	}
 }

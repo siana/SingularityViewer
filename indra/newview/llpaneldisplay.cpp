@@ -120,7 +120,7 @@ BOOL LLPanelDisplay::postBuild()
 	// radio set for fullscreen size
 	
 	mCtrlWindowed = getChild<LLCheckBoxCtrl>( "windowed mode");
-	mCtrlWindowed->setCommitCallback(onCommitWindowedMode);
+	mCtrlWindowed->setCommitCallback(&LLPanelDisplay::onCommitWindowedMode);
 	mCtrlWindowed->setCallbackUserData(this);
 
 	mAspectRatioLabel1 = getChild<LLTextBox>("AspectRatioLabel1");
@@ -215,7 +215,7 @@ BOOL LLPanelDisplay::postBuild()
 
 	// radio performance box
 	mCtrlSliderQuality = getChild<LLSliderCtrl>("QualityPerformanceSelection");
-	mCtrlSliderQuality->setSliderMouseUpCallback(onChangeQuality);
+	mCtrlSliderQuality->setSliderMouseUpCallback(boost::bind(&LLPanelDisplay::onChangeQuality,mCtrlSliderQuality,this));
 	mCtrlSliderQuality->setCallbackUserData(this);
 
 	mCtrlCustomSettings = getChild<LLCheckBoxCtrl>("CustomSettings");
@@ -243,9 +243,9 @@ BOOL LLPanelDisplay::postBuild()
 	mCtrlDeferred = getChild<LLCheckBoxCtrl>("RenderDeferred");
 	mCtrlDeferred->setCommitCallback(&LLPanelDisplay::onVertexShaderEnable);
 	mCtrlDeferred->setCallbackUserData(this);
-	mCtrlDeferredGI = getChild<LLCheckBoxCtrl>("RenderDeferredGI");
-	mCtrlDeferredGI->setCommitCallback(&LLPanelDisplay::onVertexShaderEnable);
-	mCtrlDeferredGI->setCallbackUserData(this);
+	mCtrlDeferredDoF = getChild<LLCheckBoxCtrl>("RenderDepthOfField");
+	mCtrlDeferredDoF->setCommitCallback(&LLPanelDisplay::onVertexShaderEnable);
+	mCtrlDeferredDoF->setCallbackUserData(this);
 	mCtrlShadowDetail = getChild<LLComboBox>("ShadowDetailCombo");
 	mCtrlShadowDetail->setCommitCallback(&LLPanelDisplay::onVertexShaderEnable);
 	mCtrlShadowDetail->setCallbackUserData(this);
@@ -260,6 +260,9 @@ BOOL LLPanelDisplay::postBuild()
 	// Avatar Render Mode
 	mCtrlAvatarCloth = getChild<LLCheckBoxCtrl>("AvatarCloth");
 	mCtrlAvatarImpostors = getChild<LLCheckBoxCtrl>("AvatarImpostors");
+	mCtrlAvatarImpostors->setCommitCallback(&LLPanelDisplay::onVertexShaderEnable);
+	mCtrlAvatarImpostors->setCallbackUserData(this);
+	mCtrlNonImpostors = getChild<LLSliderCtrl>("AvatarMaxVisible");
 
 	//----------------------------------------------------------------------------
 	// radio set for lighting detail
@@ -408,7 +411,7 @@ void LLPanelDisplay::refresh()
 	mWindLight = gSavedSettings.getBOOL("WindLightUseAtmosShaders");
 	mAvatarVP = gSavedSettings.getBOOL("RenderAvatarVP");
 	mDeferred = gSavedSettings.getBOOL("RenderDeferred");
-	mDeferredGI = gSavedSettings.getBOOL("RenderDeferredGI");
+	mDeferredDoF = gSavedSettings.getBOOL("RenderDepthOfField");
 
 	// reflection radio
 	mReflectionDetail = gSavedSettings.getS32("RenderReflectionDetail");
@@ -417,6 +420,7 @@ void LLPanelDisplay::refresh()
 
 	// avatar settings
 	mAvatarImpostors = gSavedSettings.getBOOL("RenderUseImpostors");
+	mNonImpostors = gSavedSettings.getS32("RenderAvatarMaxVisible");
 	mAvatarCloth = gSavedSettings.getBOOL("RenderAvatarCloth");
 
 	// Draw distance
@@ -511,8 +515,10 @@ void LLPanelDisplay::refreshEnabledState()
 
 	mCtrlDeferred->setEnabled(can_defer);
 	mCtrlShadowDetail->setEnabled(can_defer && gSavedSettings.getBOOL("RenderDeferred"));
-	//GI won't do anything with shadows off, but disabling it here is less than intuitive. Ignore shadow setting for now.
-	mCtrlDeferredGI->setEnabled(mCtrlShadowDetail->getEnabled()/* && gSavedSettings.getS32("RenderShadowDetail") > 0*/); 
+	mCtrlDeferredDoF->setEnabled(can_defer && gSavedSettings.getBOOL("RenderDeferred")); 
+
+	// Disable max non-impostors slider if avatar impostors are off
+	mCtrlNonImpostors->setEnabled(gSavedSettings.getBOOL("RenderUseImpostors"));
 
 	// Vertex Shaders
 //	mCtrlShaderEnable->setEnabled(LLFeatureManager::getInstance()->isFeatureAvailable("VertexShaderEnable"));
@@ -572,8 +578,8 @@ void LLPanelDisplay::disableUnavailableSettings()
 
 		mCtrlDeferred->setEnabled(FALSE);
 		mCtrlDeferred->setValue(FALSE);
-		mCtrlDeferredGI->setEnabled(FALSE);
-		mCtrlDeferredGI->setValue(FALSE);
+		mCtrlDeferredDoF->setEnabled(FALSE);
+		mCtrlDeferredDoF->setValue(FALSE);
 		mCtrlShadowDetail->setEnabled(FALSE);
 		mCtrlShadowDetail->setValue(FALSE);
 	}
@@ -612,14 +618,15 @@ void LLPanelDisplay::disableUnavailableSettings()
 	{
 		mCtrlAvatarImpostors->setEnabled(FALSE);
 		mCtrlAvatarImpostors->setValue(FALSE);
+		mCtrlNonImpostors->setEnabled(FALSE);
 	}
 	// disabled deferred
 	if(!LLFeatureManager::getInstance()->isFeatureAvailable("RenderDeferred"))
 	{
 		mCtrlDeferred->setEnabled(FALSE);
 		mCtrlDeferred->setValue(FALSE);
-		mCtrlDeferredGI->setEnabled(FALSE);
-		mCtrlDeferredGI->setValue(FALSE);
+		mCtrlDeferredDoF->setEnabled(FALSE);
+		mCtrlDeferredDoF->setValue(FALSE);
 		mCtrlShadowDetail->setEnabled(FALSE);
 		mCtrlShadowDetail->setValue(FALSE);
 	}
@@ -654,6 +661,7 @@ void LLPanelDisplay::setHiddenGraphicsState(bool isHidden)
 	llassert(mCtrlAvatarVP != NULL);
 	llassert(mCtrlShaderEnable != NULL);
 	llassert(mCtrlAvatarImpostors != NULL);
+	llassert(mCtrlNonImpostors != NULL);
 	llassert(mCtrlAvatarCloth != NULL);
 	llassert(mRadioLightingDetail2 != NULL);
 
@@ -702,6 +710,7 @@ void LLPanelDisplay::setHiddenGraphicsState(bool isHidden)
 	mCtrlAvatarVP->setVisible(!isHidden);
 	mCtrlShaderEnable->setVisible(!isHidden);
 	mCtrlAvatarImpostors->setVisible(!isHidden);
+	mCtrlNonImpostors->setVisible(!isHidden);
 	mCtrlAvatarCloth->setVisible(!isHidden);
 	mRadioLightingDetail2->setVisible(!isHidden);
 
@@ -709,7 +718,7 @@ void LLPanelDisplay::setHiddenGraphicsState(bool isHidden)
 	mCtrlReflectionDetail->setVisible(!isHidden);
 
 	mCtrlDeferred->setVisible(!isHidden);
-	mCtrlDeferredGI->setVisible(!isHidden);
+	mCtrlDeferredDoF->setVisible(!isHidden);
 	mCtrlShadowDetail->setVisible(!isHidden);
 
 	// text boxes
@@ -746,12 +755,13 @@ void LLPanelDisplay::cancel()
 
 	gSavedSettings.setBOOL("RenderAvatarVP", mAvatarVP);
 	gSavedSettings.setBOOL("RenderDeferred", mDeferred);
-	gSavedSettings.setBOOL("RenderDeferredGI", mDeferredGI);
+	gSavedSettings.setBOOL("RenderDepthOfField", mDeferredDoF);
 
 	gSavedSettings.setS32("RenderReflectionDetail", mReflectionDetail);
 	gSavedSettings.setS32("RenderShadowDetail", mShadowDetail);
 
 	gSavedSettings.setBOOL("RenderUseImpostors", mAvatarImpostors);
+	gSavedSettings.setS32("RenderAvatarMaxVisible", mNonImpostors);
 	gSavedSettings.setBOOL("RenderAvatarCloth", mAvatarCloth);
 
 	gSavedSettings.setBOOL("RenderLocalLights", mLocalLights);
@@ -994,6 +1004,11 @@ void LLPanelDisplay::onVertexShaderEnable(LLUICtrl* self, void* data)
 void LLPanelDisplay::setHardwareDefaults(void* user_data)
 {
 	LLFeatureManager::getInstance()->applyRecommendedSettings();
+	LLControlVariable* controlp = gSavedSettings.getControl("RenderAvatarMaxVisible");
+	if (controlp)
+	{
+		controlp->resetToDefault(true);
+	}
 	LLFloaterPreference::refreshEnabledGraphics();
 }
 

@@ -36,14 +36,12 @@
 #include "llglslshader.h"
 #include "llsdserialize.h"
 #include "llrender.h"
+#include "llvertexbuffer.h"
 
 #include "lldir.h"
 extern LLGLSLShader			gPostColorFilterProgram;
 extern LLGLSLShader			gPostNightVisionProgram;
 extern LLGLSLShader			gPostGaussianBlurProgram;
-
-LLPostProcess * gPostProcess = NULL;
-
 
 static const unsigned int NOISE_SIZE = 512;
 
@@ -56,13 +54,12 @@ static const float LUMINANCE_B = 0.114f;
 static const char * const XML_FILENAME = "postprocesseffects.xml";
 
 LLPostProcess::LLPostProcess(void) : 
-					initialized(false),  
+					mVBO(NULL),  
 					mAllEffects(LLSD::emptyMap()),
-					screenW(1), screenH(1)
+					mScreenWidth(1), mScreenHeight(1)
 {
 	mSceneRenderTexture = NULL ; 
 	mNoiseTexture = NULL ;
-	mTempBloomTexture = NULL ;
 					
 	/*  Do nothing.  Needs to be updated to use our current shader system, and to work with the move into llrender.*/
 	std::string pathName(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", XML_FILENAME));
@@ -82,7 +79,6 @@ LLPostProcess::LLPostProcess(void) :
 		LLSD & defaultEffect = (mAllEffects["default"] = LLSD::emptyMap());
 
 		/*defaultEffect["enable_night_vision"] = LLSD::Boolean(false);
-		defaultEffect["enable_bloom"] = LLSD::Boolean(false);
 		defaultEffect["enable_color_filter"] = LLSD::Boolean(false);*/
 
 		/// NVG Defaults
@@ -91,13 +87,7 @@ LLPostProcess::LLPostProcess(void) :
 		defaultEffect["noise_strength"] = 0.4;
 
 		// TODO BTest potentially add this to tweaks?
-		noiseTextureScale = 1.0f;
-		
-		/// Bloom Defaults
-		defaultEffect["extract_low"] = 0.95;
-		defaultEffect["extract_high"] = 1.0;
-		defaultEffect["bloom_width"] = 2.25;
-		defaultEffect["bloom_strength"] = 1.5;
+		mNoiseTextureScale = 1.0f;
 
 		/// Color Filter Defaults
 		defaultEffect["gamma"] = 1.0;
@@ -123,25 +113,10 @@ LLPostProcess::~LLPostProcess(void)
 	invalidate() ;
 }
 
-// static
-void LLPostProcess::initClass(void)
+/*static*/void LLPostProcess::cleanupClass()
 {
-	//this will cause system to crash at second time login
-	//if first time login fails due to network connection --- bao
-	//***llassert_always(gPostProcess == NULL);
-	//replaced by the following line:
-	if(gPostProcess)
-		return ;
-	
-	
-	gPostProcess = new LLPostProcess();
-}
-
-// static
-void LLPostProcess::cleanupClass()
-{
-	delete gPostProcess;
-	gPostProcess = NULL;
+	if(instanceExists())
+		getInstance()->invalidate() ;
 }
 
 void LLPostProcess::setSelectedEffect(std::string const & effectName)
@@ -152,7 +127,6 @@ void LLPostProcess::setSelectedEffect(std::string const & effectName)
 
 void LLPostProcess::saveEffect(std::string const & effectName)
 {
-	/*  Do nothing.  Needs to be updated to use our current shader system, and to work with the move into llrender.*/
 	mAllEffects[effectName] = tweaks;
 
 	std::string pathName(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", XML_FILENAME));
@@ -163,38 +137,57 @@ void LLPostProcess::saveEffect(std::string const & effectName)
 	LLPointer<LLSDFormatter> formatter = new LLSDXMLFormatter();
 
 	formatter->format(mAllEffects, effectsXML);
-	//*/
 }
 void LLPostProcess::invalidate()
 {
 	mSceneRenderTexture = NULL ;
 	mNoiseTexture = NULL ;
-	mTempBloomTexture = NULL ;
-	initialized = FALSE ;
+	mVBO = NULL ;
 }
 
 void LLPostProcess::apply(unsigned int width, unsigned int height)
 {
-	if (!initialized || width != screenW || height != screenH){
-		initialize(width, height);
-	}
-	if (shadersEnabled()){
+	if(shadersEnabled())
+	{
+		if (mVBO.isNull() || width != mScreenWidth || height != mScreenHeight)
+		{
+			initialize(width, height);
+		}
 		doEffects();
 	}
 }
 
 void LLPostProcess::initialize(unsigned int width, unsigned int height)
 {
-	screenW = width;
-	screenH = height;
-	createTexture(mSceneRenderTexture, screenW, screenH);
-	initialized = true;
+	invalidate();
+	mScreenWidth = width;
+	mScreenHeight = height;
+
+	createScreenTexture();
+
+	//Setup our VBO.
+	{
+		mVBO = new LLVertexBuffer(LLVertexBuffer::MAP_VERTEX | LLVertexBuffer::MAP_TEXCOORD0 | LLVertexBuffer::MAP_TEXCOORD1,3);
+		mVBO->allocateBuffer(4,0,TRUE);
+
+		LLStrider<LLVector3> v;
+		LLStrider<LLVector2> uv1;
+		LLStrider<LLVector2> uv2;
+
+		mVBO->getVertexStrider(v);
+		mVBO->getTexCoord0Strider(uv1);
+		mVBO->getTexCoord1Strider(uv2);
+	
+		v[0] = LLVector3( uv2[0] = uv1[0] = LLVector2(0, 0) );
+		v[1] = LLVector3( uv2[1] = uv1[1] = LLVector2(0, mScreenHeight) );
+		v[2] = LLVector3( uv2[2] = uv1[2] = LLVector2(mScreenWidth, 0) );
+		v[3] = LLVector3( uv2[3] = uv1[3] = LLVector2(mScreenWidth, mScreenHeight) );
+
+		mVBO->flush();
+	}
 
 	checkError();
-	createNightVisionShader();
-	//createBloomShader();
-	createColorFilterShader();
-	createGaussBlurShader();
+	createNoiseTexture();
 	checkError();
 }
 
@@ -202,9 +195,7 @@ inline bool LLPostProcess::shadersEnabled(void)
 {
 	return (tweaks.useColorFilter().asBoolean() ||
 			tweaks.useNightVisionShader().asBoolean() ||
-			/*tweaks.useBloomShader().asBoolean() ||*/
 			tweaks.useGaussBlurFilter().asBoolean() );
-
 }
 
 void LLPostProcess::applyShaders(void)
@@ -220,7 +211,7 @@ void LLPostProcess::applyShaders(void)
 	{
 		/// If any of the above shaders have been called update the frame buffer;
 		if (copy_buffer)
-			copyFrameBuffer(mSceneRenderTexture->getTexName(), screenW, screenH);
+			copyFrameBuffer();
 		applyGaussBlurShader();
 		checkError();
 		copy_buffer = true;
@@ -229,143 +220,65 @@ void LLPostProcess::applyShaders(void)
 	{
 		/// If any of the above shaders have been called update the frame buffer;
 		if (copy_buffer)
-			copyFrameBuffer(mSceneRenderTexture->getTexName(), screenW, screenH);
+			copyFrameBuffer();
 		applyNightVisionShader();
 		checkError();
 		copy_buffer = true;
 	}
-	/*if (tweaks.useBloomShader())
-	{
-		/// If any of the above shaders have been called update the frame buffer;
-		if (copy_buffer)
-			copyFrameBuffer(mSceneRenderTexture->getTexName(), screenW, screenH);
-		applyBloomShader();
-		checkError();
-		copy_buffer = true;
-	}*/
 }
 
 void LLPostProcess::applyColorFilterShader(void)
 {	
 	if(gPostColorFilterProgram.mProgramObject == 0)
 		return;
-	/*  Do nothing.  Needs to be updated to use our current shader system, and to work with the move into llrender.*/
+
 	gPostColorFilterProgram.bind();
 
-	gGL.getTexUnit(0)->activate();
-	gGL.getTexUnit(0)->enable(LLTexUnit::TT_RECT_TEXTURE);
+	gGL.getTexUnit(0)->bind(mSceneRenderTexture);
 
-	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mSceneRenderTexture.get()->getTexName());
-
-	getShaderUniforms(colorFilterUniforms, gPostColorFilterProgram.mProgramObject);
-	glUniform1iARB(colorFilterUniforms["RenderTexture"], 0);
-	glUniform1fARB(colorFilterUniforms["gamma"], tweaks.getGamma());
-	glUniform1fARB(colorFilterUniforms["brightness"], tweaks.getBrightness());
-	glUniform1fARB(colorFilterUniforms["contrast"], tweaks.getContrast());
+	gPostColorFilterProgram.uniform1f("gamma", tweaks.getGamma());
+	gPostColorFilterProgram.uniform1f("brightness", tweaks.getBrightness());
+	gPostColorFilterProgram.uniform1f("contrast", tweaks.getContrast());
 	float baseI = (tweaks.getContrastBaseR() + tweaks.getContrastBaseG() + tweaks.getContrastBaseB()) / 3.0f;
 	baseI = tweaks.getContrastBaseIntensity() / ((baseI < 0.001f) ? 0.001f : baseI);
 	float baseR = tweaks.getContrastBaseR() * baseI;
 	float baseG = tweaks.getContrastBaseG() * baseI;
 	float baseB = tweaks.getContrastBaseB() * baseI;
-	glUniform3fARB(colorFilterUniforms["contrastBase"], baseR, baseG, baseB);
-	glUniform1fARB(colorFilterUniforms["saturation"], tweaks.getSaturation());
-	glUniform3fARB(colorFilterUniforms["lumWeights"], LUMINANCE_R, LUMINANCE_G, LUMINANCE_B);
+	gPostColorFilterProgram.uniform3fv("contrastBase", 1, LLVector3(baseR, baseG, baseB).mV);
+	gPostColorFilterProgram.uniform1f("saturation", tweaks.getSaturation());
+	gPostColorFilterProgram.uniform3fv("lumWeights", 1, LLVector3(LUMINANCE_R, LUMINANCE_G, LUMINANCE_B).mV);
 	
 	LLGLEnable blend(GL_BLEND);
 	gGL.setSceneBlendType(LLRender::BT_REPLACE);
 	LLGLDepthTest depth(GL_FALSE);
 		
 	/// Draw a screen space quad
-	drawOrthoQuad(screenW, screenH, QUAD_NORMAL);
+	drawOrthoQuad(QUAD_NORMAL);
 	gPostColorFilterProgram.unbind();
-	//*/
-}
-
-void LLPostProcess::createColorFilterShader(void)
-{
-	/// Define uniform names
-	colorFilterUniforms["RenderTexture"] = 0;
-	colorFilterUniforms["gamma"] = 0;
-	colorFilterUniforms["brightness"] = 0;
-	colorFilterUniforms["contrast"] = 0;
-	colorFilterUniforms["contrastBase"] = 0;
-	colorFilterUniforms["saturation"] = 0;
-	colorFilterUniforms["lumWeights"] = 0;
 }
 
 void LLPostProcess::applyNightVisionShader(void)
 {	
 	if(gPostNightVisionProgram.mProgramObject == 0)
 		return;
-	/*  Do nothing.  Needs to be updated to use our current shader system, and to work with the move into llrender.*/
+
 	gPostNightVisionProgram.bind();
 
-	gGL.getTexUnit(0)->activate();
-	gGL.getTexUnit(0)->enable(LLTexUnit::TT_RECT_TEXTURE);
-
-	getShaderUniforms(nightVisionUniforms, gPostNightVisionProgram.mProgramObject);
-	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mSceneRenderTexture.get()->getTexName());
-	glUniform1iARB(nightVisionUniforms["RenderTexture"], 0);
-
-	gGL.getTexUnit(1)->activate();
-	gGL.getTexUnit(1)->enable(LLTexUnit::TT_TEXTURE);	
-
-	gGL.getTexUnit(1)->bindManual(LLTexUnit::TT_TEXTURE,  mNoiseTexture.get()->getTexName());
-	glUniform1iARB(nightVisionUniforms["NoiseTexture"], 1);
-
+	gGL.getTexUnit(0)->bind(mSceneRenderTexture);
+	gGL.getTexUnit(1)->bind(mNoiseTexture);
 	
-	glUniform1fARB(nightVisionUniforms["brightMult"], tweaks.getBrightMult());
-	glUniform1fARB(nightVisionUniforms["noiseStrength"], tweaks.getNoiseStrength());
-	noiseTextureScale = 0.01f + ((101.f - tweaks.getNoiseSize()) / 100.f);
-	noiseTextureScale *= (screenH / NOISE_SIZE);
+	gPostNightVisionProgram.uniform1f("brightMult", tweaks.getBrightMult());
+	gPostNightVisionProgram.uniform1f("noiseStrength", tweaks.getNoiseStrength());
+	mNoiseTextureScale = 0.001f + ((100.f - tweaks.getNoiseSize()) / 100.f);
+	mNoiseTextureScale *= (mScreenHeight / NOISE_SIZE);
 
-
-	glUniform3fARB(nightVisionUniforms["lumWeights"], LUMINANCE_R, LUMINANCE_G, LUMINANCE_B);
-	
 	LLGLEnable blend(GL_BLEND);
 	gGL.setSceneBlendType(LLRender::BT_REPLACE);
 	LLGLDepthTest depth(GL_FALSE);
 		
 	/// Draw a screen space quad
-	drawOrthoQuad(screenW, screenH, QUAD_NOISE);
+	drawOrthoQuad(QUAD_NOISE);
 	gPostNightVisionProgram.unbind();
-	gGL.getTexUnit(0)->activate();
-	//*/
-}
-
-void LLPostProcess::createNightVisionShader(void)
-{
-	/// Define uniform names
-	nightVisionUniforms["RenderTexture"] = 0;
-	nightVisionUniforms["NoiseTexture"] = 0;
-	nightVisionUniforms["brightMult"] = 0;	
-	nightVisionUniforms["noiseStrength"] = 0;
-	nightVisionUniforms["lumWeights"] = 0;	
-
-	createNoiseTexture(mNoiseTexture);
-}
-
-void LLPostProcess::applyBloomShader(void)
-{
-
-}
-
-void LLPostProcess::createBloomShader(void)
-{
-	//createTexture(mTempBloomTexture, unsigned(screenW * 0.5), unsigned(screenH * 0.5));
-
-	/// Create Bloom Extract Shader
-	bloomExtractUniforms["RenderTexture"] = 0;
-	bloomExtractUniforms["extractLow"] = 0;
-	bloomExtractUniforms["extractHigh"] = 0;	
-	bloomExtractUniforms["lumWeights"] = 0;	
-	
-	/// Create Bloom Blur Shader
-	bloomBlurUniforms["RenderTexture"] = 0;
-	bloomBlurUniforms["bloomStrength"] = 0;	
-	bloomBlurUniforms["texelSize"] = 0;
-	bloomBlurUniforms["blurDirection"] = 0;
-	bloomBlurUniforms["blurWidth"] = 0;
 }
 
 void LLPostProcess::applyGaussBlurShader(void)
@@ -374,56 +287,33 @@ void LLPostProcess::applyGaussBlurShader(void)
 	if(!pass_count || gPostGaussianBlurProgram.mProgramObject == 0)
 		return;
 
-	getShaderUniforms(gaussBlurUniforms, gPostGaussianBlurProgram.mProgramObject);
 	gPostGaussianBlurProgram.bind();
-	gGL.getTexUnit(0)->activate();
-	gGL.getTexUnit(0)->enable(LLTexUnit::TT_RECT_TEXTURE);
-	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mSceneRenderTexture.get()->getTexName());
+
+	gGL.getTexUnit(0)->bind(mSceneRenderTexture);
+
 	LLGLEnable blend(GL_BLEND);
 	LLGLDepthTest depth(GL_FALSE);
 	gGL.setSceneBlendType(LLRender::BT_REPLACE);
-	glUniform1iARB(gaussBlurUniforms["RenderTexture"], 0);
-	GLint horiz_pass = gaussBlurUniforms["horizontalPass"];
+	GLint horiz_pass = gPostGaussianBlurProgram.getUniformLocation("horizontalPass");
 	for(int i = 0;i<pass_count;++i)
 	{
 		for(int j = 0;j<2;++j)
 		{
 			if(i || j)
-				copyFrameBuffer(mSceneRenderTexture->getTexName(), screenW, screenH);		
+				copyFrameBuffer();		
 			glUniform1iARB(horiz_pass, j);
-			drawOrthoQuad(screenW, screenH, QUAD_NORMAL);
-			
+			drawOrthoQuad(QUAD_NORMAL);
 		}
 	}
 	gPostGaussianBlurProgram.unbind();
-	
-}
-
-void LLPostProcess::createGaussBlurShader(void)
-{
-	gaussBlurUniforms["RenderTexture"] = 0;
-	gaussBlurUniforms["horizontalPass"] = 0;
-}
-
-void LLPostProcess::getShaderUniforms(glslUniforms & uniforms, GLhandleARB & prog)
-{
-	/// Find uniform locations and insert into map	
-	std::map<const char *, GLuint>::iterator i;
-	for (i  = uniforms.begin(); i != uniforms.end(); ++i){
-		i->second = glGetUniformLocationARB(prog, i->first);
-	}
 }
 
 void LLPostProcess::doEffects(void)
 {
-	/// Save GL State
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glPushClientAttrib(GL_ALL_ATTRIB_BITS);
+	LLVertexBuffer::unbind();
 
 	/// Copy the screen buffer to the render texture
-	{
-		copyFrameBuffer(mSceneRenderTexture->getTexName(), screenW, screenH);
-	}
+	copyFrameBuffer();
 
 	/// Clear the frame buffer.
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -431,146 +321,73 @@ void LLPostProcess::doEffects(void)
 	LLGLDisable(GL_DEPTH_TEST);
 
 	/// Change to an orthogonal view
-	viewOrthogonal(screenW, screenH);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.pushMatrix();
+	gGL.loadIdentity();
+	gGL.ortho( 0.f, (GLdouble) mScreenWidth, 0.f, (GLdouble) mScreenHeight, -1.f, 1.f );
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.pushMatrix();
+	gGL.loadIdentity();
 	
-	checkError();
 	applyShaders();
-	
-	LLGLSLShader::bindNoShader();
 	checkError();
+
+	LLGLSLShader::bindNoShader();
 
 	/// Change to a perspective view
-	viewPerspective();	
+	gGL.flush();
+	gGL.matrixMode( LLRender::MM_PROJECTION );
+	gGL.popMatrix();
+	gGL.matrixMode( LLRender::MM_MODELVIEW );
+	gGL.popMatrix();
 
-	/// Reset GL State
-	glPopClientAttrib();
-	glPopAttrib();
+	gGL.getTexUnit(1)->disable();
 	checkError();
 }
 
-void LLPostProcess::copyFrameBuffer(LLGLuint texture, unsigned int width, unsigned int height)
+void LLPostProcess::copyFrameBuffer()
 {
-	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, texture);
-	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 0, 0, width, height, 0);
+	gGL.getTexUnit(0)->bindManual(mSceneRenderTexture->getTarget(), mSceneRenderTexture->getTexName());
+	glCopyTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, 0, 0, mScreenWidth, mScreenHeight, 0);
 }
 
-inline void InitQuadArray(F32 *arr, const F32 x, const F32 y, const F32 width, const F32 height)
+void LLPostProcess::drawOrthoQuad(QuadType type)
 {
-	//Lower left
-	*(arr++)=x; 
-	*(arr++)=y;
-	//Upper left
-	*(arr++)=x;
-	*(arr++)=y+height;
-	//Upper right
-	*(arr++)=x+width;
-	*(arr++)=y+height;
-	//Lower right
-	*(arr++)=x+width;
-	*(arr++)=y;
-}
-void LLPostProcess::drawOrthoQuad(unsigned int width, unsigned int height, QuadType type)
-{
-#if 1
-	//Redid the logic here. Less cases. No longer using immediate mode.
-	bool second_tex = true;
-	//Vertex array used for all post-processing effects
-	static F32 verts[8];
-	//Texture coord array used for all post-processing effects
-	static F32 tex0[8];
-	//Texture coord array used for relevant post processing effects
-	static F32 tex1[8];
-
-	//Set up vertex array
-	InitQuadArray(verts, 0.f, 0.f, width, height);
-	
-	//Set up first texture coords
-	if(type == QUAD_BLOOM_EXTRACT)
+	if(type == QUAD_NOISE)
 	{
-		InitQuadArray(tex0, 0.f, 0.f, width*2.f, height*2.f);
-		second_tex = false;
+		//This could also be done through uniforms.
+		LLStrider<LLVector2> uv2;
+		mVBO->getTexCoord1Strider(uv2);
+
+		float offs[2] = {(float) rand() / (float) RAND_MAX, (float) rand() / (float) RAND_MAX};
+		float scale[2] = {mScreenWidth * mNoiseTextureScale / mScreenHeight, mNoiseTextureScale};
+		uv2[0] = LLVector2(offs[0],offs[1]);
+		uv2[1] = LLVector2(offs[0],offs[1]+scale[1]);
+		uv2[2] = LLVector2(offs[0]+scale[0],offs[1]);
+		uv2[3] = LLVector2(uv2[2].mV[0],uv2[1].mV[1]);
+		mVBO->flush();
 	}
-	else
-	{
-		InitQuadArray(tex0, 0.f, 0.f, width, height);
-		//Set up second texture coords
-		if( type == QUAD_BLOOM_COMBINE)
-			InitQuadArray(tex1, 0.f, 0.f, width*.5, height*.5);
-		else if( type == QUAD_NOISE )
-			InitQuadArray(tex1, ((float) rand() / (float) RAND_MAX), ((float) rand() / (float) RAND_MAX), 
-				width * noiseTextureScale / height, noiseTextureScale);
-		else
-			second_tex = false;
-	}
-	
-	//Prepare to render
-	glEnableClientState( GL_VERTEX_ARRAY );
-	glVertexPointer(2, GL_FLOAT, sizeof(F32)*2, verts);
-	if(second_tex) //tex1 setup
-	{
-		glClientActiveTextureARB(GL_TEXTURE1);
-		glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-		glTexCoordPointer(2, GL_FLOAT, sizeof(F32)*2, tex1);
-	}
-	glClientActiveTextureARB(GL_TEXTURE0);
-	glEnableClientState( GL_TEXTURE_COORD_ARRAY );
-	glTexCoordPointer(2, GL_FLOAT, sizeof(F32)*2, tex0);
 
-	//Render
-	glDrawArrays(GL_QUADS, 0, sizeof(verts)/sizeof(verts[0]));
-
-	//Cleanup
-	glDisableClientState( GL_VERTEX_ARRAY );
-	glDisableClientState( GL_TEXTURE_COORD_ARRAY ); //for tex0
-	if(second_tex)
-	{
-		glClientActiveTextureARB(GL_TEXTURE1);
-		glDisableClientState( GL_TEXTURE_COORD_ARRAY ); //for tex1
-	}
-#endif
+	U32 mask = LLVertexBuffer::MAP_VERTEX | LLVertexBuffer::MAP_TEXCOORD0 | (type == QUAD_NOISE ? LLVertexBuffer::MAP_TEXCOORD1 : 0);
+	mVBO->setBuffer(mask);
+	mVBO->drawArrays(LLRender::TRIANGLE_STRIP, 0, 4);
 }
 
-void LLPostProcess::viewOrthogonal(unsigned int width, unsigned int height)
+void LLPostProcess::createScreenTexture()
 {
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho( 0.f, (GLdouble) width, 0.f, (GLdouble) height, -1.f, 1.f );
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-}
+	std::vector<GLubyte> data(mScreenWidth * mScreenHeight * 3, 0) ;
 
-void LLPostProcess::viewPerspective(void)
-{
-	glMatrixMode( GL_PROJECTION );
-	glPopMatrix();
-	glMatrixMode( GL_MODELVIEW );
-	glPopMatrix();
-}
-
-void LLPostProcess::changeOrthogonal(unsigned int width, unsigned int height)
-{
-	viewPerspective();
-	viewOrthogonal(width, height);
-}
-
-void LLPostProcess::createTexture(LLPointer<LLImageGL>& texture, unsigned int width, unsigned int height)
-{
-	std::vector<GLubyte> data(width * height * 4, 0) ;
-
-	texture = new LLImageGL(FALSE) ;	
-	if(texture->createGLTexture())
+	mSceneRenderTexture = new LLImageGL(FALSE) ;	
+	if(mSceneRenderTexture->createGLTexture())
 	{
-		gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, texture->getTexName());
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, width, height, 0,
-			GL_RGBA, GL_UNSIGNED_BYTE, &data[0]);
+		gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mSceneRenderTexture->getTexName());
+		LLImageGL::setManualImage(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB, mScreenWidth, mScreenHeight, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
 		gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_BILINEAR);
 		gGL.getTexUnit(0)->setTextureAddressMode(LLTexUnit::TAM_CLAMP);
 	}
 }
 
-void LLPostProcess::createNoiseTexture(LLPointer<LLImageGL>& texture)
+void LLPostProcess::createNoiseTexture()
 {	
 	std::vector<GLubyte> buffer(NOISE_SIZE * NOISE_SIZE);
 	for (unsigned int i = 0; i < NOISE_SIZE; i++){
@@ -579,10 +396,10 @@ void LLPostProcess::createNoiseTexture(LLPointer<LLImageGL>& texture)
 		}
 	}
 
-	texture = new LLImageGL(FALSE) ;
-	if(texture->createGLTexture())
+	mNoiseTexture = new LLImageGL(FALSE) ;
+	if(mNoiseTexture->createGLTexture())
 	{
-		gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, texture->getTexName());
+		gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, mNoiseTexture->getTexName());
 		LLImageGL::setManualImage(GL_TEXTURE_2D, 0, GL_LUMINANCE, NOISE_SIZE, NOISE_SIZE, GL_LUMINANCE, GL_UNSIGNED_BYTE, &buffer[0]);
 		gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_BILINEAR);
 		gGL.getTexUnit(0)->setTextureAddressMode(LLTexUnit::TAM_WRAP);
@@ -617,30 +434,3 @@ bool LLPostProcess::checkError(void)
     return retCode;
 }
 
-void LLPostProcess::checkShaderError(GLhandleARB shader)
-{
-    GLint infologLength = 0;
-    GLint charsWritten  = 0;
-    GLchar *infoLog;
-
-    checkError();  // Check for OpenGL errors
-
-    glGetObjectParameterivARB(shader, GL_OBJECT_INFO_LOG_LENGTH_ARB, &infologLength);
-
-    checkError();  // Check for OpenGL errors
-
-    if (infologLength > 0)
-    {
-        infoLog = (GLchar *)malloc(infologLength);
-        if (infoLog == NULL)
-        {
-            /// Could not allocate infolog buffer
-            return;
-        }
-        glGetInfoLogARB(shader, infologLength, &charsWritten, infoLog);
-		// shaderErrorLog << (char *) infoLog << std::endl;
-		mShaderErrorString = (char *) infoLog;
-        free(infoLog);
-    }
-    checkError();  // Check for OpenGL errors
-}

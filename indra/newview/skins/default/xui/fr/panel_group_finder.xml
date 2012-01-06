@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel name="GroupInfoFinder" title="Recherche d&apos;infos sur le groupe">
+	<text name="default_needs_apply_text">
+		Certains changements n&apos;ont pas été appliqués sur cet onglet.
+	</text>
+	<text name="want_apply_text">
+		Voulez-vous enregistrer les modifications ?
+	</text>
+</panel>

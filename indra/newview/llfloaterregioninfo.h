@@ -195,7 +195,7 @@ protected:
 	static void onClickTopColliders(void*);
 	static void onClickTopScripts(void*);
 	static void onClickRestart(void* data);
-	bool callbackRestart(const LLSD& notification, const LLSD& response);
+	bool callbackRestart(const LLSD& notification, const LLSD& response, S32 seconds);
 	static void onClickCancelRestart(void* data);
 	
 private:
@@ -343,10 +343,8 @@ public:
 	// llmessage/llcachename.h:LLCacheNameCallback
 	static void callbackCacheName(
 		const LLUUID& id,
-		const std::string& first,
-		const std::string& last,
-		BOOL is_group,
-		void*);
+		const std::string& full_name,
+		bool is_group);
 
 protected:
 	virtual BOOL sendUpdate();

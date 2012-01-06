@@ -6,6 +6,7 @@ set(install_dir "@CMAKE_SOURCE_DIR@/..")
 set(scp "@SCP_EXECUTABLE@")
 set(scripts_dir "@SCRIPTS_DIR@")
 set(sentinel_dir "@CMAKE_BINARY_DIR@/prepare")
+set(prebuilt_type "@PREBUILT_TYPE@")
 
 # In proprietary mode we use scp for download.
 set(proprietary "@INSTALL_PROPRIETARY@")
@@ -19,7 +20,7 @@ foreach(package ${packages})
     # This package is missing or out of date.
     message(STATUS "Obtaining${proprietary_message} prebuilt '${package}'")
     execute_process(
-      COMMAND ${python} install.py --install-dir=${install_dir} ${scp_option} ${package}
+      COMMAND ${python} install.py -p${prebuilt_type} --install-dir=${install_dir} ${scp_option} ${package}
       WORKING_DIRECTORY ${scripts_dir}
       RESULT_VARIABLE result
       )

@@ -68,6 +68,7 @@
 #include "lltextbox.h"
 #include "lltexteditor.h"
 #include "llui.h"
+#include "lluiimage.h"
 #include "llviewborder.h"
 
 const char XML_HEADER[] = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n";

@@ -58,12 +58,7 @@ public:
 	static LLFloaterPostProcess* instance();
 
 	/// post process callbacks
-	static void onBoolToggle(LLUICtrl* ctrl, void* userData);
-	static void onFloatControlMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlRMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlGMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlBMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlIMoved(LLUICtrl* ctrl, void* userData);
+	static void onControlChanged(LLUICtrl* ctrl, void* userData);
 	static void onLoadEffect(void* userData);
 	static void onSaveEffect(void* userData);
 	static void onChangeEffectName(LLUICtrl* ctrl, void * userData);

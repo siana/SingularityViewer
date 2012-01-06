@@ -40,6 +40,7 @@
 #include "llbutton.h"
 #include "llcheckboxctrl.h"
 #include "llfloaterland.h"
+#include "llnotificationsutil.h"
 #include "lltextbox.h"
 #include "llviewercontrol.h"
 #include "llviewerparcelmgr.h"
@@ -280,5 +281,5 @@ void LLPanelLandInfo::onClickAbout(void*)
 
 void LLPanelLandInfo::onShowOwnersHelp(void* user_data)
 {
-	LLNotifications::instance().add("ShowOwnersHelp");
+	LLNotificationsUtil::add("ShowOwnersHelp");
 }

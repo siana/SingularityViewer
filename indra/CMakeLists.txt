@@ -30,6 +30,8 @@ include(Versions)
 
 include(UnixInstall)
 
+set (GCC_DISABLE_FATAL_WARNINGS TRUE)
+
 if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE ReleaseSSE2 CACHE STRING
       "Build type.  One of: Debug Release ReleaseSSE2 RelWithDebInfo" FORCE)

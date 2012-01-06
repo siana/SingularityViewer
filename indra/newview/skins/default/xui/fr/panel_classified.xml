@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="Classified" title="Annonces">
+	<line_editor name="given_name_editor" tool_tip="Le nom doit commencer par une lettre ou un chiffre, et non un signe de ponctuation."/>
+	<line_editor name="location_editor" tool_tip="Définir votre position actuelle comme emplacement pour cette annonce."/>
+	<button label="Définir" name="set_location_btn"/>
+	<button label="Téléporter" name="classified_teleport_btn"/>
+	<button label="Voir sur la carte" name="classified_map_btn" width="115"/>
+	<button label="Profil" left="245" name="classified_profile_btn"/>
+	<combo_box name="classified_mature_check" width="190">
+		<combo_item name="select_mature">
+			- Type de public -
+		</combo_item>
+		<combo_item name="mature">
+			Contenu Mature
+		</combo_item>
+		<combo_item name="pg">
+			Contenu PG
+		</combo_item>
+	</combo_box>
+	<combo_box label="" name="classified_category_combo"/>
+	<button label="Mise à jour" name="classified_update_btn" width="80"/>
+	<string name="ad_placed_paid">
+		Annonce passée le : [DATE]. Prix : [AMT] L$.
+	</string>
+	<string name="update_txt">
+		Mise à jour
+	</string>
+	<string name="publish_txt">
+		Publier...
+	</string>
+</panel>

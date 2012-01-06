@@ -52,12 +52,13 @@
 #include "llviewerregion.h"
 #include "llviewerstats.h"
 #include "llviewerwindow.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "llxmltree.h"
 #include "pipeline.h"
 #include "v4coloru.h"
 #include "llrender.h"
 #include "llassetuploadresponders.h"
+#include "llviewershadermgr.h"
 
 //#include "../tools/imdebug/imdebug.h"
 
@@ -81,12 +82,12 @@ LLBakedUploadData::LLBakedUploadData( LLVOAvatar* avatar,
 	mID(id)
 { 
 	mStartTime = LLFrameTimer::getTotalTime();		// Record starting time
-	for( S32 i = 0; i < WT_COUNT; i++ )
+	for( S32 i = 0; i < LLWearableType::WT_COUNT; i++ )
 	{
-		LLWearable* wearable = gAgentWearables.getWearable( (EWearableType)i);
+		LLWearable* wearable = gAgentWearables.getWearable( (LLWearableType::EType)i);
 		if( wearable )
 		{
-			mWearableAssets[i] = wearable->getID();
+			mWearableAssets[i] = wearable->getAssetID();
 		}
 	}
 }
@@ -195,24 +196,24 @@ BOOL LLTexLayerSetBuffer::needsUploadNow() const
 	return (upload && (LLFrameTimer::getTotalTime() > mUploadAfter));
 }
 
-void LLTexLayerSetBuffer::pushProjection()
+void LLTexLayerSetBuffer::pushProjection() const
 {
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.pushMatrix();
-	glLoadIdentity();
-	glOrtho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
+	gGL.loadIdentity();
+	gGL.ortho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
 
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.pushMatrix();
-	glLoadIdentity();
+	gGL.loadIdentity();
 }
 
-void LLTexLayerSetBuffer::popProjection()
+void LLTexLayerSetBuffer::popProjection() const
 {
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.popMatrix();
 
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.popMatrix();
 }
 
@@ -223,7 +224,7 @@ BOOL LLTexLayerSetBuffer::needsRender()
 	BOOL needs_update = (mNeedsUpdate || upload_now) && !avatar->getIsAppearanceAnimating();
 	if (needs_update)
 	{
-		BOOL invalid_skirt = avatar->getBakedTE(mTexLayerSet) == TEX_SKIRT_BAKED && !avatar->isWearingWearableType(WT_SKIRT);
+		BOOL invalid_skirt = avatar->getBakedTE(mTexLayerSet) == TEX_SKIRT_BAKED && !avatar->isWearingWearableType(LLWearableType::WT_SKIRT);
 		if (invalid_skirt)
 		{
 			// we were trying to create a skirt texture
@@ -265,6 +266,16 @@ BOOL LLTexLayerSetBuffer::render()
 	// When do we upload the texture if gAgent.mNumPendingQueries is non-zero?
 	BOOL upload_now = needsUploadNow(); 
 	BOOL success = TRUE;
+	
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
+
+	if (use_shaders)
+	{
+		gAlphaMaskProgram.bind();
+		gAlphaMaskProgram.setMinimumAlpha(0.004f);
+	}
+
+	LLVertexBuffer::unbind();
 
 	// Composite the color data
 	LLGLSUIDefault gls_ui;
@@ -297,7 +308,13 @@ BOOL LLTexLayerSetBuffer::render()
 			}
 		}
 	}
+	if (use_shaders)
+	{
+		gAlphaMaskProgram.unbind();
+	}
 
+	LLVertexBuffer::unbind();
+	
 	// reset GL state
 	gGL.setColorMask(true, true);
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
@@ -399,7 +416,7 @@ void LLTexLayerSetBuffer::readBackAndUpload()
 			{
 				// baked_upload_data is owned by the responder and deleted after the request completes
 				LLBakedUploadData* baked_upload_data =
-					new LLBakedUploadData( gAgent.getAvatarObject(), this->mTexLayerSet, this, asset_id );
+					new LLBakedUploadData( gAgentAvatarp, this->mTexLayerSet, this, asset_id );
 				mUploadID = asset_id;
 				
 				// Upload the image
@@ -457,8 +474,8 @@ void LLTexLayerSetBuffer::onTextureUploadComplete(const LLUUID& uuid,
 
 	if ((result == 0) &&
 		isAgentAvatarValid() &&
-		!gAgent.getAvatarObject()->isDead() &&
-		(baked_upload_data->mAvatar == gAgent.getAvatarObject()) && // Sanity check: only the user's avatar should be uploading textures.
+		!gAgentAvatarp->isDead() &&
+		(baked_upload_data->mAvatar == gAgentAvatarp) && // Sanity check: only the user's avatar should be uploading textures.
 		(baked_upload_data->mTexLayerSet->hasComposite()))
 	{
 		LLTexLayerSetBuffer* layerset_buffer = baked_upload_data->mTexLayerSet->getComposite();
@@ -484,10 +501,10 @@ void LLTexLayerSetBuffer::onTextureUploadComplete(const LLUUID& uuid,
 
 			if (result >= 0)
 			{
-				ETextureIndex baked_te = gAgent.getAvatarObject()->getBakedTE(layerset_buffer->mTexLayerSet);
+				ETextureIndex baked_te = gAgentAvatarp->getBakedTE(layerset_buffer->mTexLayerSet);
 				U64 now = LLFrameTimer::getTotalTime();		// Record starting time
 				llinfos << "Baked texture upload took " << (S32)((now - baked_upload_data->mStartTime) / 1000) << " ms" << llendl;
-				gAgent.getAvatarObject()->setNewBakedTexture(baked_te, uuid);
+				gAgentAvatarp->setNewBakedTexture(baked_te, uuid);
 			}
 			else
 			{	
@@ -512,7 +529,7 @@ void LLTexLayerSetBuffer::onTextureUploadComplete(const LLUUID& uuid,
 			llinfos << "Received baked texture out of date, ignored." << llendl;
 		}
 
-		gAgent.getAvatarObject()->dirtyMesh();
+		gAgentAvatarp->dirtyMesh();
 	}
  	else
  	{
@@ -714,6 +731,7 @@ BOOL LLTexLayerSet::isLocalTextureDataFinal()
 void LLTexLayerSet::renderAlphaMaskTextures(S32 x, S32 y, S32 width, S32 height, bool forceClear)
 {
 	const LLTexLayerSetInfo *info = getInfo();
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
 
 	gGL.setColorMask(false, true);
 	gGL.setSceneBlendType(LLRender::BT_REPLACE);
@@ -721,7 +739,6 @@ void LLTexLayerSet::renderAlphaMaskTextures(S32 x, S32 y, S32 width, S32 height,
 	// (Optionally) replace alpha with a single component image from a tga file.
 	if (!info->mStaticAlphaFileName.empty())
 	{
-		LLGLSNoAlphaTest gls_no_alpha_test;
 		gGL.flush();
 		{
 			LLViewerTexture* tex = gTexStaticImageList.getTexture(info->mStaticAlphaFileName, TRUE);
@@ -740,14 +757,22 @@ void LLTexLayerSet::renderAlphaMaskTextures(S32 x, S32 y, S32 width, S32 height,
 		// Set the alpha channel to one (clean up after previous blending)
 		gGL.flush();
 		LLGLDisable no_alpha(GL_ALPHA_TEST);
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.f);
+		}
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		gGL.color4f( 0.f, 0.f, 0.f, 1.f );
-
+		
 		gl_rect_2d_simple( width, height );
-
+		
 		gGL.flush();
- 	}
- 
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.004f);
+		}
+	}
+	
 	// (Optional) Mask out part of the baked texture with alpha masks
 	// will still have an effect even if mClearAlpha is set or the alpha component was replaced
 	if (mMaskLayerList.size() > 0)
@@ -787,6 +812,7 @@ BOOL LLTexLayerSet::render( S32 x, S32 y, S32 width, S32 height )
 		}
 	}
 
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
 	LLGLSUIDefault gls_ui;
 	LLGLDepthTest gls_depth(GL_FALSE, GL_FALSE);
 	gGL.setColorMask(true, true);
@@ -795,12 +821,20 @@ BOOL LLTexLayerSet::render( S32 x, S32 y, S32 width, S32 height )
 	{
 		gGL.flush();
 		LLGLDisable no_alpha(GL_ALPHA_TEST);
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.0f);
+		}
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		gGL.color4f( 0.f, 0.f, 0.f, 1.f );
 
 		gl_rect_2d_simple( width, height );
 
 		gGL.flush();
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.004f);
+		}
 	}
 
 	if (mIsVisible)
@@ -827,6 +861,11 @@ BOOL LLTexLayerSet::render( S32 x, S32 y, S32 width, S32 height )
 
 		gGL.setSceneBlendType(LLRender::BT_REPLACE);
 		LLGLDisable no_alpha(GL_ALPHA_TEST);
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.f);
+		}
+
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		gGL.color4f( 0.f, 0.f, 0.f, 0.f );
 
@@ -834,8 +873,11 @@ BOOL LLTexLayerSet::render( S32 x, S32 y, S32 width, S32 height )
 		gGL.setSceneBlendType(LLRender::BT_ALPHA);
 
 		gGL.flush();
+		if (use_shaders)
+		{
+			gAlphaMaskProgram.setMinimumAlpha(0.004f);
+		}
 	}
- 
  	return success;
  }
 
@@ -1326,6 +1368,8 @@ BOOL LLTexLayer::render( S32 x, S32 y, S32 width, S32 height )
 	LLGLEnable color_mat(GL_COLOR_MATERIAL);
 	gPipeline.disableLights();
 
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
+
 	LLColor4 net_color;
 	BOOL color_specified = findNetColor(&net_color);
 
@@ -1403,8 +1447,13 @@ BOOL LLTexLayer::render( S32 x, S32 y, S32 width, S32 height )
 				}
 				if( tex )
 				{
-					LLGLDisable alpha_test(getInfo()->mWriteAllChannels ? GL_ALPHA_TEST : 0);
-
+					bool no_alpha_test = getInfo()->mWriteAllChannels;
+					LLGLDisable alpha_test(no_alpha_test ? GL_ALPHA_TEST : 0);
+					if (use_shaders && no_alpha_test)
+					{
+						gAlphaMaskProgram.setMinimumAlpha(0.f);
+					}
+					
 					LLTexUnit::eTextureAddressMode old_mode = tex->getAddressMode();
 					
 					gGL.getTexUnit(0)->bind(tex, TRUE);
@@ -1414,6 +1463,11 @@ BOOL LLTexLayer::render( S32 x, S32 y, S32 width, S32 height )
 
 					gGL.getTexUnit(0)->setTextureAddressMode(old_mode);
 					gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+					if (use_shaders && no_alpha_test)
+					{
+						gAlphaMaskProgram.setMinimumAlpha(0.004f);
+					}
+					
 				}
 			}
 		}
@@ -1474,15 +1528,24 @@ BOOL LLTexLayer::blendAlphaTexture(S32 x, S32 y, S32 width, S32 height)
 
 	gGL.flush();
 	
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
 	if (!getInfo()->mStaticImageFileName.empty())
 	{
 		LLViewerTexture* tex = gTexStaticImageList.getTexture(getInfo()->mStaticImageFileName, getInfo()->mStaticImageIsMask);
 		if (tex)
 		{
 			LLGLSNoAlphaTest gls_no_alpha_test;
+			if (use_shaders)
+			{
+				gAlphaMaskProgram.setMinimumAlpha(0.f);
+			}
 			gGL.getTexUnit(0)->bind(tex, TRUE);
-			gl_rect_2d_simple_tex(width, height);
+			gl_rect_2d_simple_tex( width, height );
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+			if (use_shaders)
+			{
+				gAlphaMaskProgram.setMinimumAlpha(0.004f);
+			}
 		}
 		else
 		{
@@ -1499,10 +1562,18 @@ BOOL LLTexLayer::blendAlphaTexture(S32 x, S32 y, S32 width, S32 height)
 				if (tex)
 				{
 					LLGLSNoAlphaTest gls_no_alpha_test;
+					if (use_shaders)
+					{
+						gAlphaMaskProgram.setMinimumAlpha(0.f);
+					}
 					gGL.getTexUnit(0)->bind(tex);
-					gl_rect_2d_simple_tex(width, height);
+					gl_rect_2d_simple_tex( width, height );
 					gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 					success = TRUE;
+					if (use_shaders)
+					{
+						gAlphaMaskProgram.setMinimumAlpha(0.004f);
+					}
 				}
 			}
 		}
@@ -1605,6 +1676,12 @@ BOOL LLTexLayer::renderAlphaMasks( S32 x, S32 y, S32 width, S32 height, LLColor4
 
 	llassert( !mParamAlphaList.empty() );
 
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
+
+	if (use_shaders)
+	{
+		gAlphaMaskProgram.setMinimumAlpha(0.f);
+	}
 	gGL.setColorMask(false, true);
 
 	alpha_list_t::iterator iter = mParamAlphaList.begin();
@@ -1689,6 +1766,10 @@ BOOL LLTexLayer::renderAlphaMasks( S32 x, S32 y, S32 width, S32 height, LLColor4
 		gl_rect_2d_simple( width, height );
 	}
 
+	if (use_shaders)
+	{
+		gAlphaMaskProgram.setMinimumAlpha(0.004f);
+	}
 
 	LLGLSUIDefault gls_ui;
 
@@ -2051,8 +2132,8 @@ BOOL LLTexLayerParamAlpha::getSkip()
 		}
 	}
 
-	EWearableType type = (EWearableType)getWearableType();
-	if( (type != WT_INVALID) && !avatar->isWearingWearableType( type ) )
+	LLWearableType::EType type = (LLWearableType::EType)getWearableType();
+	if( (type != LLWearableType::WT_INVALID) && !avatar->isWearingWearableType( type ) )
 	{
 		return TRUE;
 	}

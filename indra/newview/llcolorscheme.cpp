@@ -48,7 +48,7 @@ LLColor4 gDisabledTrackColor;
 
 void init_colors()
 {
-	gTrackColor	= LLColor4::red;
+	gTrackColor = LLColor4::red;
 	gDisabledTrackColor.setVec(		0.5f, 0.f, 0.f, 1.f );
 	gLandmarkMapColor = LLColor4::red;
 	gLocationMapColor.setVec(		0.f, 0.72f, 1.f, 1.f);

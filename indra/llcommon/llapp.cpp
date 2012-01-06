@@ -288,10 +288,13 @@ void LLApp::startErrorThread()
 	// Start the error handling thread, which is responsible for taking action
 	// when the app goes into the APP_STATUS_ERROR state
 	//
-	llinfos << "Starting error thread" << llendl;
-	mThreadErrorp = new LLErrorThread();
-	mThreadErrorp->setUserData((void *) this);
-	mThreadErrorp->start();	
+	if(!mThreadErrorp)
+	{
+		llinfos << "Starting error thread" << llendl;
+		mThreadErrorp = new LLErrorThread();
+		mThreadErrorp->setUserData((void *) this);
+		mThreadErrorp->start();
+	}
 }
 
 void LLApp::setErrorHandler(LLAppErrorHandler handler)

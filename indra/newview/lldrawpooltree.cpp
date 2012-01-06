@@ -37,7 +37,6 @@
 #include "lldrawable.h"
 #include "llface.h"
 #include "llsky.h"
-#include "llviewerwindow.h"
 #include "llvotree.h"
 #include "pipeline.h"
 #include "llviewercamera.h"
@@ -68,24 +67,26 @@ void LLDrawPoolTree::prerender()
 void LLDrawPoolTree::beginRenderPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_RENDER_TREES);
-	gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.5f);
-	
+		
 	if (LLPipeline::sUnderWaterRender)
 	{
-		shader = &gObjectSimpleWaterProgram;
+		shader = &gTreeWaterProgram;
 	}
 	else
 	{
-		shader = &gObjectSimpleProgram;
+		shader = &gTreeProgram;
 	}
 
-	if (gPipeline.canUseWindLightShadersOnObjects())
+	if (gPipeline.canUseVertexShaders())
 	{
 		shader->bind();
+		shader->setMinimumAlpha(0.5f);
+		gGL.diffuseColor4f(1,1,1,1);
 	}
 	else
 	{
 		gPipeline.enableLightsDynamic();
+		gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.5f);
 	}
 }
 
@@ -98,29 +99,27 @@ void LLDrawPoolTree::render(S32 pass)
 		return;
 	}
 
-	LLGLEnable test(GL_ALPHA_TEST);
+	LLGLState test(GL_ALPHA_TEST, LLGLSLShader::sNoFixedFunction ? 0 : 1);
 	LLOverrideFaceColor color(this, 1.f, 1.f, 1.f, 1.f);
 
-	static const LLCachedControl<bool> render_animate_trees("RenderAnimateTrees",false); 
+	/*static const LLCachedControl<bool> render_animate_trees("RenderAnimateTrees",false); 
 	if (render_animate_trees)
 	{
 		renderTree();
 	}
-	else
-	{
-		gGL.getTexUnit(sDiffTex)->bind(mTexturep);
+	else*/
+	gGL.getTexUnit(sDiffTex)->bind(mTexturep);
 					
-		for (std::vector<LLFace*>::iterator iter = mDrawFace.begin();
+	for (std::vector<LLFace*>::iterator iter = mDrawFace.begin();
 			 iter != mDrawFace.end(); iter++)
+	{
+		LLFace *face = *iter;
+		LLVertexBuffer* buff = face->getVertexBuffer();
+		if(buff)
 		{
-			LLFace *face = *iter;
-			LLVertexBuffer* buff = face->getVertexBuffer();
-			if(buff)
-			{
-				buff->setBuffer(LLDrawPoolTree::VERTEX_DATA_MASK);
-				buff->drawRange(LLRender::TRIANGLES, 0, buff->getRequestedVerts()-1, buff->getRequestedIndices(), 0); 
-				gPipeline.addTrianglesDrawn(buff->getRequestedIndices());
-			}
+			buff->setBuffer(LLDrawPoolTree::VERTEX_DATA_MASK);
+			buff->drawRange(LLRender::TRIANGLES, 0, buff->getNumVerts()-1, buff->getNumIndices(), 0); 
+			gPipeline.addTrianglesDrawn(buff->getNumIndices());
 		}
 	}
 }
@@ -128,11 +127,15 @@ void LLDrawPoolTree::render(S32 pass)
 void LLDrawPoolTree::endRenderPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_RENDER_TREES);
-	gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
-	
+		
 	if (gPipeline.canUseWindLightShadersOnObjects())
 	{
 		shader->unbind();
+	}
+	
+	if (mVertexShaderLevel <= 0)
+	{
+		gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
 	}
 }
 
@@ -142,10 +145,10 @@ void LLDrawPoolTree::endRenderPass(S32 pass)
 void LLDrawPoolTree::beginDeferredPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_RENDER_TREES);
-	gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.f);	
-
+		
 	shader = &gDeferredTreeProgram;
 	shader->bind();
+	shader->setMinimumAlpha(0.5f);
 }
 
 void LLDrawPoolTree::renderDeferred(S32 pass)
@@ -156,7 +159,6 @@ void LLDrawPoolTree::renderDeferred(S32 pass)
 void LLDrawPoolTree::endDeferredPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_RENDER_TREES);
-	gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
 	
 	shader->unbind();
 }
@@ -167,12 +169,12 @@ void LLDrawPoolTree::endDeferredPass(S32 pass)
 void LLDrawPoolTree::beginShadowPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_SHADOW_TREE);
-	gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.5f);
+
 	static const LLCachedControl<F32> render_deferred_offset("RenderDeferredTreeShadowOffset",1.f);
 	static const LLCachedControl<F32> render_deferred_bias("RenderDeferredTreeShadowBias",1.f);
 	glPolygonOffset(render_deferred_offset,render_deferred_bias);
-
-	gDeferredShadowProgram.bind();
+	gDeferredTreeShadowProgram.bind();
+	gDeferredTreeShadowProgram.setMinimumAlpha(0.5f);
 }
 
 void LLDrawPoolTree::renderShadow(S32 pass)
@@ -183,79 +185,14 @@ void LLDrawPoolTree::renderShadow(S32 pass)
 void LLDrawPoolTree::endShadowPass(S32 pass)
 {
 	LLFastTimer t(LLFastTimer::FTM_SHADOW_TREE);
-	gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
-	static const LLCachedControl<F32> render_deferred_offset("RenderDeferredTreeShadowOffset",1.f);
-	static const LLCachedControl<F32> render_deferred_bias("RenderDeferredTreeShadowBias",1.f);
+
+	static const LLCachedControl<F32> render_deferred_offset("RenderDeferredSpotShadowOffset",1.f);
+	static const LLCachedControl<F32> render_deferred_bias("RenderDeferredSpotShadowBias",1.f);
 	glPolygonOffset(render_deferred_offset,render_deferred_bias);
-
-	//gDeferredShadowProgram.unbind();
+	gDeferredTreeShadowProgram.unbind();
 }
 
-
-void LLDrawPoolTree::renderForSelect()
-{
-	if (mDrawFace.empty())
-	{
-		return;
-	}
-
-	LLOverrideFaceColor color(this, 1.f, 1.f, 1.f, 1.f);
-
-	LLGLSObjectSelectAlpha gls_alpha;
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-
-	gGL.setSceneBlendType(LLRender::BT_REPLACE);
-	gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.5f);
-
-	gGL.getTexUnit(0)->setTextureColorBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_PREV_COLOR);
-	gGL.getTexUnit(0)->setTextureAlphaBlend(LLTexUnit::TBO_MULT, LLTexUnit::TBS_TEX_ALPHA, LLTexUnit::TBS_VERT_ALPHA);
-
-	static const LLCachedControl<bool> render_animate_trees("RenderAnimateTrees",false); 
-	if (render_animate_trees)
-	{
-		renderTree(TRUE);
-	}
-	else
-	{
-		gGL.getTexUnit(sDiffTex)->bind(mTexturep);
-				
-		for (std::vector<LLFace*>::iterator iter = mDrawFace.begin();
-			 iter != mDrawFace.end(); iter++)
-		{
-			LLFace *face = *iter;
-			LLDrawable *drawablep = face->getDrawable();
-
-			if (drawablep->isDead() || face->getVertexBuffer())
-			{
-				continue;
-			}
-
-			// Render each of the trees
-			LLVOTree *treep = (LLVOTree *)drawablep->getVObj().get();
-
-			LLColor4U color(255,255,255,255);
-
-			if (treep->mGLName != 0)
-			{
-				S32 name = treep->mGLName;
-				color = LLColor4U((U8)(name >> 16), (U8)(name >> 8), (U8)name, 255);
-				
-				LLFacePool::LLOverrideFaceColor col(this, color);
-				
-				LLVertexBuffer *buff =  face->getVertexBuffer();
-				buff->setBuffer(LLDrawPoolTree::VERTEX_DATA_MASK);
-				buff->drawRange(LLRender::TRIANGLES, 0, buff->getRequestedVerts()-1, buff->getRequestedIndices(), 0); 
-				gPipeline.addTrianglesDrawn(buff->getRequestedIndices()/3);
-			}
-		}
-	}
-
-	gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
-	gGL.setSceneBlendType(LLRender::BT_ALPHA);
-
-	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
-}
-
+/*
 void LLDrawPoolTree::renderTree(BOOL selecting)
 {
 	LLGLState normalize(GL_NORMALIZE, TRUE);
@@ -265,7 +202,7 @@ void LLDrawPoolTree::renderTree(BOOL selecting)
 		
 	U32 indices_drawn = 0;
 
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	
 	for (std::vector<LLFace*>::iterator iter = mDrawFace.begin();
 		 iter != mDrawFace.end(); iter++)
@@ -296,17 +233,14 @@ void LLDrawPoolTree::renderTree(BOOL selecting)
 			}
 			
 			gGLLastMatrix = NULL;
-			glLoadMatrixd(gGLModelView);
-			//glPushMatrix();
-			F32 mat[16];
-			for (U32 i = 0; i < 16; i++)
-				mat[i] = (F32) gGLModelView[i];
+			gGL.loadMatrix(gGLModelView);
+			//gGL.pushMatrix();
 
-			LLMatrix4 matrix(mat);
+			LLMatrix4 matrix(gGLModelView);
 			
 			// Translate to tree base  HACK - adjustment in Z plants tree underground
 			const LLVector3 &pos_agent = treep->getPositionAgent();
-			//glTranslatef(pos_agent.mV[VX], pos_agent.mV[VY], pos_agent.mV[VZ] - 0.1f);
+			//gGL.translatef(pos_agent.mV[VX], pos_agent.mV[VY], pos_agent.mV[VZ] - 0.1f);
 			LLMatrix4 trans_mat;
 			trans_mat.setTranslation(pos_agent.mV[VX], pos_agent.mV[VY], pos_agent.mV[VZ] - 0.1f);
 			trans_mat *= matrix;
@@ -377,10 +311,10 @@ void LLDrawPoolTree::renderTree(BOOL selecting)
 				indices_drawn += treep->drawBranchPipeline(scale_mat, indicesp, trunk_LOD, stop_depth, treep->mDepth, treep->mTrunkDepth, 1.0, treep->mTwist, droop, treep->mBranches, alpha);
 			}
 			
-			//glPopMatrix();
+			//gGL.popMatrix();
 		}
 	}
-}
+}*/
 
 BOOL LLDrawPoolTree::verify() const
 {

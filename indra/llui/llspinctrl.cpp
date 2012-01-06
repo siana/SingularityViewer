@@ -157,6 +157,34 @@ F32 clamp_precision(F32 value, S32 decimal_precision)
 }
 
 
+F32 get_increment(F32 inc, S32 decimal_precision) //CF: finetune increments
+{
+	if(gKeyboard->getKeyDown(KEY_ALT))
+		inc = inc * 10.f;
+	else if(gKeyboard->getKeyDown(KEY_CONTROL)) {
+		if (llround(inc * 1000.f) == 25) // 0.025 gets 0.05 here
+			inc = inc * 0.2f;
+		else
+			inc = inc * 0.1f;
+	}
+	else if(gKeyboard->getKeyDown(KEY_SHIFT)) {
+		if (decimal_precision == 2 && llround(inc) == 1) // for rotations, finest step is 0.05
+			inc = inc * 0.05f;
+		else
+			inc = inc * 0.01f;
+	}
+
+	if (decimal_precision == 1 && inc < 0.1f) // clamp inc to precision
+		inc = 0.1f;
+	else if (decimal_precision == 2 && inc < 0.01f)
+		inc = 0.01f;
+	else if (decimal_precision == 3 && inc < 0.001f)
+		inc = 0.001f;
+
+	return inc;
+}
+
+
 // static
 void LLSpinCtrl::onUpBtn( void *userdata )
 {
@@ -164,25 +192,19 @@ void LLSpinCtrl::onUpBtn( void *userdata )
 	if( self->getEnabled() )
 	{
 		// use getValue()/setValue() to force reload from/to control
-		F32 val = (F32)self->getValue().asReal() + self->mIncrement;
+		F32 val = (F32)self->getValue().asReal() + get_increment(self->mIncrement, self->mPrecision);
 		val = clamp_precision(val, self->mPrecision);
 		val = llmin( val, self->mMaxValue );
 		
-		if( self->mValidateCallback )
+		F32 saved_val = (F32)self->getValue().asReal();
+		self->setValue(val);
+		if( (self->mValidateCallback 	&& !self->mValidateCallback( self, self->mCallbackUserData ) ) ||
+			(self->mValidateSignal		&& !(*(self->mValidateSignal))( self, val ) ))
 		{
-			F32 saved_val = (F32)self->getValue().asReal();
-			self->setValue(val);
-			if( !self->mValidateCallback( self, self->mCallbackUserData ) )
-			{
-				self->setValue( saved_val );
-				self->reportInvalidData();
-				self->updateEditor();
-				return;
-			}
-		}
-		else
-		{
-			self->setValue(val);
+			self->setValue( saved_val );
+			self->reportInvalidData();
+			self->updateEditor();
+			return;
 		}
 
 		self->updateEditor();
@@ -197,25 +219,23 @@ void LLSpinCtrl::onDownBtn( void *userdata )
 
 	if( self->getEnabled() )
 	{
-		F32 val = (F32)self->getValue().asReal() - self->mIncrement;
+		F32 val = (F32)self->getValue().asReal() - get_increment(self->mIncrement, self->mPrecision);
 		val = clamp_precision(val, self->mPrecision);
 		val = llmax( val, self->mMinValue );
 
-		if( self->mValidateCallback )
+
+		if (val < self->mMinValue) val = self->mMinValue;
+		if (val > self->mMaxValue) val = self->mMaxValue;
+
+		F32 saved_val = (F32)self->getValue().asReal();
+		self->setValue(val);
+		if( (self->mValidateCallback 	&& !self->mValidateCallback( self, self->mCallbackUserData ) ) ||
+			(self->mValidateSignal		&& !(*(self->mValidateSignal))( self, val ) ))
 		{
-			F32 saved_val = (F32)self->getValue().asReal();
-			self->setValue(val);
-			if( !self->mValidateCallback( self, self->mCallbackUserData ) )
-			{
-				self->setValue( saved_val );
-				self->reportInvalidData();
-				self->updateEditor();
-				return;
-			}
-		}
-		else
-		{
-			self->setValue(val);
+			self->setValue( saved_val );
+			self->reportInvalidData();
+			self->updateEditor();
+			return;
 		}
 		
 		self->updateEditor();
@@ -303,31 +323,19 @@ void LLSpinCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
 		if (val < self->mMinValue) val = self->mMinValue;
 		if (val > self->mMaxValue) val = self->mMaxValue;
 
-		if( self->mValidateCallback )
+		F32 saved_val = self->mValue;
+		self->mValue = val;
+			
+		if(	(!self->mValidateCallback	|| self->mValidateCallback( self, self->mCallbackUserData )) &&
+			(!self->mValidateSignal		|| (*(self->mValidateSignal))(self, val)))
 		{
-			F32 saved_val = self->mValue;
-			self->mValue = val;
-			if( self->mValidateCallback( self, self->mCallbackUserData ) )
-			{
-				success = TRUE;
-				self->onCommit();
-			}
-			else
-			{
-				self->mValue = saved_val;
-			}
+			success = TRUE;
+			self->onCommit();
 		}
 		else
 		{
-			self->mValue = val;
-			self->onCommit();
-			success = TRUE;
+			self->mValue = saved_val;
 		}
-	}
-	else
-	{
-		// We want to update the editor in case it fails while blanking -- MC
-		success = TRUE;
 	}
 
 	if( success )

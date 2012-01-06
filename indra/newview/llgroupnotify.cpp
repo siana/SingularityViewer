@@ -46,7 +46,7 @@
 #include "llui.h"
 #include "llviewercontrol.h"
 #include "llfloatergroupinfo.h"
-#include "llinventoryview.h"
+#include "llinventoryicon.h"
 #include "llinventory.h"
 
 #include "llglheaders.h"
@@ -135,7 +135,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 			: LLTextBox(name, rect, text, font)
 		{
 			setHAlign(LLFontGL::RIGHT);
-			setFontStyle(LLFontGL::DROP_SHADOW_SOFT);
+			setFontShadow(LLFontGL::DROP_SHADOW_SOFT);
 			setBorderVisible(FALSE);
 			setColor( gColors.getColor("GroupNotifyTextColor") );
 			setBackgroundColor( gColors.getColor("GroupNotifyBoxColor") );
@@ -218,7 +218,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 	{
 			addChild(new NoticeText(std::string("subjecttitle"),LLRect(x,y,x + LABEL_WIDTH,y - LINE_HEIGHT),std::string("Attached: "),LLFontGL::getFontSansSerif()));
 
-			LLUIImagePtr item_icon = get_item_icon(mInventoryOffer->mType,
+			LLUIImagePtr item_icon = LLInventoryIcon::getIcon(mInventoryOffer->mType,
 													LLInventoryType::IT_TEXTURE,
 													0, FALSE);
 
@@ -337,18 +337,18 @@ void LLGroupNotifyBox::draw()
 
 	if (mAnimating && display_time < ANIMATION_TIME)
 	{
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
+		gGL.pushMatrix();
 
 		S32 height = getRect().getHeight();
 		F32 fraction = display_time / ANIMATION_TIME;
 		F32 voffset = (1.f - fraction) * height;
 
-		glTranslatef(0.f, voffset, 0.f);
+		gGL.translatef(0.f, voffset, 0.f);
 
 		LLPanel::draw();
 
-		glPopMatrix();
+		gGL.popMatrix();
 	}
 	else
 	{

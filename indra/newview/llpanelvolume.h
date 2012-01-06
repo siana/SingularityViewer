@@ -70,16 +70,25 @@ public:
 	static void 	onCommitLight(			LLUICtrl* ctrl, void* userdata);
 	static void 	onCommitIsFlexible(		LLUICtrl* ctrl, void* userdata);
 	static void 	onCommitFlexible(		LLUICtrl* ctrl, void* userdata);
+	static void     onCommitPhysicsParam(       LLUICtrl* ctrl, void* userdata);
 
 	static void		onLightCancelColor(LLUICtrl* ctrl, void* userdata);
 	static void		onLightSelectColor(LLUICtrl* ctrl, void* userdata);
 
 	static void		onLightCancelTexture(LLUICtrl* ctrl, void* userdata);
 	static void		onLightSelectTexture(LLUICtrl* ctrl, void* userdata);
-protected:
-	void			getState();
+
 
 protected:
+	void			getState();
+	void			refreshCost();
+
+protected:
+	void            sendPhysicsShapeType(LLUICtrl* ctrl, void* userdata);
+	void            sendPhysicsGravity(LLUICtrl* ctrl, void* userdata);
+	void            sendPhysicsFriction(LLUICtrl* ctrl, void* userdata);
+	void            sendPhysicsRestitution(LLUICtrl* ctrl, void* userdata);
+	void            sendPhysicsDensity(LLUICtrl* ctrl, void* userdata);
 /*
 	LLTextBox*		mLabelSelectSingleMessage;
 	// Light
@@ -104,6 +113,12 @@ protected:
 	LLUUID			mLightSavedTexture;
 	LLPointer<LLViewerObject> mObject;
 	LLPointer<LLViewerObject> mRootObject;
+	LLTextBox*		mComboPhysicsShapeLabel;
+	LLComboBox*     mComboPhysicsShapeType;
+	LLSpinCtrl*     mSpinPhysicsGravity;
+	LLSpinCtrl*     mSpinPhysicsFriction;
+	LLSpinCtrl*     mSpinPhysicsDensity;
+	LLSpinCtrl*     mSpinPhysicsRestitution;
 };
 
 #endif

@@ -65,7 +65,7 @@ public:
 	/*virtual*/ LLDrawable* createDrawable(LLPipeline *pipeline);
 	/*virtual*/ BOOL		updateGeometry(LLDrawable *drawable);
 	/*virtual*/ void		getGeometry(S32 idx,
-								LLStrider<LLVector3>& verticesp,
+								LLStrider<LLVector4a>& verticesp,
 								LLStrider<LLVector3>& normalsp, 
 								LLStrider<LLVector2>& texcoordsp,
 								LLStrider<LLColor4U>& colorsp, 
@@ -116,6 +116,9 @@ public:
 	LLVector3		          mWind;
 	F32				          mBladeWindAngle;
 	F32				          mBWAOverlap;
+
+	typedef std::map<std::string, S32> SpeciesNames;
+	static SpeciesNames sSpeciesNames;
 
 protected:
 	~LLVOGrass();

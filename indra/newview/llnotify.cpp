@@ -483,7 +483,7 @@ void LLNotifyBox::draw()
 
 	if (mAnimating && display_time < ANIMATION_TIME)
 	{
-		glMatrixMode(GL_MODELVIEW);
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
 		LLUI::pushMatrix();
 
 		S32 height = getRect().getHeight();
@@ -714,7 +714,7 @@ LLRect LLNotifyBox::getNotifyTipRect(const std::string &utf8message)
 		S32 remaining = end - start;
 		while( remaining )
 		{
-			S32 drawn = sFont->maxDrawableChars( start, (F32)text_area_width, remaining, TRUE );
+			S32 drawn = sFont->maxDrawableChars( start, (F32)text_area_width, remaining, LLFontGL::WORD_BOUNDARY_IF_POSSIBLE );
 
 			if( 0 == drawn )
 			{

@@ -56,6 +56,7 @@
 #include "llfloaterpreference.h"
 #include "llfocusmgr.h"
 #include "lllineeditor.h"
+#include "llnotificationsutil.h"
 #include "llstartup.h"
 #include "lltextbox.h"
 #include "llui.h"
@@ -109,7 +110,12 @@ static bool nameSplit(const std::string& full, std::string& first, std::string& 
 		return false;
 	first = fragments[0];
 	if (fragments.size() == 1)
-		last = "resident";
+	{
+		if (gHippoGridManager->getConnectedGrid()->isSecondLife())
+			last = "resident";
+		else
+			last = "";
+	}
 	else
 		last = fragments[1];
 	return (fragments.size() <= 2);
@@ -497,15 +503,15 @@ void LLPanelLogin::setLoginHistory(LLSavedLogins const& login_history)
 // virtual
 void LLPanelLogin::draw()
 {
-	glPushMatrix();
+	gGL.pushMatrix();
 	{
 		F32 image_aspect = 1.333333f;
 		F32 view_aspect = (F32)getRect().getWidth() / (F32)getRect().getHeight();
 		// stretch image to maintain aspect ratio
 		if (image_aspect > view_aspect)
 		{
-			glTranslatef(-0.5f * (image_aspect / view_aspect - 1.f) * getRect().getWidth(), 0.f, 0.f);
-			glScalef(image_aspect / view_aspect, 1.f, 1.f);
+			gGL.translatef(-0.5f * (image_aspect / view_aspect - 1.f) * getRect().getWidth(), 0.f, 0.f);
+			gGL.scalef(image_aspect / view_aspect, 1.f, 1.f);
 		}
 
 		S32 width = getRect().getWidth();
@@ -527,7 +533,7 @@ void LLPanelLogin::draw()
 			mLogoImage->draw(0, -offscreen_part, width, height+offscreen_part);
 		};
 	}
-	glPopMatrix();
+	gGL.popMatrix();
 
 	LLPanel::draw();
 }
@@ -855,7 +861,7 @@ void LLPanelLogin::updateGridCombo()
 	}
 	HippoGridManager::GridIterator it, end = gHippoGridManager->endGrid();
 	for (it = gHippoGridManager->beginGrid(); it != end; ++it) {
-		const std::string &grid = it->second->getGridNick();
+		const std::string &grid = it->second->getGridName();
 		if (grid != defaultGrid) {
 			grids->add(grid);
 			if (grid == currentGrid) selectIndex = i;
@@ -936,7 +942,6 @@ void LLPanelLogin::loadLoginPage()
 	}
 
 	// Grid
-	oStr << "&grid=" << LLWeb::curlEscape(LLViewerLogin::getInstance()->getGridLabel());
 
 	if (gHippoGridManager->getConnectedGrid()->isSecondLife()) {
 		// find second life grid from login URI
@@ -954,6 +959,11 @@ void LLPanelLogin::loadLoginPage()
 			}
 		}
 	}
+	else
+	{
+		oStr << "&grid=" << LLWeb::curlEscape(LLViewerLogin::getInstance()->getGridLabel());
+	}
+		
 	
 	gViewerWindow->setMenuBackgroundColor(false, !LLViewerLogin::getInstance()->isInProductionGrid());
 	gLoginMenuBarView->setBackgroundColor(gMenuBarView->getBackgroundColor());
@@ -1111,9 +1121,9 @@ void LLPanelLogin::onClickConnect(void *)
 		else
 		{
 			if (gHippoGridManager->getConnectedGrid()->getRegisterUrl().empty()) {
-				LLNotifications::instance().add("MustHaveAccountToLogInNoLinks");
+				LLNotificationsUtil::add("MustHaveAccountToLogInNoLinks");
 			} else {
-				LLNotifications::instance().add("MustHaveAccountToLogIn", LLSD(), LLSD(),
+				LLNotificationsUtil::add("MustHaveAccountToLogIn", LLSD(), LLSD(),
 												LLPanelLogin::newAccountAlertCallback);
 			}
 		}
@@ -1207,7 +1217,7 @@ void LLPanelLogin::onPassKey(LLLineEditor* caller, void* user_data)
 {
 	if (gKeyboard->getKeyDown(KEY_CAPSLOCK) && sCapslockDidNotification == FALSE)
 	{
-		LLNotifications::instance().add("CapsKeyOn");
+		LLNotificationsUtil::add("CapsKeyOn");
 		sCapslockDidNotification = TRUE;
 	}
 }

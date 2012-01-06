@@ -38,6 +38,8 @@
 // <edit>
 #include "llviewerinventory.h"
 
+#include "statemachine/aifilepicker.h"
+
 class NewResourceItemCallback : public LLInventoryCallback
 {
  void fire(const LLUUID& inv_item);
@@ -46,36 +48,84 @@ class NewResourceItemCallback : public LLInventoryCallback
 
 class LLTransactionID;
 
+extern std::deque<std::string> gUploadQueue;
 
 void init_menu_file();
 
-void upload_new_resource(const std::string& src_filename, 
-			 std::string name,
-			 std::string desc, 
-			 S32 compression_info,
-			 LLAssetType::EType destination_folder_type,
-			 LLInventoryType::EType inv_type,
-			 U32 next_owner_perms,
-			 U32 group_perms,
-			 U32 everyone_perms,
-			 const std::string& display_name,
-			 LLAssetStorage::LLStoreAssetCallback callback,
-			 S32 expected_upload_cost,
-			 void *userdata);
+void upload_new_resource(const std::string& src_filename,
+						 std::string name,
+						 std::string desc,
+						 S32 compression_info,
+						 LLFolderType::EType destination_folder_type,
+						 LLInventoryType::EType inv_type,
+						 U32 next_owner_perms,
+						 U32 group_perms,
+						 U32 everyone_perms,
+						 const std::string& display_name,
+						 LLAssetStorage::LLStoreAssetCallback callback,
+						 S32 expected_upload_cost,
+						 void *userdata);
 
 void upload_new_resource(const LLTransactionID &tid, 
-			 LLAssetType::EType type,
-			 std::string name,
-			 std::string desc, 
-			 S32 compression_info,
-			 LLAssetType::EType destination_folder_type,
-			 LLInventoryType::EType inv_type,
-			 U32 next_owner_perms,
-			 U32 group_perms,
-			 U32 everyone_perms,
-			 const std::string& display_name,
-			 LLAssetStorage::LLStoreAssetCallback callback,
-			 S32 expected_upload_cost,
-			 void *userdata);
+						 LLAssetType::EType type,
+						 std::string name,
+						 std::string desc, 
+						 S32 compression_info,
+						 LLFolderType::EType destination_folder_type,
+						 LLInventoryType::EType inv_type,
+						 U32 next_owner_perms,
+						 U32 group_perms,
+						 U32 everyone_perms,
+						 const std::string& display_name,
+						 LLAssetStorage::LLStoreAssetCallback callback,
+						 S32 expected_upload_cost,
+						 void *userdata);
+
+LLAssetID generate_asset_id_for_new_upload(const LLTransactionID& tid);
+
+void increase_new_upload_stats(LLAssetType::EType asset_type);
+
+void assign_defaults_and_show_upload_message(LLAssetType::EType asset_type,
+											 LLInventoryType::EType& inventory_type,
+											 std::string& name,
+											 const std::string& display_name,
+											 std::string& description);
+
+LLSD generate_new_resource_upload_capability_body(LLAssetType::EType asset_type,
+												  const std::string& name,
+												  const std::string& desc,
+												  LLFolderType::EType destination_folder_type,
+												  LLInventoryType::EType inv_type,
+												  U32 next_owner_perms,
+												  U32 group_perms,
+												  U32 everyone_perms);
+
+
+class LLFilePickerThread : public LLThread
+{	//multi-threaded file picker (runs system specific file picker in background and calls "notify" from main thread)
+public:
+
+	static std::queue<LLFilePickerThread*> sDeadQ;
+	static LLMutex* sMutex;
+
+	static void initClass();
+	static void cleanupClass();
+	static void clearDead();
+
+	std::string mFile; 
+
+	ELoadFilter mFilter;
+
+	LLFilePickerThread(ELoadFilter filter)
+	:	LLThread("file picker"), mFilter(filter)
+	{
+	}
+
+	void getFile();
+
+	virtual void run();
+
+	virtual void notify(const std::string& filename) = 0;
+};
 
 #endif

@@ -79,7 +79,8 @@ void LLTextBox::initDefaults()
 	mHasHover = FALSE;
 	mBackgroundVisible = FALSE;
 	mBorderVisible = FALSE;
-	mFontStyle = LLFontGL::DROP_SHADOW_SOFT;
+	mFontStyle = 0;
+	mFontShadow = LLFontGL::DROP_SHADOW_SOFT;
 	mBorderDropShadowVisible = FALSE;
 	mUseEllipses = FALSE;
 	mLineSpacing = 0;
@@ -217,7 +218,7 @@ void LLTextBox::setWrappedText(const LLStringExplicit& in_text, F32 max_width)
 		{
 			LLWString run(wtext, cur, runLen);
 			LLWString::size_type useLen =
-				mFontGL->maxDrawableChars(run.c_str(), max_width, runLen, TRUE);
+				mFontGL->maxDrawableChars(run.c_str(), max_width, runLen, LLFontGL::WORD_BOUNDARY_IF_POSSIBLE);
 
 			final_wtext.append(wtext, cur, useLen);
 			cur += useLen;
@@ -355,6 +356,7 @@ void LLTextBox::drawText( S32 x, S32 y, const LLColor4& color )
 		mFontGL->render(mText.getWString(), 0, (F32)x, (F32)y, color,
 						mHAlign, mVAlign, 
 						mFontStyle,
+						mFontShadow,
 						S32_MAX, getRect().getWidth(), NULL, TRUE, mUseEllipses);
 	}
 	else
@@ -367,6 +369,7 @@ void LLTextBox::drawText( S32 x, S32 y, const LLColor4& color )
 			mFontGL->render(mText.getWString(), cur_pos, (F32)x, (F32)y, color,
 							mHAlign, mVAlign,
 							mFontStyle,
+							mFontShadow,
 							line_length, getRect().getWidth(), NULL, TRUE, mUseEllipses );
 			cur_pos += line_length + 1;
 			y -= llfloor(mFontGL->getLineHeight()) + mLineSpacing;
@@ -435,7 +438,17 @@ LLView* LLTextBox::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *f
 	{
 		text_box->mFontStyle = LLFontGL::getStyleFromString(font_style);
 	}
-	
+
+	if (node->getAttributeString("font-shadow", font_style))
+	{
+		if(font_style == "soft")
+			text_box->mFontShadow = LLFontGL::DROP_SHADOW_SOFT;
+		else if(font_style == "hard")
+			text_box->mFontShadow = LLFontGL::DROP_SHADOW;
+		else 
+			text_box->mFontShadow = LLFontGL::NO_SHADOW;
+	}
+
 	BOOL mouse_opaque = text_box->getMouseOpaque();
 	if (node->getAttributeBOOL("mouse_opaque", mouse_opaque))
 	{

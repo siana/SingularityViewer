@@ -46,6 +46,7 @@
 #include "llviewertexturelist.h"
 #include "llvolume.h"
 #include "pipeline.h"
+#include "llvector4a.h"
 #include "llviewerregion.h"
 
 LLVOTextBubble::LLVOTextBubble(const LLUUID &id, const LLPCode pcode, LLViewerRegion *regionp)
@@ -215,12 +216,12 @@ void LLVOTextBubble::updateFaceSize(S32 idx)
 	else
 	{
 		const LLVolumeFace& vol_face = getVolume()->getVolumeFace(idx);
-		face->setSize(vol_face.mVertices.size(), vol_face.mIndices.size());
+		face->setSize(vol_face.mNumVertices, vol_face.mNumIndices);
 	}
 }
 
 void LLVOTextBubble::getGeometry(S32 idx,
-								LLStrider<LLVector3>& verticesp,
+								LLStrider<LLVector4a>& verticesp,
 								LLStrider<LLVector3>& normalsp, 
 								LLStrider<LLVector2>& texcoordsp,
 								LLStrider<LLColor4U>& colorsp, 
@@ -233,19 +234,29 @@ void LLVOTextBubble::getGeometry(S32 idx,
 
 	const LLVolumeFace& face = getVolume()->getVolumeFace(idx);
 	
-	LLVector3 pos = getPositionAgent();
+	LLVector4a pos;
+	pos.load3(getPositionAgent().mV);
+
+	LLVector4a scale;
+	scale.load3(getScale().mV);
+
 	LLColor4U color = LLColor4U(getTE(idx)->getColor());
 	U32 offset = mDrawable->getFace(idx)->getGeomIndex();
 	
-	for (U32 i = 0; i < face.mVertices.size(); i++)
+	LLVector4a::memcpyNonAliased16((F32*) normalsp.get(), (F32*) face.mNormals, face.mNumVertices*4*sizeof(F32));
+	//normalsp.assignArray((U8*)face.mNormals, sizeof(face.mNormals[0]), face.mNumVertices);
+	LLVector4a::memcpyNonAliased16((F32*) texcoordsp.get(), (F32*) face.mTexCoords, face.mNumVertices*2*sizeof(F32));
+	//texcoordsp.assignArray((U8*)face.mTexCoords, sizeof(face.mTexCoords[0]), face.mNumVertices);
+
+
+	for (U32 i = 0; i < (U32)face.mNumVertices; i++)
 	{
-		*verticesp++ = face.mVertices[i].mPosition.scaledVec(getScale()) + pos;
-		*normalsp++ = face.mVertices[i].mNormal;
-		*texcoordsp++ = face.mVertices[i].mTexCoord;
+		(verticesp++)->setMul(face.mPositions[i],scale);
+		verticesp->add(pos);
 		*colorsp++ = color;
 	}
 	
-	for (U32 i = 0; i < face.mIndices.size(); i++)
+	for (U32 i = 0; i < (U32)face.mNumIndices; i++)
 	{
 		*indicesp++ = face.mIndices[i] + offset;
 	}

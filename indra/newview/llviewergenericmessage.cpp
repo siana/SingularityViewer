@@ -109,7 +109,7 @@ void process_generic_message(LLMessageSystem* msg, void**)
 				
 				Meta7WindlightPacket* wl = (Meta7WindlightPacket*)buf;
 			
-				LLWaterParamManager * param_mgr = LLWaterParamManager::instance();
+				LLWaterParamManager * param_mgr = LLWaterParamManager::getInstance();
 				LLWaterParamSet & param_set = param_mgr->mCurParams;
 				LLWaterParamSet backup;
 				if(!param_mgr->getParamSet("LightShare-Backup", backup)) {
@@ -154,7 +154,7 @@ void process_generic_message(LLMessageSystem* msg, void**)
 				param_mgr->setParamSet(	"LightShare-CurrentRegion", param_set);
 				param_mgr->setNormalMapID(normalMapTexture);
 
-				LLWLParamManager * wl_param_mgr = LLWLParamManager::instance();
+				LLWLParamManager * wl_param_mgr = LLWLParamManager::getInstance();
 				LLWLParamSet & wl_param_set = wl_param_mgr->mCurParams;
 				LLWLParamSet wl_backup;
 				if(!wl_param_mgr->getParamSet("LightShare-Backup", wl_backup)) {
@@ -187,8 +187,8 @@ void process_generic_message(LLMessageSystem* msg, void**)
 				wl_param_mgr->removeParamSet("LightShare-CurrentRegion",true);
 				wl_param_mgr->addParamSet(	"LightShare-CurrentRegion", wl_param_set);
 				wl_param_mgr->savePreset( "LightShare-CurrentRegion");
-				LLWLParamManager::instance()->mAnimator.mIsRunning = false;
-				LLWLParamManager::instance()->mAnimator.mUseLindenTime = false;
+				LLWLParamManager::getInstance()->mAnimator.mIsRunning = false;
+				LLWLParamManager::getInstance()->mAnimator.mUseLindenTime = false;
 				wl_param_mgr->loadPreset( "LightShare-CurrentRegion",true);	
 			}
 		}

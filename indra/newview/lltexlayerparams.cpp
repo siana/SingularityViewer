@@ -236,8 +236,8 @@ BOOL LLTexLayerParamAlpha::getSkip() const
 		}
 	}
 
-	EWearableType type = (EWearableType)getWearableType();
-	if ((type != WT_INVALID) && !avatar->isWearingWearableType(type))
+	LLWearableType::EType type = (LLWearableType::EType)getWearableType();
+	if ((type != LLWearableType::WT_INVALID) && !avatar->isWearingWearableType(type))
 	{
 		return TRUE;
 	}

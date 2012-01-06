@@ -40,6 +40,7 @@
 #include "llrender.h"
 #include "llui.h"
 #include "lluictrlfactory.h"
+#include "lluiimage.h"
 #include "llrect.h"
 #include "llfocusmgr.h"
 #include "lltimer.h"
@@ -562,7 +563,7 @@ void LLTextEditor::updateLineStartList(S32 startpos)
 			{ 
 				const llwchar* str = mWText.c_str() + start_idx;
 				S32 drawn = mGLFont->maxDrawableChars(str, (F32)abs(mTextRect.getWidth()) - line_width,
-													  end_idx - start_idx, mWordWrap, mAllowEmbeddedItems );
+													  end_idx - start_idx, mWordWrap ? LLFontGL::WORD_BOUNDARY_IF_POSSIBLE : LLFontGL::ANYWHERE, mAllowEmbeddedItems );
 				if( 0 == drawn && line_width == start_x)
 				{
 					// If at the beginning of a line, draw at least one character, even if it doesn't all fit.
@@ -2418,6 +2419,12 @@ BOOL LLTextEditor::handleEditKey(const KEY key, const MASK mask)
 		}
 	}
 
+	if( handled )
+	{
+		// take selection to 'primary' clipboard
+		updatePrimary();
+	}
+
 	return handled;
 }
 
@@ -3232,6 +3239,7 @@ void LLTextEditor::drawCursor()
 						LLColor4(1.f - text_color.mV[VRED], 1.f - text_color.mV[VGREEN], 1.f - text_color.mV[VBLUE], 1.f),
 						LLFontGL::LEFT, LLFontGL::TOP,
 						LLFontGL::NORMAL,
+						LLFontGL::NO_SHADOW,
 						1);
 				}
 
@@ -3423,6 +3431,7 @@ void LLTextEditor::drawText()
 				LLFontGL::LEFT, // horizontal alignment
 				LLFontGL::VCENTER, // vertical alignment
 				style, 
+				LLFontGL::NO_SHADOW,
 				S32_MAX, // max chars
 				UI_TEXTEDITOR_LINE_NUMBER_MARGIN); // max pixels
 		}
@@ -3547,7 +3556,7 @@ void LLTextEditor::drawClippedSegment(const LLWString &text, S32 seg_start, S32 
 		S32 start = seg_start;
 		S32 end = llmin( selection_left, seg_end );
 		S32 length =  end - start;
-		font->render(text, start, x, y_top, color, LLFontGL::LEFT, LLFontGL::TOP, font_flags, length, S32_MAX, right_x, mAllowEmbeddedItems);
+		font->render(text, start, x, y_top, color, LLFontGL::LEFT, LLFontGL::TOP, font_flags, LLFontGL::NO_SHADOW, length, S32_MAX, right_x, mAllowEmbeddedItems);
 	}
 	x = *right_x;
 	
@@ -3560,7 +3569,7 @@ void LLTextEditor::drawClippedSegment(const LLWString &text, S32 seg_start, S32 
 
 		font->render(text, start, x, y_top,
 					 LLColor4( 1.f - color.mV[0], 1.f - color.mV[1], 1.f - color.mV[2], 1.f ),
-					 LLFontGL::LEFT, LLFontGL::TOP, font_flags, length, S32_MAX, right_x, mAllowEmbeddedItems);
+					 LLFontGL::LEFT, LLFontGL::TOP, font_flags, LLFontGL::NO_SHADOW, length, S32_MAX, right_x, mAllowEmbeddedItems);
 	}
 	x = *right_x;
 	if( selection_right < seg_end )
@@ -3569,7 +3578,7 @@ void LLTextEditor::drawClippedSegment(const LLWString &text, S32 seg_start, S32 
 		S32 start = llmax( selection_right, seg_start );
 		S32 end = seg_end;
 		S32 length = end - start;
-		font->render(text, start, x, y_top, color, LLFontGL::LEFT, LLFontGL::TOP, font_flags, length, S32_MAX, right_x, mAllowEmbeddedItems);
+		font->render(text, start, x, y_top, color, LLFontGL::LEFT, LLFontGL::TOP, font_flags, LLFontGL::NO_SHADOW, length, S32_MAX, right_x, mAllowEmbeddedItems);
 	}
  }
 
@@ -4095,7 +4104,7 @@ void LLTextEditor::appendHighlightedText(const std::string &new_text,
 		
 		if (highlight && stylep)
 		{
-			LLSD pieces = highlight->parsePartialLineHighlights(new_text, stylep->getColor(), highlight_part);
+			LLSD pieces = highlight->parsePartialLineHighlights(new_text, stylep->getColor(), (LLTextParser::EHighlightPosition)highlight_part);
 			bool lprepend=prepend_newline;
 			for (S32 i=0;i<pieces.size();i++)
 			{

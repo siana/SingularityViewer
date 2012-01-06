@@ -198,7 +198,15 @@
 	     name="Paste As Link" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="paste_link" />
 	</menu_item_call>
+	<menu_item_call bottom_delta="-18" height="18" label="Restore in World" left="0" mouse_opaque="true"
+	     name="Restore to Last Position" width="128">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="restoreToWorld" />
+	</menu_item_call>
 	<menu_item_separator name="Paste Separator" />
+	<menu_item_call bottom_delta="-18" height="18" label="Remove Link" left="0" mouse_opaque="true"
+	     name="Remove Link" width="128">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="delete" />
+	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Delete" left="0" mouse_opaque="true"
 	     name="Delete" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="delete" />
@@ -267,10 +275,6 @@
 		<on_click filter="" function="Inventory.DoToSelected" userdata="deactivate" />
 	</menu_item_call>
 	<menu_item_separator name="Attach Separator" />
-	<menu_item_call bottom_delta="-18" height="18" label="Restore in World" left="0" mouse_opaque="true"
-	     name="Restore to Last Position" width="128">
-		<on_click filter="" function="Inventory.DoToSelected" userdata="restoreToWorld" />
-	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Wear" left="0" mouse_opaque="true"
 	     name="Object Wear" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="attach" />
@@ -302,5 +306,5 @@
 	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="--no options--" left="0"
 	     mouse_opaque="true" name="--no options--" width="128" />
-	<menu_item_separator name="Wearable Separator" />
+	<--menu_item_separator name="Wearable Separator" /-->
 </menu>

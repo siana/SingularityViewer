@@ -36,6 +36,7 @@
 
 #include "llinventoryview.h"
 #include "llinventorybridge.h"
+#include "llinventorydefines.h"
 
 #include "message.h"
 
@@ -74,6 +75,7 @@
 #include "lltooldraganddrop.h"
 #include "llviewertexturelist.h"
 #include "llviewerinventory.h"
+#include "llviewerassettype.h"
 #include "llviewerobjectlist.h"
 #include "llviewerwindow.h"
 #include "llwearablelist.h"
@@ -586,6 +588,7 @@ BOOL LLInventoryView::postBuild()
 
 	childSetAction("Inventory.ResetAll",onResetAll,this);
 	childSetAction("Inventory.ExpandAll",onExpandAll,this);
+	childSetAction("collapse_btn", onCollapseAll, this);
 
 	//panel->getFilter()->markDefault();
 	return TRUE;
@@ -1353,6 +1356,19 @@ void LLInventoryView::onExpandAll(void* userdata)
 
 
 //static
+void LLInventoryView::onCollapseAll(void* userdata)
+{
+	LLInventoryView* self = (LLInventoryView*) userdata;
+	self->mActivePanel = (LLInventoryPanel*)self->childGetVisibleTab("inventory filter tabs");
+
+	if (!self->mActivePanel)
+	{
+		return;
+	}
+	self->mActivePanel->closeAllFolders();
+}
+
+//static
 void LLInventoryView::onFilterSelected(void* userdata, bool from_click)
 {
 	LLInventoryView* self = (LLInventoryView*) userdata;
@@ -1415,144 +1431,6 @@ BOOL LLInventoryView::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 	BOOL handled = LLFloater::handleDragAndDrop(x, y, mask, drop, cargo_type, cargo_data, accept, tooltip_msg);
 
 	return handled;
-}
-std::string get_item_icon_name(LLAssetType::EType asset_type,
-							 LLInventoryType::EType inventory_type,
-							 U32 attachment_point,
-							 BOOL item_is_multi )
-{
-	EInventoryIcon idx = OBJECT_ICON_NAME;
-	if ( item_is_multi )
-	{
-		idx = OBJECT_MULTI_ICON_NAME;
-	}
-	
-	switch(asset_type)
-	{
-	case LLAssetType::AT_TEXTURE:
-		if(LLInventoryType::IT_SNAPSHOT == inventory_type)
-		{
-			idx = SNAPSHOT_ICON_NAME;
-		}
-		else
-		{
-			idx = TEXTURE_ICON_NAME;
-		}
-		break;
-
-	case LLAssetType::AT_SOUND:
-		idx = SOUND_ICON_NAME;
-		break;
-	case LLAssetType::AT_CALLINGCARD:
-		if(attachment_point!= 0)
-		{
-			idx = CALLINGCARD_ONLINE_ICON_NAME;
-		}
-		else
-		{
-			idx = CALLINGCARD_OFFLINE_ICON_NAME;
-		}
-		break;
-	case LLAssetType::AT_LANDMARK:
-		if(attachment_point!= 0)
-		{
-			idx = LANDMARK_VISITED_ICON_NAME;
-		}
-		else
-		{
-			idx = LANDMARK_ICON_NAME;
-		}
-		break;
-	case LLAssetType::AT_SCRIPT:
-	case LLAssetType::AT_LSL_TEXT:
-	case LLAssetType::AT_LSL_BYTECODE:
-		idx = SCRIPT_ICON_NAME;
-		break;
-	case LLAssetType::AT_CLOTHING:
-		idx = CLOTHING_ICON_NAME;
-	case LLAssetType::AT_BODYPART :
-		if(LLAssetType::AT_BODYPART == asset_type)
-		{
-			idx = BODYPART_ICON_NAME;
-		}
-		switch(LLInventoryItemFlags::II_FLAGS_WEARABLES_MASK & attachment_point)
-		{
-		case WT_SHAPE:
-			idx = BODYPART_SHAPE_ICON_NAME;
-			break;
-		case WT_SKIN:
-			idx = BODYPART_SKIN_ICON_NAME;
-			break;
-		case WT_HAIR:
-			idx = BODYPART_HAIR_ICON_NAME;
-			break;
-		case WT_EYES:
-			idx = BODYPART_EYES_ICON_NAME;
-			break;
-		case WT_SHIRT:
-			idx = CLOTHING_SHIRT_ICON_NAME;
-			break;
-		case WT_PANTS:
-			idx = CLOTHING_PANTS_ICON_NAME;
-			break;
-		case WT_SHOES:
-			idx = CLOTHING_SHOES_ICON_NAME;
-			break;
-		case WT_SOCKS:
-			idx = CLOTHING_SOCKS_ICON_NAME;
-			break;
-		case WT_JACKET:
-			idx = CLOTHING_JACKET_ICON_NAME;
-			break;
-		case WT_GLOVES:
-			idx = CLOTHING_GLOVES_ICON_NAME;
-			break;
-		case WT_UNDERSHIRT:
-			idx = CLOTHING_UNDERSHIRT_ICON_NAME;
-			break;
-		case WT_UNDERPANTS:
-			idx = CLOTHING_UNDERPANTS_ICON_NAME;
-			break;
-		case WT_SKIRT:
-			idx = CLOTHING_SKIRT_ICON_NAME;
-			break;
-		case WT_ALPHA:
-			idx = CLOTHING_ALPHA_ICON_NAME;
-			break;
-		case WT_TATTOO:
-			idx = CLOTHING_TATTOO_ICON_NAME;
-			break;
-		case WT_PHYSICS:
-			idx = CLOTHING_PHYSICS_ICON_NAME;
-			break;
-		default:
-			// no-op, go with choice above
-			break;
-		}
-		break;
-	case LLAssetType::AT_NOTECARD:
-		idx = NOTECARD_ICON_NAME;
-		break;
-	case LLAssetType::AT_ANIMATION:
-		idx = ANIMATION_ICON_NAME;
-		break;
-	case LLAssetType::AT_GESTURE:
-		idx = GESTURE_ICON_NAME;
-		break;
-	default:
-		break;
-	}
-	
-	return ICON_NAME[idx];
-}
-
-LLUIImagePtr get_item_icon(LLAssetType::EType asset_type,
-							 LLInventoryType::EType inventory_type,
-							 U32 attachment_point,
-							 BOOL item_is_multi)
-{
-	const std::string& icon_name = get_item_icon_name(asset_type, inventory_type, attachment_point, item_is_multi );
-	return LLUI::getUIImage(icon_name);
 }
 
 const std::string LLInventoryPanel::DEFAULT_SORT_ORDER = std::string("InventorySortOrder");
@@ -1744,118 +1622,144 @@ void LLInventoryPanel::modelChanged(U32 mask)
 	LLFastTimer t2(LLFastTimer::FTM_REFRESH);
 
 	bool handled = false;
-	if(mask & LLInventoryObserver::LABEL)
+
+	//if (!mViewsInitialized) return;
+
+	const LLInventoryModel* model = getModel();
+	if (!model) return;
+
+	const LLInventoryModel::changed_items_t& changed_items = model->getChangedIDs();
+	if (changed_items.empty()) return;
+
+	for (LLInventoryModel::changed_items_t::const_iterator items_iter = changed_items.begin();
+		 items_iter != changed_items.end();
+		 ++items_iter)
 	{
-		handled = true;
-		// label change - empty out the display name for each object
-		// in this change set.
-		const std::set<LLUUID>& changed_items = gInventory.getChangedIDs();
-		std::set<LLUUID>::const_iterator id_it = changed_items.begin();
-		std::set<LLUUID>::const_iterator id_end = changed_items.end();
-		LLFolderViewItem* view = NULL;
-		LLInvFVBridge* bridge = NULL;
-		for (;id_it != id_end; ++id_it)
+		const LLUUID& item_id = (*items_iter);
+		const LLInventoryObject* model_item = model->getObject(item_id);
+		LLFolderViewItem* view_item = getRootFolder()->getItemByID(item_id);
+
+		// LLFolderViewFolder is derived from LLFolderViewItem so dynamic_cast from item
+		// to folder is the fast way to get a folder without searching through folders tree.
+		//LLFolderViewFolder* view_folder = dynamic_cast<LLFolderViewFolder*>(view_item);
+
+		//////////////////////////////
+		// LABEL Operation
+		// Empty out the display name for relabel.
+		if (mask & LLInventoryObserver::LABEL)
 		{
-			view = mFolders->getItemByID(*id_it);
-			if(view)
+			handled = true;
+			if (view_item)
 			{
-				// request refresh on this item (also flags for filtering)
-				bridge = (LLInvFVBridge*)view->getListener();
+				// Request refresh on this item (also flags for filtering)
+				LLInvFVBridge* bridge = (LLInvFVBridge*)view_item->getListener();
 				if(bridge)
 				{	// Clear the display name first, so it gets properly re-built during refresh()
 					bridge->clearDisplayName();
+
+					view_item->refresh();
 				}
-				view->refresh();
 			}
 		}
-	}
-	if((mask & (LLInventoryObserver::STRUCTURE
-				| LLInventoryObserver::ADD
-				| LLInventoryObserver::REMOVE)) != 0)
-	{
-		handled = true;
-		// Record which folders are open by uuid.
-		LLInventoryModel* model = getModel();
-		if (model)
+
+		//////////////////////////////
+		// REBUILD Operation
+		// Destroy and regenerate the UI.
+		/*if (mask & LLInventoryObserver::REBUILD)
 		{
-			const std::set<LLUUID>& changed_items = gInventory.getChangedIDs();
-
-			std::set<LLUUID>::const_iterator id_it = changed_items.begin();
-			std::set<LLUUID>::const_iterator id_end = changed_items.end();
-			for (;id_it != id_end; ++id_it)
+			handled = true;
+			if (model_item && view_item)
 			{
-				// sync view with model
-				LLInventoryObject* model_item = model->getObject(*id_it);
-				LLFolderViewItem* view_item = mFolders->getItemByID(*id_it);
+				view_item->destroyView();
+			}
+			view_item = buildNewViews(item_id);
+			view_folder = dynamic_cast<LLFolderViewFolder *>(view_item);
+		}*/
 
-				if (model_item)
+		//////////////////////////////
+		// INTERNAL Operation
+		// This could be anything.  For now, just refresh the item.
+		if (mask & LLInventoryObserver::INTERNAL)
+		{
+			if (view_item)
+			{
+				view_item->refresh();
+			}
+		}
+
+		//////////////////////////////
+		// SORT Operation
+		// Sort the folder.
+		/*if (mask & LLInventoryObserver::SORT)
+		{
+			if (view_folder)
+			{
+				view_folder->requestSort();
+			}
+		}*/
+
+		// We don't typically care which of these masks the item is actually flagged with, since the masks
+		// may not be accurate (e.g. in the main inventory panel, I move an item from My Inventory into
+		// Landmarks; this is a STRUCTURE change for that panel but is an ADD change for the Landmarks
+		// panel).  What's relevant is that the item and UI are probably out of sync and thus need to be
+		// resynchronized.
+		if (mask & (LLInventoryObserver::STRUCTURE |
+					LLInventoryObserver::ADD |
+					LLInventoryObserver::REMOVE))
+		{
+			handled = true;
+
+			//////////////////////////////
+			// ADD Operation
+			// Item exists in memory but a UI element hasn't been created for it.
+			if (model_item && !view_item)
+			{
+				// Add the UI element for this item.
+				buildNewViews(item_id);
+				// Select any newly created object that has the auto rename at top of folder root set.
+				if(getRootFolder()->getRoot()->needsAutoRename())
 				{
-					if (!view_item)
-					{
-						// this object was just created, need to build a view for it
-						if ((mask & LLInventoryObserver::ADD) != LLInventoryObserver::ADD)
-						{
-							llwarns << *id_it << " is in model but not in view, but ADD flag not set" << llendl;
-						}
-						buildNewViews(*id_it);
-						
-						// select any newly created object
-						// that has the auto rename at top of folder
-						// root set
-						if(mFolders->getRoot()->needsAutoRename())
-						{
-							setSelection(*id_it, FALSE);
-						}
-					}
-					else
-					{
-						// this object was probably moved, check its parent
-						if ((mask & LLInventoryObserver::STRUCTURE) != LLInventoryObserver::STRUCTURE)
-						{
-							llwarns << *id_it << " is in model and in view, but STRUCTURE flag not set" << llendl;
-						}
+					setSelection(item_id, FALSE);
+				}
+			}
 
-						LLFolderViewFolder* new_parent = (LLFolderViewFolder*)mFolders->getItemByID(model_item->getParentUUID());
-						if (new_parent)
+			//////////////////////////////
+			// STRUCTURE Operation
+			// This item already exists in both memory and UI.  It was probably reparented.
+			else if (model_item && view_item)
+			{
+				// Don't process the item if it is the root
+				if (view_item->getRoot() != view_item)
+				{
+					LLFolderViewFolder* new_parent = (LLFolderViewFolder*)getRootFolder()->getItemByID(model_item->getParentUUID());
+					// Item has been moved.
+					if (view_item->getParentFolder() != new_parent)
+					{
+						if (new_parent != NULL)
 						{
-						if (view_item->getParentFolder() != new_parent)
-						{
+							// Item is to be moved and we found its new parent in the panel's directory, so move the item's UI.
 							view_item->getParentFolder()->extractItem(view_item);
-							view_item->addToFolder(new_parent, mFolders);
+							view_item->addToFolder(new_parent, getRootFolder());
 						}
-					}
 						else
 						{
-							llwarns << model_item->getParentUUID() << ": parent folder gone !" << llendl;
+							// Item is to be moved outside the panel's directory (e.g. moved to trash for a panel that
+							// doesn't include trash).  Just remove the item's UI.
+							view_item->destroyView();
 						}
-					}
-				}
-				else
-				{
-					if (view_item)
-					{
-						if ((mask & LLInventoryObserver::REMOVE) != LLInventoryObserver::REMOVE)
-						{
-							llwarns << *id_it << " is not in model but in view, but REMOVE flag not set" << llendl;
-						}
-						// item in view but not model, need to delete view
-						view_item->destroyView();
-					}
-					else
-					{
-						llwarns << *id_it << ": Item does not exist in either view or model, but notification triggered" << llendl;
 					}
 				}
 			}
-		}
-	}
 
-	if (!handled)
-	{
-		// it's a small change that only requires a refresh.
-		// *TODO: figure out a more efficient way to do the refresh
-		// since it is expensive on large inventories
-		mFolders->refresh();
+			//////////////////////////////
+			// REMOVE Operation
+			// This item has been removed from memory, but its associated UI element still exists.
+			else if (!model_item && view_item)
+			{
+				// Remove the item's UI.
+				view_item->destroyView();
+			}
+		}
 	}
 }
 
@@ -2065,7 +1969,7 @@ void LLInventoryPanel::closeAllFolders()
 
 void LLInventoryPanel::openDefaultFolderForType(LLAssetType::EType type)
 {
-	LLUUID category_id = mInventory->findCategoryUUIDForType(type);
+	LLUUID category_id = mInventory->findCategoryUUIDForType(LLFolderType::assetTypeToFolderType(type));
 	LLOpenFolderByID opener(category_id);
 	mFolders->applyFunctorRecursively(opener);
 }
@@ -2099,7 +2003,7 @@ void LLInventoryPanel::createNewItem(const std::string& name,
 									U32 next_owner_perm)
 {
 	std::string desc;
-	LLAssetType::generateDescriptionFor(asset_type, desc);
+	LLViewerAssetType::generateDescriptionFor(asset_type, desc);
 	next_owner_perm = (next_owner_perm) ? next_owner_perm : PERM_MOVE | PERM_TRANSFER;
 
 	

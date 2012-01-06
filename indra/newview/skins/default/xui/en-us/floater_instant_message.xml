@@ -71,7 +71,7 @@
 	     text_readonly_color="ChatHistoryTextColor" width="487" word_wrap="true" />
 	<line_editor bevel_style="in" border_style="line" border_thickness="1" bottom="7"
 	     follows="left|right|bottom" font="SansSerif" height="20"
-	     label="Click here to instant message" left="5" max_length="1022"
+	     label="Click here to instant message" left="5" max_length="2147483647"
 	     mouse_opaque="true" name="chat_editor" select_all_on_focus_received="false"
 	     select_on_focus="false" tab_group="1" width="423" spell_check="true" />
 	<button bottom="7" follows="right|bottom" font="SansSerif" halign="center" height="20"

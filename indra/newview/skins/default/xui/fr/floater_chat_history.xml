@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="chat floater" title="Chat local">
+	<string name="ringing">
+		Connexion au chat vocal du Monde en cours…
+	</string>
+	<string name="connected">
+		Connecté(e)
+	</string>
+	<string name="unavailable">
+		Voix non disponible à l&apos;endroit où vous êtes
+	</string>
+	<string name="hang_up">
+		Déconnecté du chat vocal
+	</string>
+	<string name="voice_icon">
+		icn_voice-localchat.tga
+	</string>
+	<string name="IM_logging_string">
+		-- Archivage des IM activé --
+	</string>
+	<string name="IM_end_log_string">
+		- Fin de l&apos;archivage --
+	</string>
+	<string name="ScriptQuestionCautionChatGranted">
+		&apos;[OBJECTNAME]&apos;, un objet appartenant à [OWNERNAME], situé dans [REGIONNAME] à [REGIONPOS], a reçu le droit de : [PERMISSIONS].
+	</string>
+	<string name="ScriptQuestionCautionChatDenied">
+		&apos;[OBJECTNAME]&apos;, un objet appartenant à [OWNERNAME], situé dans [REGIONNAME] à [REGIONPOS], n&apos;a pas reçu le droit de : [PERMISSIONS].
+	</string>
+	<string name="ScriptTakeMoney">
+		Débiter vos Linden dollars (L$)
+	</string>
+	<string name="ActOnControlInputs">
+		Utiliser vos touches de commandes
+	</string>
+	<string name="RemapControlInputs">
+		Reconfigurer vos touches de commandes
+	</string>
+	<string name="AnimateYourAvatar">
+		Animer votre avatar
+	</string>
+	<string name="AttachToYourAvatar">
+		Attacher à votre avatar
+	</string>
+	<string name="ReleaseOwnership">
+		Passer l&apos;objet dans le domaine public (sans propriétaire)
+	</string>
+	<string name="LinkAndDelink">
+		Lier et délier d&apos;autres objets
+	</string>
+	<string name="AddAndRemoveJoints">
+		Créer et supprimer des liens avec d&apos;autres objets
+	</string>
+	<string name="ChangePermissions">
+		Modifier ses droits
+	</string>
+	<string name="TrackYourCamera">
+		Suivre votre caméra
+	</string>
+	<string name="ControlYourCamera">
+		Contrôler votre caméra
+	</string>
+	<layout_stack name="panels">
+		<layout_panel name="im_contents_panel">
+			<combo_box label="Gestures" name="Gesture">
+				<combo_item name="Gestures">
+					Gestures
+				</combo_item>
+			</combo_box>
+			<check_box label="Afficher le texte ignoré" name="show mutes"/>
+			<check_box bottom_delta="-15" enabled="true" follows="left|top" font="SansSerifSmall"
+			     height="20" initial_value="false" label="Traduire le Chat" left_delta="0"
+			     name="translate chat" radio_style="false" width="100" />
+                        <button bottom_delta="8" left_delta="180" follows="left|top" font="SansSerifSmall"
+                        height="20" width="100" label="Historique" name="chat_history_open"
+                        tool_top="Click here to open chat history in external editor." />
+
+			<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Cliquez ici pour voir la liste des participants actifs dans cette session IM."/>
+			<panel name="chat_panel">
+				<string name="gesture_label">
+					Gestures
+				</string>
+				<line_editor label="Cliquer ici pour chatter." name="Chat Editor"/>
+				<flyout_button label="Dire" name="Say" tool_tip="(Entrée)">
+					<flyout_button_item name="shout_item">
+						Crier
+					</flyout_button_item>
+					<flyout_button_item name="say_item">
+						Dire
+					</flyout_button_item>
+					<flyout_button_item name="whisper_item">
+						Chuchoter
+					</flyout_button_item>
+				</flyout_button>
+			</panel>
+		</layout_panel>
+	</layout_stack>
+</floater>

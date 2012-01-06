@@ -55,10 +55,11 @@
 #include "llselectmgr.h"
 #include "llstatusbar.h"
 #include "llui.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "llviewercamera.h"
 #include "llviewerobject.h"
 #include "llviewerobject.h"
+#include "llviewershadermgr.h"
 #include "llviewerwindow.h"
 #include "llworld.h"
 #include "pipeline.h"
@@ -117,7 +118,7 @@ void LLManipRotate::handleSelect()
 void LLManipRotate::render()
 {
 	LLGLSUIDefault gls_ui;
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+	gGL.getTexUnit(0)->bind(LLViewerFetchedTexture::sWhiteImagep);
 	LLGLDepthTest gls_depth(GL_TRUE);
 	LLGLEnable gl_blend(GL_BLEND);
 	LLGLEnable gls_alpha_test(GL_ALPHA_TEST);
@@ -134,12 +135,12 @@ void LLManipRotate::render()
 		return;
 	}
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.pushMatrix();
 	if (mObjectSelection->getSelectType() == SELECT_TYPE_HUD)
 	{
 		F32 zoom = gAgentCamera.mHUDCurZoom;
-		glScalef(zoom, zoom, zoom);
+		gGL.scalef(zoom, zoom, zoom);
 	}
 
 
@@ -149,7 +150,7 @@ void LLManipRotate::render()
 	LLColor4 highlight_inside( 0.7f, 0.7f, 0.f, 0.5f );
 	F32 width_meters = WIDTH_PIXELS * mRadiusMeters / RADIUS_PIXELS;
 
-	glPushMatrix();
+	gGL.pushMatrix();
 	{
 		// are we in the middle of a constrained drag?
 		if (mManipPart >= LL_ROT_X && mManipPart <= LL_ROT_Z)
@@ -158,13 +159,18 @@ void LLManipRotate::render()
 		}
 		else
 		{
+			if (LLGLSLShader::sNoFixedFunction)
+			{
+				gDebugProgram.bind();
+			}
+
 			LLGLEnable cull_face(GL_CULL_FACE);
 			LLGLDepthTest gls_depth(GL_FALSE);
-			glPushMatrix();
+			gGL.pushMatrix();
 			{
 				// Draw "sphere" (intersection of sphere with tangent cone that has apex at camera)
-				glTranslatef( mCenterToProfilePlane.mV[VX], mCenterToProfilePlane.mV[VY], mCenterToProfilePlane.mV[VZ] );
-				glTranslatef( center.mV[VX], center.mV[VY], center.mV[VZ] );
+				gGL.translatef( mCenterToProfilePlane.mV[VX], mCenterToProfilePlane.mV[VY], mCenterToProfilePlane.mV[VZ] );
+				gGL.translatef( center.mV[VX], center.mV[VY], center.mV[VZ] );
 
 				// Inverse change of basis vectors
 				LLVector3 forward = mCenterToCamNorm;
@@ -181,35 +187,41 @@ void LLManipRotate::render()
 				LLMatrix4 mat;
 				mat.initRows(a, b, c, LLVector4(0.f, 0.f, 0.f, 1.f));
 
-				glMultMatrixf( &mat.mMatrix[0][0] );
+				gGL.multMatrix( &mat.mMatrix[0][0] );
 
-				glRotatef( -90, 0.f, 1.f, 0.f);
+				gGL.rotatef( -90, 0.f, 1.f, 0.f);
 				LLColor4 color;
 				if (mManipPart == LL_ROT_ROLL || mHighlightedPart == LL_ROT_ROLL)
 				{
 					color.setVec(0.8f, 0.8f, 0.8f, 0.8f);
-					glScalef(mManipulatorScales.mV[VW], mManipulatorScales.mV[VW], mManipulatorScales.mV[VW]);
+					gGL.scalef(mManipulatorScales.mV[VW], mManipulatorScales.mV[VW], mManipulatorScales.mV[VW]);
 				}
 				else
 				{
 					color.setVec( 0.7f, 0.7f, 0.7f, 0.6f );
 				}
+				gGL.diffuseColor4fv(color.mV);
 				gl_washer_2d(mRadiusMeters + width_meters, mRadiusMeters, CIRCLE_STEPS, color, color);
 
 
 				if (mManipPart == LL_NO_PART)
 				{
 					gGL.color4f( 0.7f, 0.7f, 0.7f, 0.3f );
+					gGL.diffuseColor4f(0.7f, 0.7f, 0.7f, 0.3f);
 					gl_circle_2d( 0, 0,  mRadiusMeters, CIRCLE_STEPS, TRUE );
 				}
 				
-				GLdouble plane_eqn[] = { 0, 0, 1, 0 };
-				glClipPlane( GL_CLIP_PLANE0, plane_eqn );
+				gGL.flush();
 			}
-			glPopMatrix();
+			gGL.popMatrix();
+
+			if (LLGLSLShader::sNoFixedFunction)
+			{
+				gUIProgram.bind();
+			}
 		}
 
-		glTranslatef( center.mV[VX], center.mV[VY], center.mV[VZ] );
+		gGL.translatef( center.mV[VX], center.mV[VY], center.mV[VZ] );
 
 		LLQuaternion rot;
 		F32 angle_radians, x, y, z;
@@ -221,41 +233,46 @@ void LLManipRotate::render()
 		LLSelectMgr::getInstance()->getGrid(grid_origin, grid_rotation, grid_scale);
 
 		grid_rotation.getAngleAxis(&angle_radians, &x, &y, &z);
-		glRotatef(angle_radians * RAD_TO_DEG, x, y, z);
+		gGL.rotatef(angle_radians * RAD_TO_DEG, x, y, z);
 
+
+		if (LLGLSLShader::sNoFixedFunction)
+		{
+			gDebugProgram.bind();
+		}
 
 		if (mManipPart == LL_ROT_Z)
 		{
 			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-			glPushMatrix();
+			gGL.pushMatrix();
 			{
 				// selected part
-				glScalef(mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ]);
+				gGL.scalef(mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ]);
 				renderActiveRing( mRadiusMeters, width_meters, LLColor4( 0.f, 0.f, 1.f, 1.f) , LLColor4( 0.f, 0.f, 1.f, 0.3f ));
 			}
-			glPopMatrix();
+			gGL.popMatrix();
 		}
 		else if (mManipPart == LL_ROT_Y)
 		{
 			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-			glPushMatrix();
+			gGL.pushMatrix();
 			{
-				glRotatef( 90.f, 1.f, 0.f, 0.f );
-				glScalef(mManipulatorScales.mV[VY], mManipulatorScales.mV[VY], mManipulatorScales.mV[VY]);
+				gGL.rotatef( 90.f, 1.f, 0.f, 0.f );
+				gGL.scalef(mManipulatorScales.mV[VY], mManipulatorScales.mV[VY], mManipulatorScales.mV[VY]);
 				renderActiveRing( mRadiusMeters, width_meters, LLColor4( 0.f, 1.f, 0.f, 1.f), LLColor4( 0.f, 1.f, 0.f, 0.3f));
 			}
-			glPopMatrix();
+			gGL.popMatrix();
 		}
 		else if (mManipPart == LL_ROT_X)
 		{
 			mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-			glPushMatrix();
+			gGL.pushMatrix();
 			{
-				glRotatef( 90.f, 0.f, 1.f, 0.f );
-				glScalef(mManipulatorScales.mV[VX], mManipulatorScales.mV[VX], mManipulatorScales.mV[VX]);
+				gGL.rotatef( 90.f, 0.f, 1.f, 0.f );
+				gGL.scalef(mManipulatorScales.mV[VX], mManipulatorScales.mV[VX], mManipulatorScales.mV[VX]);
 				renderActiveRing( mRadiusMeters, width_meters, LLColor4( 1.f, 0.f, 0.f, 1.f), LLColor4( 1.f, 0.f, 0.f, 0.3f));
 			}
-			glPopMatrix();
+			gGL.popMatrix();
 		}
 		else if (mManipPart == LL_ROT_ROLL)
 		{
@@ -275,12 +292,12 @@ void LLManipRotate::render()
 			// First pass: centers. Second pass: sides.
 			for( S32 i=0; i<2; i++ )
 			{
-				glPushMatrix();
+				gGL.pushMatrix();
 				{
 					if (mHighlightedPart == LL_ROT_Z)
 					{
 						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-						glScalef(mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ]);
+						gGL.scalef(mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ]);
 						// hovering over part
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 0.f, 1.f, 1.f ), LLColor4( 0.f, 0.f, 1.f, 0.5f ), CIRCLE_STEPS, i);
 					}
@@ -290,15 +307,15 @@ void LLManipRotate::render()
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 0.f, 0.8f, 0.8f ), LLColor4( 0.f, 0.f, 0.8f, 0.4f ), CIRCLE_STEPS, i);
 					}
 				}
-				glPopMatrix();
+				gGL.popMatrix();
 
-				glPushMatrix();
+				gGL.pushMatrix();
 				{
-					glRotatef( 90.f, 1.f, 0.f, 0.f );
+					gGL.rotatef( 90.f, 1.f, 0.f, 0.f );
 					if (mHighlightedPart == LL_ROT_Y)
 					{
 						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-						glScalef(mManipulatorScales.mV[VY], mManipulatorScales.mV[VY], mManipulatorScales.mV[VY]);
+						gGL.scalef(mManipulatorScales.mV[VY], mManipulatorScales.mV[VY], mManipulatorScales.mV[VY]);
 						// hovering over part
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 1.f, 0.f, 1.f ), LLColor4( 0.f, 1.f, 0.f, 0.5f ), CIRCLE_STEPS, i);
 					}
@@ -308,15 +325,15 @@ void LLManipRotate::render()
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 0.8f, 0.f, 0.8f ), LLColor4( 0.f, 0.8f, 0.f, 0.4f ), CIRCLE_STEPS, i);
 					}						
 				}
-				glPopMatrix();
+				gGL.popMatrix();
 
-				glPushMatrix();
+				gGL.pushMatrix();
 				{
-					glRotatef( 90.f, 0.f, 1.f, 0.f );
+					gGL.rotatef( 90.f, 0.f, 1.f, 0.f );
 					if (mHighlightedPart == LL_ROT_X)
 					{
 						mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
-						glScalef(mManipulatorScales.mV[VX], mManipulatorScales.mV[VX], mManipulatorScales.mV[VX]);
+						gGL.scalef(mManipulatorScales.mV[VX], mManipulatorScales.mV[VX], mManipulatorScales.mV[VX]);
 	
 						// hovering over part
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 1.f, 0.f, 0.f, 1.f ), LLColor4( 1.f, 0.f, 0.f, 0.5f ), CIRCLE_STEPS, i);
@@ -327,17 +344,24 @@ void LLManipRotate::render()
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.8f, 0.f, 0.f, 0.8f ), LLColor4( 0.8f, 0.f, 0.f, 0.4f ), CIRCLE_STEPS, i);
 					}
 				}
-				glPopMatrix();
+				gGL.popMatrix();
 
 				if (mHighlightedPart == LL_ROT_ROLL)
 				{
 					mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, SELECTED_MANIPULATOR_SCALE), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 				}
 			}
+			
 		}
+
+		if (LLGLSLShader::sNoFixedFunction)
+		{
+			gUIProgram.bind();
+		}
+		
 	}
-	glPopMatrix();
-	glPopMatrix();
+	gGL.popMatrix();
+	gGL.popMatrix();
 
 	LLVector3 euler_angles;
 	LLQuaternion object_rot = first_object->getRotationEdit();
@@ -738,7 +762,7 @@ void LLManipRotate::renderSnapGuides()
 	LLVector3 test_axis = constraint_axis;
 
 	BOOL constrain_to_ref_object = FALSE;
-	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && gAgent.getAvatarObject())
+	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && isAgentAvatarValid())
 	{
 		test_axis = test_axis * ~grid_rotation;
 	}
@@ -765,7 +789,7 @@ void LLManipRotate::renderSnapGuides()
 	}
 
 	LLVector3 projected_snap_axis = world_snap_axis;
-	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && gAgent.getAvatarObject())
+	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && isAgentAvatarValid())
 	{
 		projected_snap_axis = projected_snap_axis * grid_rotation;
 	}
@@ -800,14 +824,14 @@ void LLManipRotate::renderSnapGuides()
 		for (S32 pass = 0; pass < 3; pass++)
 		{
 			// render snap guide ring
-			glPushMatrix();
+			gGL.pushMatrix();
 			
 			LLQuaternion snap_guide_rot;
 			F32 angle_radians, x, y, z;
 			snap_guide_rot.shortestArc(LLVector3::z_axis, getConstraintAxis());
 			snap_guide_rot.getAngleAxis(&angle_radians, &x, &y, &z);
-			glTranslatef(center.mV[VX], center.mV[VY], center.mV[VZ]);
-			glRotatef(angle_radians * RAD_TO_DEG, x, y, z);
+			gGL.translatef(center.mV[VX], center.mV[VY], center.mV[VZ]);
+			gGL.rotatef(angle_radians * RAD_TO_DEG, x, y, z);
 
 			LLColor4 line_color = setupSnapGuideRenderPass(pass);
 
@@ -830,7 +854,7 @@ void LLManipRotate::renderSnapGuides()
 			{
 				gl_circle_2d(0.f, 0.f, mRadiusMeters * SNAP_GUIDE_INNER_RADIUS, CIRCLE_STEPS, FALSE);
 			}
-			glPopMatrix();
+			gGL.popMatrix();
 
 			for (S32 i = 0; i < 64; i++)
 			{
@@ -1108,8 +1132,11 @@ BOOL LLManipRotate::updateVisiblity()
 		mCenterToProfilePlaneMag = mRadiusMeters * mRadiusMeters / mCenterToCamMag;
 		mCenterToProfilePlane = -mCenterToProfilePlaneMag * mCenterToCamNorm;
 
-		mCenterScreen.set((S32)((0.5f - mRotationCenter.mdV[VY]) / gAgentCamera.mHUDCurZoom * gViewerWindow->getWindowWidth()),
-							(S32)((mRotationCenter.mdV[VZ] + 0.5f) / gAgentCamera.mHUDCurZoom * gViewerWindow->getWindowHeight()));
+		// x axis range is (-aspect * 0.5f, +aspect * 0.5)
+		// y axis range is (-0.5, 0.5)
+		// so use getWorldViewHeightRaw as scale factor when converting to pixel coordinates
+		mCenterScreen.set((S32)((0.5f - center.mV[VY]) / gAgentCamera.mHUDCurZoom * gViewerWindow->getWorldViewHeightScaled()),
+							(S32)((center.mV[VZ] + 0.5f) / gAgentCamera.mHUDCurZoom * gViewerWindow->getWorldViewHeightScaled()));
 		visible = TRUE;
 	}
 	else
@@ -1129,7 +1156,7 @@ BOOL LLManipRotate::updateVisiblity()
 			if (gSavedSettings.getBOOL("LimitSelectDistance"))
 			{
 				F32 max_select_distance = gSavedSettings.getF32("MaxSelectDistance");
-				if (dist_vec(gAgent.getPositionAgent(), center) > max_select_distance)
+				if (dist_vec_squared(gAgent.getPositionAgent(), center) > (max_select_distance * max_select_distance))
 				{
 					visible = FALSE;
 				}
@@ -1279,7 +1306,7 @@ LLQuaternion LLManipRotate::dragConstrained( S32 x, S32 y )
 	LLVector3 axis2;
 
 	LLVector3 test_axis = constraint_axis;
-	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && gAgent.getAvatarObject())
+	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && isAgentAvatarValid())
 	{
 		test_axis = test_axis * ~grid_rotation;
 	}
@@ -1303,7 +1330,7 @@ LLQuaternion LLManipRotate::dragConstrained( S32 x, S32 y )
 		axis1 = LLVector3::x_axis;
 	}
 
-	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && gAgent.getAvatarObject())
+	if (mObjectSelection->getSelectType() == SELECT_TYPE_ATTACHMENT && isAgentAvatarValid())
 	{
 		axis1 = axis1 * grid_rotation;
 	}
@@ -1625,8 +1652,8 @@ void LLManipRotate::mouseToRay( S32 x, S32 y, LLVector3* ray_pt, LLVector3* ray_
 {
 	if (LLSelectMgr::getInstance()->getSelection()->getSelectType() == SELECT_TYPE_HUD)
 	{
-		F32 mouse_x = (((F32)x / gViewerWindow->getWindowWidth()) - 0.5f) / gAgentCamera.mHUDCurZoom;
-		F32 mouse_y = ((((F32)y) / gViewerWindow->getWindowHeight()) - 0.5f) / gAgentCamera.mHUDCurZoom;
+		F32 mouse_x = (((F32)x / gViewerWindow->getWorldViewRectScaled().getWidth()) - 0.5f) / gAgentCamera.mHUDCurZoom;
+		F32 mouse_y = ((((F32)y) / gViewerWindow->getWorldViewRectScaled().getHeight()) - 0.5f) / gAgentCamera.mHUDCurZoom;
 
 		*ray_pt = LLVector3(-1.f, -mouse_x, mouse_y);
 		*ray_dir = LLVector3(1.f, 0.f, 0.f);
@@ -1700,7 +1727,7 @@ void LLManipRotate::highlightManipulators( S32 x, S32 y )
 	F32 dist_y = mouse_dir_y.normVec();
 	F32 dist_z = mouse_dir_z.normVec();
 
-	F32 distance_threshold = (MAX_MANIP_SELECT_DISTANCE * mRadiusMeters) / gViewerWindow->getWindowHeight();
+	F32 distance_threshold = (MAX_MANIP_SELECT_DISTANCE * mRadiusMeters) / gViewerWindow->getWorldViewHeightScaled();
 
 	if (llabs(dist_x - mRadiusMeters) * llmax(0.05f, proj_rot_x_axis) < distance_threshold)
 	{

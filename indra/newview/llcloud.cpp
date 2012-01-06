@@ -117,12 +117,15 @@ void LLCloudGroup::updatePuffs(const F32 dt)
 	if (!mVOCloudsp)
 	{
 		mVOCloudsp = (LLVOClouds *)gObjectList.createObjectViewer(LLViewerObject::LL_VO_CLOUDS, mCloudLayerp->getRegion());
-		mVOCloudsp->setCloudGroup(this);
-		mVOCloudsp->setPositionRegion(mCenterRegion);
-		mVOCloudsp->setScale(LLVector3(256.f/CLOUD_GROUPS_PER_EDGE + CLOUD_PUFF_WIDTH,
-										 256.f/CLOUD_GROUPS_PER_EDGE + CLOUD_PUFF_WIDTH,
-										 CLOUD_HEIGHT_RANGE + CLOUD_PUFF_HEIGHT)*0.5f);
-		gPipeline.createObject(mVOCloudsp);
+		if(mVOCloudsp)
+		{
+			mVOCloudsp->setCloudGroup(this);
+			mVOCloudsp->setPositionRegion(mCenterRegion);
+			mVOCloudsp->setScale(LLVector3(256.f/CLOUD_GROUPS_PER_EDGE + CLOUD_PUFF_WIDTH,
+											 256.f/CLOUD_GROUPS_PER_EDGE + CLOUD_PUFF_WIDTH,
+											 CLOUD_HEIGHT_RANGE + CLOUD_PUFF_HEIGHT)*0.5f);
+			gPipeline.createObject(mVOCloudsp);
+		}
 	}
 
 	LLVector3 velocity;

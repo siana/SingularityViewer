@@ -61,6 +61,7 @@
 #include "lllineeditor.h"
 #include "llnameeditor.h"
 #include "llmutelist.h"
+#include "llnotificationsutil.h"
 #include "llpanelclassified.h"
 #include "llpanelpick.h"
 #include "llpreviewtexture.h"
@@ -380,13 +381,13 @@ void LLPanelAvatarSecondLife::onDoubleClickGroup(void* data)
 // static
 void LLPanelAvatarSecondLife::onClickPublishHelp(void *)
 {
-	LLNotifications::instance().add("ClickPublishHelpAvatar");
+	LLNotificationsUtil::add("ClickPublishHelpAvatar");
 }
 
 // static
 void LLPanelAvatarSecondLife::onClickPartnerHelp(void *)
 {
-	LLNotifications::instance().add("ClickPartnerHelpAvatar", LLSD(), LLSD(), onClickPartnerHelpLoadURL);
+	LLNotificationsUtil::add("ClickPartnerHelpAvatar", LLSD(), LLSD(), onClickPartnerHelpLoadURL);
 }
 
 // static 
@@ -646,7 +647,7 @@ void LLPanelAvatarWeb::onCommitURL(LLUICtrl* ctrl, void* data)
 // static
 void LLPanelAvatarWeb::onClickWebProfileHelp(void *)
 {
-	LLNotifications::instance().add("ClickWebProfileHelpAvatar");
+	LLNotificationsUtil::add("ClickWebProfileHelpAvatar");
 }
 
 void LLPanelAvatarWeb::load(std::string url)
@@ -1006,7 +1007,7 @@ void LLPanelAvatarClassified::onClickNew(void* data)
 // [/RLVa:KB]
 	LLPanelAvatarClassified* self = (LLPanelAvatarClassified*)data;
 
-	LLNotifications::instance().add("AddClassified", LLSD(), LLSD(), boost::bind(&LLPanelAvatarClassified::callbackNew, self, _1, _2));
+	LLNotificationsUtil::add("AddClassified", LLSD(), LLSD(), boost::bind(&LLPanelAvatarClassified::callbackNew, self, _1, _2));
 		
 }
 
@@ -1043,7 +1044,7 @@ void LLPanelAvatarClassified::onClickDelete(void* data)
 
 	LLSD args;
 	args["NAME"] = panel_classified->getClassifiedName();
-	LLNotifications::instance().add("DeleteClassified", args, LLSD(), boost::bind(&LLPanelAvatarClassified::callbackDelete, self, _1, _2));
+	LLNotificationsUtil::add("DeleteClassified", args, LLSD(), boost::bind(&LLPanelAvatarClassified::callbackDelete, self, _1, _2));
 		
 }
 
@@ -1258,7 +1259,7 @@ void LLPanelAvatarPicks::onClickDelete(void* data)
 	LLSD args;
 	args["PICK"] = panel_pick->getPickName();
 
-	LLNotifications::instance().add("DeleteAvatarPick", args, LLSD(),
+	LLNotificationsUtil::add("DeleteAvatarPick", args, LLSD(),
 									boost::bind(&LLPanelAvatarPicks::callbackDelete, self, _1, _2));
 }
 
@@ -2471,7 +2472,7 @@ void LLPanelAvatar::onClickKick(void* userdata)
 
 	LLSD payload;
 	payload["avatar_id"] = self->mAvatarID;
-	LLNotifications::instance().add("KickUser", LLSD(), payload, finishKick);
+	LLNotificationsUtil::add("KickUser", LLSD(), payload, finishKick);
 }
 
 //static
@@ -2502,7 +2503,7 @@ void LLPanelAvatar::onClickFreeze(void* userdata)
 	LLPanelAvatar* self = (LLPanelAvatar*) userdata;
 	LLSD payload;
 	payload["avatar_id"] = self->mAvatarID;
-	LLNotifications::instance().add("FreezeUser", LLSD(), payload, LLPanelAvatar::finishFreeze);
+	LLNotificationsUtil::add("FreezeUser", LLSD(), payload, LLPanelAvatar::finishFreeze);
 }
 
 // static
@@ -2533,7 +2534,7 @@ void LLPanelAvatar::onClickUnfreeze(void* userdata)
 	LLPanelAvatar* self = (LLPanelAvatar*) userdata;
 	LLSD payload;
 	payload["avatar_id"] = self->mAvatarID;
-	LLNotifications::instance().add("UnFreezeUser", LLSD(), payload, LLPanelAvatar::finishUnfreeze);
+	LLNotificationsUtil::add("UnFreezeUser", LLSD(), payload, LLPanelAvatar::finishUnfreeze);
 }
 
 // static

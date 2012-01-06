@@ -93,7 +93,7 @@ protected:
 class LLToolset
 {
 public:
-	LLToolset() : mSelectedTool(NULL) {}
+	LLToolset(const char *name) : mSelectedTool(NULL), mName(name) {}
 
 	LLTool*			getSelectedTool()				{ return mSelectedTool; }
 
@@ -109,7 +109,9 @@ public:
 
 	BOOL			isToolSelected( S32 index );
 
+	const char*		getName() const {return mName;}
 protected:
+	const char*		mName;
 	LLTool*			mSelectedTool;
 	typedef std::vector<LLTool*> tool_list_t;
 	tool_list_t 	mToolList;

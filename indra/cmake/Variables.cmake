@@ -76,24 +76,16 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(DARWIN 1)
 
-  # NOTE: If specifying a different SDK with CMAKE_OSX_SYSROOT at configure
-  # time you should also specify CMAKE_OSX_DEPLOYMENT_TARGET explicitly,
-  # otherwise CMAKE_OSX_SYSROOT will be overridden here. We can't just check
-  # for it being unset, as it gets set to the system default :(
-
-  # Default to building against the 10.5 SDK if no deployment target is
-  # specified.
-  if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-    # NOTE: setting -isysroot is NOT adequate: http://lists.apple.com/archives/Xcode-users/2007/Oct/msg00696.html
-    # see http://public.kitware.com/Bug/view.php?id=9959 + poppy
+  #SDK Compiler and Deployment targets for XCode
+  if (${XCODE_VERSION} VERSION_LESS 4.0.0)
     set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.5.sdk)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5)
-  endif (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_XCODE_ATTIBUTE_GCC_VERSION "4.2")
+  else (${XCODE_VERSION} VERSION_LESS 4.0.0)
+    set(CMAKE_OSX_SYSROOT /Developer/SDKs/MacOSX10.6.sdk)
+    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
+  endif (${XCODE_VERSION} VERSION_LESS 4.0.0)
 
-  # Use GCC 4.2
-  if (${CMAKE_OSX_SYSROOT} MATCHES "10.5")
-    set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "4.2")
-  endif (${CMAKE_OSX_SYSROOT} MATCHES "10.5")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 10.5)
 
   # NOTE: To attempt an i386/PPC Universal build, add this on the configure line:
   # -DCMAKE_OSX_ARCHITECTURES:STRING='i386;ppc'
@@ -116,6 +108,17 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(LL_ARCH_DIR universal-darwin)
   set(WORD_SIZE 32)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+
+if (WINDOWS)
+  set(PREBUILT_TYPE windows)
+elseif(DARWIN)
+  set(PREBUILT_TYPE darwin)
+elseif(LINUX AND WORD_SIZE EQUAL 32)
+  set(PREBUILT_TYPE linux)
+elseif(LINUX AND WORD_SIZE EQUAL 64)
+  set(PREBUILT_TYPE linux64)
+endif(WINDOWS)
 
 
 # Default deploy grid

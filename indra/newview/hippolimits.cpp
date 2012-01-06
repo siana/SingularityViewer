@@ -60,5 +60,6 @@ void HippoLimits::setSecondLifeLimits()
 	mMaxHeight = 4096.0f;
 	mMinHoleSize = 0.05f;
 	mMaxHollow = 0.95f;
+	mMaxPrimScale = 64.0f;
 }
 

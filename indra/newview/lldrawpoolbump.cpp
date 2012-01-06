@@ -162,6 +162,7 @@ void LLStandardBumpmap::addstandard()
 			LLViewerTextureManager::getFetchedTexture(LLUUID(bump_image_id));	
 		gStandardBumpmapList[LLStandardBumpmap::sStandardBumpmapCount].mImage->setBoostLevel(LLViewerTexture::BOOST_BUMP) ;
 		gStandardBumpmapList[LLStandardBumpmap::sStandardBumpmapCount].mImage->setLoadedCallback(LLBumpImageList::onSourceStandardLoaded, 0, TRUE, FALSE, NULL, NULL );
+		gStandardBumpmapList[LLStandardBumpmap::sStandardBumpmapCount].mImage->forceToSaveRawImage(0) ;
 		LLStandardBumpmap::sStandardBumpmapCount++;
 	}
 
@@ -324,6 +325,9 @@ void LLDrawPoolBump::endRenderPass(S32 pass)
 			llassert(0);
 			break;
 	}
+
+	//to cleanup texture channels
+	LLRenderPass::endRenderPass(pass);
 }
 
 //static
@@ -362,6 +366,11 @@ void LLDrawPoolBump::beginShiny(bool invisible)
 	}
 
 	bindCubeMap(shader, mVertexShaderLevel, diffuse_channel, cube_channel, invisible);
+
+	if (mVertexShaderLevel > 1)
+	{ //indexed texture rendering, channel 0 is always diffuse
+		diffuse_channel = 0;
+	}
 }
 
 //static
@@ -429,16 +438,16 @@ void LLDrawPoolBump::renderShiny(bool invisible)
 		LLGLEnable blend_enable(GL_BLEND);
 		if (!invisible && mVertexShaderLevel > 1)
 		{
-			LLRenderPass::renderTexture(LLRenderPass::PASS_SHINY, sVertexMask);
+			LLRenderPass::pushBatches(LLRenderPass::PASS_SHINY, sVertexMask | LLVertexBuffer::MAP_TEXTURE_INDEX, TRUE, TRUE);
 		}
 		else if (!invisible)
 		{
 			renderGroups(LLRenderPass::PASS_SHINY, sVertexMask);
 		}
-		else // invisible
-		{
-			renderGroups(LLRenderPass::PASS_INVISI_SHINY, sVertexMask);
-		}
+		//else // invisible (deprecated)
+		//{
+			//renderGroups(LLRenderPass::PASS_INVISI_SHINY, sVertexMask);
+		//}
 	}
 }
 
@@ -464,11 +473,15 @@ void LLDrawPoolBump::unbindCubeMap(LLGLSLShader* shader, S32 shader_level, S32& 
 			}
 		}
 	}
-	gGL.getTexUnit(diffuse_channel)->disable();
-	gGL.getTexUnit(cube_channel)->disable();
 
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+	if (!LLGLSLShader::sNoFixedFunction)
+	{
+		gGL.getTexUnit(diffuse_channel)->disable();
+		gGL.getTexUnit(cube_channel)->disable();
+
+		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+		gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+	}
 }
 
 void LLDrawPoolBump::endShiny(bool invisible)
@@ -537,6 +550,12 @@ void LLDrawPoolBump::beginFullbrightShiny()
 		gGL.getTexUnit(cube_channel)->bind(cube_map);
 		gGL.getTexUnit(0)->activate();
 	}
+
+	if (mVertexShaderLevel > 1)
+	{ //indexed texture rendering, channel 0 is always diffuse
+		diffuse_channel = 0;
+	}
+
 	mShiny = TRUE;
 }
 
@@ -551,7 +570,15 @@ void LLDrawPoolBump::renderFullbrightShiny()
 	if( gSky.mVOSkyp->getCubeMap() )
 	{
 		LLGLEnable blend_enable(GL_BLEND);
-		LLRenderPass::renderTexture(LLRenderPass::PASS_FULLBRIGHT_SHINY, sVertexMask);
+
+		if (mVertexShaderLevel > 1)
+		{
+			LLRenderPass::pushBatches(LLRenderPass::PASS_FULLBRIGHT_SHINY, sVertexMask | LLVertexBuffer::MAP_TEXTURE_INDEX, TRUE, TRUE);
+		}
+		else
+		{
+			LLRenderPass::renderTexture(LLRenderPass::PASS_FULLBRIGHT_SHINY, sVertexMask);
+		}
 	}
 }
 
@@ -569,19 +596,19 @@ void LLDrawPoolBump::endFullbrightShiny()
 		cube_map->disable();
 		cube_map->restoreMatrix();
 
-		if (diffuse_channel != 0)
+		/*if (diffuse_channel != 0)
 		{
 			shader->disableTexture(LLViewerShaderMgr::DIFFUSE_MAP);
 		}
 		gGL.getTexUnit(0)->activate();
-		gGL.getTexUnit(0)->enable(LLTexUnit::TT_TEXTURE);
+		gGL.getTexUnit(0)->enable(LLTexUnit::TT_TEXTURE);*/
 
 		shader->unbind();
-		gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+		//gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
 	}
 	
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+	//gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+	//gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
 
 	diffuse_channel = -1;
 	cube_channel = 0;
@@ -603,8 +630,8 @@ void LLDrawPoolBump::renderGroup(LLSpatialGroup* group, U32 type, U32 mask, BOOL
 			params.mGroup->rebuildMesh();
 		}
 		params.mVertexBuffer->setBuffer(mask);
-		params.mVertexBuffer->drawRange(LLRender::TRIANGLES, params.mStart, params.mEnd, params.mCount, params.mOffset);
-		gPipeline.addTrianglesDrawn(params.mCount/3);
+		params.mVertexBuffer->drawRange(params.mDrawMode, params.mStart, params.mEnd, params.mCount, params.mOffset);
+		gPipeline.addTrianglesDrawn(params.mCount, params.mDrawMode);
 	}
 }
 
@@ -692,36 +719,44 @@ void LLDrawPoolBump::beginBump(U32 pass)
 	// Optional second pass: emboss bump map
 	stop_glerror();
 
-	// TEXTURE UNIT 0
-	// Output.rgb = texture at texture coord 0
-	gGL.getTexUnit(0)->activate();
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gObjectBumpProgram.bind();
+	}
+	else
+	{
+		// TEXTURE UNIT 0
+		// Output.rgb = texture at texture coord 0
+		gGL.getTexUnit(0)->activate();
 
-	gGL.getTexUnit(0)->setTextureColorBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
-	gGL.getTexUnit(0)->setTextureAlphaBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
+		gGL.getTexUnit(0)->setTextureColorBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
+		gGL.getTexUnit(0)->setTextureAlphaBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
 
-	// TEXTURE UNIT 1
-	gGL.getTexUnit(1)->activate();
+		// TEXTURE UNIT 1
+		gGL.getTexUnit(1)->activate();
  
-	gGL.getTexUnit(1)->enable(LLTexUnit::TT_TEXTURE);
+		gGL.getTexUnit(1)->enable(LLTexUnit::TT_TEXTURE);
 
-	gGL.getTexUnit(1)->setTextureColorBlend(LLTexUnit::TBO_ADD_SIGNED, LLTexUnit::TBS_PREV_COLOR, LLTexUnit::TBS_ONE_MINUS_TEX_ALPHA);
-	gGL.getTexUnit(1)->setTextureAlphaBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
+		gGL.getTexUnit(1)->setTextureColorBlend(LLTexUnit::TBO_ADD_SIGNED, LLTexUnit::TBS_PREV_COLOR, LLTexUnit::TBS_ONE_MINUS_TEX_ALPHA);
+		gGL.getTexUnit(1)->setTextureAlphaBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_TEX_ALPHA);
 
-	// src	= tex0 + (1 - tex1) - 0.5
-	//		= (bump0/2 + 0.5) + (1 - (bump1/2 + 0.5)) - 0.5
-	//		= (1 + bump0 - bump1) / 2
+		// src	= tex0 + (1 - tex1) - 0.5
+		//		= (bump0/2 + 0.5) + (1 - (bump1/2 + 0.5)) - 0.5
+		//		= (1 + bump0 - bump1) / 2
 
 
-	// Blend: src * dst + dst * src
-	//		= 2 * src * dst
-	//		= 2 * ((1 + bump0 - bump1) / 2) * dst   [0 - 2 * dst]
-	//		= (1 + bump0 - bump1) * dst.rgb
-	//		= dst.rgb + dst.rgb * (bump0 - bump1)
+		// Blend: src * dst + dst * src
+		//		= 2 * src * dst
+		//		= 2 * ((1 + bump0 - bump1) / 2) * dst   [0 - 2 * dst]
+		//		= (1 + bump0 - bump1) * dst.rgb
+		//		= dst.rgb + dst.rgb * (bump0 - bump1)
+
+		gGL.getTexUnit(0)->activate();
+		gGL.getTexUnit(1)->unbind(LLTexUnit::TT_TEXTURE);
+	}
+
 	gGL.setSceneBlendType(LLRender::BT_MULT_X2);
-	gGL.getTexUnit(0)->activate();
 	stop_glerror();
-
-	gGL.getTexUnit(1)->unbind(LLTexUnit::TT_TEXTURE);
 }
 
 //static
@@ -736,7 +771,7 @@ void LLDrawPoolBump::renderBump(U32 pass)
 	LLGLDisable fog(GL_FOG);
 	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE, GL_LEQUAL);
 	LLGLEnable blend(GL_BLEND);
-	glColor4f(1,1,1,1);
+	gGL.diffuseColor4f(1,1,1,1);
 	/// Get rid of z-fighting with non-bump pass.
 	LLGLEnable polyOffset(GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset(-1.0f, -1.0f);
@@ -751,14 +786,21 @@ void LLDrawPoolBump::endBump(U32 pass)
 		return;
 	}
 
-	// Disable texture unit 1
-	gGL.getTexUnit(1)->activate();
-	gGL.getTexUnit(1)->disable();
-	gGL.getTexUnit(1)->setTextureBlendType(LLTexUnit::TB_MULT);
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gObjectBumpProgram.unbind();
+	}
+	else
+	{
+		// Disable texture blending on unit 1
+		gGL.getTexUnit(1)->activate();
+		gGL.getTexUnit(1)->disable();
+		gGL.getTexUnit(1)->setTextureBlendType(LLTexUnit::TB_MULT);
 
-	// Disable texture unit 0
-	gGL.getTexUnit(0)->activate();
-	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+		// Disable texture blending on unit 0
+		gGL.getTexUnit(0)->activate();
+		gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
+	}
 	
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
 }
@@ -845,6 +887,9 @@ void LLDrawPoolBump::endPostDeferredPass(S32 pass)
 		endBump(LLRenderPass::PASS_POST_BUMP);
 		break;
 	}
+
+	//to disable texture channels
+	LLRenderPass::endRenderPass(pass);
 }
 
 void LLDrawPoolBump::renderPostDeferred(S32 pass)
@@ -930,7 +975,6 @@ void LLBumpImageList::addTextureStats(U8 bump, const LLUUID& base_image_id, F32 
 
 void LLBumpImageList::updateImages()
 {	
-	llpushcallstacks ;
 	for (bump_image_map_t::iterator iter = mBrightnessEntries.begin(); iter != mBrightnessEntries.end(); )
 	{
 		bump_image_map_t::iterator curiter = iter++;
@@ -957,7 +1001,7 @@ void LLBumpImageList::updateImages()
 			}
 		}
 	}
-	llpushcallstacks ;
+
 	for (bump_image_map_t::iterator iter = mDarknessEntries.begin(); iter != mDarknessEntries.end(); )
 	{
 		bump_image_map_t::iterator curiter = iter++;
@@ -984,7 +1028,6 @@ void LLBumpImageList::updateImages()
 			}
 		}
 	}
-	llpushcallstacks ;
 }
 
 
@@ -1032,11 +1075,12 @@ LLViewerTexture* LLBumpImageList::getBrightnessDarknessImage(LLViewerFetchedText
 		if (!src_image->hasCallbacks())
 		{ //if image has no callbacks but resolutions don't match, trigger raw image loaded callback again
 			if (src_image->getWidth() != bump->getWidth() ||
-				src_image->getHeight() != bump->getHeight() ||
-				(LLPipeline::sRenderDeferred && bump->getComponents() != 4))
+				src_image->getHeight() != bump->getHeight())// ||
+				//(LLPipeline::sRenderDeferred && bump->getComponents() != 4))
 			{
 				src_image->setBoostLevel(LLViewerTexture::BOOST_BUMP) ;
 				src_image->setLoadedCallback( callback_func, 0, TRUE, FALSE, new LLUUID(src_image->getID()), NULL );
+				src_image->forceToSaveRawImage(0) ;
 			}
 		}
 	}
@@ -1071,10 +1115,17 @@ void LLBumpImageList::onSourceStandardLoaded( BOOL success, LLViewerFetchedTextu
 {
 	if (success && LLPipeline::sRenderDeferred)
 	{
+		//LLFastTimer t(FTM_BUMP_SOURCE_STANDARD_LOADED);
 		LLPointer<LLImageRaw> nrm_image = new LLImageRaw(src->getWidth(), src->getHeight(), 4);
-		generateNormalMapFromAlpha(src, nrm_image);
+		{
+			//LLFastTimer t(FTM_BUMP_GEN_NORMAL);
+			generateNormalMapFromAlpha(src, nrm_image);
+		}
 		src_vi->setExplicitFormat(GL_RGBA, GL_RGBA);
-		src_vi->createGLTexture(src_vi->getDiscardLevel(), nrm_image);
+		{
+			//LLFastTimer t(FTM_BUMP_CREATE_TEXTURE);
+			src_vi->createGLTexture(src_vi->getDiscardLevel(), nrm_image);
+		}
 	}
 }
 
@@ -1138,19 +1189,25 @@ void LLBumpImageList::onSourceLoaded( BOOL success, LLViewerTexture *src_vi, LLI
 {
 	if( success )
 	{
+	//	LLFastTimer t(FTM_BUMP_SOURCE_LOADED);
+
+
 		bump_image_map_t& entries_list(bump_code == BE_BRIGHTNESS ? gBumpImageList.mBrightnessEntries : gBumpImageList.mDarknessEntries );
 		bump_image_map_t::iterator iter = entries_list.find(source_asset_id);
 
-		if (iter == entries_list.end() ||
-			iter->second.isNull() ||
-                        iter->second->getWidth() != src->getWidth() ||
-                        iter->second->getHeight() != src->getHeight()) // bump not cached yet or has changed resolution
-		{ //make sure an entry exists for this image
-			LLPointer<LLImageRaw> raw = new LLImageRaw(1,1,1);
-			raw->clear(0x77, 0x77, 0xFF, 0xFF);
+		{
+			//LLFastTimer t(FTM_BUMP_SOURCE_ENTRIES_UPDATE);
+			if (iter == entries_list.end() ||
+				iter->second.isNull() ||
+							iter->second->getWidth() != src->getWidth() ||
+							iter->second->getHeight() != src->getHeight()) // bump not cached yet or has changed resolution
+			{ //make sure an entry exists for this image
+				LLPointer<LLImageRaw> raw = new LLImageRaw(1,1,1);
+				raw->clear(0x77, 0x77, 0xFF, 0xFF);
 
-			entries_list[src_vi->getID()] = LLViewerTextureManager::getLocalTexture( raw.get(), TRUE);
-			iter = entries_list.find(src_vi->getID());
+				entries_list[src_vi->getID()] = LLViewerTextureManager::getLocalTexture( raw.get(), TRUE);
+				iter = entries_list.find(src_vi->getID());
+			}
 		}
 
 		//if (iter->second->getWidth() != src->getWidth() ||
@@ -1181,50 +1238,56 @@ void LLBumpImageList::onSourceLoaded( BOOL success, LLViewerTexture *src_vi, LLI
 			{
 			case 1:
 			case 2:
-				if( src_data_size == dst_data_size * src_components )
 				{
-					for( S32 i = 0, j=0; i < dst_data_size; i++, j+= src_components )
+					//LLFastTimer t(FTM_BUMP_SOURCE_MIN_MAX);
+					if( src_data_size == dst_data_size * src_components )
 					{
-						dst_data[i] = src_data[j];
-						if( dst_data[i] < minimum )
+						for( S32 i = 0, j=0; i < dst_data_size; i++, j+= src_components )
 						{
-							minimum = dst_data[i];
-						}
-						if( dst_data[i] > maximum )
-						{
-							maximum = dst_data[i];
+							dst_data[i] = src_data[j];
+							if( dst_data[i] < minimum )
+							{
+								minimum = dst_data[i];
+							}
+							if( dst_data[i] > maximum )
+							{
+								maximum = dst_data[i];
+							}
 						}
 					}
-				}
-				else
-				{
-					llassert(0);
-					dst_image->clear();
+					else
+					{
+						llassert(0);
+						dst_image->clear();
+					}
 				}
 				break;
 			case 3:
 			case 4:
-				if( src_data_size == dst_data_size * src_components )
 				{
-					for( S32 i = 0, j=0; i < dst_data_size; i++, j+= src_components )
+					//LLFastTimer t(FTM_BUMP_SOURCE_RGB2LUM);
+					if( src_data_size == dst_data_size * src_components )
 					{
-						// RGB to luminance
-						dst_data[i] = (R_WEIGHT * src_data[j] + G_WEIGHT * src_data[j+1] + B_WEIGHT * src_data[j+2]) >> FIXED_PT;
-						//llassert( dst_data[i] <= 255 );true because it's 8bit
-						if( dst_data[i] < minimum )
+						for( S32 i = 0, j=0; i < dst_data_size; i++, j+= src_components )
 						{
-							minimum = dst_data[i];
-						}
-						if( dst_data[i] > maximum )
-						{
-							maximum = dst_data[i];
+							// RGB to luminance
+							dst_data[i] = (R_WEIGHT * src_data[j] + G_WEIGHT * src_data[j+1] + B_WEIGHT * src_data[j+2]) >> FIXED_PT;
+							//llassert( dst_data[i] <= 255 );true because it's 8bit
+							if( dst_data[i] < minimum )
+							{
+								minimum = dst_data[i];
+							}
+							if( dst_data[i] > maximum )
+							{
+								maximum = dst_data[i];
+							}
 						}
 					}
-				}
-				else
-				{
-					llassert(0);
-					dst_image->clear();
+					else
+					{
+						llassert(0);
+						dst_image->clear();
+					}
 				}
 				break;
 			default:
@@ -1269,17 +1332,99 @@ void LLBumpImageList::onSourceLoaded( BOOL success, LLViewerTexture *src_vi, LLI
 			// accidentally releases it.
 			LLPointer<LLViewerTexture> bump = LLViewerTextureManager::getLocalTexture( TRUE );
 			
+
 			if (!LLPipeline::sRenderDeferred)
 			{
+				//LLFastTimer t(FTM_BUMP_SOURCE_CREATE);
 				bump->setExplicitFormat(GL_ALPHA8, GL_ALPHA);
 				bump->createGLTexture(0, dst_image);
 			}
 			else
-			{
-				LLPointer<LLImageRaw> nrm_image = new LLImageRaw(dst_image->getWidth(), dst_image->getHeight(), 4);
-				generateNormalMapFromAlpha(dst_image, nrm_image);
-				bump->setExplicitFormat(GL_RGBA, GL_RGBA);
-				bump->createGLTexture(0, nrm_image);
+			{ //convert to normal map
+				{
+					//LLFastTimer t(FTM_BUMP_SOURCE_CREATE);
+					bump->setExplicitFormat(GL_RGBA8, GL_ALPHA);
+					bump->createGLTexture(0, dst_image);
+				}
+
+				{
+					//LLFastTimer t(FTM_BUMP_SOURCE_GEN_NORMAL);
+					gPipeline.mScreen.bindTarget();
+					
+					LLGLDepthTest depth(GL_FALSE);
+					LLGLDisable cull(GL_CULL_FACE);
+					LLGLDisable blend(GL_BLEND);
+					gGL.setColorMask(TRUE, TRUE);
+					gNormalMapGenProgram.bind();
+					gNormalMapGenProgram.uniform1f("norm_scale", gSavedSettings.getF32("RenderNormalMapScale"));
+					gNormalMapGenProgram.uniform1f("stepX", 1.f/bump->getWidth());
+					gNormalMapGenProgram.uniform1f("stepY", 1.f/bump->getHeight());
+
+					LLVector2 v((F32) bump->getWidth()/gPipeline.mScreen.getWidth(),
+								(F32) bump->getHeight()/gPipeline.mScreen.getHeight());
+
+					gGL.getTexUnit(0)->bind(bump);
+					
+					S32 width = bump->getWidth();
+					S32 height = bump->getHeight();
+
+					S32 screen_width = gPipeline.mScreen.getWidth();
+					S32 screen_height = gPipeline.mScreen.getHeight();
+
+					glViewport(0, 0, screen_width, screen_height);
+
+					for (S32 left = 0; left < width; left += screen_width)
+					{
+						S32 right = left + screen_width;
+						right = llmin(right, width);
+						
+						F32 left_tc = (F32) left/ width;
+						F32 right_tc = (F32) right/width;
+
+						for (S32 bottom = 0; bottom < height; bottom += screen_height)
+						{
+							S32 top = bottom+screen_height;
+							top = llmin(top, height);
+
+							F32 bottom_tc = (F32) bottom/height;
+							F32 top_tc = (F32)(bottom+screen_height)/height;
+							top_tc = llmin(top_tc, 1.f);
+
+							F32 screen_right = (F32) (right-left)/screen_width;
+							F32 screen_top = (F32) (top-bottom)/screen_height;
+
+							gGL.begin(LLRender::TRIANGLE_STRIP);
+							gGL.texCoord2f(left_tc, bottom_tc);
+							gGL.vertex2f(0, 0);
+
+							gGL.texCoord2f(left_tc, top_tc);
+							gGL.vertex2f(0, screen_top);
+
+							gGL.texCoord2f(right_tc, bottom_tc);
+							gGL.vertex2f(screen_right, 0);
+
+							gGL.texCoord2f(right_tc, top_tc);
+							gGL.vertex2f(screen_right, screen_top);
+
+							gGL.end();
+
+							gGL.flush();
+
+							S32 w = right-left;
+							S32 h = top-bottom;
+
+							glCopyTexSubImage2D(GL_TEXTURE_2D, 0, left, bottom, 0, 0, w, h);
+						}
+					}
+
+					glGenerateMipmap(GL_TEXTURE_2D);
+
+					gPipeline.mScreen.flush();
+
+					gNormalMapGenProgram.unbind();
+										
+					//generateNormalMapFromAlpha(dst_image, nrm_image);
+				}
 			}
 		
 			iter->second = bump; // derefs (and deletes) old image
@@ -1304,51 +1449,73 @@ void LLDrawPoolBump::renderBump(U32 type, U32 mask)
 	}
 }
 
-void LLDrawPoolBump::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture)
+void LLDrawPoolBump::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture, BOOL batch_textures)
 {
 	applyModelMatrix(params);
 
-	if (params.mTextureMatrix)
+	bool tex_setup = false;
+
+	if (batch_textures && params.mTextureList.size() > 1)
 	{
-		if (mShiny)
+		for (U32 i = 0; i < params.mTextureList.size(); ++i)
 		{
-			gGL.getTexUnit(0)->activate();
-			glMatrixMode(GL_TEXTURE);
+			if (params.mTextureList[i].notNull())
+			{
+				gGL.getTexUnit(i)->bind(params.mTextureList[i], TRUE);
+			}
 		}
-		else
+	}
+	else
+	{ //not batching textures or batch has only 1 texture -- might need a texture matrix
+		if (params.mTextureMatrix)
 		{
-			gGL.getTexUnit(1)->activate();
-			glMatrixMode(GL_TEXTURE);
-			glLoadMatrixf((GLfloat*) params.mTextureMatrix->mMatrix);
+			if (mShiny)
+			{
+				gGL.getTexUnit(0)->activate();
+				gGL.matrixMode(LLRender::MM_TEXTURE);
+			}
+			else
+			{
+				if (!LLGLSLShader::sNoFixedFunction)
+				{
+					gGL.getTexUnit(1)->activate();
+					gGL.matrixMode(LLRender::MM_TEXTURE);
+					gGL.loadMatrix((GLfloat*) params.mTextureMatrix->mMatrix);
+				}
+
+				gGL.getTexUnit(0)->activate();
+				gGL.matrixMode(LLRender::MM_TEXTURE);
+				gGL.loadMatrix((GLfloat*) params.mTextureMatrix->mMatrix);
+				gPipeline.mTextureMatrixOps++;
+			}
+
+			gGL.loadMatrix((GLfloat*) params.mTextureMatrix->mMatrix);
 			gPipeline.mTextureMatrixOps++;
-			gGL.getTexUnit(0)->activate();
+
+			tex_setup = true;
 		}
 
-		glLoadMatrixf((GLfloat*) params.mTextureMatrix->mMatrix);
-		gPipeline.mTextureMatrixOps++;
-	}
-
-	if (mShiny && mVertexShaderLevel > 1 && texture)
-	{
-		if (params.mTexture.notNull())
+		if (mShiny && mVertexShaderLevel > 1 && texture)
 		{
-			gGL.getTexUnit(diffuse_channel)->bind(params.mTexture) ;
-			params.mTexture->addTextureStats(params.mVSize);		
-		}
-		else
-		{
-			gGL.getTexUnit(diffuse_channel)->unbind(LLTexUnit::TT_TEXTURE);
+			if (params.mTexture.notNull())
+			{
+				gGL.getTexUnit(diffuse_channel)->bind(params.mTexture) ;
+				params.mTexture->addTextureStats(params.mVSize);		
+			}
+			else
+			{
+				gGL.getTexUnit(diffuse_channel)->unbind(LLTexUnit::TT_TEXTURE);
+			}
 		}
 	}
-	
 	if (params.mGroup)
 	{
 		params.mGroup->rebuildMesh();
 	}
 	params.mVertexBuffer->setBuffer(mask);
-	params.mVertexBuffer->drawRange(LLRender::TRIANGLES, params.mStart, params.mEnd, params.mCount, params.mOffset);
-	gPipeline.addTrianglesDrawn(params.mCount/3);
-	if (params.mTextureMatrix)
+	params.mVertexBuffer->drawRange(params.mDrawMode, params.mStart, params.mEnd, params.mCount, params.mOffset);
+	gPipeline.addTrianglesDrawn(params.mCount, params.mDrawMode);
+	if (tex_setup)
 	{
 		if (mShiny)
 		{
@@ -1356,12 +1523,17 @@ void LLDrawPoolBump::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture)
 		}
 		else
 		{
-			gGL.getTexUnit(1)->activate();
-			glLoadIdentity();
+			if (!LLGLSLShader::sNoFixedFunction)
+			{
+				gGL.getTexUnit(1)->activate();
+				gGL.matrixMode(LLRender::MM_TEXTURE);
+				gGL.loadIdentity();
+			}
 			gGL.getTexUnit(0)->activate();
+			gGL.matrixMode(LLRender::MM_TEXTURE);
 		}
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
+		gGL.loadIdentity();
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
 	}
 }
 
@@ -1369,12 +1541,22 @@ void LLDrawPoolInvisible::render(S32 pass)
 { //render invisiprims
 	LLFastTimer t(LLFastTimer::FTM_RENDER_INVISIBLE);
   
+	if (gPipeline.canUseVertexShaders())
+	{
+		gOcclusionProgram.bind();
+	}
+
 	U32 invisi_mask = LLVertexBuffer::MAP_VERTEX;
 	glStencilMask(0);
 	gGL.setColorMask(false, false);
 	pushBatches(LLRenderPass::PASS_INVISIBLE, invisi_mask, FALSE);
 	gGL.setColorMask(true, false);
 	glStencilMask(0xFFFFFFFF);
+
+	if (gPipeline.canUseVertexShaders())
+	{
+		gOcclusionProgram.unbind();
+	}
 
 	if (gPipeline.hasRenderBatches(LLRenderPass::PASS_INVISI_SHINY))
 	{
@@ -1396,6 +1578,7 @@ void LLDrawPoolInvisible::endDeferredPass( S32 pass )
 
 void LLDrawPoolInvisible::renderDeferred( S32 pass )
 { //render invisiprims; this doesn't work becaue it also blocks all the post-deferred stuff
+#if 0 
 	LLFastTimer t(LLFastTimer::FTM_RENDER_INVISIBLE);
   
 	U32 invisi_mask = LLVertexBuffer::MAP_VERTEX;
@@ -1413,4 +1596,5 @@ void LLDrawPoolInvisible::renderDeferred( S32 pass )
 		renderShiny(true);
 		endShiny(true);
 	}
+#endif
 }

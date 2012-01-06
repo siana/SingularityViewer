@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel bottom="0" follows="left|top|right|bottom" height="600" left="0"
+     mouse_opaque="true" name="panel_login" width="800">
+	<web_browser border_visible="false" bottom="0" follows="top|left|bottom|right" left="0"
+	     name="login_html" right="-1"
+	     start_url="data:text/html,%3Chtml%3E%3Chead%3E%3C/head%3E%3Cbody bgcolor=%22#000000%22 text=%22ffffff%22%3E%3Ch1%3E%3Ctt%3Eloading...%3C/tt%3E%3C/h1%3E %3C/body%3E %3C/html%3E"
+	     top="-1" />
+	<string name="real_url">
+		http://secondlife.com/app/login/
+	</string>
+	<string name="forgot_password_url">
+		http://secondlife.com/account/request.php
+	</string>
+	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="54" drop_shadow_visible="true" follows="left|bottom"
+	     font="SansSerif" h_pad="0" halign="left" height="16"
+	     left="32" mouse_opaque="true" name="name_label" v_pad="0" width="120">
+		Nom :
+	</text>
+	<text name="password_text">
+		Mot de passe :
+	</text>
+	<text name="start_location_text">
+    Lieu d'arrivée :
+  </text>
+	<combo_box name="start_location_combo">
+		<combo_item name="MyHome">
+			Domicile
+		</combo_item>
+		<combo_item name="MyLastLocation">
+			Dernier emplacement
+		</combo_item>
+		<combo_item name="&lt;Typeregionname&gt;">
+			&lt;Choisir région&gt;
+		</combo_item>
+		<combo_item name="Typeregionname">
+			&lt;Nom de la région&gt;
+		</combo_item>
+	</combo_box>
+	<check_box bottom="10" control_name="RememberName"
+         follows="left|bottom" font="SansSerifSmall" height="16"
+	     initial_value="true" label="Mémoriser le nom"
+	     left="28" mouse_opaque="true" name="remember_name_check" width="158" />
+	<check_box label="Mémoriser Mot de Passe" name="remember_check"/>
+	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="54" drop_shadow_visible="true" follows="left|bottom"
+	     font="SansSerif" h_pad="0" halign="left" height="16"
+	     left="339" mouse_opaque="true" name="grids_combo_text" v_pad="0" width="120">
+		Grille :
+	</text>
+	<combo_box allow_text_entry="false" bottom_delta="-24" follows="left|bottom" height="20"
+	     left="339" mouse_opaque="true" name="grids_combo" width="120" />
+	<button name="grids_btn" label="Choix de Grille"
+	    bottom_delta="-20" left_delta="10" height="16" width="100"
+	    follows="left|bottom" font="SansSerifSmall" halign="center"
+	    mouse_opaque="true" scale_image="TRUE" />
+	<text name="full_screen_text">
+		Le plein écran sera activé après identification.
+	</text>
+	<button label="Nouveau Compte..." label_selected="Nouveau Compte..." name="new_account_btn"/>
+	<button label="Connexion" label_selected="Me connecter" name="connect_btn"/>
+	<button label="Préférences..." label_selected="Préférences..." name="preferences_btn"/>
+	<button label="Quitter" label_selected="Quitter" name="quit_btn"/>
+	<text name="create_new_account_text">
+		Créer un compte
+	</text>
+	<text name="forgot_password_text">
+		Nom ou mot de passe oublié ?
+	</text>
+</panel>

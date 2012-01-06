@@ -60,27 +60,69 @@ public:
 		LLVertexBuffer(MAP_VERTEX | MAP_NORMAL | MAP_TEXCOORD0 | MAP_TEXCOORD1 | MAP_COLOR, GL_DYNAMIC_DRAW_ARB)
 	{
 		//texture coordinates 2 and 3 exist, but use the same data as texture coordinate 1
-		mOffsets[TYPE_TEXCOORD3] = mOffsets[TYPE_TEXCOORD2] = mOffsets[TYPE_TEXCOORD1];
-		mTypeMask |= MAP_TEXCOORD2 | MAP_TEXCOORD3;
 	};
 
-	/*// virtual
+	// virtual
 	void setupVertexBuffer(U32 data_mask) const
-	{		
-		if (LLDrawPoolTerrain::getDetailMode() == 0 || LLPipeline::sShadowRender)
-		{
-			LLVertexBuffer::setupVertexBuffer(data_mask);
+	{	
+		if (LLGLSLShader::sNoFixedFunction)
+		{ //just use default if shaders are in play
+			LLVertexBuffer::setupVertexBuffer(data_mask & ~(MAP_TEXCOORD2 | MAP_TEXCOORD3));
+			return;
 		}
-		else if (data_mask & LLVertexBuffer::MAP_TEXCOORD1)
+
+		U8* base = useVBOs() ? (U8*) mAlignedOffset : /*(U8*)*/ mMappedData;
+
+		//assume tex coords 2 and 3 are present
+		U32 type_mask = mTypeMask | MAP_TEXCOORD2 | MAP_TEXCOORD3;
+
+		if ((data_mask & type_mask) != data_mask)
 		{
-			LLVertexBuffer::setupVertexBuffer(data_mask);
+			llerrs << "LLVertexBuffer::setupVertexBuffer missing required components for supplied data mask." << llendl;
 		}
-		else
+
+		if (data_mask & MAP_NORMAL)
 		{
-			LLVertexBuffer::setupVertexBuffer(data_mask);
+			glNormalPointer(GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_NORMAL], (void*)(base + mOffsets[TYPE_NORMAL]));
 		}
-		llglassertok();		
-	}*/
+		if (data_mask & MAP_TEXCOORD3)
+		{ //substitute tex coord 0 for tex coord 3
+			glClientActiveTextureARB(GL_TEXTURE3_ARB);
+			glTexCoordPointer(2,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_TEXCOORD0], (void*)(base + mOffsets[TYPE_TEXCOORD0]));
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		}
+		if (data_mask & MAP_TEXCOORD2)
+		{ //substitute tex coord 0 for tex coord 2
+			glClientActiveTextureARB(GL_TEXTURE2_ARB);
+			glTexCoordPointer(2,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_TEXCOORD0], (void*)(base + mOffsets[TYPE_TEXCOORD0]));
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		}
+		if (data_mask & MAP_TEXCOORD1)
+		{
+			glClientActiveTextureARB(GL_TEXTURE1_ARB);
+			glTexCoordPointer(2,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_TEXCOORD1], (void*)(base + mOffsets[TYPE_TEXCOORD1]));
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		}
+		if (data_mask & MAP_BINORMAL)
+		{
+			glClientActiveTextureARB(GL_TEXTURE2_ARB);
+			glTexCoordPointer(3,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_BINORMAL], (void*)(base + mOffsets[TYPE_BINORMAL]));
+			glClientActiveTextureARB(GL_TEXTURE0_ARB);
+		}
+		if (data_mask & MAP_TEXCOORD0)
+		{
+			glTexCoordPointer(2,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_TEXCOORD0], (void*)(base + mOffsets[TYPE_TEXCOORD0]));
+		}
+		if (data_mask & MAP_COLOR)
+		{
+			glColorPointer(4, GL_UNSIGNED_BYTE, LLVertexBuffer::sTypeSize[TYPE_COLOR], (void*)(base + mOffsets[TYPE_COLOR]));
+		}
+		
+		if (data_mask & MAP_VERTEX)
+		{
+			glVertexPointer(3,GL_FLOAT, LLVertexBuffer::sTypeSize[TYPE_VERTEX], (void*)(base + 0));
+		}
+	}
 };
 
 //============================================================================
@@ -280,7 +322,6 @@ BOOL LLVOSurfacePatch::updateLOD()
 
 void LLVOSurfacePatch::getGeometry(LLStrider<LLVector3> &verticesp,
 								LLStrider<LLVector3> &normalsp,
-								LLStrider<LLColor4U> &colorsp,
 								LLStrider<LLVector2> &texCoords0p,
 								LLStrider<LLVector2> &texCoords1p,
 								LLStrider<U16> &indicesp)
@@ -292,7 +333,6 @@ void LLVOSurfacePatch::getGeometry(LLStrider<LLVector3> &verticesp,
 	updateMainGeometry(facep, 
 					verticesp,
 					normalsp,
-					colorsp,
 					texCoords0p,
 					texCoords1p,
 					indicesp,
@@ -300,7 +340,6 @@ void LLVOSurfacePatch::getGeometry(LLStrider<LLVector3> &verticesp,
 	updateNorthGeometry(facep, 
 						verticesp,
 						normalsp,
-						colorsp,
 						texCoords0p,
 						texCoords1p,
 						indicesp,
@@ -308,7 +347,6 @@ void LLVOSurfacePatch::getGeometry(LLStrider<LLVector3> &verticesp,
 	updateEastGeometry(facep, 
 						verticesp,
 						normalsp,
-						colorsp,
 						texCoords0p,
 						texCoords1p,
 						indicesp,
@@ -318,7 +356,6 @@ void LLVOSurfacePatch::getGeometry(LLStrider<LLVector3> &verticesp,
 void LLVOSurfacePatch::updateMainGeometry(LLFace *facep,
 										LLStrider<LLVector3> &verticesp,
 										LLStrider<LLVector3> &normalsp,
-										LLStrider<LLColor4U> &colorsp,
 										LLStrider<LLVector2> &texCoords0p,
 										LLStrider<LLVector2> &texCoords1p,
 										LLStrider<U16> &indicesp,
@@ -329,6 +366,8 @@ void LLVOSurfacePatch::updateMainGeometry(LLFace *facep,
 	U32 patch_size, render_stride;
 	S32 num_vertices, num_indices;
 	U32 index;
+
+	llassert(mLastStride > 0);
 
 	render_stride = mLastStride;
 	patch_size = mPatchp->getSurface()->getGridsPerPatchEdge();
@@ -357,7 +396,6 @@ void LLVOSurfacePatch::updateMainGeometry(LLFace *facep,
 				x = i * render_stride;
 				y = j * render_stride;
 				mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
-				*colorsp++ = LLColor4U::white;
 				verticesp++;
 				normalsp++;
 				texCoords0p++;
@@ -422,7 +460,6 @@ void LLVOSurfacePatch::updateMainGeometry(LLFace *facep,
 void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 										LLStrider<LLVector3> &verticesp,
 										LLStrider<LLVector3> &normalsp,
-										LLStrider<LLColor4U> &colorsp,
 										LLStrider<LLVector2> &texCoords0p,
 										LLStrider<LLVector2> &texCoords1p,
 										LLStrider<U16> &indicesp,
@@ -460,7 +497,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			y = 16 - render_stride;
 
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
-			*colorsp++ = LLColor4U::white;
 			verticesp++;
 			normalsp++;
 			texCoords0p++;
@@ -476,7 +512,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 			vertex_count++;
@@ -515,7 +550,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 			vertex_count++;
@@ -530,7 +564,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 			vertex_count++;
@@ -574,7 +607,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			y = 16 - render_stride;
 
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
-			*colorsp++ = LLColor4U::white;
 			verticesp++;
 			normalsp++;
 			texCoords0p++;
@@ -591,7 +623,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 			vertex_count++;
@@ -629,7 +660,6 @@ void LLVOSurfacePatch::updateNorthGeometry(LLFace *facep,
 void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 										  LLStrider<LLVector3> &verticesp,
 										  LLStrider<LLVector3> &normalsp,
-										  LLStrider<LLColor4U> &colorsp,
 										  LLStrider<LLVector2> &texCoords0p,
 										  LLStrider<LLVector2> &texCoords1p,
 										  LLStrider<U16> &indicesp,
@@ -663,7 +693,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -676,7 +705,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -714,7 +742,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -727,7 +754,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -771,7 +797,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -784,7 +809,6 @@ void LLVOSurfacePatch::updateEastGeometry(LLFace *facep,
 			mPatchp->eval(x, y, render_stride, verticesp.get(), normalsp.get(), texCoords0p.get(), texCoords1p.get());
 			verticesp++;
 			normalsp++;
-			*colorsp++ = LLColor4U::white;
 			texCoords0p++;
 			texCoords1p++;
 		}
@@ -944,7 +968,13 @@ BOOL LLVOSurfacePatch::lineSegmentIntersect(const LLVector3& start, const LLVect
 
 	//step one meter at a time until intersection point found
 
-	const LLVector3* ext = mDrawable->getSpatialExtents();
+	//VECTORIZE THIS
+	const LLVector4a* exta = mDrawable->getSpatialExtents();
+
+	LLVector3 ext[2];
+	ext[0].set(exta[0].getF32ptr());
+	ext[1].set(exta[1].getF32ptr());
+
 	F32 rad = (delta*tdelta).magVecSquared();
 
 	F32 t = 0.f;
@@ -1006,13 +1036,17 @@ BOOL LLVOSurfacePatch::lineSegmentIntersect(const LLVector3& start, const LLVect
 	return FALSE;
 }
 
-void LLVOSurfacePatch::updateSpatialExtents(LLVector3& newMin, LLVector3 &newMax)
+void LLVOSurfacePatch::updateSpatialExtents(LLVector4a& newMin, LLVector4a &newMax)
 {
 	LLVector3 posAgent = getPositionAgent();
 	LLVector3 scale = getScale();
-	newMin = posAgent-scale*0.5f; // Changing to 2.f makes the culling a -little- better, but still wrong
-	newMax = posAgent+scale*0.5f;
-	mDrawable->setPositionGroup((newMin+newMax)*0.5f);
+	scale.mV[VZ] = llmax(scale.mV[VZ], 1.f);
+	newMin.load3( (posAgent-scale*0.5f).mV); // Changing to 2.f makes the culling a -little- better, but still wrong
+	newMax.load3( (posAgent+scale*0.5f).mV);
+	LLVector4a pos;
+	pos.setAdd(newMin,newMax);
+	pos.mul(0.5f);
+	mDrawable->setPositionGroup(pos);
 }
 
 U32 LLVOSurfacePatch::getPartitionType() const
@@ -1045,14 +1079,12 @@ void LLTerrainPartition::getGeometry(LLSpatialGroup* group)
 	LLStrider<LLVector3> normals;
 	LLStrider<LLVector2> texcoords2;
 	LLStrider<LLVector2> texcoords;
-	LLStrider<LLColor4U> colors;
 	LLStrider<U16> indices;
 
 	llassert_always(buffer->getVertexStrider(vertices));
 	llassert_always(buffer->getNormalStrider(normals));
 	llassert_always(buffer->getTexCoord0Strider(texcoords));
 	llassert_always(buffer->getTexCoord1Strider(texcoords2));
-	llassert_always(buffer->getColorStrider(colors));
 	llassert_always(buffer->getIndexStrider(indices));
 
 	U32 indices_index = 0;
@@ -1067,13 +1099,13 @@ void LLTerrainPartition::getGeometry(LLSpatialGroup* group)
 		facep->setVertexBuffer(buffer);
 
 		LLVOSurfacePatch* patchp = (LLVOSurfacePatch*) facep->getViewerObject();
-		patchp->getGeometry(vertices, normals, colors, texcoords, texcoords2, indices);
+		patchp->getGeometry(vertices, normals, texcoords, texcoords2, indices);
 
 		indices_index += facep->getIndicesCount();
 		index_offset += facep->getGeomCount();
 	}
 
-	buffer->setBuffer(0);
+	buffer->flush();
 	mFaceList.clear();
 }
 

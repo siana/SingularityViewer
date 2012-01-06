@@ -38,6 +38,7 @@
 #include "llstring.h"
 #include "llframetimer.h"
 #include "llui.h"
+#include "llhandle.h"
 
 class LLUICtrl;
 class LLMouseHandler;

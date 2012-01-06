@@ -74,8 +74,6 @@ public:
 private:
 	void		drawOnePixelLines();
 	void		drawTwoPixelLines();
-	void		drawTextures();
-	void		drawTextureTrapezoid( F32 degrees, S32 width, S32 length, F32 start_x, F32 start_y );
 
 	EBevel		mBevel;
 	const EStyle mStyle;
@@ -85,7 +83,7 @@ private:
 	LLColor4	mShadowDark;
 	LLColor4	mBackgroundColor;
 	S32			mBorderWidth;
-	LLUIImagePtr	mTexture;
+	LLPointer<LLUIImage>	mTexture;
 	BOOL		mHasKeyboardFocus;
 };
 

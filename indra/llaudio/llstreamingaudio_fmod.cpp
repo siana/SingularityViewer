@@ -51,6 +51,8 @@ public:
 	const std::string& getURL() 	{ return mInternetStreamURL; }
 
 	int getOpenState();
+
+	FSOUND_STREAM* getStream()		{ return mInternetStream; }
 protected:
 	FSOUND_STREAM* mInternetStream;
 	bool mReady;
@@ -66,7 +68,8 @@ protected:
 LLStreamingAudio_FMOD::LLStreamingAudio_FMOD() :
 	mCurrentInternetStreamp(NULL),
 	mFMODInternetStreamChannel(-1),
-	mGain(1.0f)
+	mGain(1.0f),
+	mMetaData(NULL)
 {
 	// Number of milliseconds of audio to buffer for the audio card.
 	// Must be larger than the usual Second Life frame stutter time.
@@ -87,6 +90,17 @@ LLStreamingAudio_FMOD::~LLStreamingAudio_FMOD()
 	// nothing interesting/safe to do.
 }
 
+signed char F_CALLBACKAPI MetaDataCallback(char *name, char *value, void *userdata)
+{
+	std::string szName(name);
+	if(szName == "TITLE" || szName=="TIT2" || szName=="Title")
+		(*(LLSD*)userdata)["TITLE"] = value;
+	if(szName == "ARTIST" || szName=="TPE1" || szName =="WM/AlbumTitle")
+		(*(LLSD*)userdata)["ARTIST"] = value;
+	else
+		(*(LLSD*)userdata)[std::string(name)] = value;
+	return true;
+}
 
 void LLStreamingAudio_FMOD::start(const std::string& url)
 {
@@ -104,6 +118,10 @@ void LLStreamingAudio_FMOD::start(const std::string& url)
 		llinfos << "Starting internet stream: " << url << llendl;
 		mCurrentInternetStreamp = new LLAudioStreamManagerFMOD(url);
 		mURL = url;
+		if(mCurrentInternetStreamp->getStream())
+		{
+			mMetaData = new LLSD;
+		}
 	}
 	else
 	{
@@ -154,6 +172,10 @@ void LLStreamingAudio_FMOD::update()
 				// Reset volume to previously set volume
 				setGain(getGain());
 				FSOUND_SetPaused(mFMODInternetStreamChannel, false);
+				if(mCurrentInternetStreamp->getStream() && mMetaData)
+				{
+					FSOUND_Stream_Net_SetMetadataCallback(mCurrentInternetStreamp->getStream(),&MetaDataCallback, mMetaData);
+				}
 			}
 		}
 	}
@@ -184,11 +206,17 @@ void LLStreamingAudio_FMOD::update()
 		// buffering
 		break;
 	}
-
 }
 
 void LLStreamingAudio_FMOD::stop()
 {
+	if(mMetaData)
+	{
+		if(mCurrentInternetStreamp && mCurrentInternetStreamp->getStream())
+			FSOUND_Stream_Net_SetMetadataCallback(mCurrentInternetStreamp->getStream(),NULL,NULL);
+		delete mMetaData;
+		mMetaData = NULL;
+	}
 	if (mFMODInternetStreamChannel != -1)
 	{
 		FSOUND_SetPaused(mFMODInternetStreamChannel, true);

@@ -58,11 +58,15 @@
 #include "llui.h"
 #include "llviewercamera.h"
 #include "llviewerobject.h"
+#include "llviewerregion.h"
 #include "llviewerwindow.h"
+#include "llwindow.h"
 #include "llhudrender.h"
 #include "llworld.h"
 #include "v2math.h"
 #include "llvoavatar.h"
+#include "llmeshrepository.h"
+#include "hippolimits.h"
 
 
 const F32 MAX_MANIP_SELECT_DISTANCE_SQUARED = 11.f * 11.f;
@@ -91,6 +95,11 @@ const LLManip::EManipPart MANIPULATOR_IDS[NUM_MANIPULATORS] =
 };
 
 
+F32 get_default_max_prim_scale(bool is_flora) 
+{
+//CF: both scales are 256, so what?, I now use gridmanagersetting
+	return gHippoLimits->getMaxPrimScale();
+}
 
 // static
 void LLManipScale::setUniform(BOOL b)
@@ -207,12 +216,12 @@ void LLManipScale::render()
 	
 	if( canAffectSelection() )
 	{
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
+		gGL.pushMatrix();
 		if (mObjectSelection->getSelectType() == SELECT_TYPE_HUD)
 		{
 			F32 zoom = gAgentCamera.mHUDCurZoom;
-			glScalef(zoom, zoom, zoom);
+			gGL.scalef(zoom, zoom, zoom);
 		}
 
 		////////////////////////////////////////////////////////////////////////
@@ -264,14 +273,14 @@ void LLManipScale::render()
 		LLVector3 pos_agent = bbox.getPositionAgent();
 		LLQuaternion rot = bbox.getRotation();
 
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
+		gGL.pushMatrix();
 		{
-			glTranslatef(pos_agent.mV[VX], pos_agent.mV[VY], pos_agent.mV[VZ]);
+			gGL.translatef(pos_agent.mV[VX], pos_agent.mV[VY], pos_agent.mV[VZ]);
 
 			F32 angle_radians, x, y, z;
 			rot.getAngleAxis(&angle_radians, &x, &y, &z);
-			glRotatef(angle_radians * RAD_TO_DEG, x, y, z);
+			gGL.rotatef(angle_radians * RAD_TO_DEG, x, y, z);
 
 			
 			{
@@ -293,13 +302,13 @@ void LLManipScale::render()
 				glPolygonOffset( 0.f, 0.f);
 			}
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 
 		if (mManipPart != LL_NO_PART)
 		{
 			renderSnapGuides(bbox);
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 
 		renderXYZ(bbox.getExtentLocal());
 	}
@@ -493,8 +502,9 @@ void LLManipScale::highlightManipulators(S32 x, S32 y)
 			mProjectedManipulators.insert(projManipulator);
 		}
 
-		F32 half_width = (F32)gViewerWindow->getWindowWidth() / 2.f;
-		F32 half_height = (F32)gViewerWindow->getWindowHeight() / 2.f;
+		LLRect world_view_rect = gViewerWindow->getWorldViewRectScaled();
+		F32 half_width = (F32)world_view_rect.getWidth() / 2.f;
+		F32 half_height = (F32)world_view_rect.getHeight() / 2.f;
 		LLVector2 manip2d;
 		LLVector2 mousePos((F32)x - half_width, (F32)y - half_height);
 		LLVector2 delta;
@@ -708,17 +718,17 @@ void LLManipScale::renderEdges( const LLBBox& bbox )
 		LLVector3 direction = edgeToUnitVector( part );
 		LLVector3 center_to_edge = unitVectorToLocalBBoxExtent( direction, bbox );
 
-		glPushMatrix();
+		gGL.pushMatrix();
 		{
-			glTranslatef( center_to_edge.mV[0], center_to_edge.mV[1], center_to_edge.mV[2] );
+			gGL.translatef( center_to_edge.mV[0], center_to_edge.mV[1], center_to_edge.mV[2] );
 			conditionalHighlight( part );
-			glScalef( 
+			gGL.scalef( 
 				direction.mV[0] ? edge_width : extent.mV[VX],
 				direction.mV[1] ? edge_width : extent.mV[VY],
 				direction.mV[2] ? edge_width : extent.mV[VZ] );
 			gBox.render();
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 	}
 }
 
@@ -755,13 +765,13 @@ void LLManipScale::renderBoxHandle( F32 x, F32 y, F32 z )
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 	LLGLDepthTest gls_depth(GL_FALSE);
 
-	glPushMatrix();
+	gGL.pushMatrix();
 	{
-		glTranslatef( x, y, z );
-		glScalef( mScaledBoxHandleSize, mScaledBoxHandleSize, mScaledBoxHandleSize );
+		gGL.translatef( x, y, z );
+		gGL.scalef( mScaledBoxHandleSize, mScaledBoxHandleSize, mScaledBoxHandleSize );
 		gBox.render();
 	}
-	glPopMatrix();
+	gGL.popMatrix();
 }
 
 
@@ -777,16 +787,16 @@ void LLManipScale::renderAxisHandle( const LLVector3& start, const LLVector3& en
 		LLVector3 delta = end - offset_start;
 		LLVector3 pos = offset_start + 0.5f * delta;
 
-		glPushMatrix();
+		gGL.pushMatrix();
 		{
-			glTranslatef( pos.mV[VX], pos.mV[VY], pos.mV[VZ] );
-			glScalef( 
+			gGL.translatef( pos.mV[VX], pos.mV[VY], pos.mV[VZ] );
+			gGL.scalef( 
 				mBoxHandleSize + llabs(delta.mV[VX]),
 				mBoxHandleSize + llabs(delta.mV[VY]),
 				mBoxHandleSize + llabs(delta.mV[VZ]));
 			gBox.render();
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 	}
 	else
 	{
@@ -953,8 +963,8 @@ void LLManipScale::dragCorner( S32 x, S32 y )
 		mInSnapRegime = FALSE;
 	}
 
-	F32 max_scale_factor = DEFAULT_MAX_PRIM_SCALE / MIN_PRIM_SCALE;
-	F32 min_scale_factor = MIN_PRIM_SCALE / DEFAULT_MAX_PRIM_SCALE;
+	F32 max_scale_factor = get_default_max_prim_scale() / MIN_PRIM_SCALE;
+	F32 min_scale_factor = MIN_PRIM_SCALE / get_default_max_prim_scale();
 
 	// find max and min scale factors that will make biggest object hit max absolute scale and smallest object hit min absolute scale
 	for (LLObjectSelection::iterator iter = mObjectSelection->begin();
@@ -966,7 +976,7 @@ void LLManipScale::dragCorner( S32 x, S32 y )
 		{
 			const LLVector3& scale = selectNode->mSavedScale;
 
-			F32 cur_max_scale_factor = llmin( DEFAULT_MAX_PRIM_SCALE / scale.mV[VX], DEFAULT_MAX_PRIM_SCALE / scale.mV[VY], DEFAULT_MAX_PRIM_SCALE / scale.mV[VZ] );
+			F32 cur_max_scale_factor = llmin( get_default_max_prim_scale(LLPickInfo::isFlora(cur)) / scale.mV[VX], get_default_max_prim_scale(LLPickInfo::isFlora(cur)) / scale.mV[VY], get_default_max_prim_scale(LLPickInfo::isFlora(cur)) / scale.mV[VZ] );
 			max_scale_factor = llmin( max_scale_factor, cur_max_scale_factor );
 
 			F32 cur_min_scale_factor = llmax( MIN_PRIM_SCALE / scale.mV[VX], MIN_PRIM_SCALE / scale.mV[VY], MIN_PRIM_SCALE / scale.mV[VZ] );
@@ -1263,7 +1273,7 @@ void LLManipScale::stretchFace( const LLVector3& drag_start_agent, const LLVecto
 
 			F32 denom = axis * dir_local;
 			F32 desired_delta_size	= is_approx_zero(denom) ? 0.f : (delta_local_mag / denom);  // in meters
-			F32 desired_scale		= llclamp(selectNode->mSavedScale.mV[axis_index] + desired_delta_size, MIN_PRIM_SCALE, DEFAULT_MAX_PRIM_SCALE);
+			F32 desired_scale		= llclamp(selectNode->mSavedScale.mV[axis_index] + desired_delta_size, MIN_PRIM_SCALE, get_default_max_prim_scale(LLPickInfo::isFlora(cur)));
 			// propagate scale constraint back to position offset
 			desired_delta_size		= desired_scale - selectNode->mSavedScale.mV[axis_index]; // propagate constraint back to position
 
@@ -1368,7 +1378,7 @@ void LLManipScale::updateSnapGuides(const LLBBox& bbox)
 	else
 	{
 		F32 object_distance = dist_vec(mScaleCenter, LLViewerCamera::getInstance()->getOrigin());
-		mSnapRegimeOffset = (SNAP_GUIDE_SCREEN_OFFSET * gViewerWindow->getWindowWidth() * object_distance) / LLViewerCamera::getInstance()->getPixelMeterRatio();
+		mSnapRegimeOffset = (SNAP_GUIDE_SCREEN_OFFSET * gViewerWindow->getWorldViewWidthRaw() * object_distance) / LLViewerCamera::getInstance()->getPixelMeterRatio();
 	}
 	LLVector3 cam_at_axis;
 	F32 snap_guide_length;
@@ -1381,7 +1391,7 @@ void LLManipScale::updateSnapGuides(const LLBBox& bbox)
 	{
 		cam_at_axis = LLViewerCamera::getInstance()->getAtAxis();
 		F32 manipulator_distance = dist_vec(box_corner_agent, LLViewerCamera::getInstance()->getOrigin());
-		snap_guide_length = (SNAP_GUIDE_SCREEN_LENGTH * gViewerWindow->getWindowWidth() * manipulator_distance) / LLViewerCamera::getInstance()->getPixelMeterRatio();
+		snap_guide_length = (SNAP_GUIDE_SCREEN_LENGTH * gViewerWindow->getWorldViewWidthRaw() * manipulator_distance) / LLViewerCamera::getInstance()->getPixelMeterRatio();
 	}
 	
 	mSnapGuideLength = snap_guide_length / llmax(0.1f, (llmin(mSnapGuideDir1 * cam_at_axis, mSnapGuideDir2 * cam_at_axis)));
@@ -1828,10 +1838,10 @@ void LLManipScale::renderSnapGuides(const LLBBox& bbox)
 				std::string help_text = "Move mouse cursor over ruler";
 				LLColor4 help_text_color = LLColor4::white;
 				help_text_color.mV[VALPHA] = clamp_rescale(mHelpTextTimer.getElapsedTimeF32(), sHelpTextVisibleTime, sHelpTextVisibleTime + sHelpTextFadeTime, grid_alpha, 0.f);
-				hud_render_utf8text(help_text, help_text_pos, *big_fontp, LLFontGL::NORMAL, -0.5f * big_fontp->getWidthF32(help_text), 3.f, help_text_color, mObjectSelection->getSelectType() == SELECT_TYPE_HUD);
+				hud_render_utf8text(help_text, help_text_pos, *big_fontp, LLFontGL::NORMAL, LLFontGL::NO_SHADOW, -0.5f * big_fontp->getWidthF32(help_text), 3.f, help_text_color, mObjectSelection->getSelectType() == SELECT_TYPE_HUD);
 				help_text = "to snap to grid";
 				help_text_pos -= LLViewerCamera::getInstance()->getUpAxis() * mSnapRegimeOffset * 0.4f;
-				hud_render_utf8text(help_text, help_text_pos, *big_fontp, LLFontGL::NORMAL, -0.5f * big_fontp->getWidthF32(help_text), 3.f, help_text_color, mObjectSelection->getSelectType() == SELECT_TYPE_HUD);
+				hud_render_utf8text(help_text, help_text_pos, *big_fontp, LLFontGL::NORMAL, LLFontGL::NO_SHADOW, -0.5f * big_fontp->getWidthF32(help_text), 3.f, help_text_color, mObjectSelection->getSelectType() == SELECT_TYPE_HUD);
 			}
 		}
 	}
@@ -1964,7 +1974,7 @@ F32		LLManipScale::partToMaxScale( S32 part, const LLBBox &bbox ) const
 			max_extent = bbox_extents.mV[i];
 		}
 	}
-	max_scale_factor = bbox_extents.magVec() * DEFAULT_MAX_PRIM_SCALE / max_extent;
+	max_scale_factor = bbox_extents.magVec() * get_default_max_prim_scale() / max_extent;
 
 	if (getUniform())
 	{
@@ -1979,7 +1989,7 @@ F32		LLManipScale::partToMinScale( S32 part, const LLBBox &bbox ) const
 {
 	LLVector3 bbox_extents = unitVectorToLocalBBoxExtent( partToUnitVector( part ), bbox );
 	bbox_extents.abs();
-	F32 min_extent = DEFAULT_MAX_PRIM_SCALE;
+	F32 min_extent = get_default_max_prim_scale();
 	for (U32 i = VX; i <= VZ; i++)
 	{
 		if (bbox_extents.mV[i] > 0.f && bbox_extents.mV[i] < min_extent)

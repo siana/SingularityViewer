@@ -66,12 +66,15 @@
 	     width="150" />
 	<button bottom_delta="0" follows="left|top" font="SansSerifSmall" height="18" label="?"
 	     left="170" name="top_scripts_help" width="18" />
-	<button bottom_delta="-50" follows="left|top" height="20" label="Restart Region"
+  <button bottom_delta="-50" follows="left|top" height="20" label="Restart Region"
 	     left="10" name="restart_btn"
-	     tool_tip="Give 2 minute countdown and restart region" width="130" />
-	<button bottom_delta="0" follows="left|top" font="SansSerifSmall" height="18" label="?"
-	     left="150" name="restart_help" width="18" />
-	<button bottom_delta="-23" follows="left|top" height="20" label="Delay Restart"
+	     tool_tip="Give x second countdown and restart region" width="130" />
+  <spinner bottom_delta="0" decimal_digits="0" follows="left|top" height="16"
+             increment="1" initial_val="120" left_delta="135" max_val="3600" min_val="15"
+             mouse_opaque="true" name="rcount" label="Seconds:" label_width="50" width="105" />
+  <button bottom_delta="0" follows="left|top" font="SansSerifSmall" height="18" label="?"
+	     left="255" name="restart_help" width="18" />
+  <button bottom_delta="-23" follows="left|top" height="20" label="Delay Restart"
 	     left="10" name="cancel_restart_btn"
 	     tool_tip="Delay region restart by one hour" width="130" />
 </panel>

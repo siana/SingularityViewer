@@ -38,6 +38,7 @@
 #include "llscrollbar.h"
 #include "llui.h"
 #include "llkeyboard.h"
+#include "lluiimage.h"
 #include "llviewborder.h"
 #include "llfocusmgr.h"
 #include "llframetimer.h"

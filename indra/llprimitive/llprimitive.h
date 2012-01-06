@@ -37,7 +37,7 @@
 #include "v3math.h"
 #include "xform.h"
 #include "message.h"
-#include "llmemory.h"
+#include "llpointer.h"
 #include "llvolume.h"
 #include "lltextureentry.h"
 #include "llprimtexturelist.h"
@@ -109,6 +109,8 @@ public:
 		PARAMS_LIGHT    = 0x20,
 		PARAMS_SCULPT   = 0x30,
 		PARAMS_LIGHT_IMAGE = 0x40,
+		PARAMS_RESERVED = 0x50, // Used on server-side
+		PARAMS_MESH     = 0x60,
 	};
 	
 public:

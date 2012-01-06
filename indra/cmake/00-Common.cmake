@@ -31,10 +31,10 @@ if (WINDOWS)
   # Don't build DLLs.
   set(BUILD_SHARED_LIBS OFF)
 
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi /MDd"
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi /MDd /arch:SSE2"
       CACHE STRING "C++ compiler debug options" FORCE)
   set(CMAKE_CXX_FLAGS_RELWITHDEBINFO 
-      "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Od /Zi /MD /MP"
+      "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Od /Zi /MD /MP /arch:SSE2"
       CACHE STRING "C++ compiler release-with-debug options" FORCE)
   set(CMAKE_CXX_FLAGS_RELEASE
       "${CMAKE_CXX_FLAGS_RELEASE} ${LL_CXX_FLAGS} /O2 /Zi /MD /MP /arch:SSE /fp:fast"
@@ -113,7 +113,7 @@ if (WINDOWS)
     
 endif (WINDOWS)
 
-set (GCC_EXTRA_OPTIMIZATION "-ffast-math -frounding-math")
+set (GCC_EXTRA_OPTIMIZATIONS "-ffast-math -frounding-math")
 
 if (LINUX)
   set(CMAKE_SKIP_RPATH TRUE)
@@ -182,53 +182,29 @@ if (LINUX)
       -pthread
       )
 
-  if (SERVER)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-60")
-    if (EXISTS /etc/debian_version)
-      FILE(READ /etc/debian_version DEBIAN_VERSION)
-    else (EXISTS /etc/debian_version)
-      set(DEBIAN_VERSION "")
-    endif (EXISTS /etc/debian_version)
-
-    if (NOT DEBIAN_VERSION STREQUAL "3.1")
-      add_definitions(-DCTYPE_WORKAROUND)
-    endif (NOT DEBIAN_VERSION STREQUAL "3.1")
-
-    if (EXISTS /usr/lib/mysql4/mysql)
-      link_directories(/usr/lib/mysql4/mysql)
-    endif (EXISTS /usr/lib/mysql4/mysql)
-
-    add_definitions(
-        -msse2
-        -mfpmath=sse
-        )
-  endif (SERVER)
-
-  if (VIEWER)
-    add_definitions(-DAPPID=secondlife)
-    add_definitions(-fvisibility=hidden)
-    # don't catch SIGCHLD in our base application class for the viewer - some of our 3rd party libs may need their *own* SIGCHLD handler to work.  Sigh!  The viewer doesn't need to catch SIGCHLD anyway.
-    add_definitions(-DLL_IGNORE_SIGCHLD)
+  add_definitions(-DAPPID=secondlife)
+  add_definitions(-fvisibility=hidden)
+  # don't catch SIGCHLD in our base application class for the viewer - some of our 3rd party libs may need their *own* SIGCHLD handler to work.  Sigh!  The viewer doesn't need to catch SIGCHLD anyway.
+  add_definitions(-DLL_IGNORE_SIGCHLD)
+  if (NOT STANDALONE)
+    # this stops us requiring a really recent glibc at runtime
+    add_definitions(-fno-stack-protector)
+  endif (NOT STANDALONE)
+  if (${ARCH} STREQUAL "x86_64")
+    add_definitions(-DLINUX64=1 -pipe)
+    set(CMAKE_CXX_FLAGS_RELEASESSE2 "${CMAKE_CXX_FLAGS_RELEASESSE2} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
+    set(CMAKE_C_FLAGS_RELEASESSE2 "${CMAKE_C_FLAGS_RELEASESSE2} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
+  else (${ARCH} STREQUAL "x86_64")
     if (NOT STANDALONE)
-      # this stops us requiring a really recent glibc at runtime
-      add_definitions(-fno-stack-protector)
+  	set(MARCH_FLAG " -march=pentium4")
     endif (NOT STANDALONE)
-	if (${ARCH} STREQUAL "x86_64")
-	  add_definitions(-DLINUX64=1 -pipe)
-	  set(CMAKE_CXX_FLAGS_RELEASESSE2 "${CMAKE_CXX_FLAGS_RELEASESSE2} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
-	  set(CMAKE_C_FLAGS_RELEASESSE2 "${CMAKE_C_FLAGS_RELEASESSE2} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
-	  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
-	  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fomit-frame-pointer -mmmx -msse -mfpmath=sse -msse2 -ffast-math -ftree-vectorize -fweb -fexpensive-optimizations -frename-registers")
-	else (${ARCH} STREQUAL "x86_64")
-	  if (NOT STANDALONE)
-		set(MARCH_FLAG " -march=pentium4")
-	  endif (NOT STANDALONE)
-	  set(CMAKE_CXX_FLAGS_RELEASESSE2 "${CMAKE_CXX_FLAGS_RELEASESSE2}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
-	  set(CMAKE_C_FLAGS_RELEASESSE2 "${CMAKE_C_FLAGS_RELEASESSE2}${MARCH_FLAG} -mfpmath=sse -msse2 "${GCC_EXTRA_OPTIMIZATIONS})
-	  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
-	  set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse -msse2 "${GCC_EXTRA_OPTIMIZATIONS})
-	endif (${ARCH} STREQUAL "x86_64")
-  endif (VIEWER)
+    set(CMAKE_CXX_FLAGS_RELEASESSE2 "${CMAKE_CXX_FLAGS_RELEASESSE2}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_RELEASESSE2 "${CMAKE_C_FLAGS_RELEASESSE2}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
+  endif (${ARCH} STREQUAL "x86_64")
 
   set(CMAKE_CXX_FLAGS_DEBUG "-fno-inline ${CMAKE_CXX_FLAGS_DEBUG} -msse2")
   set(CMAKE_CXX_FLAGS_RELEASE "-O3 ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -258,13 +234,13 @@ endif (DARWIN)
 
 
 if (LINUX OR DARWIN)
-  set(GCC_WARNINGS "-Wall -Wno-sign-compare -Wno-trigraphs -Wno-non-virtual-dtor -Woverloaded-virtual")
+  set(GCC_WARNINGS "-Wall -Wno-sign-compare -Wno-trigraphs")
 
   if (NOT GCC_DISABLE_FATAL_WARNINGS)
     set(GCC_WARNINGS "${GCC_WARNINGS} -Werror")
   endif (NOT GCC_DISABLE_FATAL_WARNINGS)
 
-  set(GCC_CXX_WARNINGS "${GCC_WARNINGS} -Wno-reorder")
+  set(GCC_CXX_WARNINGS "${GCC_WARNINGS} -Wno-reorder -Wno-non-virtual-dtor -Woverloaded-virtual")
 
   set(CMAKE_C_FLAGS "${GCC_WARNINGS} ${CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${GCC_CXX_WARNINGS} ${CMAKE_CXX_FLAGS}")
@@ -295,11 +271,8 @@ endif (STANDALONE)
 
 if(1 EQUAL 1)
 	add_definitions(-DOPENSIM_RULES=1)
+	add_definitions(-DMESH_ENABLED=1)
 endif(1 EQUAL 1)
-
-if(SERVER)
-  include_directories(${LIBS_PREBUILT_DIR}/include/havok)
-endif(SERVER)
 
 SET( CMAKE_EXE_LINKER_FLAGS_RELEASESSE2
     "${CMAKE_EXE_LINKER_FLAGS_RELEASE}" CACHE STRING

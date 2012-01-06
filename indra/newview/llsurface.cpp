@@ -176,6 +176,7 @@ void LLSurface::create(const S32 grids_per_edge,
 	mNumberOfPatches = mPatchesPerEdge * mPatchesPerEdge;
 	mMetersPerGrid = width / ((F32)(mGridsPerEdge - 1));
 	mMetersPerEdge = mMetersPerGrid * (mGridsPerEdge - 1);
+	sTextureSize = width;
 
 	mOriginGlobal.setVec(origin_global);
 
@@ -339,16 +340,27 @@ void LLSurface::setOriginGlobal(const LLVector3d &origin_global)
 	}
 }
 
+void LLSurface::getNeighboringRegions( std::vector<LLViewerRegion*>& uniqueRegions )
+{
+	S32 i;
+	for (i = 0; i < 8; i++)
+	{
+		if ( mNeighbors[i] != NULL )
+		{
+			uniqueRegions.push_back( mNeighbors[i]->getRegion() );
+		}
+	}	
+}
 
 void LLSurface::connectNeighbor(LLSurface *neighborp, U32 direction)
 {
-	S32 i;
-	LLSurfacePatch *patchp, *neighbor_patchp;
-
 	if (gNoRender)
 	{
 		return;
 	}
+
+	S32 i;
+	LLSurfacePatch *patchp, *neighbor_patchp;
 
 	mNeighbors[direction] = neighborp;
 	neighborp->mNeighbors[gDirOpposite[direction]] = this;

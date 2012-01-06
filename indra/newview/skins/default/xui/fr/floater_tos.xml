@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="modal container" title=" ">
+	<button label="Continuer" label_selected="Continuer" name="Continue" />
+	<button label="Annuler" label_selected="Annuler" name="Cancel" />
+	<radio_group name="tos_agreement">
+		<radio_item name="radio_disagree">
+			Je n&apos;accepte pas les Conditions Générales d&apos;Utilisation
+		</radio_item>
+		<radio_item name="radio_agree">
+			J&apos;accepte les Conditions Générales d&apos;Utilisation
+		</radio_item>
+	</radio_group>
+	<text name="tos_title">
+		Acceptation des Conditions Générales d&apos;Utilisation
+	</text>
+	<check_box label="J&apos;accepte les Conditions d&apos;utilisation" name="agree_chk" />
+	<text name="tos_heading">
+		Veuillez lire attentivement les Conditions d&apos;utilisation suivantes. Pour continuer à utiliser
+Second Life, vous devez accepter ces conditions.
+	</text>
+	<text_editor name="tos_text">
+		TOS_TEXT
+	</text_editor>
+	<text name="real_url">
+		http://secondlife.com/app/tos/
+	</text>
+</floater>

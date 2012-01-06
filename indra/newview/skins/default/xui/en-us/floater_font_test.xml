@@ -51,20 +51,20 @@ SansSerif style=ITALIC
 SansSerif style=BOLD|ITALIC
 </text>
 
-<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-style="BOLD|ITALIC|DROP_SHADOW_SOFT">
-SansSerif style=BOLD|ITALIC|DROP_SHADOW_SOFT
+<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-style="BOLD|ITALIC" font-shadow="soft">
+SansSerif style=BOLD|ITALIC shadow = DROP_SHADOW_SOFT
 </text>
 
 <text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-style="UNDERLINE">
 SansSerif style=UNDERLINE
 </text>
 
-<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-style="DROP_SHADOW">
-SansSerif style=DROP_SHADOW
+<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-shadow="hard">
+SansSerif shadow=DROP_SHADOW
 </text>
 
-<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-style="DROP_SHADOW_SOFT">
-SansSerif style=DROP_SHADOW_SOFT
+<text font="SansSerif" follows="left|top|right" bottom_delta="-20" left="16" height="16" font-shadow="soft">
+  SansSerif shadow=DROP_SHADOW_SOFT
 </text>
 
 <text font="DejaVu" follows="left|top|right" bottom_delta="-20" left="16" height="16">

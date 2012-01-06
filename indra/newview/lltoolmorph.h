@@ -43,6 +43,7 @@
 #include "llviewervisualparam.h"
 #include "llframetimer.h"
 #include "llviewertexture.h"
+#include "lluiimage.h"
 
 class LLViewerJointMesh;
 class LLPolyMesh;

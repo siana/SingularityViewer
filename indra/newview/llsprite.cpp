@@ -249,7 +249,7 @@ void LLSprite::updateFace(LLFace &face)
 		*indicesp++ = 3 + index_offset;
 	}
 
-	face.getVertexBuffer()->setBuffer(0);
+	face.getVertexBuffer()->flush();
 	face.mCenterAgent = mPosition;
 }
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="Audio et vidéo" name="Media panel">
+	<slider label="Général" label_width="65" name="System Volume"/>
+	<slider label="Musique" label_width="65" name="Music Volume"/>
+	<slider label="Média" label_width="65" name="Media Volume"/>
+	<slider label="Voix" label_width="65" name="Voice Volume"/>
+	<slider label="Sons" label_width="65" name="SFX Volume"/>
+	<slider label="Son ambiant" label_width="65" name="Wind Volume"/>
+	<slider label="Interface" label_width="65" name="UI Volume"/>
+</panel>

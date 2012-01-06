@@ -38,19 +38,17 @@
 #include "llgl.h"
 #include "llglheaders.h"
 
-class LLPostProcess 
+class LLPostProcess : public LLSingleton<LLPostProcess>
 {
 public:
 
 	typedef enum _QuadType {
 		QUAD_NORMAL,
-		QUAD_NOISE,
-		QUAD_BLOOM_EXTRACT,
-		QUAD_BLOOM_COMBINE
+		QUAD_NOISE
 	} QuadType;
 
 	/// GLSL Shader Encapsulation Struct
-	typedef std::map<const char *, GLuint> glslUniforms;
+	//typedef std::map<const char *, GLuint> glslUniforms;
 
 	struct PostProcessTweaks : public LLSD {
 		inline PostProcessTweaks() : LLSD(LLSD::emptyMap())
@@ -67,22 +65,6 @@ public:
 
 		inline LLSD & noiseSize() {
 			return (*this)["noise_size"];
-		}
-
-		inline LLSD & extractLow() {
-			return (*this)["extract_low"];
-		}
-
-		inline LLSD & extractHigh() {
-			return (*this)["extract_high"];
-		}
-
-		inline LLSD & bloomWidth() {
-			return (*this)["bloom_width"];
-		}
-
-		inline LLSD & bloomStrength() {
-			return (*this)["bloom_strength"];
 		}
 
 		inline LLSD & brightness() {
@@ -117,10 +99,6 @@ public:
 			return (*this)["enable_night_vision"];
 		}
 
-		/*inline LLSD & useBloomShader() {
-			return (*this)["enable_bloom"];
-		}*/
-
 		inline LLSD & useColorFilter() {
 			return (*this)["enable_color_filter"];
 		}
@@ -139,22 +117,6 @@ public:
 
 		inline F32 getNoiseSize() const {
 			return F32((*this)["noise_size"].asReal());
-		}
-
-		inline F32 getExtractLow() const {
-			return F32((*this)["extract_low"].asReal());
-		}
-
-		inline F32 getExtractHigh() const {
-			return F32((*this)["extract_high"].asReal());
-		}
-
-		inline F32 getBloomWidth() const {
-			return F32((*this)["bloom_width"].asReal());
-		}
-
-		inline F32 getBloomStrength() const {
-			return F32((*this)["bloom_strength"].asReal());
 		}
 
 		inline F32 getGamma() const {
@@ -193,17 +155,16 @@ public:
 			return (*this)["gauss_blur_passes"];
 		}
 	};
-	
-	bool initialized;
+
 	PostProcessTweaks tweaks;
 
 	// the map of all availible effects
 	LLSD mAllEffects;
 
 private:
+	LLPointer<LLVertexBuffer> mVBO;
 	LLPointer<LLImageGL> mSceneRenderTexture ;
 	LLPointer<LLImageGL> mNoiseTexture ;
-	LLPointer<LLImageGL> mTempBloomTexture ;
 
 public:
 	LLPostProcess(void);
@@ -212,9 +173,6 @@ public:
 
 	void apply(unsigned int width, unsigned int height);
 	void invalidate() ;
-
-	/// Perform global initialization for this class.
-	static void initClass(void);
 
 	// Cleanup of global data that's only inited once per class.
 	static void cleanupClass();
@@ -230,18 +188,11 @@ public:
 private:
 		/// read in from file
 	std::string mShaderErrorString;
-	unsigned int screenW;
-	unsigned int screenH;
+	unsigned int mScreenWidth;
+	unsigned int mScreenHeight;
 
-	float noiseTextureScale;
+	float mNoiseTextureScale;
 	
-	/// Shader Uniforms
-	glslUniforms nightVisionUniforms;
-	glslUniforms bloomExtractUniforms;
-	glslUniforms bloomBlurUniforms;
-	glslUniforms colorFilterUniforms;
-	glslUniforms gaussBlurUniforms;
-
 	// the name of currently selected effect in mAllEffects
 	// invariant: tweaks == mAllEffects[mSelectedEffectName]
 	std::string mSelectedEffectName;
@@ -253,35 +204,19 @@ private:
 	bool shadersEnabled(void);
 
 	/// Night Vision Functions
-	void createNightVisionShader(void);
 	void applyNightVisionShader(void);
 
-	/// Bloom Functions
-	void createBloomShader(void);
-	void applyBloomShader(void);
-
 	/// Color Filter Functions
-	void createColorFilterShader(void);
 	void applyColorFilterShader(void);
 
 	/// Gaussian blur Filter Functions
-	void createGaussBlurShader(void);
 	void applyGaussBlurShader(void);
 
 	/// OpenGL Helper Functions
-	void getShaderUniforms(glslUniforms & uniforms, GLhandleARB & prog);
-	void createTexture(LLPointer<LLImageGL>& texture, unsigned int width, unsigned int height);
-	void copyFrameBuffer(LLGLuint texture, unsigned int width, unsigned int height);
-	void createNoiseTexture(LLPointer<LLImageGL>& texture);
+	void copyFrameBuffer();
+	void createScreenTexture();
+	void createNoiseTexture();
 	bool checkError(void);
-	void checkShaderError(GLhandleARB shader);
-	void drawOrthoQuad(unsigned int width, unsigned int height, QuadType type);
-	void viewOrthogonal(unsigned int width, unsigned int height);
-	void changeOrthogonal(unsigned int width, unsigned int height);
-	void viewPerspective(void);
+	void drawOrthoQuad(QuadType type);
 };
-
-extern LLPostProcess * gPostProcess;
-
-
 #endif // LL_POSTPROCESS_H

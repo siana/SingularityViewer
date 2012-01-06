@@ -61,6 +61,7 @@
 #include "llviewerstats.h"
 #include "llviewercamera.h"
 #include "llviewerwindow.h"
+#include "llwindow.h"
 #include "llviewermenufile.h"	// upload_new_resource()
 #include "llfloaterpostcard.h"
 #include "llcheckboxctrl.h"
@@ -68,6 +69,7 @@
 #include "lltoolfocus.h"
 #include "lltoolmgr.h"
 #include "llworld.h"
+#include "llagentui.h"
 
 #include "llgl.h"
 #include "llglheaders.h"
@@ -75,6 +77,7 @@
 #include "llimagepng.h"
 #include "llimagebmp.h"
 #include "llimagej2c.h"
+#include "llnotificationsutil.h"
 #include "llvfile.h"
 #include "llvfs.h"
 
@@ -426,9 +429,9 @@ void LLSnapshotLivePreview::draw()
 		// calculate UV scale
 		F32 uv_width = mImageScaled[mCurImageIndex] ? 1.f : llmin((F32)mWidth[mCurImageIndex] / (F32)mViewerImage[mCurImageIndex]->getWidth(), 1.f);
 		F32 uv_height = mImageScaled[mCurImageIndex] ? 1.f : llmin((F32)mHeight[mCurImageIndex] / (F32)mViewerImage[mCurImageIndex]->getHeight(), 1.f);
-		glPushMatrix();
+		gGL.pushMatrix();
 		{
-			glTranslatef((F32)rect.mLeft, (F32)rect.mBottom, 0.f);
+			gGL.translatef((F32)rect.mLeft, (F32)rect.mBottom, 0.f);
 			gGL.begin(LLRender::QUADS);
 			{
 				gGL.texCoord2f(uv_width, uv_height);
@@ -445,7 +448,7 @@ void LLSnapshotLivePreview::draw()
 			}
 			gGL.end();
 		}
-		glPopMatrix();
+		gGL.popMatrix();
 
 		gGL.color4f(1.f, 1.f, 1.f, mFlashAlpha);
 		gl_rect_2d(getRect());
@@ -485,27 +488,27 @@ void LLSnapshotLivePreview::draw()
 			LLLocalClipRect clip(getLocalRect());
 			{
 				// draw diagonal stripe with gradient that passes over screen
-				S32 x1 = gViewerWindow->getWindowWidth() * llround((clamp_rescale(shine_interp, 0.f, 1.f, -1.f - SHINE_WIDTH, 1.f)));
-				S32 x2 = x1 + llround(gViewerWindow->getWindowWidth() * SHINE_WIDTH);
-				S32 x3 = x2 + llround(gViewerWindow->getWindowWidth() * SHINE_WIDTH);
+				S32 x1 = gViewerWindow->getWindowWidthScaled() * llround((clamp_rescale(shine_interp, 0.f, 1.f, -1.f - SHINE_WIDTH, 1.f)));
+				S32 x2 = x1 + llround(gViewerWindow->getWindowWidthScaled() * SHINE_WIDTH);
+				S32 x3 = x2 + llround(gViewerWindow->getWindowWidthScaled() * SHINE_WIDTH);
 				S32 y1 = 0;
-				S32 y2 = gViewerWindow->getWindowHeight();
+				S32 y2 = gViewerWindow->getWindowHeightScaled();
 
 				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 				gGL.begin(LLRender::QUADS);
 				{
 					gGL.color4f(1.f, 1.f, 1.f, 0.f);
 					gGL.vertex2i(x1, y1);
-					gGL.vertex2i(x1 + gViewerWindow->getWindowWidth(), y2);
+					gGL.vertex2i(x1 + gViewerWindow->getWindowWidthScaled(), y2);
 					gGL.color4f(1.f, 1.f, 1.f, SHINE_OPACITY);
-					gGL.vertex2i(x2 + gViewerWindow->getWindowWidth(), y2);
+					gGL.vertex2i(x2 + gViewerWindow->getWindowWidthScaled(), y2);
 					gGL.vertex2i(x2, y1);
 
 					gGL.color4f(1.f, 1.f, 1.f, SHINE_OPACITY);
 					gGL.vertex2i(x2, y1);
-					gGL.vertex2i(x2 + gViewerWindow->getWindowWidth(), y2);
+					gGL.vertex2i(x2 + gViewerWindow->getWindowWidthScaled(), y2);
 					gGL.color4f(1.f, 1.f, 1.f, 0.f);
-					gGL.vertex2i(x3 + gViewerWindow->getWindowWidth(), y2);
+					gGL.vertex2i(x3 + gViewerWindow->getWindowWidthScaled(), y2);
 					gGL.vertex2i(x3, y1);
 				}
 				gGL.end();
@@ -565,11 +568,11 @@ void LLSnapshotLivePreview::draw()
 			BOOL rescale = !mImageScaled[old_image_index] && mViewerImage[mCurImageIndex].notNull();
 			F32 uv_width = rescale ? llmin((F32)mWidth[old_image_index] / (F32)mViewerImage[mCurImageIndex]->getWidth(), 1.f) : 1.f;
 			F32 uv_height = rescale ? llmin((F32)mHeight[old_image_index] / (F32)mViewerImage[mCurImageIndex]->getHeight(), 1.f) : 1.f;
-			glPushMatrix();
+			gGL.pushMatrix();
 			{
 				LLRect& rect = mImageRect[old_image_index];
-				glTranslatef((F32)rect.mLeft, (F32)rect.mBottom - llround(getRect().getHeight() * 2.f * (fall_interp * fall_interp)), 0.f);
-				glRotatef(-45.f * fall_interp, 0.f, 0.f, 1.f);
+				gGL.translatef((F32)rect.mLeft, (F32)rect.mBottom - llround(getRect().getHeight() * 2.f * (fall_interp * fall_interp)), 0.f);
+				gGL.rotatef(-45.f * fall_interp, 0.f, 0.f, 1.f);
 				gGL.begin(LLRender::QUADS);
 				{
 					gGL.texCoord2f(uv_width, uv_height);
@@ -586,7 +589,7 @@ void LLSnapshotLivePreview::draw()
 				}
 				gGL.end();
 			}
-			glPopMatrix();
+			gGL.popMatrix();
 		}
 	}
 }
@@ -608,8 +611,8 @@ BOOL LLSnapshotLivePreview::setThumbnailImageSize()
 	{
 		return FALSE ;
 	}
-	S32 window_width = gViewerWindow->getWindowDisplayWidth() ;
-	S32 window_height = gViewerWindow->getWindowDisplayHeight() ;
+	S32 window_width = gViewerWindow->getWindowWidthRaw() ;
+	S32 window_height = gViewerWindow->getWindowHeightRaw() ;
 
 	F32 window_aspect_ratio = ((F32)window_width) / ((F32)window_height);
 
@@ -973,9 +976,9 @@ void LLSnapshotLivePreview::saveTexture()
 	{
 		LLVFile::writeFile(formatted->getData(), formatted->getDataSize(), gVFS, new_asset_id, LLAssetType::AT_TEXTURE);
 		std::string pos_string;
-		gAgent.buildLocationString(pos_string);
+		LLAgentUI::buildLocationString(pos_string, LLAgentUI::LOCATION_FORMAT_FULL);
 		std::string who_took_it;
-		gAgent.buildFullname(who_took_it);
+		LLAgentUI::buildFullname(who_took_it);
 		LLAssetStorage::LLStoreAssetCallback callback = NULL;
 		S32 expected_upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
 		void *userdata = NULL;
@@ -984,7 +987,7 @@ void LLSnapshotLivePreview::saveTexture()
 				    "Snapshot : " + pos_string,
 				    "Taken by " + who_took_it + " at " + pos_string,
 				    0,
-				    LLAssetType::AT_SNAPSHOT_CATEGORY,
+				    LLFolderType::FT_SNAPSHOT_CATEGORY,
 				    LLInventoryType::IT_SNAPSHOT,
 				    PERM_ALL,  // Note: Snapshots to inventory is a special case of content upload
 				    LLFloaterPerms::getGroupPerms(), // that is more permissive than other uploads
@@ -995,7 +998,7 @@ void LLSnapshotLivePreview::saveTexture()
 	}
 	else
 	{
-		LLNotifications::instance().add("ErrorEncodingSnapshot");
+		LLNotificationsUtil::add("ErrorEncodingSnapshot");
 		llwarns << "Error encoding snapshot" << llendl;
 	}
 
@@ -1134,8 +1137,6 @@ LLViewerWindow::ESnapshotType LLFloaterSnapshot::Impl::getLayerType(LLFloaterSna
 		type = LLViewerWindow::SNAPSHOT_TYPE_COLOR;
 	else if (id == "depth")
 		type = LLViewerWindow::SNAPSHOT_TYPE_DEPTH;
-	else if (id == "objects")
-		type = LLViewerWindow::SNAPSHOT_TYPE_OBJECT_ID;
 	return type;
 }
 
@@ -2098,7 +2099,7 @@ void LLFloaterSnapshot::draw()
 			S32 offset_x = (getRect().getWidth() - previewp->getThumbnailWidth()) / 2 ;
 			S32 offset_y = getRect().getHeight() - 205 + (90 - previewp->getThumbnailHeight()) / 2 ;
 
-			glMatrixMode(GL_MODELVIEW);
+			gGL.matrixMode(LLRender::MM_MODELVIEW);
 			gl_draw_scaled_image(offset_x, offset_y, 
 					previewp->getThumbnailWidth(), previewp->getThumbnailHeight(), 
 					previewp->getThumbnailImage(), LLColor4::white);	

@@ -1,7 +1,17 @@
 <?xml version="1.0" ?>
 <llsd>
 	<map>
-
+    <key>SHEnableFMODExProfiler</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable profiler tool if using FMOD Ex</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
 		<key>SHAllowScriptCommands</key>
 		<map>
 			<key>Comment</key>
@@ -167,6 +177,72 @@
       <string>U32</string>
       <key>Value</key>
       <real>10.0</real>
+    </map>
+    <key>ShyotlUseLegacyRenderPath</key>
+    <map>
+      <key>Comment</key>
+      <string>Use deprecated pre-3.x OpenGL api calls.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>ShyotlUseLegacyTextureBatching</key>
+    <map>
+      <key>Comment</key>
+      <string>Disable usage of extra samplers in shaders. Decreases batch sizes, however also reduces branching in shaders drastically.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+	<key>ShyotlUseLegacyDynamicTexture</key>
+    <map>
+      <key>Comment</key>
+      <string>Disable shader path when rendering dynamic textures.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+	<key>ShyotlUseLegacyTextureBaking</key>
+    <map>
+      <key>Comment</key>
+      <string>Disable shader path when generating baked textures.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+	<key>ShyotlDumpRawShaders</key>
+    <map>
+      <key>Comment</key>
+      <string>Dump shader data being passed to glShaderSourceARB.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+	<key>ShyotlDrawOrphanAttachments</key>
+    <map>
+      <key>Comment</key>
+      <string>Render attachments lacking an 'alive' owner.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
   </map>
 </llsd>

@@ -5,16 +5,30 @@ project(llaudio)
 include(00-Common)
 include(Audio)
 include(LLAudio)
-include(FMOD)
+if(FMODEX)
+	include(FMODEX)
+	if(FMODEX)
+		set(FMOD OFF)
+	endif(FMODEX)
+endif(FMODEX)
+if(NOT FMODEX)
+	include(FMOD)
+endif(NOT FMODEX)
 include(OPENAL)
 include(LLCommon)
 include(LLMath)
 include(LLMessage)
 include(LLVFS)
 
+if(FMODEX)
+	include_directories(${FMODEX_INCLUDE_DIR})
+endif(FMODEX)
+if(FMOD)
+	include_directories(${FMOD_INCLUDE_DIR})
+endif(FMOD)
+
 include_directories(
     ${LLAUDIO_INCLUDE_DIRS}
-    ${FMOD_INCLUDE_DIR}
     ${LLCOMMON_INCLUDE_DIRS}
     ${LLMATH_INCLUDE_DIRS}
     ${LLMESSAGE_INCLUDE_DIRS}
@@ -46,6 +60,19 @@ set(llaudio_HEADER_FILES
     llwindgen.h
     )
 
+if (FMODEX)
+    list(APPEND llaudio_SOURCE_FILES
+         llaudioengine_fmodex.cpp
+         lllistener_fmodex.cpp
+         llstreamingaudio_fmodex.cpp
+         )
+
+    list(APPEND llaudio_HEADER_FILES
+         llaudioengine_fmodex.h
+         lllistener_fmodex.h
+         llstreamingaudio_fmodex.h
+         )
+endif (FMODEX)
 if (FMOD)
     list(APPEND llaudio_SOURCE_FILES
          llaudioengine_fmod.cpp

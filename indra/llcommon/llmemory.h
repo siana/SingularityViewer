@@ -29,21 +29,97 @@
  * COMPLETENESS OR PERFORMANCE.
  * $/LicenseInfo$
  */
-#ifndef LL_MEMORY_H
-#define LL_MEMORY_H
+#ifndef LLMEMORY_H
+#define LLMEMORY_H
+
 
 #include <new>
 #include <cstdlib>
+#if !LL_WINDOWS
+#include <stdint.h>		// uintptr_t
+#endif
 
 #include "llerror.h"
+#if LL_DEBUG
+inline void* ll_aligned_malloc( size_t size, int align )
+{
+	void* mem = malloc( size + (align - 1) + sizeof(void*) );
+	char* aligned = ((char*)mem) + sizeof(void*);
+	aligned += align - ((uintptr_t)aligned & (align - 1));
 
-extern S32 gTotalDAlloc;
-extern S32 gTotalDAUse;
-extern S32 gDACount;
+	((void**)aligned)[-1] = mem;
+	return aligned;
+}
 
-const U32 LLREFCOUNT_SENTINEL_VALUE = 0xAAAAAAAA;
+inline void ll_aligned_free( void* ptr )
+{
+	free( ((void**)ptr)[-1] );
+}
 
-//----------------------------------------------------------------------------
+inline void* ll_aligned_malloc_16(size_t size) // returned hunk MUST be freed with ll_aligned_free_16().
+{
+#if defined(LL_WINDOWS)
+	return _mm_malloc(size, 16);
+#elif defined(LL_DARWIN)
+	return malloc(size); // default osx malloc is 16 byte aligned.
+#else
+	void *rtn;
+	if (LL_LIKELY(0 == posix_memalign(&rtn, 16, size)))
+		return rtn;
+	else // bad alignment requested, or out of memory
+		return NULL;
+#endif
+}
+
+inline void ll_aligned_free_16(void *p)
+{
+#if defined(LL_WINDOWS)
+	_mm_free(p);
+#elif defined(LL_DARWIN)
+	return free(p);
+#else
+	free(p); // posix_memalign() is compatible with heap deallocator
+#endif
+}
+
+inline void* ll_aligned_malloc_32(size_t size) // returned hunk MUST be freed with ll_aligned_free_32().
+{
+#if defined(LL_WINDOWS)
+	return _mm_malloc(size, 32);
+#elif defined(LL_DARWIN)
+	return ll_aligned_malloc( size, 32 );
+#else
+	void *rtn;
+	if (LL_LIKELY(0 == posix_memalign(&rtn, 32, size)))
+		return rtn;
+	else // bad alignment requested, or out of memory
+		return NULL;
+#endif
+}
+
+inline void ll_aligned_free_32(void *p)
+{
+#if defined(LL_WINDOWS)
+	_mm_free(p);
+#elif defined(LL_DARWIN)
+	ll_aligned_free( p );
+#else
+	free(p); // posix_memalign() is compatible with heap deallocator
+#endif
+}
+#else // LL_DEBUG
+// ll_aligned_foo are noops now that we use tcmalloc everywhere (tcmalloc aligns automatically at appropriate intervals)
+#define ll_aligned_malloc( size, align ) malloc(size)
+#define ll_aligned_free( ptr ) free(ptr)
+#define ll_aligned_malloc_16 malloc
+#define ll_aligned_free_16 free
+#define ll_aligned_malloc_32 malloc
+#define ll_aligned_free_32 free
+#endif // LL_DEBUG
+
+#ifndef __DEBUG_PRIVATE_MEM__
+#define __DEBUG_PRIVATE_MEM__  0
+#endif
 
 class LL_COMMON_API LLMemory
 {
@@ -51,431 +127,403 @@ public:
 	static void initClass();
 	static void cleanupClass();
 	static void freeReserve();
+	// Return the resident set size of the current process, in bytes.
+	// Return value is zero if not known.
+	static U64 getCurrentRSS();
+	static U32 getWorkingSetSize();
+	static void* tryToAlloc(void* address, U32 size);
+	static void initMaxHeapSizeGB(F32 max_heap_size_gb, BOOL prevent_heap_failure);
+	static void updateMemoryInfo() ;
+	static void logMemoryInfo(BOOL update = FALSE);
+	static bool isMemoryPoolLow();
+
+	static U32 getAvailableMemKB() ;
+	static U32 getMaxMemKB() ;
+	static U32 getAllocatedMemKB() ;
 private:
 	static char* reserveMem;
+	static U32 sAvailPhysicalMemInKB ;
+	static U32 sMaxPhysicalMemInKB ;
+	static U32 sAllocatedMemInKB;
+	static U32 sAllocatedPageSizeInKB ;
+
+	static U32 sMaxHeapSizeInKB;
+	static BOOL sEnableMemoryFailurePrevention;
 };
 
 //----------------------------------------------------------------------------
-// RefCount objects should generally only be accessed by way of LLPointer<>'s
-// NOTE: LLPointer<LLFoo> x = new LLFoo(); MAY NOT BE THREAD SAFE
-//   if LLFoo::LLFoo() does anything like put itself in an update queue.
-//   The queue may get accessed before it gets assigned to x.
-// The correct implementation is:
-//   LLPointer<LLFoo> x = new LLFoo; // constructor does not do anything interesting
-//   x->instantiate(); // does stuff like place x into an update queue
-
-// see llthread.h for LLThreadSafeRefCount
-
-//----------------------------------------------------------------------------
-
-class LL_COMMON_API LLRefCount
+class LLMutex ;
+#if MEM_TRACK_MEM
+class LL_COMMON_API LLMemTracker
 {
-protected:
-	LLRefCount(const LLRefCount&);
 private:
-	LLRefCount&operator=(const LLRefCount&);
+	LLMemTracker() ;
+	~LLMemTracker() ;
 
-protected:
-	virtual ~LLRefCount(); // use unref()
-	
 public:
-	LLRefCount();
+	static void release() ;
+	static LLMemTracker* getInstance() ;
 
-	void ref()
-	{ 
-		mRef++; 
-	} 
+	void track(const char* function, const int line) ;
+	void preDraw(BOOL pause) ;
+	void postDraw() ;
+	const char* getNextLine() ;
 
-	S32 unref()
-	{
-		llassert(mRef >= 1);
-		if (0 == --mRef) 
-		{
-			delete this; 
-			return 0;
-		}
-		return mRef;
-	}	
-
-	S32 getNumRefs() const
-	{
-		return mRef;
-	}
-
-private: 
-	S32	mRef; 
+private:
+	static LLMemTracker* sInstance ;
+	
+	char**     mStringBuffer ;
+	S32        mCapacity ;
+	U32        mLastAllocatedMem ;
+	S32        mCurIndex ;
+	S32        mCounter;
+	S32        mDrawnIndex;
+	S32        mNumOfDrawn;
+	BOOL       mPaused;
+	LLMutex*   mMutexp ;
 };
+
+#define MEM_TRACK_RELEASE LLMemTracker::release() ;
+#define MEM_TRACK         LLMemTracker::getInstance()->track(__FUNCTION__, __LINE__) ;
+
+#else // MEM_TRACK_MEM
+
+#define MEM_TRACK_RELEASE
+#define MEM_TRACK
+
+#endif // MEM_TRACK_MEM
 
 //----------------------------------------------------------------------------
 
-// Note: relies on Type having ref() and unref() methods
-template <class Type> class LLPointer
+
+//
+//class LLPrivateMemoryPool defines a private memory pool for an application to use, so the application does not
+//need to access the heap directly fro each memory allocation. Throught this, the allocation speed is faster, 
+//and reduces virtaul address space gragmentation problem.
+//Note: this class is thread-safe by passing true to the constructor function. However, you do not need to do this unless
+//you are sure the memory allocation and de-allocation will happen in different threads. To make the pool thread safe
+//increases allocation and deallocation cost.
+//
+class LL_COMMON_API LLPrivateMemoryPool
 {
+	friend class LLPrivateMemoryPoolManager ;
+
 public:
-
-	LLPointer() : 
-		mPointer(NULL)
+	class LL_COMMON_API LLMemoryBlock //each block is devided into slots uniformly
 	{
-	}
+	public: 
+		LLMemoryBlock() ;
+		~LLMemoryBlock() ;
 
-	LLPointer(Type* ptr) : 
-		mPointer(ptr)
-	{
-		ref();
-	}
+		void init(char* buffer, U32 buffer_size, U32 slot_size) ;
+		void setBuffer(char* buffer, U32 buffer_size) ;
 
-	LLPointer(const LLPointer<Type>& ptr) : 
-		mPointer(ptr.mPointer)
-	{
-		ref();
-	}
+		char* allocate() ;
+		void  freeMem(void* addr) ;
 
-	// support conversion up the type hierarchy.  See Item 45 in Effective C++, 3rd Ed.
-	template<typename Subclass>
-	LLPointer(const LLPointer<Subclass>& ptr) : 
-		mPointer(ptr.get())
-	{
-		ref();
-	}
+		bool empty() {return !mAllocatedSlots;}
+		bool isFull() {return mAllocatedSlots == mTotalSlots;}
+		bool isFree() {return !mTotalSlots;}
 
-	~LLPointer()								
-	{
-		unref();
-	}
+		U32  getSlotSize()const {return mSlotSize;}
+		U32  getTotalSlots()const {return mTotalSlots;}
+		U32  getBufferSize()const {return mBufferSize;}
+		char* getBuffer() const {return mBuffer;}
 
-	Type*	get() const							{ return mPointer; }
-	const Type*	operator->() const				{ return mPointer; }
-	Type*	operator->()						{ return mPointer; }
-	const Type&	operator*() const				{ return *mPointer; }
-	Type&	operator*()							{ return *mPointer; }
+		//debug use
+		void resetBitMap() ;
+	private:
+		char* mBuffer;
+		U32   mSlotSize ; //when the block is not initialized, it is the buffer size.
+		U32   mBufferSize ;
+		U32   mUsageBits ;
+		U8    mTotalSlots ;
+		U8    mAllocatedSlots ;
+		U8    mDummySize ; //size of extra bytes reserved for mUsageBits.
 
-	operator BOOL()  const						{ return (mPointer != NULL); }
-	operator bool()  const						{ return (mPointer != NULL); }
-	bool operator!() const						{ return (mPointer == NULL); }
-	bool isNull() const							{ return (mPointer == NULL); }
-	bool notNull() const						{ return (mPointer != NULL); }
+	public:
+		LLMemoryBlock* mPrev ;
+		LLMemoryBlock* mNext ;
+		LLMemoryBlock* mSelf ;
 
-	operator Type*()       const				{ return mPointer; }
-	operator const Type*() const				{ return mPointer; }
-	bool operator !=(Type* ptr) const           { return (mPointer != ptr); 	}
-	bool operator ==(Type* ptr) const           { return (mPointer == ptr); 	}
-	bool operator ==(const LLPointer<Type>& ptr) const           { return (mPointer == ptr.mPointer); 	}
-	bool operator < (const LLPointer<Type>& ptr) const           { return (mPointer < ptr.mPointer); 	}
-	bool operator > (const LLPointer<Type>& ptr) const           { return (mPointer > ptr.mPointer); 	}
-
-	LLPointer<Type>& operator =(Type* ptr)                   
-	{ 
-		if( mPointer != ptr )
+		struct CompareAddress
 		{
-			unref(); 
-			mPointer = ptr; 
-			ref();
-		}
-
-		return *this; 
-	}
-
-	LLPointer<Type>& operator =(const LLPointer<Type>& ptr)  
-	{ 
-		if( mPointer != ptr.mPointer )
-		{
-			unref(); 
-			mPointer = ptr.mPointer;
-			ref();
-		}
-		return *this; 
-	}
-
-	// support assignment up the type hierarchy. See Item 45 in Effective C++, 3rd Ed.
-	template<typename Subclass>
-	LLPointer<Type>& operator =(const LLPointer<Subclass>& ptr)  
-	{ 
-		if( mPointer != ptr.get() )
-		{
-			unref(); 
-			mPointer = ptr.get();
-			ref();
-		}
-		return *this; 
-	}
-	
-	// Just exchange the pointers, which will not change the reference counts.
-	static void swap(LLPointer<Type>& a, LLPointer<Type>& b)
-	{
-		Type* temp = a.mPointer;
-		a.mPointer = b.mPointer;
-		b.mPointer = temp;
-	}
-
-protected:
-	void ref()                             
-	{ 
-		if (mPointer)
-		{
-			mPointer->ref();
-		}
-	}
-
-	void unref()
-	{
-		if (mPointer)
-		{
-			Type *tempp = mPointer;
-			mPointer = NULL;
-			tempp->unref();
-			if (mPointer != NULL)
+			bool operator()(const LLMemoryBlock* const& lhs, const LLMemoryBlock* const& rhs)
 			{
-				llwarns << "Unreference did assignment to non-NULL because of destructor" << llendl;
-				unref();
+				return (U32)lhs->getBuffer() < (U32)rhs->getBuffer();
 			}
-		}
-	}
+		};
+	};
 
-protected:
-	Type*	mPointer;
+	class LL_COMMON_API LLMemoryChunk //is divided into memory blocks.
+	{
+	public:
+		LLMemoryChunk() ;
+		~LLMemoryChunk() ;
+
+		void init(char* buffer, U32 buffer_size, U32 min_slot_size, U32 max_slot_size, U32 min_block_size, U32 max_block_size) ;
+		void setBuffer(char* buffer, U32 buffer_size) ;
+
+		bool empty() ;
+		
+		char* allocate(U32 size) ;
+		void  freeMem(void* addr) ;
+
+		char* getBuffer() const {return mBuffer;}
+		U32 getBufferSize() const {return mBufferSize;}
+		U32 getAllocatedSize() const {return mAlloatedSize;}
+
+		bool containsAddress(const char* addr) const;
+
+		static U32 getMaxOverhead(U32 data_buffer_size, U32 min_slot_size, 
+													   U32 max_slot_size, U32 min_block_size, U32 max_block_size) ;
+	
+		void dump() ;
+
+	private:
+		U32 getPageIndex(U32 addr) ;
+		U32 getBlockLevel(U32 size) ;
+		U16 getPageLevel(U32 size) ;
+		LLMemoryBlock* addBlock(U32 blk_idx) ;
+		void popAvailBlockList(U32 blk_idx) ;
+		void addToFreeSpace(LLMemoryBlock* blk) ;
+		void removeFromFreeSpace(LLMemoryBlock* blk) ;
+		void removeBlock(LLMemoryBlock* blk) ;
+		void addToAvailBlockList(LLMemoryBlock* blk) ;
+		U32  calcBlockSize(U32 slot_size);
+		LLMemoryBlock* createNewBlock(LLMemoryBlock* blk, U32 buffer_size, U32 slot_size, U32 blk_idx) ;
+
+	private:
+		LLMemoryBlock** mAvailBlockList ;//256 by mMinSlotSize
+		LLMemoryBlock** mFreeSpaceList;
+		LLMemoryBlock*  mBlocks ; //index of blocks by address.
+		
+		char* mBuffer ;
+		U32   mBufferSize ;
+		char* mDataBuffer ;
+		char* mMetaBuffer ;
+		U32   mMinBlockSize ;
+		U32   mMinSlotSize ;
+		U32   mMaxSlotSize ;
+		U32   mAlloatedSize ;
+		U16   mBlockLevels;
+		U16   mPartitionLevels;
+
+	public:
+		//form a linked list
+		LLMemoryChunk* mNext ;
+		LLMemoryChunk* mPrev ;
+	} ;
+
+private:
+	LLPrivateMemoryPool(S32 type, U32 max_pool_size) ;
+	~LLPrivateMemoryPool() ;
+
+	char *allocate(U32 size) ;
+	void  freeMem(void* addr) ;
+	
+	void  dump() ;
+	U32   getTotalAllocatedSize() ;
+	U32   getTotalReservedSize() {return mReservedPoolSize;}
+	S32   getType() const {return mType; }
+	bool  isEmpty() const {return !mNumOfChunks; }
+
+private:
+	void lock() ;
+	void unlock() ;	
+	S32 getChunkIndex(U32 size) ;
+	LLMemoryChunk*  addChunk(S32 chunk_index) ;
+	bool checkSize(U32 asked_size) ;
+	void removeChunk(LLMemoryChunk* chunk) ;
+	U16  findHashKey(const char* addr);
+	void addToHashTable(LLMemoryChunk* chunk) ;
+	void removeFromHashTable(LLMemoryChunk* chunk) ;
+	void rehash() ;
+	bool fillHashTable(U16 start, U16 end, LLMemoryChunk* chunk) ;
+	LLMemoryChunk* findChunk(const char* addr) ;
+
+	void destroyPool() ;
+
+public:
+	enum
+	{
+		SMALL_ALLOCATION = 0, //from 8 bytes to 2KB(exclusive), page size 2KB, max chunk size is 4MB.
+		MEDIUM_ALLOCATION,    //from 2KB to 512KB(exclusive), page size 32KB, max chunk size 4MB
+		LARGE_ALLOCATION,     //from 512KB to 4MB(inclusive), page size 64KB, max chunk size 16MB
+		SUPER_ALLOCATION      //allocation larger than 4MB.
+	};
+
+	enum
+	{
+		STATIC = 0 ,       //static pool(each alllocation stays for a long time) without threading support
+		VOLATILE,          //Volatile pool(each allocation stays for a very short time) without threading support
+		STATIC_THREADED,   //static pool with threading support
+		VOLATILE_THREADED, //volatile pool with threading support
+		MAX_TYPES
+	}; //pool types
+
+private:
+	LLMutex* mMutexp ;
+	U32  mMaxPoolSize;
+	U32  mReservedPoolSize ;	
+
+	LLMemoryChunk* mChunkList[SUPER_ALLOCATION] ; //all memory chunks reserved by this pool, sorted by address	
+	U16 mNumOfChunks ;
+	U16 mHashFactor ;
+
+	S32 mType ;
+
+	class LLChunkHashElement
+	{
+	public:
+		LLChunkHashElement() {mFirst = NULL ; mSecond = NULL ;}
+
+		bool add(LLMemoryChunk* chunk) ;
+		void remove(LLMemoryChunk* chunk) ;
+		LLMemoryChunk* findChunk(const char* addr) ;
+
+		bool empty() {return !mFirst && !mSecond; }
+		bool full()  {return mFirst && mSecond; }
+		bool hasElement(LLMemoryChunk* chunk) {return mFirst == chunk || mSecond == chunk;}
+
+	private:
+		LLMemoryChunk* mFirst ;
+		LLMemoryChunk* mSecond ;
+	};
+	std::vector<LLChunkHashElement> mChunkHashList ;
 };
 
-//template <class Type> 
-//class LLPointerTraits
-//{
-//	static Type* null();
-//};
-//
-// Expands LLPointer to return a pointer to a special instance of class Type instead of NULL.
-// This is useful in instances where operations on NULL pointers are semantically safe and/or
-// when error checking occurs at a different granularity or in a different part of the code
-// than when referencing an object via a LLSafeHandle.
-// 
-
-template <class Type> 
-class LLSafeHandle
+class LL_COMMON_API LLPrivateMemoryPoolManager
 {
+private:
+	LLPrivateMemoryPoolManager(BOOL enabled, U32 max_pool_size) ;
+	~LLPrivateMemoryPoolManager() ;
+
+public:	
+	static LLPrivateMemoryPoolManager* getInstance() ;
+	static void initClass(BOOL enabled, U32 pool_size) ;
+	static void destroyClass() ;
+
+	LLPrivateMemoryPool* newPool(S32 type) ;
+	void deletePool(LLPrivateMemoryPool* pool) ;
+
+private:	
+	std::vector<LLPrivateMemoryPool*> mPoolList ;	
+	U32  mMaxPrivatePoolSize;
+
+	static LLPrivateMemoryPoolManager* sInstance ;
+	static BOOL sPrivatePoolEnabled;
+	static std::vector<LLPrivateMemoryPool*> sDanglingPoolList ;
 public:
-	LLSafeHandle() :
-		mPointer(NULL)
-	{
-	}
+	//debug and statistics info.
+	void updateStatistics() ;
 
-	LLSafeHandle(Type* ptr) : 
-		mPointer(NULL)
-	{
-		assign(ptr);
-	}
-
-	LLSafeHandle(const LLSafeHandle<Type>& ptr) : 
-		mPointer(NULL)
-	{
-		assign(ptr.mPointer);
-	}
-
-	// support conversion up the type hierarchy.  See Item 45 in Effective C++, 3rd Ed.
-	template<typename Subclass>
-	LLSafeHandle(const LLSafeHandle<Subclass>& ptr) : 
-		mPointer(NULL)
-	{
-		assign(ptr.get());
-	}
-
-	~LLSafeHandle()								
-	{
-		unref();
-	}
-
-	const Type*	operator->() const				{ return nonNull(mPointer); }
-	Type*	operator->()						{ return nonNull(mPointer); }
-
-	Type*	get() const							{ return mPointer; }
-	// we disallow these operations as they expose our null objects to direct manipulation
-	// and bypass the reference counting semantics
-	//const Type&	operator*() const			{ return *nonNull(mPointer); }
-	//Type&	operator*()							{ return *nonNull(mPointer); }
-
-	operator BOOL()  const						{ return mPointer != NULL; }
-	operator bool()  const						{ return mPointer != NULL; }
-	bool operator!() const						{ return mPointer == NULL; }
-	bool isNull() const							{ return mPointer == NULL; }
-	bool notNull() const						{ return mPointer != NULL; }
-
-
-	operator Type*()       const				{ return mPointer; }
-	operator const Type*() const				{ return mPointer; }
-	bool operator !=(Type* ptr) const           { return (mPointer != ptr); 	}
-	bool operator ==(Type* ptr) const           { return (mPointer == ptr); 	}
-	bool operator ==(const LLSafeHandle<Type>& ptr) const           { return (mPointer == ptr.mPointer); 	}
-	bool operator < (const LLSafeHandle<Type>& ptr) const           { return (mPointer < ptr.mPointer); 	}
-	bool operator > (const LLSafeHandle<Type>& ptr) const           { return (mPointer > ptr.mPointer); 	}
-
-	LLSafeHandle<Type>& operator =(Type* ptr)                   
-	{ 
-		assign(ptr);
-		return *this; 
-	}
-
-	LLSafeHandle<Type>& operator =(const LLSafeHandle<Type>& ptr)  
-	{ 
-		assign(ptr.mPointer);
-		return *this; 
-	}
-
-	// support assignment up the type hierarchy. See Item 45 in Effective C++, 3rd Ed.
-	template<typename Subclass>
-	LLSafeHandle<Type>& operator =(const LLSafeHandle<Subclass>& ptr)  
-	{ 
-		assign(ptr.get());
-		return *this; 
-	}
+	U32 mTotalReservedSize ;
+	U32 mTotalAllocatedSize ;
 
 public:
-	typedef Type* (*NullFunc)();
-	static const NullFunc sNullFunc;
-
-protected:
-	void ref()                             
-	{ 
-		if (mPointer)
-		{
-			mPointer->ref();
-		}
-	}
-
-	void unref()
-	{
-		if (mPointer)
-		{
-			Type *tempp = mPointer;
-			mPointer = NULL;
-			tempp->unref();
-			if (mPointer != NULL)
-			{
-				llwarns << "Unreference did assignment to non-NULL because of destructor" << llendl;
-				unref();
-			}
-		}
-	}
-
-	void assign(Type* ptr)
-	{
-		if( mPointer != ptr )
-		{
-			unref(); 
-			mPointer = ptr; 
-			ref();
-		}
-	}
-
-	static Type* nonNull(Type* ptr)
-	{
-		return ptr == NULL ? sNullFunc() : ptr;
-	}
-
-protected:
-	Type*	mPointer;
-};
-
-// LLInitializedPointer is just a pointer with a default constructor that initializes it to NULL
-// NOT a smart pointer like LLPointer<>
-// Useful for example in std::map<int,LLInitializedPointer<LLFoo> >
-//  (std::map uses the default constructor for creating new entries)
-template <typename T> class LLInitializedPointer
-{
-public:
-	LLInitializedPointer() : mPointer(NULL) {}
-	~LLInitializedPointer() { delete mPointer; }
+#if __DEBUG_PRIVATE_MEM__
+	static char* allocate(LLPrivateMemoryPool* poolp, U32 size, const char* function, const int line) ;	
 	
-	const T* operator->() const { return mPointer; }
-	T* operator->() 			{ return mPointer; }
-	const T& operator*() const 	{ return *mPointer; }
-	T& operator*() 				{ return *mPointer; }
-	operator const T*() const	{ return mPointer; }
-	operator T*()				{ return mPointer; }
-	T* operator=(T* x)				{ return (mPointer = x); }
-	operator bool() const		{ return mPointer != NULL; }
-	bool operator!() const		{ return mPointer == NULL; }
-	bool operator==(T* rhs)		{ return mPointer == rhs; }
-	bool operator==(const LLInitializedPointer<T>* rhs) { return mPointer == rhs.mPointer; }
-
-protected:
-	T* mPointer;
-};	
-
-//----------------------------------------------------------------------------
-
-// LLSingleton implements the getInstance() method part of the Singleton
-// pattern. It can't make the derived class constructors protected, though, so
-// you have to do that yourself.
-//
-// There are two ways to use LLSingleton. The first way is to inherit from it
-// while using the typename that you'd like to be static as the template
-// parameter, like so:
-//
-//   class Foo: public LLSingleton<Foo>{};
-//
-//   Foo& instance = Foo::instance();
-//
-// The second way is to use the singleton class directly, without inheritance:
-//
-//   typedef LLSingleton<Foo> FooSingleton;
-//
-//   Foo& instance = FooSingleton::instance();
-//
-// In this case, the class being managed as a singleton needs to provide an
-// initSingleton() method since the LLSingleton virtual method won't be
-// available
-//
-// As currently written, it is not thread-safe.
-template <typename T>
-class LLSingleton
-{
-	static bool &needsInit()
-	{
-		static bool needs_init = true;
-		return needs_init;
-	}
-public:
-	static bool instanceExists()
-	{
-		return !needsInit();
-	}
-	virtual ~LLSingleton() {}
-#ifdef  LL_MSVC7
-// workaround for VC7 compiler bug
-// adapted from http://www.codeproject.com/KB/tips/VC2003MeyersSingletonBug.aspx
-// our version doesn't introduce a nested struct so that you can still declare LLSingleton<MyClass>
-// a friend and hide your constructor
-	static T* getInstance()
-    {
-        LLSingleton<T> singleton;
-        return singleton.vsHack();
-    }
-
-	T* vsHack()
+	typedef std::map<char*, std::string> mem_allocation_info_t ;
+	static mem_allocation_info_t sMemAllocationTracker;
 #else
-	static T* getInstance()
+	static char* allocate(LLPrivateMemoryPool* poolp, U32 size) ;	
 #endif
-	{
-		static T instance;
-		bool &needs_init = needsInit();
-		if (needs_init)
-		{
-			needs_init = false;
-			instance.initSingleton();
-		}
-		return &instance;
-	}
-
-	static T& instance()
-	{
-		return *getInstance();
-	}
-
-private:
-	virtual void initSingleton() {}
+	static void  freeMem(LLPrivateMemoryPool* poolp, void* addr) ;
 };
 
-//----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------
+#if __DEBUG_PRIVATE_MEM__
+#define ALLOCATE_MEM(poolp, size) LLPrivateMemoryPoolManager::allocate((poolp), (size), __FUNCTION__, __LINE__)
+#else
+#define ALLOCATE_MEM(poolp, size) LLPrivateMemoryPoolManager::allocate((poolp), (size))
+//#define ALLOCATE_MEM(poolp, size) new char[size]
+#endif
+#define FREE_MEM(poolp, addr) LLPrivateMemoryPoolManager::freeMem((poolp), (addr))
+//#define FREE_MEM(poolp, addr) delete[] addr;
+//-------------------------------------------------------------------------------------
 
-// Return the resident set size of the current process, in bytes.
-// Return value is zero if not known.
-LL_COMMON_API U64 getCurrentRSS();
+//
+//the below singleton is used to test the private memory pool.
+//
+#if 0
+class LL_COMMON_API LLPrivateMemoryPoolTester
+{
+private:
+	LLPrivateMemoryPoolTester() ;
+	~LLPrivateMemoryPoolTester() ;
+
+public:
+	static LLPrivateMemoryPoolTester* getInstance() ;
+	static void destroy() ;
+
+	void run(S32 type) ;	
+
+private:
+	void correctnessTest() ;
+	void performanceTest() ;
+	void fragmentationtest() ;
+
+	void test(U32 min_size, U32 max_size, U32 stride, U32 times, bool random_deletion, bool output_statistics) ;
+	void testAndTime(U32 size, U32 times) ;
+
+#if 0
+public:
+	void* operator new(size_t size)
+	{
+		return (void*)sPool->allocate(size) ;
+	}
+    void  operator delete(void* addr)
+	{
+		sPool->freeMem(addr) ;
+	}
+	void* operator new[](size_t size)
+	{
+		return (void*)sPool->allocate(size) ;
+	}
+    void  operator delete[](void* addr)
+	{
+		sPool->freeMem(addr) ;
+	}
+#endif
+
+private:
+	static LLPrivateMemoryPoolTester* sInstance;
+	static LLPrivateMemoryPool* sPool ;
+	static LLPrivateMemoryPool* sThreadedPool ;
+};
+#if 0
+//static
+void* LLPrivateMemoryPoolTester::operator new(size_t size)
+{
+	return (void*)sPool->allocate(size) ;
+}
+
+//static
+void  LLPrivateMemoryPoolTester::operator delete(void* addr)
+{
+	sPool->free(addr) ;
+}
+
+//static
+void* LLPrivateMemoryPoolTester::operator new[](size_t size)
+{
+	return (void*)sPool->allocate(size) ;
+}
+
+//static
+void  LLPrivateMemoryPoolTester::operator delete[](void* addr)
+{
+	sPool->free(addr) ;
+}
+#endif
+#endif
+
+//EVENTUALLY REMOVE THESE:
+#include "llpointer.h"
+#include "llrefcount.h"
+#include "llsingleton.h"
+#include "llsafehandle.h"
 
 #endif

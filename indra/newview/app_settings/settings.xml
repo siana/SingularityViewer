@@ -9,6 +9,18 @@
 		<string>settings_rlv.xml</string>
 	</array>
 
+  <key>SGTextFadeDistance</key>
+  <map>
+    <key>Comment</key>
+    <string>Distance after which HUD text starts to fade</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <integer>8.0</integer>
+  </map>
+
   <key>CCSAllowNameplateOverride</key>
   <map>
     <key>Comment</key>
@@ -39,7 +51,7 @@
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
-    <string>S32</string>
+    <string>U32</string>
     <key>Value</key>
     <integer>32</integer>
   </map>
@@ -50,9 +62,66 @@
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
-    <string>S32</string>
+    <string>U32</string>
     <key>Value</key>
     <integer>2</integer>
+  </map>
+
+  <key>TeleportHistoryMaxEntries</key>
+  <map>
+    <key>Comment</key>
+	<string>Maximum number of entries to allow in teleport history list.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>100</integer>
+  </map>
+  
+  <key>zmm_deffov</key>
+  <map>
+    <key>Comment</key>
+    <string>Default field of viewer for right click mouse zoom.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>1.0</real>
+  </map>
+  <key>zmm_mlfov</key>
+  <map>
+    <key>Comment</key>
+    <string>1=Normal, Under 1 Zoom Out, Over 1 Zoom in </string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>1</real>
+  </map>
+  <key>zmm_isinml</key>
+  <map>
+    <key>Comment</key>
+    <string>mouselook</string>
+    <key>Persist</key>
+    <integer>0</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>zmm_rightmousedown</key>
+  <map>
+    <key>Comment</key>
+    <string>insert rude comment here</string>
+    <key>Persist</key>
+    <integer>0</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
   </map>
 
   <key>AllowLargeSounds</key>
@@ -200,7 +269,7 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
-    <integer>0</integer>
+    <integer>1</integer>
   </map>
   <key>MediaFilterRect</key>
   <map>
@@ -424,7 +493,7 @@
   	<key>Type</key>
   	<string>String</string>
   	<key>Value</key>
-  	<string>secondlife</string>
+  	<string>Second Life</string>
   </map>
 
   <key>VivoxLicenseAccepted</key>
@@ -462,8 +531,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
-  </map>
-  <key>ResetFocusOnSelfClick</key>
+	</map>
+    <key>ResetFocusOnSelfClick</key>
 		<map>
 		<key>Comment</key>
 		<string>Setting this to TRUE resets your camera when you left-click your avatar</string>
@@ -474,7 +543,6 @@
 		<key>Value</key>
 		<integer>1</integer>
 		</map>
-
     <key>MoyFastMiniMap</key>
     <map>
       <key>Comment</key>
@@ -600,17 +668,6 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
-    </map>
-    <key>ShowSelectionBeam</key>
-    <map>
-      <key>Comment</key>
-      <string>Show selection particle beam when selecting or interacting with objects.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
     </map>
     <key>BroadcastViewerEffects</key>
     <map>
@@ -2634,6 +2691,17 @@
       <key>Value</key>
       <string/>
     </map>
+    <key>CacheNumberOfRegionsForObjects</key>
+    <map>
+      <key>Comment</key>
+      <string>Controls number of regions to be cached for objects.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>128</integer>
+    </map>
     <key>CacheSize</key>
     <map>
       <key>Comment</key>
@@ -2643,7 +2711,7 @@
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>500</integer>
+      <integer>512</integer>
     </map>
     <key>CacheValidateCounter</key>
     <map>
@@ -2766,6 +2834,18 @@
     <string>F32</string>
     <key>Value</key>
     <real>0.5</real>
+  </map>
+
+  <key>CameraMaxCoF</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum camera circle of confusion for DoF effect</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>10.0</real>
   </map>
 
   <key>CameraFNumber</key>
@@ -3735,10 +3815,21 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+  <key>CurlUseMultipleThreads</key>
+  <map>
+    <key>Comment</key>
+    <string>Use background threads for executing curl_multi_perform (requires restart)</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
     <key>Cursor3D</key>
     <map>
       <key>Comment</key>
-      <string>Tread Joystick values as absolute positions (not deltas).</string>
+      <string>Treat Joystick values as absolute positions (not deltas).</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -3812,10 +3903,32 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+   <key>DebugShowMemory</key>
+    <map>
+      <key>Comment</key>
+      <string>Show Total Allocated Memory</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>DebugShowPrivateMem</key>
+    <map>
+      <key>Comment</key>
+      <string>Show Private Mem Info</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>DebugShowRenderInfo</key>
     <map>
       <key>Comment</key>
-      <string>Show depth buffer contents</string>
+      <string>Show stats about current scene</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -4773,17 +4886,6 @@
     <map>
       <key>Comment</key>
       <string>Allow first person perspective and mouse control of camera</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
-    <key>EnableRippleWater</key>
-    <map>
-      <key>Comment</key>
-      <string>Whether to use ripple water shader or not</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -6618,17 +6720,6 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>FullScreen</key>
-    <map>
-      <key>Comment</key>
-      <string>Run SL in fullscreen mode</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
     <key>FullScreenAspectRatio</key>
     <map>
       <key>Comment</key>
@@ -6814,6 +6905,17 @@
     <map>
       <key>Comment</key>
       <string>Double resolution of snapshot from current window resolution</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>HideSelectedObjects</key>
+    <map>
+      <key>Comment</key>
+      <string>Hide Selected Objects</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -7143,7 +7245,40 @@
       <string>F32</string>
       <key>Value</key>
       <real>0.25</real>
-    </map>
+      </map>
+	<key>Jpeg2000AdvancedCompression</key>
+	  <map>
+      <key>Comment</key>
+        <string>Use advanced Jpeg2000 compression options (precincts, blocks, ordering, markers)</string>
+      <key>Persist</key>
+        <integer>1</integer>
+      <key>Type</key>
+        <string>Boolean</string>
+      <key>Value</key>
+        <integer>0</integer>
+	  </map>
+	<key>Jpeg2000PrecinctsSize</key>
+	  <map>
+      <key>Comment</key>
+        <string>Size of image precincts. Assumed square and same for all levels. Must be power of 2.</string>
+      <key>Persist</key>
+        <integer>1</integer>
+      <key>Type</key>
+        <string>S32</string>
+      <key>Value</key>
+        <integer>256</integer>
+	  </map>
+	<key>Jpeg2000BlocksSize</key>
+	  <map>
+      <key>Comment</key>
+        <string>Size of encoding blocks. Assumed square and same for all levels. Must be power of 2. Max 64, Min 4.</string>
+      <key>Persist</key>
+        <integer>1</integer>
+      <key>Type</key>
+        <string>S32</string>
+      <key>Value</key>
+        <integer>64</integer>
+	  </map>
     <key>KeepAspectForSnapshot</key>
     <map>
       <key>Comment</key>
@@ -7523,10 +7658,21 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>LogMessages</key>
+  <key>LogMessages</key>
     <map>
       <key>Comment</key>
       <string>Log network traffic</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>LogTextureNetworkTraffic</key>
+    <map>
+      <key>Comment</key>
+      <string>Log network traffic for textures</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -7743,6 +7889,17 @@
       <key>Value</key>
       <real>48.0</real>
     </map>
+    <key>MaxHeapSize</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum heap size (GB)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1.6</real>
+    </map>
     <key>MaxSelectDistance</key>
     <map>
       <key>Comment</key>
@@ -7752,7 +7909,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>64.0</real>
+      <real>128.0</real>
     </map>
     <key>MeanCollisionBump</key>
     <map>
@@ -7842,6 +7999,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+  <key>MemoryFailurePreventionEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>If set, the viewer will quit to avoid crash when memory failure happens</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
     <key>MemoryLogFrequency</key>
     <map>
       <key>Comment</key>
@@ -7852,6 +8020,28 @@
       <string>F32</string>
       <key>Value</key>
       <real>600.0</real>
+    </map>
+    <key>MemoryPrivatePoolEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable the private memory pool management</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>MemoryPrivatePoolSize</key>
+    <map>
+      <key>Comment</key>
+      <string>Size of the private memory pool in MB (min. value is 256)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>512</integer>
     </map>
     <key>MenuAccessKeyTime</key>
     <map>
@@ -7886,6 +8076,62 @@
       <key>Value</key>
       <integer>410</integer>
     </map>
+ <key>MeshEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Expose UI for mesh functionality (may require restart to take effect).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <real>1</real>
+  </map>
+  <key>MeshImportUseSLM</key>
+  <map>
+    <key>Comment</key>
+    <string>Use cached copy of last upload for a dae if available instead of loading dae file from scratch.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <real>0</real>
+  </map>
+  <key>MeshUploadLogXML</key>
+  <map>
+    <key>Comment</key>
+    <string>Verbose XML logging on mesh upload</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <real>0</real>
+  </map>
+  <key>MeshUploadTimeOut</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum time in seconds for llcurl to execute a mesh uploading request</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <real>600</real>
+  </map>
+  <key>MeshUploadFakeErrors</key>
+  <map>
+    <key>Comment</key>
+    <string>Force upload errors (for testing)</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <real>0</real>
+  </map>
+
     <key>MigrateCacheDirectory</key>
     <map>
       <key>Comment</key>
@@ -8330,6 +8576,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>ObjectCacheEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable the object cache.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>OpenDebugStatAdvanced</key>
     <map>
       <key>Comment</key>
@@ -8681,6 +8938,176 @@
       <key>Value</key>
       <integer>13</integer>
     </map>
+
+  <key>PreviewAmbientColor</key>
+  <map>
+    <key>Comment</key>
+    <string>Ambient color of preview render.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>0.0</real>
+      <real>0.0</real>
+      <real>0.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+
+  <key>PreviewDiffuse0</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 0.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewDiffuse1</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 1.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>0.25</real>
+      <real>0.25</real>
+      <real>0.25</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewDiffuse2</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 2.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewSpecular0</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 0.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewSpecular1</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 1.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewSpecular2</key>
+  <map>
+    <key>Comment</key>
+    <string>Diffise color of preview light 2.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Color4</string>
+    <key>Value</key>
+    <array>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+
+  <key>PreviewDirection0</key>
+  <map>
+    <key>Comment</key>
+    <string>Direction of light 0 for preview render.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Vector3</string>
+    <key>Value</key>
+    <array>
+      <real>-0.75</real>
+      <real>1</real>
+      <real>1.0</real>
+    </array>
+  </map>
+
+  <key>PreviewDirection1</key>
+  <map>
+    <key>Comment</key>
+    <string>Direction of light 1 for preview render.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Vector3</string>
+    <key>Value</key>
+    <array>
+      <real>0.5</real>
+      <real>-0.6</real>
+      <real>0.4</real>
+    </array>
+  </map>
+  
+  <key>PreviewDirection2</key>
+  <map>
+    <key>Comment</key>
+    <string>Direction of light 2 for preview render.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Vector3</string>
+    <key>Value</key>
+    <array>
+      <real>0.5</real>
+      <real>-0.8</real>
+      <real>0.3</real>
+    </array>
+  </map>
+
     <key>PreviewAnimRect</key>
     <map>
       <key>Comment</key>
@@ -9033,6 +9460,74 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+
+  <key>OctreeMaxNodeCapacity</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum number of elements to store in a single octree node</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>128</integer>
+  </map>
+
+  <key>OctreeStaticObjectSizeFactor</key>
+  <map>
+    <key>Comment</key>
+    <string>Multiplier on static object size for determining octree node size </string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>4</integer>
+  </map>
+
+  <key>OctreeAlphaDistanceFactor</key>
+  <map>
+    <key>Comment</key>
+    <string>Multiplier on alpha object distance for determining octree node size </string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Vector3</string>
+    <key>Value</key>
+    <array>
+      <real>0.1</real>
+      <real>0.0</real>
+      <real>0.0</real>
+    </array>
+  </map>
+
+  <key>OctreeAttachmentSizeFactor</key>
+  <map>
+    <key>Comment</key>
+    <string>Multiplier on attachment size for determining octree node size </string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>4</integer>
+  </map>
+
+  <key>OctreeDistanceFactor</key>
+  <map>
+    <key>Comment</key>
+    <string>Multiplier on distance for determining octree node size </string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Vector3</string>
+    <key>Value</key>
+    <array>
+      <real>0.01</real>
+      <real>0.0</real>
+      <real>0.0</real>
+    </array>
+  </map>
     <key>RenderAnisotropic</key>
     <map>
       <key>Comment</key>
@@ -9119,7 +9614,7 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <integer>1.0</integer>
+      <real>1.0</real>
     </map>
     <key>RenderAvatarInvisible</key>
     <map>
@@ -9352,17 +9847,28 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>RenderDebugPipeline</key>
+  <key>RenderDebugPipeline</key>
     <map>
       <key>Comment</key>
       <string>Enable strict pipeline debugging.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
-      <string>Boolean</string>
+      <string>Boolean</string> 
       <key>Value</key>
       <integer>0</integer>
     </map>
+  <key>RenderMaxTextureIndex</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum texture index to use for indexed texture rendering.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>16</integer>
+  </map>
     <key>RenderDebugTextureBind</key>
     <map>
       <key>Comment</key>
@@ -9385,6 +9891,7 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+
     <key>RenderAnimateRes</key>
     <map>
       <key>Comment</key>
@@ -9396,7 +9903,20 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>RenderAnimateTrees</key>
+
+  <key>RenderBakeSunlight</key>
+  <map>
+    <key>Comment</key>
+    <string>Bake sunlight into vertex buffers for static objects.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  
+    <!--<key>RenderAnimateTrees</key>
     <map>
       <key>Comment</key>
       <string>Use GL matrix ops to animate tree branches.</string>
@@ -9406,151 +9926,19 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
-    </map>
-
-  <key>RenderGIRange</key>
+    </map>-->
+  <key>RenderNoAlpha</key>
   <map>
     <key>Comment</key>
-    <string>Distance to cut off GI effect.</string>
+    <string>Disable rendering of alpha objects (render all alpha objects as alpha masks).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
-    <string>F32</string>
+    <string>Boolean</string>
     <key>Value</key>
-    <real>96</real>
+    <integer>0</integer>
   </map>
 
-  <key>RenderGILuminance</key>
-  <map>
-    <key>Comment</key>
-    <string>Luminance factor of global illumination contribution.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.075</real>
-  </map>
-  
-  <key>RenderGIBrightness</key>
-  <map>
-    <key>Comment</key>
-    <string>Brightness factor of global illumination contribution.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.3</real>
-  </map>
-
-  <key>RenderGINoise</key>
-  <map>
-    <key>Comment</key>
-    <string>Noise of position sampling for GI photon mapping.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.7</real>
-  </map>
-
-  <key>RenderGIAttenuation</key>
-  <map>
-    <key>Comment</key>
-    <string>Distance attenuation factor for indirect lighting.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.1</real>
-  </map>
-
-  <key>RenderGIBlurBrightness</key>
-  <map>
-    <key>Comment</key>
-    <string>Brightness factor of global illumination blur effect.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>1.025</real>
-  </map>
-
-  <key>RenderGIBlurEdgeWeight</key>
-  <map>
-    <key>Comment</key>
-    <string>Edge weight for GI soften filter (sharpness).</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.8</real>
-  </map>
-
-  <key>RenderGIBlurIncrement</key>
-  <map>
-    <key>Comment</key>
-    <string>Increment of scale for each pass of global illumination blur effect.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.8</real>
-  </map>
-
-  <key>RenderLuminanceScale</key>
-  <map>
-    <key>Comment</key>
-    <string>Luminance value scalar for darkening effect.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>1.0</real>
-  </map>
-
-  <key>RenderSunLuminanceScale</key>
-  <map>
-    <key>Comment</key>
-    <string>Sun Luminance value scalar for darkening effect.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>1.0</real>
-  </map>
-
-  <key>RenderSunLuminanceOffset</key>
-  <map>
-    <key>Comment</key>
-    <string>Sun Luminance value offset for darkening effect.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0</real>
-  </map>
-
-  <key>RenderLuminanceDetail</key>
-  <map>
-    <key>Comment</key>
-    <string>Mipmap level to use for luminance</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>16.0</real>
-   </map>
 
   <key>RenderEdgeDepthCutoff</key>
   <map>
@@ -9665,7 +10053,31 @@
     <key>Value</key>
     <real>0</real>
   </map>
-  
+
+  <key>RenderDepthOfField</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether to use depth of field effect when lighting and shadows are enabled</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+
+  <key>CameraDoFResScale</key>
+  <map>
+    <key>Comment</key>
+    <string>Amount to scale down depth of field resolution.  Valid range is 0.25 (quarter res) to 1.0 (full res)</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>0.7</real>
+  </map>
+
   <key>RenderSpotLightsInNondeferred</key>
   <map>
     <key>Comment</key>
@@ -9687,7 +10099,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>0.0</real>
+    <real>-0.001</real>
   </map>
   <key>RenderSpotShadowOffset</key>
   <map>
@@ -9849,18 +10261,6 @@
       <integer>0</integer>
     </map>
 
-  <key>RenderDeferredGI</key>
-  <map>
-    <key>Comment</key>
-    <string>Enable GI in deferred renderer.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>Boolean</string>
-    <key>Value</key>
-    <integer>0</integer>
-  </map>
-
   <key>RenderDeferredSun</key>
   <map>
     <key>Comment</key>
@@ -9901,30 +10301,6 @@
   <map>
     <key>Comment</key>
     <string>Execute shadow softening shader in deferred renderer.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>Boolean</string>
-    <key>Value</key>
-    <integer>1</integer>
-  </map>
-
-  <key>RenderDeferredLocalLights</key>
-  <map>
-    <key>Comment</key>
-    <string>Execute local lighting shader in deferred renderer.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>Boolean</string>
-    <key>Value</key>
-    <integer>1</integer>
-  </map>
-
-  <key>RenderDeferredFullscreenLights</key>
-  <map>
-    <key>Comment</key>
-    <string>Execute local lighting shader in deferred renderer.</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -9975,7 +10351,7 @@
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>1.1</real>
+    <real>0.8</real>
   </map>
 
   <key>RenderShadowGaussian</key>
@@ -10014,7 +10390,7 @@
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <real>5</real>
+      <real>4</real>
     </map>
   <key>RenderShadowBlurDistFactor</key>
   <map>
@@ -10026,92 +10402,6 @@
     <string>F32</string>
     <key>Value</key>
     <real>0.1</real>
-  </map>
-
-  <key>RenderGIAmbiance</key>
-  <map>
-    <key>Comment</key>
-    <string>Ambiance factor of global illumination contribution.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.5</real>
-  </map>
-
-  <key>RenderGIMinRenderSize</key>
-  <map>
-    <key>Comment</key>
-    <string>Minimum size of objects to put into GI source map.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.5</real>
-  </map>
-
-  <key>RenderGIBlurColorCurve</key>
-  <map>
-    <key>Comment</key>
-    <string>Color curve for GI softening kernel</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>Vector3</string>
-    <key>Value</key>
-    <array>
-      <real>1.0</real>
-      <real>0.6</real>
-      <real>0.02</real>
-    </array>
-  </map>
-
-  <key>RenderGIBlurPasses</key>
-  <map>
-    <key>Comment</key>
-    <string>Scale of GI softening kernel.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>U32</string>
-    <key>Value</key>
-    <real>4</real>
-  </map>
-
-  <key>RenderGIBlurSize</key>
-  <map>
-    <key>Comment</key>
-    <string>Scale of GI softening kernel.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>4.0</real>
-  </map>
-  <key>RenderGIBlurSamples</key>
-  <map>
-    <key>Comment</key>
-    <string>Number of samples to take for each pass of GI blur (value range 1-16).  Actual number of samples is value * 2 - 1.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>U32</string>
-    <key>Value</key>
-    <real>16</real>
-  </map>
-  <key>RenderGIBlurDistFactor</key>
-  <map>
-    <key>Comment</key>
-    <string>Distance scaler for GI blur.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>F32</string>
-    <key>Value</key>
-    <real>0.0</real>
   </map>
 
     <key>RenderDynamicLOD</key>
@@ -10180,27 +10470,27 @@
       <key>Value</key>
       <integer>20</integer>
     </map>
-    <key>RenderFastAlpha</key>
+    <key>RenderAutoMaskAlphaNonDeferred</key>
     <map>
       <key>Comment</key>
-      <string>Use alpha masks where appropriate.</string>
+      <string>Use alpha masks where appropriate, in the non-deferred (non-'Lighting and Shadows') graphics mode</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
-    <key>RenderFastUI</key>
+    <key>RenderAutoMaskAlphaDeferred</key>
     <map>
       <key>Comment</key>
-      <string>[NOT USED]</string>
+      <string>Use alpha masks where appropriate, in the deferred ('Lighting and Shadows') graphics mode</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>RenderFlexTimeFactor</key>
     <map>
@@ -10245,6 +10535,17 @@
       <string>Boolean</string>
       <key>Value</key>
       <real>1.0</real>
+    </map>
+    <key>RenderGLCoreProfile</key>
+    <map>
+      <key>Comment</key>
+      <string>Don't use a compatibility profile OpenGL context.  Requires restart.  Basic shaders MUST be enabled.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>RenderGlow</key>
     <map>
@@ -10483,7 +10784,7 @@
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>8192</integer>
+      <integer>65536</integer>
     </map>
     <key>RenderMaxVBOSize</key>
     <map>
@@ -10871,12 +11172,34 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>RenderUseVAO</key>
+    <map>
+      <key>Comment</key>
+      <string>Use GL Vertex Array Objects</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>RenderVBOMappingDisable</key>
     <map>
       <key>Comment</key>
       <string>Disable VBO glMapBufferARB</string>
       <key>Persist</key>
       <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+  <key>RenderUseStreamVBO</key>
+  <map>
+    <key>Comment</key>
+    <string>Use VBO's for stream buffers</string>
+    <key>Persist</key>
+    <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
@@ -10937,6 +11260,17 @@
       <key>Value</key>
       <integer>512</integer>
     </map>
+    <key>RenderParcelSelection</key>
+    <map>
+      <key>Comment</key>
+      <string>Display selected parcel outline</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>RotateRight</key>
     <map>
       <key>Comment</key>
@@ -10959,6 +11293,62 @@
       <key>Value</key>
       <real>1.0</real>
     </map>
+  <key>MeshTriangleBudget</key>
+  <map>
+    <key>Comment</key>
+    <string>Target visible triangle budget to use when estimating streaming cost.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>250000</real>
+  </map>
+  <key>MeshMetaDataDiscount</key>
+  <map>
+    <key>Comment</key>
+    <string>Number of bytes to deduct for metadata when determining streaming cost.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>384</real>
+  </map>
+  <key>MeshMinimumByteSize</key>
+  <map>
+    <key>Comment</key>
+    <string>Minimum number of bytes per LoD block when determining streaming cost.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>16</real>
+  </map>
+  <key>MeshBytesPerTriangle</key>
+  <map>
+    <key>Comment</key>
+    <string>Approximation of bytes per triangle to use for determining mesh streaming cost.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <real>16</real>
+  </map>
+
+  <key>MeshMaxConcurrentRequests</key>
+  <map>
+    <key>Comment</key>
+    <string>Number of threads to use for loading meshes.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>32</integer>
+  </map>
     <key>RunBtnState</key>
     <map>
       <key>Comment</key>
@@ -11921,6 +12311,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>ShowSelectionBeam</key>
+    <map>
+      <key>Comment</key>
+      <string>Show selection particle beam when selecting or interacting with objects.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>ShowStartLocation</key>
     <map>
       <key>Comment</key>
@@ -12439,6 +12840,50 @@
       <key>Value</key>
       <real>20.0</real>
     </map>
+    <key>TextureDecodeDisabled</key>
+    <map>
+      <key>Comment</key>
+      <string>If TRUE, do not fetch and decode any textures</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>TextureDisable</key>
+    <map>
+      <key>Comment</key>
+      <string>If TRUE, do not load textures for in-world content</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>TextureDiscardLevel</key>
+    <map>
+      <key>Comment</key>
+      <string>Specify texture resolution (0 = highest, 5 = lowest)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>TextureLoadFullRes</key>
+    <map>
+      <key>Comment</key>
+      <string>If TRUE, always load textures at full resolution (discard = 0)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>TextureMemory</key>
     <map>
       <key>Comment</key>
@@ -12651,721 +13096,6 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>UIImgBtnCloseActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>47a8c844-cd2a-4b1a-be01-df8b1612fe5d</string>
-    </map>
-    <key>UIImgBtnCloseInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>779e4fa3-9b13-f74a-fba9-3886fe9c86ba</string>
-    </map>
-    <key>UIImgBtnClosePressedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e5821134-23c0-4bd0-af06-7fa95b9fb01a</string>
-    </map>
-    <key>UIImgBtnForwardInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>54197a61-f5d1-4c29-95d2-c071d08849cb</string>
-    </map>
-    <key>UIImgBtnForwardOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>a0eb4021-1b20-4a53-892d-8faa9265a6f5</string>
-    </map>
-    <key>UIImgBtnJumpLeftInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>9cad3e6d-2d6d-107d-f8ab-5ba272b5bfe1</string>
-    </map>
-    <key>UIImgBtnJumpLeftOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>3c18c87e-5f50-14e2-e744-f44734aa365f</string>
-    </map>
-    <key>UIImgBtnJumpRightInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7dabc040-ec13-2309-ddf7-4f161f6de2f4</string>
-    </map>
-    <key>UIImgBtnJumpRightOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>ff9a71eb-7414-4cf8-866e-a701deb7c3cf</string>
-    </map>
-    <key>UIImgBtnLeftInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>95463c78-aaa6-464d-892d-3a805b6bb7bf</string>
-    </map>
-    <key>UIImgBtnLeftOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>13a93910-6b44-45eb-ad3a-4d1324c59bac</string>
-    </map>
-    <key>UIImgBtnMinimizeActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>34c9398d-bb78-4643-9633-46a2fa3e9637</string>
-    </map>
-    <key>UIImgBtnMinimizeInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>6e72abba-1378-437f-bf7a-f0c15f3e99a3</string>
-    </map>
-    <key>UIImgBtnMinimizePressedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>39801651-26cb-4926-af57-7af9352c273c</string>
-    </map>
-    <key>UIImgBtnMoveDownInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b92a70b9-c841-4c94-b4b3-cee9eb460d48</string>
-    </map>
-    <key>UIImgBtnMoveDownOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b5abc9fa-9e62-4e03-bc33-82c4c1b6b689</string>
-    </map>
-    <key>UIImgBtnMoveUpInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>49b4b357-e430-4b56-b9e0-05b8759c3c82</string>
-    </map>
-    <key>UIImgBtnMoveUpOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>f887146d-829f-4e39-9211-cf872b78f97c</string>
-    </map>
-    <key>UIImgBtnPanDownInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e5821134-23c0-4bd0-af06-7fa95b9fb01a</string>
-    </map>
-    <key>UIImgBtnPanDownOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>47a8c844-cd2a-4b1a-be01-df8b1612fe5d</string>
-    </map>
-    <key>UIImgBtnPanLeftInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e5821134-23c0-4bd0-af06-7fa95b9fb01a</string>
-    </map>
-    <key>UIImgBtnPanLeftOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>47a8c844-cd2a-4b1a-be01-df8b1612fe5d</string>
-    </map>
-    <key>UIImgBtnPanRightInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e5821134-23c0-4bd0-af06-7fa95b9fb01a</string>
-    </map>
-    <key>UIImgBtnPanRightOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>47a8c844-cd2a-4b1a-be01-df8b1612fe5d</string>
-    </map>
-    <key>UIImgBtnPanUpInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e5821134-23c0-4bd0-af06-7fa95b9fb01a</string>
-    </map>
-    <key>UIImgBtnPanUpOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>47a8c844-cd2a-4b1a-be01-df8b1612fe5d</string>
-    </map>
-    <key>UIImgBtnRestoreActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>111b39de-8928-4690-b7b2-e17d5c960277</string>
-    </map>
-    <key>UIImgBtnRestoreInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>0eafa471-70af-4882-b8c1-40a310929744</string>
-    </map>
-    <key>UIImgBtnRestorePressedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>90a0ed5c-2e7b-4845-9958-a64a1b30f312</string>
-    </map>
-    <key>UIImgBtnRightInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>5e616d0d-4335-476f-9977-560bccd009da</string>
-    </map>
-    <key>UIImgBtnRightOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>5a44fd04-f52b-4c30-8b00-4a31e27614bd</string>
-    </map>
-    <key>UIImgBtnScrollDownInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>d2421bab-2eaf-4863-b8f6-5e4c52519247</string>
-    </map>
-    <key>UIImgBtnScrollDownOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b4ecdecf-5c8d-44e7-b882-17a77e88ed55</string>
-    </map>
-    <key>UIImgBtnScrollLeftInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>ea137a32-6718-4d05-9c22-7d570d27b2cd</string>
-    </map>
-    <key>UIImgBtnScrollLeftOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>43773e8d-49aa-48e0-80f3-a04715f4677a</string>
-    </map>
-    <key>UIImgBtnScrollRightInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b749de64-e903-4c3c-ac0b-25fb6fa39cb5</string>
-    </map>
-    <key>UIImgBtnScrollRightOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>3d700d19-e708-465d-87f2-46c8c0ee7938</string>
-    </map>
-    <key>UIImgBtnScrollUpInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>a93abdf3-27b5-4e22-a8fa-c48216cd2e3a</string>
-    </map>
-    <key>UIImgBtnScrollUpOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>dad084d7-9a46-452a-b0ff-4b9f1cefdde9</string>
-    </map>
-    <key>UIImgBtnSlideLeftInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>724996f5-b956-46f6-9844-4fcfce1d5e83</string>
-    </map>
-    <key>UIImgBtnSlideLeftOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>82476321-0374-4c26-9567-521535ab4cd7</string>
-    </map>
-    <key>UIImgBtnSlideRightInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7eeb57d2-3f37-454d-a729-8b217b8be443</string>
-    </map>
-    <key>UIImgBtnSlideRightOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>1fbe4e60-0607-44d1-a50a-032eff56ae75</string>
-    </map>
-    <key>UIImgBtnSpinDownInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>a985ac71-052f-48e6-9c33-d931c813ac92</string>
-    </map>
-    <key>UIImgBtnSpinDownOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b6d240dd-5602-426f-b606-bbb49a30726d</string>
-    </map>
-    <key>UIImgBtnSpinUpInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c8450082-96a0-4319-8090-d3ff900b4954</string>
-    </map>
-    <key>UIImgBtnSpinUpOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>56576e6e-6710-4e66-89f9-471b59122794</string>
-    </map>
-    <key>UIImgBtnTabBottomInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c001d8fd-a869-4b6f-86a1-fdcb106df9c7</string>
-    </map>
-    <key>UIImgBtnTabBottomOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>bf0a8779-689b-48c3-bb9a-6af546366ef4</string>
-    </map>
-    <key>UIImgBtnTabBottomPartialInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>eb0b0904-8c91-4f24-b500-1180b91140de</string>
-    </map>
-    <key>UIImgBtnTabBottomPartialOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>8dca716c-b29c-403a-9886-91c028357d6e</string>
-    </map>
-    <key>UIImgBtnTabTopInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>16d032e8-817b-4368-8a4e-b7b947ae3889</string>
-    </map>
-    <key>UIImgBtnTabTopOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>1ed83f57-41cf-4052-a3b4-2e8bb78d8191</string>
-    </map>
-    <key>UIImgBtnTabTopPartialInUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7c6c6c26-0e25-4438-89bd-30d8b8e9d704</string>
-    </map>
-    <key>UIImgBtnTabTopPartialOutUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>932ad585-0e45-4a57-aa23-4cf81beeb7b0</string>
-    </map>
-    <key>UIImgBtnTearOffActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>74e1a96f-4833-a24d-a1bb-1bce1468b0e7</string>
-    </map>
-    <key>UIImgBtnTearOffInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>74e1a96f-4833-a24d-a1bb-1bce1468b0e7</string>
-    </map>
-    <key>UIImgBtnTearOffPressedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>d2524c13-4ba6-af7c-e305-8ac6cc18d86a</string>
-    </map>
-    <key>UIImgCheckboxActiveSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>cf4a2ed7-1533-4686-9dde-df9a37ddca55</string>
-    </map>
-    <key>UIImgCheckboxActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>05bb64ee-96fd-4243-b74e-f40a41bc53ba</string>
-    </map>
-    <key>UIImgCheckboxInactiveSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c817c642-9abd-4236-9287-ae0513fe7d2b</string>
-    </map>
-    <key>UIImgCheckboxInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7d94cb59-32a2-49bf-a516-9e5a2045f9d9</string>
-    </map>
-    <key>UIImgCreateSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>0098b015-3daf-4cfe-a72f-915369ea97c2</string>
-    </map>
-    <key>UIImgCreateUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7a0b1bdb-b5d9-4df5-bac2-ba230da93b5b</string>
-    </map>
-    <key>UIImgCrosshairsUUID</key>
-    <map>
-      <key>Comment</key>
-      <string>Image to use for crosshair display (UUID texture reference)</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>6e1a3980-bf2d-4274-8970-91e60d85fb52</string>
-    </map>
     <key>UIImgDefaultEyesUUID</key>
     <map>
       <key>Comment</key>
@@ -13476,28 +13206,6 @@
       <key>Value</key>
       <string>5748decc-f629-461c-9a36-a35a221fe21f</string>
     </map>
-    <key>UIImgDefaultAlphaUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>5748decc-f629-461c-9a36-a35a221fe21f</string>
-    </map>
-    <key>UIImgDefaultAlphaUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>5748decc-f629-461c-9a36-a35a221fe21f</string>
-    </map>
     <key>UIImgDefaultUnderwearUUID</key>
     <map>
       <key>Comment</key>
@@ -13508,204 +13216,6 @@
       <string>String</string>
       <key>Value</key>
       <string>5748decc-f629-461c-9a36-a35a221fe21f</string>
-    </map>
-    <key>UIImgDirectionArrowUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>586383e8-4d9b-4fba-9196-2b5938e79c2c</string>
-    </map>
-    <key>UIImgFaceSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>b4870163-6208-42a9-9801-93133bf9a6cd</string>
-    </map>
-    <key>UIImgFaceUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>ce15fd63-b0b6-463c-a37d-ea6393208b3e</string>
-    </map>
-    <key>UIImgFocusSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>ab6a730e-ddfd-4982-9a32-c6de3de6d31d</string>
-    </map>
-    <key>UIImgFocusUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>57bc39d1-288c-4519-aea6-6d1786a5c274</string>
-    </map>
-    <key>UIImgGrabSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c1e21504-f136-451d-b8e9-929037812f1d</string>
-    </map>
-    <key>UIImgGrabUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c63f124c-6340-4fbf-b59e-0869a44adb64</string>
-    </map>
-    <key>UIImgMoveSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>46f17c7b-8381-48c3-b628-6a406e060dd6</string>
-    </map>
-    <key>UIImgMoveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>2fa5dc06-bcdd-4e09-a426-f9f262d4fa65</string>
-    </map>
-    <key>UIImgRadioActiveSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>52f09e07-5816-4052-953c-94c6c10479b7</string>
-    </map>
-    <key>UIImgRadioActiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>7a1ba9b8-1047-4d1e-9cfc-bc478c80b63f</string>
-    </map>
-    <key>UIImgRadioInactiveSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>1975db39-aa29-4251-aea0-409ac09d414d</string>
-    </map>
-    <key>UIImgRadioInactiveUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>90688481-67ff-4af0-be69-4aa084bcad1e</string>
-    </map>
-    <key>UIImgResizeBottomRightUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>e3690e25-9690-4f6c-a745-e7dcd885285a</string>
-    </map>
-    <key>UIImgRotateSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>cdfb7fde-0d13-418a-9d89-2bd91019fc95</string>
-    </map>
-    <key>UIImgRotateUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>c34b1eaa-aae3-4351-b082-e26c0b636779</string>
-    </map>
-    <key>UIImgScaleSelectedUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>55aa57ef-508a-47f7-8867-85d21c5a810d</string>
-    </map>
-    <key>UIImgScaleUUID</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string>88a90fef-b448-4883-9344-ecf378a60433</string>
     </map>
     <key>UIImgWhiteUUID</key>
     <map>
@@ -13958,8 +13468,6 @@
       <key>Type</key>
       <string>LLSD</string>
       <key>Value</key>
-      <map>
-      </map>
     </map>
     <key>VFSOldSize</key>
     <map>
@@ -13983,50 +13491,6 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>VectorizeEnable</key>
-    <map>
-      <key>Comment</key>
-      <string>Enable general vector operations and data alignment.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
-    <key>VectorizePerfTest</key>
-    <map>
-      <key>Comment</key>
-      <string>Test SSE/vectorization performance and choose fastest version.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
-    <key>VectorizeProcessor</key>
-    <map>
-      <key>Comment</key>
-      <string>0=Compiler Default, 1=SSE, 2=SSE2, autodetected</string>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>U32</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>VectorizeSkin</key>
-    <map>
-      <key>Comment</key>
-      <string>Enable vector operations for avatar skinning.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>VelocityInterpolate</key>
     <map>
       <key>Comment</key>
@@ -14035,6 +13499,28 @@
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>InterpolationTime</key>
+    <map>
+      <key>Comment</key>
+      <string>How long to extrapolate object motion after last packet received</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <integer>3</integer>
+    </map>
+    <key>InterpolationPhaseOut</key>
+    <map>
+      <key>Comment</key>
+      <string>Seconds to phase out interpolated motion</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
@@ -14687,6 +14173,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>FullScreen</key>
+    <map>
+      <key>Comment</key>
+      <string>run a fullscreen session</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>WindowHeight</key>
     <map>
       <key>Comment</key>
@@ -15069,6 +14566,28 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>LastGrass</key>
+    <map>
+      <key>Comment</key>
+      <string>The last grass selected in the create dialog</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>Random</string>
+    </map>
+    <key>LastTree</key>
+    <map>
+      <key>Comment</key>
+      <string>The last tree selected in the create dialog</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>Random</string>
     </map>
   </map>
 </llsd>

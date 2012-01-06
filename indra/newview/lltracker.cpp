@@ -56,12 +56,15 @@
 #include "llfloaterworldmap.h"
 #include "llhudtext.h"
 #include "llhudview.h"
+#include "llinventorydefines.h"
 #include "llinventorymodel.h"
 #include "lllandmarklist.h"
+#include "llprogressview.h"
 #include "llsky.h"
 #include "llui.h"
 #include "llviewercamera.h"
 #include "llviewerinventory.h"
+#include "llviewerwindow.h"
 #include "llworld.h"
 #include "llworldmapview.h"
 #include "llviewercontrol.h"
@@ -118,6 +121,7 @@ void LLTracker::stopTracking(void* userdata)
 // static virtual
 void LLTracker::drawHUDArrow()
 {
+	if (gViewerWindow->getProgressView()->getVisible()) return;
 	/* tracking autopilot destination has been disabled 
 	   -- 2004.01.09, Leviathan
 	// Draw dot for autopilot target
@@ -312,6 +316,7 @@ void LLTracker::trackAvatar( const LLUUID& avatar_id, const std::string& name )
 	LLAvatarTracker::instance().track( avatar_id, name );
 	instance()->mTrackingStatus = TRACKING_AVATAR;
 	instance()->mLabel = name;
+	instance()->mToolTip = "";
 }
 
 
@@ -327,6 +332,7 @@ void LLTracker::trackLandmark( const LLUUID& asset_id, const LLUUID& item_id, co
 	instance()->cacheLandmarkPosition();
 	instance()->mTrackingStatus = TRACKING_LANDMARK;
 	instance()->mLabel = name;
+	instance()->mToolTip = "";
 }
 
 
@@ -429,10 +435,10 @@ F32 pulse_func(F32 t, F32 z)
 		return 0.f;
 	}
 	
-	t *= 3.14159f;
+	t *= F_PI;
 	z -= t*64.f - 256.f;
 	
-	F32 a = cosf(z*3.14159/512.f)*10.0f;
+	F32 a = cosf(z*F_PI/512.f)*10.0f;
 	a = llmax(a, 9.9f);
 	a -= 9.9f;
 	a *= 10.f;
@@ -446,7 +452,7 @@ void draw_shockwave(F32 center_z, F32 t, S32 steps, LLColor4 color)
 		return;
 	}
 	
-	t *= 0.6284f/3.14159f;
+	t *= 0.6284f/F_PI;
 	
 	t -= (F32) (S32) t;	
 
@@ -519,9 +525,10 @@ void LLTracker::renderBeacon(LLVector3d pos_global,
 	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 	
 	
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-		glTranslatef(pos_agent.mV[0], pos_agent.mV[1], pos_agent.mV[2]);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.pushMatrix();
+	{
+		gGL.translatef(pos_agent.mV[0], pos_agent.mV[1], pos_agent.mV[2]);
 		
 		draw_shockwave(1024.f, gRenderStartTime.getElapsedTimeF32(), 32, fogged_color);
 
@@ -573,23 +580,22 @@ void LLTracker::renderBeacon(LLVector3d pos_global,
 			
 			gGL.end();
 		}
-							
-		//gCylinder.render(1000);
-	glPopMatrix();
+	}
+	gGL.popMatrix();
 
 	std::string text;
 	text = llformat( "%.0f m", to_vec.magVec());
 
-	LLWString wstr;
-	wstr += utf8str_to_wstring(label);
-	wstr += '\n';
-	wstr += utf8str_to_wstring(text);
+	std::string str;
+	str += label;
+	str += '\n';
+	str += text;
 
 	hud_textp->setFont(LLFontGL::getFontSansSerif());
 	hud_textp->setZCompare(FALSE);
 	hud_textp->setColor(LLColor4(1.f, 1.f, 1.f, llmax(0.2f, llmin(1.f,(dist-FADE_DIST)/FADE_DIST))));
 
-	hud_textp->setString(wstr);
+	hud_textp->setString(str);
 	hud_textp->setVertAlignment(LLHUDText::ALIGN_VERT_CENTER);
 	hud_textp->setPositionAgent(pos_agent);
 }

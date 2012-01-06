@@ -57,7 +57,7 @@ public:
 	BOOL idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time);
 
 	virtual F32 getBinRadius();
-	virtual void updateSpatialExtents(LLVector3& newMin, LLVector3& newMax);
+	virtual void updateSpatialExtents(LLVector4a& newMin, LLVector4a& newMax);
 	virtual U32 getPartitionType() const;
 	
 	/*virtual*/ void setPixelAreaAndAngle(LLAgent &agent);
@@ -66,7 +66,7 @@ public:
 	/*virtual*/ LLDrawable* createDrawable(LLPipeline *pipeline);
 	/*virtual*/ BOOL        updateGeometry(LLDrawable *drawable);
 				void		getGeometry(S32 idx,
-								LLStrider<LLVector3>& verticesp,
+								LLStrider<LLVector4a>& verticesp,
 								LLStrider<LLVector3>& normalsp, 
 								LLStrider<LLVector2>& texcoordsp,
 								LLStrider<LLColor4U>& colorsp, 

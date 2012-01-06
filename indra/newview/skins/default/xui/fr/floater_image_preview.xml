@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="false"
+     can_resize="false" height="440" min_height="140" min_width="300"
+     name="Image Preview" title="" width="300">
+	<text bottom_delta="-40" follows="top|left" height="15" left="10" name="name_label">
+		Nom:
+	</text>
+	<line_editor bottom_delta="-24" follows="top|left|right" height="19" max_length="254"
+	     name="name_form" width="280" />
+	<text bottom_delta="-20" follows="top|left" height="15" name="description_label">
+		Description:
+	</text>
+	<line_editor bottom_delta="-24" follows="top|left|right" height="19" max_length="254"
+	     name="description_form" width="280" spell_check="true" />
+	<text bottom_delta="-20" follows="top|left" height="15" name="preview_label">
+		Prévisualiser comme:
+	</text>
+	<combo_box bottom_delta="-6" follows="left|top" height="18" label="Habits"
+	     left="120" name="clothing_type_combo" width="160">
+		<combo_item name="Image">
+			Image
+		</combo_item>
+		<combo_item name="Hair">
+			Cheveux
+		</combo_item>
+		<combo_item name="FemaleHead">
+			Tête de femme
+		</combo_item>
+		<combo_item name="FemaleUpperBody">
+			Corps de femme (haut)
+		</combo_item>
+		<combo_item name="FemaleLowerBody">
+			Corps de femme (bas)
+		</combo_item>
+		<combo_item name="MaleHead">
+			Tête d&apos;homme
+		</combo_item>
+		<combo_item name="MaleUpperBody">
+			Corps d&apos;homme (haut)
+		</combo_item>
+		<combo_item name="MaleLowerBody">
+			Corps d&apos;homme (bas)
+		</combo_item>
+		<combo_item name="Skirt">
+			Jupe
+		</combo_item>
+		<combo_item name="SculptedPrim">
+			Sculptie
+		</combo_item>
+	</combo_box>
+
+	<text bottom="250" follows="top|left" left="10" name="bad_image_text">
+		Impossible de lire l&apos;image.
+
+Sauvegardez en Targa 24 bit (.tga).
+	</text>
+	<check_box bottom="37" control_name="LosslessJ2CUpload" enabled="false"
+	     follows="bottom|left" font="SansSerifSmall" height="16"
+	     initial_value="false" label="Compression sans perte" left="10"
+	     left_delta="2" name="lossless_check" width="280" />
+	<check_box bottom="37" control_name="TemporaryUpload" enabled="true"
+             follows="bottom|left" font="SansSerifSmall" height="16"
+             initial_value="false" label="Temporaire (Gratuit)"
+             left_delta="155" name="temp_check" width="280" tooltip="chargement gratuit mais qui disparaitra a votre reconnection." />
+	<button bottom="10" follows="bottom|right" height="20" label="Annuler" left="165"
+	     name="cancel_btn" width="125" />
+	<button bottom="10" follows="bottom|left" height="20" label="Charger ([UPLOADFEE])"
+	     left="15" name="ok_btn" width="125" />
+</floater>

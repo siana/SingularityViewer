@@ -1964,6 +1964,7 @@ void LLLineEditor::draw()
 				text_color,
 				LLFontGL::LEFT, LLFontGL::BOTTOM,
 				LLFontGL::NORMAL,
+				LLFontGL::NO_SHADOW,
 				select_left - mScrollHPos,
 				mMaxHPixels - llround(rendered_pixels_right),
 				&rendered_pixels_right);
@@ -1983,6 +1984,7 @@ void LLLineEditor::draw()
 				LLColor4( 1.f - text_color.mV[0], 1.f - text_color.mV[1], 1.f - text_color.mV[2], 1 ),
 				LLFontGL::LEFT, LLFontGL::BOTTOM,
 				LLFontGL::NORMAL,
+				LLFontGL::NO_SHADOW,
 				select_right - mScrollHPos - rendered_text,
 				mMaxHPixels - llround(rendered_pixels_right),
 				&rendered_pixels_right);
@@ -1997,6 +1999,7 @@ void LLLineEditor::draw()
 				text_color,
 				LLFontGL::LEFT, LLFontGL::BOTTOM,
 				LLFontGL::NORMAL,
+				LLFontGL::NO_SHADOW,
 				S32_MAX,
 				mMaxHPixels - llround(rendered_pixels_right),
 				&rendered_pixels_right);
@@ -2010,6 +2013,7 @@ void LLLineEditor::draw()
 			text_color,
 			LLFontGL::LEFT, LLFontGL::BOTTOM,
 			LLFontGL::NORMAL,
+			LLFontGL::NO_SHADOW,
 			S32_MAX,
 			mMaxHPixels - llround(rendered_pixels_right),
 			&rendered_pixels_right);
@@ -2050,6 +2054,7 @@ void LLLineEditor::draw()
 						LLColor4( 1.f - text_color.mV[0], 1.f - text_color.mV[1], 1.f - text_color.mV[2], 1 ),
 						LLFontGL::LEFT, LLFontGL::BOTTOM,
 						LLFontGL::NORMAL,
+						LLFontGL::NO_SHADOW,
 						1);
 				}
 
@@ -2075,6 +2080,7 @@ void LLLineEditor::draw()
 							LLFontGL::LEFT,
 							LLFontGL::BOTTOM,
 							LLFontGL::NORMAL,
+							LLFontGL::NO_SHADOW,
 							S32_MAX,
 							mMaxHPixels - llround(rendered_pixels_right),
 							&rendered_pixels_right, FALSE);
@@ -2099,6 +2105,7 @@ void LLLineEditor::draw()
 							LLFontGL::LEFT,
 							LLFontGL::BOTTOM,
 							LLFontGL::NORMAL,
+							LLFontGL::NO_SHADOW,
 							S32_MAX,
 							mMaxHPixels - llround(rendered_pixels_right),
 							&rendered_pixels_right, FALSE);
@@ -2547,9 +2554,8 @@ BOOL LLLineEditor::evaluateFloat()
 		else
 		{
 			// Replace the expression with the result
-			std::ostringstream result_str;
-			result_str << result;
-			setText(result_str.str());
+			std::string result_str = llformat("%f", result);
+			setText(result_str);
 			selectAll();
 		}
 

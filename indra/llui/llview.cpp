@@ -36,7 +36,9 @@
 #include "llview.h"
 
 #include <cassert>
+
 #include <boost/tokenizer.hpp>
+#include <boost/foreach.hpp>
 
 #include "llrender.h"
 #include "llevent.h"
@@ -239,8 +241,9 @@ BOOL LLView::getUseBoundingRect()
 // virtual
 const std::string& LLView::getName() const
 {
-	static const std::string unnamed("(no name)");
-	return mName.empty() ? unnamed : mName;
+	static std::string no_name("(no name)");
+
+	return mName.empty() ? no_name : mName;
 }
 
 void LLView::sendChildToFront(LLView* child)
@@ -392,13 +395,11 @@ void LLView::removeCtrl(LLUICtrl* ctrl)
 LLView::ctrl_list_t LLView::getCtrlList() const
 {
 	ctrl_list_t controls;
-	for(child_list_const_iter_t iter = mChildList.begin();
-		iter != mChildList.end();
-		iter++)
+	BOOST_FOREACH(LLView* viewp, mChildList)
 	{
-		if((*iter)->isCtrl())
+		if(viewp->isCtrl())
 		{
-			controls.push_back(static_cast<LLUICtrl*>(*iter));
+			controls.push_back(static_cast<LLUICtrl*>(viewp));
 		}
 	}
 	return controls;
@@ -621,9 +622,8 @@ void LLView::deleteAllChildren()
 
 void LLView::setAllChildrenEnabled(BOOL b)
 {
-	for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+	BOOST_FOREACH(LLView* viewp, mChildList)
 	{
-		LLView* viewp = *child_it;
 		viewp->setEnabled(b);
 	}
 }
@@ -644,22 +644,21 @@ void LLView::setVisible(BOOL visible)
 		if (!getParent() || getParent()->isInVisibleChain())
 		{
 			// tell all children of this view that the visibility may have changed
-			onVisibilityChange( visible );
+			handleVisibilityChange( visible );
 		}
 		updateBoundingRect();
 	}
 }
 
 // virtual
-void LLView::onVisibilityChange ( BOOL new_visibility )
+void LLView::handleVisibilityChange ( BOOL new_visibility )
 {
-	for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+	BOOST_FOREACH(LLView* viewp, mChildList)
 	{
-		LLView* viewp = *child_it;
 		// only views that are themselves visible will have their overall visibility affected by their ancestors
 		if (viewp->getVisible())
 		{
-			viewp->onVisibilityChange ( new_visibility );
+			viewp->handleVisibilityChange ( new_visibility );
 		}
 	}
 }
@@ -678,7 +677,7 @@ BOOL LLView::canSnapTo(const LLView* other_view)
 }
 
 // virtual
-void LLView::snappedTo(const LLView* snap_view)
+void LLView::setSnappedTo(const LLView* snap_view)
 {
 }
 
@@ -731,9 +730,8 @@ BOOL LLView::handleToolTip(S32 x, S32 y, std::string& msg, LLRect* sticky_rect_s
 
 	std::string tool_tip;
 
-	for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+	BOOST_FOREACH(LLView* viewp, mChildList)
 	{
-		LLView* viewp = *child_it;
 		S32 local_x = x - viewp->mRect.mLeft;
 		S32 local_y = y - viewp->mRect.mBottom;
 		// Allow tooltips for disabled views so we can explain to the user why
@@ -896,9 +894,8 @@ LLView* LLView::childrenHandleDragAndDrop(S32 x, S32 y, MASK mask,
 	if( getVisible() )
 //	if( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if( viewp->pointInView(local_x, local_y) && 
@@ -1041,9 +1038,8 @@ LLView* LLView::childrenHandleScrollWheel(S32 x, S32 y, S32 clicks)
 	LLView* handled_view = NULL;
 	if (getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) 
@@ -1069,9 +1065,8 @@ LLView* LLView::childrenHandleHover(S32 x, S32 y, MASK mask)
 	LLView* handled_view = NULL;
 	if (getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if(viewp->pointInView(local_x, local_y) &&
@@ -1099,9 +1094,8 @@ LLView* LLView::childrenHandleKey(KEY key, MASK mask)
 
 	if ( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			if (viewp->handleKey(key, mask, TRUE))
 			{
 				if (LLView::sDebugKeys)
@@ -1124,9 +1118,8 @@ LLView* LLView::childrenHandleUnicodeChar(llwchar uni_char)
 
 	if ( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			if (viewp->handleUnicodeChar(uni_char, TRUE))
 			{
 				if (LLView::sDebugKeys)
@@ -1146,9 +1139,8 @@ LLView* LLView::childrenHandleMouseDown(S32 x, S32 y, MASK mask)
 {
 	LLView* handled_view = NULL;
 
-	for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+	BOOST_FOREACH(LLView* viewp, mChildList)
 	{
-		LLView* viewp = *child_it;
 		S32 local_x = x - viewp->getRect().mLeft;
 		S32 local_y = y - viewp->getRect().mBottom;
 
@@ -1174,9 +1166,8 @@ LLView* LLView::childrenHandleRightMouseDown(S32 x, S32 y, MASK mask)
 
 	if (getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) &&
@@ -1202,9 +1193,8 @@ LLView* LLView::childrenHandleMiddleMouseDown(S32 x, S32 y, MASK mask)
 
 	if (getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) &&
@@ -1230,9 +1220,8 @@ LLView* LLView::childrenHandleDoubleClick(S32 x, S32 y, MASK mask)
 
 	if (getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) &&
@@ -1257,9 +1246,8 @@ LLView* LLView::childrenHandleMouseUp(S32 x, S32 y, MASK mask)
 	LLView* handled_view = NULL;
 	if( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (!viewp->pointInView(local_x, local_y))
@@ -1287,9 +1275,8 @@ LLView* LLView::childrenHandleRightMouseUp(S32 x, S32 y, MASK mask)
 	LLView* handled_view = NULL;
 	if( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) &&
@@ -1314,9 +1301,8 @@ LLView* LLView::childrenHandleMiddleMouseUp(S32 x, S32 y, MASK mask)
 	LLView* handled_view = NULL;
 	if( getVisible() && getEnabled() )
 	{
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			S32 local_x = x - viewp->getRect().mLeft;
 			S32 local_y = y - viewp->getRect().mBottom;
 			if (viewp->pointInView(local_x, local_y) &&
@@ -1371,7 +1357,7 @@ void LLView::draw()
 			localRectToScreen(viewp->getRect(),&screenRect);
 			if ( rootRect.overlaps(screenRect) )
 			{
-				glMatrixMode(GL_MODELVIEW);
+				gGL.matrixMode(LLRender::MM_MODELVIEW);
 				LLUI::pushMatrix();
 				{
 					LLUI::translate((F32)viewp->getRect().mLeft, (F32)viewp->getRect().mBottom, 0.f);
@@ -1449,7 +1435,7 @@ void LLView::drawDebugRect()
 			std::string debug_text = llformat("%s (%d x %d)", getName().c_str(),
 										debug_rect.getWidth(), debug_rect.getHeight());
 			LLFontGL::getFontSansSerifSmall()->renderUTF8(debug_text, 0, (F32)x, (F32)y, border_color,
-												LLFontGL::HCENTER, LLFontGL::BASELINE, LLFontGL::NORMAL,
+												LLFontGL::HCENTER, LLFontGL::BASELINE, LLFontGL::NORMAL, LLFontGL::NO_SHADOW,
 												S32_MAX, S32_MAX, NULL, FALSE);
 		}
 	}
@@ -1465,7 +1451,7 @@ void LLView::drawChild(LLView* childp, S32 x_offset, S32 y_offset, BOOL force_dr
 		if ((childp->getVisible() && childp->getRect().isValid()) 
 			|| force_draw)
 		{
-			glMatrixMode(GL_MODELVIEW);
+			gGL.matrixMode(LLRender::MM_MODELVIEW);
 			LLUI::pushMatrix();
 			{
 				LLUI::translate((F32)childp->getRect().mLeft + x_offset, (F32)childp->getRect().mBottom + y_offset, 0.f);
@@ -1492,9 +1478,8 @@ void LLView::reshape(S32 width, S32 height, BOOL called_from_parent)
 		mRect.mTop = getRect().mBottom + height;
 
 		// move child views according to reshape flags
-		for ( child_list_iter_t child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* viewp, mChildList)
 		{
-			LLView* viewp = *child_it;
 			LLRect child_rect( viewp->mRect );
 
 			if (viewp->followsRight() && viewp->followsLeft())
@@ -1561,11 +1546,9 @@ void LLView::updateBoundingRect()
 	{
 		LLRect local_bounding_rect = LLRect::null;
 
-		child_list_const_iter_t child_it;
-		for ( child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
-		{
-			LLView* childp = *child_it;
-			// ignore invisible and "top" children when calculating bounding rect
+	BOOST_FOREACH(LLView* childp, mChildList)
+	{
+		// ignore invisible and "top" children when calculating bounding rect
 			// such as combobox popups
 			if (!childp->getVisible() || childp == gFocusMgr.getTopCtrl()) 
 			{
@@ -1686,11 +1669,10 @@ LLView* LLView::getChildView(const std::string& name, BOOL recurse, BOOL create_
 	//richard: should we allow empty names?
 	//if(name.empty())
 	//	return NULL;
-	child_list_const_iter_t child_it;
 	// Look for direct children *first*
-	for ( child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+	BOOST_FOREACH(LLView* childp, mChildList)
 	{
-		LLView* childp = *child_it;
+		llassert(childp);
 		if (childp->getName() == name)
 		{
 			return childp;
@@ -1699,9 +1681,9 @@ LLView* LLView::getChildView(const std::string& name, BOOL recurse, BOOL create_
 	if (recurse)
 	{
 		// Look inside each child as well.
-		for ( child_it = mChildList.begin(); child_it != mChildList.end(); ++child_it)
+		BOOST_FOREACH(LLView* childp, mChildList)
 		{
-			LLView* childp = *child_it;
+			llassert(childp);
 			LLView* viewp = childp->getChildView(name, recurse, FALSE);
 			if ( viewp )
 			{
@@ -2135,7 +2117,12 @@ const LLCtrlQuery & LLView::getFocusRootsQuery()
 }
 
 
-void	LLView::userSetShape(const LLRect& new_rect)
+void	LLView::setShape(const LLRect& new_rect, bool by_user)
+{
+	handleReshape(new_rect, by_user);
+}
+
+void	LLView::handleReshape(const LLRect& new_rect, bool by_user)
 {
 	reshape(new_rect.getWidth(), new_rect.getHeight());
 	translate(new_rect.mLeft - getRect().mLeft, new_rect.mBottom - getRect().mBottom);
@@ -2820,7 +2807,7 @@ bool LLView::setControlValue(const LLSD& value)
 	std::string ctrlname = getControlName();
 	if (!ctrlname.empty())
 	{
-		LLUI::sConfigGroup->setValue(ctrlname, value);
+		LLUI::sConfigGroup->setUntypedValue(ctrlname, value);
 		return true;
 	}
 	return false;
@@ -2848,7 +2835,7 @@ void LLView::setControlName(const std::string& control_name, LLView *context)
 		if (control)
 		{
 			mControlName = control_name;
-			mControlConnection = control->getSignal()->connect(boost::bind(&controlListener, _1, getHandle(), std::string("value")));
+			mControlConnection = control->getSignal()->connect(boost::bind(&controlListener, _2, getHandle(), std::string("value")));
 			setValue(control->getValue());
 		}
 	}

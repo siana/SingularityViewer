@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="Inventory Finder" title="inventory_recent_items">
+	<check_box label="Animations" name="check_animation"/>
+	<check_box label="Cartes de visite" name="check_calling_card"/>
+	<check_box label="Habits / Body Parts" name="check_clothing"/>
+	<check_box label="Gestures" name="check_gesture"/>
+	<check_box label="Reperes / Landmarks" name="check_landmark"/>
+	<check_box label="Notecards" name="check_notecard"/>
+	<check_box label="Objets" name="check_object"/>
+	<check_box label="Scripts" name="check_script"/>
+	<check_box label="Sons" name="check_sound"/>
+	<check_box label="Textures" name="check_texture"/>
+	<check_box label="Photos" name="check_snapshot"/>
+	<button label="Tout" label_selected="Tout" name="All" width="70"/>
+	<button label="Aucun" label_selected="Aucun" name="None" width="70" bottom_delta="0" left="83"/>
+	<check_box label="Toujours montrer &#10;les dossiers" name="check_show_empty" bottom_delta="-20"/>
+	<check_box label="Depuis la déconnexion" name="check_since_logoff" bottom_delta="-36"/>
+	<text length="1" name="- OR -" type="string">
+		Ou il y a...
+	</text>
+	<spinner label="Heures" name="spin_hours_ago"/>
+	<spinner label="Jours" name="spin_days_ago"/>
+	<button label="Fermer" label_selected="Fermer" name="Close" bottom_delta="-30"/>
+</floater>

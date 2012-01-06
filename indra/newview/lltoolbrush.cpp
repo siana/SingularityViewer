@@ -36,6 +36,7 @@
 #include "lltoolselectland.h"
 
 #include "llgl.h"
+#include "llnotificationsutil.h"
 #include "llrender.h"
 
 #include "message.h"
@@ -43,6 +44,7 @@
 #include "llagent.h"
 #include "llcallbacklist.h"
 #include "llviewercontrol.h"
+#include "llwindow.h"
 #include "llfloatertools.h"
 #include "llregionposition.h"
 #include "llstatusbar.h"
@@ -512,12 +514,12 @@ void LLToolBrushLand::render()
 void LLToolBrushLand::renderOverlay(LLSurface& land, const LLVector3& pos_region,
 									const LLVector3& pos_world)
 {
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 	LLGLDepthTest mDepthTest(GL_TRUE);
-	glPushMatrix();
+	gGL.pushMatrix();
 	gGL.color4fv(OVERLAY_COLOR.mV);
-	glTranslatef(0.0f, 0.0f, 1.0f);
+	gGL.translatef(0.0f, 0.0f, 1.0f);
 	
 	S32 i = (S32) pos_region.mV[VX];
 	S32 j = (S32) pos_region.mV[VY];
@@ -571,7 +573,7 @@ void LLToolBrushLand::renderOverlay(LLSurface& land, const LLVector3& pos_region
 	}
 	gGL.end();
 
-	glPopMatrix();
+	gGL.popMatrix();
 }
 
 void LLToolBrushLand::determineAffectedRegions(region_list_t& regions,
@@ -672,7 +674,7 @@ void LLToolBrushLand::alertNoTerraform(LLViewerRegion* regionp)
 	
 	LLSD args;
 	args["REGION"] = regionp->getName();
-	LLNotifications::instance().add("RegionNoTerraforming", args);
+	LLNotificationsUtil::add("RegionNoTerraforming", args);
 
 }
 

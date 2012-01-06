@@ -82,10 +82,6 @@ if (DARWIN)
   )
 endif (DARWIN)
 
-if (LINUX)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lrt")
-endif (LINUX)
-
 if (WINDOWS)
     set_target_properties(SLPlugin
       PROPERTIES

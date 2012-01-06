@@ -35,6 +35,7 @@
 
 #include "llview.h"
 #include "llframetimer.h"
+#include "lluiimage.h"
 
 class LLProgressBar
 	: public LLView

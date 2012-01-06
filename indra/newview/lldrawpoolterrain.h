@@ -35,8 +35,6 @@
 
 #include "lldrawpool.h"
 
-class LLViewerFetchedTexture;
-
 class LLDrawPoolTerrain : public LLFacePool
 {
 	LLPointer<LLViewerTexture> mTexturep;
@@ -48,8 +46,7 @@ public:
 							LLVertexBuffer::MAP_TEXCOORD0 |
 							LLVertexBuffer::MAP_TEXCOORD1 |
 							LLVertexBuffer::MAP_TEXCOORD2 |
-							LLVertexBuffer::MAP_TEXCOORD3 |
-							LLVertexBuffer::MAP_COLOR
+							LLVertexBuffer::MAP_TEXCOORD3
 	};
 
 	virtual U32 getVertexDataMask();
@@ -74,7 +71,6 @@ public:
 	/*virtual*/ void prerender();
 	/*virtual*/ void beginRenderPass( S32 pass );
 	/*virtual*/ void endRenderPass( S32 pass );
-	/*virtual*/ void renderForSelect();
 	/*virtual*/ void dirtyTextures(const std::set<LLViewerFetchedTexture*>& textures);
 	/*virtual*/ LLViewerTexture *getTexture();
 	/*virtual*/ LLViewerTexture *getDebugTexture();

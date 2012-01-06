@@ -52,8 +52,10 @@
 #include "lltextbox.h"
 #include "lluictrl.h"
 #include "lluictrlfactory.h"
+#include "lluiimage.h"
 #include "llviewborder.h"
 #include "llbutton.h"
+#include "llnotificationsutil.h"
 
 // LLLayoutStack
 #include "llresizebar.h"
@@ -79,6 +81,7 @@ void LLPanel::init()
 
 	mPanelHandle.bind(this);
 	setTabStop(FALSE);
+	mVisibleSignal = NULL;
 }
 
 LLPanel::LLPanel()
@@ -122,6 +125,7 @@ LLPanel::LLPanel(const std::string& name, const std::string& rect_control, BOOL 
 LLPanel::~LLPanel()
 {
 	storeRectControl();
+	delete mVisibleSignal;
 }
 
 // virtual
@@ -363,6 +367,13 @@ BOOL LLPanel::checkRequirements()
 	return TRUE;
 }
 
+void LLPanel::handleVisibilityChange ( BOOL new_visibility )
+{
+	LLUICtrl::handleVisibilityChange ( new_visibility );
+	if (mVisibleSignal)
+		(*mVisibleSignal)(this, LLSD(new_visibility) ); // Pass BOOL as LLSD
+}
+
 void LLPanel::setFocus(BOOL b)
 {
 	if( b )
@@ -506,7 +517,7 @@ BOOL LLPanel::initPanelXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *f
 		// override rectangle with embedding parameters as provided
 		createRect(node, new_rect, parent);
 		setOrigin(new_rect.mLeft, new_rect.mBottom);
-		reshape(new_rect.getWidth(), new_rect.getHeight());
+		setShape(new_rect);
 		// optionally override follows flags from including nodes
 		parseFollowsFlags(node);
 	}
@@ -1008,6 +1019,16 @@ void LLPanel::childSetControlName(const std::string& id, const std::string& cont
 	}
 }
 
+boost::signals2::connection LLPanel::setVisibleCallback( const commit_signal_t::slot_type& cb )
+{
+	if (!mVisibleSignal)
+	{
+		mVisibleSignal = new commit_signal_t();
+	}
+
+	return mVisibleSignal->connect(cb);
+}
+
 //virtual
 LLView* LLPanel::getChildView(const std::string& name, BOOL recurse, BOOL create_if_missing) const
 {
@@ -1049,7 +1070,7 @@ void LLPanel::childDisplayNotFound()
 	mNewExpectedMembers.clear();
 	LLSD args;
 	args["CONTROLS"] = msg;
-	LLNotifications::instance().add("FloaterNotFound", args);
+	LLNotificationsUtil::add("FloaterNotFound", args);
 }
 
 void LLPanel::storeRectControl()

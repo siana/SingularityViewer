@@ -43,7 +43,9 @@
 
 #include "llpluginclassmedia.h"
 
+#include "llnotifications.h"
 #include "llevent.h"		// LLSimpleListener
+#include "llnotificationsutil.h"
 #include "lluuid.h"
 #include "llkeyboard.h"
 
@@ -334,7 +336,7 @@ bool LLViewerMediaImpl::initializeMedia(const std::string& mime_type)
 			LL_WARNS("Plugin") << "plugin intialization failed for mime type: " << mime_type << LL_ENDL;
 			LLSD args;
 			args["MIME_TYPE"] = mime_type;
-			LLNotifications::instance().add("NoPlugin", args);
+			LLNotificationsUtil::add("NoPlugin", args);
 
 			return false;
 		}
@@ -440,7 +442,7 @@ LLPluginClassMedia* LLViewerMediaImpl::newSourceFromMediaType(std::string media_
 	LL_WARNS("Plugin") << "plugin intialization failed for mime type: " << media_type << LL_ENDL;
 	LLSD args;
 	args["MIME_TYPE"] = media_type;
-	LLNotifications::instance().add("NoPlugin", args);
+	LLNotificationsUtil::add("NoPlugin", args);
 
 	return NULL;
 }
@@ -1131,7 +1133,7 @@ void LLViewerMediaImpl::handleMediaEvent(LLPluginClassMedia* self, LLPluginClass
 		{
 			LLSD args;
 			args["PLUGIN"] = LLMIMETypes::implType(mMimeType);
-			LLNotifications::instance().add("MediaPluginFailed", args);
+			LLNotificationsUtil::add("MediaPluginFailed", args);
 		}
 		break;
 		default:

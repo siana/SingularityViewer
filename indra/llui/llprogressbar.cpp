@@ -39,7 +39,7 @@
 #include "llgl.h"
 #include "llui.h"
 #include "llfontgl.h"
-#include "llimagegl.h"
+#include "lluiimage.h"
 #include "lltimer.h"
 #include "llglheaders.h"
 

@@ -197,6 +197,15 @@ void LLDrawPool::renderPostDeferred(S32 pass)
 //virtual
 void LLDrawPool::endRenderPass( S32 pass )
 {
+	/*for (U32 i = 0; i < (U32)gGLManager.mNumTextureImageUnits; i++)
+	{ //dummy cleanup of any currently bound textures
+		if (gGL.getTexUnit(i)->getCurrType() != LLTexUnit::TT_NONE)
+		{
+			gGL.getTexUnit(i)->unbind(gGL.getTexUnit(i)->getCurrType());
+			gGL.getTexUnit(i)->disable();
+		}
+	}*/
+	gGL.getTexUnit(0)->activate();
 }
 
 //virtual 
@@ -247,11 +256,6 @@ void LLFacePool::destroy()
 
 void LLFacePool::dirtyTextures(const std::set<LLViewerFetchedTexture*>& textures)
 {
-}
-
-BOOL LLFacePool::moveFace(LLFace *face, LLDrawPool *poolp, BOOL copy_data)
-{
-	return TRUE;
 }
 
 // static
@@ -385,7 +389,7 @@ BOOL LLFacePool::LLOverrideFaceColor::sOverrideFaceColor = FALSE;
 
 void LLFacePool::LLOverrideFaceColor::setColor(const LLColor4& color)
 {
-	glColor4fv(color.mV);
+	gGL.diffuseColor4fv(color.mV);
 }
 
 void LLFacePool::LLOverrideFaceColor::setColor(const LLColor4U& color)
@@ -395,7 +399,7 @@ void LLFacePool::LLOverrideFaceColor::setColor(const LLColor4U& color)
 
 void LLFacePool::LLOverrideFaceColor::setColor(F32 r, F32 g, F32 b, F32 a)
 {
-	glColor4f(r,g,b,a);
+	gGL.diffuseColor4f(r,g,b,a);
 }
 
 
@@ -441,14 +445,14 @@ void LLRenderPass::renderTexture(U32 type, U32 mask)
 	pushBatches(type, mask, TRUE);
 }
 
-void LLRenderPass::pushBatches(U32 type, U32 mask, BOOL texture)
+void LLRenderPass::pushBatches(U32 type, U32 mask, BOOL texture, BOOL batch_textures)
 {
 	for (LLCullResult::drawinfo_list_t::iterator i = gPipeline.beginRenderMap(type); i != gPipeline.endRenderMap(type); ++i)	
 	{
 		LLDrawInfo* pparams = *i;
 		if (pparams) 
 		{
-			pushBatch(*pparams, mask, texture);
+			pushBatch(*pparams, mask, texture, batch_textures);
 		}
 	}
 }
@@ -458,35 +462,52 @@ void LLRenderPass::applyModelMatrix(LLDrawInfo& params)
 	if (params.mModelMatrix != gGLLastMatrix)
 	{
 		gGLLastMatrix = params.mModelMatrix;
-		glLoadMatrixd(gGLModelView);
+		gGL.loadMatrix(gGLModelView);
 		if (params.mModelMatrix)
 		{
-			glMultMatrixf((GLfloat*) params.mModelMatrix->mMatrix);
+			gGL.multMatrix((GLfloat*) params.mModelMatrix->mMatrix);
 		}
 		gPipeline.mMatrixOpCount++;
 	}
 }
 
-void LLRenderPass::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture)
+void LLRenderPass::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture, BOOL batch_textures)
 {
 	applyModelMatrix(params);
 
+	bool tex_setup = false;
+
 	if (texture)
 	{
-		if (params.mTexture.notNull())
+		if (batch_textures && params.mTextureList.size() > 1)
 		{
-			params.mTexture->addTextureStats(params.mVSize);
-			gGL.getTexUnit(0)->bind(params.mTexture, TRUE) ;
-			if (params.mTextureMatrix)
+			for (U32 i = 0; i < params.mTextureList.size(); ++i)
 			{
-				glMatrixMode(GL_TEXTURE);
-				glLoadMatrixf((GLfloat*) params.mTextureMatrix->mMatrix);
-				gPipeline.mTextureMatrixOps++;
+				if (params.mTextureList[i].notNull())
+				{
+					gGL.getTexUnit(i)->bind(params.mTextureList[i], TRUE);
+				}
 			}
 		}
 		else
-		{
-			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+		{ //not batching textures or batch has only 1 texture -- might need a texture matrix
+			if (params.mTexture.notNull())
+			{
+				params.mTexture->addTextureStats(params.mVSize);
+				gGL.getTexUnit(0)->bind(params.mTexture, TRUE) ;
+				if (params.mTextureMatrix)
+				{
+					tex_setup = true;
+					gGL.getTexUnit(0)->activate();
+					gGL.matrixMode(LLRender::MM_TEXTURE);
+					gGL.loadMatrix((GLfloat*) params.mTextureMatrix->mMatrix);
+					gPipeline.mTextureMatrixOps++;
+				}
+			}
+			else
+			{
+				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+			}
 		}
 	}
 	
@@ -497,14 +518,14 @@ void LLRenderPass::pushBatch(LLDrawInfo& params, U32 mask, BOOL texture)
 			params.mGroup->rebuildMesh();
 		}
 		params.mVertexBuffer->setBuffer(mask);
-		params.mVertexBuffer->drawRange(LLRender::TRIANGLES, params.mStart, params.mEnd, params.mCount, params.mOffset);
-		gPipeline.addTrianglesDrawn(params.mCount/3);
+		params.mVertexBuffer->drawRange(params.mDrawMode, params.mStart, params.mEnd, params.mCount, params.mOffset);
+		gPipeline.addTrianglesDrawn(params.mCount, params.mDrawMode);
 	}
 
-	if (params.mTextureMatrix && texture && params.mTexture.notNull())
+	if (tex_setup)
 	{
-		glLoadIdentity();
-		glMatrixMode(GL_MODELVIEW);
+		gGL.loadIdentity();
+		gGL.matrixMode(LLRender::MM_MODELVIEW);
 	}
 }
 

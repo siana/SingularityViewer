@@ -38,6 +38,7 @@
 #include "llviewercontrol.h"
 
 #include "llagentcamera.h"
+#include "llnotificationsutil.h"
 #include "llviewerwindow.h"
 #include "lldrawable.h"
 #include "llface.h"
@@ -72,6 +73,8 @@ F32 w_mod[GRASS_MAX_BLADES];					//  Factor to modulate wind movement by to rand
 
 LLVOGrass::SpeciesMap LLVOGrass::sSpeciesTable;
 S32 LLVOGrass::sMaxGrassSpecies = 0;
+
+LLVOGrass::SpeciesNames LLVOGrass::sSpeciesNames;
 
 
 LLVOGrass::LLVOGrass(const LLUUID &id, const LLPCode pcode, LLViewerRegion *regionp)
@@ -197,6 +200,11 @@ void LLVOGrass::initClass()
 
 		if (species >= sMaxGrassSpecies) sMaxGrassSpecies = species + 1;
 
+		std::string name;
+		static LLStdStringHandle name_string = LLXmlTree::addAttributeString("name");
+		success &= grass_def->getFastAttributeString(name_string, name);
+		sSpeciesNames[name] = species;
+
 		if (!success)
 		{
 			std::string name;
@@ -222,7 +230,7 @@ void LLVOGrass::initClass()
 	{
 		LLSD args;
 		args["SPECIES"] = err;
-		LLNotifications::instance().add("ErrorUndefinedGrasses", args);
+		LLNotificationsUtil::add("ErrorUndefinedGrasses", args);
 	}
 
 	for (S32 i = 0; i < GRASS_MAX_BLADES; ++i)
@@ -355,7 +363,7 @@ void LLVOGrass::updateTextures()
 	{
 		if (gPipeline.hasRenderDebugMask(LLPipeline::RENDER_DEBUG_TEXTURE_AREA))
 		{
-			setDebugText(llformat("%4.0f", fsqrtf(mPixelArea)));
+			setDebugText(llformat("%4.0f", (F32) sqrt(mPixelArea)));
 		}
 		getTEImage(0)->addTextureStats(mPixelArea);
 	}
@@ -476,7 +484,7 @@ void LLVOGrass::plantBlades()
 }
 
 void LLVOGrass::getGeometry(S32 idx,
-								LLStrider<LLVector3>& verticesp,
+								LLStrider<LLVector4a>& verticesp,
 								LLStrider<LLVector3>& normalsp, 
 								LLStrider<LLVector2>& texcoordsp,
 								LLStrider<LLColor4U>& colorsp, 
@@ -528,21 +536,24 @@ void LLVOGrass::getGeometry(S32 idx,
 		position.mV[0]  = mPosition.mV[VX] + x + xf;
 		position.mV[1]  = mPosition.mV[VY] + y + yf;
 		position.mV[2]  = mRegionp->getLand().resolveHeightRegion(position);
-		*verticesp++    = v1 = position + mRegionp->getOriginAgent();
-		*verticesp++    = v1;
+		v1 = position + mRegionp->getOriginAgent();
+		(*verticesp++).load3(v1.mV);
+		(*verticesp++).load3(v1.mV);
 
 
 		position.mV[0] += dzx;
 		position.mV[1] += dzy;
 		position.mV[2] += blade_height;
-		*verticesp++    = v2 = position + mRegionp->getOriginAgent();
-		*verticesp++    = v2;
+		v2 = position + mRegionp->getOriginAgent();
+		(*verticesp++).load3(v2.mV);
+		(*verticesp++).load3(v2.mV);
 
 		position.mV[0]  = mPosition.mV[VX] + x - xf;
 		position.mV[1]  = mPosition.mV[VY] + y - xf;
 		position.mV[2]  = mRegionp->getLand().resolveHeightRegion(position);
-		*verticesp++    = v3 = position + mRegionp->getOriginAgent();
-		*verticesp++    = v3;
+		v3 = position + mRegionp->getOriginAgent();
+		(*verticesp++).load3(v3.mV);
+		(*verticesp++).load3(v3.mV);
 
 		LLVector3 normal1 = (v1-v2) % (v2-v3);
 		normal1.mV[VZ] = 0.75f;
@@ -553,8 +564,9 @@ void LLVOGrass::getGeometry(S32 idx,
 		position.mV[0] += dzx;
 		position.mV[1] += dzy;
 		position.mV[2] += blade_height;
-		*verticesp++    = v1 = position + mRegionp->getOriginAgent();
-		*verticesp++    = v1;
+		v1 = position + mRegionp->getOriginAgent();
+		(*verticesp++).load3(v1.mV);
+		(*verticesp++).load3(v1.mV);
 
 		*(normalsp++)   = normal1;
 		*(normalsp++)   = normal2;
@@ -706,23 +718,23 @@ BOOL LLVOGrass::lineSegmentIntersect(const LLVector3& start, const LLVector3& en
 
 		U32 idx0 = 0,idx1 = 0,idx2 = 0;
 
-		if (LLTriangleRayIntersect(v[0], v[1], v[2], start, dir, &a, &b, &t, FALSE))
+		if (LLTriangleRayIntersect(v[0], v[1], v[2], start, dir, a, b, t, FALSE))
 		{
 			hit = TRUE;
 			idx0 = 0; idx1 = 1; idx2 = 2;
 		}
-		else if (LLTriangleRayIntersect(v[1], v[3], v[2], start, dir, &a, &b, &t, FALSE))
+		else if (LLTriangleRayIntersect(v[1], v[3], v[2], start, dir, a, b, t, FALSE))
 		{
 			hit = TRUE;
 			idx0 = 1; idx1 = 3; idx2 = 2;
 		}
-		else if (LLTriangleRayIntersect(v[2], v[1], v[0], start, dir, &a, &b, &t, FALSE))
+		else if (LLTriangleRayIntersect(v[2], v[1], v[0], start, dir, a, b, t, FALSE))
 		{
 			normal1 = -normal1;
 			hit = TRUE;
 			idx0 = 2; idx1 = 1; idx2 = 0;
 		}
-		else if (LLTriangleRayIntersect(v[2], v[3], v[1], start, dir, &a, &b, &t, FALSE))
+		else if (LLTriangleRayIntersect(v[2], v[3], v[1], start, dir, a, b, t, FALSE))
 		{
 			normal1 = -normal1;
 			hit = TRUE;

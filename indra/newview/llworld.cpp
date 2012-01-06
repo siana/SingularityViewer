@@ -46,6 +46,7 @@
 #include "llregionhandle.h"
 #include "llsurface.h"
 #include "llviewercamera.h"
+#include "llviewertexture.h"
 #include "llviewertexturelist.h"
 #include "llviewernetwork.h"
 #include "llviewerobjectlist.h"
@@ -54,6 +55,7 @@
 #include "llviewerstats.h"
 #include "llvlcomposition.h"
 #include "llvoavatar.h"
+#include "llvocache.h"
 #include "llvowater.h"
 #include "message.h"
 #include "pipeline.h"
@@ -129,7 +131,17 @@ void LLWorld::destroyClass()
 		LLViewerRegion* region_to_delete = *region_it++;
 		removeRegion(region_to_delete->getHost());
 	}
+	if(LLVOCache::hasInstance())
+	{
+		LLVOCache::getInstance()->destroyClass() ;
+	}
 	LLViewerPartSim::getInstance()->destroyClass();
+
+	mDefaultWaterTexturep = NULL ;
+	for (S32 i = 0; i < 8; i++)
+	{
+		mEdgeWaterObjects[i] = NULL;
+	}
 }
 
 
@@ -166,11 +178,11 @@ LLViewerRegion* LLWorld::addRegion(const U64 &region_handle, const LLHost &host,
 
 	U32 iindex = 0;
 	U32 jindex = 0;
-	mWidth = region_size_x;
-	mWidthInMeters = mWidth * mScale; 
+	mWidth = region_size_x;	//MegaRegion
+	mWidthInMeters = mWidth * mScale; //MegaRegion
 	from_region_handle(region_handle, &iindex, &jindex);
-	S32 x = (S32)(iindex/256);
-	S32 y = (S32)(jindex/256);
+	S32 x = (S32)(iindex/256); //MegaRegion
+	S32 y = (S32)(jindex/256); //MegaRegion
 	llinfos << "Adding new region (" << x << ":" << y << ")" << llendl;
 	llinfos << "Host: " << host << llendl;
 
@@ -188,6 +200,7 @@ LLViewerRegion* LLWorld::addRegion(const U64 &region_handle, const LLHost &host,
 		llerrs << "Unable to create new region!" << llendl;
 	}
 
+	//Classic clouds
 	regionp->mCloudLayer.create(regionp);
 	regionp->mCloudLayer.setWidth((F32)mWidth);
 	regionp->mCloudLayer.setWindPointer(&regionp->mWind);
@@ -267,6 +280,7 @@ void LLWorld::removeRegion(const LLHost &host)
 		llwarns << "Disabling region " << regionp->getName() << " that agent is in!" << llendl;
 		LLAppViewer::instance()->forceDisconnect("You have been disconnected from the region you were in.");
 
+		regionp->saveObjectCache() ; //force to save objects here in case that the object cache is about to be destroyed.
 		return;
 	}
 
@@ -281,6 +295,10 @@ void LLWorld::removeRegion(const LLHost &host)
 	delete regionp;
 
 	updateWaterObjects();
+
+	//double check all objects of this region are removed.
+	gObjectList.clearAllMapObjectsInRegion(regionp) ;
+	//llassert_always(!gObjectList.hasMapObjectInRegion(regionp)) ;
 }
 
 
@@ -431,9 +449,9 @@ BOOL LLWorld::positionRegionValidGlobal(const LLVector3d &pos_global)
 
 
 // Allow objects to go up to their radius underground.
-F32 LLWorld::getMinAllowedZ(LLViewerObject* object)
+F32 LLWorld::getMinAllowedZ(LLViewerObject* object, const LLVector3d &global_pos)
 {
-	F32 land_height = resolveLandHeightGlobal(object->getPositionGlobal());
+	F32 land_height = resolveLandHeightGlobal(global_pos);
 	F32 radius = 0.5f * object->getScale().length();
 	return land_height - radius;
 }
@@ -586,25 +604,25 @@ void LLWorld::updateVisibilities()
 {
 	F32 cur_far_clip = LLViewerCamera::getInstance()->getFar();
 
-	LLViewerCamera::getInstance()->setFar(mLandFarClip);
-
-	F32 diagonal_squared = F_SQRT2 * F_SQRT2 * mWidth * mWidth;
 	// Go through the culled list and check for visible regions
 	for (region_list_t::iterator iter = mCulledRegionList.begin();
-		 iter != mCulledRegionList.end(); )
+			iter != mCulledRegionList.end(); )
 	{
 		region_list_t::iterator curiter = iter++;
 		LLViewerRegion* regionp = *curiter;
-		F32 height = regionp->getLand().getMaxZ() - regionp->getLand().getMinZ();
-		F32 radius = 0.5f*fsqrtf(height * height + diagonal_squared);
-		if (!regionp->getLand().hasZData()
-			|| LLViewerCamera::getInstance()->sphereInFrustum(regionp->getCenterAgent(), radius))
+                
+		LLSpatialPartition* part = regionp->getSpatialPartition(LLViewerRegion::PARTITION_TERRAIN);
+		if (part)
 		{
-			mCulledRegionList.erase(curiter);
-			mVisibleRegionList.push_back(regionp);
+			LLSpatialGroup* group = (LLSpatialGroup*) part->mOctree->getListener(0);
+			if (LLViewerCamera::getInstance()->AABBInFrustum(group->mBounds[0], group->mBounds[1]))
+			{
+				mCulledRegionList.erase(curiter);
+				mVisibleRegionList.push_back(regionp);
+			}
 		}
-	}
-	
+    }
+        
 	// Update all of the visible regions 
 	for (region_list_t::iterator iter = mVisibleRegionList.begin();
 		 iter != mVisibleRegionList.end(); )
@@ -616,20 +634,23 @@ void LLWorld::updateVisibilities()
 			continue;
 		}
 
-		F32 height = regionp->getLand().getMaxZ() - regionp->getLand().getMinZ();
-		F32 radius = 0.5f*fsqrtf(height * height + diagonal_squared);
-		if (LLViewerCamera::getInstance()->sphereInFrustum(regionp->getCenterAgent(), radius))
+    	LLSpatialPartition* part = regionp->getSpatialPartition(LLViewerRegion::PARTITION_TERRAIN);
+		if (part)
 		{
-			regionp->calculateCameraDistance();
-			if (!gNoRender)
+			LLSpatialGroup* group = (LLSpatialGroup*) part->mOctree->getListener(0);
+			if (LLViewerCamera::getInstance()->AABBInFrustum(group->mBounds[0], group->mBounds[1]))
 			{
-				regionp->getLand().updatePatchVisibilities(gAgent);
+				regionp->calculateCameraDistance();
+				if (!gNoRender)
+				{
+					regionp->getLand().updatePatchVisibilities(gAgent);
+				}
 			}
-		}
-		else
-		{
-			mVisibleRegionList.erase(curiter);
-			mCulledRegionList.push_back(regionp);
+			else
+			{
+				mVisibleRegionList.erase(curiter);
+				mCulledRegionList.push_back(regionp);
+			}
 		}
 	}
 
@@ -645,8 +666,8 @@ void LLWorld::updateRegions(F32 max_update_time)
 	BOOL did_one = FALSE;
 	
 	// Perform idle time updates for the regions (and associated surfaces)
-	for (region_list_t::iterator iter = mRegionList.begin();
-		 iter != mRegionList.end(); ++iter)
+	for (region_list_t::iterator iter = mActiveRegionList.begin()/*mRegionList.begin()*/;
+		 iter != mActiveRegionList.end()/*mRegionList.end()*/; ++iter)
 	{
 		LLViewerRegion* regionp = *iter;
 		F32 max_time = max_update_time - update_timer.getElapsedTimeF32();
@@ -1415,6 +1436,8 @@ static LLVector3d unpackLocalToGlobalPosition(U32 compact_local, const LLVector3
 
 void LLWorld::getAvatars(std::vector<LLUUID>* avatar_ids, std::vector<LLVector3d>* positions, const LLVector3d& relative_to, F32 radius) const
 {
+	F32 radius_squared = radius * radius;
+	
 	if(avatar_ids != NULL)
 	{
 		avatar_ids->clear();
@@ -1423,6 +1446,33 @@ void LLWorld::getAvatars(std::vector<LLUUID>* avatar_ids, std::vector<LLVector3d
 	{
 		positions->clear();
 	}
+	// get the list of avatars from the character list first, so distances are correct
+	// when agent is above 1020m and other avatars are nearby
+	for (std::vector<LLCharacter*>::iterator iter = LLCharacter::sInstances.begin();
+		iter != LLCharacter::sInstances.end(); ++iter)
+	{
+		LLVOAvatar* pVOAvatar = (LLVOAvatar*) *iter;
+		if(!pVOAvatar->isDead() && !pVOAvatar->isSelf())
+		{
+			LLUUID uuid = pVOAvatar->getID();
+			if(!uuid.isNull())
+			{
+				LLVector3d pos_global = pVOAvatar->getPositionGlobal();
+				if(dist_vec_squared(pos_global, relative_to) <= radius_squared)
+				{
+					if(positions != NULL)
+					{
+						positions->push_back(pos_global);
+					}
+					if(avatar_ids !=NULL)
+					{
+						avatar_ids->push_back(uuid);
+					}
+				}
+			}
+		}
+	}
+	// region avatars added for situations where radius is greater than RenderFarClip
 	for (LLWorld::region_list_t::const_iterator iter = LLWorld::getInstance()->getRegionList().begin();
 		iter != LLWorld::getInstance()->getRegionList().end(); ++iter)
 	{
@@ -1432,50 +1482,16 @@ void LLWorld::getAvatars(std::vector<LLUUID>* avatar_ids, std::vector<LLVector3d
 		for (S32 i = 0; i < count; i++)
 		{
 			LLVector3d pos_global = unpackLocalToGlobalPosition(regionp->mMapAvatars.get(i), origin_global);
-			if(dist_vec(pos_global, relative_to) <= radius)
+			if(dist_vec_squared(pos_global, relative_to) <= radius_squared)
 			{
-				if(positions != NULL)
-				{
-					positions->push_back(pos_global);
-				}
-				if(avatar_ids != NULL)
-				{
-					avatar_ids->push_back(regionp->mMapAvatarIDs.get(i));
-				}
-			}
-		}
-	}
-	// retrieve the list of close avatars from viewer objects as well
-	// for when we are above 1000m, only do this when we are retrieving
-	// uuid's too as there could be duplicates
-	if(avatar_ids != NULL)
-	{
-		for (std::vector<LLCharacter*>::iterator iter = LLCharacter::sInstances.begin();
-			iter != LLCharacter::sInstances.end(); ++iter)
-		{
-			LLVOAvatar* pVOAvatar = (LLVOAvatar*) *iter;
-			if(pVOAvatar->isDead() || pVOAvatar->isSelf())
-				continue;
-			LLUUID uuid = pVOAvatar->getID();
-			if(uuid.isNull())
-				continue;
-			LLVector3d pos_global = pVOAvatar->getPositionGlobal();
-			if(dist_vec(pos_global, relative_to) <= radius)
-			{
-				bool found = false;
-				uuid_vec_t::iterator sel_iter = avatar_ids->begin();
-				for (; sel_iter != avatar_ids->end(); sel_iter++)
-				{
-					if(*sel_iter == uuid)
-					{
-						found = true;
-						break;
-					}
-				}
-				if(!found)
+				LLUUID uuid = regionp->mMapAvatarIDs.get(i);
+				// if this avatar doesn't already exist in the list, add it
+				if(uuid.notNull() && avatar_ids!=NULL && std::find(avatar_ids->begin(), avatar_ids->end(), uuid) == avatar_ids->end())
 				{
 					if(positions != NULL)
+					{
 						positions->push_back(pos_global);
+					}
 					avatar_ids->push_back(uuid);
 				}
 			}

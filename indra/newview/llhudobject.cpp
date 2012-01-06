@@ -44,6 +44,7 @@
 #include "llhudeffecttrail.h"
 #include "llhudeffectlookat.h"
 #include "llhudeffectpointat.h"
+#include "llhudnametag.h"
 #include "llvoicevisualizer.h"
 
 #include "llagent.h"
@@ -71,7 +72,6 @@ LLHUDObject::LLHUDObject(const U8 type) :
 	mVisible = TRUE;
 	mType = type;
 	mDead = FALSE;
-	mOnHUDAttachment = FALSE;
 }
 
 LLHUDObject::~LLHUDObject()
@@ -149,6 +149,9 @@ LLHUDObject *LLHUDObject::addHUDObject(const U8 type)
 		break;
 	case LL_HUD_ICON:
 		hud_objectp = new LLHUDIcon(type);
+		break;
+	case LL_HUD_NAME_TAG:
+		hud_objectp = new LLHUDNameTag(type);
 		break;
 	default:
 		llwarns << "Unknown type of hud object:" << (U32) type << llendl;
@@ -260,6 +263,7 @@ void LLHUDObject::updateAll()
 	LLFastTimer ftm(LLFastTimer::FTM_HUD_UPDATE);
 	LLHUDText::updateAll();
 	LLHUDIcon::updateAll();
+	LLHUDNameTag::updateAll();
 	sortObjects();
 }
 
@@ -287,26 +291,6 @@ void LLHUDObject::renderAll()
 }
 
 // static
-void LLHUDObject::renderAllForSelect()
-{
-	LLHUDObject *hud_objp;
-	
-	hud_object_list_t::iterator object_it;
-	for (object_it = sHUDObjects.begin(); object_it != sHUDObjects.end(); )
-	{
-		hud_object_list_t::iterator cur_it = object_it++;
-		hud_objp = (*cur_it);
-		if (hud_objp->getNumRefs() == 1)
-		{
-			sHUDObjects.erase(cur_it);
-		}
-		else if (hud_objp->isVisible())
-		{
-			hud_objp->renderForSelect();
-		}
-	}
-}
-// static
 void LLHUDObject::renderAllForTimer()
 {
 	LLHUDObject *hud_objp;
@@ -325,6 +309,14 @@ void LLHUDObject::renderAllForTimer()
 			hud_objp->renderForTimer();
 		}
 	}
+}
+
+// static
+void LLHUDObject::reshapeAll()
+{
+	// only hud objects that use fonts care about window size/scale changes
+	LLHUDText::reshape();
+	LLHUDNameTag::reshape();
 }
 
 // static

@@ -51,7 +51,7 @@ public:
 	/*virtual*/ void		updateFaceSize(S32 idx);
 	
 	/*virtual*/ void		getGeometry(S32 idx,
-								LLStrider<LLVector3>& verticesp,
+								LLStrider<LLVector4a>& verticesp,
 								LLStrider<LLVector3>& normalsp, 
 								LLStrider<LLVector2>& texcoordsp,
 								LLStrider<LLColor4U>& colorsp, 

@@ -80,11 +80,11 @@ LLToolMgr::LLToolMgr()
 	gToolNull = new LLTool(LLStringUtil::null);  // Does nothing
 	setCurrentTool(gToolNull);
 
-	gBasicToolset		= new LLToolset();
-	gCameraToolset		= new LLToolset();
-//	gLandToolset		= new LLToolset();
-	gMouselookToolset	= new LLToolset();
-	gFaceEditToolset	= new LLToolset();
+	gBasicToolset		= new LLToolset("Basic");
+	gCameraToolset		= new LLToolset("Camera");
+//	gLandToolset		= new LLToolset("Land");
+	gMouselookToolset	= new LLToolset("MouseLook");
+	gFaceEditToolset	= new LLToolset("FaceEdit");
 }
 
 void LLToolMgr::initTools()
@@ -149,6 +149,7 @@ void LLToolMgr::setCurrentToolset(LLToolset* current)
 		{
 			mSelectedTool->handleDeselect();
 		}
+		lldebugs << "Current tool set: " << current->getName() << llendl;
 		mCurrentToolset = current;
 		// select first tool of new toolset only if toolset changed
 		mCurrentToolset->selectFirstTool();
@@ -164,6 +165,8 @@ LLToolset* LLToolMgr::getCurrentToolset()
 
 void LLToolMgr::setCurrentTool( LLTool* tool )
 {
+	if(tool && mBaseTool!=tool)
+		lldebugs << "Current Tool: " << tool->getName() << llendl;
 	if (mTransientTool)
 	{
 		mTransientTool = NULL;

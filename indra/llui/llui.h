@@ -35,10 +35,11 @@
 #ifndef LL_LLUI_H
 #define LL_LLUI_H
 
+#include "llpointer.h"		// LLPointer<>
 #include "llrect.h"
 #include "llcontrol.h"
-#include "llrect.h"
 #include "llcoord.h"
+#include "llglslshader.h"
 //#include "llhtmlhelp.h"
 #include "llgl.h"			// *TODO: break this dependency
 #include <stack>
@@ -52,10 +53,10 @@ class LLColor4;
 class LLHtmlHelp;
 class LLVector3;
 class LLVector2;
+class LLUIImage;
 class LLUUID;
 class LLWindow;
 class LLView;
-class LLUIImage;
 
 // UI colors
 extern const LLColor4 UI_VERTEX_COLOR;
@@ -77,7 +78,7 @@ void gl_rect_2d_offset_local( S32 left, S32 top, S32 right, S32 bottom, const LL
 void gl_rect_2d_offset_local( S32 left, S32 top, S32 right, S32 bottom, S32 pixel_offset = 0, BOOL filled = TRUE );
 void gl_rect_2d(const LLRect& rect, BOOL filled = TRUE );
 void gl_rect_2d(const LLRect& rect, const LLColor4& color, BOOL filled = TRUE );
-void gl_rect_2d_checkerboard(const LLRect& rect);
+void gl_rect_2d_checkerboard(const LLRect& rect, GLfloat alpha = 1.0f);
 
 void gl_drop_shadow(S32 left, S32 top, S32 right, S32 bottom, const LLColor4 &start_color, S32 lines);
 
@@ -96,10 +97,7 @@ void gl_draw_rotated_image(S32 x, S32 y, F32 degrees, LLTexture* image, const LL
 void gl_draw_scaled_rotated_image(S32 x, S32 y, S32 width, S32 height, F32 degrees,LLTexture* image, const LLColor4& color = UI_VERTEX_COLOR, const LLRectf& uv_rect = LLRectf(0.f, 1.f, 1.f, 0.f));
 void gl_draw_scaled_image_with_border(S32 x, S32 y, S32 border_width, S32 border_height, S32 width, S32 height, LLTexture* image, const LLColor4 &color, BOOL solid_color = FALSE, const LLRectf& uv_rect = LLRectf(0.f, 1.f, 1.f, 0.f));
 void gl_draw_scaled_image_with_border(S32 x, S32 y, S32 width, S32 height, LLTexture* image, const LLColor4 &color, BOOL solid_color = FALSE, const LLRectf& uv_rect = LLRectf(0.f, 1.f, 1.f, 0.f), const LLRectf& scale_rect = LLRectf(0.f, 1.f, 1.f, 0.f));
-// Flip vertical, used for LLFloaterHTML
-void gl_draw_scaled_image_inverted(S32 x, S32 y, S32 width, S32 height, LLTexture* image, const LLColor4& color = UI_VERTEX_COLOR, const LLRectf& uv_rect = LLRectf(0.f, 1.f, 1.f, 0.f));
 
-void gl_rect_2d_xor(S32 left, S32 top, S32 right, S32 bottom);
 void gl_stippled_line_3d( const LLVector3& start, const LLVector3& end, const LLColor4& color, F32 phase = 0.f ); 
 
 void gl_rect_2d_simple_tex( S32 width, S32 height );
@@ -176,9 +174,10 @@ public:
 
 	//helper functions (should probably move free standing rendering helper functions here)
 	static std::string locateSkin(const std::string& filename);
-	static void setCursorPositionScreen(S32 x, S32 y);
-	static void setCursorPositionLocal(const LLView* viewp, S32 x, S32 y);
-	static void getCursorPositionLocal(const LLView* viewp, S32 *x, S32 *y);
+	static void setMousePositionScreen(S32 x, S32 y);
+	static void getMousePositionScreen(S32 *x, S32 *y);
+	static void setMousePositionLocal(const LLView* viewp, S32 x, S32 y);
+	static void getMousePositionLocal(const LLView* viewp, S32 *x, S32 *y);
 	static void setScaleFactor(const LLVector2& scale_factor);
 	static void setLineWidth(F32 width);
 	static LLPointer<LLUIImage> getUIImageByID(const LLUUID& image_id, S32 priority = 0);
@@ -413,192 +412,16 @@ public:
 	LLLocalClipRect(const LLRect& rect, BOOL enabled = TRUE);
 };
 
-class LLUIImage : public LLRefCount
-{
-public:
-	LLUIImage(const std::string& name, LLPointer<LLTexture> image);
-
-	void setClipRegion(const LLRectf& region);
-	void setScaleRegion(const LLRectf& region);
-
-	LLPointer<LLTexture> getImage() { return mImage; }
-	const LLPointer<LLTexture>& getImage() const { return mImage; }
-
-	void draw(S32 x, S32 y, S32 width, S32 height, const LLColor4& color = UI_VERTEX_COLOR) const;
-	void draw(S32 x, S32 y, const LLColor4& color = UI_VERTEX_COLOR) const;
-	void draw(const LLRect& rect, const LLColor4& color = UI_VERTEX_COLOR) const { draw(rect.mLeft, rect.mBottom, rect.getWidth(), rect.getHeight(), color); }
-	
-	void drawSolid(S32 x, S32 y, S32 width, S32 height, const LLColor4& color) const;
-	void drawSolid(const LLRect& rect, const LLColor4& color) const { drawSolid(rect.mLeft, rect.mBottom, rect.getWidth(), rect.getHeight(), color); }
-	void drawSolid(S32 x, S32 y, const LLColor4& color) const { drawSolid(x, y, mImage->getWidth(0), mImage->getHeight(0), color); }
-
-	void drawBorder(S32 x, S32 y, S32 width, S32 height, const LLColor4& color, S32 border_width) const;
-	void drawBorder(const LLRect& rect, const LLColor4& color, S32 border_width) const { drawBorder(rect.mLeft, rect.mBottom, rect.getWidth(), rect.getHeight(), color, border_width); }
-	void drawBorder(S32 x, S32 y, const LLColor4& color, S32 border_width) const { drawBorder(x, y, mImage->getWidth(0), mImage->getHeight(0), color, border_width); }
-	
-	const std::string& getName() const { return mName; }
-
-	S32 getWidth() const;
-	S32 getHeight() const;
-
-	// returns dimensions of underlying textures, which might not be equal to ui image portion
-	S32 getTextureWidth() const;
-	S32 getTextureHeight() const;
-
-protected:
-	std::string			mName;
-	LLRectf				mScaleRegion;
-	LLRectf				mClipRegion;
-	LLPointer<LLTexture> mImage;
-	BOOL				mUniformScaling;
-	BOOL				mNoClip;
-};
-
-typedef LLPointer<LLUIImage> LLUIImagePtr;
-
-template <typename T>
-class LLTombStone : public LLRefCount
-{
-public:
-	LLTombStone(T* target = NULL) : mTarget(target) {}
-	
-	void setTarget(T* target) { mTarget = target; }
-	T* getTarget() const { return mTarget; }
-private:
-	T* mTarget;
-};
-
-//	LLHandles are used to refer to objects whose lifetime you do not control or influence.  
-//	Calling get() on a handle will return a pointer to the referenced object or NULL, 
-//	if the object no longer exists.  Note that during the lifetime of the returned pointer, 
-//	you are assuming that the object will not be deleted by any action you perform, 
-//	or any other thread, as normal when using pointers, so avoid using that pointer outside of
-//	the local code block.
-// 
-//  https://wiki.lindenlab.com/mediawiki/index.php?title=LLHandle&oldid=79669
-
-template <typename T>
-class LLHandle
-{
-public:
-	LLHandle() : mTombStone(sDefaultTombStone) {}
-	const LLHandle<T>& operator =(const LLHandle<T>& other)  
-	{ 
-		mTombStone = other.mTombStone;
-		return *this; 
-	}
-
-	bool isDead() const 
-	{ 
-		return mTombStone->getTarget() == NULL; 
-	}
-
-	void markDead() 
-	{ 
-		mTombStone = sDefaultTombStone; 
-	}
-
-	T* get() const
-	{
-		return mTombStone->getTarget();
-	}
-
-	friend bool operator== (const LLHandle<T>& lhs, const LLHandle<T>& rhs)
-	{
-		return lhs.mTombStone == rhs.mTombStone;
-	}
-	friend bool operator!= (const LLHandle<T>& lhs, const LLHandle<T>& rhs)
-	{
-		return !(lhs == rhs);
-	}
-	friend bool	operator< (const LLHandle<T>& lhs, const LLHandle<T>& rhs)
-	{
-		return lhs.mTombStone < rhs.mTombStone;
-	}
-	friend bool	operator> (const LLHandle<T>& lhs, const LLHandle<T>& rhs)
-	{
-		return lhs.mTombStone > rhs.mTombStone;
-	}
-protected:
-
-protected:
-	LLPointer<LLTombStone<T> > mTombStone;
-
-private:
-	static LLPointer<LLTombStone<T> > sDefaultTombStone;
-};
-
-// initialize static "empty" tombstone pointer
-template <typename T> LLPointer<LLTombStone<T> > LLHandle<T>::sDefaultTombStone = new LLTombStone<T>();
-
-
-template <typename T>
-class LLRootHandle : public LLHandle<T>
-{
-public:
-	LLRootHandle(T* object) { bind(object); }
-	LLRootHandle() {};
-	~LLRootHandle() { unbind(); }
-
-	// this is redundant, since a LLRootHandle *is* an LLHandle
-	LLHandle<T> getHandle() { return LLHandle<T>(*this); }
-
-	void bind(T* object) 
-	{ 
-		// unbind existing tombstone
-		if (LLHandle<T>::mTombStone.notNull())
-		{
-			if (LLHandle<T>::mTombStone->getTarget() == object) return;
-			LLHandle<T>::mTombStone->setTarget(NULL);
-		}
-		// tombstone reference counted, so no paired delete
-		LLHandle<T>::mTombStone = new LLTombStone<T>(object);
-	}
-
-	void unbind() 
-	{
-		LLHandle<T>::mTombStone->setTarget(NULL);
-	}
-
-	//don't allow copying of root handles, since there should only be one
-private:
-	LLRootHandle(const LLRootHandle& other) {};
-};
-
-// Use this as a mixin for simple classes that need handles and when you don't
-// want handles at multiple points of the inheritance hierarchy
-template <typename T>
-class LLHandleProvider
-{
-protected:
-	typedef LLHandle<T> handle_type_t;
-	LLHandleProvider() 
-	{
-		// provided here to enforce T deriving from LLHandleProvider<T>
-	} 
-
-	LLHandle<T> getHandle() 
-	{ 
-		// perform lazy binding to avoid small tombstone allocations for handle
-		// providers whose handles are never referenced
-		mHandle.bind(static_cast<T*>(this)); 
-		return mHandle; 
-	}
-
-private:
-	LLRootHandle<T> mHandle;
-};
-
 
 //RN: maybe this needs to moved elsewhere?
 class LLImageProviderInterface
 {
-public:
+protected:
 	LLImageProviderInterface() {};
 	virtual ~LLImageProviderInterface() {};
-
-	virtual LLUIImagePtr getUIImage(const std::string& name, S32 priority) = 0;
-	virtual LLUIImagePtr getUIImageByID(const LLUUID& id, S32 priority) = 0;
+public:
+	virtual LLPointer<LLUIImage> getUIImage(const std::string& name, S32 priority) = 0;
+	virtual LLPointer<LLUIImage> getUIImageByID(const LLUUID& id, S32 priority) = 0;
 	virtual void cleanUp() = 0;
 };
 

@@ -106,13 +106,14 @@ protected:
 	LLSliderCtrl	*mCtrlSkyFactor;				// LOD for terrain
 	LLSliderCtrl	*mCtrlMaxParticle;				// Max Particle
 	LLSliderCtrl	*mCtrlPostProcess;				// Max Particle
+	LLSliderCtrl	*mCtrlNonImpostors;				// Max non-impostors
 
 	LLCheckBoxCtrl	*mCtrlBumpShiny;
 	LLCheckBoxCtrl	*mCtrlWindLight;
 	LLCheckBoxCtrl	*mCtrlAvatarVP;
 	LLCheckBoxCtrl	*mCtrlShaderEnable;
 	LLCheckBoxCtrl	*mCtrlDeferred;
-	LLCheckBoxCtrl	*mCtrlDeferredGI;
+	LLCheckBoxCtrl	*mCtrlDeferredDoF;
 	LLComboBox		*mCtrlShadowDetail;
 	LLCheckBoxCtrl	*mCtrlAvatarImpostors;
 	LLCheckBoxCtrl	*mCtrlAvatarCloth;
@@ -155,13 +156,14 @@ protected:
 	BOOL mShaderEnable;
 	BOOL mWindLight;
 	BOOL mDeferred;
-	BOOL mDeferredGI;
+	BOOL mDeferredDoF;
 	BOOL mAvatarVP;
 
 	S32 mReflectionDetail;
 	S32 mShadowDetail;
 
 	BOOL mAvatarImpostors;
+	S32 mNonImpostors;
 	BOOL mAvatarCloth;
 	S32 mAvatarMode;
 	BOOL mLocalLights;

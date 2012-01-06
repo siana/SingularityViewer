@@ -1,13 +1,33 @@
 /** 
  * @file multiPointLightF.glsl
  *
- * Copyright (c) 2007-$CurrentYear$, Linden Research, Inc.
- * $License$
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
+ * Second Life Viewer Source Code
+ * Copyright (C) 2007, Linden Research, Inc.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
+ * $/LicenseInfo$
  */
 
-#version 120
-
 #extension GL_ARB_texture_rectangle : enable
+
+#ifdef DEFINE_GL_FRAGCOLOR
+out vec4 gl_FragColor;
+#endif
 
 uniform sampler2DRect depthMap;
 uniform sampler2DRect diffuseRect;
@@ -23,10 +43,11 @@ uniform float sun_wash;
 
 uniform int light_count;
 
-uniform vec4 light[16];
-uniform vec4 light_col[16];
+#define MAX_LIGHT_COUNT		16
+uniform vec4 light[MAX_LIGHT_COUNT];
+uniform vec4 light_col[MAX_LIGHT_COUNT];
 
-varying vec4 vary_fragcoord;
+VARYING vec4 vary_fragcoord;
 uniform vec2 screen_res;
 
 uniform float far_z;
@@ -35,7 +56,7 @@ uniform mat4 inv_proj;
 
 vec4 getPosition(vec2 pos_screen)
 {
-	float depth = texture2DRect(depthMap, pos_screen.xy).a;
+	float depth = texture2DRect(depthMap, pos_screen.xy).r;
 	vec2 sc = pos_screen.xy*2.0;
 	sc /= screen_res;
 	sc -= vec2(1.0,1.0);
@@ -63,50 +84,56 @@ void main()
 	float noise = texture2D(noiseMap, frag.xy/128.0).b;
 	vec3 out_col = vec3(0,0,0);
 	vec3 npos = normalize(-pos);
-	
-	for (int i = 0; i < light_count; ++i)
+
+	// As of OSX 10.6.7 ATI Apple's crash when using a variable size loop
+	for (int i = 0; i < MAX_LIGHT_COUNT; ++i)
 	{
+		bool light_contrib = (i < light_count);
+		
 		vec3 lv = light[i].xyz-pos;
 		float dist2 = dot(lv,lv);
 		dist2 /= light[i].w;
 		if (dist2 > 1.0)
 		{
-			continue;
+			light_contrib = false;
 		}
 		
 		float da = dot(norm, lv);
 		if (da < 0.0)
 		{
-			continue;
+			light_contrib = false;
 		}
-				
-		lv = normalize(lv);
-		da = dot(norm, lv);
-				
-		float fa = light_col[i].a+1.0;
-		float dist_atten = clamp(1.0-(dist2-1.0*(1.0-fa))/fa, 0.0, 1.0);
-		dist_atten *= noise;
-
-		float lit = da * dist_atten;
 		
-		vec3 col = light_col[i].rgb*lit*diff;
-		//vec3 col = vec3(dist2, light_col[i].a, lit);
-		
-		if (spec.a > 0.0)
+		if (light_contrib)
 		{
-			//vec3 ref = dot(pos+lv, norm);
+			lv = normalize(lv);
+			da = dot(norm, lv);
+					
+			float fa = light_col[i].a+1.0;
+			float dist_atten = clamp(1.0-(dist2-1.0*(1.0-fa))/fa, 0.0, 1.0);
+			dist_atten *= noise;
+
+			float lit = da * dist_atten;
 			
-			float sa = dot(normalize(lv+npos),norm);
+			vec3 col = light_col[i].rgb*lit*diff;
+			//vec3 col = vec3(dist2, light_col[i].a, lit);
 			
-			if (sa > 0.0)
+			if (spec.a > 0.0)
 			{
-				sa = texture2D(lightFunc,vec2(sa, spec.a)).a * min(dist_atten*4.0, 1.0);
-				sa *= noise;
-				col += da*sa*light_col[i].rgb*spec.rgb;
+				//vec3 ref = dot(pos+lv, norm);
+				
+				float sa = dot(normalize(lv+npos),norm);
+				
+				if (sa > 0.0)
+				{
+					sa = texture2D(lightFunc,vec2(sa, spec.a)).r * min(dist_atten*4.0, 1.0);
+					sa *= noise;
+					col += da*sa*light_col[i].rgb*spec.rgb;
+				}
 			}
+			
+			out_col += col;
 		}
-		
-		out_col += col;	
 	}
 	
 	if (dot(out_col, out_col) <= 0.0)

@@ -49,6 +49,7 @@
 #include "llsdutil.h"
 #include "llsdutil_math.h"
 #include "lltransactiontypes.h"
+#include "llinventorydefines.h"
 
 // newview includes
 #include "llagent.h"
@@ -61,7 +62,7 @@
 #include "llfloaternamedesc.h"
 #include "llfloatersnapshot.h"
 #include "llinventorymodel.h"	// gInventory
-#include "llnotify.h"
+#include "llnotificationsutil.h"
 #include "llresourcedata.h"
 #include "llselectmgr.h"
 #include "llstatusbar.h"
@@ -560,7 +561,7 @@ void LLObjectBackup::exportWorker(void *userdata)
 			if (LLObjectBackup::getInstance()->mNonExportedTextures == LLObjectBackup::TEXTURE_OK)
 			{
 				LL_INFOS("ObjectBackup") << "Export successful and complete." << LL_ENDL;
-				LLNotifications::instance().add("ExportSuccessful");
+				LLNotificationsUtil::add("ExportSuccessful");
 			}
 			else
 			{
@@ -588,7 +589,7 @@ void LLObjectBackup::exportWorker(void *userdata)
 				}
 				LLSD args;
 				args["REASON"] = reason;
-				LLNotifications::instance().add("ExportPartial", args);
+				LLNotificationsUtil::add("ExportPartial", args);
 			}
 			LLObjectBackup::getInstance()->close();
 			break;
@@ -596,7 +597,7 @@ void LLObjectBackup::exportWorker(void *userdata)
 		case EXPORT_FAILED:
 			gIdleCallbacks.deleteFunction(exportWorker);
 			LL_WARNS("ObjectBackup") << "Export process aborted." << LL_ENDL;
-			LLNotifications::instance().add("ExportFailed");
+			LLNotificationsUtil::add("ExportFailed");
 			LLObjectBackup::getInstance()->close();
 			break;
 	}
@@ -1180,7 +1181,7 @@ void LLObjectBackup::updateMap(LLUUID uploaded_asset)
 
 void myupload_new_resource(const LLTransactionID &tid, LLAssetType::EType asset_type,
 						 std::string name, std::string desc, S32 compression_info,
-						 LLAssetType::EType destination_folder_type,
+						 LLFolderType::EType destination_folder_type,
 						 LLInventoryType::EType inv_type, U32 next_owner_perm,
 						 const std::string& display_name,
 						 LLAssetStorage::LLStoreAssetCallback callback,
@@ -1202,7 +1203,7 @@ void myupload_new_resource(const LLTransactionID &tid, LLAssetType::EType asset_
 	if (!url.empty())
 	{
 		LLSD body;
-		body["folder_id"] = gInventory.findCategoryUUIDForType((destination_folder_type == LLAssetType::AT_NONE) ? asset_type : destination_folder_type);
+		body["folder_id"] = gInventory.findCategoryUUIDForType((destination_folder_type == LLFolderType::FT_NONE) ? LLFolderType::assetTypeToFolderType(asset_type) : destination_folder_type);
 		body["asset_type"] = LLAssetType::lookup(asset_type);
 		body["inventory_type"] = LLInventoryType::lookup(inv_type);
 		body["name"] = name;
@@ -1251,8 +1252,7 @@ void LLObjectBackup::uploadNextAsset()
 	uuid = tid.makeAssetID(gAgent.getSecureSessionID());
 
 	S32 file_size;
-	LLAPRFile outfile;
-	outfile.open(filename, LL_APR_RB, LLAPRFile::local, &file_size);
+	LLAPRFile outfile(filename, LL_APR_RB, &file_size);
 	if (outfile.getFileHandle())
 	{
 		const S32 buf_size = 65536;	
@@ -1273,6 +1273,6 @@ void LLObjectBackup::uploadNextAsset()
 	}
 
 	 myupload_new_resource(tid, LLAssetType::AT_TEXTURE, struid, struid, 0,
-		LLAssetType::AT_TEXTURE, LLInventoryType::defaultForAssetType(LLAssetType::AT_TEXTURE),
+		LLFolderType::FT_TEXTURE, LLInventoryType::defaultForAssetType(LLAssetType::AT_TEXTURE),
 		0x0, "Uploaded texture", NULL, NULL);
 }

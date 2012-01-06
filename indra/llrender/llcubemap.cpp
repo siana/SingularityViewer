@@ -42,6 +42,7 @@
 #include "m4math.h"
 
 #include "llrender.h"
+#include "llglslshader.h"
 
 #include "llglheaders.h"
 
@@ -201,7 +202,7 @@ void LLCubeMap::enableTexture(S32 stage)
 void LLCubeMap::enableTextureCoords(S32 stage)
 {
 	mTextureCoordStage = stage;
-	if (gGLManager.mHasCubeMap && stage >= 0 && LLCubeMap::sUseCubeMaps)
+	if (!LLGLSLShader::sNoFixedFunction && gGLManager.mHasCubeMap && stage >= 0 && LLCubeMap::sUseCubeMaps)
 	{
 		if (stage > 0)
 		{
@@ -243,7 +244,7 @@ void LLCubeMap::disableTexture(void)
 
 void LLCubeMap::disableTextureCoords(void)
 {
-	if (gGLManager.mHasCubeMap && mTextureCoordStage >= 0 && LLCubeMap::sUseCubeMaps)
+	if (!LLGLSLShader::sNoFixedFunction && gGLManager.mHasCubeMap && mTextureCoordStage >= 0 && LLCubeMap::sUseCubeMaps)
 	{
 		if (mTextureCoordStage > 0)
 		{
@@ -270,19 +271,19 @@ void LLCubeMap::setMatrix(S32 stage)
 		gGL.getTexUnit(stage)->activate();
 	}
 
-	LLVector3 x(LLVector3d(gGLModelView+0));
-	LLVector3 y(LLVector3d(gGLModelView+4));
-	LLVector3 z(LLVector3d(gGLModelView+8));
+	LLVector3 x(gGLModelView+0);
+	LLVector3 y(gGLModelView+4);
+	LLVector3 z(gGLModelView+8);
 
 	LLMatrix3 mat3;
 	mat3.setRows(x,y,z);
 	LLMatrix4 trans(mat3);
 	trans.transpose();
 
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadMatrixf((F32 *)trans.mMatrix);
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_TEXTURE);
+	gGL.pushMatrix();
+	gGL.loadMatrix((F32 *)trans.mMatrix);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	
 	if (stage > 0)
 	{
@@ -298,9 +299,9 @@ void LLCubeMap::restoreMatrix()
 	{
 		gGL.getTexUnit(mMatrixStage)->activate();
 	}
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_TEXTURE);
+	gGL.popMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	
 	if (mMatrixStage > 0)
 	{

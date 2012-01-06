@@ -37,6 +37,7 @@
 #include "llbvhloader.h"
 #include "lldatapacker.h"
 #include "lldir.h"
+#include "llnotificationsutil.h"
 #include "llvfile.h"
 #include "llapr.h"
 #include "llstring.h"
@@ -64,7 +65,7 @@
 #include "llviewerobjectlist.h"
 #include "llviewerwindow.h"
 #include "llviewermenufile.h"	// upload_new_resource()
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "pipeline.h"
 #include "lluictrlfactory.h"
 #include "llviewercontrol.h"
@@ -324,8 +325,7 @@ BOOL LLFloaterAnimPreview::postBuild()
 		// now load bvh file
 		S32 file_size;
 		
-		LLAPRFile infile ;
-		infile.open(mFilenameAndPath, LL_APR_RB, LLAPRFile::global, &file_size);
+		LLAPRFile infile(mFilenameAndPath, LL_APR_RB, &file_size);
 		
 		if (!infile.getFileHandle())
 		{
@@ -372,7 +372,7 @@ BOOL LLFloaterAnimPreview::postBuild()
 		// load the keyframe data locally
 		if (mInWorld)
 		{
-			motionp = (LLKeyframeMotion*)gAgent.getAvatarObject()->createMotion(mMotionID);
+			motionp = (LLKeyframeMotion*)gAgentAvatarp->createMotion(mMotionID);
 		}
 		else
 		{
@@ -421,8 +421,7 @@ BOOL LLFloaterAnimPreview::postBuild()
 	else if(exten == "animatn")
 	{
 		S32 file_size;
-		LLAPRFile raw_animatn;
-		raw_animatn.open(mFilenameAndPath, LL_APR_RB, LLAPRFile::global, &file_size);
+		LLAPRFile raw_animatn(mFilenameAndPath, LL_APR_RB, &file_size);
 
 		if (!raw_animatn.getFileHandle())
 		{
@@ -518,7 +517,7 @@ LLFloaterAnimPreview::~LLFloaterAnimPreview()
 {
 	if (mInWorld)
 	{
-		LLVOAvatar* avatarp = gAgent.getAvatarObject();
+		LLVOAvatar* avatarp = gAgentAvatarp;
 		if (avatarp)
 		{
 			if (mMotionID.notNull())
@@ -588,7 +587,7 @@ void LLFloaterAnimPreview::resetMotion()
 	LLVOAvatar* avatarp;
 	if (mInWorld)
 	{
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -697,7 +696,7 @@ BOOL LLFloaterAnimPreview::handleHover(S32 x, S32 y, MASK mask)
 
 		mAnimPreview->requestUpdate();
 
-		LLUI::setCursorPositionLocal(this, mLastMouseX, mLastMouseY);
+		LLUI::setMousePositionLocal(this, mLastMouseX, mLastMouseY);
 	}
 
 	if (!mPreviewRect.pointInRect(x, y) || !mAnimPreview)
@@ -758,11 +757,11 @@ void LLFloaterAnimPreview::onBtnPlay(void* user_data)
 		LLVOAvatar* avatarp;
 		if (previewp->mInWorld)
 		{
-			if (!gAgent.getAvatarObject())
+			if (!gAgentAvatarp)
 			{
 				return;
 			}
-			avatarp = gAgent.getAvatarObject();
+			avatarp = gAgentAvatarp;
 		}
 		else
 		{
@@ -806,11 +805,11 @@ void LLFloaterAnimPreview::onBtnStop(void* user_data)
 		LLVOAvatar* avatarp;
 		if (previewp->mInWorld)
 		{
-			if (!gAgent.getAvatarObject())
+			if (!gAgentAvatarp)
 			{
 				return;
 			}
-			avatarp = gAgent.getAvatarObject();
+			avatarp = gAgentAvatarp;
 		}
 		else
 		{
@@ -837,11 +836,11 @@ void LLFloaterAnimPreview::onSliderMove(LLUICtrl* ctrl, void*user_data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -875,11 +874,11 @@ void LLFloaterAnimPreview::onCommitBaseAnim(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -918,11 +917,11 @@ void LLFloaterAnimPreview::onCommitLoop(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -954,11 +953,11 @@ void LLFloaterAnimPreview::onCommitLoopIn(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -991,11 +990,11 @@ void LLFloaterAnimPreview::onCommitLoopOut(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1028,11 +1027,11 @@ void LLFloaterAnimPreview::onCommitName(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1088,11 +1087,11 @@ void LLFloaterAnimPreview::onCommitPriority(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1119,11 +1118,11 @@ void LLFloaterAnimPreview::onCommitEaseIn(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1151,11 +1150,11 @@ void LLFloaterAnimPreview::onCommitEaseOut(LLUICtrl* ctrl, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1183,11 +1182,11 @@ BOOL LLFloaterAnimPreview::validateEaseIn(LLUICtrl* spin, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return FALSE;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1221,11 +1220,11 @@ BOOL LLFloaterAnimPreview::validateEaseOut(LLUICtrl* spin, void* data)
 	LLVOAvatar* avatarp;
 	if (previewp->mInWorld)
 	{
-		if (!gAgent.getAvatarObject())
+		if (!gAgentAvatarp)
 		{
 			return FALSE;
 		}
-		avatarp = gAgent.getAvatarObject();
+		avatarp = gAgentAvatarp;
 	}
 	else
 	{
@@ -1327,7 +1326,7 @@ void LLFloaterAnimPreview::refresh()
 		LLVOAvatar* avatarp;
 		if (mInWorld)
 		{
-			avatarp = gAgent.getAvatarObject();
+			avatarp = gAgentAvatarp;
 		}
 		else
 		{
@@ -1380,12 +1379,12 @@ void LLFloaterAnimPreview::onBtnOK(void* userdata)
 	LLFloaterAnimPreview* floaterp = (LLFloaterAnimPreview*)userdata;
 	if (!floaterp->getEnabled()) return;
 
-	if ((!floaterp->mInWorld && floaterp->mAnimPreview) || (floaterp->mInWorld && gAgent.getAvatarObject()))
+	if ((!floaterp->mInWorld && floaterp->mAnimPreview) || (floaterp->mInWorld && gAgentAvatarp))
 	{
 		LLKeyframeMotion* motionp;
 		if (floaterp->mInWorld)
 		{
-			motionp = (LLKeyframeMotion*)gAgent.getAvatarObject()->findMotion(floaterp->mMotionID);
+			motionp = (LLKeyframeMotion*)gAgentAvatarp->findMotion(floaterp->mMotionID);
 		}
 		else
 		{
@@ -1435,7 +1434,7 @@ void LLFloaterAnimPreview::onBtnOK(void* userdata)
 						    name,
 						    desc,
 						    0,
-						    LLAssetType::AT_NONE,
+						    LLFolderType::FT_ANIMATION,
 						    LLInventoryType::IT_ANIMATION,
 						    LLFloaterPerms::getNextOwnerPerms(), LLFloaterPerms::getGroupPerms(), LLFloaterPerms::getEveryonePerms(),
 						    name,
@@ -1444,7 +1443,7 @@ void LLFloaterAnimPreview::onBtnOK(void* userdata)
 			else
 			{
 				llwarns << "Failure writing animation data." << llendl;
-				LLNotifications::instance().add("WriteAnimationFail");
+				LLNotificationsUtil::add("WriteAnimationFail");
 			}
 		}
 
@@ -1452,8 +1451,8 @@ void LLFloaterAnimPreview::onBtnOK(void* userdata)
 		// clear out cache for motion data
 		if (floaterp->mInWorld)
 		{
-			gAgent.getAvatarObject()->removeMotion(floaterp->mMotionID);
-			gAgent.getAvatarObject()->deactivateAllMotions();
+			gAgentAvatarp->removeMotion(floaterp->mMotionID);
+			gAgentAvatarp->deactivateAllMotions();
 		}
 		else
 		{
@@ -1517,14 +1516,19 @@ BOOL	LLPreviewAnimation::render()
 	mNeedsUpdate = FALSE;
 	LLVOAvatar* avatarp = mDummyAvatar;
 	
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.pushMatrix();
-	glLoadIdentity();
-	glOrtho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
+	gGL.loadIdentity();
+	gGL.ortho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
 
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.pushMatrix();
-	glLoadIdentity();
+	gGL.loadIdentity();
+
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.bind();
+	}
 
 	LLGLSUIDefault def;
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
@@ -1532,10 +1536,10 @@ BOOL	LLPreviewAnimation::render()
 
 	gl_rect_2d_simple( mFullWidth, mFullHeight );
 
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.popMatrix();
 
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.popMatrix();
 
 	gGL.flush();

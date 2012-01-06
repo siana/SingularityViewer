@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="avatar_texture_debug" title="Textures de l&apos;avatar">
+	<text name="label">
+		Textures fixées
+	</text>
+	<text name="composite_label">
+		Textures composées
+	</text>
+	<button label="Vider ces ID dans la console" label_selected="Vider" name="Dump" left="-185" width="175"/>
+	<texture_picker label="Cheveux" name="hair-baked"/>
+	<texture_picker label="Cheveux" name="hair"/>
+	<texture_picker label="Tête" name="head-baked"/>
+	<texture_picker label="Maquillage" name="head bodypaint"/>
+	<texture_picker label="Yeux" name="eyes-baked"/>
+	<texture_picker label="Œil" name="iris"/>
+	<texture_picker label="Haut du corps" name="upper-baked"/>
+	<texture_picker label="Tatouage (haut du corps)" name="upper bodypaint"/>
+	<texture_picker label="Tee Shirt" name="undershirt"/>
+	<texture_picker label="Gants" name="gloves"/>
+	<texture_picker label="Chemise" name="shirt"/>
+	<texture_picker label="Veste (haut)" name="upper jacket"/>
+	<texture_picker label="Bas du corps" name="lower-baked"/>
+	<texture_picker label="Tatouage (bas du corps)" name="lower bodypaint"/>
+	<texture_picker label="culotte" name="underpants"/>
+	<texture_picker label="Chaussettes" name="socks"/>
+	<texture_picker label="Chaussures" name="shoes"/>
+	<texture_picker label="Pantalon" name="pants"/>
+	<texture_picker label="Veste" name="lower jacket"/>
+	<texture_picker label="Jupe" name="skirt-baked"/>
+	<texture_picker label="Jupe" name="skirt"/>
+</floater>

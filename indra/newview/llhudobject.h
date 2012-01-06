@@ -74,8 +74,9 @@ public:
 	static LLHUDEffect *addHUDEffect(const U8 type);
 	static void updateAll();
 	static void renderAll();
-	static void renderAllForSelect();
 	static void renderAllForTimer();
+	// Some objects may need to update when window shape changes
+	static void reshapeAll();
 
 	static void cleanupHUDObjects();
 
@@ -97,7 +98,8 @@ public:
 		LL_HUD_EFFECT_EDIT,
 		LL_HUD_EFFECT_LOOKAT,
 		LL_HUD_EFFECT_POINTAT,
-		LL_HUD_EFFECT_VOICE_VISUALIZER	// Ventrella
+		LL_HUD_EFFECT_VOICE_VISUALIZER,	// Ventrella
+		LL_HUD_NAME_TAG
 	};
 protected:
 	static void sortObjects();
@@ -106,7 +108,6 @@ protected:
 	~LLHUDObject();
 
 	virtual void render() = 0;
-	virtual void renderForSelect() {}	//Only override when needed.
 	virtual void renderForTimer() {};
 	
 protected:
@@ -114,7 +115,6 @@ protected:
 	BOOL			mDead;
 	BOOL			mVisible;
 	LLVector3d		mPositionGlobal;
-	BOOL			mOnHUDAttachment;
 	LLPointer<LLViewerObject> mSourceObject;
 	LLPointer<LLViewerObject> mTargetObject;
 

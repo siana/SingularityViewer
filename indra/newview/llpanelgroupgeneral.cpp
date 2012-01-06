@@ -50,6 +50,7 @@
 #include "llnamebox.h"
 #include "llnamelistctrl.h"
 #include "llnameeditor.h"
+#include "llnotificationsutil.h"
 #include "llspinctrl.h"
 #include "llstatusbar.h"	// can_afford_transaction()
 #include "lltextbox.h"
@@ -377,11 +378,11 @@ void LLPanelGroupGeneral::onClickJoin(void *userdata)
 
 		if (can_afford_transaction(cost))
 		{
-			LLNotifications::instance().add("JoinGroupCanAfford", args, payload, LLPanelGroupGeneral::joinDlgCB);
+			LLNotificationsUtil::add("JoinGroupCanAfford", args, payload, LLPanelGroupGeneral::joinDlgCB);
 		}
 		else
 		{
-			LLNotifications::instance().add("JoinGroupCannotAfford", args, payload);
+			LLNotificationsUtil::add("JoinGroupCannotAfford", args, payload);
 		}
 	}
 	else
@@ -472,7 +473,7 @@ bool LLPanelGroupGeneral::apply(std::string& mesg)
 		if(mComboMature &&
 		   mComboMature->getCurrentIndex() == DECLINE_TO_STATE)
 		{
-			LLNotifications::instance().add("SetGroupMature", LLSD(), LLSD(), 
+			LLNotificationsUtil::add("SetGroupMature", LLSD(), LLSD(), 
 											boost::bind(&LLPanelGroupGeneral::confirmMatureApply, this, _1, _2));
 			return false;
 		}
@@ -493,7 +494,7 @@ bool LLPanelGroupGeneral::apply(std::string& mesg)
 
 			LLSD args;
 			args["MESSAGE"] = mConfirmGroupCreateStr;
-			LLNotifications::instance().add("GenericAlertYesCancel", args, LLSD(), boost::bind(&LLPanelGroupGeneral::createGroupCallback, this, _1, _2));
+			LLNotificationsUtil::add("GenericAlertYesCancel", args, LLSD(), boost::bind(&LLPanelGroupGeneral::createGroupCallback, this, _1, _2));
 
 			return false;
 		}

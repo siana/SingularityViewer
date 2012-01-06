@@ -277,6 +277,14 @@ LLPluginSharedMemoryPlatformImpl::~LLPluginSharedMemoryPlatformImpl()
 
 bool LLPluginSharedMemory::map(void)
 {
+    llassert(mSize);
+    if (!mSize)
+    {
+        LL_DEBUGS("Plugin") << "Tried to mmap zero length" << LL_ENDL;
+        return false;
+    }
+    llassert(mImpl->mSharedMemoryFD != -1);
+    llassert(fcntl(mImpl->mSharedMemoryFD, F_GETFL) != -1);
 	mMappedAddress = ::mmap(NULL, mSize, PROT_READ | PROT_WRITE, MAP_SHARED, mImpl->mSharedMemoryFD, 0);
 	if(mMappedAddress == NULL)
 	{

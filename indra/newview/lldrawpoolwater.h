@@ -55,6 +55,7 @@ public:
 	static LLVector3 sLightDir;
 
 	static LLColor4 sWaterFogColor;
+	static F32 sWaterFogEnd;
 
 	enum
 	{

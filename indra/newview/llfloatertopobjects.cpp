@@ -41,6 +41,7 @@
 #include "llbutton.h"
 #include "llfloatergodtools.h"
 #include "llfloateravatarinfo.h"
+#include "llnotificationsutil.h"
 #include "llparcel.h"
 #include "llscrolllistctrl.h"
 #include "lllineeditor.h"
@@ -398,7 +399,7 @@ void LLFloaterTopObjects::doToObjects(int action, bool all)
 //static
 bool LLFloaterTopObjects::callbackReturnAll(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if (option == 0)
 	{
 		sInstance->doToObjects(ACTION_RETURN, true);
@@ -408,7 +409,7 @@ bool LLFloaterTopObjects::callbackReturnAll(const LLSD& notification, const LLSD
 
 void LLFloaterTopObjects::onReturnAll(void* data)
 {	
-	LLNotifications::instance().add("ReturnAllTopObjects", LLSD(), LLSD(), &callbackReturnAll);
+	LLNotificationsUtil::add("ReturnAllTopObjects", LLSD(), LLSD(), &callbackReturnAll);
 }
 
 
@@ -541,7 +542,7 @@ void LLFloaterTopObjects::onTP(void* data)
 //static
 bool LLFloaterTopObjects::callbackDisableAll(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if (option == 0)
 	{
 		sInstance->doToObjects(ACTION_DISABLE, true);
@@ -551,7 +552,7 @@ bool LLFloaterTopObjects::callbackDisableAll(const LLSD& notification, const LLS
 
 void LLFloaterTopObjects::onDisableAll(void* data)
 {
-	LLNotifications::instance().add("DisableAllTopObjects", LLSD(), LLSD(), callbackDisableAll);
+	LLNotificationsUtil::add("DisableAllTopObjects", LLSD(), LLSD(), callbackDisableAll);
 }
 
 void LLFloaterTopObjects::onDisableSelected(void* data)

@@ -1607,6 +1607,17 @@ Unable to upload [FILE] due to the following reason: [REASON]
 Please try again later.
   </notification>
 
+   <notification
+    icon="alertmodal.tga"
+    name="UploadCostConfirmation"
+    type="alertmodal">
+This upload will cost L$[PRICE], do you wish to continue with the upload?
+    <usetemplate
+     name="okcancelbuttons"
+     notext="Cancel"
+     yestext="Upload"/>
+  </notification>
+
   <notification
    icon="alertmodal.tga"
    name="CannotCreateLandmarkNotOwner"
@@ -2481,7 +2492,7 @@ Deed this [AREA] m² of land to the group &apos;[GROUP_NAME]&apos;?
    name="DeedLandToGroupWithContribution"
    type="alertmodal">
 By deeding this parcel, the group will be required to have and maintain sufficient land use credits.
-The deed will include a simultaneous land contribution to the group from &apos;[FIRST_NAME] [LAST_NAME]&apos;.
+The deed will include a simultaneous land contribution to the group from &apos;[NAME]&apos;.
 The purchase price of the land is not refunded to the owner. If a deeded parcel is sold, the sale price will be divided evenly among group members.
 
 Deed this [AREA] m² of land to the group &apos;[GROUP_NAME]&apos;?
@@ -3693,7 +3704,7 @@ Does this group contain Mature content?
    label="Confirm restart"
    name="ConfirmRestart"
    type="alert">
-Do you really want to restart this region in 2 minutes?
+Do you really want to restart this region?
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -4326,6 +4337,13 @@ Warning: The Pay Object click action has been set, but it will only work if a sc
       <ignore name="ignore"
        text="When Setting &apos;Pay&apos; on objects without money() events"/>
     </form>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="PaymentBlockedButtonMismatch"
+   type="alertmodal">
+Payment stopped: the price paid does not match any of the pay buttons set for this object.
   </notification>
 
   <notification
@@ -5492,7 +5510,7 @@ You cannot remove protected categories.
    icon="notifytip.tga"
    name="OfferedCard"
    type="notifytip">
-You have offered a calling card to [FIRST] [LAST]
+You have offered a calling card to [NAME]
   </notification>
 
   <notification
@@ -5729,7 +5747,7 @@ The objects you own on the selected parcel of land have been returned back to yo
    icon="notify.tga"
    name="OtherObjectsReturned"
    type="notify">
-The objects on the selected parcel of land that is owned by [FIRST] [LAST] have been returned to his or her inventory.
+The objects on the selected parcel of land that is owned by [NAME] have been returned to his or her inventory.
   </notification>
 
   <notification
@@ -6018,7 +6036,7 @@ No valid parcel could be found.
    icon="notify.tga"
    name="ObjectGiveItem"
    type="notify">
-An object named [OBJECTFROMNAME] owned by [FIRST] [LAST] has given you a [OBJECTTYPE] named [OBJECTNAME].
+An object named [OBJECTFROMNAME] owned by [NAME] has given you a [OBJECTTYPE] named [OBJECTNAME].
     <form name="form">
       <button
        index="0"
@@ -6216,7 +6234,7 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
    icon="notify.tga"
    name="OfferCallingCard"
    type="notify">
-[FIRST] [LAST] is offering their calling card.
+[NAME] is offering their calling card.
 This will add a bookmark in your inventory so you can quickly IM this resident.
     <form name="form">
       <button
@@ -6352,7 +6370,7 @@ Grant this request?
    icon="notify.tga"
    name="ScriptDialog"
    type="notify">
-[FIRST] [LAST]&apos;s &apos;[TITLE]&apos; (ch[CHANNEL])
+[NAME]&apos;s &apos;[TITLE]&apos; (ch[CHANNEL])
 [MESSAGE]
     <form name="form">
       <button
@@ -6380,7 +6398,7 @@ Grant this request?
    icon="notify.tga"
    name="ScriptTextBoxDialog"
    type="notify">
-    [FIRST] [LAST]&apos;s &apos;[TITLE]&apos;
+    [NAME]&apos;s &apos;[TITLE]&apos;
     [MESSAGE]
     <form name="form">
       <input name="message">
@@ -6602,21 +6620,21 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
    icon="notify.tga"
    name="AutoUnmuteByIM"
    type="notify">
-[FIRST] [LAST] was sent an instant message and has been automatically unmuted.
+[NAME] was sent an instant message and has been automatically unmuted.
   </notification>
 
   <notification
    icon="notify.tga"
    name="AutoUnmuteByMoney"
    type="notify">
-[FIRST] [LAST] was given money and has been automatically unmuted.
+[NAME] was given money and has been automatically unmuted.
   </notification>
 
   <notification
    icon="notify.tga"
    name="AutoUnmuteByInventory"
    type="notify">
-[FIRST] [LAST] was offered inventory and has been automatically unmuted.
+[NAME] was offered inventory and has been automatically unmuted.
   </notification>
 
   <notification
@@ -6830,6 +6848,13 @@ The region you have entered is running a different simulator version. Click this
 The URL you clicked cannot be opened from this web browser.
   </notification>
 
+  <notification
+    name="RegionCapabilityRequestError"
+    icon="alert.tga"
+    type="alert">
+    Could not get region capability &apos;[CAPABILITY]&apos;.
+  </notification>
+
   <global name="UnsupportedCPU">
 - Your CPU speed does not meet the minimum requirements.
   </global>
@@ -6958,11 +6983,11 @@ No
     For instructions, make a new template in the AO. Use the toolbar to toggle the AO on/off.
   </notification>
 
-  <notification icon="notifytip.tga" name="BlockedCards" type="notifytip">Blocked calling cards from [FIRST] [LAST] ([SOURCE])</notification>
-  <notification icon="notifytip.tga" name="BlockedDialogs" type="notifytip">Blocking all dialogs from [FIRST] [LAST]'s objects. (Origin: [SOURCE])</notification>
-  <notification icon="notifytip.tga" name="BlockedGeneralAvatar" type="notifytip">Blocked spam from avatar [FULL_NAME] ([SOURCE])</notification>
+  <notification icon="notifytip.tga" name="BlockedCards" type="notifytip">Blocked calling cards from [NAME] ([SOURCE])</notification>
+  <notification icon="notifytip.tga" name="BlockedDialogs" type="notifytip">Blocking all dialogs from [NAME]'s objects. (Origin: [SOURCE])</notification>
+  <notification icon="notifytip.tga" name="BlockedGeneralAvatar" type="notifytip">Blocked spam from avatar [NAME] ([SOURCE])</notification>
   <notification icon="notifytip.tga" name="BlockedGeneralObjects" type="notifytip">Blocked spam from objects owned by [OWNER] ([SOURCE])</notification>
-  <notification icon="notifytip.tga" name="BlockedChatterAvatar" type="notifytip">Blocked chat-spam from avatar [FULL_NAME] ([SOURCE])</notification>
+  <notification icon="notifytip.tga" name="BlockedChatterAvatar" type="notifytip">Blocked chat-spam from avatar [NAME] ([SOURCE])</notification>
   <notification icon="notifytip.tga" name="BlockedChatterObjects" type="notifytip">Blocked chat-spam from objects owned by [OWNER] ([SOURCE])</notification>
 
   <notification

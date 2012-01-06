@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater bottom="-400" can_close="true" can_drag_on_left="false" 
+	can_minimize="true" can_resize="false" height="244"
+	left="50" min_height="244" min_width="500" mouse_opaque="true" 
+	name="Hardware Settings Floater" title="Hardware Settings" width="500">
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-42" drop_shadow_visible="true" enabled="true" follows="left|top"
+	     font="SansSerifSmall" h_pad="0" halign="left" height="12"
+	     left="10" mouse_opaque="true" name="Filtering:" v_pad="0" width="128">
+		Filtre:
+	</text>
+	<check_box bottom="-46" control_name="RenderAnisotropic" enabled="true" follows="left|top"
+	     font="SansSerifSmall" height="16" initial_value="false"
+	     label="Filtre anisotrope (plus lent si activé)" left="148"
+	     mouse_opaque="true" name="ani" radio_style="false" width="256" />
+  <text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+		bottom="-61" drop_shadow_visible="true" enabled="true" follows="left|top"
+		font="SansSerifSmall" h_pad="0" halign="left" height="12"
+		left="10" mouse_opaque="true" name="Antialiasing:" v_pad="0" width="128">
+    Antialiasing:
+  </text>
+  <combo_box bottom="-65" control_name="RenderFSAASamples" enabled="true" follows="left|top"
+		font="SansSerifSmall" height="16" initial_value="false"
+		label="Antialiasing" left="148"
+		mouse_opaque="true" name="fsaa" width="64">
+    <combo_item name="FSAADisabled" value="0">
+      Désactivé
+    </combo_item>
+    <combo_item name="2x" value="2">
+      2x
+    </combo_item>
+    <combo_item name="4x" value="4">
+      4x
+    </combo_item>
+    <combo_item name="8x" value="8">
+      8x
+    </combo_item>
+    <combo_item name="16x" value="16">
+      16x
+    </combo_item>
+  </combo_box>
+	<spinner bottom_delta="-21" control_name="RenderGamma" decimal_digits="2" enabled="true"
+	     follows="left|top" height="16" increment="0.01"
+	     initial_val="1" label="Gamma:" label_width="138" left="10" max_val="2"
+	     min_val="0.0" mouse_opaque="true" name="gamma" width="202" />
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+		bottom_delta="2" drop_shadow_visible="true" enabled="true" follows="left|top"
+		font="SansSerifSmall" h_pad="0" halign="left" height="12"
+		left="222" mouse_opaque="true" name="(brightness, lower is brighter)"
+		v_pad="0" width="315">
+		(0 = défaut, valeur faible = plus lumineux)
+	</text>
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+		bottom_delta="-20" drop_shadow_visible="true" enabled="true" follows="left|top"
+		font="SansSerifSmall" h_pad="0" halign="left" height="12"
+		left="10" mouse_opaque="true" name="Enable VBO:" v_pad="0"
+		width="128">
+		Activer le VBO:
+	</text>
+	<check_box bottom_delta="-5" control_name="RenderVBOEnable" enabled="true" follows="left|top"
+		font="SansSerifSmall" height="16" initial_value="true"
+		label="Activer OpenGL Vertex Buffer Objects" left="148"
+		mouse_opaque="true" name="vbo" radio_style="false"
+            tool_tip="Sur un matériel moderne, cette option permet une meilleure performance. Par contre, sur un matériel plus ancien, les VBO sont souvent mal implémentés et peuvent causer des crashs lorsqu&apos;ils sont activés."
+		width="315" />
+	<check_box bottom_delta="-18" control_name="ShyotlRenderUseStreamVBO" enabled="true" follows="left|top"
+		font="SansSerifSmall" height="16" initial_value="false"
+		label="Activer Streamed VBOs" left="157"
+		mouse_opaque="true" name="vbo_stream" radio_style="false"
+		tool_tip="Disabling this may improve performance when VBOs are enabled. Disabling produced observable improvement on various AMD GPUs."
+		width="315" />
+  <text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+  bottom_delta="-20" drop_shadow_visible="true" enabled="true" follows="left|top"
+  font="SansSerifSmall" h_pad="0" halign="left" height="12"
+  left="10" mouse_opaque="true" name="Enable FBO:" v_pad="0"
+  width="140">
+    Activer Framebuffer Objects:
+  </text>
+  <check_box bottom_delta="-5" control_name="RenderUseFBO" enabled="false" follows="left|top"
+		font="SansSerifSmall" height="16" initial_value="true"
+		label="Activer OpenGL Frame Buffer Objects" left="148"
+		mouse_opaque="true" name="fbo" radio_style="false"
+		tool_tip="Enabling this on modern hardware can provide a performance gain. However, enabling this when combined with antialiasing on AMD GPUs may cause edge artifacts. This setting is required for deferred rendering."
+		width="315" />
+	<slider bottom_delta="-21" can_edit_text="false" control_name="TextureMemory" 
+		decimal_digits="0" enabled="true"
+		follows="left|top" height="16" increment="16"
+            initial_val="32" label="Texture Memory (MB):" label_width="135" left="10"
+		max_val="4096" min_val="0" mouse_opaque="true" name="GrapicsCardTextureMemory"
+		tool_tip="Amount of memory to allocate for textures. Defaults to Video Card Memory. Reducing this may improve performance but may also make textures blurry."
+		width="300" />
+
+	<spinner bottom_delta="-24" control_name="RenderFogRatio" decimal_digits="1" enabled="true"
+	     follows="left|top" height="16" increment="0.1"
+	     initial_val="4" label="Coefficient de Brouillard:" label_width="138" left="10"
+	     max_val="10" min_val="0.5" mouse_opaque="true" name="fog" width="202" />
+
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+		bottom_delta="-50" drop_shadow_visible="true" enabled="true" follows="left|top"
+		font="SansSerifSmall" h_pad="0" halign="left" height="40"
+		left="10" mouse_opaque="true" name="note" v_pad="0"
+		width="480">
+		Note: le Gamma et le brouillard, sont inactifs quand les Effets atmosphériques le sont.
+	</text>
+
+	<button bottom="10" enabled="true" follows="right|bottom" font="SansSerif"
+	     halign="center" height="20" label="OK" label_selected="OK"
+	     left="-110" mouse_opaque="true" name="OK" scale_image="true" width="90" />
+</floater>

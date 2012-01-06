@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="preview_texture">
+	<text type="string" length="1" name="desc txt">
+		Description :
+	</text>
+	<button label="Garder" label_selected="Garder" name="Keep" />
+	<button label="Jeter" label_selected="Jeter" name="Discard" />
+	<button label="Copier vers l&apos;inventaire"
+	     label_selected="Copier vers l&apos;inventaire" name="Copy To Inventory" />
+	<text type="string" length="1" name="dimensions">
+		Dimensions : [WIDTH] x [HEIGHT]
+	</text>
+</floater>

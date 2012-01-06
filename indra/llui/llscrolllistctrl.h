@@ -271,7 +271,7 @@ public:
 
 	/*virtual*/ void showList();
 	/*virtual*/ LLView*	findSnapEdge(S32& new_edge_val, const LLCoordGL& mouse_dir, ESnapEdge snap_edge, ESnapType snap_type, S32 threshold, S32 padding);
-	/*virtual*/ void userSetShape(const LLRect& new_rect);
+	/*virtual*/ void handleReshape(const LLRect& new_rect, bool by_user = false);
 	
 	void setImage(const std::string &image_name);
 	void setImageOverlay(const std::string &overlay_image, LLFontGL::HAlign alignment = LLFontGL::HCENTER, const LLColor4& color = LLColor4::white);

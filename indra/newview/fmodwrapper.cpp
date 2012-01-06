@@ -32,12 +32,24 @@
 
 extern "C"
 {
+#if LL_FMODEX
+	void FSOUND_Sound_Init(void);
+#endif
+#if LL_FMOD
 	void FSOUND_Init(void);
+#endif
 }
 
 void* fmodwrapper(void)
 {
 	// When building the fmodwrapper library, the linker doesn't seem to want to bring in libfmod.a unless I explicitly
 	// reference at least one symbol in the library.  This seemed like the simplest way.
-	return (void*)&FSOUND_Init;
+	void *ret = NULL;
+#if LL_FMODEX
+	ret = (void*)&FSOUND_Sound_Init;
+#endif
+#if LL_FMOD
+	ret = (void*)&FSOUND_Init;
+#endif
+	return ret;
 }

@@ -46,6 +46,7 @@
 #include "llparcel.h"
 #include "llviewercontrol.h"
 #include "llbutton.h"
+#include "llstreamingaudio.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -88,7 +89,11 @@ BOOL LLMediaRemoteCtrl::postBuild()
 	childSetAction("media_pause",LLOverlayBar::toggleMediaPlay,this);
 	childSetAction("music_pause",LLOverlayBar::toggleMusicPlay,this);
 
-	childSetAction("expand", onClickExpandBtn, this);	
+	childSetAction("expand", onClickExpandBtn, this);
+
+	LLButton *pause = getChild<LLButton>("music_pause");
+	mCachedPauseTip = pause->getToolTip();
+
 	return TRUE;
 }
 
@@ -235,6 +240,28 @@ void LLMediaRemoteCtrl::enableMediaButtons()
 	music_pause_btn->setEnabled(music_show_pause);
 	music_pause_btn->setVisible(music_show_pause);
 	music_play_btn->setVisible(! music_show_pause);
+
+	if(music_show_pause)
+	{
+		LLStreamingAudioInterface *stream = gAudiop ? gAudiop->getStreamingAudioImpl() : NULL;
+		if(stream && stream->getMetaData())
+		{
+			std::string info_text = "Loading...";
+			const LLSD& metadata = *(stream->getMetaData());
+			LLSD artist = metadata.get("ARTIST");
+			LLSD title = metadata.get("TITLE");
+			if(artist.isDefined() && title.isDefined())
+				info_text = artist.asString() + " -- " + title.asString();
+			else if(title.isDefined())
+				info_text = std::string("Title: ") + title.asString();
+			else if(artist.isDefined())
+				info_text = std::string("Artist: ") + artist.asString();
+			music_pause_btn->setToolTip(info_text);
+		}
+		else
+			music_pause_btn->setToolTip(mCachedPauseTip);
+	}
+
 	childSetColor("music_icon", music_icon_color);
 	if(!media_icon_name.empty())
 	{

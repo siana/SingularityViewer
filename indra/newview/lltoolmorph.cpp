@@ -62,7 +62,7 @@
 #include "llviewertexturelist.h"
 #include "llviewerobject.h"
 #include "llviewerwindow.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "pipeline.h"
 
 
@@ -146,21 +146,20 @@ void LLVisualParamHint::requestHintUpdates( LLVisualParamHint* exception1, LLVis
 
 BOOL LLVisualParamHint::needsRender()
 {
-	return mNeedsUpdate && mDelayFrames-- <= 0 && !gAgent.getAvatarObject()->getIsAppearanceAnimating() && mAllowsUpdates;
+	return mNeedsUpdate && mDelayFrames-- <= 0 && !gAgentAvatarp->getIsAppearanceAnimating() && mAllowsUpdates;
 }
 
 void LLVisualParamHint::preRender(BOOL clear_depth)
 {
-	LLVOAvatar* avatarp = gAgent.getAvatarObject();
-
-	mLastParamWeight = avatarp->getVisualParamWeight(mVisualParam);
-	avatarp->setVisualParamWeight(mVisualParam, mVisualParamWeight);
-	avatarp->setVisualParamWeight("Blink_Left", 0.f);
-	avatarp->setVisualParamWeight("Blink_Right", 0.f);
-	avatarp->updateComposites();
-	avatarp->updateVisualParams();
-	avatarp->updateGeometry(avatarp->mDrawable);
-	avatarp->updateLOD();
+	mLastParamWeight = mVisualParam->getWeight();
+	//mWearablePtr->setVisualParamWeight(mVisualParam->getID(), mVisualParamWeight, FALSE);
+	gAgentAvatarp->setVisualParamWeight(mVisualParam->getID(), mVisualParamWeight, FALSE);
+	gAgentAvatarp->setVisualParamWeight("Blink_Left", 0.f);
+	gAgentAvatarp->setVisualParamWeight("Blink_Right", 0.f);
+	gAgentAvatarp->updateComposites();
+	gAgentAvatarp->updateVisualParams();
+	gAgentAvatarp->updateGeometry(gAgentAvatarp->mDrawable);
+	gAgentAvatarp->updateLOD();
 
 	LLViewerDynamicTexture::preRender(clear_depth);
 }
@@ -171,26 +170,30 @@ void LLVisualParamHint::preRender(BOOL clear_depth)
 BOOL LLVisualParamHint::render()
 {
 	LLVisualParamReset::sDirty = TRUE;
-	LLVOAvatar* avatarp = gAgent.getAvatarObject();
 
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-	glOrtho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.pushMatrix();
+	gGL.loadIdentity();
+	gGL.ortho(0.0f, mFullWidth, 0.0f, mFullHeight, -1.0f, 1.0f);
 
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.pushMatrix();
+	gGL.loadIdentity();
+
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.bind();
+	}
 
 	LLGLSUIDefault gls_ui;
 	//LLGLState::verify(TRUE);
 	mBackgroundp->draw(0, 0, mFullWidth, mFullHeight);
 
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.popMatrix();
 
-	glMatrixMode(GL_MODELVIEW);
-	glPopMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
+	gGL.popMatrix();
 
 	mNeedsUpdate = FALSE;
 	mIsVisible = TRUE;
@@ -199,7 +202,7 @@ BOOL LLVisualParamHint::render()
 	const std::string& cam_target_mesh_name = mVisualParam->getCameraTargetName();
 	if( !cam_target_mesh_name.empty() )
 	{
-		cam_target_joint = (LLViewerJointMesh*)avatarp->getJoint( cam_target_mesh_name );
+		cam_target_joint = (LLViewerJointMesh*)gAgentAvatarp->getJoint( cam_target_mesh_name );
 	}
 	if( !cam_target_joint )
 	{
@@ -207,11 +210,11 @@ BOOL LLVisualParamHint::render()
 	}
 	if( !cam_target_joint )
 	{
-		cam_target_joint = (LLViewerJointMesh*)avatarp->getJoint("mHead");
+		cam_target_joint = (LLViewerJointMesh*)gAgentAvatarp->getJoint("mHead");
 	}
 
 	LLQuaternion avatar_rotation;
-	LLJoint* root_joint = avatarp->getRootJoint();
+	LLJoint* root_joint = gAgentAvatarp->getRootJoint();
 	if( root_joint )
 	{
 		avatar_rotation = root_joint->getWorldRotation();
@@ -234,22 +237,22 @@ BOOL LLVisualParamHint::render()
 	LLViewerCamera::getInstance()->setAspect((F32)mFullWidth / (F32)mFullHeight);
 	LLViewerCamera::getInstance()->setOriginAndLookAt(
 		camera_pos,		// camera
-		LLVector3(0.f, 0.f, 1.f),						// up
+		LLVector3::z_axis,	// up
 		target_pos );	// point of interest
 
 	LLViewerCamera::getInstance()->setPerspective(FALSE, mOrigin.mX, mOrigin.mY, mFullWidth, mFullHeight, FALSE);
 
-	if (avatarp->mDrawable.notNull())
+	if (gAgentAvatarp->mDrawable.notNull())
 	{
-		LLDrawPoolAvatar *avatarPoolp = (LLDrawPoolAvatar *)avatarp->mDrawable->getFace(0)->getPool();
+		LLDrawPoolAvatar *avatarPoolp = (LLDrawPoolAvatar *)gAgentAvatarp->mDrawable->getFace(0)->getPool();
 		LLGLDepthTest gls_depth(GL_TRUE, GL_TRUE);
 		gGL.setAlphaRejectSettings(LLRender::CF_ALWAYS);
 		gGL.setSceneBlendType(LLRender::BT_REPLACE);
-		avatarPoolp->renderAvatars(avatarp);  // renders only one avatar
+		avatarPoolp->renderAvatars(gAgentAvatarp);  // renders only one avatar
 		gGL.setSceneBlendType(LLRender::BT_ALPHA);
 		gGL.setAlphaRejectSettings(LLRender::CF_DEFAULT);
 	}
-	avatarp->setVisualParamWeight(mVisualParam, mLastParamWeight);
+	gAgentAvatarp->setVisualParamWeight(mVisualParam, mLastParamWeight);
 	gGL.color4f(1,1,1,1);
 	mGLTexturep->setGLTextureCreated(true);
 	return TRUE;
@@ -304,10 +307,9 @@ BOOL LLVisualParamReset::render()
 {
 	if (sDirty)
 	{
-		LLVOAvatar* avatarp = gAgent.getAvatarObject();
-		avatarp->updateComposites();
-		avatarp->updateVisualParams();
-		avatarp->updateGeometry(avatarp->mDrawable);
+		gAgentAvatarp->updateComposites();
+		gAgentAvatarp->updateVisualParams();
+		gAgentAvatarp->updateGeometry(gAgentAvatarp->mDrawable);
 		sDirty = FALSE;
 	}
 

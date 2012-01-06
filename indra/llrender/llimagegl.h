@@ -37,7 +37,8 @@
 #include "llimage.h"
 
 #include "llgltypes.h"
-#include "llmemory.h"
+#include "llpointer.h"
+#include "llrefcount.h"
 #include "v2math.h"
 
 #include "llrender.h"
@@ -75,13 +76,14 @@ public:
 	static S32 updateBoundTexMem(const S32 mem, const S32 ncomponents, S32 category) ;
 	
 	static bool checkSize(S32 width, S32 height);
-	
+
+	//for server side use only.
 	// Not currently necessary for LLImageGL, but required in some derived classes,
 	// so include for compatability
 	static BOOL create(LLPointer<LLImageGL>& dest, BOOL usemipmaps = TRUE);
 	static BOOL create(LLPointer<LLImageGL>& dest, U32 width, U32 height, U8 components, BOOL usemipmaps = TRUE);
 	static BOOL create(LLPointer<LLImageGL>& dest, const LLImageRaw* imageraw, BOOL usemipmaps = TRUE);
-	
+		
 public:
 	LLImageGL(BOOL usemipmaps = TRUE);
 	LLImageGL(U32 width, U32 height, U8 components, BOOL usemipmaps = TRUE);
@@ -102,7 +104,7 @@ public:
 	// These 3 functions currently wrap glGenTextures(), glDeleteTextures(), and glTexImage2D() 
 	// for tracking purposes and will be deprecated in the future
 	static void generateTextures(S32 numTextures, U32 *textures);
-	static void deleteTextures(S32 numTextures, U32 *textures);
+	static void deleteTextures(S32 numTextures, U32 *textures, bool immediate = false);
 	static void setManualImage(U32 target, S32 miplevel, S32 intformat, S32 width, S32 height, U32 pixformat, U32 pixtype, const void *pixels);
 
 	BOOL createGLTexture() ;

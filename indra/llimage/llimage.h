@@ -62,6 +62,7 @@ const S32 MAX_IMG_PACKET_SIZE = 1000;
 class LLImageFormatted;
 class LLImageRaw;
 class LLColor4U;
+class LLPrivateMemoryPool;
 
 typedef enum e_image_codec
 {
@@ -144,6 +145,9 @@ public:
 
 	static EImageCodec getCodecFromExtension(const std::string& exten);
 	
+	static void createPrivatePool() ;
+	static void destroyPrivatePool() ;
+	static LLPrivateMemoryPool* getPrivatePool() {return sPrivatePoolp;}
 private:
 	U8 *mData;
 	S32 mDataSize;
@@ -155,6 +159,8 @@ private:
 
 	bool mBadBufferAllocation ;
 	bool mAllowOverSize ;
+
+	static LLPrivateMemoryPool* sPrivatePoolp ;
 public:
 	S16 mMemType; // debug
 };
@@ -170,7 +176,7 @@ public:
 	LLImageRaw(U16 width, U16 height, S8 components);
 	LLImageRaw(U8 *data, U16 width, U16 height, S8 components);
 	// Construct using createFromFile (used by tools)
-	LLImageRaw(const std::string& filename, bool j2c_lowest_mip_only = false);
+	//LLImageRaw(const std::string& filename, bool j2c_lowest_mip_only = false);
 
 	/*virtual*/ void deleteData();
 	/*virtual*/ U8* allocateData(S32 size = -1);
@@ -178,7 +184,7 @@ public:
 	
 	BOOL resize(U16 width, U16 height, S8 components);
 
-	U8 * getSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height) const;
+	//U8 * getSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height) const;
 	BOOL setSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height,
 					 const U8 *data, U32 stride = 0, BOOL reverse_y = FALSE);
 
@@ -190,7 +196,7 @@ public:
 	void contractToPowerOfTwo(S32 max_dim = MAX_IMAGE_SIZE, BOOL scale_image = TRUE);
 	void biasedScaleToPowerOfTwo(S32 max_dim = MAX_IMAGE_SIZE);
 	BOOL scale( S32 new_width, S32 new_height, BOOL scale_image = TRUE );
-	BOOL scaleDownWithoutBlending( S32 new_width, S32 new_height) ;
+	//BOOL scaleDownWithoutBlending( S32 new_width, S32 new_height) ;
 
 	// Fill the buffer with a constant color
 	void fill( const LLColor4U& color );
@@ -232,7 +238,7 @@ public:
 
 protected:
 	// Create an image from a local file (generally used in tools)
-	bool createFromFile(const std::string& filename, bool j2c_lowest_mip_only = false);
+	//bool createFromFile(const std::string& filename, bool j2c_lowest_mip_only = false);
 
 	void copyLineScaled( U8* in, U8* out, S32 in_pixel_len, S32 out_pixel_len, S32 in_pixel_step, S32 out_pixel_step );
 	void compositeRowScaled4onto3( U8* in, U8* out, S32 in_pixel_len, S32 out_pixel_len );

@@ -45,6 +45,7 @@
 #include "llimagepng.h"
 #include "llimagedxt.h"
 #include "llimageworker.h"
+#include "llmemory.h"
 
 //---------------------------------------------------------------------------
 // LLImage
@@ -53,12 +54,14 @@
 //static
 std::string LLImage::sLastErrorMessage;
 LLMutex* LLImage::sMutex = NULL;
+LLPrivateMemoryPool* LLImageBase::sPrivatePoolp = NULL ;
 
 //static
 void LLImage::initClass()
 {
 	sMutex = new LLMutex;
 	LLImageJ2C::openDSO();
+	LLImageBase::createPrivatePool() ;
 }
 
 //static
@@ -67,6 +70,8 @@ void LLImage::cleanupClass()
 	LLImageJ2C::closeDSO();
 	delete sMutex;
 	sMutex = NULL;
+
+	LLImageBase::destroyPrivatePool() ;
 }
 
 //static
@@ -105,6 +110,25 @@ LLImageBase::~LLImageBase()
 	deleteData(); // virtual
 }
 
+//static 
+void LLImageBase::createPrivatePool() 
+{
+	if(!sPrivatePoolp)
+	{
+		sPrivatePoolp = LLPrivateMemoryPoolManager::getInstance()->newPool(LLPrivateMemoryPool::STATIC_THREADED) ;
+	}
+}
+	
+//static 
+void LLImageBase::destroyPrivatePool() 
+{
+	if(sPrivatePoolp)
+	{
+		LLPrivateMemoryPoolManager::getInstance()->deletePool(sPrivatePoolp) ;
+		sPrivatePoolp = NULL ;
+	}
+}
+
 // virtual
 void LLImageBase::dump()
 {
@@ -138,8 +162,7 @@ void LLImageBase::sanityCheck()
 // virtual
 void LLImageBase::deleteData()
 {
-	if(mData)
-		delete[] mData;
+	FREE_MEM(sPrivatePoolp, mData) ;
 	mData = NULL;
 	mDataSize = 0;
 }
@@ -154,7 +177,7 @@ U8* LLImageBase::allocateData(S32 size)
 		size = mWidth * mHeight * mComponents;
 		if (size <= 0)
 		{
-			llerrs << llformat("LLImageBase::allocateData called with bad dimensions: %dx%dx%d",mWidth,mHeight,mComponents) << llendl;
+			llerrs << llformat("LLImageBase::allocateData called with bad dimensions: %dx%dx%d",mWidth,mHeight,(S32)mComponents) << llendl;
 		}
 	}
 	else if (size <= 0 || (size > 4096*4096*16 && !mAllowOverSize))
@@ -165,14 +188,14 @@ U8* LLImageBase::allocateData(S32 size)
 	if (!mData || size != mDataSize)
 	{
 		deleteData(); // virtual
-		mBadBufferAllocation = FALSE ;
-		mData = new U8[size];
+		mBadBufferAllocation = false ;
+		mData = (U8*)ALLOCATE_MEM(sPrivatePoolp, size);
 		if (!mData)
 		{
 			llwarns << "allocate image data: " << size << llendl;
 			size = 0 ;
 			mWidth = mHeight = 0 ;
-			mBadBufferAllocation = TRUE ;
+			mBadBufferAllocation = true ;
 		}
 		mDataSize = size;
 	}
@@ -187,7 +210,7 @@ U8* LLImageBase::reallocateData(S32 size)
 		return mData;
 
 	LLMemType mt1((LLMemType::EMemType)mMemType);
-	U8 *new_datap = new U8[size];
+	U8 *new_datap = (U8*)ALLOCATE_MEM(sPrivatePoolp, size);
 	if (!new_datap)
 	{
 		llwarns << "Out of memory in LLImageBase::reallocateData" << llendl;
@@ -197,7 +220,7 @@ U8* LLImageBase::reallocateData(S32 size)
 	{
 		S32 bytes = llmin(mDataSize, size);
 		memcpy(new_datap, mData, bytes);	/* Flawfinder: ignore */
-		delete[] mData;
+		FREE_MEM(sPrivatePoolp, mData) ;
 	}
 	mData = new_datap;
 	mDataSize = size;
@@ -277,11 +300,11 @@ LLImageRaw::LLImageRaw(U8 *data, U16 width, U16 height, S8 components)
 	++sRawImageCount;
 }
 
-LLImageRaw::LLImageRaw(const std::string& filename, bool j2c_lowest_mip_only)
+/*LLImageRaw::LLImageRaw(const std::string& filename, bool j2c_lowest_mip_only)
 	: LLImageBase(), mCacheEntries(0)
 {
 	createFromFile(filename, j2c_lowest_mip_only);
-}
+}*/
 
 LLImageRaw::~LLImageRaw()
 {
@@ -347,9 +370,10 @@ BOOL LLImageRaw::resize(U16 width, U16 height, S8 components)
 	return TRUE;
 }
 
+#if 0
 U8 * LLImageRaw::getSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height) const
 {
-	LLMemType mt1((LLMemType::EMemType)mMemType);
+	LLMemType mt1(mMemType);
 	U8 *data = new U8[width*height*getComponents()];
 
 	// Should do some simple bounds checking
@@ -367,6 +391,7 @@ U8 * LLImageRaw::getSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height) const
 	}
 	return data;
 }
+#endif
 
 BOOL LLImageRaw::setSubImage(U32 x_pos, U32 y_pos, U32 width, U32 height,
 							 const U8 *data, U32 stride, BOOL reverse_y)
@@ -434,7 +459,7 @@ void LLImageRaw::verticalFlip()
 {
 	LLMemType mt1((LLMemType::EMemType)mMemType);
 	S32 row_bytes = getWidth() * getComponents();
-	U8* line_buffer = new U8[row_bytes];
+	U8* line_buffer = new (std::nothrow) U8[row_bytes];
 	if (!line_buffer )
 	{
 		llerrs << "Out of memory in LLImageRaw::verticalFlip()" << llendl;
@@ -579,7 +604,7 @@ void LLImageRaw::compositeScaled4onto3(LLImageRaw* src)
 
 	// Vertical: scale but no composite
 	S32 temp_data_size = src->getWidth() * dst->getHeight() * src->getComponents();
-	U8* temp_buffer = new U8[ temp_data_size ];
+	U8* temp_buffer = new (std::nothrow) U8[ temp_data_size ];
 	if (!temp_buffer )
 	{
 		llerrs << "Out of memory in LLImageRaw::compositeScaled4onto3()" << llendl;
@@ -836,7 +861,7 @@ void LLImageRaw::copyScaled( LLImageRaw* src )
 	// Vertical
 	S32 temp_data_size = src->getWidth() * dst->getHeight() * getComponents();
 	llassert_always(temp_data_size > 0);
-	U8* temp_buffer = new U8[ temp_data_size ];
+	U8* temp_buffer = new (std::nothrow) U8[ temp_data_size ];
 	if (!temp_buffer )
 	{
 		llerrs << "Out of memory in LLImageRaw::copyScaled()" << llendl;
@@ -857,11 +882,11 @@ void LLImageRaw::copyScaled( LLImageRaw* src )
 	delete[] temp_buffer;
 }
 
-
+#if 0
 //scale down image by not blending a pixel with its neighbors.
 BOOL LLImageRaw::scaleDownWithoutBlending( S32 new_width, S32 new_height)
 {
-	LLMemType mt1((LLMemType::EMemType)mMemType);
+	LLMemType mt1(mMemType);
 
 	S8 c = getComponents() ;
 	llassert((1 == c) || (3 == c) || (4 == c) );
@@ -881,7 +906,7 @@ BOOL LLImageRaw::scaleDownWithoutBlending( S32 new_width, S32 new_height)
 	ratio_x -= 1.0f ;
 	ratio_y -= 1.0f ;
 
-	U8* new_data = new U8[new_data_size] ;
+	U8* new_data = allocateMemory(new_data_size) ;
 	llassert_always(new_data != NULL) ;
 
 	U8* old_data = getData() ;
@@ -903,6 +928,7 @@ BOOL LLImageRaw::scaleDownWithoutBlending( S32 new_width, S32 new_height)
 	
 	return TRUE ;
 }
+#endif
 
 BOOL LLImageRaw::scale( S32 new_width, S32 new_height, BOOL scale_image_data )
 {
@@ -924,7 +950,7 @@ BOOL LLImageRaw::scale( S32 new_width, S32 new_height, BOOL scale_image_data )
 		// Vertical
 		S32 temp_data_size = old_width * new_height * getComponents();
 		llassert_always(temp_data_size > 0);
-		U8* temp_buffer = new U8[ temp_data_size ];
+		U8* temp_buffer = new (std::nothrow) U8[ temp_data_size ];
 		if (!temp_buffer )
 		{
 			llerrs << "Out of memory in LLImageRaw::scale()" << llendl;
@@ -952,7 +978,7 @@ BOOL LLImageRaw::scale( S32 new_width, S32 new_height, BOOL scale_image_data )
 	{
 		// copy	out	existing image data
 		S32	temp_data_size = old_width * old_height	* getComponents();
-		U8*	temp_buffer	= new U8[ temp_data_size ];
+		U8*	temp_buffer	= new (std::nothrow) U8[ temp_data_size ];
 		if (!temp_buffer)
 		{
 			llwarns << "Out of memory in LLImageRaw::scale: old (w, h, c) = (" << old_width << ", " << old_height << ", " << (S32)getComponents() << 
@@ -1223,7 +1249,7 @@ file_extensions[] =
 	{ "png", IMG_CODEC_PNG }
 };
 #define NUM_FILE_EXTENSIONS LL_ARRAY_SIZE(file_extensions)
-
+#if 0
 static std::string find_file(std::string &name, S8 *codec)
 {
 	std::string tname;
@@ -1241,7 +1267,7 @@ static std::string find_file(std::string &name, S8 *codec)
 	}
 	return std::string("");
 }
-
+#endif
 EImageCodec LLImageBase::getCodecFromExtension(const std::string& exten)
 {
 	for (int i=0; i<(int)(NUM_FILE_EXTENSIONS); i++)
@@ -1251,7 +1277,7 @@ EImageCodec LLImageBase::getCodecFromExtension(const std::string& exten)
 	}
 	return IMG_CODEC_INVALID;
 }
-
+#if 0
 bool LLImageRaw::createFromFile(const std::string &filename, bool j2c_lowest_mip_only)
 {
 	std::string name = filename;
@@ -1299,28 +1325,7 @@ bool LLImageRaw::createFromFile(const std::string &filename, bool j2c_lowest_mip
 		return false;
 	}
 	
-	LLPointer<LLImageFormatted> image;
-	switch(codec)
-	{
-	  //case IMG_CODEC_RGB:
-	  case IMG_CODEC_BMP:
-		image = new LLImageBMP();
-		break;
-	  case IMG_CODEC_TGA:
-		image = new LLImageTGA();
-		break;
-	  case IMG_CODEC_JPEG:
-		image = new LLImageJPEG();
-		break;
-	  case IMG_CODEC_J2C:
-		image = new LLImageJ2C();
-		break;
-	  case IMG_CODEC_DXT:
-		image = new LLImageDXT();
-		break;
-	  default:
-		return false;
-	}
+	LLPointer<LLImageFormatted> image = LLImageFormatted::createFromType(codec);
 	llassert(image.notNull());
 
 	U8 *buffer = image->allocateData(length);
@@ -1358,7 +1363,7 @@ bool LLImageRaw::createFromFile(const std::string &filename, bool j2c_lowest_mip
 
 	return true;
 }
-
+#endif
 //---------------------------------------------------------------------------
 // LLImageFormatted
 //---------------------------------------------------------------------------
@@ -1590,7 +1595,7 @@ void LLImageFormatted::appendData(U8 *data, S32 size)
 			S32 newsize = cursize + size;
 			reallocateData(newsize);
 			memcpy(getData() + cursize, data, size);
-			delete[] data; //Fixing leak from CommentCacheReadResponder
+			FREE_MEM(LLImageBase::getPrivatePool(), data);
 		}
 	}
 }
@@ -1602,8 +1607,7 @@ BOOL LLImageFormatted::load(const std::string &filename)
 	resetLastError();
 
 	S32 file_size = 0;
-	LLAPRFile infile ;
-	infile.open(filename, LL_APR_RB, LLAPRFile::global, &file_size);
+	LLAPRFile infile(filename, LL_APR_RB, &file_size);
 	apr_file_t* apr_file = infile.getFileHandle();
 	if (!apr_file)
 	{
@@ -1638,8 +1642,7 @@ BOOL LLImageFormatted::save(const std::string &filename)
 {
 	resetLastError();
 
-	LLAPRFile outfile ;
-	outfile.open(filename, LL_APR_WB, LLAPRFile::global);
+	LLAPRFile outfile(filename, LL_APR_WB);
 	if (!outfile.getFileHandle())
 	{
 		setLastError("Unable to open file for writing", filename);

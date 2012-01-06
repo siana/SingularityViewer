@@ -423,7 +423,7 @@ void LLButton::draw()
 	// Unselected image assignments
 	S32 local_mouse_x;
 	S32 local_mouse_y;
-	LLUI::getCursorPositionLocal(this, &local_mouse_x, &local_mouse_y);
+	LLUI::getMousePositionLocal(this, &local_mouse_x, &local_mouse_y);
 
 	BOOL pressed = pressed_by_keyboard 
 					|| (hasMouseCapture() && pointInView(local_mouse_x, local_mouse_y)) 
@@ -688,7 +688,7 @@ void LLButton::draw()
 			x = text_right;
 			break;
 		case LLFontGL::HCENTER:
-			x = getRect().getWidth() / 2;
+			x = text_left + (text_width / 2);
 			break;
 		case LLFontGL::LEFT:
 		default:
@@ -704,10 +704,13 @@ void LLButton::draw()
 			x++;
 		}
 
-		mGLFont->render(label, 0, (F32)x, (F32)(LLBUTTON_V_PAD + y_offset), 
+		mGLFont->render(label, 0, 
+			(F32)x, 
+			(F32)(LLBUTTON_V_PAD + y_offset), 
 			label_color,
 			mHAlign, LLFontGL::BOTTOM,
-			mDropShadowedText ? LLFontGL::DROP_SHADOW_SOFT : LLFontGL::NORMAL,
+			LLFontGL::NORMAL,
+			mDropShadowedText ? LLFontGL::DROP_SHADOW_SOFT : LLFontGL::NO_SHADOW,
 			U32_MAX, text_width,
 			NULL, FALSE, FALSE);
 	}

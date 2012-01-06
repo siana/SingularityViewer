@@ -213,12 +213,13 @@ void LLNetMap::draw()
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 			LLLocalClipRect clip(getLocalRect());
 
-			glMatrixMode(GL_MODELVIEW);
+			gGL.matrixMode(LLRender::MM_MODELVIEW);
 
 			// Draw background rectangle
 			if(isBackgroundVisible())
 			{
-				gGL.color4fv(isBackgroundOpaque() ? getBackgroundColor().mV : getTransparentColor().mV);
+				LLColor4 background_color = isBackgroundOpaque() ? getBackgroundColor().mV : getTransparentColor().mV;
+				gGL.color4fv( background_color.mV );
 				gl_rect_2d(0, getRect().getHeight(), getRect().getWidth(), 0);
 			}
 		}
@@ -231,16 +232,15 @@ void LLNetMap::draw()
 
 		gGL.translatef( (F32) center_sw_left, (F32) center_sw_bottom, 0.f);
 		
-		BOOL rotate_map = gSavedSettings.getBOOL( "MiniMapRotate" );
+		static LLCachedControl<bool> rotate_map("MiniMapRotate", true);
 		if (rotate_map)
 		{
 			// rotate subsequent draws to agent rotation
 			rotation = atan2( LLViewerCamera::getInstance()->getAtAxis().mV[VX], LLViewerCamera::getInstance()->getAtAxis().mV[VY] );
-			glRotatef( rotation * RAD_TO_DEG, 0.f, 0.f, 1.f);
+			gGL.rotatef( rotation * RAD_TO_DEG, 0.f, 0.f, 1.f);
 		}
 
 		// figure out where agent is
-		S32 region_width = llround(LLWorld::getInstance()->getRegionWidthInMeters());
 		LLColor4 this_region_color = gColors.getColor( "NetMapThisRegion" );
 		LLColor4 live_region_color = gColors.getColor( "NetMapLiveRegion" );
 		LLColor4 dead_region_color = gColors.getColor( "NetMapDeadRegion" );
@@ -249,6 +249,7 @@ void LLNetMap::draw()
 			 iter != LLWorld::getInstance()->getRegionList().end(); ++iter)
 		{
 			LLViewerRegion* regionp = *iter;
+			S32 region_width = llround(regionp->getWidth());
 			// Find x and y position relative to camera's center.
 			LLVector3 origin_agent = regionp->getOriginAgent();
 			LLVector3 rel_region_pos = origin_agent - gAgentCamera.getCameraPositionAgent();
@@ -305,14 +306,14 @@ void LLNetMap::draw()
 		// Redraw object layer periodically
 		if (mUpdateNow || (map_timer.getElapsedTimeF32() > 0.5f))
 		{
-			mUpdateNow = FALSE;
+			mUpdateNow = false;
 
 			// Locate the centre of the object layer, accounting for panning
 			LLVector3 new_center = globalPosToView(gAgentCamera.getCameraPositionGlobal(), rotate_map);	
-			new_center.mV[0] -= mCurPanX;
-			new_center.mV[1] -= mCurPanY;
-			new_center.mV[2] = 0.f;
-			mObjectImageCenterGlobal = viewPosToGlobal(llround(new_center.mV[0]), llround(new_center.mV[1]), rotate_map);
+			new_center.mV[VX] -= mCurPanX;
+			new_center.mV[VY] -= mCurPanY;
+			new_center.mV[VZ] = 0.f;
+			mObjectImageCenterGlobal = viewPosToGlobal(llround(new_center.mV[VX]), llround(new_center.mV[VY]), rotate_map);
 
 			// Create the base texture.
 			U8 *default_texture = mObjectRawImagep->getData();
@@ -328,8 +329,8 @@ void LLNetMap::draw()
 
 		LLVector3 map_center_agent = gAgent.getPosAgentFromGlobal(mObjectImageCenterGlobal);
 		map_center_agent -= gAgentCamera.getCameraPositionAgent();
-		map_center_agent.mV[VX] *= mScale/region_width;
-		map_center_agent.mV[VY] *= mScale/region_width;
+		map_center_agent.mV[0] *= mScale/LLWorld::getInstance()->getRegionWidthInMeters();
+		map_center_agent.mV[1] *= mScale/LLWorld::getInstance()->getRegionWidthInMeters();
 
 		gGL.getTexUnit(0)->bind(mObjectImagep);
 		F32 image_half_width = 0.5f*mObjectMapPixels;
@@ -354,7 +355,7 @@ void LLNetMap::draw()
 		// Mouse pointer in local coordinates
 		S32 local_mouse_x;
 		S32 local_mouse_y;
-		LLUI::getCursorPositionLocal(this, &local_mouse_x, &local_mouse_y);
+		LLUI::getMousePositionLocal(this, &local_mouse_x, &local_mouse_y);
 		mClosestAgentToCursor.setNull();
 		F32 closest_dist = F32_MAX;
 		F32 min_pick_dist = mDotRadius * MIN_PICK_SCALE; 
@@ -362,7 +363,7 @@ void LLNetMap::draw()
 		// Draw avatars
 //		LLColor4 mapcolor = gAvatarMapColor;
 
-		static const LLCachedControl<LLColor4>	standard_color("MapAvatar",LLColor4(0.f,1.f,0.f,1.f),gColors);
+		static const LLCachedControl<LLColor4>	standard_color(gColors,"MapAvatar",LLColor4(0.f,1.f,0.f,1.f));
 		static const LLCachedControl<LLColor4>	friend_color_stored("AscentFriendColor",LLColor4(1.f,1.f,0.f,1.f));
 		static const LLCachedControl<LLColor4>	em_color("AscentEstateOwnerColor",LLColor4(1.f,0.6f,1.f,1.f));
 		static const LLCachedControl<LLColor4>	linden_color("AscentLindenColor",LLColor4(0.f,0.f,1.f,1.f));
@@ -396,8 +397,14 @@ void LLNetMap::draw()
 			LLViewerRegion* avatar_region = LLWorld::getInstance()->getRegionFromPosGlobal(positions[i]);
 			LLUUID estate_owner = avatar_region? avatar_region->getOwner() : LLUUID::null;
 
+			// MOYMOD Minimap custom av colors.
+			boost::unordered_map<const LLUUID,LLColor4>::const_iterator it = mm_MarkerColors.find(avatar_ids[i]);
+			if(it != mm_MarkerColors.end())
+			{
+				avColor = it->second;
+			}
 			//Lindens are always more Linden than your friend, make that take precedence
-			if(LLMuteList::getInstance()->isLinden(avName))
+			else if(LLMuteList::getInstance()->isLinden(avName))
 			{
 				avColor = linden_color;
 			}
@@ -410,15 +417,6 @@ void LLNetMap::draw()
 			else if(is_agent_friend(avatar_ids[i]))
 			{
 				avColor = friend_color;
-			}
-			else 
-			{
-				// MOYMOD Minimap custom av colors.
-				boost::unordered_map<const LLUUID,LLColor4>::const_iterator it = mm_MarkerColors.find(avatar_ids[i]);
-				if(it != mm_MarkerColors.end())
-				{
-					avColor = it->second;
-				}
 			}
 
 			LLWorldMapView::drawAvatar(
@@ -499,7 +497,7 @@ void LLNetMap::draw()
 			// If we don't rotate the map, we have to rotate the frustum.
 			gGL.pushMatrix();
 				gGL.translatef( ctr_x, ctr_y, 0 );
-				glRotatef( atan2( LLViewerCamera::getInstance()->getAtAxis().mV[VX], LLViewerCamera::getInstance()->getAtAxis().mV[VY] ) * RAD_TO_DEG, 0.f, 0.f, -1.f);
+				gGL.rotatef( atan2( LLViewerCamera::getInstance()->getAtAxis().mV[VX], LLViewerCamera::getInstance()->getAtAxis().mV[VY] ) * RAD_TO_DEG, 0.f, 0.f, -1.f);
 				gGL.begin( LLRender::TRIANGLES  );
 					gGL.vertex2f( 0, 0 );
 					gGL.vertex2f( -half_width_pixels, far_clip_pixels );
@@ -638,33 +636,22 @@ BOOL LLNetMap::handleToolTip( S32 x, S32 y, std::string& msg, LLRect* sticky_rec
             }
             else
             {
-#ifdef LL_RRINTERFACE_H //MK
-    			if (gRRenabled && gAgent.mRRInterface.mContainsShownames)
+				if (LLAvatarNameCache::useDisplayNames())
     			{
-	    			fullname = gAgent.mRRInterface.getDummyName(fullname);
-		    	}
-			    else
-			    {
-#endif //mk
-				    if (LLAvatarNameCache::useDisplayNames())
-    				{
-	    				LLAvatarName avatar_name;
-		    			if (LLAvatarNameCache::get(mClosestAgentToCursor, &avatar_name))
-			    		{
-							static const LLCachedControl<S32> phoenix_name_system("PhoenixNameSystem", 0);
-    						if (phoenix_name_system == 2 || (phoenix_name_system == 1 && avatar_name.mIsDisplayNameDefault))
-					    	{
-						    	fullname = avatar_name.mDisplayName;
-    						}
-	    					else
-		    				{
-			    				fullname = avatar_name.getCompleteName(true);
-				    		}
-					    }
-    				}
-#ifdef LL_RRINTERFACE_H //MK
-			    }
-#endif //mk
+					LLAvatarName avatar_name;
+					if (LLAvatarNameCache::get(mClosestAgentToCursor, &avatar_name))
+					{
+						static const LLCachedControl<S32> phoenix_name_system("PhoenixNameSystem", 0);
+						if (phoenix_name_system == 2 || (phoenix_name_system == 1 && avatar_name.mIsDisplayNameDefault))
+						{
+							fullname = avatar_name.mDisplayName;
+						}
+						else
+						{
+							fullname = avatar_name.getCompleteName(true);
+						}
+					}
+				}
                 msg.append(fullname);
             }
             // [/Ansariel: Display name support]
@@ -696,7 +683,7 @@ BOOL LLNetMap::handleToolTip( S32 x, S32 y, std::string& msg, LLRect* sticky_rec
 // [/RLVa:KB]
 		//msg.append( region->getName() );
 
-#ifndef LL_RELEASE_FOR_DOWNLOAD
+//#ifndef LL_RELEASE_FOR_DOWNLOAD
 		std::string buffer;
 		msg.append("\n");
 		buffer = region->getHost().getHostName();
@@ -704,7 +691,7 @@ BOOL LLNetMap::handleToolTip( S32 x, S32 y, std::string& msg, LLRect* sticky_rec
 		msg.append("\n");
 		buffer = region->getHost().getString();
 		msg.append(buffer);
-#endif
+//#endif
 		msg.append("\n");
 		msg.append(getToolTip());
 
@@ -913,7 +900,7 @@ BOOL LLNetMap::handleMouseUp( S32 x, S32 y, MASK mask )
 			LLRect clip_rect = getRect();
 			clip_rect.stretch(-8);
 			clip_rect.clipPointToRect(mMouseDownX, mMouseDownY, local_x, local_y);
-			LLUI::setCursorPositionLocal(this, local_x, local_y);
+			LLUI::setMousePositionLocal(this, local_x, local_y);
 
 			// finish the pan
 			mPanning = FALSE;

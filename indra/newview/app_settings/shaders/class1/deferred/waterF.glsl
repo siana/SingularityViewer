@@ -1,13 +1,33 @@
 /** 
  * @file waterF.glsl
  *
- * Copyright (c) 2007-$CurrentYear$, Linden Research, Inc.
- * $License$
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
+ * Second Life Viewer Source Code
+ * Copyright (C) 2007, Linden Research, Inc.
+ * 
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
+ * $/LicenseInfo$
  */
  
-#version 120
-
 #extension GL_ARB_texture_rectangle : enable
+
+#ifdef DEFINE_GL_FRAGCOLOR
+out vec4 gl_FragData[3];
+#endif
 
 vec3 scaleSoftClip(vec3 inColor);
 vec3 atmosTransport(vec3 inColor);
@@ -40,10 +60,10 @@ uniform vec2 screen_res;
 uniform mat4 norm_mat; //region space to screen space
 
 //bigWave is (refCoord.w, view.w);
-varying vec4 refCoord;
-varying vec4 littleWave;
-varying vec4 view;
-varying vec4 vary_position;
+VARYING vec4 refCoord;
+VARYING vec4 littleWave;
+VARYING vec4 view;
+VARYING vec4 vary_position;
 
 void main() 
 {
@@ -93,7 +113,7 @@ void main()
 	refcol *= df1 * 0.333;
 	
 	vec3 wavef = (wave1 + wave2 * 0.4 + wave3 * 0.6) * 0.5;
-//	wavef.z *= max(-viewVec.z, 0.1);
+	//wavef.z *= max(-viewVec.z, 0.1);
 	wavef = normalize(wavef);
 	
 	float df2 = dot(viewVec, wavef) * fresnelScale+fresnelOffset;
@@ -106,10 +126,10 @@ void main()
 	refcol = mix(baseCol*df2, refcol, dweight);
 
 	//get specular component
-//	float spec = clamp(dot(lightDir, (reflect(viewVec,wavef))),0.0,1.0);
+	//float spec = clamp(dot(lightDir, (reflect(viewVec,wavef))),0.0,1.0);
 		
 	//harden specular
-//	spec = pow(spec, 128.0);
+	//spec = pow(spec, 128.0);
 
 	//figure out distortion vector (ripply)   
 	vec2 distort2 = distort+wavef.xy*refScale/max(dmod*df1, 1.0);

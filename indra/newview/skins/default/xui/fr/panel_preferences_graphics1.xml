@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="Graphiques" name="Display panel">
+	<button label="?" name="GraphicsPreferencesHelpButton"/>
+	<text_editor bottom="-56" height="40" left="25" name="FullScreenInfo" width="460">
+		Décochez cette option pour passer en mode plein écran.
+	</text_editor>
+	<text name="WindowSizeLabel">
+		Taille de la fenêtre :
+	</text>
+	<combo_box name="windowsize combo">
+		<combo_item name="640x480">
+			640 x 480
+		</combo_item>
+		<combo_item name="800x600">
+			800 x 600
+		</combo_item>
+		<combo_item name="720x480">
+			720 x 480 (NTSC)
+		</combo_item>
+		<combo_item name="768x576">
+			768 x 576 (PAL)
+		</combo_item>
+		<combo_item name="1024x768">
+			1024 x 768
+		</combo_item>
+	</combo_box>
+	<text name="DisplayResLabel" width="165">
+		Résolution de l&apos;affichage :
+	</text>
+	<text name="AspectRatioLabel1" tool_tip="largeur/hauteur">
+		Rapport hauteur/largeur :
+	</text>
+	<combo_box name="aspect_ratio" tool_tip="largeur/hauteur">
+		<combo_item length="1" name="4:3(StandardCRT)" type="string">
+			4:3 (Standard CRT)
+		</combo_item>
+		<combo_item length="1" name="5:4(1280x1024LCD)" type="string">
+			5:4 (1280 x 1024 LCD)
+		</combo_item>
+		<combo_item name="8:5(Widescreen)">
+			8:5 (écran large)
+		</combo_item>
+		<combo_item length="1" name="16:9(Widescreen)" type="string">
+			16:9 (plein écran)
+		</combo_item>
+	</combo_box>
+	<text length="1" name="text" type="string">
+		Résolution d&apos;affichage :
+	</text>
+	<text length="1" name="Fullscreen Aspect Ratio:" type="string">
+		Format de plein écran :
+	</text>
+	<text length="1" name="(width / height)" type="string">
+		(largeur / hauteur)
+	</text>
+	<text length="1" name="UI Size:" type="string">
+		Taille de l&apos;IU :
+	</text>
+	<text length="1" name="(meters, lower is faster)" type="string">
+		(mètres, moins = plus rapide)
+	</text>
+	<text length="1" name="text2" type="string">
+		Options d&apos;affichage :
+	</text>
+	<check_box label="Lancer Singularity dans une fenêtre" name="windowed mode"/>
+	<check_box label="Auto-détection du ratio" left="350" name="aspect_auto_detect"/>
+	<check_box label="Utiliser échelle de résolution indépendante" name="ui_auto_scale"/>
+	<check_box label="Montrer l&apos;avatar en vue subjective" name="avfp"/>
+	<spinner label="Distance d&apos;affichage :" name="draw_distance"/>
+	<text name="HigherText">
+		Qualité et
+	</text>
+	<text name="QualityText">
+		Performance :
+	</text>
+	<text left="105" name="FasterText">
+		Plus rapide
+	</text>
+	<text name="ShadersPrefText">
+		Faible
+	</text>
+	<text name="ShadersPrefText2">
+		Moyen
+	</text>
+	<text name="ShadersPrefText3">
+		Élevé
+	</text>
+	<text name="ShadersPrefText4">
+		Ultra
+	</text>
+	<text bottom="-86" left="325" name="HigherText2">
+		Plus élevée
+	</text>
+	<text name="QualityText2" visible="false"/>
+	<check_box label="Personnaliser" left="395" name="CustomSettings"/>
+	<text name="ShadersText">
+		Effets :
+	</text>
+	<check_box label="Placage de relief et brillance" name="BumpShiny"/>
+	<check_box label="Effets de base" name="BasicShaders" tool_tip="Désactiver cette option peut empêcher certains drivers de cartes graphiques de planter."/>
+	<check_box label="Effets atmosphériques" name="WindLightUseAtmosShaders"/>
+	<check_box bottom_delta="-17" control_name="RenderDeferred" enabled="true"
+	     follows="left|top" font="SansSerifSmall" height="16"
+	     initial_value="true" label="Délissage" left_delta="0"
+	     mouse_opaque="true" name="RenderDeferred" radio_style="false"
+	     width="256" />
+<check_box bottom_delta="-17" control_name="RenderDeferredGI" enabled="true"
+      follows="left|top" font="SansSerifSmall" height="16"
+      initial_value="true" label="Illumination globale (Experimental)" left_delta="0"
+      mouse_opaque="true" name="RenderDeferredGI" radio_style="false"
+      width="256" />
+		<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom_delta="-17" drop_shadow_visible="true" enabled="true" follows="left|top"
+	     font="SansSerifSmall" h_pad="0" halign="left" height="12"
+	     left="15" mouse_opaque="true" name="ReflectionDetailText" v_pad="0"
+	     width="128">
+		Reflets:
+	</text>
+	<combo_box bottom_delta="-20" control_name="RenderReflectionDetail" enabled = "true" follows="left|top" label="Reflection Detail"
+		 left_delta="-2" mouse_opaque="true" name="ReflectionDetailCombo" width="160" height="16">
+          <combo_item type="string" length="1" name="0">
+           Aucun
+           </combo_item>
+		<combo_item type="string" length="1" name="1">
+			Terrain et arbres
+		</combo_item>
+		<combo_item type="string" length="1" name="2">
+			Objets Statiques
+		</combo_item>
+		<combo_item type="string" length="1" name="3">
+			Avatars et objets
+		</combo_item>
+		<combo_item type="string" length="1" name="4">
+			Tout
+		</combo_item>
+	</combo_box>
+      <text name="AvatarRenderingText">
+<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+      bottom_delta="-17" drop_shadow_visible="true" enabled="true" follows="left|top"
+      font="SansSerifSmall" h_pad="0" halign="left" height="12"
+      left="15" mouse_opaque="true" name="ShadowDetailText" v_pad="0"
+      width="128">
+    Ombres atténués:
+  </text>
+  <combo_box bottom_delta="-20" control_name="RenderShadowDetail" enabled = "true" follows="left|top" label="Shadow Detail"
+   left_delta="-2" mouse_opaque="true" name="ShadowDetailCombo" width="160" height="16">
+    <combo_item type="string" length="1" name="0" value="0">
+      Disabled
+    </combo_item>
+    <combo_item type="string" length="1" name="1" value="1">
+      Sun shadows
+    </combo_item>
+    <combo_item type="string" length="1" name="2" value="2">
+      Sun and spotlight shadows
+    </combo_item>
+  </combo_box>
+		Rendu de l&apos;avatar :
+	</text>
+	<check_box label="Avatars éloignés en 2D" name="AvatarImpostors"/>
+	<check_box label="Accélération du rendu" name="AvatarVertexProgram"/>
+	<check_box label="Mouvement des habits" name="AvatarCloth"/>
+	<text name="DrawDistanceMeterText1">
+		m
+	</text>
+	<text name="DrawDistanceMeterText2">
+		m
+	</text>
+	<slider label="Limite d&apos;affichage :" name="DrawDistance"/>
+	<slider label="Nombre de particules max. :" label_width="143" name="MaxParticleCount"/>
+	<slider label="Qualité post-traitement :" name="RenderPostProcess"/>
+	<text name="MeshDetailText">
+		Détails des rendus :
+	</text>
+	<slider label="  Objets :" name="ObjectMeshDetail"/>
+	<slider label="  Flexiprims :" name="FlexibleMeshDetail"/>
+	<slider label="  Arbres :" name="TreeMeshDetail"/>
+	<slider label="  Avatars :" name="AvatarMeshDetail"/>
+	<slider label="  Relief :" name="TerrainMeshDetail"/>
+	<slider label="  Ciel :" name="SkyMeshDetail"/>
+	<text name="PostProcessText">
+		Faible
+	</text>
+	<text name="ObjectMeshDetailText">
+		Faible
+	</text>
+	<text name="FlexibleMeshDetailText">
+		Faible
+	</text>
+	<text name="TreeMeshDetailText">
+		Faible
+	</text>
+	<text name="AvatarMeshDetailText">
+		Faible
+	</text>
+	<text name="TerrainMeshDetailText">
+		Faible
+	</text>
+	<text name="SkyMeshDetailText">
+		Faible
+	</text>
+	<text name="LightingDetailText">
+		Sources lumineuses :
+	</text>
+	<radio_group name="LightingDetailRadio">
+		<radio_item name="SunMoon">
+			Soleil et lune uniquement
+		</radio_item>
+		<radio_item name="LocalLights">
+			Lumières de proximité
+		</radio_item>
+	</radio_group>
+	<text left="380" name="TerrainDetailText">
+		Rendu du terrain :
+	</text>
+	<radio_group name="TerrainDetailRadio">
+		<radio_item name="0">
+			Faible
+		</radio_item>
+		<radio_item name="2">
+			Élevé
+		</radio_item>
+	</radio_group>
+	<button label="Paramètres recommandés" name="Defaults"/>
+	<button label="Configuration du matériel" label_selected="Configuration du matériel" name="GraphicsHardwareButton"/>
+	<text name="resolution_format">
+		[RES_X] x [RES_Y]
+	</text>
+	<text name="aspect_ratio_text">
+		[NUM]:[DEN]
+	</text>
+</panel>

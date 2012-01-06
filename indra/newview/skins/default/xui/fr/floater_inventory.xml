@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="Inventory" title="Inventaire">
+	<search_editor label="Saisissez votre recherche ici" name="inventory search editor"/>
+<text name="group_titles_textbox" halign="right" font="SansSerifSmall" follows="left|top"
+		height="16" left="30" bottom_delta="2" right="93">Filtre rapidie:</text>
+	<!-- Inventory Type Filter Labels -->
+	<string name="filter_type_all">TOUT</string>
+	<string name="filter_type_animation">Animations</string>
+	<string name="filter_type_callingcard">Cartes de Visite</string>
+	<string name="filter_type_wearable">Habits / Body Parts</string>
+	<string name="filter_type_gesture">Gestures</string>
+	<string name="filter_type_landmark">Reperes / Landmarks</string>
+	<string name="filter_type_notecard">Notecards</string>
+	<string name="filter_type_object">Objets</string>
+	<string name="filter_type_script">Scripts</string>
+	<string name="filter_type_sound">Sons</string>
+	<string name="filter_type_texture">Textures</string>
+	<string name="filter_type_snapshot">Photos</string>
+	<string name="filter_type_custom">Custom...</string>
+	<combo_box name="Quick Filter" label="Filtre Rapide" follows="left|top|right" height="20" left="95" right="-6" bottom_delta="0">
+		<combo_item name="filter_type_all">TOUT</combo_item>
+		<separator />
+		<combo_item name="filter_type_animation">Animations</combo_item>
+		<combo_item name="filter_type_callingcard">Cartes de Visite</combo_item>
+		<combo_item name="filter_type_wearable">Habits / Body Parts</combo_item>
+		<combo_item name="filter_type_gesture">Gestures</combo_item>
+		<combo_item name="filter_type_landmark">Reperes / Landmarks</combo_item>
+		<combo_item name="filter_type_notecard">Notecards</combo_item>
+		<combo_item name="filter_type_object">Objets</combo_item>
+		<combo_item name="filter_type_script">Scripts</combo_item>
+		<combo_item name="filter_type_sound">Sons</combo_item>
+		<combo_item name="filter_type_texture">Textures</combo_item>
+		<combo_item name="filter_type_snapshot">Photos</combo_item>
+		<separator />
+		<combo_item name="filter_type_custom">Custom...</combo_item>
+	</combo_box>
+	<tab_container name="inventory filter tabs">
+		<inventory_panel label="Tous les objets" name="All Items"/>
+		<inventory_panel label="Objets récents" name="Recent Items"/>
+        <inventory_panel label="Objets Portés" name="Worn Items"/>
+	</tab_container>
+	<menu_bar name="Inventory Menu">
+		<menu label="Fichier" name="File">
+			<tearoff_menu label="~~~~~~~~~~~" name="~~~~~~~~~~~"/>
+			<menu_item_call label="Ouvrir" name="Open"/>
+			<menu_item_call label="Nouvelle fenêtre" name="New Window"/>
+			<menu_item_call label="Afficher les filtres" name="Show Filters"/>
+			<menu_item_call label="Réinitialiser les filtres" name="Reset Current"/>
+			<menu_item_call label="Fermer tous les dossiers" name="Close All Folders"/>
+			<menu_item_call label="Vider la corbeille" name="Empty Trash"/>
+			<menu_item_call label="Rafraichir l'inventaire" name="Refresh Inventory"/>
+		</menu>
+		<menu label="Créer" name="Create">
+			<tearoff_menu label="~~~~~~~~~~~" name="~~~~~~~~~~~"/>
+			<menu_item_call label="Nouveau dossier" name="New Folder"/>
+			<menu_item_call label="Nouveau script" name="New Script"/>
+			<menu_item_call label="Nouvelle note" name="New Note"/>
+			<menu_item_call label="Nouvelle gesture" name="New Gesture"/>
+			<menu name="New Clothes">
+				<menu_item_call label="Nouvelle chemise" name="New Shirt"/>
+				<menu_item_call label="Nouveau pantalon" name="New Pants"/>
+				<menu_item_call label="Nouvelles chaussures" name="New Shoes"/>
+				<menu_item_call label="Nouvelles chaussettes" name="New Socks"/>
+				<menu_item_call label="Nouvelle veste" name="New Jacket"/>
+				<menu_item_call label="Nouvelle jupe" name="New Skirt"/>
+				<menu_item_call label="Nouveaux gants" name="New Gloves"/>
+				<menu_item_call label="Nouveaux sous-vêtements (haut)" name="New Undershirt"/>
+				<menu_item_call label="Nouveaux sous-vêtements (bas)" name="New Underpants"/>
+			</menu>
+			<menu name="New Body Parts">
+				<menu_item_call label="Nouvelle silhouette" name="New Shape"/>
+				<menu_item_call label="Nouvelle peau" name="New Skin"/>
+				<menu_item_call label="Nouveaux cheveux" name="New Hair"/>
+				<menu_item_call label="Nouveaux yeux" name="New Eyes"/>
+			</menu>
+		</menu>
+		<menu label="Trier" name="Sort">
+			<tearoff_menu label="~~~~~~~~~~~" name="~~~~~~~~~~~"/>
+			<menu_item_check label="Par nom" name="By Name"/>
+			<menu_item_check label="Par date" name="By Date"/>
+			<menu_item_check label="Trier les dossiers par nom" name="Folders Always By Name"/>
+			<menu_item_check label="Dossiers système en premier" name="System Folders To Top"/>
+		</menu>
+		<menu label="Chercher" name="Search">
+			<menu_item_check label="Par nom" name="Item name"/>
+			<menu_item_check label="par description" name="Item description"/>
+			<menu_item_check label="par créateur" name="Item creatorr"/>
+		</menu>
+		<menu label="Filters" name="Filters">
+			<tearoff_menu label="~~~~~~~~~~~" name="~~~~~~~~~~~"/>
+			<menu_item_check label="Modifier actuel" name="Modify Current"/>
+			<menu_item_call label="Réinitialiser actuel" name="Reset Current"/>
+		</menu>
+	</menu_bar>
+</floater>

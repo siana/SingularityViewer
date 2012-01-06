@@ -46,11 +46,6 @@ enum ECameraMode
 	CAMERA_MODE_CUSTOMIZE_AVATAR,
 	CAMERA_MODE_FOLLOW
 };
-typedef enum e_camera_position
-{
-	CAMERA_POSITION_SELF, /** Camera positioned at our position */
-	CAMERA_POSITION_OBJECT /** Camera positioned at observed object's position */
-} ECameraPosition;
 
 //------------------------------------------------------------------------
 // LLAgentCamera
@@ -207,9 +202,9 @@ private:
 public:
 	void			updateLookAt(const S32 mouse_x, const S32 mouse_y);
 	BOOL			setLookAt(ELookAtType target_type, LLViewerObject *object = NULL, LLVector3 position = LLVector3::zero);
-	void			lookAtObject(LLUUID object_id, ECameraPosition camera_pos);
 	ELookAtType		getLookAtType();
 	void			lookAtLastChat();
+	void			lookAtObject(const LLUUID &object_id, bool self=true);
 	void 			slamLookAt(const LLVector3 &look_at); // Set the physics data
 	BOOL			setPointAt(EPointAtType target_type, LLViewerObject *object = NULL, LLVector3 position = LLVector3::zero);
 	EPointAtType	getPointAtType();
@@ -370,6 +365,11 @@ private:
  **                                                                            **
  *******************************************************************************/
  
+//Custom
+public:
+	F32				getMouseLookDuration()	const { return mMouselookTimer.getElapsedTimeF32(); }
+private:
+	LLTimer			mMouselookTimer;
 };
 
 extern LLAgentCamera gAgentCamera;

@@ -60,7 +60,7 @@
 #include "llviewermenu.h"
 #include "lluictrlfactory.h"
 #include "llviewerwindow.h"
-#include "llvoavatar.h"
+#include "llvoavatarself.h"
 #include "llfloaterproperties.h"
 
 // RN: HACK
@@ -736,11 +736,11 @@ BOOL LLFolderViewItem::handleHover( S32 x, S32 y, MASK mask )
 
 				// *TODO: push this into listener and remove
 				// dependency on llagent
-				if(mListener && gInventory.isObjectDescendentOf(mListener->getUUID(), gAgent.getInventoryRootID()))
+				if(mListener && gInventory.isObjectDescendentOf(mListener->getUUID(), gInventory.getRootFolderID()))
 				{
 					src = LLToolDragAndDrop::SOURCE_AGENT;
 				}
-				else if (mListener && gInventory.isObjectDescendentOf(mListener->getUUID(), gInventoryLibraryRoot))
+				else if (mListener && gInventory.isObjectDescendentOf(mListener->getUUID(), gInventory.getLibraryRootFolderID()))
 				{
 					src = LLToolDragAndDrop::SOURCE_LIBRARY;
 				}
@@ -989,7 +989,7 @@ void LLFolderViewItem::draw()
 			
 			LLColor4 filter_color = mLastFilterGeneration >= getRoot()->getFilter()->getCurrentGeneration() ? LLColor4(0.5f, 0.8f, 0.5f, 1.f) : LLColor4(0.8f, 0.5f, 0.5f, 1.f);
 			sSmallFont->renderUTF8(mStatusText, 0, text_left, y, filter_color,
-							LLFontGL::LEFT, LLFontGL::BOTTOM, LLFontGL::NORMAL,
+							LLFontGL::LEFT, LLFontGL::BOTTOM, LLFontGL::NORMAL, LLFontGL::NO_SHADOW,
 							S32_MAX, S32_MAX, &right_x, FALSE );
 			text_left = right_x;
 		}
@@ -999,17 +999,17 @@ void LLFolderViewItem::draw()
 		{
 			// *TODO: Translate
 			sFont->renderUTF8( std::string("Loading... "), 0, text_left, y, sSearchStatusColor,
-						LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle, S32_MAX, S32_MAX, &right_x, FALSE);
+						LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle, LLFontGL::NO_SHADOW, S32_MAX, S32_MAX, &right_x, FALSE);
 			text_left = right_x;
 		}
 
 		sFont->renderUTF8( mLabel, 0, text_left, y, color,
-							LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle,
+							LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle, LLFontGL::NO_SHADOW, 
 							S32_MAX, S32_MAX, &right_x, FALSE );
 		if (!mLabelSuffix.empty())
 		{
 			sFont->renderUTF8( mLabelSuffix, 0, right_x, y, sSuffixColor,
-								LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle,
+								LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle, LLFontGL::NO_SHADOW, 
 								S32_MAX, S32_MAX, &right_x, FALSE );
 		}
 
@@ -1033,7 +1033,7 @@ void LLFolderViewItem::draw()
 				F32 match_string_left = text_left + sFont->getWidthF32(combined_string, 0, mStringMatchOffset);
 				F32 y = (F32)getRect().getHeight() - sFont->getLineHeight() - (F32)TEXT_PAD;
 				sFont->renderUTF8( combined_string, mStringMatchOffset, match_string_left, y,
-								sFilterTextColor, LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle,
+								sFilterTextColor, LLFontGL::LEFT, LLFontGL::BOTTOM, mLabelStyle, LLFontGL::NO_SHADOW, 
 								filter_string_length, S32_MAX, &right_x, FALSE );
 			}
 		}
@@ -1796,7 +1796,7 @@ bool LLFolderViewFolder::isTrash() const
 {
 	if (mAmTrash == LLFolderViewFolder::UNKNOWN)
 	{
-		mAmTrash = mListener->getUUID() == gInventory.findCategoryUUIDForType(LLAssetType::AT_TRASH, false) ? LLFolderViewFolder::TRASH : LLFolderViewFolder::NOT_TRASH;
+		mAmTrash = mListener->getUUID() == gInventory.findCategoryUUIDForType(LLFolderType::FT_TRASH, false) ? LLFolderViewFolder::TRASH : LLFolderViewFolder::NOT_TRASH;
 	}
 	return mAmTrash == LLFolderViewFolder::TRASH;
 }
@@ -2793,7 +2793,7 @@ U32 LLFolderView::getSearchType() const
 BOOL LLFolderView::addFolder( LLFolderViewFolder* folder)
 {
 	// enforce sort order of My Inventory followed by Library
-	if (folder->getListener()->getUUID() == gInventoryLibraryRoot)
+	if (folder->getListener()->getUUID() == gInventory.getLibraryRootFolderID())
 	{
 		mFolders.push_back(folder);
 	}
@@ -3203,7 +3203,7 @@ void LLFolderView::sanitizeSelection()
 		else
 		{
 			// nothing selected to start with, so pick "My Inventory" as best guess
-			new_selection = getItemByID(gAgent.getInventoryRootID());
+			new_selection = getItemByID(gInventory.getRootFolderID());
 		}
 
 		if (new_selection)
@@ -3273,7 +3273,7 @@ void LLFolderView::draw()
 										mFilter.getCurrentGeneration(), mFilter.getMinRequiredGeneration(), mFilter.getMustPassGeneration());
 		sSmallFont->renderUTF8(current_filter_string, 0, 2, 
 			getRect().getHeight() - sSmallFont->getLineHeight(), LLColor4(0.5f, 0.5f, 0.8f, 1.f), 
-			LLFontGL::LEFT, LLFontGL::BOTTOM, LLFontGL::NORMAL, S32_MAX, S32_MAX, NULL, FALSE );
+			LLFontGL::LEFT, LLFontGL::BOTTOM, LLFontGL::NORMAL, LLFontGL::NO_SHADOW,  S32_MAX, S32_MAX, NULL, FALSE );
 	}
 
 	// if cursor has moved off of me during drag and drop
@@ -3320,12 +3320,12 @@ void LLFolderView::draw()
 		if (gInventory.backgroundFetchActive() || mCompletedFilterGeneration < mFilter.getMinRequiredGeneration())
 		{
 			mStatusText = std::string("Searching..."); // *TODO:translate
-			sFont->renderUTF8(mStatusText, 0, 2, 1, sSearchStatusColor, LLFontGL::LEFT, LLFontGL::TOP, LLFontGL::NORMAL, S32_MAX, S32_MAX, NULL, FALSE );
+			sFont->renderUTF8(mStatusText, 0, 2, 1, sSearchStatusColor, LLFontGL::LEFT, LLFontGL::TOP, LLFontGL::NORMAL, LLFontGL::NO_SHADOW, S32_MAX, S32_MAX, NULL, FALSE );
 		}
 		else
 		{
 			mStatusText = std::string("No matching items found in inventory."); // *TODO:translate
-			sFont->renderUTF8(mStatusText, 0, 2, 1, sSearchStatusColor, LLFontGL::LEFT, LLFontGL::TOP, LLFontGL::NORMAL, S32_MAX, S32_MAX, NULL, FALSE );
+			sFont->renderUTF8(mStatusText, 0, 2, 1, sSearchStatusColor, LLFontGL::LEFT, LLFontGL::TOP, LLFontGL::NORMAL, LLFontGL::NO_SHADOW, S32_MAX, S32_MAX, NULL, FALSE );
 		}
 	}
 
@@ -4690,7 +4690,7 @@ BOOL LLInventoryFilter::check(LLFolderViewItem* item)
 	BOOL passed = (0x1 << listener->getInventoryType() & mFilterOps.mFilterTypes || listener->getInventoryType() == LLInventoryType::IT_NONE)
 					&& (mFilterSubString.size() == 0 || mSubStringMatchOffset != std::string::npos)
 					&& (mFilterWorn == false || gAgentWearables.isWearingItem(item_id) ||
-						(gAgent.getAvatarObject() && gAgent.getAvatarObject()->isWearingAttachment(item_id)))
+						(gAgentAvatarp && gAgentAvatarp->isWearingAttachment(item_id)))
 					&& ((listener->getPermissionMask() & mFilterOps.mPermissions) == mFilterOps.mPermissions)
 					&& (listener->getCreationDate() >= earliest && listener->getCreationDate() <= mFilterOps.mMaxDate);
 	return passed;

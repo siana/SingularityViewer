@@ -43,7 +43,11 @@
 #include "llviewermedia_streamingaudio.h"
 #include "llaudioengine.h"
 
-#ifdef LL_FMOD
+#if LL_FMODEX
+# include "llaudioengine_fmodex.h"
+#endif
+
+#if LL_FMOD
 # include "llaudioengine_fmod.h"
 #endif
 
@@ -72,6 +76,8 @@
 #include "llmemorystream.h"
 #include "llmessageconfig.h"
 #include "llmoveview.h"
+#include "llnotifications.h"
+#include "llnotificationsutil.h"
 #include "llregionhandle.h"
 #include "llsd.h"
 #include "llsdserialize.h"
@@ -279,11 +285,11 @@ void release_start_screen();
 void reset_login();
 void apply_udp_blacklist(const std::string& csv);
 
-void callback_cache_name(const LLUUID& id, const std::string& firstname, const std::string& lastname, BOOL is_group, void* data)
+void callback_cache_name(const LLUUID& id, const std::string& full_name, bool is_group)
 {
-	LLNameListCtrl::refreshAll(id, firstname, lastname, is_group);
-	LLNameBox::refreshAll(id, firstname, lastname, is_group);
-	LLNameEditor::refreshAll(id, firstname, lastname, is_group);
+	LLNameListCtrl::refreshAll(id, full_name);
+	LLNameBox::refreshAll(id, full_name, is_group);
+	LLNameEditor::refreshAll(id, full_name, is_group);
 
 	// TODO: Actually be intelligent about the refresh.
 	// For now, just brute force refresh the dialogs.
@@ -424,12 +430,12 @@ bool idle_startup()
 
 		if (LLFeatureManager::getInstance()->isSafe())
 		{
-			LLNotifications::instance().add("DisplaySetToSafe");
+			LLNotificationsUtil::add("DisplaySetToSafe");
 		}
 		else if ((gSavedSettings.getS32("LastFeatureVersion") < LLFeatureManager::getInstance()->getVersion()) &&
 				 (gSavedSettings.getS32("LastFeatureVersion") != 0))
 		{
-			LLNotifications::instance().add("DisplaySetToRecommended");
+			LLNotificationsUtil::add("DisplaySetToRecommended");
 		}
 		else if (!gViewerWindow->getInitAlert().empty())
 		{
@@ -605,7 +611,7 @@ bool idle_startup()
 				gXferManager->setUseAckThrottling(TRUE);
 				gXferManager->setAckThrottleBPS(xfer_throttle_bps);
 			}
-			gAssetStorage = new LLViewerAssetStorage(msg, gXferManager, gVFS);
+			gAssetStorage = new LLViewerAssetStorage(msg, gXferManager, gVFS, gStaticVFS);
 
 
 			F32 dropPercent = gSavedSettings.getF32("PacketDropPercentage");
@@ -661,6 +667,17 @@ bool idle_startup()
 			    )
 			{
 				gAudiop = (LLAudioEngine *) new LLAudioEngine_OpenAL();
+			}
+#endif
+
+#ifdef LL_FMODEX		
+			if (!gAudiop
+#if !LL_WINDOWS
+			    && NULL == getenv("LL_BAD_FMODEX_DRIVER")
+#endif // !LL_WINDOWS
+			    )
+			{
+				gAudiop = (LLAudioEngine *) new LLAudioEngine_FMODEX(gSavedSettings.getBOOL("SHEnableFMODExProfiler"));
 			}
 #endif
 
@@ -1588,7 +1605,7 @@ bool idle_startup()
 				std::string history_file = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "saved_logins_sg2.xml");
 
 				LLSavedLogins history_data = LLSavedLogins::loadFile(history_file);
-				std::string grid_nick = gHippoGridManager->getConnectedGrid()->getGridNick();
+				std::string grid_nick = gHippoGridManager->getConnectedGrid()->getGridName();
 				history_data.deleteEntry(firstname, lastname, grid_nick);
 				if (gSavedSettings.getBOOL("RememberLogin"))
 				{
@@ -1714,8 +1731,8 @@ bool idle_startup()
 				it = options[0].find("folder_id");
 				if(it != options[0].end())
 				{
-					gAgent.setInventoryRootID(LLUUID((*it).second));
-					//gInventory.mock(gAgent.getInventoryRootID());
+					gInventory.setRootFolderID(LLUUID((*it).second));
+					//gInventory.mock(gInventory.getRootFolderID());
 				}
 			}
 
@@ -1797,7 +1814,6 @@ bool idle_startup()
 			{
 				gSavedSettings.setString("MapServerURL", map_server_url);
 				LLWorldMap::gotMapServerURL(true);
-				llinfos << "Got Map server URL: " << map_server_url << llendl;
 			}
 			
 			// Override grid info with anything sent in the login response
@@ -1874,7 +1890,7 @@ bool idle_startup()
 				// Bounce back to the login screen.
 				LLSD args;
 				args["ERROR_MESSAGE"] = emsg.str();
-				LLNotifications::instance().add("ErrorMessage", args, LLSD(), login_alert_done);
+				LLNotificationsUtil::add("ErrorMessage", args, LLSD(), login_alert_done);
 				reset_login();
 				gSavedSettings.setBOOL("AutoLogin", FALSE);
 				show_connect_box = true;
@@ -1894,7 +1910,7 @@ bool idle_startup()
 			// Bounce back to the login screen.
 			LLSD args;
 			args["ERROR_MESSAGE"] = emsg.str();
-			LLNotifications::instance().add("ErrorMessage", args, LLSD(), login_alert_done);
+			LLNotificationsUtil::add("ErrorMessage", args, LLSD(), login_alert_done);
 			reset_login();
 			gSavedSettings.setBOOL("AutoLogin", FALSE);
 			show_connect_box = true;
@@ -1936,10 +1952,7 @@ bool idle_startup()
 		LLDrawable::initClass();
 
 		// init the shader managers
-		LLPostProcess::initClass();
-		LLWLParamManager::initClass();
 		AscentDayCycleManager::initClass();
-		LLWaterParamManager::initClass();
 
 		// RN: don't initialize VO classes in drone mode, they are too closely tied to rendering
 		LLViewerObject::initVOClasses();
@@ -1988,10 +2001,18 @@ bool idle_startup()
 	if (STATE_MULTIMEDIA_INIT == LLStartUp::getStartupState())
 	{
 		LLStartUp::multimediaInit();
-		LLStartUp::setStartupState( STATE_SEED_GRANTED_WAIT );
+		LLStartUp::setStartupState( STATE_FONT_INIT );
 		return FALSE;
 	}
 
+	// Loading fonts takes several seconds
+	if (STATE_FONT_INIT == LLStartUp::getStartupState())
+	{
+		LLStartUp::fontInit();
+		LLStartUp::setStartupState( STATE_SEED_GRANTED_WAIT );
+		return FALSE;
+	}
+	
 	//---------------------------------------------------------------------
 	// Wait for Seed Cap Grant
 	//---------------------------------------------------------------------
@@ -2088,21 +2109,7 @@ bool idle_startup()
 
 		gXferManager->registerCallbacks(gMessageSystem);
 
-		if ( gCacheName == NULL )
-		{
-			gCacheName = new LLCacheName(gMessageSystem);
-			gCacheName->addObserver(callback_cache_name);
-	
-			// Load stored cache if possible
-            LLAppViewer::instance()->loadNameCache();
-		}
-
-		// Start cache in not-running state until we figure out if we have
-		// capabilities for display name lookup
-		LLAvatarNameCache::initClass(false);	
-		S32 phoenix_name_system = gSavedSettings.getS32("PhoenixNameSystem");
-		if(phoenix_name_system <= 0 || phoenix_name_system > 2) LLAvatarNameCache::setUseDisplayNames(false);
-		else LLAvatarNameCache::setUseDisplayNames(true);
+		LLStartUp::initNameCache();
 
 		// *Note: this is where gWorldMap used to be initialized.
 
@@ -2333,7 +2340,7 @@ bool idle_startup()
 			it = options[0].find("folder_id");
 			if(it != options[0].end())
 			{
-				gInventoryLibraryRoot.set((*it).second);
+				gInventory.setLibraryRootFolderID(LLUUID((*it).second));
 			}
 		}
  		options.clear();
@@ -2345,14 +2352,14 @@ bool idle_startup()
 			it = options[0].find("agent_id");
 			if(it != options[0].end())
 			{
-				gInventoryLibraryOwner.set((*it).second);
+				gInventory.setLibraryOwnerID(LLUUID((*it).second));
 			}
 		}
  		options.clear();
  		if(LLUserAuth::getInstance()->getOptions("inventory-skel-lib", options)
-			&& gInventoryLibraryOwner.notNull())
+			&& gInventory.getLibraryOwnerID().notNull())
  		{
- 			if(!gInventory.loadSkeleton(options, gInventoryLibraryOwner))
+ 			if(!gInventory.loadSkeleton(options, gInventory.getLibraryOwnerID()))
  			{
  				LL_WARNS("AppInit") << "Problem loading inventory-skel-lib" << LL_ENDL;
  			}
@@ -2375,7 +2382,7 @@ bool idle_startup()
 			system_folder->setUUID(system_folder_id);
 			gSystemFolderRoot = system_folder_id;
 			system_folder->setParent(LLUUID::null);
-			system_folder->setPreferredType(LLAssetType::AT_NONE);
+			system_folder->setPreferredType(LLFolderType::FT_NONE);
 			gInventory.addCategory(system_folder);
 
 			LLViewerInventoryCategory* settings_folder = new LLViewerInventoryCategory(gAgent.getID());
@@ -2385,7 +2392,7 @@ bool idle_startup()
 			settings_folder->setUUID(settings_folder_id);
 			gSystemFolderSettings = settings_folder_id;
 			settings_folder->setParent(gSystemFolderRoot);
-			settings_folder->setPreferredType(LLAssetType::AT_NONE);
+			settings_folder->setPreferredType(LLFolderType::FT_NONE);
 			gInventory.addCategory(settings_folder);
 
 			LLViewerInventoryCategory* assets_folder = new LLViewerInventoryCategory(gAgent.getID());
@@ -2395,7 +2402,7 @@ bool idle_startup()
 			assets_folder->setUUID(assets_folder_id);
 			gSystemFolderAssets = assets_folder_id;
 			assets_folder->setParent(gSystemFolderRoot);
-			assets_folder->setPreferredType(LLAssetType::AT_NONE);
+			assets_folder->setPreferredType(LLFolderType::FT_NONE);
 			gInventory.addCategory(assets_folder);
 		}
 		// </edit>
@@ -2643,7 +2650,7 @@ bool idle_startup()
 						// Could schedule and delay these for later.
 						const BOOL no_inform_server = FALSE;
 						const BOOL no_deactivate_similar = FALSE;
-						gGestureManager.activateGestureWithAsset(item_id, asset_id,
+						LLGestureMgr::instance().activateGestureWithAsset(item_id, asset_id,
 											 no_inform_server,
 											 no_deactivate_similar);
 						// We need to fetch the inventory items for these gestures
@@ -2672,9 +2679,6 @@ bool idle_startup()
 		gForegroundTime.reset();
 
 		if (gSavedSettings.getBOOL("FetchInventoryOnLogin")
-#ifdef LL_RRINTERFACE_H //MK
-			|| gRRenabled
-#endif //mk
 			)
 		{
 			// Fetch inventory in the background
@@ -2722,7 +2726,7 @@ bool idle_startup()
 					args["TYPE"] = "home";
 					args["HELP"] = "You may want to set a new home location.";
 				}
-				LLNotifications::instance().add("AvatarMoved", args);
+				LLNotificationsUtil::add("AvatarMoved", args);
 			}
 			else
 			{
@@ -2761,7 +2765,7 @@ bool idle_startup()
 		if (gAgent.isFirstLogin()
 			&& !sInitialOutfit.empty()    // registration set up an outfit
 			&& !sInitialOutfitGender.empty() // and a gender
-			&& gAgent.getAvatarObject()	  // can't wear clothes without object
+			&& isAgentAvatarValid()	  // can't wear clothes without object
 			&& !gAgent.isGenderChosen() ) // nothing already loading
 		{
 			// Start loading the wearables, textures, gestures
@@ -2776,7 +2780,7 @@ bool idle_startup()
 		if (gAgent.isFirstLogin()
 			&& !sInitialOutfit.empty()    // registration set up an outfit
 			&& !sInitialOutfitGender.empty() // and a gender
-			&& gAgent.getAvatarObject()	  // can't wear clothes without object
+			&& gAgentAvatarp	  // can't wear clothes without object
 			&& !gAgent.isGenderChosen() ) // nothing already loading
 		{
 			// Start loading the wearables, textures, gestures
@@ -2784,7 +2788,7 @@ bool idle_startup()
 		}
 
 		// wait precache-delay and for agent's avatar or a lot longer.
-		if(((timeout_frac > 1.f) && gAgent.getAvatarObject())
+		if(((timeout_frac > 1.f) && isAgentAvatarValid())
 		   || (timeout_frac > 3.f))
 		{
 			LLStartUp::setStartupState( STATE_WEARABLES_WAIT );
@@ -2823,7 +2827,7 @@ bool idle_startup()
 			// initial outfit, but if the load hasn't started
 			// already then something is wrong so fall back
 			// to generic outfits. JC
-			LLNotifications::instance().add("WelcomeChooseSex", LLSD(), LLSD(),
+			LLNotificationsUtil::add("WelcomeChooseSex", LLSD(), LLSD(),
 				callback_choose_gender);
 			LLStartUp::setStartupState( STATE_CLEANUP );
 			return TRUE;
@@ -2831,7 +2835,7 @@ bool idle_startup()
 		
 		if (wearables_time > MAX_WEARABLES_TIME)
 		{
-			LLNotifications::instance().add("ClothingLoading");
+			LLNotificationsUtil::add("ClothingLoading");
 			LLViewerStats::getInstance()->incStat(LLViewerStats::ST_WEARABLES_TOO_LONG);
 			LLStartUp::setStartupState( STATE_CLEANUP );
 			return TRUE;
@@ -2840,8 +2844,8 @@ bool idle_startup()
 		if (gAgent.isFirstLogin())
 		{
 			// wait for avatar to be completely loaded
-			if (gAgent.getAvatarObject()
-				&& gAgent.getAvatarObject()->isFullyLoaded())
+			if (isAgentAvatarValid()
+				&& gAgentAvatarp->isFullyLoaded())
 			{
 				//llinfos << "avatar fully loaded" << llendl;
 				LLStartUp::setStartupState( STATE_CLEANUP );
@@ -2907,7 +2911,6 @@ bool idle_startup()
 		// Start automatic replay if the flag is set.
 		if (gSavedSettings.getBOOL("StatsAutoRun"))
 		{
-			LLUUID id;
 			LL_DEBUGS("AppInit") << "Starting automatic playback" << LL_ENDL;
 			gAgentPilot.startPlayback();
 		}
@@ -3119,7 +3122,7 @@ void LLStartUp::deletePasswordFromDisk()
 
 void show_first_run_dialog()
 {
-	LLNotifications::instance().add("FirstRun", LLSD(), LLSD(), first_run_dialog_callback);
+	LLNotificationsUtil::add("FirstRun", LLSD(), LLSD(), first_run_dialog_callback);
 }
 
 bool first_run_dialog_callback(const LLSD& notification, const LLSD& response)
@@ -3406,7 +3409,7 @@ void use_circuit_callback(void**, S32 result)
 		{
 			// Make sure user knows something bad happened. JC
 			LL_WARNS("AppInit") << "Backing up to login screen!" << LL_ENDL;
-			LLNotifications::instance().add("LoginPacketNeverReceived", LLSD(), LLSD(), login_alert_status);
+			LLNotificationsUtil::add("LoginPacketNeverReceived", LLSD(), LLSD(), login_alert_status);
 			reset_login();
 		}
 		else
@@ -3776,6 +3779,7 @@ std::string LLStartUp::startupStateToString(EStartupState state)
 		RTNENUM( STATE_LOGIN_DOWNLOADING );
 		RTNENUM( STATE_LOGIN_PROCESS_RESPONSE );
 		RTNENUM( STATE_WORLD_INIT );
+		RTNENUM( STATE_FONT_INIT );
 		RTNENUM( STATE_SEED_GRANTED_WAIT );
 		RTNENUM( STATE_SEED_CAP_GRANTED );
 		RTNENUM( STATE_WORLD_WAIT );
@@ -3850,6 +3854,44 @@ void LLStartUp::multimediaInit()
 	LLViewerParcelMedia::initClass();
 }
 
+void LLStartUp::fontInit()
+{
+	LL_DEBUGS("AppInit") << "Initializing fonts...." << LL_ENDL;
+	std::string msg = LLTrans::getString("LoginInitializingFonts");
+	set_startup_status(0.45f, msg.c_str(), gAgent.mMOTD.c_str());
+	display_startup();
+
+	LLFontGL::loadDefaultFonts();
+}
+
+void LLStartUp::initNameCache()
+{
+	// Can be called multiple times
+	if ( gCacheName ) return;
+
+	gCacheName = new LLCacheName(gMessageSystem);
+	gCacheName->addObserver(&callback_cache_name);
+	gCacheName->localizeCacheName("waiting", LLTrans::getString("AvatarNameWaiting"));
+	gCacheName->localizeCacheName("nobody", LLTrans::getString("AvatarNameNobody"));
+	gCacheName->localizeCacheName("none", LLTrans::getString("GroupNameNone"));
+	// Load stored cache if possible
+	LLAppViewer::instance()->loadNameCache();
+
+	// Start cache in not-running state until we figure out if we have
+	// capabilities for display name lookup
+	LLAvatarNameCache::initClass(false);
+	S32 phoenix_name_system = gSavedSettings.getS32("PhoenixNameSystem");
+	if(phoenix_name_system <= 0 || phoenix_name_system > 2) LLAvatarNameCache::setUseDisplayNames(false);
+	else LLAvatarNameCache::setUseDisplayNames(true);
+}
+
+void LLStartUp::cleanupNameCache()
+{
+	LLAvatarNameCache::cleanupClass();
+
+	delete gCacheName;
+	gCacheName = NULL;
+}
 bool LLStartUp::dispatchURL()
 {
 	// ok, if we've gotten this far and have a startup URL
@@ -3964,33 +4006,33 @@ bool LLStartUp::handleSocksProxy(bool reportOK)
 			case SOCKS_OK:
 				if (reportOK == true)
 				{
-					LLNotifications::instance().add("SOCKS_CONNECT_OK", subs);
+					LLNotificationsUtil::add("SOCKS_CONNECT_OK", subs);
 				}
 				return true;
 				break;
 
 			case SOCKS_CONNECT_ERROR: // TCP Fail
-				LLNotifications::instance().add("SOCKS_CONNECT_ERROR", subs);
+				LLNotificationsUtil::add("SOCKS_CONNECT_ERROR", subs);
 				break;
 
 			case SOCKS_NOT_PERMITTED: // Socks5 server rule set refused connection
-				LLNotifications::instance().add("SOCKS_NOT_PERMITTED", subs);
+				LLNotificationsUtil::add("SOCKS_NOT_PERMITTED", subs);
 				break;
 					
 			case SOCKS_NOT_ACCEPTABLE: // Selected authentication is not acceptable to server
-				LLNotifications::instance().add("SOCKS_NOT_ACCEPTABLE", subs);
+				LLNotificationsUtil::add("SOCKS_NOT_ACCEPTABLE", subs);
 				break;
 
 			case SOCKS_AUTH_FAIL: // Authentication failed
-				LLNotifications::instance().add("SOCKS_AUTH_FAIL", subs);
+				LLNotificationsUtil::add("SOCKS_AUTH_FAIL", subs);
 				break;
 
 			case SOCKS_UDP_FWD_NOT_GRANTED: // UDP forward request failed
-				LLNotifications::instance().add("SOCKS_UDP_FWD_NOT_GRANTED", subs);
+				LLNotificationsUtil::add("SOCKS_UDP_FWD_NOT_GRANTED", subs);
 				break;
 
 			case SOCKS_HOST_CONNECT_FAILED: // Failed to open a TCP channel to the socks server
-				LLNotifications::instance().add("SOCKS_HOST_CONNECT_FAILED", subs);
+				LLNotificationsUtil::add("SOCKS_HOST_CONNECT_FAILED", subs);
 				break;		
 		}
 

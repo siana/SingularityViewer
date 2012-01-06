@@ -37,6 +37,7 @@
 #include "llresmgr.h"
 #include "llfont.h"
 #include "llui.h"
+#include "lluiimage.h"
 
 class LLStyle : public LLRefCount
 {
@@ -109,7 +110,7 @@ private:
 	std::string	mFontName;
 	LLFONT_ID   mFontID;
 	std::string	mLink;
-	LLUIImagePtr mImagep;
+	LLPointer<LLUIImage> mImagep;
 	BOOL		mIsEmbeddedItem;
 };
 

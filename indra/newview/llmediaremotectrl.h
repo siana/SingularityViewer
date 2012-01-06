@@ -35,6 +35,8 @@
 
 #include "llpanel.h"
 
+class LLButton;
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 class LLMediaRemoteCtrl : public LLPanel
@@ -57,6 +59,8 @@ public:
 
 protected:
 	void build();
+
+	std::string mCachedPauseTip;
 };
 
 #endif

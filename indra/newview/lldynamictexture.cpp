@@ -34,6 +34,7 @@
 
 #include "lldynamictexture.h"
 #include "llglheaders.h"
+#include "llwindow.h"			// getPosition()
 #include "llviewerwindow.h"
 #include "llviewercamera.h"
 #include "llviewercontrol.h"
@@ -41,6 +42,8 @@
 #include "llvertexbuffer.h"
 #include "llviewerdisplay.h"
 #include "llrender.h"
+#include "llglslshader.h"
+#include "pipeline.h"
 
 // static
 LLViewerDynamicTexture::instance_list_t LLViewerDynamicTexture::sInstances[ LLViewerDynamicTexture::ORDER_COUNT ];
@@ -55,6 +58,13 @@ LLViewerDynamicTexture::LLViewerDynamicTexture(S32 width, S32 height, S32 compon
 {
 	llassert((1 <= components) && (components <= 4));
 
+	if(gGLManager.mDebugGPU)
+	{
+		if(components == 3)
+		{
+			mComponents = 4 ; //convert to 32bits.
+		}
+	}
 	generateGLTexture();
 
 	llassert( 0 <= order && order < ORDER_COUNT );
@@ -123,7 +133,7 @@ void LLViewerDynamicTexture::preRender(BOOL clear_depth)
 		// force rendering to on-screen portion of frame buffer
 		LLCoordScreen window_pos;
 		gViewerWindow->getWindow()->getPosition( &window_pos );
-		mOrigin.set(0, gViewerWindow->getWindowDisplayHeight() - mFullHeight);  // top left corner
+		mOrigin.set(0, gViewerWindow->getWindowHeightRaw() - mFullHeight);  // top left corner
 
 		if (window_pos.mX < 0)
 		{
@@ -178,7 +188,7 @@ void LLViewerDynamicTexture::postRender(BOOL success)
 	}
 
 	// restore viewport
-	gViewerWindow->setupViewport();
+	gViewerWindow->setup2DViewport();
 
 	// restore camera
 	LLViewerCamera* camera = LLViewerCamera::getInstance();
@@ -197,11 +207,14 @@ void LLViewerDynamicTexture::postRender(BOOL success)
 BOOL LLViewerDynamicTexture::updateAllInstances()
 {
 	sNumRenders = 0;
-	if (gGLManager.mIsDisabled)
+	if (gGLManager.mIsDisabled || LLPipeline::sMemAllocationThrottled)
 	{
 		return TRUE;
 	}
 
+	LLGLSLShader::bindNoShader();
+	LLVertexBuffer::unbind();
+	
 	BOOL result = FALSE;
 	BOOL ret = FALSE ;
 	for( S32 order = 0; order < ORDER_COUNT; order++ )

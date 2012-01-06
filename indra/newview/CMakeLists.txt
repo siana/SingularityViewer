@@ -7,7 +7,15 @@ include(Boost)
 include(DBusGlib)
 include(DirectX)
 include(ELFIO)
-include(FMOD)
+if(FMODEX)
+	include(FMODEX)
+	if(FMODEX)
+		set(FMOD OFF)
+	endif(FMODEX)
+endif(FMODEX)
+if(NOT FMODEX)
+	include(FMOD)
+endif(NOT FMODEX)
 include(OPENAL)
 include(HUNSPELL)
 include(FindOpenGL)
@@ -100,12 +108,14 @@ set(viewer_SOURCE_FILES
     jcfloaterareasearch.cpp
     chatbar_as_cmdline.cpp
     qtoolalign.cpp
+    llaccountingcostmanager.cpp
     llagent.cpp
     llagentaccess.cpp
     llagentcamera.cpp
     llagentdata.cpp
     llagentlanguage.cpp
     llagentpilot.cpp
+    llagentui.cpp
     llagentwearables.cpp
     llanimstatelabels.cpp
     llappviewer.cpp
@@ -114,7 +124,6 @@ set(viewer_SOURCE_FILES
     llassetuploadqueue.cpp
     llattachmentsmgr.cpp
     llaudiosourcevo.cpp
-    llbbox.cpp
     llbox.cpp
     llbuildnewviewsscheduler.cpp
     llcallbacklist.cpp
@@ -139,10 +148,10 @@ set(viewer_SOURCE_FILES
     lldebugview.cpp
     lldelayedgestureerror.cpp
     lldrawable.cpp
+    lldrawpool.cpp
     lldrawpoolalpha.cpp
     lldrawpoolavatar.cpp
     lldrawpoolbump.cpp
-    lldrawpool.cpp
     lldrawpoolground.cpp
     lldrawpoolsimple.cpp
     lldrawpoolsky.cpp
@@ -216,6 +225,7 @@ set(viewer_SOURCE_FILES
     llfloatermap.cpp
     llfloatermemleak.cpp
     llfloatermessagelog.cpp
+    llfloatermodeluploadbase.cpp
     llfloatermute.cpp
     llfloaternamedesc.cpp
     llfloaternewim.cpp
@@ -231,6 +241,7 @@ set(viewer_SOURCE_FILES
     llfloaterproperties.cpp
     llfloaterregioninfo.cpp
     llfloaterreporter.cpp
+    llfloatersearchreplace.cpp
     llfloaterscriptdebug.cpp
     llfloatersellland.cpp
     llfloatersettingsdebug.cpp
@@ -268,6 +279,7 @@ set(viewer_SOURCE_FILES
     llhudeffecttrail.cpp
     llhudicon.cpp
     llhudmanager.cpp
+    llhudnametag.cpp
     llhudobject.cpp
     llhudrender.cpp
     llhudtext.cpp
@@ -278,6 +290,7 @@ set(viewer_SOURCE_FILES
     llinventorybackup.cpp
     llinventorybridge.cpp
     llinventoryclipboard.cpp
+    llinventoryicon.cpp
     llinventorymodel.cpp
     llinventoryview.cpp
     lljoystickbutton.cpp
@@ -293,6 +306,7 @@ set(viewer_SOURCE_FILES
     llmediaremotectrl.cpp
     llmemoryview.cpp
     llmenucommands.cpp
+    llmeshrepository.cpp
     llmimetypes.cpp
     llmorphview.cpp
     llmoveview.cpp
@@ -415,6 +429,7 @@ set(viewer_SOURCE_FILES
     lltrans.cpp
     lltranslate.cpp
     lluploaddialog.cpp
+	lluploadfloaterobservers.cpp
     llurl.cpp
     llurldispatcher.cpp
     llurlhistory.cpp
@@ -425,6 +440,7 @@ set(viewer_SOURCE_FILES
     llvelocitybar.cpp
     llviewchildren.cpp
     llviewerassetstorage.cpp
+    llviewerassettype.cpp
     llvieweraudio.cpp
     llviewercamera.cpp
     llviewercontrol.cpp
@@ -434,12 +450,9 @@ set(viewer_SOURCE_FILES
     #llviewerimage.cpp
     #llviewerimagelist.cpp
     llviewerinventory.cpp
-    llviewerjointattachment.cpp
     llviewerjoint.cpp
+    llviewerjointattachment.cpp
     llviewerjointmesh.cpp
-    llviewerjointmesh_sse2.cpp
-    llviewerjointmesh_sse.cpp
-    llviewerjointmesh_vec.cpp
     llviewerjoystick.cpp
     llviewerkeyboard.cpp
     llviewerlayer.cpp
@@ -475,6 +488,7 @@ set(viewer_SOURCE_FILES
     llvlmanager.cpp
     llvoavatar.cpp
     llvoavatardefines.cpp
+    llvoavatarself.cpp
     llvocache.cpp
     llvoclouds.cpp
     llvograss.cpp
@@ -496,6 +510,7 @@ set(viewer_SOURCE_FILES
     llwaterparamset.cpp
     llwearable.cpp
     llwearablelist.cpp
+    llwearabletype.cpp
     llweb.cpp
     llmediactrl.cpp
     llwind.cpp
@@ -527,20 +542,6 @@ set(viewer_SOURCE_FILES
 # This gets renamed in the packaging step
 set(VIEWER_BINARY_NAME "secondlife-bin" CACHE STRING
     "The name of the viewer executable to create.")
-
-if ((LINUX OR DARWIN) AND NOT DARWIN_PPC)
-  # We can't set these flags for Darwin, because they get passed to
-  # the PPC compiler.  Ugh.
-
-  set_source_files_properties(
-      llviewerjointmesh_sse.cpp
-      PROPERTIES COMPILE_FLAGS "-msse -mfpmath=sse"
-      )
-  set_source_files_properties(
-      llviewerjointmesh_sse2.cpp
-      PROPERTIES COMPILE_FLAGS "-msse2 -mfpmath=sse"
-      )
-endif ((LINUX OR DARWIN) AND NOT DARWIN_PPC)
 
 set(viewer_HEADER_FILES
     CMakeLists.txt
@@ -576,12 +577,14 @@ set(viewer_HEADER_FILES
     lgghunspell_wrapper.h
     chatbar_as_cmdline.h
     qtoolalign.h
+    llaccountingcostmanager.h
     llagent.h
     llagentaccess.h
     llagentcamera.h
     llagentdata.h
     llagentlanguage.h
     llagentpilot.h
+    llagentui.h
     llagentwearables.h
     llanimstatelabels.h
     llappearance.h
@@ -591,7 +594,6 @@ set(viewer_HEADER_FILES
     llassetuploadqueue.h
     llattachmentsmgr.h
     llaudiosourcevo.h
-    llbbox.h
     llbox.h
     llbuildnewviewsscheduler.h
     llcallbacklist.h
@@ -693,6 +695,7 @@ set(viewer_HEADER_FILES
     llfloaterlandmark.h
     llfloatermap.h
     llfloatermemleak.h
+    llfloatermodeluploadbase.h
     llfloatermessagelog.h
     llfloatermute.h
     llfloaternamedesc.h
@@ -709,6 +712,7 @@ set(viewer_HEADER_FILES
     llfloaterproperties.h
     llfloaterregioninfo.h
     llfloaterreporter.h
+    llfloatersearchreplace.h
     llfloaterscriptdebug.h
     llfloatersellland.h
     llfloatersettingsdebug.h
@@ -745,6 +749,7 @@ set(viewer_HEADER_FILES
     llhudeffecttrail.h
     llhudicon.h
     llhudmanager.h
+    llhudnametag.h
     llhudobject.h
     llhudrender.h
     llhudtext.h
@@ -754,6 +759,7 @@ set(viewer_HEADER_FILES
     llinventorybackup.h
     llinventorybridge.h
     llinventoryclipboard.h
+    llinventoryicon.h
     llinventorymodel.h
     llinventoryview.h
     lljoystickbutton.h
@@ -770,6 +776,7 @@ set(viewer_HEADER_FILES
     llmediaremotectrl.h
     llmemoryview.h
     llmenucommands.h
+    llmeshrepository.h
     llmimetypes.h
     llmorphview.h
     llmoveview.h
@@ -896,6 +903,7 @@ set(viewer_HEADER_FILES
     lltranslate.h
     lluiconstants.h
     lluploaddialog.h
+	lluploadfloaterobservers.h
     llurl.h
     llurldispatcher.h
     llurlhistory.h
@@ -906,6 +914,7 @@ set(viewer_HEADER_FILES
     llvelocitybar.h
     llviewchildren.h
     llviewerassetstorage.h
+    llviewerassettype.h
     llvieweraudio.h
     llviewerbuild.h
     llviewercamera.h
@@ -954,6 +963,7 @@ set(viewer_HEADER_FILES
     llvlmanager.h
     llvoavatar.h
     llvoavatardefines.h
+    llvoavatarself.h
     llvocache.h
     llvoclouds.h
     llvograss.h
@@ -976,6 +986,7 @@ set(viewer_HEADER_FILES
     llwaterparamset.h
     llwearable.h
     llwearablelist.h
+    llwearabletype.h
     llweb.h
     llmediactrl.h
     llwind.h
@@ -1053,7 +1064,7 @@ endif (DARWIN)
 if (LINUX)
     LIST(APPEND viewer_SOURCE_FILES llappviewerlinux.cpp)
     LIST(APPEND viewer_SOURCE_FILES llappviewerlinux_api_dbus.cpp)
-    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -luuid -lrt -laprutil-1 -lfontconfig -Wl,--as-needed")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--as-needed")
 
     set(viewer_LIBRARIES
         Xinerama
@@ -1169,7 +1180,6 @@ if (WINDOWS)
         comdlg32
         ${DINPUT_LIBRARY}
         ${DXGUID_LIBRARY}
-        fmodvc
         gdi32
         kernel32
         odbc32
@@ -1182,6 +1192,13 @@ if (WINDOWS)
         Vfw32
         winspool
         )
+
+	if(FMODEX)
+		list(APPEND viewer_LIBRARIES ${FMODEX_LIBRARY})
+	endif(FMODEX)
+	if(FMOD)
+		list(APPEND viewer_LIBRARIES ${FMOD_LIBRARY})
+	endif(FMOD)
 
     find_library(INTEL_MEMOPS_LIBRARY
                  NAMES ll_intel_memops
@@ -1289,13 +1306,23 @@ if (OPENAL)
   set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_OPENAL")
 endif (OPENAL)
 
-if (FMOD)
-  set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMOD")
+if (FMOD OR FMODEX)
+  if(FMODEX)
+	set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMODEX")
+  endif(FMODEX)
+  if(FMOD)
+    set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMOD")
+  endif(FMOD)
 
   if (NOT WINDOWS)
     set(fmodwrapper_SOURCE_FILES fmodwrapper.cpp)
     add_library(fmodwrapper SHARED ${fmodwrapper_SOURCE_FILES})
-    set(fmodwrapper_needed_LIBRARIES ${FMOD_LIBRARY})
+	if(FMODEX)
+		set(fmodwrapper_needed_LIBRARIES ${FMODEX_LIBRARY})
+	endif(FMODEX)
+	if(FMOD)
+		set(fmodwrapper_needed_LIBRARIES "${fmodwrapper_needed_LIBRARIES} ${FMOD_LIBRARY}")
+	endif(FMOD)
     if (DARWIN)
       list(APPEND fmodwrapper_needed_LIBRARIES ${CARBON_LIBRARY})
       set_target_properties(
@@ -1309,7 +1336,7 @@ if (FMOD)
     set(FMODWRAPPER_LIBRARY fmodwrapper)
     target_link_libraries(fmodwrapper ${fmodwrapper_needed_LIBRARIES})
   endif (NOT WINDOWS)
-endif (FMOD)
+endif (FMOD OR FMODEX)
 
 set_source_files_properties(llstartup.cpp PROPERTIES COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS}")
 
@@ -1348,9 +1375,13 @@ if (WINDOWS)
         set(release_flags "/MAP:Release/${VIEWER_BINARY_NAME}.map")
     endif()
     
+if (FMODEX)
+	set(EXTRA_LINKER_FLAGS "/DELAYLOAD:fmodex.dll")
+endif (FMODEX)
+
     set_target_properties(${VIEWER_BINARY_NAME}
         PROPERTIES
-        LINK_FLAGS "/debug /NODEFAULTLIB:LIBCMT /SUBSYSTEM:WINDOWS ${GOOGLE_PERFTOOLS_LINKER_FLAGS}"
+        LINK_FLAGS "/debug /NODEFAULTLIB:LIBCMT /SUBSYSTEM:WINDOWS ${GOOGLE_PERFTOOLS_LINKER_FLAGS} ${EXTRA_LINKER_FLAGS}"
         LINK_FLAGS_DEBUG "/NODEFAULTLIB:\"LIBCMT;LIBCMTD;MSVCRT\""
         LINK_FLAGS_RELEASE ${release_flags}
         )
@@ -1606,6 +1637,13 @@ endif (LL_TESTS)
 if (WINDOWS)
 
   get_target_property(BUILT_LLCOMMON llcommon LOCATION)
+
+    set_target_properties(llcommon
+        PROPERTIES
+        LINK_FLAGS "/debug /NODEFAULTLIB:LIBCMT"
+        LINK_FLAGS_DEBUG "/NODEFAULTLIB:\"LIBCMT;LIBCMTD;MSVCRT\""
+        )
+
   add_custom_command(
       TARGET ${VIEWER_BINARY_NAME} POST_BUILD
       COMMAND ${CMAKE_COMMAND}

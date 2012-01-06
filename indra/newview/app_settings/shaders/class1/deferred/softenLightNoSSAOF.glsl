@@ -5,7 +5,6 @@
  * $License$
  */
  
-#version 120
 
 #extension GL_ARB_texture_rectangle : enable
 
@@ -41,8 +40,8 @@ uniform vec3 env_mat[3];
 //uniform vec4 shadow_clip;
 uniform mat3 ssao_effect_mat;
 
-varying vec4 vary_light;
-varying vec2 vary_fragcoord;
+VARYING vec4 vary_light;
+VARYING vec2 vary_fragcoord;
 
 vec3 vary_PositionEye;
 

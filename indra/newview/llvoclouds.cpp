@@ -182,92 +182,100 @@ F32 LLVOClouds::getPartSize(S32 idx)
 {
 	return (CLOUD_PUFF_HEIGHT+CLOUD_PUFF_WIDTH)*0.5f;
 }
-
-void LLVOClouds::getGeometry(S32 te, 
-							LLStrider<LLVector3>& verticesp, 
-							LLStrider<LLVector3>& normalsp, 
-							LLStrider<LLVector2>& texcoordsp, 
-							LLStrider<LLColor4U>& colorsp, 
-							LLStrider<U16>& indicesp)
+void LLVOClouds::getGeometry(S32 idx,
+								LLStrider<LLVector4a>& verticesp,
+								LLStrider<LLVector3>& normalsp, 
+								LLStrider<LLVector2>& texcoordsp,
+								LLStrider<LLColor4U>& colorsp, 
+								LLStrider<U16>& indicesp)
 {
 
-	if (te >= mCloudGroupp->getNumPuffs())
+	if (idx >= mCloudGroupp->getNumPuffs())
 	{
 		return;
 	}
 
 	LLDrawable* drawable = mDrawable;
-	LLFace *facep = drawable->getFace(te);
+	LLFace *facep = drawable->getFace(idx);
 
 	if (!facep->hasGeometry())
 	{
 		return;
 	}
 	
-	LLVector3 normal(0.f,0.f,-1.f);
 
-	const LLCloudPuff &puff = mCloudGroupp->getPuff(te);
-	S32 index_offset = facep->getGeomIndex();
+	const LLCloudPuff &puff = mCloudGroupp->getPuff(idx);
+
 	LLColor4 float_color(LLColor3(gSky.getSunDiffuseColor() + gSky.getSunAmbientColor()),puff.getAlpha());
 	LLColor4U color;
 	color.setVec(float_color);
 	facep->setFaceColor(float_color);
-		
 	
-	LLVector3 up;
-	LLVector3 right;
-	LLVector3 at;
-
-	const LLVector3& puff_pos_agent = facep->mCenterLocal;
-	LLVector2 uvs[4];
-
-	uvs[0].setVec(0.f, 1.f);
-	uvs[1].setVec(0.f, 0.f);
-	uvs[2].setVec(1.f, 1.f);
-	uvs[3].setVec(1.f, 0.f);
-
-	LLVector3 vtx[4];
-
-	at = LLViewerCamera::getInstance()->getAtAxis();
-	right = at % LLVector3(0.f, 0.f, 1.f);
-	right.normVec();
-	up = right % at;
-	up.normVec();
-	right *= 0.5f*CLOUD_PUFF_WIDTH;
-	up *= 0.5f*CLOUD_PUFF_HEIGHT;;
+	U32 vert_offset = facep->getGeomIndex();
 		
+	LLVector4a part_pos_agent;
+	part_pos_agent.load3(facep->mCenterLocal.mV);	
+	LLVector4a at;
+	at.load3(LLViewerCamera::getInstance()->getAtAxis().mV);
+	LLVector4a up(0, 0, 1);
+	LLVector4a right;
+
+	right.setCross3(at, up);
+	right.normalize3fast();
+	up.setCross3(right, at);
+	up.normalize3fast();
+	right.mul(0.5f*CLOUD_PUFF_WIDTH);
+	up.mul(0.5f*CLOUD_PUFF_HEIGHT);
+		
+
+	LLVector3 normal(0.f,0.f,-1.f);
+
+	//HACK -- the verticesp->mV[3] = 0.f here are to set the texture index to 0 (particles don't use texture batching, maybe they should)
+	// this works because there is actually a 4th float stored after the vertex position which is used as a texture index
+	// also, somebody please VECTORIZE THIS
+
+	LLVector4a ppapu;
+	LLVector4a ppamu;
+	
+	ppapu.setAdd(part_pos_agent, up);
+	ppamu.setSub(part_pos_agent, up);
+	
+	verticesp->setSub(ppapu, right);
+	(*verticesp++).getF32ptr()[3] = 0.f;
+	verticesp->setSub(ppamu, right);
+	(*verticesp++).getF32ptr()[3] = 0.f;
+	verticesp->setAdd(ppapu, right);
+	(*verticesp++).getF32ptr()[3] = 0.f;
+	verticesp->setAdd(ppamu, right);
+	(*verticesp++).getF32ptr()[3] = 0.f;
+
+	//*verticesp++ = puff_pos_agent - right + up;
+	//*verticesp++ = puff_pos_agent - right - up;
+	//*verticesp++ = puff_pos_agent + right + up;
+	//*verticesp++ = puff_pos_agent + right - up;
+
 	*colorsp++ = color;
 	*colorsp++ = color;
 	*colorsp++ = color;
 	*colorsp++ = color;
 
-	vtx[0] = puff_pos_agent - right + up;
-	vtx[1] = puff_pos_agent - right - up;
-	vtx[2] = puff_pos_agent + right + up;
-	vtx[3] = puff_pos_agent + right - up;
-
-	*verticesp++  = vtx[0];
-	*verticesp++  = vtx[1];
-	*verticesp++  = vtx[2];
-	*verticesp++  = vtx[3];
-
-	*texcoordsp++ = uvs[0];
-	*texcoordsp++ = uvs[1];
-	*texcoordsp++ = uvs[2];
-	*texcoordsp++ = uvs[3];
+	*texcoordsp++ = LLVector2(0.f, 1.f);
+	*texcoordsp++ = LLVector2(0.f, 0.f);
+	*texcoordsp++ = LLVector2(1.f, 1.f);
+	*texcoordsp++ = LLVector2(1.f, 0.f);
 
 	*normalsp++   = normal;
 	*normalsp++   = normal;
 	*normalsp++   = normal;
 	*normalsp++   = normal;
 
-	*indicesp++ = index_offset + 0;
-	*indicesp++ = index_offset + 1;
-	*indicesp++ = index_offset + 2;
+	*indicesp++ = vert_offset + 0;
+	*indicesp++ = vert_offset + 1;
+	*indicesp++ = vert_offset + 2;
 
-	*indicesp++ = index_offset + 1;
-	*indicesp++ = index_offset + 3;
-	*indicesp++ = index_offset + 2;
+	*indicesp++ = vert_offset + 1;
+	*indicesp++ = vert_offset + 3;
+	*indicesp++ = vert_offset + 2;
 }
 
 U32 LLVOClouds::getPartitionType() const

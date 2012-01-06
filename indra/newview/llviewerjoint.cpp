@@ -132,7 +132,7 @@ void LLViewerJoint::setValid( BOOL valid, BOOL recursive )
 // 	//----------------------------------------------------------------
 // 	// push matrix stack
 // 	//----------------------------------------------------------------
-// 	glPushMatrix();
+// 	gGL.pushMatrix();
 
 // 	//----------------------------------------------------------------
 // 	// render the bone to my parent
@@ -146,8 +146,8 @@ void LLViewerJoint::setValid( BOOL valid, BOOL recursive )
 // 	// offset to joint position and 
 // 	// rotate to our orientation
 // 	//----------------------------------------------------------------
-// 	glLoadIdentity();
-// 	glMultMatrixf( &getWorldMatrix().mMatrix[0][0] );
+// 	gGL.loadIdentity();
+// 	gGL.multMatrix( &getWorldMatrix().mMatrix[0][0] );
 
 // 	//----------------------------------------------------------------
 // 	// render joint axes
@@ -239,7 +239,7 @@ void LLViewerJoint::setValid( BOOL valid, BOOL recursive )
 // 	//----------------------------------------------------------------
 // 	// pop matrix stack
 // 	//----------------------------------------------------------------
-// 	glPopMatrix();
+// 	gGL.popMatrix();
 // }
 
 
@@ -263,7 +263,7 @@ U32 LLViewerJoint::render( F32 pixelArea, BOOL first_pass, BOOL is_dummy )
 		// if object is transparent, defer it, otherwise
 		// give the joint subclass a chance to draw itself
 		//----------------------------------------------------------------
-		if ( gRenderForSelect || is_dummy )
+		if ( is_dummy )
 		{
 			triangle_count += drawShape( pixelArea, first_pass, is_dummy );
 		}
@@ -352,7 +352,7 @@ U32 LLViewerJoint::render( F32 pixelArea, BOOL first_pass, BOOL is_dummy )
 // 	F32 boneSize = 0.02f;
 
 // 	// rotate to point to child (bone direction)
-// 	glPushMatrix();
+// 	gGL.pushMatrix();
 
 // 	LLVector3 boneX = getPosition();
 // 	F32 length = boneX.normVec();
@@ -368,7 +368,7 @@ U32 LLViewerJoint::render( F32 pixelArea, BOOL first_pass, BOOL is_dummy )
 // 	rotateMat.setFwdRow( boneX );
 // 	rotateMat.setLeftRow( boneY );
 // 	rotateMat.setUpRow( boneZ );
-// 	glMultMatrixf( &rotateMat.mMatrix[0][0] );
+// 	gGL.multMAtrix( &rotateMat.mMatrix[0][0] );
 
 // 	// render the bone
 // 	gGL.color3f( 0.5f, 0.5f, 0.0f );
@@ -394,7 +394,7 @@ U32 LLViewerJoint::render( F32 pixelArea, BOOL first_pass, BOOL is_dummy )
 // 	gGL.end();
 
 // 	// restore matrix
-// 	glPopMatrix();
+// 	gGL.popMatrix();
 // }
 
 //--------------------------------------------------------------------
@@ -547,9 +547,9 @@ void LLViewerJointCollisionVolume::renderCollision()
 	updateWorldMatrix();
 	
 	gGL.pushMatrix();
-	glMultMatrixf( &mXform.getWorldMatrix().mMatrix[0][0] );
+	gGL.multMatrix( &mXform.getWorldMatrix().mMatrix[0][0] );
 
-	gGL.color3f( 0.f, 0.f, 1.f );
+	gGL.diffuseColor3f( 0.f, 0.f, 1.f );
 	
 	gGL.begin(LLRender::LINES);
 	

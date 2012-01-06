@@ -42,21 +42,26 @@
 #include "llfontgl.h"
 #include "llglheaders.h"
 #include "llviewerwindow.h"
+#include "llui.h"
 
 void hud_render_utf8text(const std::string &str, const LLVector3 &pos_agent,
 					 const LLFontGL &font,
 					 const U8 style,
+					 const LLFontGL::ShadowType shadow,
 					 const F32 x_offset, const F32 y_offset,
 					 const LLColor4& color,
 					 const BOOL orthographic)
 {
 	LLWString wstr(utf8str_to_wstring(str));
-	hud_render_text(wstr, pos_agent, font, style, x_offset, y_offset, color, orthographic);
+	hud_render_text(wstr, pos_agent, font, style, shadow, x_offset, y_offset, color, orthographic);
 }
+
+int glProjectf(const LLVector3& object, const F32* modelview, const F32* projection, const LLRect& viewport, LLVector3& windowCoordinate);
 
 void hud_render_text(const LLWString &wstr, const LLVector3 &pos_agent,
 					const LLFontGL &font,
 					const U8 style,
+					const LLFontGL::ShadowType shadow,
 					const F32 x_offset, const F32 y_offset,
 					const LLColor4& color,
 					const BOOL orthographic)
@@ -75,8 +80,8 @@ void hud_render_text(const LLWString &wstr, const LLVector3 &pos_agent,
 	LLVector3 up_axis;
 	if (orthographic)
 	{
-		right_axis.setVec(0.f, -1.f / gViewerWindow->getWindowHeight(), 0.f);
-		up_axis.setVec(0.f, 0.f, 1.f / gViewerWindow->getWindowHeight());
+		right_axis.setVec(0.f, -1.f / gViewerWindow->getWorldViewHeightScaled(), 0.f);
+		up_axis.setVec(0.f, 0.f, 1.f / gViewerWindow->getWorldViewHeightScaled());
 	}
 	else
 	{
@@ -103,31 +108,37 @@ void hud_render_text(const LLWString &wstr, const LLVector3 &pos_agent,
 
 	//get the render_pos in screen space
 	
-	F64 winX, winY, winZ;
-	gluProject(render_pos.mV[0], render_pos.mV[1], render_pos.mV[2],
-				gGLModelView, gGLProjection, (GLint*) gGLViewport,
-				&winX, &winY, &winZ);
-		
-	//fonts all render orthographically, set up projection
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	LLVector3 window_coordinates;
+	F32& winX = window_coordinates.mV[VX];
+	F32& winY = window_coordinates.mV[VY];
+	F32& winZ = window_coordinates.mV[VZ];
+
+	const LLRect& world_view_rect = gViewerWindow->getWorldViewRectRaw();
+	
+	glProjectf(render_pos, gGLModelView, gGLProjection, world_view_rect, window_coordinates);
+
+	//fonts all render orthographically, set up projection``
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.pushMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.pushMatrix();
 	LLUI::pushMatrix();
 		
-	gViewerWindow->setup2DRender();
-
+	gl_state_for_2d(world_view_rect.getWidth(), world_view_rect.getHeight());
+	gViewerWindow->setup3DViewport();
+	
+	winX -= world_view_rect.mLeft;
+	winY -= world_view_rect.mBottom;
 	LLUI::loadIdentity();
+	gGL.loadIdentity();
 	LLUI::translate((F32) winX*1.0f/LLFontGL::sScaleX, (F32) winY*1.0f/(LLFontGL::sScaleY), -(((F32) winZ*2.f)-1.f));
-	//glRotatef(angle * RAD_TO_DEG, axis.mV[VX], axis.mV[VY], axis.mV[VZ]);
-	//glScalef(right_scale, up_scale, 1.f);
 	F32 right_x;
 	
-	font.render(wstr, 0, 0, 0, color, LLFontGL::LEFT, LLFontGL::BASELINE, style, wstr.length(), 1000, &right_x);
+	font.render(wstr, 0, 0, 0, color, LLFontGL::LEFT, LLFontGL::BASELINE, style, shadow, wstr.length(), 1000, &right_x);
 	LLUI::popMatrix();
 	gGL.popMatrix();
 	
-	glMatrixMode(GL_PROJECTION);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
+	gGL.popMatrix();
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 }

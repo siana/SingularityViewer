@@ -44,10 +44,24 @@
 class LLViewerTextureAnim;
 class LLDrawPool;
 class LLSelectNode;
+class LLVOAvatar;
+class LLMeshSkinInfo;
 
 enum LLVolumeInterfaceType
 {
 	INTERFACE_FLEXIBLE = 1,
+};
+
+
+class LLRiggedVolume : public LLVolume
+{
+public:
+	LLRiggedVolume(const LLVolumeParams& params)
+		: LLVolume(params, 0.f)
+	{
+	}
+
+	void update(const LLMeshSkinInfo* skin, LLVOAvatar* avatar, const LLVolume* src_volume);
 };
 
 // Base class for implementations of the volume - Primitive, Flexible Object, etc.
@@ -62,7 +76,7 @@ public:
 	virtual void onSetVolume(const LLVolumeParams &volume_params, const S32 detail) = 0;
 	virtual void onSetScale(const LLVector3 &scale, BOOL damped) = 0;
 	virtual void onParameterChanged(U16 param_type, LLNetworkData *data, BOOL in_use, bool local_origin) = 0;
-	virtual void onShift(const LLVector3 &shift_vector) = 0;
+	virtual void onShift(const LLVector4a &shift_vector) = 0;
 	virtual bool isVolumeUnique() const = 0; // Do we need a unique LLVolume instance?
 	virtual bool isVolumeGlobal() const = 0; // Are we in global space?
 	virtual bool isActive() const = 0; // Is this object currently active?
@@ -75,6 +89,7 @@ public:
 // Class which embodies all Volume objects (with pcode LL_PCODE_VOLUME)
 class LLVOVolume : public LLViewerObject
 {
+	LOG_CLASS(LLVOVolume);
 protected:
 	virtual				~LLVOVolume();
 
@@ -116,8 +131,12 @@ public:
 	const LLMatrix4&	getRelativeXform() const				{ return mRelativeXform; }
 	const LLMatrix3&	getRelativeXformInvTrans() const		{ return mRelativeXformInvTrans; }
 	/*virtual*/	const LLMatrix4	getRenderMatrix() const;
+	typedef std::map<LLUUID, S32> texture_cost_t;
+				U32 	getRenderCost(texture_cost_t &textures) const;
+	/*virtual*/	F32		getStreamingCost(S32* bytes = NULL, S32* visible_bytes = NULL, F32* unscaled_value = NULL) const;
 
-
+	/*virtual*/ U32		getTriangleCount(S32* vcount = NULL) const;
+	/*virtual*/ U32		getHighLODTriangleCount();
 	/*virtual*/ BOOL lineSegmentIntersect(const LLVector3& start, const LLVector3& end, 
 										  S32 face = -1,                        // which face to check, -1 = ALL_SIDES
 										  BOOL pick_transparent = FALSE,
@@ -141,7 +160,7 @@ public:
 
 				void	markForUpdate(BOOL priority)			{ LLViewerObject::markForUpdate(priority); mVolumeChanged = TRUE; }
 
-	/*virtual*/ void	onShift(const LLVector3 &shift_vector); // Called when the drawable shifts
+	/*virtual*/ void	onShift(const LLVector4a &shift_vector); // Called when the drawable shifts
 
 	/*virtual*/ void	parameterChanged(U16 param_type, bool local_origin);
 	/*virtual*/ void	parameterChanged(U16 param_type, LLNetworkData* data, BOOL in_use, bool local_origin);
@@ -179,19 +198,24 @@ public:
 				void	updateSculptTexture();
 				void    setIndexInTex(S32 index) { mIndexInTex = index ;}
 				void	sculpt();
+	 static     void    rebuildMeshAssetCallback(LLVFS *vfs,
+														  const LLUUID& asset_uuid,
+														  LLAssetType::EType type,
+														  void* user_data, S32 status, LLExtStat ext_status);
+					
 				void	updateRelativeXform();
 	/*virtual*/ BOOL	updateGeometry(LLDrawable *drawable);
 	/*virtual*/ void	updateFaceSize(S32 idx);
 	/*virtual*/ BOOL	updateLOD();
 				void	updateRadius();
 	/*virtual*/ void	updateTextures();
-				void	updateTextureVirtualSize();
+				void	updateTextureVirtualSize(bool forced = false);
 
 				void	updateFaceFlags();
 				void	regenFaces();
 				BOOL	genBBoxes(BOOL force_global);
 				void	preRebuild();
-	virtual		void	updateSpatialExtents(LLVector3& min, LLVector3& max);
+	virtual		void	updateSpatialExtents(LLVector4a& min, LLVector4a& max);
 	virtual		F32		getBinRadius();
 	
 	virtual U32 getPartitionType() const;
@@ -225,6 +249,7 @@ public:
 	U32 getVolumeInterfaceID() const;
 	virtual BOOL isFlexible() const;
 	virtual BOOL isSculpted() const;
+	virtual BOOL isMesh() const;
 	virtual BOOL hasLightTexture() const;
 
 	BOOL isVolumeGlobal() const;
@@ -233,14 +258,41 @@ public:
 
 	// tag: vaa emerald local_asset_browser
 	void setSculptChanged(BOOL has_changed) { mSculptChanged = has_changed; }
-			
+
+	void notifyMeshLoaded();
+	
+	// Returns 'true' iff the media data for this object is in flight
+	bool isMediaDataBeingFetched() const;
+
+	
+
+	//rigged volume update (for raycasting)
+	void updateRiggedVolume();
+	LLRiggedVolume* getRiggedVolume();
+
+	//returns true if volume should be treated as a rigged volume
+	// - Build tools are open
+	// - object is an attachment
+	// - object is attached to self
+	// - object is rendered as rigged
+	bool treatAsRigged();
+
+	//clear out rigged volume and revert back to non-rigged state for picking/LOD/distance updates
+	void clearRiggedVolume();
+
 protected:
 	S32	computeLODDetail(F32	distance, F32 radius);
 	BOOL calcLOD();
 	LLFace* addFace(S32 face_index);
 	void updateTEData();
 
+	// stats tracking for render complexity
+	static S32 mRenderComplexity_last;
+	static S32 mRenderComplexity_current;
 public:
+
+	static S32 getRenderComplexityMax() {return mRenderComplexity_last;}
+	static void updateRenderComplexity();
 	LLViewerTextureAnim *mTextureAnimp;
 	U8 mTexAnimMode;
 private:
@@ -260,6 +312,8 @@ private:
 	LLPointer<LLViewerFetchedTexture> mSculptTexture;
 	LLPointer<LLViewerFetchedTexture> mLightTexture;
 	S32 mIndexInTex;
+
+	LLPointer<LLRiggedVolume> mRiggedVolume;
 	
 	// statics
 public:

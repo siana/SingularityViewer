@@ -89,11 +89,16 @@ public:
 	BOOL mHasMipMapGeneration;
 	BOOL mHasCompressedTextures;
 	BOOL mHasFramebufferObject;
+	S32 mMaxSamples;
 	BOOL mHasFramebufferMultisample;
 	BOOL mHasBlendFuncSeparate;
 	
 	// ARB Extensions
 	BOOL mHasVertexBufferObject;
+	BOOL mHasVertexArrayObject;
+	BOOL mHasSync;
+	BOOL mHasMapBufferRange;
+	BOOL mHasFlushBufferRange;
 	BOOL mHasPBuffer;
 	BOOL mHasShaderObjects;
 	BOOL mHasVertexShader;
@@ -105,11 +110,17 @@ public:
 	BOOL mHasDrawBuffers;
 	BOOL mHasDepthClamp;
 	BOOL mHasTextureRectangle;
+	BOOL mHasTextureMultisample;
+	S32 mMaxSampleMaskWords;
+	S32 mMaxColorTextureSamples;
+	S32 mMaxDepthTextureSamples;
+	S32 mMaxIntegerSamples;
 
 	// Other extensions.
 	BOOL mHasAnisotropic;
 	BOOL mHasARBEnvCombine;
 	BOOL mHasCubeMap;
+	BOOL mHasDebugOutput;
 
 	// Vendor-specific extensions
 	BOOL mIsATI;
@@ -126,6 +137,9 @@ public:
 
 	// Misc extensions
 	BOOL mHasSeparateSpecularColor;
+
+	//whether this GPU is in the debug list.
+	BOOL mDebugGPU;
 	
 	S32 mDriverVersionMajor;
 	S32 mDriverVersionMinor;
@@ -143,6 +157,7 @@ public:
 	void printGLInfoString();
 	void getGLInfo(LLSD& info);
 
+	U32 getNumFBOFSAASamples(U32 desired_samples = 32);
 	// In ALL CAPS
 	std::string mGLVendor;
 	std::string mGLVendorShort;
@@ -154,6 +169,7 @@ private:
 	void initExtensions();
 	void initGLStates();
 	void initGLImages();
+	void setToDebugGPU();
 };
 
 extern LLGLManager gGLManager;
@@ -245,7 +261,7 @@ public:
 	static void dumpStates();
 	static void checkStates(const std::string& msg = "");
 	static void checkTextureChannels(const std::string& msg = "");
-	static void checkClientArrays(const std::string& msg = "", U32 data_mask = 0x0001);
+	static void checkClientArrays(const std::string& msg = "", U32 data_mask = 0);
 	
 protected:
 	static boost::unordered_map<LLGLenum, LLGLboolean> sStateMap;
@@ -412,15 +428,7 @@ extern LLMatrix4 gGLObliqueProjectionInverse;
 #include "llglstates.h"
 
 void init_glstates();
-void enable_vertex_weighting(const S32 index);
-void disable_vertex_weighting(const S32 index);
-void enable_binormals(const S32 index);
-void disable_binormals(const S32 index);
-void enable_cloth_weights(const S32 index);
-void disable_cloth_weights(const S32 index);
-void set_vertex_weights(const S32 index, const U32 stride, const F32 *weights);
-void set_vertex_clothing_weights(const S32 index, const U32 stride, const LLVector4 *weights);
-void set_binormals(const S32 index, const U32 stride, const LLVector3 *binormals);
+
 void parse_gl_version( S32* major, S32* minor, S32* release, std::string* vendor_specific );
 
 extern BOOL gClothRipple;

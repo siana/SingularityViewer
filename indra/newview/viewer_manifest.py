@@ -510,9 +510,14 @@ class DarwinManifest(ViewerManifest):
                                 "libexpat.0.5.0.dylib"):
                     self.path(os.path.join(libdir, libfile), libfile)
 
-                #libfmodwrapper.dylib
-                self.path(self.args['configuration'] + "/libfmodwrapper.dylib", "libfmodwrapper.dylib")
-                
+                # For using FMOD for sound...but, fmod is proprietary so some might not use it...
+                try:
+                    self.path(self.args['configuration'] + "/libfmodwrapper.dylib", "libfmodwrapper.dylib")
+                    pass
+                except:
+                    print "Skipping libfmodwrapper.dylib - not found"
+                    pass
+
                 # our apps
                 try:
                   self.path("../mac_crash_logger/" + self.args['configuration'] + "/mac-crash-logger.app", "mac-crash-logger.app")
@@ -796,9 +801,9 @@ class Linux_i686Manifest(LinuxManifest):
             self.path("libELFIO.so")
             #self.path("libopenjpeg.so.1.3.0", "libopenjpeg.so.1.3")
             self.path("libalut.so")
-            self.path("libopenal.so", "libopenal.so.1")
+            self.path("libopenal.so.1")
             self.path("libtcmalloc_minimal.so.0")
-            self.path("libtcmalloc_minimal.so.0.0.0")
+            self.path("libtcmalloc_minimal.so.0.2.2")
             self.end_prefix("lib")
 
 

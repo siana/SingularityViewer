@@ -77,9 +77,9 @@ void LLDrawPoolGround::render(S32 pass)
 	LLGLSquashToFarClip far_clip(glh_get_current_projection());
 
 	F32 water_height = gAgent.getRegion()->getWaterHeight();
-	glPushMatrix();
+	gGL.pushMatrix();
 	LLVector3 origin = LLViewerCamera::getInstance()->getOrigin();
-	glTranslatef(origin.mV[0], origin.mV[1], llmax(origin.mV[2], water_height));
+	gGL.translatef(origin.mV[0], origin.mV[1], llmax(origin.mV[2], water_height));
 
 	LLFace *facep = mDrawFace[0];
 
@@ -88,6 +88,6 @@ void LLDrawPoolGround::render(S32 pass)
 	LLOverrideFaceColor col(this, gSky.mVOSkyp->getGLFogColor());
 	facep->renderIndexed();
 	
-	glPopMatrix();
+	gGL.popMatrix();
 }
 

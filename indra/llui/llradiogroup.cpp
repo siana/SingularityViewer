@@ -38,6 +38,7 @@
 #include "llradiogroup.h"
 #include "indra_constants.h"
 
+#include "lluiimage.h"
 #include "llviewborder.h"
 #include "llcontrol.h"
 #include "llui.h"

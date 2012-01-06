@@ -35,7 +35,7 @@ set(cmake_SOURCE_FILES
     FindNDOF.cmake
     FindOpenJPEG.cmake
     FindXmlRpcEpi.cmake
-    FMOD.cmake
+	FMOD.cmake
     FreeType.cmake
     GStreamer010Plugin.cmake
     GooglePerfTools.cmake
@@ -83,6 +83,10 @@ set(cmake_SOURCE_FILES
     XmlRpcEpi.cmake
     ZLIB.cmake
     )
+
+if(FMODEX)
+	list(APPEND cmake_SOURCE_FILES FMODEX.cmake)
+endif(FMODEX)
 
 source_group("Shared Rules" FILES ${cmake_SOURCE_FILES})
 

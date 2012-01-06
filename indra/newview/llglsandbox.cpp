@@ -73,9 +73,6 @@
 #include "rlvhandler.h"
 // [/RLVa:KB]
 
-
-extern BOOL gDebugSelect;
-
 // Returns true if you got at least one object
 void LLToolSelectRect::handleRectangleSelection(S32 x, S32 y, MASK mask)
 {
@@ -132,7 +129,7 @@ void LLToolSelectRect::handleRectangleSelection(S32 x, S32 y, MASK mask)
 	S32 center_y = (top + bottom) / 2;
 
 	// save drawing mode
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.pushMatrix();
 
 	BOOL limit_select_distance = gSavedSettings.getBOOL("LimitSelectDistance");
@@ -268,9 +265,9 @@ void LLToolSelectRect::handleRectangleSelection(S32 x, S32 y, MASK mask)
 	}
 
 	// restore drawing mode
-	glMatrixMode(GL_PROJECTION);
+	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.popMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 
 	// restore camera
 	LLViewerCamera::getInstance()->setFar(old_far_plane);
@@ -284,7 +281,7 @@ static const F32 COMPASS_RANGE = 0.33f;
 
 void LLCompass::draw()
 {
-	glMatrixMode(GL_MODELVIEW);
+	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.pushMatrix();
 
 	S32 width = 32;
@@ -319,7 +316,7 @@ void LLCompass::draw()
 
 	// rotate subsequent draws to agent rotation
 	F32 rotation = atan2( gAgent.getFrameAgent().getAtAxis().mV[VX], gAgent.getFrameAgent().getAtAxis().mV[VY] );
-	glRotatef( - rotation * RAD_TO_DEG, 0.f, 0.f, -1.f);
+	gGL.rotatef( - rotation * RAD_TO_DEG, 0.f, 0.f, -1.f);
 	
 	if (mTexture)
 	{
@@ -776,7 +773,7 @@ void LLViewerParcelMgr::renderCollisionSegments(U8* segments, BOOL use_pass, LLV
 	F32 pos_y = pos.mV[VY];
 
 	LLGLSUIDefault gls_ui;
-	LLGLDepthTest gls_depth(GL_TRUE);
+	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 	LLGLDisable cull(GL_CULL_FACE);
 	
 	if (mCollisionBanned == BA_BANNED)
@@ -819,12 +816,6 @@ void LLViewerParcelMgr::renderCollisionSegments(U8* segments, BOOL use_pass, LLV
 				x2 = x1 + PARCEL_GRID_STEP_METERS;
 				y2 = y1;
 
-				if (gRenderForSelect)
-				{
-					LLColor4U color((U8)(GL_NAME_PARCEL_WALL >> 16), (U8)(GL_NAME_PARCEL_WALL >> 8), (U8)GL_NAME_PARCEL_WALL);
-					gGL.color4ubv(color.mV);
-				}
-				else
 				{
 					dy = (pos_y - y1) + DIST_OFFSET;
 					
@@ -865,12 +856,6 @@ void LLViewerParcelMgr::renderCollisionSegments(U8* segments, BOOL use_pass, LLV
 				x2 = x1;
 				y2 = y1 + PARCEL_GRID_STEP_METERS;
 
-				if (gRenderForSelect)
-				{
-					LLColor4U color((U8)(GL_NAME_PARCEL_WALL >> 16), (U8)(GL_NAME_PARCEL_WALL >> 8), (U8)GL_NAME_PARCEL_WALL);
-					gGL.color4ubv(color.mV);
-				}
-				else
 				{					
 					dx = (pos_x - x1) + DIST_OFFSET;
 		
@@ -947,9 +932,12 @@ void LLViewerObjectList::renderObjectBeacons()
 		return;
 	}
 
-	//const LLFontGL *font = LLResMgr::getInstance()->getRes(LLFONT_SANSSERIF);
-
 	LLGLSUIDefault gls_ui;
+
+	if (LLGLSLShader::sNoFixedFunction)
+	{
+		gUIProgram.bind();
+	}
 
 	{
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
@@ -957,7 +945,6 @@ void LLViewerObjectList::renderObjectBeacons()
 		S32 last_line_width = -1;
 		// gGL.begin(LLRender::LINES); // Always happens in (line_width != last_line_width)
 		
-		BOOL flush = FALSE;
 		for (std::vector<LLDebugBeacon>::iterator iter = mDebugBeacons.begin(); iter != mDebugBeacons.end(); ++iter)
 		{
 			const LLDebugBeacon &debug_beacon = *iter;
@@ -966,18 +953,14 @@ void LLViewerObjectList::renderObjectBeacons()
 			S32 line_width = debug_beacon.mLineWidth;
 			if (line_width != last_line_width)
 			{
-				if (flush)
-				{
-					gGL.end();
-				}
-				flush = TRUE;
 				gGL.flush();
 				glLineWidth( (F32)line_width );
 				last_line_width = line_width;
-				gGL.begin(LLRender::LINES);
 			}
 
 			const LLVector3 &thisline = debug_beacon.mPositionAgent;
+		
+			gGL.begin(LLRender::LINES);
 			gGL.color4fv(color.mV);
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY],thisline.mV[VZ] - 50.f);
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY],thisline.mV[VZ] + 50.f);
@@ -987,8 +970,9 @@ void LLViewerObjectList::renderObjectBeacons()
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY] + 2.f,thisline.mV[VZ]);
 
 			draw_line_cube(0.10f, thisline);
+			
+			gGL.end();
 		}
-		gGL.end();
 	}
 
 	{
@@ -997,8 +981,7 @@ void LLViewerObjectList::renderObjectBeacons()
 		
 		S32 last_line_width = -1;
 		// gGL.begin(LLRender::LINES); // Always happens in (line_width != last_line_width)
-	
-		BOOL flush = FALSE;
+		
 		for (std::vector<LLDebugBeacon>::iterator iter = mDebugBeacons.begin(); iter != mDebugBeacons.end(); ++iter)
 		{
 			const LLDebugBeacon &debug_beacon = *iter;
@@ -1006,18 +989,13 @@ void LLViewerObjectList::renderObjectBeacons()
 			S32 line_width = debug_beacon.mLineWidth;
 			if (line_width != last_line_width)
 			{
-				if (flush)
-				{
-					gGL.end();
-				}
-				flush = TRUE;
 				gGL.flush();
 				glLineWidth( (F32)line_width );
 				last_line_width = line_width;
-				gGL.begin(LLRender::LINES);
 			}
 
 			const LLVector3 &thisline = debug_beacon.mPositionAgent;
+			gGL.begin(LLRender::LINES);
 			gGL.color4fv(debug_beacon.mColor.mV);
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY],thisline.mV[VZ] - 0.5f);
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY],thisline.mV[VZ] + 0.5f);
@@ -1027,9 +1005,10 @@ void LLViewerObjectList::renderObjectBeacons()
 			gGL.vertex3f(thisline.mV[VX],thisline.mV[VY] + 0.5f,thisline.mV[VZ]);
 
 			draw_line_cube(0.10f, thisline);
+
+			gGL.end();
 		}
 		
-		gGL.end();
 		gGL.flush();
 		glLineWidth(1.f);
 
@@ -1047,7 +1026,7 @@ void LLViewerObjectList::renderObjectBeacons()
 			color = debug_beacon.mTextColor;
 			color.mV[3] *= 1.f;
 
-			hud_textp->setString(utf8str_to_wstring(debug_beacon.mString));
+			hud_textp->setString(debug_beacon.mString);
 			hud_textp->setColor(color);
 			hud_textp->setPositionAgent(debug_beacon.mPositionAgent);
 			debug_beacon.mHUDObject = hud_textp;
