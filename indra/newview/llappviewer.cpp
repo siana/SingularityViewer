@@ -130,7 +130,7 @@
 #include "llviewermenu.h"
 #include "llselectmgr.h"
 #include "lltrans.h"
-#include "lluitrans.h"
+#include "lltrans.h"
 #include "lltracker.h"
 #include "llviewerparcelmgr.h"
 #include "llworldmapview.h"
@@ -365,6 +365,22 @@ class LLDeferredTaskList: public LLSingleton<LLDeferredTaskList>
 
 	signal_t mSignal;
 };
+
+//----------------------------------------------------------------------------
+
+// List of entries from strings.xml to always replace
+static std::set<std::string> default_trans_args;
+void init_default_trans_args()
+{
+	default_trans_args.insert("SECOND_LIFE"); // World
+	default_trans_args.insert("APP_NAME");
+	default_trans_args.insert("CAPITALIZED_APP_NAME");
+	default_trans_args.insert("SECOND_LIFE_GRID");
+	default_trans_args.insert("SUPPORT_SITE");
+	default_trans_args.insert("CURRENCY");
+	default_trans_args.insert("GRID_OWNER");
+}
+
 //----------------------------------------------------------------------------
 // File scope definitons
 const char *VFS_DATA_FILE_BASE = "data.db2.x.";
@@ -598,7 +614,10 @@ bool LLAppViewer::init()
 	//
 	// OK to write stuff to logs now, we've now crash reported if necessary
 	//
-    if (!initConfiguration())
+	
+	init_default_trans_args();
+	
+	if (!initConfiguration())
 		return false;
 
 	LL_INFOS("InitInfo") << "Configuration initialized." << LL_ENDL ;
@@ -688,12 +707,13 @@ bool LLAppViewer::init()
 					);
 	LLWeb::initClass();			  // do this after LLUI
 
+	LLUICtrlFactory::getInstance()->setupPaths(); // update paths with correct language set
+	LLTrans::parseStrings("strings.xml", default_trans_args);
+
 	LLTextEditor::setURLCallbacks(&LLWeb::loadURL,
 				&LLURLDispatcher::dispatchFromTextEditor,
 				&LLURLDispatcher::dispatchFromTextEditor);
 	
-	LLUICtrlFactory::getInstance()->setupPaths(); // update paths with correct language set
-
 	/////////////////////////////////////////////////
 	//
 	// Load settings files
@@ -753,18 +773,8 @@ bool LLAppViewer::init()
 	if (!initCache())
 	{
 		std::ostringstream msg;
-		msg <<
-			gSecondLife << " is unable to access a file that it needs.\n"
-			"\n"
-			"This can be because you somehow have multiple copies running, "
-			"or your system incorrectly thinks a file is open. "
-			"If this message persists, restart your computer and try again. "
-			"If it continues to persist, you may need to completely uninstall " <<
-			gSecondLife << " and reinstall it.";
-		OSMessageBox(
-			msg.str(),
-			LLStringUtil::null,
-			OSMB_OK);
+		msg << LLTrans::getString("MBUnableToAccessFile");
+		OSMessageBox(msg.str(),LLStringUtil::null,OSMB_OK);
 		return 1;
 	}
 	LL_INFOS("InitInfo") << "Cache initialization is done." << LL_ENDL ;
@@ -945,7 +955,7 @@ void LLAppViewer::initMaxHeapSize()
 	 
     if(fnIsWow64Process && fnIsWow64Process(GetCurrentProcess(), &bWow64Process) && bWow64Process)
 	{
-		max_heap_size_gb = 3.7;
+		max_heap_size_gb = 3.7f;
 	}
 	else if(ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, TEXT("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management"), &hKey))
 	{
@@ -954,7 +964,7 @@ void LLAppViewer::initMaxHeapSize()
         if(ERROR_SUCCESS == RegQueryValueEx(hKey, TEXT("PhysicalAddressExtension"), NULL, NULL, (LPBYTE)&dwResult, &dwSize))
         {
 			if(dwResult)
-				max_heap_size_gb = 3.7;
+				max_heap_size_gb = 3.7f;
 		}
 		RegCloseKey(hKey);
 	}
@@ -1089,6 +1099,11 @@ bool LLAppViewer::mainLoop()
 				{
 					joystick->scanJoystick();
 					gKeyboard->scanKeyboard();
+					if(isCrouch)
+					{
+						gAgent.moveUp(-1);
+					}
+
 				}
 
 				// Update state based on messages, user input, object idle.
@@ -1964,6 +1979,9 @@ bool LLAppViewer::initConfiguration()
 		return false;
 	}
 
+	LLUICtrlFactory::getInstance()->setupPaths(); // setup paths for LLTrans based on settings files only
+	LLTrans::parseStrings("strings.xml", default_trans_args);
+	
 	//COA vars in gSavedSettings will be linked to gSavedPerAccountSettings entries that will be created if not present.
 	//Signals will be shared between linked vars.
 	gSavedSettings.connectCOAVars(gSavedPerAccountSettings);
@@ -1989,7 +2007,7 @@ bool LLAppViewer::initConfiguration()
 	}
 #endif
 
-	//*FIX:Mani - Set default to disabling watchdog mainloop 
+	// *FIX:Mani - Set default to disabling watchdog mainloop 
 	// timeout for mac and linux. There is no call stack info 
 	// on these platform to help debug.
 #ifndef	LL_RELEASE_FOR_DOWNLOAD
@@ -2048,15 +2066,8 @@ bool LLAppViewer::initConfiguration()
 		llinfos	<< "Command	line usage:\n" << clp << llendl;
 
 		std::ostringstream msg;
-		msg << "Second Life found an error parsing the command line. \n" 
-			<< "Please see: http://wiki.secondlife.com/wiki/Client_parameters \n"
-			<< "Error: " << clp.getErrorMessage();
-
-		OSMessageBox(
-			msg.str(),
-			LLStringUtil::null,
-			OSMB_OK);
-
+		msg << LLTrans::getString("MBCmdLineError") << clp.getErrorMessage();
+		OSMessageBox(msg.str(),LLStringUtil::null,OSMB_OK);
 		return false;
 	}
 	
@@ -2100,7 +2111,7 @@ bool LLAppViewer::initConfiguration()
 	if(clp.hasOption("help"))
 	{
 		std::ostringstream msg;
-		msg << "Command	line usage:\n" << clp;
+		msg << LLTrans::getString("MBCmdLineUsg") << "\n" << clp;
 		llinfos	<< msg.str() << llendl;
 
 		OSMessageBox(
@@ -2264,7 +2275,7 @@ bool LLAppViewer::initConfiguration()
 
 #if LL_DARWIN
 	// Initialize apple menubar and various callbacks
-	init_apple_menu(gSecondLife.c_str());
+	init_apple_menu(LLTrans::getString("APP_NAME").c_str());
 
 #if __ppc__
 	// If the CPU doesn't have Altivec (i.e. it's not at least a G4), don't go any further.
@@ -2272,7 +2283,7 @@ bool LLAppViewer::initConfiguration()
 	if(!gSysCPU.hasAltivec())
 	{
 		std::ostringstream msg;
-		msg << gSecondLife << " requires a processor with AltiVec (G4 or later).";
+		msg << LLTrans::getString("MBRequiresAltiVec");
 		OSMessageBox(
 			msg.str(),
 			LLStringUtil::null,
@@ -2286,10 +2297,11 @@ bool LLAppViewer::initConfiguration()
 
 	// Display splash screen.  Must be after above check for previous
 	// crash as this dialog is always frontmost.
-	std::ostringstream splash_msg;
-	splash_msg << "Loading " << gSecondLife << "...";
+	std::string splash_msg;
+	LLStringUtil::format_map_t args;
+	splash_msg = LLTrans::getString("StartupLoading", args);
 	LLSplashScreen::show();
-	LLSplashScreen::update(splash_msg.str());
+	LLSplashScreen::update(splash_msg);
 
 	//LLVolumeMgr::initClass();
 	LLVolumeMgr* volume_manager = new LLVolumeMgr();
@@ -2303,12 +2315,11 @@ bool LLAppViewer::initConfiguration()
 	//
 	// Set the name of the window
 	//
-#if LL_RELEASE_FOR_DOWNLOAD
-	gWindowTitle = gSecondLife;
-#elif LL_DEBUG
-	gWindowTitle = gSecondLife + std::string(" [DEBUG] ") + gArgs;
+	gWindowTitle = LLTrans::getString("APP_NAME");
+#if LL_DEBUG
+	gWindowTitle += std::string(" [DEBUG] ") + gArgs;
 #else
-	gWindowTitle = gSecondLife + std::string(" ") + gArgs;
+	gWindowTitle += std::string(" ") + gArgs;
 #endif
 	LLStringUtil::truncate(gWindowTitle, 255);
 
@@ -2345,11 +2356,7 @@ bool LLAppViewer::initConfiguration()
 		if (mSecondInstance)
 		{
 			std::ostringstream msg;
-			msg << 
-				gSecondLife << " is already running.\n"
-				"\n"
-				"Check your task bar for a minimized copy of the program.\n"
-				"If this message persists, restart your computer.",
+			msg << LLTrans::getString("MBAlreadyRunning");
 			OSMessageBox(
 				msg.str(),
 				LLStringUtil::null,
@@ -2401,7 +2408,7 @@ bool LLAppViewer::initConfiguration()
 void LLAppViewer::checkForCrash(void)
 {
 #if LL_SEND_CRASH_REPORTS
-	//*NOTE:Mani The current state of the crash handler has the MacOSX
+	// *NOTE:Mani The current state of the crash handler has the MacOSX
 	// sending all crash reports as freezes, in order to let 
 	// the MacOSX CrashRepoter generate stacks before spawning the 
 	// SL crash logger.
@@ -2418,20 +2425,17 @@ void LLAppViewer::checkForCrash(void)
         // Pop up a freeze or crash warning dialog
         //
         S32 choice;
-        if(gCrashSettings.getS32(CRASH_BEHAVIOR_SETTING) == CRASH_BEHAVIOR_ASK)
+	const S32 cb = gCrashSettings.getS32(CRASH_BEHAVIOR_SETTING);
+        if(cb == CRASH_BEHAVIOR_ASK)
         {
             std::ostringstream msg;
-            msg << gSecondLife
-            << " appears to have frozen or crashed on the previous run.\n"
-            << "Would you like to send a crash report?";
-            std::string alert;
-            alert = gSecondLife;
-            alert += " Alert";
+			msg << LLTrans::getString("MBFrozenCrashed");
+			std::string alert = LLTrans::getString("APP_NAME") + " " + LLTrans::getString("MBAlert");
             choice = OSMessageBox(msg.str(),
                                   alert,
                                   OSMB_YESNO);
         } 
-        else if(gCrashSettings.getS32(CRASH_BEHAVIOR_SETTING) == CRASH_BEHAVIOR_NEVER_SEND)
+        else if(cb == CRASH_BEHAVIOR_NEVER_SEND)
         {
             choice = OSBTN_NO;
         }
@@ -2511,9 +2515,6 @@ bool LLAppViewer::initWindow()
 	}
 
 	LLUI::sWindow = gViewerWindow->getWindow();
-
-	LLTrans::parseStrings("strings.xml");
-	LLUITrans::parseStrings("ui_strings.xml");
 
 	// Show watch cursor
 	gViewerWindow->setCursor(UI_CURSOR_WAIT);
@@ -2637,7 +2638,7 @@ void LLAppViewer::writeSystemInfo()
 	gDebugInfo["CrashNotHandled"] = (LLSD::Boolean)true;
 	
 	// Dump some debugging info
-	LL_INFOS("SystemInfo") << gSecondLife
+	LL_INFOS("SystemInfo") << LLTrans::getString("APP_NAME")
 			<< " version " << LL_VERSION_MAJOR << "." << LL_VERSION_MINOR << "." << LL_VERSION_PATCH
 			<< LL_ENDL;
 
@@ -3237,14 +3238,14 @@ bool LLAppViewer::initCache()
 	
 	if (mPurgeCache && !read_only)
 	{
-		LLSplashScreen::update("Clearing cache...");
+		LLSplashScreen::update(LLTrans::getString("StartupClearingCache"));
 		purgeCache();
 		// <edit>
 		texture_cache_mismatch = false;
 		// </edit>
 	}
 
-	LLSplashScreen::update("Initializing Texture Cache...");
+	LLSplashScreen::update(LLTrans::getString("StartupInitializingTextureCache"));
 	
 	// Init the texture cache
 	// Allocate 80% of the cache size for textures
@@ -3272,7 +3273,7 @@ bool LLAppViewer::initCache()
 
 	LLVOCache::getInstance()->initCache(LL_PATH_CACHE, gSavedSettings.getU32("CacheNumberOfRegionsForObjects"), getObjectCacheVersion()) ;
 
-	LLSplashScreen::update("Initializing VFS...");
+	LLSplashScreen::update(LLTrans::getString("StartupInitializingVFS"));
 	
 	// Init the VFS
 	vfs_size = llmin(vfs_size + extra, MAX_VFS_SIZE);
@@ -3433,7 +3434,7 @@ void LLAppViewer::addOnIdleCallback(const boost::function<void()>& cb)
 
 void LLAppViewer::purgeCache()
 {
-	LL_INFOS("AppCache") << "Purging Cache and Texture Cache..." << llendl;
+	LL_INFOS("AppCache") << "Purging Cache and Texture Cache..." << LL_ENDL;
 	LLAppViewer::getTextureCache()->purgeCache(LL_PATH_CACHE);
 	LLVOCache::getInstance()->removeCache(LL_PATH_CACHE);
 	std::string mask = "*.*";
@@ -4076,7 +4077,7 @@ void LLAppViewer::idleShutdown()
 		S32 finished_uploads = total_uploads - pending_uploads;
 		F32 percent = 100.f * finished_uploads / total_uploads;
 		gViewerWindow->setProgressPercent(percent);
-		gViewerWindow->setProgressString("Saving final data...");
+		gViewerWindow->setProgressString(LLTrans::getString("SavingSettings"));
 		return;
 	}
 
@@ -4088,7 +4089,7 @@ void LLAppViewer::idleShutdown()
 		// Wait for a LogoutReply message
 		gViewerWindow->setShowProgress(!gSavedSettings.getBOOL("AscentDisableLogoutScreens"));
 		gViewerWindow->setProgressPercent(100.f);
-		gViewerWindow->setProgressString("Logging out...");
+		gViewerWindow->setProgressString(LLTrans::getString("LoggingOut"));
 		return;
 	}
 
@@ -4300,8 +4301,8 @@ void LLAppViewer::idleNetwork()
 	{
 		LLUUID this_region_id = agent_region->getRegionID();
 		bool this_region_alive = agent_region->isAlive();
-		if (mAgentRegionLastAlive && !this_region_alive // newly dead
-		    && mAgentRegionLastID == this_region_id) // same region
+		if ((mAgentRegionLastAlive && !this_region_alive) // newly dead
+		    && (mAgentRegionLastID == this_region_id)) // same region
 		{
 			forceDisconnect(LLTrans::getString("AgentLostConnection"));
 		}

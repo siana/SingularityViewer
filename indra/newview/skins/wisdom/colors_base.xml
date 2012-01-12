@@ -186,6 +186,7 @@
 <ConsoleBackground value="0, 0, 0, 255" />
 <FolderViewLoadingMessageTextColor value="240, 165, 90, 255"/>     <!-- "loading..." in the inv -->
 <InventoryBackgroundColor value="62, 62, 62, 80"/>
+<SHMediaTickerOscillatorColor value ="0, 0, 0, 191"/>
 
 <!-- Alert box colors -->
 <AlertBoxColor value="62, 62, 62, 255" />               <!-- Warnings floaters, like when returning objects -->

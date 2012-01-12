@@ -30,13 +30,13 @@
  * $/LicenseInfo$
  */
 
-//*****************************************************************************
+// *****************************************************************************
 //
 // This is a tool for selecting individual object from the
 // toolbox. Handy for when you want to deal with child object
 // inventory...
 //
-//*****************************************************************************
+// *****************************************************************************
 
 #include "llviewerprecompiledheaders.h"
 #include "lltoolindividual.h"

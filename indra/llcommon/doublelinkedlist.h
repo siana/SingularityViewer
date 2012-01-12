@@ -124,7 +124,7 @@ public:
 
 	// NOTE: This next two funtions are only included here 
 	// for those too familiar with the LLLinkedList template class.
-	// They are depreciated.  resetList() is unecessary while 
+	// They are deprecated.  resetList() is unecessary while 
 	// getCurrentData() is identical to getNextData() and has
 	// a misleading name.
 	//
@@ -604,7 +604,7 @@ BOOL LLDoubleLinkedList<DATA_TYPE>::checkData(const DATA_TYPE *data)
 
 // NOTE: This next two funtions are only included here 
 // for those too familiar with the LLLinkedList template class.
-// They are depreciated.  resetList() is unecessary while 
+// They are deprecated.  resetList() is unecessary while 
 // getCurrentData() is identical to getNextData() and has
 // a misleading name.
 //

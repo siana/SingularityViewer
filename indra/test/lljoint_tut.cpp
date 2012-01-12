@@ -228,7 +228,7 @@ namespace tut
 	}
 
 
-	//*
+	// *
 		Test cases for the following not added. They perform operations 
 		on underlying LLXformMatrix	and LLVector3 elements which have
 		been unit tested separately. 
@@ -243,6 +243,6 @@ namespace tut
         6) void setConstraintSilhouette(LLDynamicArray<LLVector3>& silhouette);
         7) void clampRotation(LLQuaternion old_rot, LLQuaternion new_rot);
 
-	//*
+	// *
 }
 #endif // THIS_DOESNT_LINK

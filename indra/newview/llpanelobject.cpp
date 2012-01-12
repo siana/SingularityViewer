@@ -130,7 +130,7 @@ enum {
 	MI_HOLE_COUNT
 };
 
-//*TODO:translate (depricated, so very low priority)
+// *TODO:translate (deprecated, so very low priority)
 static const std::string LEGACY_FULLBRIGHT_DESC("Fullbright (Legacy)");
 
 LLVector3 LLPanelObject::mClipboardPos;

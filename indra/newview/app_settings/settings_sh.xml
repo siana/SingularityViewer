@@ -1,6 +1,35 @@
 <?xml version="1.0" ?>
 <llsd>
 	<map>
+	
+	<key>SHShowMediaTicker</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable media ticker tool for supported audio libraries</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+	<key>SHMediaTickerRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for media ticker</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>200</integer>
+        <integer>82</integer>
+        <integer>456</integer>
+        <integer>50</integer>
+      </array>
+    </map>
+	
     <key>SHEnableFMODExProfiler</key>
     <map>
       <key>Comment</key>

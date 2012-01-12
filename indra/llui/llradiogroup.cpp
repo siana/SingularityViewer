@@ -47,11 +47,9 @@
 static LLRegisterWidget<LLRadioGroup> r("radio_group");
 
 LLRadioGroup::LLRadioGroup(const std::string& name, const LLRect& rect,
-						   const std::string& control_name,
-						   LLUICtrlCallback callback,
-						   void* userdata,
-						   BOOL border)
-:	LLUICtrl(name, rect, TRUE, callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
+			   const std::string& control_name, LLUICtrlCallback callback,
+			   void* userdata, BOOL border) :
+	LLUICtrl(name, rect, TRUE, callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
 	mSelectedIndex(0)
 {
 	setControlName(control_name, NULL);
@@ -59,10 +57,8 @@ LLRadioGroup::LLRadioGroup(const std::string& name, const LLRect& rect,
 }
 
 LLRadioGroup::LLRadioGroup(const std::string& name, const LLRect& rect,
-						   S32 initial_index,
-						   LLUICtrlCallback callback,
-						   void* userdata,
-						   BOOL border) :
+			   S32 initial_index,  LLUICtrlCallback callback,
+			   void* userdata,   BOOL border) :
 	LLUICtrl(name, rect, TRUE, callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
 	mSelectedIndex(initial_index)
 {
@@ -74,10 +70,8 @@ void LLRadioGroup::init(BOOL border)
 	if (border)
 	{
 		addChild( new LLViewBorder( std::string("radio group border"), 
-									LLRect(0, getRect().getHeight(), getRect().getWidth(), 0), 
-									LLViewBorder::BEVEL_NONE, 
-									LLViewBorder::STYLE_LINE, 
-									1 ) );
+					LLRect(0, getRect().getHeight(), getRect().getWidth(), 0), 
+					LLViewBorder::BEVEL_NONE, LLViewBorder::STYLE_LINE, 1 ));
 	}
 	mHasBorder = border;
 }
@@ -257,8 +251,7 @@ void LLRadioGroup::draw()
 LLRadioCtrl* LLRadioGroup::addRadioButton(const std::string& name, const std::string& label, const LLRect& rect, const LLFontGL* font )
 {
 	// Highlight will get fixed in draw method above
-	LLRadioCtrl* radio = new LLRadioCtrl(name, rect, label, font,
-		onClickButton, this);
+	LLRadioCtrl* radio = new LLRadioCtrl(name, rect, label, font, onClickButton, this);
 	addChild(radio);
 	mRadioButtons.push_back(radio);
 	return radio;

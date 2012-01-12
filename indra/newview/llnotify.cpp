@@ -44,6 +44,7 @@
 #include "lliconctrl.h"
 #include "lltextbox.h"
 #include "lltexteditor.h"
+#include "lltrans.h"
 #include "lluiconstants.h"
 #include "llui.h"
 #include "llxmlnode.h"
@@ -581,14 +582,15 @@ void LLNotifyBox::close()
 
 void LLNotifyBox::format(std::string& msg, const LLStringUtil::format_map_t& args)
 {
-	// XUI:translate!
+	// add default substitutions
 	LLStringUtil::format_map_t targs = args;
-	targs["[SECOND_LIFE]"] = gHippoGridManager->getConnectedGrid()->getGridName();
-	targs["[GRID_NAME]"] = gHippoGridManager->getConnectedGrid()->getGridName();
-	targs["[GRID_OWNER]"] = gHippoGridManager->getConnectedGrid()->getGridOwner();	
-	targs["[GRID_SITE]"] = gHippoGridManager->getConnectedGrid()->getWebSite();
-	targs["[CURRENCY]"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
-	targs["[VIEWER_NAME]"] = "Singularity Viewer";
+	const LLStringUtil::format_map_t& default_args = LLTrans::getDefaultArgs();
+	for (LLStringUtil::format_map_t::const_iterator iter = default_args.begin();
+		 iter != default_args.end(); ++iter)
+	{
+		targs[iter->first] = iter->second;
+	}
+
 	LLStringUtil::format(msg, targs);
 }
 

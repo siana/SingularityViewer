@@ -336,7 +336,7 @@ public:
 	// Ignorable Warnings
 	
 	// Add a config variable to be reset on resetWarnings()
-	void addWarning(const std::string& name);
+	LLControlVariable *addWarning(const std::string& name);
 	BOOL getWarning(const std::string& name);
 	void setWarning(const std::string& name, BOOL val);
 	

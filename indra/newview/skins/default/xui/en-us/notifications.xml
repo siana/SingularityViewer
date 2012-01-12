@@ -1,12 +1,4 @@
 <?xml version="1.0" ?><notifications>
-
-  <global name="VIEWER_NAME">
-    Singularity Viewer
-  </global>
-
-  <global name="VIEWER_SITE">
-    http://www.singularityviewer.org/
-  </global>
   
   <global name="skipnexttime">
 
@@ -188,7 +180,7 @@ The media filters have been cleared
    name="MissingAlert"
    label="Unknown Alert Message"
    type="alertmodal">
-Your version of [VIEWER_NAME] does not know how to display the alert message it just received.
+Your version of [APP_NAME] does not know how to display the alert message it just received.
 
 Error details: The alert called &apos;[_NAME]&apos; was not found in notifications.xml.
     <usetemplate
@@ -252,7 +244,7 @@ No tutorial is currently available.
    icon="alertmodal.tga"
    name="BadInstallation"
    type="alertmodal">
-An error occurred while updating [VIEWER_NAME]. Please download the latest version from the official download site.
+An error occurred while updating [APP_NAME]. Please download the latest version from the official download site.
     <usetemplate
      name="okbutton"
      yestext="Ok"/>
@@ -262,9 +254,9 @@ An error occurred while updating [VIEWER_NAME]. Please download the latest versi
    icon="alertmodal.tga"
    name="LoginFailedNoNetwork"
    type="alertmodal">
-Network Error: Could not establish a connection. 
+Could not connect to the [SECOND_LIFE_GRID]. 
 &apos;[DIAGNOSTIC]&apos;
-Please check your network connection.
+Make sure your Internet connection is working properly.
 	<usetemplate
      name="okbutton"
      yestext="Ok"/>
@@ -527,7 +519,7 @@ Selecting &quot;Show in Search&quot; will show:
    type="alertmodal">
 You can propose to another Resident or dissolve an existing partnership through the [SECOND_LIFE] website.
 
-Go to the [GRID_NAME] web site for more information on partnering?
+Go to the [SECOND_LIFE] web site for more information on partnering?
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -610,7 +602,7 @@ Your selling price will be [CURRENCY][SALE_PRICE] and will be authorized for sal
    icon="alertmodal.tga"
    name="ConfirmLandSaleToAnyoneChange"
    type="alertmodal">
-ATTENTION: Clicking &apos;sell to anyone&apos; makes your land available to the entire [GRID_NAME] community, even those not in this region.
+ATTENTION: Clicking &apos;sell to anyone&apos; makes your land available to the entire [SECOND_LIFE] community, even those not in this region.
 
 The selected [LAND_SIZE] m² land is being set for sale.
 Your selling price will be [CURRENCY][SALE_PRICE] and will be authorized for sale to [NAME].
@@ -894,9 +886,9 @@ You can not wear that item because it has not yet loaded. Please try again in a 
    name="MustHaveAccountToLogIn"
    type="alertmodal">
 Oops! Something was left blank.
-You need to enter the First and Last name, or Username of your avatar.
+You need to enter the Username name of your avatar.
 
-You need an account to enter [GRID_NAME]. Would you like to create one now?
+You need an account to enter [SECOND_LIFE]. Would you like to create one now?
     <usetemplate
      name="okcancelbuttons"
      notext="Try again"
@@ -909,7 +901,7 @@ You need an account to enter [GRID_NAME]. Would you like to create one now?
    type="alertmodal">
 You need to enter the First and Last name, or Username of your avatar.
 
-You need an account to enter [GRID_NAME].
+You need an account to enter the [SECOND_LIFE_GRID].
   </notification>
 
   <notification
@@ -1013,29 +1005,29 @@ Would you like to disable all popups which can be skipped?
    icon="notify.tga"
    name="CacheWillClear"
    type="notify">
-Cache will be cleared after you restart [SECOND_LIFE].
+    Cache will be cleared after you restart [APP_NAME].
   </notification>
 
   <notification
    icon="notify.tga"
    name="CacheWillBeMoved"
    type="notify">
-Cache will be moved after you restart [SECOND_LIFE].
-Note: This will clear the cache.
+    Cache will be moved after you restart [APP_NAME].
+    Note: This will clear the cache.
   </notification>
 
   <notification
    icon="notify.tga"
    name="ChangeConnectionPort"
    type="notify">
-Port settings take effect after you restart [SECOND_LIFE].
+Port settings take effect after you restart [APP_NAME].
   </notification>
 
   <notification
    icon="notify.tga"
    name="ProxyNeedRestart"
    type="notify">
-Socks proxy settings will take effect after you restart [SECOND_LIFE].
+    Socks proxy settings will take effect after you restart [APP_NAME].
   </notification>
 
   <notification
@@ -1091,7 +1083,7 @@ Could not connect to Socks5 proxy server "[PROXY]"
    icon="notify.tga"
    name="ChangeSkin"
    type="notfy">
-The new skin will appear after you restart [SECOND_LIFE].
+    The new skin will appear after you restart [APP_NAME].
   </notification>
 
   <notification
@@ -1224,7 +1216,7 @@ Unable to write file [[FILE]]
    icon="alertmodal.tga"
    name="UnsupportedHardware"
    type="alertmodal">
-Warning: Your system does not meet [VIEWER_NAME] minimum system requirements. If you continue using [VIEWER_NAME], you may experience poor performance. [GRID_OWNER] cannot provide technical support for unsupported system configurations.
+Warning: Your system does not meet [APP_NAME] minimum system requirements. If you continue using [APP_NAME], you may experience poor performance. [GRID_OWNER] cannot provide technical support for unsupported system configurations.
 
     MINSPECS
     Do you wish to visit [_URL] for more information?
@@ -1244,7 +1236,7 @@ Warning: Your system does not meet [VIEWER_NAME] minimum system requirements. If
    name="UnknownGPU"
    type="alertmodal">
 Your system contains a graphics card that is unknown to us at this time.
-This is often the case with new hardware we haven&apos;t had a chance to test.  [VIEWER_NAME] will most likely run properly, but you may need to adjust your graphics settings to something more appropriate.
+This is often the case with new hardware we haven&apos;t had a chance to test.  [APP_NAME] will most likely run properly, but you may need to adjust your graphics settings to something more appropriate.
 (Edit menu &gt; Preferences &gt; Graphics).
     <form name="form">
       <ignore name="ignore"
@@ -1256,11 +1248,11 @@ This is often the case with new hardware we haven&apos;t had a chance to test.  
    icon="alertmodal.tga"
    name="DisplaySettingsNoShaders"
    type="alertmodal">
-[SECOND_LIFE] crashed while initializing graphics drivers.
-Graphics Quality will be set to low to avoid some common driver errors.
-This will disable some graphics features.
-We recommend updating your graphics card drivers.
-Graphics Quality can be raised in Preferences &gt; Graphics.
+    [APP_NAME] crashed while initializing graphics drivers.
+    Graphics Quality will be set to low to avoid some common driver errors.
+    This will disable some graphics features.
+    We recommend updating your graphics card drivers.
+    Graphics Quality can be raised in Preferences &gt; Graphics.
   </notification>
 
   <notification
@@ -1868,7 +1860,7 @@ Cannot find the region this land is in.
    icon="alertmodal.tga"
    name="CannotCloseFloaterBuyLand"
    type="alertmodal">
-You cannot close the Buy Land window until [GRID_NAME] estimates the price of this transaction.
+You cannot close the Buy Land window until [APP_NAME] estimates the price of this transaction.
   </notification>
 
   <notification
@@ -2195,7 +2187,7 @@ and provide details about your network setup.
    type="alertmodal">
 You have been logged out of [SECOND_LIFE]:
             [MESSAGE]
-You can still look at existing IM and chat by clicking &apos;View IM &amp; Chat&apos;. Otherwise, click &apos;Quit&apos; to exit [SECOND_LIFE] immediately.
+You can still look at existing IM and chat by clicking &apos;View IM &amp; Chat&apos;. Otherwise, click &apos;Quit&apos; to exit [APP_NAME] immediately.
     <usetemplate
      name="okcancelbuttons"
      notext="Quit"
@@ -2536,7 +2528,7 @@ You have been moved into a nearby region.
    name="ClothingLoading"
    type="alertmodal">
 Your clothing is still downloading.
-You can use [SECOND_LIFE] normally and other users will see you correctly.
+You can use [SECOND_LIFE] normally and other people will see you correctly.
     <form name="form">
       <ignore name="ignore"
        text="When clothing is taking a long time to download"/>
@@ -2547,7 +2539,8 @@ You can use [SECOND_LIFE] normally and other users will see you correctly.
    icon="alertmodal.tga"
    name="FirstRun"
    type="alertmodal">
-[SECOND_LIFE] installation is complete.
+
+[APP_NAME] installation is complete.
 
 If this is your first time using [SECOND_LIFE], you will need to create an account before you can log on.
 Return to www.secondlife.com to create a new account?
@@ -2561,7 +2554,7 @@ Return to www.secondlife.com to create a new account?
    icon="alertmodal.tga"
    name="LoginPacketNeverReceived"
    type="alertmodal">
-We&apos;re having trouble connecting. There may be a problem with your internet connection or the [GRID_NAME] servers.
+We&apos;re having trouble connecting. There may be a problem with your internet connection or the [SECOND_LIFE_GRID].
 
 You can either check your internet connection and try again in a few minutes, click Help to connect to our support site, or click Teleport to attempt to teleport home.
     <form name="form">
@@ -2790,9 +2783,9 @@ Finished download of raw terrain file to:
    icon="alertmodal.tga"
    name="DownloadWindowsMandatory"
    type="alertmodal">
-A new version of [SECOND_LIFE] is available.
+A new version of [APP_NAME] is available.
 [MESSAGE]
-You must download this update to use [SECOND_LIFE].
+You must download this update to use [APP_NAME].
     <usetemplate
      name="okcancelbuttons"
      notext="Quit"
@@ -2803,7 +2796,7 @@ You must download this update to use [SECOND_LIFE].
    icon="alertmodal.tga"
    name="DownloadWindows"
    type="alertmodal">
-An updated version of [SECOND_LIFE] is available.
+An updated version of [APP_NAME] is available.
 [MESSAGE]
 This update is not required, but we suggest you install it to improve performance and stability.
     <usetemplate
@@ -2816,7 +2809,7 @@ This update is not required, but we suggest you install it to improve performanc
    icon="alertmodal.tga"
    name="DownloadWindowsReleaseForDownload"
    type="alertmodal">
-An updated version of [SECOND_LIFE] is available.
+An updated version of [APP_NAME] is available.
 [MESSAGE]
 This update is not required, but we suggest you install it to improve performance and stability.
     <usetemplate
@@ -2829,9 +2822,9 @@ This update is not required, but we suggest you install it to improve performanc
    icon="alertmodal.tga"
    name="DownloadMacMandatory"
    type="alertmodal">
-A new version of [SECOND_LIFE] is available.
+A new version of [APP_NAME] is available.
 [MESSAGE]
-You must download this update to use [SECOND_LIFE].
+You must download this update to use [APP_NAME].
 
 Download to your Applications folder?
     <usetemplate
@@ -2844,7 +2837,7 @@ Download to your Applications folder?
    icon="alertmodal.tga"
    name="DownloadMac"
    type="alertmodal">
-An updated version of [SECOND_LIFE] is available.
+An updated version of [APP_NAME] is available.
 [MESSAGE]
 This update is not required, but we suggest you install it to improve performance and stability.
 
@@ -2859,7 +2852,7 @@ Download to your Applications folder?
    icon="alertmodal.tga"
    name="DownloadMacReleaseForDownload"
    type="alertmodal">
-An updated version of [SECOND_LIFE] is available.
+An updated version of [APP_NAME] is available.
 [MESSAGE]
 This update is not required, but we suggest you install it to improve performance and stability.
 
@@ -4092,7 +4085,7 @@ Access to this estate will be limited to groups listed here and any Residents ab
    name="HelpEstateAbuseEmailAddress"
    type="alertmodal">
 Setting this to a valid email address will cause abuse reports on this estate to be sent to that address.
-Setting it blank will cause abuse reports to be sent only to [GRID_NAME].
+Setting it blank will cause abuse reports to be sent only to [SECOND_LIFE].
   </notification>
 
   <notification
@@ -4118,7 +4111,7 @@ Default: off
    label="Voice Version Mismatch"
    name="VoiceVersionMismatch"
    type="alertmodal">
-This version of [VIEWER_NAME] is not compatible with the Voice Chat feature in this region. Please upgrate to the latest version.
+This version of [APP_NAME] is not compatible with the Voice Chat feature in this region. Please upgrate to the latest version.
   </notification>
 
   <notification
@@ -4357,7 +4350,7 @@ There are no items in this object that you are allowed to copy.
    icon="alertmodal.tga"
    name="WebLaunchAccountHistory"
    type="alertmodal">
-Go to the [GRID_NAME] web site to see your account history?
+Go to the [SECOND_LIFE] web site to see your account history?
     <usetemplate
      ignoretext="When loading account history web page"
      name="okcancelignore"
@@ -4369,9 +4362,9 @@ Go to the [GRID_NAME] web site to see your account history?
    icon="alertmodal.tga"
    name="ClickOpenF1Help"
    type="alertmodal">
-Visit the [GRID_NAME] Support Web site?
+Visit the [SECOND_LIFE] Support Web site?
     <usetemplate
-     ignoretext="When visiting the [GRID_NAME] Support Website."
+     ignoretext="When visiting the [SECOND_LIFE] Support Website."
      name="okcancelignore"
      notext="Cancel"
      yestext="Go"/>
@@ -4390,7 +4383,7 @@ This grid has no link for support.
    type="alertmodal">
 Are you sure you want to quit?
     <usetemplate
-     ignoretext="When Quitting [VIEWER_NAME]."
+     ignoretext="When Quitting [APP_NAME]."
      name="okcancelignore"
      notext="Continue"
      yestext="Quit"/>
@@ -4421,7 +4414,7 @@ As a service to residents and visitors, the owner of the region you are in has e
 The region owner will resolve reports based on the local rules of this region as outlined in the estate Covenant.
 (View covenants by going to the World menu and selecting About Land.)
 
-The resolution of this report applies only to this Region; Residents access to other areas of [GRID_NAME] will not be affected by the outcome of this report. Only [GRID_OWNER] can restrict access to the entirety of [GRID_NAME].
+The resolution of this report applies only to this Region; Residents access to other areas of the [SECOND_LIFE_GRID] will not be affected by the outcome of this report. Only [GRID_OWNER] can restrict access to the entirety of the [SECOND_LIFE_GRID].
   </notification>
 
   <notification
@@ -4510,15 +4503,15 @@ Entering an accurate description helps us file and process bug reports.
    icon="alertmodal.tga"
    name="HelpReportAbuseContainsCopyright"
    type="alertmodal">
-Dear Resident,
+    Dear Resident,
 
-You appear to be reporting intellectual property infringement. Please make sure you are reporting it correctly:
+    You appear to be reporting intellectual property infringement. Please make sure you are reporting it correctly:
 
-(1) The Abuse Process. You may submit an abuse report if you believe a Resident is exploiting the [GRID_NAME] permissions system, for example, by using CopyBot or similar copying tools, to infringe intellectual property rights. The Abuse Team investigates and issues appropriate disciplinary action for behavior that violates the [GRID_NAME] Community Standards or Terms of Service. However, the Abuse Team does not handle and will not respond to requests to remove content from the [GRID_NAME] world.
+    (1) The Abuse Process. You may submit an abuse report if you believe a Resident is exploiting the [SECOND_LIFE] permissions system, for example, by using CopyBot or similar copying tools, to infringe intellectual property rights. The Abuse Team investigates and issues appropriate disciplinary action for behavior that violates the [SECOND_LIFE] Community Standards or Terms of Service. However, the Abuse Team does not handle and will not respond to requests to remove content from the [SECOND_LIFE] world.
 
-(2) The DMCA or Content Removal Process. To request removal of content from [GRID_NAME], you MUST submit a valid notification of infringement as provided in our DMCA Policy.
+    (2) The DMCA or Content Removal Process. To request removal of content from [SECOND_LIFE], you MUST submit a valid notification of infringement as provided in our DMCA Policy.
 
-If you still wish to continue with the abuse process, please close this window and finish submitting your report.  You may need to select the specific category &apos;CopyBot or Permissions Exploit&apos;.
+    If you still wish to continue with the abuse process, please close this window and finish submitting your report.  You may need to select the specific category &apos;CopyBot or Permissions Exploit&apos;.
 
 Thank you,
 
@@ -4766,7 +4759,7 @@ Click &quot;Advanced Water&quot; to bring up an editor with more advanced settin
    icon="alertmodal.tga"
    name="HelpDayCycle"
    type="alertmodal">
-The Day Cycle Editor gives you control over the sky during [GRID_NAME]&apos;s day/night cycle. This is the cycle that is used by the Basic Environment Editor&apos;s Time of Day slider.
+The Day Cycle Editor gives you control over the sky during [SECOND_LIFE]&apos;s day/night cycle. This is the cycle that is used by the Basic Environment Editor&apos;s Time of Day slider.
 
 The Day Cycle Editor works by setting keyframes. These are nodes (represented by the gray blips on the time graph) that have Sky Presets associated with them. As the Time of Day progresses, the WindLight sky &quot;animates&quot; as it interpolates between these keyframes.
 
@@ -5186,7 +5179,7 @@ Would you like to automatically wear the clothing item you create?
    name="NotAgeVerified"
    type="alertmodal">
 You need to be age-verified in order to access this parcel.
-Would you like to visit the [GRID_NAME] website to verify your age?
+Would you like to visit the [SECOND_LIFE] website to verify your age?
 
 [_URL]
     <url option="0" name="url">
@@ -5205,7 +5198,7 @@ Would you like to visit the [GRID_NAME] website to verify your age?
    name="Cannot enter parcel: no payment info on file"
    type="alertmodal">
 This parcel requires that you have payment information on file before you can access it.
-Would you like to visit the [GRID_NAME] website to set this up?
+Would you like to visit the [SECOND_LIFE] website to set this up?
 
 [_URL]
     <url option="0" name="url">
@@ -6311,7 +6304,7 @@ Failed to find [TYPE] named [DESC] in database.
    icon="notify.tga"
    name="InvalidWearable"
    type="notify">
-    The item you are trying to wear uses a feature that your viewer can&apos;t read. Please consider using the latest [VIEWER_NAME].
+    The item you are trying to wear uses a feature that your viewer can&apos;t read. Please consider using the latest [APP_NAME].
   </notification>
 
   <notification
@@ -6530,7 +6523,7 @@ Flexible objects may not be physical and must be phantom until the flexible chec
    name="FirstDebugMenus"
    type="notify">
 You have enabled the Advanced menu.
-This menu contains features useful for developers debugging [VIEWER_NAME].
+This menu contains features useful for developers debugging [APP_NAME].
 To toggle this menu on Windows press Ctrl-Alt-D. On Mac press Cmd-Opt-Shift-D.
   </notification>
 
@@ -6860,15 +6853,15 @@ The URL you clicked cannot be opened from this web browser.
   </global>
 
   <global name="UnsupportedGLRequirements">
-    You do not appear to have the proper hardware requirements for [VIEWER_NAME]. The viewer requires an OpenGL graphics card that has multitexture support. If this is the case, you may want to make sure that you have the latest drivers for your graphics card, and service packs and patches for your operating system.
+    You do not appear to have the proper hardware requirements for [APP_NAME]. The viewer requires an OpenGL graphics card that has multitexture support. If this is the case, you may want to make sure that you have the latest drivers for your graphics card, and service packs and patches for your operating system.
   </global>
 
   <global name="UnsupportedCPUSSE2">
-    You do not appear to have the proper hardware requirements for [VIEWER_NAME]. The viewer requires a CPU that supports SSE2
+    You do not appear to have the proper hardware requirements for [APP_NAME]. The viewer requires a CPU that supports SSE2
   </global>
   
   <global name="UnsupportedCPUSSE">
-    You do not appear to have the proper hardware requirements for [VIEWER_NAME]. The viewer requires a CPU that supports SSE
+    You do not appear to have the proper hardware requirements for [APP_NAME]. The viewer requires a CPU that supports SSE
   </global>
   
   <global name="UnsupportedCPUAmount">

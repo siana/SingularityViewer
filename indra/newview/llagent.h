@@ -156,7 +156,7 @@ public:
 public:
 	void			getName(std::string& name);	//Legacy
 	void			buildFullname(std::string &name) const; //Legacy
-	//*TODO remove, is not used as of August 20, 2009
+	// *TODO remove, is not used as of August 20, 2009
 	void			buildFullnameAndTitle(std::string &name) const;
 
 	//--------------------------------------------------------------------

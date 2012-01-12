@@ -648,7 +648,7 @@ void LLFloaterTexturePicker::draw()
 		{
 			if( mTexturep->getComponents() == 4 )
 			{
-				gl_rect_2d_checkerboard( interior );
+				gl_rect_2d_checkerboard( getScreenRect(), interior );
 			}
 
 			gl_draw_scaled_image( interior.mLeft, interior.mBottom, interior.getWidth(), interior.getHeight(), mTexturep );
@@ -1540,7 +1540,7 @@ void LLTextureCtrl::draw()
 	{
 		if( mTexturep->getComponents() == 4 )
 		{
-			gl_rect_2d_checkerboard( interior );
+			gl_rect_2d_checkerboard( getScreenRect(), interior );
 		}
 		
 		gl_draw_scaled_image( interior.mLeft, interior.mBottom, interior.getWidth(), interior.getHeight(), mTexturep);

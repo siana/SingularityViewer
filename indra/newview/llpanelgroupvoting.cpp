@@ -762,7 +762,7 @@ void LLPanelGroupVoting::impl::sendStartGroupProposal()
 
 	S32 quorum = llfloor(mQuorum->get());
 
-	//*************************************Conversion to capability
+	// *************************************Conversion to capability
 	LLSD body;
 
 	std::string url = gAgent.getRegion()->getCapability("StartGroupProposal");
@@ -901,7 +901,7 @@ void LLPanelGroupVoting::impl::addPendingActiveScrollListItem(unsigned int curre
 															  EAddPosition pos)
 {
 	std::stringstream pending;
-	//*TODO: translate
+	// *TODO: translate
 	pending << "Retrieving active proposals ("
 			<< current
 			<< "\\" << expected  << ")";
@@ -911,13 +911,13 @@ void LLPanelGroupVoting::impl::addPendingActiveScrollListItem(unsigned int curre
 
 void LLPanelGroupVoting::impl::addNoActiveScrollListItem(EAddPosition pos)
 {
-	//*TODO: translate
+	// *TODO: translate
 	mProposals->addCommentText(std::string("There are currently no active proposals"), pos);
 }
 
 void LLPanelGroupVoting::impl::addNoHistoryScrollListItem(EAddPosition pos)
 {
-	//*TODO: translate
+	// *TODO: translate
 	mVotesHistory->addCommentText(std::string("There are currently no archived proposals"), pos);
 }
 
@@ -925,7 +925,7 @@ void LLPanelGroupVoting::impl::addPendingHistoryScrollListItem(unsigned int curr
 															  unsigned int expected,
 															  EAddPosition pos)
 {
-	//*TODO: translate
+	// *TODO: translate
 	std::stringstream pending;
 	pending << "Retrieving archived proposals ("
 			<< current
@@ -1454,9 +1454,9 @@ void LLPanelGroupVoting::impl::onClickViewHistoryList(void *userdata)
 	if ( self) self->setEnableHistoryList();
 }
 
-//**********************************
-//** LLPanelGroupVoting Functions **
-//**********************************
+// **********************************
+// ** LLPanelGroupVoting Functions **
+// **********************************
 
 // static
 void* LLPanelGroupVoting::createTab(void* data)

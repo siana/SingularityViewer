@@ -946,7 +946,6 @@ void LLPanelLandGeneral::onClickBuyPass(void* data)
 
 	LLSD args;
 	args["COST"] = cost;
-	args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 	args["PARCEL_NAME"] = parcel_name;
 	args["TIME"] = time;
 	

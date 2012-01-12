@@ -299,7 +299,7 @@ S32 LLScrollListSeparator::getHeight() const
 
 void LLScrollListSeparator::draw(const LLColor4& color, const LLColor4& highlight_color) const
 {
-	//*FIXME: use dynamic item heights and make separators narrow, and inactive
+	// *FIXME: use dynamic item heights and make separators narrow, and inactive
 	gl_line_2d(5, 8, llmax(5, getWidth() - 5), 8, color);
 }
 

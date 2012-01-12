@@ -31,7 +31,7 @@
  */
 
 
-#include "llviewerprecompiledheaders.h"
+#include "linden_common.h"
 #include "lltrans.h"
 #include "llxmlnode.h"
 #include "lluictrlfactory.h"
@@ -41,9 +41,10 @@
 #include <map>
 
 LLTrans::template_map_t LLTrans::sStringTemplates;
+LLStringUtil::format_map_t LLTrans::sDefaultArgs;
 
 //static 
-bool LLTrans::parseStrings(const std::string& xml_filename)
+bool LLTrans::parseStrings(const std::string& xml_filename, const std::set<std::string>& default_args)
 {
 	LLXMLNodePtr root;
 	BOOL success  = LLUICtrlFactory::getLayeredXMLNode(xml_filename, root);
@@ -54,6 +55,7 @@ bool LLTrans::parseStrings(const std::string& xml_filename)
 		return false;
 	}
 	
+	sDefaultArgs.clear();
 	for (LLXMLNode* string = root->getFirstChild();
 		 string != NULL; string = string->getNextSibling())
 	{
@@ -72,19 +74,30 @@ bool LLTrans::parseStrings(const std::string& xml_filename)
 	
 		LLTransTemplate xml_template(string_name, string->getTextContents());
 		sStringTemplates[xml_template.mName] = xml_template;
+
+		std::set<std::string>::const_iterator iter = default_args.find(xml_template.mName);
+		if (iter != default_args.end())
+		{
+			std::string name = *iter;
+			if (name[0] != '[')
+				name = llformat("[%s]",name.c_str());
+			sDefaultArgs[name] = xml_template.mText;
+		}
 	}
 
 	return true;
 }
 
 //static 
-std::string LLTrans::getString(const std::string &xml_desc, const LLStringUtil::format_map_t& args)
+std::string LLTrans::getString(const std::string &xml_desc, const LLStringUtil::format_map_t& msg_args)
 {
 	template_map_t::iterator iter = sStringTemplates.find(xml_desc);
 
 	if (iter != sStringTemplates.end())
 	{
 		std::string text = iter->second.mText;
+		LLStringUtil::format_map_t args = sDefaultArgs;
+		args.insert(msg_args.begin(), msg_args.end());
 		LLStringUtil::format(text, args);
 		
 		return text;
@@ -96,7 +109,11 @@ std::string LLTrans::getString(const std::string &xml_desc, const LLStringUtil::
 		LL_WARNS_ONCE("configuration") << "Missing String in strings.xml: [" << xml_desc << "]" << LL_ENDL;
 		LLNotificationsUtil::add("MissingString", args);
 		
-		return xml_desc;
+		return "MissingString("+xml_desc+")";
 	}
 }
 
+void LLTrans::setDefaultArg(const std::string& name, const std::string& value)
+{
+	sDefaultArgs[name] = value;
+}

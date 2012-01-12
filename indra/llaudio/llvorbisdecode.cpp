@@ -133,10 +133,10 @@ BOOL decode_vorbis_file(LLVFS *vfs, const LLUUID &in_uuid, char *out_fname)
 		return(FALSE);
 	}
 
-	//**********************************
+	// **********************************
 	LLAPRFile outfile ;
 	outfile.open(out_fname,LL_APR_WPB);
-	//**********************************
+	// **********************************
 	if (!outfile.getFileHandle())
 	{
 		llwarning("unable to open vorbis destination file for writing",0);
@@ -308,9 +308,9 @@ BOOL decode_vorbis_file(LLVFS *vfs, const LLUUID &in_uuid, char *out_fname)
 	
 	outfile.seek(SEEK_END,-fade_length*2); 
 	outfile.write(pcmout,2*fade_length);  //write back xfaded last 16 samples
-	//*******************
+	// *******************
 	outfile.close();
-	//*******************
+	// *******************
 	
 	if ((36 == data_length) || (!(eof)))
 	{

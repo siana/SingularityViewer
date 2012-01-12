@@ -34,7 +34,7 @@
 #define LL_LLFLOATERPROPERTIES_H
 
 #include <map>
-#include "llfloater.h"
+#include "llmultifloater.h"
 #include "lliconctrl.h"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -637,9 +637,9 @@ void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_ty
 			motionp->fadeIn();
 		}
 
-		//**********************
+		// **********************
 		// MOTION INACTIVE
-		//**********************
+		// **********************
 		if (motionp->isStopped() && mAnimTime > motionp->getStopTime() + motionp->getEaseOutDuration())
 		{
 			// this motion has gone on too long, deactivate it
@@ -659,9 +659,9 @@ void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_ty
 			}
 		}
 
-		//**********************
+		// **********************
 		// MOTION EASE OUT
-		//**********************
+		// **********************
 		else if (motionp->isStopped() && mAnimTime > motionp->getStopTime())
 		{
 			// is this the first iteration in the ease out phase?
@@ -684,9 +684,9 @@ void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_ty
 			update_result = motionp->onUpdate(mAnimTime - motionp->mActivationTimestamp, last_joint_signature);
 		}
 
-		//**********************
+		// **********************
 		// MOTION ACTIVE
-		//**********************
+		// **********************
 		else if (mAnimTime > motionp->mActivationTimestamp + motionp->getEaseInDuration())
 		{
 			posep->setWeight(motionp->getFadeWeight());
@@ -707,9 +707,9 @@ void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_ty
 			update_result = motionp->onUpdate(mAnimTime - motionp->mActivationTimestamp, last_joint_signature);
 		}
 
-		//**********************
+		// **********************
 		// MOTION EASE IN
-		//**********************
+		// **********************
 		else if (mAnimTime >= motionp->mActivationTimestamp)
 		{
 			if (mLastTime < motionp->mActivationTimestamp)

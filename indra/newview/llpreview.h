@@ -33,7 +33,7 @@
 #ifndef LL_LLPREVIEW_H
 #define LL_LLPREVIEW_H
 
-#include "llfloater.h"
+#include "llmultifloater.h"
 #include "llresizehandle.h"
 #include "llmap.h"
 #include "lluuid.h"

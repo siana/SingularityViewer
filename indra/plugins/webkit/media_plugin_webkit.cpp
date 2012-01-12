@@ -230,7 +230,7 @@ private:
 #endif
 
 #if LL_WINDOWS
-		//*NOTE:Mani - On windows, at least, the component path is the
+		// *NOTE:Mani - On windows, at least, the component path is the
 		// location of this dll's image file. 
 		std::string component_dir;
 		char dll_path[_MAX_PATH];

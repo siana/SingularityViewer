@@ -166,6 +166,16 @@ void LLViewerTextureList::doPreloadImages()
 		image->setAddressMode(LLTexUnit::TAM_WRAP);
 		mImagePreloads.insert(image);
 	}
+	//Hideous hack to set filtering and address modes without messing with our texture classes.
+	{
+		LLPointer<LLUIImage> temp_image = image_list->getUIImage("checkerboard.tga",LLViewerFetchedTexture::BOOST_UI);
+		if(temp_image.notNull() && temp_image->getImage().notNull())
+		{
+			LLViewerTexture *tex = (LLViewerTexture*)temp_image->getImage().get();
+			tex->setAddressMode(LLTexUnit::TAM_WRAP);
+			tex->setFilteringOption(LLTexUnit::TFO_POINT);
+		}
+	}
 	
 }
 

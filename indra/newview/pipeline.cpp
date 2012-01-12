@@ -3263,7 +3263,7 @@ void render_hud_elements()
 {
 	LLFastTimer t(LLFastTimer::FTM_RENDER_UI);
 	gPipeline.disableLights();		
-	
+
 	LLGLDisable fog(GL_FOG);
 	LLGLSUIDefault gls_ui;
 
@@ -3280,22 +3280,25 @@ void render_hud_elements()
 	}
 	LLGLDepthTest depth(GL_TRUE, GL_FALSE);
 
-	if (!LLPipeline::sReflectionRender && gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI))
+	if (gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI))
 	{
-		static const LLCachedControl<U32> RenderFSAASamples("RenderFSAASamples",0);
-		LLGLEnable multisample(RenderFSAASamples > 0 ? GL_MULTISAMPLE_ARB : 0);
-		gViewerWindow->renderSelections(FALSE, FALSE, FALSE); // For HUD version in render_ui_3d()
+		if(!LLPipeline::sReflectionRender)
+		{
+			static const LLCachedControl<U32> RenderFSAASamples("RenderFSAASamples",0);
+			LLGLEnable multisample(RenderFSAASamples > 0 ? GL_MULTISAMPLE_ARB : 0);
+			gViewerWindow->renderSelections(FALSE, FALSE, FALSE); // For HUD version in render_ui_3d()
 	
-		// Draw the tracking overlays
-		LLTracker::render3D();
+			// Draw the tracking overlays
+			LLTracker::render3D();
 		
-		// Show the property lines
-		LLWorld::getInstance()->renderPropertyLines();
-		LLViewerParcelMgr::getInstance()->render();
-		LLViewerParcelMgr::getInstance()->renderParcelCollision();
+			// Show the property lines
+			LLWorld::getInstance()->renderPropertyLines();
+			LLViewerParcelMgr::getInstance()->render();
+			LLViewerParcelMgr::getInstance()->renderParcelCollision();
 	
-		// Render name tags.
-		LLHUDObject::renderAll();
+			// Render name tags.
+			LLHUDObject::renderAll();
+		}
 	}
 	else if (gForceRenderLandFence)
 	{

@@ -187,3 +187,14 @@ void LLWindowCallbacks::handleResumeWatchdog(LLWindow *window)
 
 }
 
+std::string LLWindowCallbacks::translateString(const char* tag)
+{
+    return std::string();
+}
+
+//virtual
+std::string LLWindowCallbacks::translateString(const char* tag,
+		const std::map<std::string, std::string>& args)
+{
+	return std::string();
+}

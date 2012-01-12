@@ -84,6 +84,10 @@ public:
 	virtual void handlePauseWatchdog(LLWindow *window);
 	virtual void handleResumeWatchdog(LLWindow *window);
 
+    // Look up a localized string, usually for an error message
+    virtual std::string translateString(const char* tag);
+	virtual std::string translateString(const char* tag,
+		const std::map<std::string, std::string>& args);
 };
 
 

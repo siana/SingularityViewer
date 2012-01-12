@@ -482,7 +482,6 @@ void LLHoverView::updateText()
 					else if (for_sale)
 					{
 						LLStringUtil::format_map_t args;
-						args["[CURRENCY]"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 						args["[AMOUNT]"] = llformat("%d", nodep->mSaleInfo.getSalePrice());
 						line.append(LLTrans::getString("TooltipForSaleL$", args));
 						suppressObjectHoverDisplay = FALSE;		//  Show tip
@@ -686,7 +685,6 @@ void LLHoverView::updateText()
 		if (hover_parcel && hover_parcel->getParcelFlag(PF_FOR_SALE))
 		{
 			LLStringUtil::format_map_t args;
-			args["[CURRENCY]"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 			args["[AMOUNT]"] = llformat("%d", hover_parcel->getSalePrice());
 			line = LLTrans::getString("TooltipForSaleL$", args);
 			mText.push_back(line);

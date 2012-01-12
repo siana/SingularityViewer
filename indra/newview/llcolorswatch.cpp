@@ -218,7 +218,7 @@ void LLColorSwatchCtrl::draw()
 	if ( mValid )
 	{
 		// Draw the color swatch
-		gl_rect_2d_checkerboard( interior );
+		gl_rect_2d_checkerboard( getScreenRect(), interior );
 		gl_rect_2d(interior, mColor, TRUE);
 		LLColor4 opaque_color = mColor;
 		opaque_color.mV[VALPHA] = 1.f;
@@ -239,7 +239,7 @@ void LLColorSwatchCtrl::draw()
 			LLPointer<LLViewerFetchedTexture> fallback_image = LLViewerTextureManager::getFetchedTextureFromFile(mFallbackImageName);
 			if( fallback_image->getComponents() == 4 )
 			{	
-				gl_rect_2d_checkerboard( interior );
+				gl_rect_2d_checkerboard( getScreenRect(), interior );
 			}	
 			gl_draw_scaled_image( interior.mLeft, interior.mBottom, interior.getWidth(), interior.getHeight(), fallback_image);
 			fallback_image->addTextureStats( (F32)(interior.getWidth() * interior.getHeight()) );

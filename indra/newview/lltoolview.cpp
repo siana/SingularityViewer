@@ -77,7 +77,7 @@ LLToolView::~LLToolView()
 	mContainList.clear();
 }
 
-//*TODO:translate?
+// *TODO:translate?
 // void LLToolView::addTool(const std::string& icon_off, const std::string& icon_on, LLPanel* panel, LLTool* tool, LLView* hoverView, const char* label)
 // {
 // 	llassert(tool);

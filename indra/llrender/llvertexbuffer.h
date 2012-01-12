@@ -192,7 +192,7 @@ protected:
 
 	virtual ~LLVertexBuffer(); // use unref()
 
-	virtual void setupVertexBuffer(U32 data_mask) const; // pure virtual, called from mapBuffer()
+	virtual void setupVertexBuffer(U32 data_mask); // pure virtual, called from mapBuffer()
 	void setupVertexArray();
 	
 	void	genBuffer(U32 size);

@@ -426,7 +426,6 @@ set(viewer_SOURCE_FILES
     lltoolselectrect.cpp
     lltoolview.cpp
     lltracker.cpp
-    lltrans.cpp
     lltranslate.cpp
     lluploaddialog.cpp
 	lluploadfloaterobservers.cpp
@@ -537,6 +536,7 @@ set(viewer_SOURCE_FILES
     rlvfloaterbehaviour.cpp
     rlvviewer2.cpp
 	shcommandhandler.cpp
+	shfloatermediaticker.cpp
     )
 
 # This gets renamed in the packaging step
@@ -899,7 +899,6 @@ set(viewer_HEADER_FILES
     lltoolselectrect.h
     lltoolview.h
     lltracker.h
-    lltrans.h
     lltranslate.h
     lluiconstants.h
     lluploaddialog.h
@@ -1019,6 +1018,7 @@ set(viewer_HEADER_FILES
     rlvfloaterbehaviour.h
     rlvviewer2.h
     shcommandhandler.h
+	shfloatermediaticker.h
     )
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)

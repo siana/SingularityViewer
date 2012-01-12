@@ -883,7 +883,6 @@ void LLPanelClassified::callbackGotPriceForListing(S32 option, std::string text,
 		LLSD args;
 		std::string price_text = llformat("%d", MINIMUM_PRICE_FOR_LISTING);
 		args["MIN_PRICE"] = price_text;
-		args["[CURRENCY]"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 			
 		LLNotificationsUtil::add("MinClassifiedPrice", args);
 		return;

@@ -187,6 +187,7 @@
 <ConsoleBackground value="0, 0, 0, 255" />
 <FolderViewLoadingMessageTextColor value="240, 165, 90, 255"/>
 <InventoryBackgroundColor value="62, 62, 62, 80"/>
+<SHMediaTickerOscillatorColor value ="0, 0, 0, 191"/>
 <DefaultListText value="0, 0, 0, 255"/> <!-- We are replacing all the hardcoded black text with this color so we can make skins with white text on dark background -->
 <ComboBoxBg value="255, 255, 255, 255"/>
 <AvatarListTextDistNormalRange value="0, 0, 0, 255"/>

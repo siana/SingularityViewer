@@ -31,9 +31,13 @@
 */
 
 #include "linden_common.h"
+
+#include "llnotifications.h"
+#include "llnotificationtemplate.h"
 #include "lluictrlfactory.h"
 #include "lldir.h"
 #include "llsdserialize.h"
+#include "lltrans.h"
 
 #include "llnotifications.h"
 
@@ -164,12 +168,7 @@ bool filterIgnoredNotifications(LLNotificationPtr notification)
 {
 	LLNotificationFormPtr form = notification->getForm();
 	// Check to see if the user wants to ignore this alert
-	if (form->getIgnoreType() != LLNotificationForm::IGNORE_NO)
-	{
-		return LLUI::sConfigGroup->getWarning(notification->getName());
-	}
-
-	return true;
+	return !notification->getForm()->getIgnored();
 }
 
 bool handleIgnoredNotification(const LLSD& payload)
@@ -219,7 +218,8 @@ LLNotificationForm::LLNotificationForm()
 
 LLNotificationForm::LLNotificationForm(const std::string& name, const LLXMLNodePtr xml_node) 
 :	mFormData(LLSD::emptyArray()),
-	mIgnore(IGNORE_NO)
+	mIgnore(IGNORE_NO),
+	mInvertSetting(false)
 {
 	if (!xml_node->hasName("form"))
 	{
@@ -248,7 +248,7 @@ LLNotificationForm::LLNotificationForm(const std::string& name, const LLXMLNodeP
 				LLUI::sIgnoresGroup->declareLLSD(std::string("Default") + name, "", std::string("Default response for notification " + name));
 			}
 			child->getAttributeString("text", mIgnoreMsg);
-			LLUI::sIgnoresGroup->addWarning(name);
+			mIgnoreSetting = LLUI::sIgnoresGroup->addWarning(name);
 		}
 		else
 		{
@@ -344,13 +344,13 @@ void LLNotificationForm::formatElements(const LLSD& substitutions)
 		if ((*it).has("text"))
 		{
 			std::string text = (*it)["text"].asString();
-			text = LLNotification::format(text, substitutions);
+			LLStringUtil::format(text, substitutions);
 			(*it)["text"] = text;
 		}
 		if ((*it)["type"].asString() == "text" && (*it).has("value"))
 		{
 			std::string value = (*it)["value"].asString();
-			value = LLNotification::format(value, substitutions);
+			LLStringUtil::format(value, substitutions);
 			(*it)["value"] = value;
 		}
 	}
@@ -365,6 +365,33 @@ std::string LLNotificationForm::getDefaultOption()
 		if ((*it)["default"]) return (*it)["name"].asString();
 	}
 	return "";
+}
+
+LLControlVariablePtr LLNotificationForm::getIgnoreSetting() 
+{ 
+	return mIgnoreSetting; 
+}
+
+bool LLNotificationForm::getIgnored()
+{
+	bool show = true;
+	if (mIgnore != LLNotificationForm::IGNORE_NO
+		&& mIgnoreSetting) 
+	{
+		show = mIgnoreSetting->getValue().asBoolean();
+		if (mInvertSetting) show = !show;
+	}
+
+	return !show;
+}
+
+void LLNotificationForm::setIgnored(bool ignored)
+{
+	if (mIgnoreSetting)
+	{
+		if (mInvertSetting) ignored = !ignored;
+		mIgnoreSetting->setValue(!ignored);
+	}
 }
 
 LLNotificationTemplate::LLNotificationTemplate() :
@@ -417,6 +444,7 @@ LLNotification::LLNotification(const LLSD& sd) :
 LLSD LLNotification::asLLSD()
 {
 	LLSD output;
+	output["id"] = mId;
 	output["name"] = mTemplatep->mName;
 	output["form"] = getForm()->asLLSD();
 	output["substitutions"] = mSubstitutions;
@@ -545,7 +573,7 @@ void LLNotification::respond(const LLSD& response)
 
 	if (mForm->getIgnoreType() != LLNotificationForm::IGNORE_NO)
 	{
-		LLUI::sIgnoresGroup->setWarning(getName(), !mIgnored);
+		mForm->setIgnored(mIgnored);
 		if (mIgnored && mForm->getIgnoreType() == LLNotificationForm::IGNORE_WITH_LAST_RESPONSE)
 		{
 			LLUI::sIgnoresGroup->setLLSD("Default" + getName(), response);
@@ -554,6 +582,36 @@ void LLNotification::respond(const LLSD& response)
 
 	update();
 }
+
+const std::string& LLNotification::getName() const
+{
+	return mTemplatep->mName;
+}
+
+const std::string& LLNotification::getIcon() const
+{
+	return mTemplatep->mIcon;
+}
+
+
+bool LLNotification::isPersistent() const
+{
+	return mTemplatep->mPersist;
+}
+std::string LLNotification::getType() const
+{
+	return (mTemplatep ? mTemplatep->mType : "");
+}
+
+S32 LLNotification::getURLOption() const
+{
+	return (mTemplatep ? mTemplatep->mURLOption : -1);
+}
+bool LLNotification::hasUniquenessConstraints() const 
+{ 
+	return (mTemplatep ? mTemplatep->mUnique : false);
+}
+
 
 void LLNotification::setIgnored(bool ignore)
 {
@@ -569,21 +627,6 @@ void LLNotification::setResponseFunctor(std::string const &responseFunctorName)
 	mTemporaryResponder = false;
 }
 
-bool LLNotification::payloadContainsAll(const std::vector<std::string>& required_fields) const
-{
-	for(std::vector<std::string>::const_iterator required_fields_it = required_fields.begin(); 
-		required_fields_it != required_fields.end();
-		required_fields_it++)
-	{
-		std::string required_field_name = *required_fields_it;
-		if( ! getPayload().has(required_field_name))
-		{
-			return false; // a required field was not found
-		}
-	}
-	return true; // all required fields were found
-}
-
 bool LLNotification::isEquivalentTo(LLNotificationPtr that) const
 {
 	if (this->mTemplatep->mName != that->mTemplatep->mName) 
@@ -592,11 +635,28 @@ bool LLNotification::isEquivalentTo(LLNotificationPtr that) const
 	}
 	if (this->mTemplatep->mUnique)
 	{
+		const LLSD& these_substitutions = this->getSubstitutions();
+		const LLSD& those_substitutions = that->getSubstitutions();
+		const LLSD& this_payload = this->getPayload();
+		const LLSD& that_payload = that->getPayload();
+
 		// highlander bit sez there can only be one of these
-		return
-			this->payloadContainsAll(that->mTemplatep->mUniqueContext) &&
-			that->payloadContainsAll(this->mTemplatep->mUniqueContext);
+		for (std::vector<std::string>::const_iterator it = mTemplatep->mUniqueContext.begin(), end_it = mTemplatep->mUniqueContext.end();
+			it != end_it;
+			++it)
+		{
+			// if templates differ in either substitution strings or payload with the given field name
+			// then they are considered inequivalent
+			// use of get() avoids converting the LLSD value to a map as the [] operator would
+			if (these_substitutions.get(*it).asString() != those_substitutions.get(*it).asString()
+				|| this_payload.get(*it).asString() != that_payload.get(*it).asString())
+			{
+				return false;
+			}
+		}
+		return true;
 	}
+
 	return false; 
 }
 
@@ -605,23 +665,15 @@ void LLNotification::init(const std::string& template_name, const LLSD& form_ele
 	mTemplatep = LLNotifications::instance().getTemplate(template_name);
 	if (!mTemplatep) return;
 
-	// add default substitutions
-	// TODO: change this to read from the translatable strings file!
-	if (gHippoGridManager->getConnectedGrid()->isSecondLife()) {
-		mSubstitutions["[SECOND_LIFE]"] = "Second Life";
+	const LLStringUtil::format_map_t& default_args = LLTrans::getDefaultArgs();
+	for (LLStringUtil::format_map_t::const_iterator iter = default_args.begin();
+		 iter != default_args.end(); ++iter)
+	{
+		mSubstitutions[iter->first] = iter->second;
 	}
-	else {
-		mSubstitutions["[SECOND_LIFE]"] = gHippoGridManager->getConnectedGrid()->getGridName();
-	} 
-	mSubstitutions["[VIEWER_NAME]"] = LLNotifications::instance().getGlobalString("VIEWER_NAME");
-	mSubstitutions["[VIEWER_SITE]"] = LLNotifications::instance().getGlobalString("VIEWER_SITE");
-	
-	mSubstitutions["[GRID_NAME]"] = gHippoGridManager->getConnectedGrid()->getGridName();
-	mSubstitutions["[GRID_SITE]"] = gHippoGridManager->getConnectedGrid()->getWebSite();
-	mSubstitutions["[CURRENCY]"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
-
 	mSubstitutions["_URL"] = getURL();
 	mSubstitutions["_NAME"] = template_name;
+
 	// TODO: something like this so that a missing alert is sensible:
 	//mSubstitutions["_ARGS"] = get_all_arguments_as_text(mSubstitutions);
 
@@ -630,6 +682,8 @@ void LLNotification::init(const std::string& template_name, const LLSD& form_ele
 
 	// apply substitution to form labels
 	mForm->formatElements(mSubstitutions);
+
+	mIgnored = mForm->getIgnored();
 
 	LLDate rightnow = LLDate::now();
 	if (mTemplatep->mExpireSeconds)
@@ -653,63 +707,6 @@ std::string LLNotification::summarize() const
 	return s;
 }
 
-//static
-std::string LLNotification::format(const std::string& s, const LLSD& substitutions)
-{
-	if (!substitutions.isMap()) 
-	{
-		return s;
-	}
-
-	std::ostringstream output;
-	// match strings like [NAME]
-	const boost::regex key("\\[([0-9_A-Z]+)]");
-	
-	std::string::const_iterator start = s.begin();
-	std::string::const_iterator end = s.end();
-	boost::smatch match;
-	
-	while (boost::regex_search(start, end, match, key, boost::match_default))
-	{
-		bool found_replacement = false;
-		std::string replacement;
-		
-		// see if we have a replacement for the bracketed string (without the brackets)
-		// test first using has() because if we just look up with operator[] we get back an
-		// empty string even if the value is missing. We want to distinguish between 
-		// missing replacements and deliberately empty replacement strings.
-		if (substitutions.has(std::string(match[1].first, match[1].second)))
-		{
-			replacement = substitutions[std::string(match[1].first, match[1].second)].asString();
-			found_replacement = true;
-		}
-		// if not, see if there's one WITH brackets
-		else if (substitutions.has(std::string(match[0].first, match[0].second)))
-		{
-			replacement = substitutions[std::string(match[0].first, match[0].second)].asString();
-			found_replacement = true;
-		}
-		
-		if (found_replacement)
-		{
-			// found a replacement
-			// "hello world" is output
-			output << std::string(start, match[0].first) << replacement;
-		}
-		else
-		{
-			// we had no replacement, so leave the string we searched for so that it gets noticed by QA
-			// "hello [NAME_NOT_FOUND]" is output
-			output << std::string(start, match[0].second);
-		}
-		
-		// update search position 
-		start = match[0].second; 
-	}
-	// send the remainder of the string (with no further matches for bracketed names)
-	output << std::string(start, end);
-	return output.str();
-}
 
 std::string LLNotification::getMessage() const
 {
@@ -718,15 +715,30 @@ std::string LLNotification::getMessage() const
 	// cache it in the notification
 	if (!mTemplatep)
 		return std::string();
-	return format(mTemplatep->mMessage, mSubstitutions);
+
+	std::string message = mTemplatep->mMessage;
+	LLStringUtil::format(message, mSubstitutions);
+	return message;
 }
 
 std::string LLNotification::getLabel() const
 {
-	return (mTemplatep ? format(mTemplatep->mLabel, mSubstitutions) : "");
+	if(!mTemplatep)
+		return std::string();
+	
+	std::string label = mTemplatep->mLabel;
+	LLStringUtil::format(label, mSubstitutions);
+	return label;
 }
 
-
+std::string LLNotification::getURL() const
+{
+	if (!mTemplatep)
+		return std::string();
+	std::string url = mTemplatep->mURL;
+	LLStringUtil::format(url, mSubstitutions);
+	return (mTemplatep ? url : "");
+}
 
 // =========================================================
 // LLNotificationChannel implementation

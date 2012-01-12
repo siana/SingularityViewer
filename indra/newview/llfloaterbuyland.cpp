@@ -1042,18 +1042,17 @@ void LLFloaterBuyLandUI::refreshUI()
 				cost_per_sqm = (F32)mParcelPrice / (F32)mParcelActualArea;
 			}
 
-			LLStringUtil::format_map_t info_price_args;
-			info_price_args["[PRICE]"] = llformat("%d", mParcelPrice);
-			info_price_args["[PRICE_PER_SQM]"] = llformat("%.1f", cost_per_sqm);
+			string_args["[PRICE]"] = llformat("%d", mParcelPrice);
+			string_args["[PRICE_PER_SQM]"] = llformat("%.1f", cost_per_sqm);
 			if (mParcelSoldWithObjects)
 			{
-				info_price_args["[SOLD_WITH_OBJECTS]"] = getString("sold_with_objects");
+				string_args["[SOLD_WITH_OBJECTS]"] = getString("sold_with_objects");
 			}
 			else
 			{
-				info_price_args["[SOLD_WITH_OBJECTS]"] = getString("sold_without_objects");
+				string_args["[SOLD_WITH_OBJECTS]"] = getString("sold_without_objects");
 			}
-			childSetText("info_price", getString("info_price_string", info_price_args));
+			childSetText("info_price", getString("info_price_string", string_args));
 			childSetVisible("info_price", mParcelIsForSale);
 		}
 		else

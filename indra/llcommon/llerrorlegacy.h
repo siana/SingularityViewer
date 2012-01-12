@@ -107,7 +107,14 @@ const int LL_ERR_PRICE_MISMATCH = -23018;
 
 #define llwarning(msg, num)		llwarns << "Warning # " << num << ": " << msg << llendl;
 
-#define llassert_always(func)	if (LL_UNLIKELY(!(func))) llerrs << "ASSERT (" << #func << ")" << llendl;
+#define liru_slashpos			std::string(__FILE__).find_last_of("/\\")
+#define liru_slashpos2			std::string(__FILE__).substr(0,liru_slashpos).find_last_of("/\\")
+#define liru_assert_strip		/*strip path down to lastlevel directory and filename for assert.*/\
+	(liru_slashpos == std::string::npos ? std::string(__FILE__)/*just filename, print as is*/\
+		: liru_slashpos2 == std::string::npos ? std::string(__FILE__)/*Apparently, we're in / or perhaps the top of the drive, print as is*/\
+			: std::string(__FILE__).substr(1+liru_slashpos2))/*print foo/bar.cpp or perhaps foo\bar.cpp*/
+
+#define llassert_always(func)		if (LL_UNLIKELY(!(func))) llerrs <<"\nASSERT(" #func ")\nfile:"<<liru_assert_strip<<" line:"<<__LINE__ << llendl;
 
 #ifdef SHOW_ASSERT
 #define llassert(func)			llassert_always(func)

@@ -33,7 +33,7 @@
 #ifndef LL_LLFLOATERSCRIPTDEBUG_H
 #define LL_LLFLOATERSCRIPTDEBUG_H
 
-#include "llfloater.h"
+#include "llmultifloater.h"
 
 class LLTextEditor;
 class LLUUID;

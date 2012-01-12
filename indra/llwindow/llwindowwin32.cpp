@@ -496,7 +496,8 @@ LLWindowWin32::LLWindowWin32(LLWindowCallbacks* callbacks,
 
 		if (!RegisterClass(&wc))
 		{
-			OSMessageBox("RegisterClass failed", "Error", OSMB_OK);
+			OSMessageBox(mCallbacks->translateString("MBRegClassFailed"), 
+				mCallbacks->translateString("MBError"), OSMB_OK);
 			return;
 		}
 		sIsClassRegistered = TRUE;
@@ -608,8 +609,11 @@ LLWindowWin32::LLWindowWin32(LLWindowCallbacks* callbacks,
 			mFullscreenBits    = -1;
 			mFullscreenRefresh = -1;
 
-			std::string error = llformat("Unable to run fullscreen at %d x %d.\nRunning in window.", width, height);
-			OSMessageBox(error, "Error", OSMB_OK);
+			std::map<std::string,std::string> args;
+			args["[WIDTH]"] = llformat("%d", width);
+			args["[HEIGHT]"] = llformat ("%d", height);
+			OSMessageBox(mCallbacks->translateString("MBFullScreenErr", args),
+				mCallbacks->translateString("MBError"), OSMB_OK);
 		}
 	}
 
@@ -752,7 +756,9 @@ void LLWindowWin32::close()
 	// This causes WM_DESTROY to be sent *immediately*
 	if (!DestroyWindow(mWindowHandle))
 	{
-		OSMessageBox("DestroyWindow(mWindowHandle) failed", "Shutdown Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBDestroyWinFailed"),
+			mCallbacks->translateString("MBShutdownErr"),
+			OSMB_OK);
 	}
 
 	mWindowHandle = NULL;
@@ -1059,14 +1065,16 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 	if (!(mhDC = GetDC(mWindowHandle)))
 	{
 		close();
-		OSMessageBox("Can't make GL device context", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBDevContextErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!(pixel_format = ChoosePixelFormat(mhDC, &pfd)))
 	{
 		close();
-		OSMessageBox("Can't find suitable pixel format", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBPixelFmtErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
@@ -1075,57 +1083,48 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 		&pfd))
 	{
 		close();
-		OSMessageBox("Can't get pixel format description", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBPixelFmtDescErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (pfd.cColorBits < 32)
 	{
 		close();
-		OSMessageBox(
-			"Second Life requires True Color (32-bit) to run in a window.\n"
-			"Please go to Control Panels -> Display -> Settings and\n"
-			"set the screen to 32-bit color.\n"
-			"Alternately, if you choose to run fullscreen, Second Life\n"
-			"will automatically adjust the screen each time it runs.",
-			"Error",
-			OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBTrueColorWindow"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (pfd.cAlphaBits < 8)
 	{
 		close();
-		OSMessageBox(
-			"Second Life is unable to run because it can't get an 8 bit alpha\n"
-			"channel.  Usually this is due to video card driver issues.\n"
-			"Please make sure you have the latest video card drivers installed.\n"
-			"Also be sure your monitor is set to True Color (32-bit) in\n"
-			"Control Panels -> Display -> Settings.\n"
-			"If you continue to receive this message, contact customer service.",
-			"Error",
-			OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBAlpha"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!SetPixelFormat(mhDC, pixel_format, &pfd))
 	{
 		close();
-		OSMessageBox("Can't set pixel format", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBPixelFmtSetErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!(mhRC = wglCreateContext(mhDC)))
 	{
 		close();
-		OSMessageBox("Can't create GL rendering context", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBGLContextErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!wglMakeCurrent(mhDC, mhRC))
 	{
 		close();
-		OSMessageBox("Can't activate GL rendering context", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBGLContextActErr"),
+			mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
@@ -1322,14 +1321,15 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 		if (!(mhDC = GetDC(mWindowHandle)))
 		{
 			close();
-			OSMessageBox("Can't make GL device context", "Error", OSMB_OK);
+			OSMessageBox(mCallbacks->translateString("MBDevContextErr"), mCallbacks->translateString("MBError"), OSMB_OK);
 			return FALSE;
 		}
 
 		if (!SetPixelFormat(mhDC, pixel_format, &pfd))
 		{
 			close();
-			OSMessageBox("Can't set pixel format", "Error", OSMB_OK);
+			OSMessageBox(mCallbacks->translateString("MBPixelFmtSetErr"),
+				mCallbacks->translateString("MBError"), OSMB_OK);
 			return FALSE;
 		}
 
@@ -1366,7 +1366,7 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 		&pfd))
 	{
 		close();
-		OSMessageBox("Can't get pixel format description", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBPixelFmtDescErr"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
@@ -1379,29 +1379,14 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 	if (pfd.cColorBits < 32 || GetDeviceCaps(mhDC, BITSPIXEL) < 32)
 	{
 		close();
-		OSMessageBox(
-			"Second Life requires True Color (32-bit) to run in a window.\n"
-			"Please go to Control Panels -> Display -> Settings and\n"
-			"set the screen to 32-bit color.\n"
-			"Alternately, if you choose to run fullscreen, Second Life\n"
-			"will automatically adjust the screen each time it runs.",
-			"Error",
-			OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBTrueColorWindow"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (pfd.cAlphaBits < 8)
 	{
 		close();
-		OSMessageBox(
-			"Second Life is unable to run because it can't get an 8 bit alpha\n"
-			"channel.  Usually this is due to video card driver issues.\n"
-			"Please make sure you have the latest video card drivers installed.\n"
-			"Also be sure your monitor is set to True Color (32-bit) in\n"
-			"Control Panels -> Display -> Settings.\n"
-			"If you continue to receive this message, contact customer service.",
-			"Error",
-			OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBAlpha"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
@@ -1454,28 +1439,21 @@ BOOL LLWindowWin32::switchContext(BOOL fullscreen, const LLCoordScreen &size, BO
 	if (!mhRC && !(mhRC = wglCreateContext(mhDC)))
 	{
 		close();
-		OSMessageBox("Can't create GL rendering context", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBGLContextErr"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!wglMakeCurrent(mhDC, mhRC))
 	{
 		close();
-		OSMessageBox("Can't activate GL rendering context", "Error", OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBGLContextActErr"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 
 	if (!gGLManager.initGL())
 	{
 		close();
-		OSMessageBox(
-					 "Second Life is unable to run because your video card drivers\n"
-					 "did not install properly, are out of date, or are for unsupported\n" 
-					 "hardware. Please make sure you have the latest video card drivers\n"
-					 "and even if you do have the latest, try reinstalling them.\n\n"
-					 "If you continue to receive this message, contact customer service.",
-					 "Error",
-					 OSMB_OK);
+		OSMessageBox(mCallbacks->translateString("MBVideoDrvErr"), mCallbacks->translateString("MBError"), OSMB_OK);
 		return FALSE;
 	}
 

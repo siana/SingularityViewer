@@ -336,7 +336,7 @@ void LLVoiceCallCapResponder::result(const LLSD& content)
 	LLVoiceChannel* channelp = LLVoiceChannel::getChannelByID(mSessionID);
 	if (channelp)
 	{
-		//*TODO: DEBUG SPAM
+		// *TODO: DEBUG SPAM
 		LLSD::map_const_iterator iter;
 		for(iter = content.beginMap(); iter != content.endMap(); ++iter)
 		{
@@ -746,7 +746,7 @@ void LLVoiceChannelGroup::setChannelInfo(
 		}
 		else
 		{
-			//*TODO: notify user
+			// *TODO: notify user
 			llwarns << "Received invalid credentials for channel " << mSessionName << llendl;
 			deactivate();
 		}
@@ -1776,9 +1776,7 @@ BOOL LLFloaterIMPanel::handleKeyHere( KEY key, MASK mask )
 		}
 	}
 
-	// May need to call base class LLPanel::handleKeyHere if not handled
-	// in order to tab between buttons.  JNC 1.2.2002
-	return handled;
+	return LLFloater::handleKeyHere(key, mask);
 }
 
 BOOL LLFloaterIMPanel::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,

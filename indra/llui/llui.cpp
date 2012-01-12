@@ -949,45 +949,23 @@ void gl_ring( F32 radius, F32 width, const LLColor4& center_color, const LLColor
 }
 
 // Draw gray and white checkerboard with black border
-void gl_rect_2d_checkerboard(const LLRect& rect, GLfloat alpha)
+void gl_rect_2d_checkerboard(const LLRect& parent_screen_rect, const LLRect& rect, GLfloat alpha)
 {
-	// Initialize the first time this is called.
-	const S32 PIXELS = 32;
-	static GLubyte checkerboard[PIXELS * PIXELS];
-	static BOOL first = TRUE;
-	if( first )
-	{
-		for( S32 i = 0; i < PIXELS; i++ )
-		{
-			for( S32 j = 0; j < PIXELS; j++ )
-			{
-				checkerboard[i * PIXELS + j] = ((i & 1) ^ (j & 1)) * 0xFF;
-			}
-		}
-		first = FALSE;
-	}
+	//Already reffed in LLImageList via uuid_ui_image_map_t mUIImages. Don't use LLPointer here!
+	static LLUIImage* checkboard_image = LLUI::getUIImage("checkerboard.tga");
+	static F32 image_width = checkboard_image->getWidth();
+	static F32 image_height = checkboard_image->getHeight();
+
+	F32 scale_x = rect.getWidth() / image_width;
+	F32 scale_y = rect.getHeight() / image_height;
+	F32 offs_x = (parent_screen_rect.mLeft + rect.mLeft) / image_width;
+	F32 offs_y = (parent_screen_rect.mBottom + rect.mBottom) / image_height;
+	LLRectf uv_rect(offs_x,offs_y+scale_y,offs_x+scale_x,offs_y);
+
+	LLColor4 color=UI_VERTEX_COLOR;
+	color.mV[VALPHA] = alpha;
+	gl_draw_scaled_image(rect.mLeft,rect.mBottom,rect.getWidth(),rect.getHeight(),checkboard_image->getImage(), color, uv_rect);
 	
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-
-	// ...white squares
-	gGL.color4f( 1.f, 1.f, 1.f, alpha );
-	gl_rect_2d(rect);
-
-	// ...gray squares
-	gGL.color4f( .7f, .7f, .7f, alpha );
-	gGL.flush();
-
-	if (!LLGLSLShader::sNoFixedFunction)
-	{ //polygon stipple is deprecated
-		glPolygonStipple( checkerboard );
-
-		LLGLEnable polygon_stipple(GL_POLYGON_STIPPLE);
-		gl_rect_2d(rect);
-	}
-	else
-	{
-		gl_rect_2d(rect);
-	}
 	gGL.flush();
 }
 

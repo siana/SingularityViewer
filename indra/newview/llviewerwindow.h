@@ -183,6 +183,9 @@ public:
 	/*virtual*/ void handlePingWatchdog(LLWindow *window, const char * msg);
 	/*virtual*/ void handlePauseWatchdog(LLWindow *window);
 	/*virtual*/ void handleResumeWatchdog(LLWindow *window);
+	/*virtual*/ std::string translateString(const char* tag);
+	/*virtual*/ std::string translateString(const char* tag,
+					const std::map<std::string, std::string>& args);
 
 
 	//

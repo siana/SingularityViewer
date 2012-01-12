@@ -65,6 +65,7 @@
 #include "llrect.h"
 #include "llsky.h"
 #include "llstring.h"
+#include "lltrans.h"
 #include "llui.h"
 #include "lluuid.h"
 #include "llview.h"
@@ -1228,7 +1229,7 @@ BOOL LLViewerWindow::handleActivate(LLWindow *window, BOOL activated)
 				{
 					// if we're in world, show a progress bar to hide reloading of textures
 					llinfos << "Restoring GL during activate" << llendl;
-					restoreGL("Restoring...");
+					restoreGL(LLTrans::getString("ProgressRestoring"));
 				}
 				else
 				{
@@ -1403,6 +1404,27 @@ void LLViewerWindow::handlePauseWatchdog(LLWindow *window)
 	LLAppViewer::instance()->pauseMainloopTimeout();
 }
 
+//virtual
+std::string LLViewerWindow::translateString(const char* tag)
+{
+	return LLTrans::getString( std::string(tag) );
+}
+
+//virtual
+std::string LLViewerWindow::translateString(const char* tag,
+		const std::map<std::string, std::string>& args)
+{
+	// LLTrans uses a special subclass of std::string for format maps,
+	// but we must use std::map<> in these callbacks, otherwise we create
+	// a dependency between LLWindow and LLFormatMapString.  So copy the data.
+	LLStringUtil::format_map_t args_copy;
+	std::map<std::string,std::string>::const_iterator it = args.begin();
+	for ( ; it != args.end(); ++it)
+	{
+		args_copy[it->first] = it->second;
+	}
+	return LLTrans::getString( std::string(tag), args_copy);
+}
 
 //
 // Classes
@@ -1466,12 +1488,13 @@ LLViewerWindow::LLViewerWindow(
 
 	if (NULL == mWindow)
 	{
-		LLSplashScreen::update("Graphics Initialization Failed. Please Update Your Graphics Driver!");
+		LLSplashScreen::update(LLTrans::getString("StartupRequireDriverUpdate"));
 	
 		LL_WARNS("Window") << "Failed to create window, to be shutting Down, be sure your graphics driver is updated." << llendl ;
 
 		ms_sleep(5000) ; //wait for 5 seconds.
-		LLSplashScreen::update("Shutting down...");
+
+		LLSplashScreen::update(LLTrans::getString("ShuttingDown"));
 #if LL_LINUX || LL_SOLARIS
 		llwarns << "Unable to create window, be sure screen is set at 32-bit color and your graphics driver is configured correctly.  See README-linux.txt or README-solaris.txt for further information."
 				<< llendl;
@@ -4577,7 +4600,7 @@ void LLViewerWindow::drawMouselookInstructions()
 	}
 
 	// Draw instructions for mouselook ("Press ESC to leave Mouselook" in a box at the top of the screen.)
-	const std::string instructions = "Press ESC to leave Mouselook.";
+	const std::string instructions = LLTrans::getString("LeaveMouselook");
 	const LLFontGL* font = LLResMgr::getInstance()->getRes( LLFONT_SANSSERIF );
 
 	const S32 INSTRUCTIONS_PAD = 5;
@@ -4983,7 +5006,7 @@ void LLViewerWindow::restartDisplay(BOOL show_progress_bar)
 	stopGL();
 	if (show_progress_bar)
 	{
-		restoreGL("Changing Resolution...");
+		restoreGL(LLTrans::getString("ProgressChangingResolution"));
 	}
 	else
 	{
@@ -5070,7 +5093,7 @@ BOOL LLViewerWindow::changeDisplaySettings(BOOL fullscreen, LLCoordScreen size, 
 	llinfos << "Restoring GL during resolution change" << llendl;
 	if (show_progress_bar)
 	{
-		restoreGL("Changing Resolution...");
+		restoreGL(LLTrans::getString("ProgressChangingResolution"));
 	}
 	else
 	{

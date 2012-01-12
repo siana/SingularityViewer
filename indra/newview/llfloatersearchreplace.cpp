@@ -2,6 +2,7 @@
 #include "llcheckboxctrl.h"
 #include "llfocusmgr.h"
 #include "lluictrlfactory.h"
+#include "llmultifloater.h"
 
 #include "llfloatersearchreplace.h"
 

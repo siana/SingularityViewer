@@ -181,6 +181,7 @@
 <ConsoleBackground value="0, 0, 0, 255" />
 <FolderViewLoadingMessageTextColor value="240, 5, 0, 255"/>
 <InventoryBackgroundColor value="0, 0, 0, 180"/>
+<SHMediaTickerOscillatorColor value ="0, 0, 0, 191"/>
 <ComboBoxBg value="255, 255, 255, 255"/>
 <AvatarListTextDistNormalRange value="0, 0, 0, 255"/>
 <AvatarListTextDistShoutRange value="0, 0, 0, 128"/>

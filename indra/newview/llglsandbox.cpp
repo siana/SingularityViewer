@@ -441,7 +441,7 @@ void LLViewerParcelMgr::renderRect(const LLVector3d &west_south_bottom_global,
 {
 	LLGLSUIDefault gls_ui;
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	LLGLDepthTest gls_depth(GL_TRUE);
+	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 
 	LLVector3 west_south_bottom_agent = gAgent.getPosAgentFromGlobal(west_south_bottom_global);
 	F32 west	= west_south_bottom_agent.mV[VX];
@@ -698,7 +698,7 @@ void LLViewerParcelMgr::renderHighlightSegments(const U8* segments, LLViewerRegi
 
 	LLGLSUIDefault gls_ui;
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	LLGLDepthTest gls_depth(GL_TRUE);
+	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 
 	gGL.color4f(1.f, 1.f, 0.f, 0.2f);
 
@@ -977,7 +977,7 @@ void LLViewerObjectList::renderObjectBeacons()
 
 	{
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-		LLGLDepthTest gls_depth(GL_TRUE);
+		LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 		
 		S32 last_line_width = -1;
 		// gGL.begin(LLRender::LINES); // Always happens in (line_width != last_line_width)

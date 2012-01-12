@@ -84,25 +84,25 @@ public:
 
 	// LOBING
 
-	//*! number of peaks in the radial distance about the perimeter
+	// *! number of peaks in the radial distance about the perimeter
 	U8 mLobes;
 		//	even numbers = obvius symmetry ... use odd numbers
 	
-	//*! magnitude of the variations as a fraction of the radius
+	// *! magnitude of the variations as a fraction of the radius
 	F32 mLobeDepth;
 
 
 
 	// FLARE
 
-	//*! causes exponential expansion near base of trunk
+	// *! causes exponential expansion near base of trunk
 	F32 mFlare;
 		//	scales radius base by min 1 to '1 + flare'
 
-	//*! percentage of the height of the trunk to flair -- likely less than baseSize
+	// *! percentage of the height of the trunk to flair -- likely less than baseSize
 	F32 mFlarePercentage;
 
-	//*! number of cross sections to make for the flair
+	// *! number of cross sections to make for the flair
 	U8 mFlareRes;
 
 
@@ -140,7 +140,7 @@ public:
 	//!~ ratio and ratiopower determine radius/length
 	F32 mRatio, mRatioPower;	
 
-	//*! taper of branches
+	// *! taper of branches
 	F32 mTaper[MAX_NUM_LEVELS];
 			// 0 - non-tapering cylinder
 			// 1 - taper to a point
@@ -154,10 +154,10 @@ public:
 	F32 mSplitAngleV[MAX_NUM_LEVELS];	//~ variance of the splits
 
 	// CURVE
-	F32 mCurve[MAX_NUM_LEVELS];		//* general, 1-axis, overall curve of branch
-	F32 mCurveV[MAX_NUM_LEVELS];	//* curve variance at each cross section from general overall curve
-	U8 mCurveRes[MAX_NUM_LEVELS];	//* number of cross sections for curve
-	F32 mCurveBack[MAX_NUM_LEVELS];	//* curveback is amount branch curves back towards 
+	F32 mCurve[MAX_NUM_LEVELS];		// * general, 1-axis, overall curve of branch
+	F32 mCurveV[MAX_NUM_LEVELS];	// * curve variance at each cross section from general overall curve
+	U8 mCurveRes[MAX_NUM_LEVELS];	// * number of cross sections for curve
+	F32 mCurveBack[MAX_NUM_LEVELS];	// * curveback is amount branch curves back towards 
 	
 	//  vertices per cross section
 	U8 mVertices[MAX_NUM_LEVELS];

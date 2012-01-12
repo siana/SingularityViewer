@@ -93,5 +93,5 @@ protected:
 };
 
 extern LLViewerKeyboard gViewerKeyboard;
-
+extern bool isCrouch;
 #endif // LL_LLVIEWERKEYBOARD_H

@@ -872,7 +872,7 @@ S32 LLViewerParcelOverlay::renderPropertyLines	()
 
 	LLGLSUIDefault gls_ui; // called from pipeline
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	LLGLDepthTest mDepthTest(GL_TRUE);
+	LLGLDepthTest mDepthTest(GL_TRUE, GL_FALSE);
 
 	// Find camera height off the ground (not from zero)
 	F32 ground_height_at_camera = land.resolveHeightGlobal( gAgentCamera.getCameraPositionGlobal() );

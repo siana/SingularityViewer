@@ -249,10 +249,10 @@ void LLVOClouds::getGeometry(S32 idx,
 	verticesp->setAdd(ppamu, right);
 	(*verticesp++).getF32ptr()[3] = 0.f;
 
-	//*verticesp++ = puff_pos_agent - right + up;
-	//*verticesp++ = puff_pos_agent - right - up;
-	//*verticesp++ = puff_pos_agent + right + up;
-	//*verticesp++ = puff_pos_agent + right - up;
+	// *verticesp++ = puff_pos_agent - right + up;
+	// *verticesp++ = puff_pos_agent - right - up;
+	// *verticesp++ = puff_pos_agent + right + up;
+	// *verticesp++ = puff_pos_agent + right - up;
 
 	*colorsp++ = color;
 	*colorsp++ = color;

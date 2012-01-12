@@ -69,6 +69,7 @@
 #include "llviewercontrol.h"
 #include "llviewerdisplay.h"
 #include "llviewerjoystick.h"
+#include "llviewerkeyboard.h" //For crouch toggle
 #include "llviewermediafocus.h"
 #include "llviewermenu.h"
 #include "llviewerobjectlist.h"
@@ -438,7 +439,7 @@ void LLAgent::moveUp(S32 direction)
 		setControlFlags(AGENT_CONTROL_UP_NEG | AGENT_CONTROL_FAST_UP);
 	}
 
-	gAgentCamera.resetView();
+	if (!isCrouch) gAgentCamera.resetView();
 }
 
 //-----------------------------------------------------------------------------
@@ -1215,7 +1216,7 @@ void LLAgent::setAFK()
 		gAwayTimer.start();
 		if (gAFKMenu)
 		{
-			//*TODO:Translate
+			// *TODO:Translate
 			gAFKMenu->setLabel(std::string("Set Not Away"));
 		}
 	}
@@ -1241,7 +1242,7 @@ void LLAgent::clearAFK()
 		LL_INFOS("AFK") << "Clearing Away" << LL_ENDL;
 		if (gAFKMenu)
 		{
-			//*TODO:Translate
+			// *TODO:Translate
 			gAFKMenu->setLabel(std::string("Set Away"));
 		}
 	}
@@ -1264,7 +1265,7 @@ void LLAgent::setBusy()
 	mIsBusy = TRUE;
 	if (gBusyMenu)
 	{
-		//*TODO:Translate
+		// *TODO:Translate
 		gBusyMenu->setLabel(std::string("Set Not Busy"));
 	}
 	LLFloaterMute::getInstance()->updateButtons();
@@ -1279,7 +1280,7 @@ void LLAgent::clearBusy()
 	sendAnimationRequest(ANIM_AGENT_BUSY, ANIM_REQUEST_STOP);
 	if (gBusyMenu)
 	{
-		//*TODO:Translate
+		// *TODO:Translate
 		gBusyMenu->setLabel(std::string("Set Busy"));
 	}
 	LLFloaterMute::getInstance()->updateButtons();

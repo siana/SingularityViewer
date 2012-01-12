@@ -53,7 +53,7 @@ namespace tut
 	typedef datapacker_test_t::object datapacker_test_object_t;
 	tut::datapacker_test_t tut_datapacker_test("datapacker_test");
 
-	//*********LLDataPackerBinaryBuffer
+	// *********LLDataPackerBinaryBuffer
 	template<> template<>
 	void datapacker_test_object_t::test<1>()
 	{
@@ -219,7 +219,7 @@ namespace tut
 		ensure_equals("2.LLDataPackerBinaryBuffer::operator= failed", str,unpkbuf);
 	}
 
-	//*********LLDataPackerAsciiBuffer
+	// *********LLDataPackerAsciiBuffer
 
 	template<> template<>
 	void datapacker_test_object_t::test<7>()
@@ -345,7 +345,7 @@ namespace tut
 		ensure("LLDataPackerAsciiBuffer::assignBuffer failed" , ((lldp.getBufferSize() == size) && (1 == lldp.getCurrentSize()))) ;
 	}
 
-	//*********LLDataPackerAsciiFile
+	// *********LLDataPackerAsciiFile
 
 	template<> template<>
 	void datapacker_test_object_t::test<11>()

@@ -4,8 +4,52 @@
      For example, the strings used in avatar chat bubbles, and strings 
      that are returned from one component and may appear in many places-->
 <strings>
+	<string name="CURRENCY">L$</string>
+	<string name="GRID_OWNER">Linden Lab</string>
+	<string name="SECOND_LIFE">
+		Second Life
+	</string>
+	<string name="APP_NAME">
+		Singularity Viewer
+	</string>
+	<string name="CAPITALIZED_APP_NAME">
+		SINGULARITY VIEWER
+	</string>
+	<string name="SECOND_LIFE_GRID">
+		Grille de Second Life
+	</string>
+	<string name="SUPPORT_SITE">
+		Portail Assistance Second Life
+	</string>
+	<string name="StartupDetectingHardware">
+		Détection du matériel...
+	</string>
+	<string name="StartupLoading">
+		Chargement de [APP_NAME]...
+	</string>
+	<string name="StartupClearingCache">
+		Vidage du cache...
+	</string>
+	<string name="StartupInitializingTextureCache">
+		Initialisation du cache des textures...
+	</string>
+	<string name="StartupInitializingVFS">
+		Initialisation VFS...
+	</string>
+	<string name="StartupRequireDriverUpdate">
+		Échec d&apos;initialisation des graphiques. Veuillez mettre votre pilote graphique à jour.
+	</string>
+	<string name="ProgressRestoring">
+		Restauration...
+	</string>
+	<string name="ProgressChangingResolution">
+		Changement de la résolution...
+	</string>
 	<string name="LoginInProgress">
 		La connexion à [APP_NAME] apparaît peut-être comme étant gelée. Veuillez patienter.
+	</string>
+	<string name="LoginInProgressNoFrozen">
+		Connexion...
 	</string>
 	<string name="LoginAuthenticating">
 		Authentification en cours
@@ -46,6 +90,12 @@
 	<string name="LoginQuicktimeOK">
 		Initialisation de Quicktime réussie.
 	</string>
+	<string name="LoginRequestSeedCapGrant">
+		Capacités de la région demandées...
+	</string>
+	<string name="LoginRetrySeedCapGrant">
+		Capacités de la région demandées... Tentative n° [NUMBER].
+	</string>
 	<string name="LoginWaitingForRegionHandshake">
 		Liaison avec la région en cours de création...
 	</string>
@@ -55,8 +105,29 @@
 	<string name="LoginDownloadingClothing">
 		Habits en cours de téléchargement, esperons le ...
 	</string>
+	<string name="LoginFailed">
+		Échec de la connexion.
+	</string>
+	<string name="Quit">
+		Quitter
+	</string>
 	<string name="AgentLostConnection">
 		Il y a peut-être des problèmes techniques dans cette region. Veuillez vérifier votre connexion Internet.
+	</string>
+	<string name="SavingSettings">
+		Enregistrement des paramètres...
+	</string>
+	<string name="LoggingOut">
+		Déconnexion...
+	</string>
+	<string name="ShuttingDown">
+		Arrêt en cours...
+	</string>
+	<string name="YouHaveBeenDisconnected">
+		Vous avez été déconnecté de la région où vous étiez.
+	</string>
+	<string name="SentToInvalidRegion">
+		Vous avez été transféré vers une région non valide.
 	</string>
 	<string name="TooltipPerson">
 		Personne
@@ -83,7 +154,7 @@
 		Toucher
 	</string>
 	<string name="TooltipFlagL$">
-		L$
+		[CURRENCY]
 	</string>
 	<string name="TooltipFlagDropInventory">
 		Laisser tomber l&apos;inventaire
@@ -101,7 +172,7 @@
 		Copie autorisée
 	</string>
 	<string name="TooltipForSaleL$">
-		À vendre : [AMOUNT] L$
+		À vendre : [AMOUNT] [CURRENCY]
 	</string>
 	<string name="TooltipForSaleMsg">
 		À vendre : [MESSAGE]
@@ -488,3 +559,119 @@
 		Choisir le répertoire
 	</string>
 </strings>
+	<string name="LeaveMouselook">
+		Appuyez sur ESC pour quitter la vue subjective
+	</string>
+ 	<!-- menu accelerators -->
+	<string name="accel-mac-control">
+		Ctrl-
+	</string>
+	<string name="accel-mac-command">
+		Cmd-
+	</string>
+	<string name="accel-mac-option">
+		Opt-
+	</string>
+	<string name="accel-mac-shift">
+		Maj-
+	</string>
+	<string name="accel-win-control">
+		Ctrl-
+	</string>
+	<string name="accel-win-alt">
+		Alt-
+	</string>
+	<string name="accel-win-shift">
+		Maj-
+	</string>
+	<string name="MBCmdLineError">
+		Une erreur est survenue lors de la lecture de la ligne de commande.
+Merci de consulter : http://wiki.secondlife.com/wiki/Client_parameters
+Erreur :
+	</string>
+	<string name="MBCmdLineUsg">
+		[APP_NAME] - Utilisation de la ligne de commande :
+	</string>
+	<string name="MBUnableToAccessFile">
+		[APP_NAME] ne peut accéder à un fichier requis.
+
+Cela vient du fait que quelqu&apos;un a ouvert plusieurs copies ou que votre système pense qu&apos;un fichier est ouvert.
+Si ce message persiste, veuillez redémarrer votre ordinateur.
+Si le problème persiste, vous devrez peut-être complètement désinstaller puis réinstaller [APP_NAME].
+	</string>
+	<string name="MBFatalError">
+		Erreur fatale
+	</string>
+	<string name="MBRequiresAltiVec">
+		[APP_NAME] nécessite un microprocesseur AltiVec (version G4 ou antérieure).
+	</string>
+	<string name="MBAlreadyRunning">
+		[APP_NAME] est déjà en cours d&apos;exécution.
+Vérifiez si une version minimisée du programme apparaît dans votre barre de tâches.
+Si ce message persiste, redémarrez votre ordinateur.
+	</string>
+	<string name="MBFrozenCrashed">
+		[APP_NAME] semble avoir crashé lors de l&apos;utilisation précédente.
+Voulez-vous envoyer un rapport de crash ?
+	</string>
+	<string name="MBAlert">
+		Notification
+	</string>
+	<string name="MBNoDirectX">
+		[APP_NAME] ne peut détecter DirectX 9.0b ou une version supérieure.
+[APP_NAME] utilise DirectX pour détecter les matériels et/ou les pilotes qui ne sont pas à jour et peuvent causer des problèmes de stabilité, de performance ou des plantages.  Bien que vous puissiez utiliser [APP_NAME] sans DirectX, nous vous recommandons de l&apos;utiliser avec DirectX 9.0b.
+
+Voulez-vous continuer ?
+	</string>
+	<string name="MBWarning">
+		Avertissement
+	</string>
+	<string name="MBRegClassFailed">
+		RegisterClass a échoué
+	</string>
+	<string name="MBError">
+		Erreur
+	</string>
+	<string name="MBFullScreenErr">
+		Impossible d&apos;ouvrir le mode plein écran à [WIDTH] x [HEIGHT].
+Utilisation du mode fenêtré.
+	</string>
+	<string name="MBDestroyWinFailed">
+		Erreur de fermeture lors de la destruction de la fenêtre (DestroyWindow() a échoué)
+	</string>
+	<string name="MBShutdownErr">
+		Erreur de fermeture
+	</string>
+	<string name="MBDevContextErr">
+		Impossible de créer le contexte GL
+	</string>
+	<string name="MBPixelFmtErr">
+		Impossible de trouver le format pixel approprié
+	</string>
+	<string name="MBPixelFmtDescErr">
+		Impossible de trouver la description du format pixel
+	</string>
+	<string name="MBTrueColorWindow">
+		[APP_NAME] nécessite True Color (32 bits) pour s&apos;exécuter.
+Accédez aux paramètres d&apos;affichage de votre ordinateur et réglez le mode couleur sur 32 bits.
+	</string>
+	<string name="MBAlpha">
+		[APP_NAME] ne peut pas s&apos;exécuter, car il n&apos;y pas de canal alpha 8 bits accessible.  En général, ceci vient de problèmes avec le pilote de la carte vidéo.
+Assurez-vous d&apos;avoir installé le pilote de carte vidéo le plus récent possible.
+Assurez-vous aussi que votre écran est réglé sur True Color (32 bits) sous Panneau de configuration &gt; Affichage &gt; Paramètres.
+Si ce message persiste, veuillez aller sur la page [SUPPORT_SITE].
+	</string>
+	<string name="MBPixelFmtSetErr">
+		Impossible de trouver le format pixel approprié
+	</string>
+	<string name="MBGLContextErr">
+		Impossible de créer le contexte de rendu GL
+	</string>
+	<string name="MBGLContextActErr">
+		Impossible d&apos;activer le contexte de rendu GL
+	</string>
+	<string name="MBVideoDrvErr">
+		[APP_NAME] ne peut pas s&apos;exécuter car les pilotes de votre carte vidéo n&apos;ont pas été installés correctement, ne sont pas à jour, ou sont pour du matériel non pris en charge. Assurez-vous d&apos;avoir des pilotes de cartes vidéos récents, et même si vous avez les plus récents, réinstallez-les.
+
+Si ce message persiste, veuillez aller sur la page [SUPPORT_SITE].
+	</string>

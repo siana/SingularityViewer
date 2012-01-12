@@ -82,7 +82,7 @@
 
 using namespace LLVOAvatarDefines;
 
-//*TODO:translate : The ui xml for this really needs to be integrated with the appearance paramaters
+// *TODO:translate : The ui xml for this really needs to be integrated with the appearance paramaters
 
 // Globals
 LLFloaterCustomize* gFloaterCustomize = NULL;

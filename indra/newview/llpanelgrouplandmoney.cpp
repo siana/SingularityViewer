@@ -188,9 +188,9 @@ public:
 	std::string mCantViewAccountsText;
 };
 
-//*******************************************
-//** LLPanelGroupLandMoney::impl Functions **
-//*******************************************
+// *******************************************
+// ** LLPanelGroupLandMoney::impl Functions **
+// *******************************************
 LLPanelGroupLandMoney::impl::impl(LLPanelGroupLandMoney& panel, const LLUUID& group_id)
 	: mPanel(panel),
 	  mGroupID(group_id)
@@ -485,9 +485,9 @@ void LLPanelGroupLandMoney::impl::processGroupLand(LLMessageSystem* msg)
 	}
 }
 
-//*************************************
-//** LLPanelGroupLandMoney Functions **
-//*************************************
+// *************************************
+// ** LLPanelGroupLandMoney Functions **
+// *************************************
 
 //static 
 void* LLPanelGroupLandMoney::createTab(void* data)
@@ -794,9 +794,9 @@ void LLPanelGroupLandMoney::processPlacesReply(LLMessageSystem* msg, void**)
 	selfp->mImplementationp->processGroupLand(msg);
 }
 
-//*************************************************
-//** LLGroupMoneyTabEventHandler::impl Functions **
-//*************************************************
+// *************************************************
+// ** LLGroupMoneyTabEventHandler::impl Functions **
+// *************************************************
 
 class LLGroupMoneyTabEventHandler::impl
 {
@@ -884,9 +884,9 @@ void LLGroupMoneyTabEventHandler::impl::updateButtons()
 	}
 }
 
-//*******************************************
-//** LLGroupMoneyTabEventHandler Functions **
-//*******************************************
+// *******************************************
+// ** LLGroupMoneyTabEventHandler Functions **
+// *******************************************
 
 LLMap<LLUUID, LLGroupMoneyTabEventHandler*> LLGroupMoneyTabEventHandler::sInstanceIDs;
 std::map<LLPanel*, LLGroupMoneyTabEventHandler*> LLGroupMoneyTabEventHandler::sTabsToHandlers;
@@ -1004,9 +1004,9 @@ void LLGroupMoneyTabEventHandler::clickTabCallback(void* data, bool from_click)
 	if ( selfp ) selfp->onClickTab();
 }
 
-//**************************************************
-//** LLGroupMoneyDetailsTabEventHandler Functions **
-//**************************************************
+// **************************************************
+// ** LLGroupMoneyDetailsTabEventHandler Functions **
+// **************************************************
 
 LLGroupMoneyDetailsTabEventHandler::LLGroupMoneyDetailsTabEventHandler(LLButton* earlier_buttonp,
 																	   LLButton* later_buttonp,
@@ -1141,9 +1141,9 @@ void LLPanelGroupLandMoney::processGroupAccountDetailsReply(LLMessageSystem* msg
 	selfp->processReply(msg, data);
 }
 
-//************************************************
-//** LLGroupMoneySalesTabEventHandler Functions **
-//************************************************
+// ************************************************
+// ** LLGroupMoneySalesTabEventHandler Functions **
+// ************************************************
 
 LLGroupMoneySalesTabEventHandler::LLGroupMoneySalesTabEventHandler(LLButton* earlier_buttonp,
 																   LLButton* later_buttonp,
@@ -1317,9 +1317,9 @@ void LLPanelGroupLandMoney::processGroupAccountTransactionsReply(LLMessageSystem
 	self->processReply(msg, data);
 }
 
-//***************************************************
-//** LLGroupMoneyPlanningTabEventHandler Functions **
-//***************************************************
+// ***************************************************
+// ** LLGroupMoneyPlanningTabEventHandler Functions **
+// ***************************************************
 
 LLGroupMoneyPlanningTabEventHandler::LLGroupMoneyPlanningTabEventHandler(LLTextEditor* text_editorp,
 																		 LLTabContainer* tab_containerp,

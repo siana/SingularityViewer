@@ -51,6 +51,7 @@
 #include "chatbar_as_cmdline.h"
 
 #if SHY_MOD //Command handler
+#include "llvoavatarself.h"
 #include "shcommandhandler.h"
 #endif //shy_mod
 
@@ -108,7 +109,6 @@ BOOL LLViewerGesture::trigger(const std::string &trigger_string)
 		return FALSE;
 	}
 }
-
 
 // private
 void LLViewerGesture::doTrigger( BOOL send_chat )

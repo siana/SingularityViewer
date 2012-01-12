@@ -780,7 +780,7 @@ BOOL LLToolDragAndDrop::handleToolTip(S32 x, S32 y, std::string& msg, LLRect *st
 	if (!mToolTipMsg.empty())
 	{
 		msg = mToolTipMsg;
-		//*sticky_rect_screen = gViewerWindow->getWindowRect();
+		// *sticky_rect_screen = gViewerWindow->getWindowRect();
 		return TRUE;
 	}
 	return FALSE;

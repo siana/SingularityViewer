@@ -270,7 +270,7 @@ void LLPreviewTexture::draw()
 
 		// ...border
 		gl_rect_2d( border, LLColor4(0.f, 0.f, 0.f, 1.f));
-		gl_rect_2d_checkerboard( interior );
+		gl_rect_2d_checkerboard( getScreenRect(), interior );
 
 		if ( mImage.notNull() )
 		{

@@ -152,7 +152,7 @@ namespace tut
 	}
 
 
-//*********llpartsysdata***********
+// *********llpartsysdata***********
 
 	template<> template<>
 	void partdata_test_object_t::test<3>()

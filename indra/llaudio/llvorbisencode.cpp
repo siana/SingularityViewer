@@ -87,10 +87,10 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 
 	error_msg.clear();
 
-	//********************************
+	// ********************************
 	LLAPRFile infile ;
     infile.open(in_fname,LL_APR_RB);
-	//********************************
+	// ********************************
 	if (!infile.getFileHandle())
 	{
 		error_msg = "CannotUploadSoundFile";
@@ -159,9 +159,9 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 		file_pos += (chunk_length + 8);
 		chunk_length = 0;
 	} 
-	//****************
+	// ****************
 	infile.close();
-	//****************
+	// ****************
 
 	if (!uncompressed_pcm)
 	{	

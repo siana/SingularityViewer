@@ -774,7 +774,6 @@ bool join_group_response(const LLSD& notification, const LLSD& response)
 			delete_context_data = FALSE;
 			LLSD args;
 			args["COST"] = llformat("%d", fee);
-			args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 			// Set the fee for next time to 0, so that we don't keep
 			// asking about a fee.
 			LLSD next_payload = notification["payload"];
@@ -1657,7 +1656,7 @@ static std::string clean_name_from_im(const std::string& name, EInstantMessage t
 	case IM_FRIENDSHIP_OFFERED:
 	case IM_FRIENDSHIP_ACCEPTED:
 	case IM_FRIENDSHIP_DECLINED_DEPRECATED:
-	//IM_TYPING_START
+	case IM_TYPING_START:
 	//IM_TYPING_STOP
 		return LLCacheName::cleanFullName(name);
 	default:
@@ -2171,7 +2170,7 @@ void process_improved_im(LLMessageSystem *msg, void **user_data)
 	case IM_MESSAGEBOX:
 		{
 			// This is a block, modeless dialog.
-			//*TODO:translate
+			// *TODO:translate
 			args["MESSAGE"] = message;
 			LLNotificationsUtil::add("SystemMessage", args);
 		}
@@ -3888,7 +3887,7 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 
 	LL_DEBUGS("Messaging") << "process_agent_movement_complete()" << LL_ENDL;
 
-	// *TODO: check timestamp to make sure the movement compleation
+	// *TODO: check timestamp to make sure the movement completion
 	// makes sense.
 	LLVector3 agent_pos;
 	msg->getVector3Fast(_PREHASH_Data, _PREHASH_Position, agent_pos);
@@ -3900,8 +3899,7 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 	std::string version_channel;
 	msg->getString("SimData", "ChannelVersion", version_channel);
 
-	LLVOAvatar* avatarp = gAgentAvatarp;
-	if (!avatarp)
+	if (!isAgentAvatarValid())
 	{
 		// Could happen if you were immediately god-teleported away on login,
 		// maybe other cases.  Continue, but warn.
@@ -3922,7 +3920,7 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 			<< x << ":" << y 
 			<< " current pos " << gAgent.getPositionGlobal()
 			<< LL_ENDL;
-		LLAppViewer::instance()->forceDisconnect("You were sent to an invalid region.");
+		LLAppViewer::instance()->forceDisconnect(LLTrans::getString("SentToInvalidRegion"));
 		return;
 
 	}
@@ -3962,7 +3960,7 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 		gAgent.sendAgentSetAppearance();
 
 // [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.0.0a)
-		if ( (avatarp) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) )
+		if ( (gAgentAvatarp) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) )
 // [/RLVa:KB]
 //		if (avatarp)
 		{
@@ -3972,9 +3970,9 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
  			LLFloaterChat::addChatHistory(chat);
 
 			// Set the new position
-			avatarp->setPositionAgent(agent_pos);
-			avatarp->clearChat();
-			avatarp->slamPosition();
+			gAgentAvatarp->setPositionAgent(agent_pos);
+			gAgentAvatarp->clearChat();
+			gAgentAvatarp->slamPosition();
 		}
 
 		// add teleport destination to the list of visited places
@@ -4048,9 +4046,9 @@ void process_agent_movement_complete(LLMessageSystem* msg, void**)
 		gAgent.clearBusy();
 	}
 
-	if (avatarp)
+	if (isAgentAvatarValid())
 	{
-		avatarp->mFootPlane.clearVec();
+		gAgentAvatarp->mFootPlane.clearVec();
 	}
 	
 	// send walk-vs-run status

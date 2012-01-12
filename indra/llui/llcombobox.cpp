@@ -700,7 +700,7 @@ void LLComboBox::hideList()
 #if 0	// Don't do this! mTextEntry->getText() can be truncated, in which case selectItemByLabel
 	// fails and this only resets the selection :/
 
-	//*HACK: store the original value explicitly somewhere, not just in label
+	// *HACK: store the original value explicitly somewhere, not just in label
 	std::string orig_selection = mAllowTextEntry ? mTextEntry->getText() : mButton->getLabelSelected();
 
 	// assert selection in list

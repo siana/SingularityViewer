@@ -238,9 +238,9 @@ BOOL GetThreadCallStack(DWORD thread_id, LLSD& info)
 //Windows Call Stack Construction idea from 
 //http://www.codeproject.com/tools/minidump.asp
 
-//****************************************************************************************
+// ****************************************************************************************
 BOOL WINAPI Get_Module_By_Ret_Addr(PBYTE Ret_Addr, LPWSTR Module_Name, PBYTE & Module_Addr)
-//****************************************************************************************
+// ****************************************************************************************
 // Find module by Ret_Addr (address in the module).
 // Return Module_Name (full path) and Module_Addr (start address).
 // Return TRUE if found.
@@ -371,11 +371,11 @@ bool shouldUseStackWalker(PSTACK Ebp, int max_depth)
 	return false;
 }
 
-//******************************************************************
+// ******************************************************************
 void WINAPI Get_Call_Stack(const EXCEPTION_RECORD* exception_record, 
 						   const CONTEXT* context_record, 
 						   LLSD& info)
-//******************************************************************
+// ******************************************************************
 // Fill Str with call stack info.
 // pException can be either GetExceptionInformation() or NULL.
 // If pException = NULL - get current call stack.
@@ -503,9 +503,9 @@ void WINAPI Get_Call_Stack(const EXCEPTION_RECORD* exception_record,
 
 } //Get_Call_Stack
 
-//***********************************
+// ***********************************
 void WINAPI Get_Version_Str(LLSD& info)
-//***********************************
+// ***********************************
 // Fill Str with Windows version.
 {
 	OSVERSIONINFOEX	V = {sizeof(OSVERSIONINFOEX)};	//EX for NT 5.0 and later
@@ -524,9 +524,9 @@ void WINAPI Get_Version_Str(LLSD& info)
 		V.dwMajorVersion, V.dwMinorVersion, V.dwBuildNumber, V.wServicePackMajor, V.wServicePackMinor, V.wProductType);
 } //Get_Version_Str
 
-//*************************************************************
+// *************************************************************
 LLSD WINAPI Get_Exception_Info(PEXCEPTION_POINTERS pException)
-//*************************************************************
+// *************************************************************
 // Allocate Str[DUMP_SIZE_MAX] and return Str with dump, if !pException - just return call stack in Str.
 {
 	LLSD info;

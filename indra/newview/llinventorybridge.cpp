@@ -724,10 +724,10 @@ void LLInvFVBridge::getClipboardEntries(bool show_asset_id,
 	addDeleteContextMenuOptions(items, disabled_items);
 
 	// If multiple items are selected, disable properties (if it exists).
-	if ((flags & FIRST_SELECTED_ITEM) == 0)
+	/*if ((flags & FIRST_SELECTED_ITEM) == 0)
 	{
 		disabled_items.push_back(std::string("Properties"));
-	}
+	}*/
 }
 
 void LLInvFVBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
@@ -2097,15 +2097,15 @@ void LLRightClickInventoryFetchDescendentsObserver::done()
 class LLInventoryCopyAndWearObserver : public LLInventoryObserver
 {
 public:
-	LLInventoryCopyAndWearObserver(const LLUUID& cat_id, int count) :
-		mCatID(cat_id), mContentsCount(count), mFolderAdded(FALSE) {}
+	LLInventoryCopyAndWearObserver(const LLUUID& cat_id, int count, bool folder_added=false) :
+		mCatID(cat_id), mContentsCount(count), mFolderAdded(folder_added) {}
 	virtual ~LLInventoryCopyAndWearObserver() {}
 	virtual void changed(U32 mask);
 
 protected:
 	LLUUID mCatID;
 	int    mContentsCount;
-	BOOL   mFolderAdded;
+	bool   mFolderAdded;
 };
 
 
@@ -2923,7 +2923,7 @@ bool move_task_inventory_callback(const LLSD& notification, const LLSD& response
 			object->getInventoryContents(inventory_objects);
 			int contents_count = inventory_objects.size()-1; //subtract one for containing folder
 
-			LLInventoryCopyAndWearObserver* inventoryObserver = new LLInventoryCopyAndWearObserver(cat_and_wear->mCatID, contents_count);
+			LLInventoryCopyAndWearObserver* inventoryObserver = new LLInventoryCopyAndWearObserver(cat_and_wear->mCatID, contents_count, cat_and_wear->mFolderResponded);
 			gInventory.addObserver(inventoryObserver);
 		}
 

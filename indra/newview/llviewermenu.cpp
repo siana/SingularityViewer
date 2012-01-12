@@ -247,6 +247,7 @@
 #include "llfloatermessagelog.h"
 #include "llfloatervfs.h"
 #include "llfloatervfsexplorer.h"
+#include "shfloatermediaticker.h"
 // </edit>
 
 #include "scriptcounter.h"
@@ -825,6 +826,8 @@ void init_menus()
 											&handle_sounds_explorer, NULL));
 	menu->append(new LLMenuItemCallGL(	"Asset Blacklist",
 											&handle_blacklist, NULL));
+	menu->append(new LLMenuItemCheckGL(  "Streaming Audio Display", 
+											&handle_ticker_toggle, &handle_ticker_enabled, &handle_ticker_check, NULL ));
 	
 	
 	
@@ -7368,9 +7371,7 @@ class LLAvatarSendIM : public view_listener_t
 			gIMMgr->setFloaterOpen(TRUE);
 			//EInstantMessage type = have_agent_callingcard(gLastHitObjectID)
 			//	? IM_SESSION_ADD : IM_SESSION_CARDLESS_START;
-			gIMMgr->addSession(name,
-								IM_NOTHING_SPECIAL,
-								avatar->getID());
+			gIMMgr->addSession(LLCacheName::cleanFullName(name),IM_NOTHING_SPECIAL,avatar->getID());
 		}
 		return true;
 	}

@@ -360,10 +360,10 @@ void LLVOPartGroup::getGeometry(S32 idx,
 	verticesp->setAdd(ppamu, right);
 	(*verticesp++).getF32ptr()[3] = 0.f;
 
-	//*verticesp++ = part_pos_agent + up - right;
-	//*verticesp++ = part_pos_agent - up - right;
-	//*verticesp++ = part_pos_agent + up + right;
-	//*verticesp++ = part_pos_agent - up + right;
+	// *verticesp++ = part_pos_agent + up - right;
+	// *verticesp++ = part_pos_agent - up - right;
+	// *verticesp++ = part_pos_agent + up + right;
+	// *verticesp++ = part_pos_agent - up + right;
 
 	*colorsp++ = part.mColor;
 	*colorsp++ = part.mColor;

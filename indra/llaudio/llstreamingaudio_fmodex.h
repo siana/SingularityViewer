@@ -61,8 +61,11 @@ class LLStreamingAudio_FMODEX : public LLStreamingAudioInterface
 	/*virtual*/ void setGain(F32 vol);
 	/*virtual*/ F32 getGain();
 	/*virtual*/ std::string getURL();
-	/*virtual*/ const LLSD *getMetaData(){return mMetaData;}	//return NULL if not supported.
 
+	/*virtual*/ bool supportsMetaData(){return true;}
+	/*virtual*/ const LLSD *getMetaData(){return mMetaData;}	//return NULL if not playing.
+	/*virtual*/ bool supportsWaveData(){return true;}
+	/*virtual*/ bool getWaveData(float* arr, S32 count, S32 stride = 1);
 private:
 	FMOD::System *mSystem;
 

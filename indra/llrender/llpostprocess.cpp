@@ -105,7 +105,7 @@ LLPostProcess::LLPostProcess(void) :
 	}
 
 	setSelectedEffect("default");
-	//*/
+	// */
 }
 
 LLPostProcess::~LLPostProcess(void)
@@ -247,10 +247,6 @@ void LLPostProcess::applyColorFilterShader(void)
 	gPostColorFilterProgram.uniform3fv("contrastBase", 1, LLVector3(baseR, baseG, baseB).mV);
 	gPostColorFilterProgram.uniform1f("saturation", tweaks.getSaturation());
 	gPostColorFilterProgram.uniform3fv("lumWeights", 1, LLVector3(LUMINANCE_R, LUMINANCE_G, LUMINANCE_B).mV);
-	
-	LLGLEnable blend(GL_BLEND);
-	gGL.setSceneBlendType(LLRender::BT_REPLACE);
-	LLGLDepthTest depth(GL_FALSE);
 		
 	/// Draw a screen space quad
 	drawOrthoQuad(QUAD_NORMAL);
@@ -271,11 +267,7 @@ void LLPostProcess::applyNightVisionShader(void)
 	gPostNightVisionProgram.uniform1f("noiseStrength", tweaks.getNoiseStrength());
 	mNoiseTextureScale = 0.001f + ((100.f - tweaks.getNoiseSize()) / 100.f);
 	mNoiseTextureScale *= (mScreenHeight / NOISE_SIZE);
-
-	LLGLEnable blend(GL_BLEND);
-	gGL.setSceneBlendType(LLRender::BT_REPLACE);
-	LLGLDepthTest depth(GL_FALSE);
-		
+	
 	/// Draw a screen space quad
 	drawOrthoQuad(QUAD_NOISE);
 	gPostNightVisionProgram.unbind();
@@ -291,9 +283,6 @@ void LLPostProcess::applyGaussBlurShader(void)
 
 	gGL.getTexUnit(0)->bind(mSceneRenderTexture);
 
-	LLGLEnable blend(GL_BLEND);
-	LLGLDepthTest depth(GL_FALSE);
-	gGL.setSceneBlendType(LLRender::BT_REPLACE);
 	GLint horiz_pass = gPostGaussianBlurProgram.getUniformLocation("horizontalPass");
 	for(int i = 0;i<pass_count;++i)
 	{
@@ -315,10 +304,10 @@ void LLPostProcess::doEffects(void)
 	/// Copy the screen buffer to the render texture
 	copyFrameBuffer();
 
-	/// Clear the frame buffer.
-	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-	LLGLDisable(GL_DEPTH_TEST);
+	//Disable depth. Set blendmode to replace.
+	LLGLDepthTest depth(GL_FALSE);
+	LLGLEnable blend(GL_BLEND);
+	gGL.setSceneBlendType(LLRender::BT_REPLACE);
 
 	/// Change to an orthogonal view
 	gGL.matrixMode(LLRender::MM_PROJECTION);
@@ -340,6 +329,8 @@ void LLPostProcess::doEffects(void)
 	gGL.popMatrix();
 	gGL.matrixMode( LLRender::MM_MODELVIEW );
 	gGL.popMatrix();
+
+	gGL.setSceneBlendType(LLRender::BT_ALPHA);	//Restore blendstate. Alpha is ASSUMED for hud/ui render, etc.
 
 	gGL.getTexUnit(1)->disable();
 	checkError();
@@ -382,7 +373,7 @@ void LLPostProcess::createScreenTexture()
 	{
 		gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mSceneRenderTexture->getTexName());
 		LLImageGL::setManualImage(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGB, mScreenWidth, mScreenHeight, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
-		gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_BILINEAR);
+		gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_POINT);
 		gGL.getTexUnit(0)->setTextureAddressMode(LLTexUnit::TAM_CLAMP);
 	}
 }

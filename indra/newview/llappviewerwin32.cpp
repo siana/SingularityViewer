@@ -64,6 +64,7 @@
 #include "llfindlocale.h"
 
 #include "llcommandlineparser.h"
+#include "lltrans.h"
 
 // *FIX:Mani - This hack is to fix a linker issue with libndofdev.lib
 // The lib was compiled under VS2005 - in VS2003 we need to remap assert
@@ -469,7 +470,7 @@ bool LLAppViewerWin32::initHardwareTest()
 		// but vram.
 		vram_only = TRUE;
 
-		LLSplashScreen::update("Detecting hardware...");
+		LLSplashScreen::update(LLTrans::getString("StartupDetectingHardware"));
 
 		LL_DEBUGS("AppInit") << "Attempting to poll DirectX for hardware info" << LL_ENDL;
 		gDXHardware.setWriteDebugFunc(write_debug_dx);
@@ -483,19 +484,10 @@ bool LLAppViewerWin32::initHardwareTest()
 			// Warn them that runnin without DirectX 9 will
 			// not allow us to tell them about driver issues
 			std::ostringstream msg;
-			msg << 
-				LLAppViewer::instance()->getSecondLifeTitle() << " is unable to detect DirectX 9.0b or greater.\n"
-				"\n" <<
-				LLAppViewer::instance()->getSecondLifeTitle() << " uses DirectX to detect hardware and/or\n"
-				"outdated drivers that can cause stability problems,\n"
-				"poor performance and crashes.  While you can run\n" <<
-				LLAppViewer::instance()->getSecondLifeTitle() << " without it, we highly recommend running\n"
-				"with DirectX 9.0b\n"
-				"\n"
-				"Do you wish to continue?\n";
+			msg << LLTrans::getString ("MBNoDirectX");
 			S32 button = OSMessageBox(
 				msg.str(),
-				"Warning",
+				LLTrans::getString("MBWarning"),
 				OSMB_YESNO);
 			if (OSBTN_NO== button)
 			{
@@ -511,10 +503,12 @@ bool LLAppViewerWin32::initHardwareTest()
 		gSavedSettings.setBOOL("ProbeHardwareOnStartup", FALSE);
 
 		// Disable so debugger can work
-		std::ostringstream splash_msg;
-		splash_msg << "Loading " << LLAppViewer::instance()->getSecondLifeTitle() << "...";
+		std::string splash_msg;
+		LLStringUtil::format_map_t args;
+		args["[APP_NAME]"] = LLAppViewer::instance()->getSecondLifeTitle();
+		splash_msg = LLTrans::getString("StartupLoading", args);
 
-		LLSplashScreen::update(splash_msg.str());
+		LLSplashScreen::update(splash_msg);
 	}
 
 	if (!restoreErrorTrap())

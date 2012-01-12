@@ -372,7 +372,6 @@ void LLPanelGroupGeneral::onClickJoin(void *userdata)
 		S32 cost = gdatap->mMembershipFee;
 		LLSD args;
 		args["COST"] = llformat("%d", cost);
-		args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 		LLSD payload;
 		payload["group_id"] = self->mGroupID;
 

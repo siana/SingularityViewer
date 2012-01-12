@@ -63,7 +63,7 @@ public:
 	};
 
 	// virtual
-	void setupVertexBuffer(U32 data_mask) const
+	void setupVertexBuffer(U32 data_mask)
 	{	
 		if (LLGLSLShader::sNoFixedFunction)
 		{ //just use default if shaders are in play

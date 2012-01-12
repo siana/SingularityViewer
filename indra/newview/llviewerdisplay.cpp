@@ -1225,7 +1225,8 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 		/// and then display it again with compositor effects.
 		/// Using render to texture would be faster/better, but I don't have a 
 		/// grasp of their full display stack just yet.
-		LLPostProcess::getInstance()->apply(gViewerWindow->getWindowDisplayWidth(), gViewerWindow->getWindowDisplayHeight());
+		if(gPipeline.canUseVertexShaders())
+			LLPostProcess::getInstance()->apply(gViewerWindow->getWindowDisplayWidth(), gViewerWindow->getWindowDisplayHeight());
 		
 		render_hud_elements();
 		render_hud_attachments();

@@ -90,7 +90,8 @@ private:
 
 class LLFloater : public LLPanel
 {
-friend class LLFloaterView;
+	friend class LLFloaterView;
+	friend class LLMultiFloater;
 public:
 	enum EFloaterButtons
 	{
@@ -196,6 +197,7 @@ public:
 	virtual BOOL	handleRightMouseDown(S32 x, S32 y, MASK mask);
 	virtual BOOL	handleDoubleClick(S32 x, S32 y, MASK mask);
 	virtual BOOL	handleMiddleMouseDown(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL handleKeyHere(KEY key, MASK mask);
 	virtual void	draw();
 
 	virtual void	onOpen() {}
@@ -395,69 +397,6 @@ private:
 	S32				mSnapOffsetBottom;
 };
 
-// https://wiki.lindenlab.com/mediawiki/index.php?title=LLMultiFloater&oldid=81376
-class LLMultiFloater : public LLFloater
-{
-public:
-	LLMultiFloater();
-	LLMultiFloater(LLTabContainer::TabPosition tab_pos);
-	LLMultiFloater(const std::string& name);
-	LLMultiFloater(const std::string& name, const LLRect& rect, LLTabContainer::TabPosition tab_pos = LLTabContainer::TOP, BOOL auto_resize = TRUE);
-	LLMultiFloater(const std::string& name, const std::string& rect_control, LLTabContainer::TabPosition tab_pos = LLTabContainer::TOP, BOOL auto_resize = TRUE);
-	virtual ~LLMultiFloater() {};
-
-	virtual BOOL postBuild();
-	virtual LLXMLNodePtr getXML(bool save_children = true) const;
-	/*virtual*/ void open();	/* Flawfinder: ignore */
-	/*virtual*/ void onClose(bool app_quitting);
-	/*virtual*/ void draw();
-	/*virtual*/ void setVisible(BOOL visible);
-	/*virtual*/ BOOL handleKeyHere(KEY key, MASK mask);
-
-	virtual void setCanResize(BOOL can_resize);
-	virtual void growToFit(S32 content_width, S32 content_height);
-	virtual void addFloater(LLFloater* floaterp, BOOL select_added_floater, LLTabContainer::eInsertionPoint insertion_point = LLTabContainer::END);
-
-	virtual void showFloater(LLFloater* floaterp);
-	virtual void removeFloater(LLFloater* floaterp);
-
-	virtual void tabOpen(LLFloater* opened_floater, bool from_click);
-	virtual void tabClose();
-
-	virtual BOOL selectFloater(LLFloater* floaterp);
-	virtual void selectNextFloater();
-	virtual void selectPrevFloater();
-
-	virtual LLFloater*	getActiveFloater();
-	virtual BOOL		isFloaterFlashing(LLFloater* floaterp);
-	virtual S32			getFloaterCount();
-
-	virtual void setFloaterFlashing(LLFloater* floaterp, BOOL flashing);
-	virtual BOOL closeAllFloaters();	//Returns FALSE if the floater could not be closed due to pending confirmation dialogs
-	void setTabContainer(LLTabContainer* tab_container) { if (!mTabContainer) mTabContainer = tab_container; }
-	static void onTabSelected(void* userdata, bool);
-
-	virtual void updateResizeLimits();
-
-protected:
-	struct LLFloaterData
-	{
-		S32		mWidth;
-		S32		mHeight;
-		BOOL	mCanMinimize;
-		BOOL	mCanResize;
-	};
-
-	LLTabContainer*		mTabContainer;
-	
-	typedef std::map<LLHandle<LLFloater>, LLFloaterData> floater_data_map_t;
-	floater_data_map_t	mFloaterDataMap;
-	
-	LLTabContainer::TabPosition mTabPos;
-	BOOL				mAutoResize;
-	S32					mOrigMinWidth, mOrigMinHeight;  // logically const but initialized late
-};
-
 // visibility policy specialized for floaters
 template<>
 class VisibilityPolicy<LLFloater>
@@ -473,17 +412,7 @@ public:
 		return FALSE;
 	}
 
-	static void show(LLFloater* instance, const LLSD& key)
-	{
-		if (instance) 
-		{
-			instance->open();
-			if (instance->getHost())
-			{
-				instance->getHost()->open();
-			}
-		}
-	}
+	static void show(LLFloater* instance, const LLSD& key);
 
 	static void hide(LLFloater* instance, const LLSD& key)
 	{

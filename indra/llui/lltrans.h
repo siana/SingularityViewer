@@ -30,34 +30,41 @@
  * $/LicenseInfo$
  */
 
-#ifndef LL_UI_TRANS_H
-#define LL_UI_TRANS_H
+#ifndef LL_TRANS_H
+#define LL_TRANS_H
 
 #include <map>
 
 /**
  * @brief String template loaded from strings.xml
  */
-class LLUITransTemplate
+class LLTransTemplate
 {
 public:
-	LLUITransTemplate(const std::string& name = LLStringUtil::null, const std::string& text = LLStringUtil::null) : mName(name), mText(text) {}
+	LLTransTemplate(const std::string& name = LLStringUtil::null, const std::string& text = LLStringUtil::null) : mName(name), mText(text) {}
 
 	std::string mName;
 	std::string mText;
 };
 
-class LLUITrans
+/**
+ * @brief Localized strings class
+ * This class is used to retrieve translations of strings used to build larger ones, as well as
+ * strings with a general usage that don't belong to any specific floater. For example,
+ * "Owner:", "Retrieving..." used in the place of a not yet known name, etc.
+ */
+class LLTrans
 {
 public:
-	LLUITrans();
+	LLTrans();
 
 	/**
 	 * @brief Parses the xml file that holds the strings. Used once on startup
 	 * @param xml_filename Filename to parse
+	 * @param default_args Set of strings (expected to be in the file) to use as default replacement args, e.g. "SECOND_LIFE"
 	 * @returns true if the file was parsed successfully, true if something went wrong
 	 */
-	static bool parseStrings(const std::string& xml_filename);
+	static bool parseStrings(const std::string& xml_filename, const std::set<std::string>& default_args);
 
 	/**
 	 * @brief Returns a translated string
@@ -78,10 +85,24 @@ public:
 		return getString(xml_desc, empty);
 	}
 	
+	// get the default args
+	static const LLStringUtil::format_map_t& getDefaultArgs()
+	{
+		return sDefaultArgs;
+	}
+
+	static void setDefaultArg(const std::string& name, const std::string& value);
+
+	// insert default args into an arg list
+	static void getArgs(LLStringUtil::format_map_t& args)
+	{
+		args.insert(sDefaultArgs.begin(), sDefaultArgs.end());
+	}
 
 private:
-	typedef std::map<std::string, LLUITransTemplate > template_map_t;
+	typedef std::map<std::string, LLTransTemplate > template_map_t;
 	static template_map_t sStringTemplates;
+	static LLStringUtil::format_map_t sDefaultArgs;
 };
 
 #endif

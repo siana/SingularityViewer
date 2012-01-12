@@ -95,7 +95,6 @@ void LLFirstUse::useBalanceIncrease(S32 delta)
 
 		LLSD args;
 		args["AMOUNT"] = llformat("%d",delta);
-		args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 		LLNotificationsUtil::add("FirstBalanceIncrease", args);
 	}
 }
@@ -110,7 +109,6 @@ void LLFirstUse::useBalanceDecrease(S32 delta)
 
 		LLSD args;
 		args["AMOUNT"] = llformat("%d",-delta);
-		args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 		LLNotificationsUtil::add("FirstBalanceDecrease", args);
 	}
 }

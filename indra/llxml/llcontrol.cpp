@@ -1150,7 +1150,7 @@ static std::string get_warn_name(const std::string& name)
 	return warnname;
 }
 
-void LLControlGroup::addWarning(const std::string& name)
+LLControlVariable *LLControlGroup::addWarning(const std::string& name)
 {
 	// Note: may get called more than once per warning
 	//  (e.g. if allready loaded from a settings file),
@@ -1159,6 +1159,7 @@ void LLControlGroup::addWarning(const std::string& name)
 	std::string comment = std::string("Enables ") + name + std::string(" warning dialog");
 	declareBOOL(warnname, TRUE, comment);
 	mWarnings.insert(warnname);
+	return getControl(warnname);
 }
 
 BOOL LLControlGroup::getWarning(const std::string& name)

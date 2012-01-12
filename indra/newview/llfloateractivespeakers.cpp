@@ -123,7 +123,7 @@ void LLSpeaker::onAvatarNameLookup(const LLUUID& id, const LLAvatarName& avatar_
 		
 		// Also set the legacy name. We will need it to initiate a new
 		// IM session.
-		speaker_ptr->mLegacyName = avatar_name.getLegacyName();
+		speaker_ptr->mLegacyName = LLCacheName::cleanFullName(avatar_name.getLegacyName());
 	    // [/Ansariel: Display name support]
 		
 // [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g) | Added: RLVa-1.0.0g

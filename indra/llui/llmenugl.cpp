@@ -30,7 +30,7 @@
  * $/LicenseInfo$
  */
 
-//*****************************************************************************
+// *****************************************************************************
 //
 // This file contains the opengl based menu implementation.
 //
@@ -39,7 +39,7 @@
 // column is used for displaying boolean values for toggle and check
 // controls. The right column is used for submenus.
 //
-//*****************************************************************************
+// *****************************************************************************
 
 //#include "llviewerprecompiledheaders.h"
 #include "linden_common.h"
@@ -59,8 +59,7 @@
 #include "llresmgr.h"
 #include "llui.h"
 
-#include "lluitrans.h"
-
+#include "lltrans.h"
 #include "llstl.h"
 
 #include "v2math.h"
@@ -271,24 +270,24 @@ void LLMenuItemGL::appendAcceleratorString( std::string& st ) const
 	{
 		if ( mAcceleratorMask & MASK_MAC_CONTROL )
 		{
-			st.append( LLUITrans::getString("accel-mac-control") );
+			st.append( LLTrans::getString("accel-mac-control") );
 		}
 		else
 		{
-			st.append( LLUITrans::getString("accel-mac-command") );		// Symbol would be "\xE2\x8C\x98"
+			st.append( LLTrans::getString("accel-mac-command") );		// Symbol would be "\xE2\x8C\x98"
 		}
 	}
 	if( mAcceleratorMask & MASK_ALT )
-		st.append( LLUITrans::getString("accel-mac-option") );		// Symbol would be "\xE2\x8C\xA5"
+		st.append( LLTrans::getString("accel-mac-option") );		// Symbol would be "\xE2\x8C\xA5"
 	if( mAcceleratorMask & MASK_SHIFT )
-		st.append( LLUITrans::getString("accel-mac-shift") );		// Symbol would be "\xE2\x8C\xA7"
+		st.append( LLTrans::getString("accel-mac-shift") );		// Symbol would be "\xE2\x8C\xA7"
 #else
 	if( mAcceleratorMask & MASK_CONTROL )
-		st.append( LLUITrans::getString("accel-win-control") );
+		st.append( LLTrans::getString("accel-win-control") );
 	if( mAcceleratorMask & MASK_ALT )
-		st.append( LLUITrans::getString("accel-win-alt") );
+		st.append( LLTrans::getString("accel-win-alt") );
 	if( mAcceleratorMask & MASK_SHIFT )
-		st.append( LLUITrans::getString("accel-win-shift") );
+		st.append( LLTrans::getString("accel-win-shift") );
 #endif
 
 	std::string keystr = LLKeyboard::stringFromKey( mAcceleratorKey );

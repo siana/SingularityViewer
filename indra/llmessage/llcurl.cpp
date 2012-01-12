@@ -395,7 +395,7 @@ U32 LLCurl::Easy::report(CURLcode code)
 	if (code == CURLE_OK)
 	{
 		check_curl_code(curl_easy_getinfo(mCurlEasyHandle, CURLINFO_RESPONSE_CODE, &responseCode));
-		//*TODO: get reason from first line of mHeaderOutput
+		// *TODO: get reason from first line of mHeaderOutput
 	}
 	else
 	{
@@ -715,7 +715,7 @@ S32 LLCurl::Multi::process()
 			else
 			{
 				response = 499;
-				//*TODO: change to llwarns
+				// *TODO: change to llwarns
 				llerrs << "cleaned up curl request completed!" << llendl;
 			}
 			if (response >= 400)

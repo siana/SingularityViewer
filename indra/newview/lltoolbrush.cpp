@@ -106,7 +106,7 @@ LLToolBrushLand::LLToolBrushLand()
 U8 LLToolBrushLand::getBrushIndex()
 {
 	// find the best index for desired size
-	// (compatibility with old sims, brush_index is now depricated - DEV-8252)
+	// (compatibility with old sims, brush_index is now deprecated - DEV-8252)
 	U8 index = 0;
 	for (U8 i = 0; i < LAND_BRUSH_SIZE_COUNT; i++)
 	{

@@ -3186,7 +3186,7 @@ LLModelPreview::~LLModelPreview()
 		mModelLoader->mPreview = NULL;
 		mModelLoader = NULL;
 	}
-	//*HACK : *TODO : turn this back on when we understand why this crashes
+	// *HACK : *TODO : turn this back on when we understand why this crashes
 	//glodShutdown();
 }
 

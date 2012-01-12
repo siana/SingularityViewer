@@ -30,12 +30,12 @@
  * $/LicenseInfo$
  */
 
-//*****************************************************************************
+// *****************************************************************************
 //
 // Implementation of the panel inventory - used to view and control a
 // task's inventory.
 //
-//*****************************************************************************
+// *****************************************************************************
 
 #include "llviewerprecompiledheaders.h"
 
@@ -245,7 +245,6 @@ void LLTaskInvFVBridge::buyItem()
 	{
         LLSD args;
         args["PRICE"] = llformat("%d",sale_info.getSalePrice());
-        args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
         args["OWNER"] = owner_name;
         if (sale_info.getSaleType() != LLSaleInfo::FS_CONTENTS)
         {

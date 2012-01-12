@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater can_close="true" can_drag_on_left="false" can_minimize="false" can_resize="true"
+     height="33" min_height="33" min_width="256" name="mediaticker" rect_control="SHMediaTickerRect" control_name="SHShowMediaTicker"
+     title="" width="256">
+	<icon bottom="-32" color="1, 1, 1, 1" follows="top|left|right" height="31"
+	     image_name="ticker_background_small.tga" left="2" mouse_opaque="false" name="ticker_background"
+	     width="234" />
+	<icon bottom="-17" color="0, 0, 0, .2" follows="top|left|right" height="1"
+	     image_name="white.tga" left="2" mouse_opaque="false" name="ticker_background"
+	     width="234" />
+	<text text_color="0,0,0,1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-17" drop_shadow_visible="true" follows="top|left"
+	     font="SansSerifBold" h_pad="0" halign="left" height="16" left="4"
+	     mouse_opaque="true" name="artist_label" v_pad="0" width="50">
+		Artist:
+	</text>
+	<text text_color="0,0,0,1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-17" drop_shadow_visible="true" follows="top|left|right"
+	     font="SansSerifBold" h_pad="0" halign="left" height="16" left="50"
+	     mouse_opaque="true" name="artist_text" v_pad="0" width="185">
+	</text>
+	<text text_color="0,0,0,1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-32" drop_shadow_visible="true" follows="top|left"
+	     font="SansSerifBold" h_pad="0" halign="left" height="16" left="4"
+	     mouse_opaque="true" name="title_label" v_pad="0" width="50">
+		Title:
+	</text>
+	<text text_color="0,0,0,1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-32" drop_shadow_visible="true" follows="top|left|right"
+	     font="SansSerifBold" h_pad="0" halign="left" height="16" left="50"
+	     mouse_opaque="true" name="title_text" v_pad="0" width="185">
+	</text>
+	
+	<string name="paused">
+		(not playing)
+	</string>
+	<string name="loading">
+		(loading...)
+	</string>		
+</floater>

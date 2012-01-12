@@ -1266,7 +1266,7 @@ void LLViewerFetchedTexture::init(bool firstinit)
 
 LLViewerFetchedTexture::~LLViewerFetchedTexture()
 {
-	//*NOTE getTextureFetch can return NULL when Viewer is shutting down.
+	// *NOTE getTextureFetch can return NULL when Viewer is shutting down.
 	// This is due to LLWearableList is singleton and is destroyed after 
 	// LLAppViewer::cleanup() was called. (see ticket EXT-177)
 	if (mHasFetcher && LLAppViewer::getTextureFetch())

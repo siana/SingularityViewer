@@ -334,6 +334,27 @@ void LLStreamingAudio_FMODEX::setGain(F32 vol)
 	}
 }
 
+/*virtual*/ bool LLStreamingAudio_FMODEX::getWaveData(float* arr, S32 count, S32 stride/*=1*/)
+{
+	if(!mFMODInternetStreamChannelp || !mCurrentInternetStreamp)
+		return false;
+
+	static std::vector<float> local_array(count);	//Have to have an extra buffer to mix channels. Bleh.
+	if(count > (S32)local_array.size())	//Expand the array if needed. Try to minimize allocation calls, so don't ever shrink.
+		local_array.resize(count);
+
+	if(	mFMODInternetStreamChannelp->getWaveData(&local_array[0],count,0) == FMOD_OK &&
+		mFMODInternetStreamChannelp->getWaveData(&arr[0],count,1) == FMOD_OK )
+	{
+		for(S32 i = count-1;i>=0;i-=stride)
+		{
+			arr[i] += local_array[i];
+			arr[i] *= .5f;
+		}
+		return true;
+	}
+	return false;
+}
 
 ///////////////////////////////////////////////////////
 // manager of possibly-multiple internet audio streams

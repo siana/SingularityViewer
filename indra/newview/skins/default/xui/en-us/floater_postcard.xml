@@ -43,8 +43,8 @@
 	<button bottom_delta="0" follows="right|bottom" height="20" label="Send"
 	     left_delta="-106" name="send_btn" width="100" />
 	<string name="default_subject">
-		Postcard from [GRID_NAME].
-	</string>
+    Postcard from [SECOND_LIFE].
+  </string>
 	<string name="default_message">
 		Check this out!
 	</string>

@@ -914,7 +914,7 @@ void LLPanelFriends::onClickIM(void* user_data)
 			if (info && LLAvatarNameCache::get(agent_id, &avatar_name))
 			{
 				gIMMgr->setFloaterOpen(TRUE);
-				gIMMgr->addSession(avatar_name.getLegacyName(),IM_NOTHING_SPECIAL,agent_id);
+				gIMMgr->addSession(LLCacheName::cleanFullName(avatar_name.getLegacyName()),IM_NOTHING_SPECIAL,agent_id);
 			}
 			// [/Ansariel: Display name support]
 		}

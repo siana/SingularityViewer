@@ -88,8 +88,6 @@ BOOL LLVertexBuffer::sPreferStreamDraw = FALSE;
 
 const U32 FENCE_WAIT_TIME_NANOSECONDS = 10000;  //1 ms
 
-#undef GL_ARB_sync
-
 class LLGLSyncFence : public LLGLFence
 {
 public:
@@ -2115,7 +2113,7 @@ void LLVertexBuffer::setBuffer(U32 data_mask)
 }
 
 // virtual (default)
-void LLVertexBuffer::setupVertexBuffer(U32 data_mask) const
+void LLVertexBuffer::setupVertexBuffer(U32 data_mask)
 {
 	LLMemType mt(LLMemType::MTYPE_VERTEX_DATA);
 	stop_glerror();

@@ -55,6 +55,7 @@
 #include "llstatusbar.h"
 #include "llviewerregion.h"
 #include "lleconomy.h"
+#include "lltrans.h"
 
 #include "llgl.h"
 #include "llglheaders.h"
@@ -362,7 +363,7 @@ bool LLFloaterPostcard::missingSubjMsgAlertCallback(const LLSD& notification, co
 		{
 			// Stuff the subject back into the form.
 			LLStringUtil::format_map_t targs;
-			targs["[GRID_NAME]"] = gHippoGridManager->getConnectedGrid()->getGridName();
+			targs["[SECOND_LIFE]"] = LLTrans::getString("SECOND_LIFE");
 			std::string subj = getString("default_subject");
 			LLStringUtil::format(subj, targs);
 

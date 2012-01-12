@@ -5,6 +5,9 @@
      that are returned from one component and may appear in many places-->
 <strings>
 
+	<string name="CURRENCY">L$</string>
+	<string name="GRID_OWNER">Linden Lab</string>
+
 	<string name="hippo_label_free">free</string>
 	<string name="hippo_label_week">week</string>
 	<string name="TeleportOfferMaturity">
@@ -14,8 +17,27 @@
 	  [NAME]'s teleport lure is to [DESTINATION]
 	</string>
 
+	<!-- Default Args - these arguments will be replaced in all strings -->
+	<string name="SECOND_LIFE">Second Life</string>
+	<string name="APP_NAME">Singularity Viewer</string>
+	<string name="CAPITALIZED_APP_NAME">SINGULARITY VIEWER</string>
+	<string name="SECOND_LIFE_GRID">Second Life Grid</string>
+	<string name="SUPPORT_SITE">Second Life Support Portal</string>
+
+	<!-- starting up -->
+	<string name="StartupDetectingHardware">Detecting hardware...</string>
+	<string name="StartupLoading">Loading [APP_NAME]...</string>
+	<string name="StartupClearingCache">Clearing cache...</string>
+	<string name="StartupInitializingTextureCache">Initializing Texture Cache...</string>
+	<string name="StartupInitializingVFS">Initializing VFS...</string>
+  <string name="StartupRequireDriverUpdate">Graphics Initialization Failed. Please Update Your Graphics Driver!</string>
+
+	<!--  progress -->
+	<string name="ProgressRestoring">Restoring...</string>
+	<string name="ProgressChangingResolution">Changing Resolution...</string>
 	<!-- Login -->
 	<string name="LoginInProgress">Logging in. [APP_NAME] may appear frozen.  Please wait.</string>
+	<string name="LoginInProgressNoFrozen">Logging in...</string>
 	<string name="LoginAuthenticating">Authenticating</string>
 	<string name="LoginMaintenance">Performing account maintenance...</string>
 	<string name="LoginAttempt">Previous login attempt failed. Logging in, attempt [NUMBER]</string>
@@ -30,14 +52,22 @@
 	<string name="LoginInitializingQuicktime">Initializing QuickTime...</string>
 	<string name="LoginQuicktimeNotFound">QuickTime not found - unable to initialize.</string>
 	<string name="LoginQuicktimeOK">QuickTime initialized successfully.</string>
+	<string name="LoginRequestSeedCapGrant">Requesting region capabilities...</string>
+	<string name="LoginRetrySeedCapGrant">Requesting region capabilities, attempt [NUMBER]...</string>
 	<string name="LoginWaitingForRegionHandshake">Waiting for region handshake...</string>
 	<string name="LoginConnectingToRegion">Connecting to region...</string>
 	<string name="LoginDownloadingClothing">Downloading clothing...</string>
 
+	<string name="LoginFailed">Login failed.</string>
+	<string name="Quit">Quit</string>
 
 	<!-- Disconnection -->
 	<string name="AgentLostConnection">This region may be experiencing trouble.  Please check your connection to the Internet.</string>
-
+	<string name="SavingSettings">Saving your settings...</string>
+	<string name="LoggingOut">Logging out...</string>
+	<string name="ShuttingDown">Shutting down...</string>
+	<string name="YouHaveBeenDisconnected">You have been disconnected from the region you were in.</string>
+	<string name="SentToInvalidRegion">You were sent to an invalid region.</string>
 
 	<!-- Tooltip, llhoverview.cpp -->
 	<string name="TooltipPerson">Person</string><!-- Object under mouse pointer is an avatar -->
@@ -48,7 +78,7 @@
 	<string name="TooltipFlagScript">Script</string>
 	<string name="TooltipFlagPhysics">Physics</string>
 	<string name="TooltipFlagTouch">Touch</string>
-	<string name="TooltipFlagL$">L$</string>
+	<string name="TooltipFlagL$">[CURRENCY]</string>
 	<string name="TooltipFlagDropInventory">Drop Inventory</string>
 	<string name="TooltipFlagPhantom">Phantom</string>
 	<string name="TooltipFlagTemporary">Temporary</string>
@@ -1781,6 +1811,78 @@ Returns a key that is the UUID of the user seated on the prim.
 -->
 
 
+
+	<!-- mouselook -->
+	<string name="LeaveMouselook">Press ESC to return to World View</string>
+ 	<!-- menu accelerators -->
+	<string name="accel-mac-control">Ctrl-</string>
+	<string name="accel-mac-command">Cmd-</string>
+	<string name="accel-mac-option">Opt-</string>
+	<string name="accel-mac-shift">Shift-</string>
+	<string name="accel-win-control">Ctrl-</string>
+	<string name="accel-win-alt">Alt-</string>
+	<string name="accel-win-shift">Shift-</string>
+	<!-- OSMessageBox messages -->
+	<string name="MBCmdLineError">
+		An error was found parsing the command line.
+Please see: http://wiki.secondlife.com/wiki/Client_parameters
+Error:
+	</string>
+	<string name="MBCmdLineUsg">[APP_NAME] Command line usage:</string>
+	<string name="MBUnableToAccessFile">
+		[APP_NAME] is unable to access a file that it needs.
+
+This can be because you somehow have multiple copies running, or your system incorrectly thinks a file is open.
+If this message persists, restart your computer and try again.
+If it continues to persist, you may need to completely uninstall [APP_NAME] and reinstall it.
+	</string>
+	<string name="MBRequiresAltiVec"> [APP_NAME] requires a processor with AltiVec (G4 or later).</string>
+	<string name="MBAlreadyRunning">
+		[APP_NAME] is already running.
+Check your task bar for a minimized copy of the program.
+If this message persists, restart your computer.
+	</string>
+	<string name="MBFrozenCrashed">
+		[APP_NAME] appears to have frozen or crashed on the previous run.
+Would you like to send a crash report?
+	</string>
+	<string name="MBAlert">Notification</string>
+	<string name="MBNoDirectX">
+		[APP_NAME] is unable to detect DirectX 9.0b or greater.
+[APP_NAME] uses DirectX to detect hardware and/or outdated drivers that can cause stability problems, poor performance and crashes.  While you can run [APP_NAME] without it, we highly recommend running with DirectX 9.0b.
+
+Do you wish to continue?
+	</string>
+	<string name="MBWarning">Warning</string>
+	<string name="MBRegClassFailed">RegisterClass failed</string>
+	<string name="MBError">Error</string>
+	<string name="MBFullScreenErr">
+		Unable to run fullscreen at [WIDTH] x [HEIGHT].
+Running in window.
+	</string>
+	<string name="MBDestroyWinFailed">Shutdown Error while destroying window (DestroyWindow() failed)</string>
+	<string name="MBShutdownErr">Shutdown Error</string>
+	<string name="MBDevContextErr">Can't make GL device context</string>
+	<string name="MBPixelFmtErr">Can't find suitable pixel format</string>
+	<string name="MBPixelFmtDescErr">Can't get pixel format description</string>
+	<string name="MBTrueColorWindow">
+		[APP_NAME] requires True Color (32-bit) to run.
+Please go to your computer's display settings and set the color mode to 32-bit.
+	</string>
+	<string name="MBAlpha">
+		[APP_NAME] is unable to run because it can't get an 8 bit alpha channel.  Usually this is due to video card driver issues.
+Please make sure you have the latest video card drivers installed.
+Also be sure your monitor is set to True Color (32-bit) in Control Panels &gt; Display &gt; Settings.
+If you continue to receive this message, contact the [SUPPORT_SITE].
+	</string>
+	<string name="MBPixelFmtSetErr">Can't set pixel format</string>
+	<string name="MBGLContextErr">Can't create GL rendering context</string>
+	<string name="MBGLContextActErr">Can't activate GL rendering context</string>
+	<string name="MBVideoDrvErr">
+		[APP_NAME] is unable to run because your video card drivers did not install properly, are out of date, or are for unsupported hardware. Please make sure you have the latest video card drivers and even if you do have the latest, try reinstalling them.
+
+If you continue to receive this message, contact the [SUPPORT_SITE].
+	</string>
 <!-- Addition of OSSL commands for use in OpenSimulator based regions, including Aurora -->
   <string name="LSLTipText_osSetRegionWaterHeight">
 osSetRegionWaterHeight(float height)
