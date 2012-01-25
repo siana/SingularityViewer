@@ -2445,4 +2445,5 @@ osSetWindParam(string plugin, string param, float value)
 Sets value of param property for plugin module.
 (OpenSim only.)
   </string>
+  <string name="Unnamed">(Unnamed)</string>
 </strings>
