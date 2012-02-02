@@ -161,6 +161,7 @@ set(viewer_SOURCE_FILES
     lldrawpoolwlsky.cpp
     lldriverparam.cpp
     lldynamictexture.cpp
+    lleasymessagereader.cpp
     llemote.cpp
     lleventinfo.cpp
     lleventnotifier.cpp
@@ -436,7 +437,7 @@ set(viewer_SOURCE_FILES
     lltracker.cpp
     lltranslate.cpp
     lluploaddialog.cpp
-	lluploadfloaterobservers.cpp
+    lluploadfloaterobservers.cpp
     llurl.cpp
     llurldispatcher.cpp
     llurlhistory.cpp
@@ -544,8 +545,8 @@ set(viewer_SOURCE_FILES
     rlvextensions.cpp
     rlvfloaterbehaviour.cpp
     rlvviewer2.cpp
-	shcommandhandler.cpp
-	shfloatermediaticker.cpp
+    shcommandhandler.cpp
+    shfloatermediaticker.cpp
     )
 
 # This gets renamed in the packaging step
@@ -641,6 +642,7 @@ set(viewer_HEADER_FILES
     lldrawpoolwlsky.h
     lldriverparam.h
     lldynamictexture.h
+    lleasymessagereader.h
     llemote.h
     lleventinfo.h
     lleventnotifier.h
@@ -920,7 +922,7 @@ set(viewer_HEADER_FILES
     lltranslate.h
     lluiconstants.h
     lluploaddialog.h
-	lluploadfloaterobservers.h
+    lluploadfloaterobservers.h
     llurl.h
     llurldispatcher.h
     llurlhistory.h
@@ -1037,7 +1039,7 @@ set(viewer_HEADER_FILES
     rlvfloaterbehaviour.h
     rlvviewer2.h
     shcommandhandler.h
-	shfloatermediaticker.h
+    shfloatermediaticker.h
     )
 
 source_group("CMake Rules" FILES ViewerInstall.cmake)
