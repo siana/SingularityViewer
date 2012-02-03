@@ -1,0 +1,6 @@
+
+*.tlog
+*.log
+*.lastbuildstate
+*.manifest
+*.obj
