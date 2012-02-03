@@ -19,3 +19,6 @@
 /LICENSES/
 /edited-files.txt
 qtcreator-build/
+
+/indra/lscript/lscript_compile/indra.l.cpp.rule
+/indra/lscript/lscript_compile/indra.y.cpp.rule
