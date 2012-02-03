@@ -555,36 +555,37 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 
 	std::string net_name("\?\?\?");
 	BOOL outgoing = item->isOutgoing();
-	LLHost find_host;
-	bool host_good = true;
 	switch(item->mType)
 	{
 	case LLEasyMessageLogEntry::TEMPLATE:
 		{
-			find_host = outgoing ? item->mToHost : item->mFromHost;
+			LLHost find_host = outgoing ? item->mToHost : item->mFromHost;
+			net_name = find_host.getIPandPort();
+			std::list<LLNetListItem*>::iterator end = sNetListItems.end();
+			for(std::list<LLNetListItem*>::iterator iter = sNetListItems.begin(); iter != end; ++iter)
+			{
+				if((*iter)->mCircuitData->getHost() == find_host)
+				{
+					net_name = (*iter)->mName;
+					break;
+				}
+			}
 		}
 		break;
 	case LLEasyMessageLogEntry::HTTP_REQUEST:
 		{
-			LLURI uri = LLURI(item->mURL);
-			host_good = find_host.setHostByName(uri.hostName());
-			find_host.setPort(uri.hostPort());
-		}
-		break;
-	}
-
-	if(host_good)
-	{
-		net_name = find_host.getIPandPort();
-		std::list<LLNetListItem*>::iterator end = sNetListItems.end();
-		for(std::list<LLNetListItem*>::iterator iter = sNetListItems.begin(); iter != end; ++iter)
-		{
-			if((*iter)->mCircuitData->getHost() == find_host)
+			std::list<LLNetListItem*>::iterator end = sNetListItems.end();
+			for(std::list<LLNetListItem*>::iterator iter = sNetListItems.begin(); iter != end; ++iter)
 			{
-				net_name = (*iter)->mName;
-				break;
+				LLViewerRegion* regionp = LLWorld::getInstance()->getRegionFromHandle((*iter)->mHandle); //TODO: Find a better way to do this.
+				if(regionp && regionp->getCapURLNames(item->mURL).size())
+				{
+					net_name = (*iter)->mName;
+					break;
+				}
 			}
 		}
+		break;
 	}
 	//add the message to the messagelog scroller
 	LLSD element;
