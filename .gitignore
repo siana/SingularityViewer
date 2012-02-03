@@ -22,3 +22,8 @@ qtcreator-build/
 
 /indra/lscript/lscript_compile/indra.l.cpp.rule
 /indra/lscript/lscript_compile/indra.y.cpp.rule
+/indra/batch/start-client.py
+/indra/lscript/lscript_compile/indra.l.cpp
+/indra/lscript/lscript_compile/indra.y.cpp
+/indra/lscript/lscript_compile/indra.y.hpp
+/indra/newview/dbghelp.dll
