@@ -122,8 +122,8 @@ protected:
 	static void onClickClearLog(void* user_data);
 	static void onCommitFilter(LLUICtrl* ctrl, void* user_data);
 	static BOOL onClickCloseCircuit(void* user_data);
-	static void onConfirmCloseCircuit(S32 option, LLSD payload);
-	static void onConfirmRemoveRegion(S32 option, LLSD payload);
+	static void onConfirmCloseCircuit(const LLSD& notification, const LLSD& response);
+	static void onConfirmRemoveRegion(const LLSD& notification, const LLSD& response);
 	static void onClickFilterMenu(void* user_data);
 	static void onClickFilterApply(void* user_data);
 	static void onClickFilterChoice(void* user_data);

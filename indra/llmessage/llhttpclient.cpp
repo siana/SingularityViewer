@@ -667,13 +667,15 @@ std::string get_base_url(std::string url)
 {
 	size_t query_pos = url.find_first_of("?");
 
-	if(query_pos == std::string::npos)
+	if(query_pos != std::string::npos)
 	{
-		LLStringUtil::truncate(url, query_pos);
+		LLStringUtil::truncate(url, query_pos - 1);
 	}
 
 	LLStringUtil::trimTail(url);
 
 	return url;
 }
+
+
 //</edit>

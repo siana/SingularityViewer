@@ -555,9 +555,26 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 
 	std::string net_name("\?\?\?");
 	BOOL outgoing = item->isOutgoing();
-	if(item->mType == LLEasyMessageLogEntry::TEMPLATE)
+	LLHost find_host;
+	bool host_good = true;
+	switch(item->mType)
 	{
-		LLHost find_host = outgoing ? item->mToHost : item->mFromHost;
+	case LLEasyMessageLogEntry::TEMPLATE:
+		{
+			find_host = outgoing ? item->mToHost : item->mFromHost;
+		}
+		break;
+	case LLEasyMessageLogEntry::HTTP_REQUEST:
+		{
+			LLURI uri = LLURI(item->mURL);
+			host_good = find_host.setHostByName(uri.hostName());
+			find_host.setPort(uri.hostPort());
+		}
+		break;
+	}
+
+	if(host_good)
+	{
 		net_name = find_host.getIPandPort();
 		std::list<LLNetListItem*>::iterator end = sNetListItems.end();
 		for(std::list<LLNetListItem*>::iterator iter = sNetListItems.begin(); iter != end; ++iter)
@@ -569,7 +586,6 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 			}
 		}
 	}
-
 	//add the message to the messagelog scroller
 	LLSD element;
 	element["id"] = item->mID;
@@ -701,8 +717,10 @@ BOOL LLFloaterMessageLog::onClickCloseCircuit(void* user_data)
 	return TRUE;
 }
 // static
-void LLFloaterMessageLog::onConfirmCloseCircuit(S32 option, LLSD payload)
+void LLFloaterMessageLog::onConfirmCloseCircuit(const LLSD& notification, const LLSD& response)
 {
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	LLSD payload = notification["payload"];
 	LLCircuitData* cdp = gMessageSystem->mCircuitInfo.findCircuit(LLHost(payload["circuittoclose"].asString()));
 	if(!cdp) return;
 	LLViewerRegion* regionp = LLWorld::getInstance()->getRegion(cdp->getHost());
@@ -734,8 +752,10 @@ void LLFloaterMessageLog::onConfirmCloseCircuit(S32 option, LLSD payload)
 	}
 }
 // static
-void LLFloaterMessageLog::onConfirmRemoveRegion(S32 option, LLSD payload)
+void LLFloaterMessageLog::onConfirmRemoveRegion(const LLSD& notification, const LLSD& response)
 {
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	LLSD payload = notification["payload"];
 	if(option == 0) // yes
 		LLWorld::getInstance()->removeRegion(LLHost(payload["regionhost"].asString()));
 }

@@ -41,14 +41,14 @@ LLMessageLogEntry::LLMessageLogEntry(EType type, const std::string& url, const L
 		S32 channel = type == HTTP_REQUEST ? channels.out() : channels.in();
 		mDataSize = buffer->countAfter(channel, NULL);
 		if (mDataSize > 0)
-{
+		{
 			mData = new U8[mDataSize + 1];
 			buffer->readAfter(channel, NULL, mData, mDataSize);
 
 			//make sure this is null terminated, since it's going to be used stringified
 			mData[mDataSize] = '\0';
 			++mDataSize;
-}
+		}
 	}
 }
 
