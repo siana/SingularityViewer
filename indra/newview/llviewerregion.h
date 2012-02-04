@@ -239,6 +239,11 @@ public:
 	// implements LLCapabilityProvider
     virtual std::string getCapability(const std::string& name) const;
 
+	//<edit>
+	virtual std::set<std::string> getCapURLNames(const std::string& cap_url);
+	virtual bool isCapURLMapped(const std::string& cap_url);
+	//</edit>
+
 	// has region received its final (not seed) capability list?
 	bool capabilitiesReceived() const;
 	void setCapabilitiesReceived(bool received);
@@ -419,6 +424,10 @@ private:
 	BOOL mReleaseNotesRequested;
 	
 	LLSD mSimulatorFeatures;
+
+	//<edit> url->cap name mappings for each region
+	LLHashMultiMap<std::string, std::string> mCapURLMappings;
+	//</edit>
 };
 
 inline BOOL LLViewerRegion::getAllowDamage() const

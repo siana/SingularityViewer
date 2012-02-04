@@ -151,6 +151,11 @@ public:
 
 	void getInfo(LLSD& info);
 
+	//<edit>
+	virtual std::set<std::string> getCapURLNames(const std::string& cap_url);
+	virtual bool isCapURLMapped(const std::string& cap_url);
+	//</edit>
+
 public:
 	typedef std::list<LLViewerRegion*> region_list_t;
 	const region_list_t& getRegionList() const { return mActiveRegionList; }

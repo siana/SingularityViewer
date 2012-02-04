@@ -556,11 +556,14 @@ BOOL LLMessageSystem::checkMessages( S64 frame_count, bool faked_message, U8 fak
 		S32 acks = 0;
 		S32 true_rcv_size = 0;
 
-		U8* buffer = mTrueReceiveBuffer.buffer;
+		U8* buffer = mTrueReceiveBuffer;
 
+		//<edit>
 		if(!faked_message)
 		{
-			mTrueReceiveSize = mPacketRing.receivePacket(mSocket, (char *)mTrueReceiveBuffer.buffer);
+		
+			mTrueReceiveSize = mPacketRing.receivePacket(mSocket, (char *)mTrueReceiveBuffer);
+		
 			receive_size = mTrueReceiveSize;
 			mLastSender = mPacketRing.getLastSender();
 			mLastReceivingIF = mPacketRing.getLastReceivingInterface();
@@ -575,7 +578,11 @@ BOOL LLMessageSystem::checkMessages( S64 frame_count, bool faked_message, U8 fak
 		// If you want to dump all received packets into SecondLife.log, uncomment this
 		//dumpPacketToLog();
 		
-
+		if(mTrueReceiveSize && receive_size > (S32) LL_MINIMUM_VALID_PACKET_SIZE && !faked_message)
+		{
+			LLMessageLog::log(mLastSender, LLHost(16777343, mPort), buffer, mTrueReceiveSize);
+		}
+		//</edit>
 		
 		if (receive_size < (S32) LL_MINIMUM_VALID_PACKET_SIZE)
 		{
@@ -618,7 +625,6 @@ BOOL LLMessageSystem::checkMessages( S64 frame_count, bool faked_message, U8 fak
 			// process the message as normal
 			mIncomingCompressedSize = zeroCodeExpand(&buffer, &receive_size);
 			mCurrentRecvPacketID = ntohl(*((U32*)(&buffer[1])));
-
 			host = getSender();
 
 			const bool resetPacketId = true;
@@ -635,7 +641,7 @@ BOOL LLMessageSystem::checkMessages( S64 frame_count, bool faked_message, U8 fak
 				for(S32 i = 0; i < acks; ++i)
 				{
 					true_rcv_size -= sizeof(TPACKETID);
-					memcpy(&mem_id, &buffer[true_rcv_size], /* Flawfinder: ignore*/
+					memcpy(&mem_id, &mTrueReceiveBuffer[true_rcv_size], /* Flawfinder: ignore*/
 					     sizeof(TPACKETID));
 					packet_id = ntohl(mem_id);
 					//LL_INFOS("Messaging") << "got ack: " << packet_id << llendl;
@@ -701,7 +707,6 @@ BOOL LLMessageSystem::checkMessages( S64 frame_count, bool faked_message, U8 fak
 			// But we don't want to acknowledge UseCircuitCode until the circuit is
 			// available, which is why the acknowledgement test is done above.  JC
 			bool trusted = cdp && cdp->getTrusted();
-
 			valid_packet = mTemplateMessageReader->validateMessage(
 				buffer,
 				receive_size,
@@ -3405,7 +3410,7 @@ void LLMessageSystem::dumpPacketToLog()
 	{
 		S32 offset = cur_line_pos * 3;
 		snprintf(line_buffer + offset, sizeof(line_buffer) - offset,
-				 "%02x ", mTrueReceiveBuffer.buffer[i]);	/* Flawfinder: ignore */
+				 "%02x ", mTrueReceiveBuffer[i]);	/* Flawfinder: ignore */
 		cur_line_pos++;
 		if (cur_line_pos >= 16)
 		{
@@ -4079,11 +4084,4 @@ const LLHost& LLMessageSystem::getSender() const
 
 LLHTTPRegistration<LLHTTPNodeAdapter<LLTrustedMessageService> >
 	gHTTPRegistrationTrustedMessageWildcard("/trusted-message/<message-name>");
-// <edit>
 
-// Copypasta from LLTemplateMessageReader
-BOOL LLMessageSystem::decodeTemplate( const U8* buffer, S32 buffer_size, LLMessageTemplate** msg_template )
-{
-	return(TRUE);
-}
-// </edit

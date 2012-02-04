@@ -54,6 +54,30 @@
 #error Please define your platform.
 #endif
 
+//<edit>
+#ifdef LL_WINDOWS //this may or may not even work on windows
+#	define LLHashMap stdext::hash_map
+#else
+#	if (__GNUC__ < 4 || __GNUC__ == 4 && __GNUC_MINOR__ < 3)
+#		include <ext/hash_map>
+#		define LLHashMap __gnu_cxx::hash_map
+#	else
+#		include <tr1/unordered_map>
+#		define LLHashMap std::tr1::unordered_map
+#	endif
+#endif
+
+#ifdef LL_WINDOWS //this may or may not even work on windows
+#	define LLHashMultiMap stdext::hash_multimap
+#else
+#	if (__GNUC__ < 4 || __GNUC__ == 4 && __GNUC_MINOR__ < 3)
+#		define LLHashMultiMap __gnu_cxx::hash_multimap
+#	else
+#		define LLHashMultiMap std::tr1::unordered_multimap
+#	endif
+#endif
+//</edit>
+
 // Warning - an earlier template-based version of this routine did not do
 // the correct thing on Windows.   Since this is only used to get
 // a string hash, it was converted to a regular routine and

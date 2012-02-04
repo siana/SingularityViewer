@@ -1622,6 +1622,32 @@ private:
 
 void LLViewerRegion::setCapability(const std::string& name, const std::string& url)
 {
+	bool add_to_mapping = true;
+
+	//<edit>
+	std::string base_url = get_base_url(url);
+	//we need a multimap, since CERTAIN PEOPLE use non-unique URIs for each Cap.
+	//let's check if this cap name is already registered for this URI
+	if(mCapURLMappings.count(base_url) > 0)
+	{
+		LLHashMultiMap<std::string, std::string>::iterator iter = mCapURLMappings.find(base_url);
+		LLHashMultiMap<std::string, std::string>::const_iterator end = mCapURLMappings.end();
+
+		while(iter != end)
+		{
+			if(iter->second == name)
+			{
+				add_to_mapping = false;
+				break;
+			}
+			++iter;
+		}
+	}
+
+	if(add_to_mapping)
+		mCapURLMappings.insert(std::pair<std::string, std::string>(base_url, name));
+	//</edit>
+
 	if(name == "EventQueueGet")
 	{
 		delete mImpl->mEventPoll;
@@ -1661,6 +1687,36 @@ std::string LLViewerRegion::getCapability(const std::string& name) const
 	}
 	return iter->second;
 }
+
+//<edit>
+std::set<std::string> LLViewerRegion::getCapURLNames(const std::string &cap_url)
+{
+	std::set<std::string> url_capnames;
+	if(mCapURLMappings.count(cap_url) > 0)
+	{
+		LLHashMultiMap<std::string, std::string>::iterator iter;
+
+		std::pair<LLHashMultiMap<std::string, std::string>::iterator,
+		          LLHashMultiMap<std::string, std::string>::iterator> range;
+
+		range = mCapURLMappings.equal_range(cap_url);
+
+		for (iter=range.first; iter != range.second; ++iter)
+		{
+			url_capnames.insert(iter->second);
+		}
+	}
+
+	return url_capnames;
+}
+
+
+bool LLViewerRegion::isCapURLMapped(const std::string &cap_url)
+{
+	return (mCapURLMappings.count(cap_url) > 0);
+}
+
+//</edit>
 
 bool LLViewerRegion::capabilitiesReceived() const
 {
