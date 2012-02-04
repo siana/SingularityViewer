@@ -574,11 +574,12 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 		break;
 	case LLEasyMessageLogEntry::HTTP_REQUEST:
 		{
+			std::string url = get_base_url(item->mURL);
 			std::list<LLNetListItem*>::iterator end = sNetListItems.end();
 			for(std::list<LLNetListItem*>::iterator iter = sNetListItems.begin(); iter != end; ++iter)
 			{
 				LLViewerRegion* regionp = LLWorld::getInstance()->getRegionFromHandle((*iter)->mHandle); //TODO: Find a better way to do this.
-				if(regionp && regionp->getCapURLNames(item->mURL).size())
+				if(regionp && regionp->getCapURLNames(url).size())
 				{
 					net_name = (*iter)->mName;
 					break;
