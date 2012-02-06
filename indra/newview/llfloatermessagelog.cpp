@@ -587,6 +587,8 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 			}
 		}
 		break;
+	default:
+		break;
 	}
 	//add the message to the messagelog scroller
 	LLSD element;
