@@ -126,7 +126,7 @@ LLMessageLogNetMan::LLMessageLogNetMan()
 void LLMessageLogNetMan::cancel()
 {
 	mCancel = true;
-	}
+}
 
 BOOL LLMessageLogNetMan::tick()
 {
@@ -236,9 +236,8 @@ void LLFloaterMessageLog::clearFloaterMessageItems(bool dying)
 {
 	if(!dying)
 	{
-		childSetEnabled("msg_builder_send_btn", false);
 		getChild<LLScrollListCtrl>("message_log")->clearRows();
-}
+	}
 
 	mIncompleteHTTPConvos.clear();
 
@@ -464,8 +463,6 @@ void LLFloaterMessageLog::setInfoPaneMode(EInfoPaneMode mode)
 	childSetVisible("net_info", !http_mode);
 
 	childSetVisible("conv_stack", http_mode);
-
-	childSetEnabled("msg_builder_send_btn", mInfoPaneMode == IPANE_TEMPLATE_LOG);
 }
 // static
 void LLFloaterMessageLog::onLog(LogPayload entry)
@@ -518,7 +515,7 @@ void LLFloaterMessageLog::conditionalLog(LogPayload entry)
 	for(; iter_msg_name != end_msg_name; ++iter_msg_name)
 	{
 		std::string find_name = *iter_msg_name;
-	LLStringUtil::toLower(find_name);
+		LLStringUtil::toLower(find_name);
 
 		//keep the message if we allowed its name so long as one of its other names hasn't been blacklisted
 		if(!have_positive && !mMessageLogFilter.mPositiveNames.empty())
@@ -788,11 +785,11 @@ void LLFloaterMessageLog::stopApplyingFilter(bool quitting)
 {
 	if(mMessageLogFilterApply)
 	{
-			mMessageLogFilterApply->cancel();
+		mMessageLogFilterApply->cancel();
 
 		if(!quitting)
 		{
-		childSetVisible("message_log", true);
+			childSetVisible("message_log", true);
 			childSetText("log_status_text", llformat("Showing %d messages from %d", mFloaterMessageLogItems.size(), mMessagesLogged));
 		}
 	}

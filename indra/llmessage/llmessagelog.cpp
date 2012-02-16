@@ -28,13 +28,13 @@ LLMessageLogEntry::LLMessageLogEntry(EType type, const std::string& url, const L
                                      const LLIOPipe::buffer_ptr_t& buffer, const LLSD& headers, U64 request_id,
                                      LLURLRequest::ERequestAction method, U32 status_code)
 :	mType(type),
-      mURL(url),
-      mHeaders(headers),
-      mRequestID(request_id),
-      mMethod(method),
-      mStatusCode(status_code),
-      mDataSize(0),
-      mData(NULL)
+    mURL(url),
+    mHeaders(headers),
+    mRequestID(request_id),
+    mMethod(method),
+    mStatusCode(status_code),
+    mDataSize(0),
+    mData(NULL)
 {
 	if(buffer.get())
 	{
@@ -86,7 +86,11 @@ void LLMessageLog::log(LLHost from_host, LLHost to_host, U8* data, S32 data_size
 	if(!sCallback) return;
 
 	LogPayload payload = new LLMessageLogEntry(LLMessageLogEntry::TEMPLATE, from_host, to_host, data, data_size);
-	if(!payload->mDataSize) return;
+	if(!payload->mDataSize)
+	{
+		delete payload; //delete the payload from memory
+		return;
+	}
 
 	sCallback(payload);
 }
