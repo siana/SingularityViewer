@@ -102,7 +102,6 @@ const std::string PANEL_NAMES[LLFloaterTools::PANEL_COUNT] =
 };
 
 // Local prototypes
-void commit_select_tool(LLUICtrl *ctrl, void *data);
 void commit_select_component(LLUICtrl *ctrl, void *data);
 void click_show_more(void*);
 void click_popup_info(void*);
@@ -123,6 +122,7 @@ void commit_radio_orbit(LLUICtrl *, void*);
 void commit_radio_pan(LLUICtrl *, void*);
 void commit_grid_mode(LLUICtrl *, void*);
 void commit_slider_zoom(LLUICtrl *, void*);
+void commit_select_tool(LLUICtrl *ctrl, void *data);
 
 
 //static
@@ -254,15 +254,15 @@ BOOL	LLFloaterTools::postBuild()
 	mRadioSpin = getChild<LLCheckBoxCtrl>("radio spin");
 	childSetCommitCallback("radio spin",click_popup_grab_spin,NULL);
 	mRadioPosition = getChild<LLCheckBoxCtrl>("radio position");
-	childSetCommitCallback("radio position",commit_select_tool,LLToolCompTranslate::getInstance());
+	childSetCommitCallback("radio position",commit_select_tool,NULL);
 	mRadioRotate = getChild<LLCheckBoxCtrl>("radio rotate");
-	childSetCommitCallback("radio rotate",commit_select_tool,LLToolCompRotate::getInstance());
+	childSetCommitCallback("radio rotate",commit_select_tool,NULL);
 	mRadioStretch = getChild<LLCheckBoxCtrl>("radio stretch");
-	childSetCommitCallback("radio stretch",commit_select_tool,LLToolCompScale::getInstance());
+	childSetCommitCallback("radio stretch",commit_select_tool,NULL);
 	mRadioSelectFace = getChild<LLCheckBoxCtrl>("radio select face");
-	childSetCommitCallback("radio select face",commit_select_tool,LLToolFace::getInstance());
+	childSetCommitCallback("radio select face",commit_select_tool,NULL);
 	mRadioAlign = getChild<LLCheckBoxCtrl>("radio align");
-	childSetCommitCallback("radio align",commit_select_tool,QToolAlign::getInstance());
+	childSetCommitCallback("radio align",commit_select_tool,NULL);
 	mCheckSelectIndividual = getChild<LLCheckBoxCtrl>("checkbox edit linked parts");
 	childSetValue("checkbox edit linked parts",(BOOL)gSavedSettings.getBOOL("EditLinkedParts"));
 	childSetCommitCallback("checkbox edit linked parts",commit_select_component,this);
@@ -307,7 +307,7 @@ BOOL	LLFloaterTools::postBuild()
 	mCheckCopyRotates = getChild<LLCheckBoxCtrl>("checkbox copy rotates");
 	childSetValue("checkbox copy rotates",(BOOL)gSavedSettings.getBOOL("CreateToolCopyRotates"));
 	mRadioSelectLand = getChild<LLCheckBoxCtrl>("radio select land");
-	childSetCommitCallback("radio select land",commit_select_tool, LLToolSelectLand::getInstance());
+	childSetCommitCallback("radio select land",commit_select_tool, NULL);
 	mRadioDozerFlatten = getChild<LLCheckBoxCtrl>("radio flatten");
 	childSetCommitCallback("radio flatten",click_popup_dozer_mode,  (void*)0);
 	mRadioDozerRaise = getChild<LLCheckBoxCtrl>("radio raise");
@@ -997,7 +997,33 @@ void click_apply_to_selection(void* user)
 void commit_select_tool(LLUICtrl *ctrl, void *data)
 {
 	S32 show_owners = gSavedSettings.getBOOL("ShowParcelOwners");
-	gFloaterTools->setEditTool(data);
+
+	LLCheckBoxCtrl* group = (LLCheckBoxCtrl*)ctrl;
+	std::string selected = group->getName();
+	if (selected == "radio position")
+	{
+		LLFloaterTools::setEditTool( LLToolCompTranslate::getInstance() );
+	}
+	else if (selected == "radio rotate")
+	{
+		LLFloaterTools::setEditTool( LLToolCompRotate::getInstance() );
+	}
+	else if (selected == "radio stretch")
+	{
+		LLFloaterTools::setEditTool( LLToolCompScale::getInstance() );
+	}
+	else if (selected == "radio select face")
+	{
+		LLFloaterTools::setEditTool( LLToolFace::getInstance() );
+	}
+	else if (selected == "radio align")
+	{
+		LLFloaterTools::setEditTool( QToolAlign::getInstance() );
+	}
+	else if (selected == "radio select land")
+	{
+		LLFloaterTools::setEditTool( LLToolSelectLand::getInstance());
+	}
 	gSavedSettings.setBOOL("ShowParcelOwners", show_owners);
 }
 
@@ -1051,7 +1077,8 @@ void LLFloaterTools::onClickGridOptions(void* data)
 
 void LLFloaterTools::setEditTool(void* tool_pointer)
 {
-	select_tool(tool_pointer);
+	LLTool *tool = (LLTool *)tool_pointer;
+	LLToolMgr::getInstance()->getCurrentToolset()->selectTool( tool );
 }
 
 void LLFloaterTools::onFocusReceived()

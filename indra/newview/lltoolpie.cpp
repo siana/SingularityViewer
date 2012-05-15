@@ -75,7 +75,7 @@
 #include "rlvhandler.h"
 // [/RLVa:KB]
 
-extern void handle_buy(void*);
+extern void handle_buy();
 
 extern BOOL gDebugClicks;
 
@@ -627,7 +627,7 @@ void LLToolPie::selectionPropertiesReceived()
 			switch (click_action)
 			{
 			case CLICK_ACTION_BUY:
-				handle_buy(NULL);
+				handle_buy();
 				break;
 			case CLICK_ACTION_PAY:
 				handle_give_money_dialog();

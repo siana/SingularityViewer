@@ -2,31 +2,25 @@
  * @file lltextureview.cpp
  * @brief LLTextureView class implementation
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -44,16 +38,21 @@
 #include "llrender.h"
 
 #include "llappviewer.h"
-#include "llhoverview.h"
 #include "llselectmgr.h"
 #include "lltexlayer.h"
 #include "lltexturecache.h"
 #include "lltexturefetch.h"
 #include "llviewercontrol.h"
 #include "llviewerobject.h"
+#include "llviewertexture.h"
 #include "llviewertexturelist.h"
 #include "llvovolume.h"
 #include "llviewerstats.h"
+
+// For avatar texture view
+#include "llvoavatarself.h"
+#include "lltexlayer.h"
+
 extern F32 texmem_lower_bound_scale;
 
 LLTextureView *gTextureView = NULL;
@@ -61,6 +60,7 @@ LLTextureSizeView *gTextureSizeView = NULL;
 LLTextureSizeView *gTextureCategoryView = NULL;
 
 #define HIGH_PRIORITY 100000000.f
+
 //static
 std::set<LLViewerFetchedTexture*> LLTextureView::sDebugImages;
 
@@ -381,6 +381,98 @@ LLRect LLTextureBar::getRequiredRect()
 
 ////////////////////////////////////////////////////////////////////////////
 
+class LLAvatarTexBar : public LLView
+{
+public:
+
+	LLAvatarTexBar(const std::string& name, LLTextureView* texview)
+	:	LLView(name, FALSE),
+		mTextureView(texview)
+	{
+		S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
+		setRect(LLRect(0,0,100,line_height * 4));
+	}
+
+	virtual void draw();	
+	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask);
+	virtual LLRect getRequiredRect();	// Return the height of this object, given the set options.
+
+private:
+	LLTextureView* mTextureView;
+};
+
+void LLAvatarTexBar::draw()
+{	
+	if (!gSavedSettings.getBOOL("DebugAvatarRezTime")) return;
+
+	LLVOAvatarSelf* avatarp = gAgentAvatarp;
+	if (!avatarp) return;
+
+	const S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
+	const S32 v_offset = 0;
+	const S32 l_offset = 3;
+
+	//----------------------------------------------------------------------------
+	LLGLSUIDefault gls_ui;
+	LLColor4 color;
+	
+	U32 line_num = 1;
+	for (LLVOAvatarDefines::LLVOAvatarDictionary::BakedTextures::const_iterator baked_iter = LLVOAvatarDefines::LLVOAvatarDictionary::getInstance()->getBakedTextures().begin();
+		 baked_iter != LLVOAvatarDefines::LLVOAvatarDictionary::getInstance()->getBakedTextures().end();
+		 ++baked_iter)
+	{
+		const LLVOAvatarDefines::EBakedTextureIndex baked_index = baked_iter->first;
+		const LLTexLayerSet *layerset = avatarp->debugGetLayerSet(baked_index);
+		if (!layerset) continue;
+		const LLTexLayerSetBuffer *layerset_buffer = layerset->getComposite();
+		if (!layerset_buffer) continue;
+
+		LLColor4 text_color = LLColor4::white;
+		
+		if (layerset_buffer->uploadNeeded())
+		{
+			text_color = LLColor4::red;
+		}
+ 		if (layerset_buffer->uploadInProgress())
+		{
+			text_color = LLColor4::magenta;
+		}
+		std::string text = layerset_buffer->dumpTextureInfo();
+		LLFontGL::getFontMonospace()->renderUTF8(text, 0, l_offset, v_offset + line_height*line_num,
+												 text_color, LLFontGL::LEFT, LLFontGL::TOP); //, LLFontGL::BOLD, LLFontGL::DROP_SHADOW_SOFT);
+		line_num++;
+	}
+	const U32 texture_timeout = gSavedSettings.getU32("AvatarBakedTextureUploadTimeout");
+	const U32 override_tex_discard_level = gSavedSettings.getU32("TextureDiscardLevel");
+	
+	LLColor4 header_color(1.f, 1.f, 1.f, 0.9f);
+
+	const std::string texture_timeout_str = texture_timeout ? llformat("%d",texture_timeout) : "Disabled";
+	const std::string override_tex_discard_level_str = override_tex_discard_level ? llformat("%d",override_tex_discard_level) : "Disabled";
+	std::string header_text = llformat("[ Timeout('AvatarBakedTextureUploadTimeout'):%s ] [ LOD_Override('TextureDiscardLevel'):%s ]", texture_timeout_str.c_str(), override_tex_discard_level_str.c_str());
+	LLFontGL::getFontMonospace()->renderUTF8(header_text, 0, l_offset, v_offset + line_height*line_num,
+											 header_color, LLFontGL::LEFT, LLFontGL::TOP); //, LLFontGL::BOLD, LLFontGL::DROP_SHADOW_SOFT);
+	line_num++;
+	std::string section_text = "Avatar Textures Information:";
+	LLFontGL::getFontMonospace()->renderUTF8(section_text, 0, 0, v_offset + line_height*line_num,
+											 header_color, LLFontGL::LEFT, LLFontGL::TOP, LLFontGL::BOLD, LLFontGL::DROP_SHADOW_SOFT);
+}
+
+BOOL LLAvatarTexBar::handleMouseDown(S32 x, S32 y, MASK mask)
+{
+	return FALSE;
+}
+
+LLRect LLAvatarTexBar::getRequiredRect()
+{
+	LLRect rect;
+	rect.mTop = 100;
+	if (!gSavedSettings.getBOOL("DebugAvatarRezTime")) rect.mTop = 0;
+	return rect;
+}
+
+////////////////////////////////////////////////////////////////////////////
+
 class LLGLTexMemBar : public LLView
 {
 public:
@@ -410,38 +502,39 @@ void LLGLTexMemBar::draw()
 	F32 cache_usage = (F32)BYTES_TO_MEGA_BYTES(LLAppViewer::getTextureCache()->getUsage()) ;
 	F32 cache_max_usage = (F32)BYTES_TO_MEGA_BYTES(LLAppViewer::getTextureCache()->getMaxUsage()) ;
 	S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
+	S32 v_offset = 0;
 	F32 total_texture_downloaded = (F32)gTotalTextureBytes / (1024 * 1024);
 	F32 total_object_downloaded = (F32)gTotalObjectBytes / (1024 * 1024);
-// 	U32 cache_max_entries = LLAppViewer::getTextureCache()->getMaxEntries();
-	
+	U32 total_http_requests = LLAppViewer::getTextureFetch()->getTotalNumHTTPRequests() ;
 	//----------------------------------------------------------------------------
 	LLGLSUIDefault gls_ui;
 	LLColor4 text_color(1.f, 1.f, 1.f, 0.75f);
 	LLColor4 color;
 	
-	std::string text;
-
+	std::string text = "";
+	
 	S32 global_raw_memory;
 	{
 		global_raw_memory = *AIAccess<S32>(LLImageRaw::sGlobalRawMemory);
 	}
-	text = llformat("GL Tot: %d/%d MB Bound: %d/%d MB Raw Tot: %d MB Bias: %.2f Cache: %.1f/%.1f MB Net Tot Tex: %.1f MB Tot Obj: %.1f MB",
+	text = llformat("GL Tot: %d/%d MB Bound: %d/%d MB FBO: %d MB Raw Tot: %d MB Bias: %.2f Cache: %.1f/%.1f MB Net Tot Tex: %.1f MB Tot Obj: %.1f MB Tot Htp: %d",
 					total_mem,
 					max_total_mem,
 					bound_mem,
 					max_bound_mem,
+					LLRenderTarget::sBytesAllocated/(1024*1024),
 					global_raw_memory >> 20,	discard_bias,
-					cache_usage, cache_max_usage, total_texture_downloaded, total_object_downloaded);
+					cache_usage, cache_max_usage, total_texture_downloaded, total_object_downloaded, total_http_requests);
 	//, cache_entries, cache_max_entries
 
-	LLFontGL::getFontMonospace()->renderUTF8(text, 0, 0, line_height*3,
+	LLFontGL::getFontMonospace()->renderUTF8(text, 0, 0, v_offset + line_height*3,
 											 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
 	//----------------------------------------------------------------------------
 #if 0
 	S32 bar_left = 400;
 	S32 bar_width = 200;
-	S32 top = line_height*3 - 2;
+	S32 top = line_height*3 - 2 + v_offset;
 	S32 bottom = top - 6;
 	S32 left = bar_left;
 	S32 right = left + bar_width;
@@ -469,7 +562,7 @@ void LLGLTexMemBar::draw()
 	color = (total_mem < llfloor(max_total_mem * texmem_lower_bound_scale)) ? LLColor4::green :
 		  	(total_mem < max_total_mem) ? LLColor4::yellow : LLColor4::red;
 	color[VALPHA] = .75f;
-	gGL.diffuseColor4f(color.mV);
+	gGL.diffuseColor4fv(color.mV);
 	
 	gl_rect_2d(left, top, right, bottom); // red/yellow/green
 
@@ -492,7 +585,7 @@ void LLGLTexMemBar::draw()
 	color = (bound_mem < llfloor(max_bound_mem * texmem_lower_bound_scale)) ? LLColor4::green :
 		  	(bound_mem < max_bound_mem) ? LLColor4::yellow : LLColor4::red;
 	color[VALPHA] = .75f;
-	gGL.diffuseColor4f(color.mV);
+	gGL.diffuseColor4fv(color.mV);
 
 	gl_rect_2d(left, top, right, bottom);
 #else
@@ -512,7 +605,7 @@ void LLGLTexMemBar::draw()
 					LLAppViewer::getImageDecodeThread()->getPending(), 
 					gTextureList.mCreateTextureList.size());
 
-	LLFontGL::getFontMonospace()->renderUTF8(text, 0, 0, line_height*2,
+	LLFontGL::getFontMonospace()->renderUTF8(text, 0, 0, v_offset + line_height*2,
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
 	left += LLFontGL::getFontMonospace()->getWidth(text);
@@ -521,40 +614,40 @@ void LLGLTexMemBar::draw()
 	color = bandwidth > max_bandwidth ? LLColor4::red : bandwidth > max_bandwidth*.75f ? LLColor4::yellow : text_color;
 	color[VALPHA] = text_color[VALPHA];
 	text = llformat("BW:%.0f/%.0f",bandwidth, max_bandwidth);
-	LLFontGL::getFontMonospace()->renderUTF8(text, 0, left, line_height*2,
+	LLFontGL::getFontMonospace()->renderUTF8(text, 0, left, v_offset + line_height*2,
 											 color, LLFontGL::LEFT, LLFontGL::TOP);
 	
 	S32 dx1 = 0;
 	if (LLAppViewer::getTextureFetch()->mDebugPause)
 	{
-		LLFontGL::getFontMonospace()->renderUTF8(std::string("!"), 0, title_x1, line_height,
+		LLFontGL::getFontMonospace()->renderUTF8(std::string("!"), 0, title_x1, v_offset + line_height,
 										 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 		dx1 += 8;
 	}
 	if (mTextureView->mFreezeView)
 	{
-		LLFontGL::getFontMonospace()->renderUTF8(std::string("*"), 0, title_x1, line_height,
+		LLFontGL::getFontMonospace()->renderUTF8(std::string("*"), 0, title_x1, v_offset + line_height,
 										 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 		dx1 += 8;
 	}
 	if (mTextureView->mOrderFetch)
 	{
-		LLFontGL::getFontMonospace()->renderUTF8(title_string1b, 0, title_x1+dx1, line_height,
+		LLFontGL::getFontMonospace()->renderUTF8(title_string1b, 0, title_x1+dx1, v_offset + line_height,
 										 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 	}
 	else
 	{	
-		LLFontGL::getFontMonospace()->renderUTF8(title_string1a, 0, title_x1+dx1, line_height,
+		LLFontGL::getFontMonospace()->renderUTF8(title_string1a, 0, title_x1+dx1, v_offset + line_height,
 										 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 	}
 	
-	LLFontGL::getFontMonospace()->renderUTF8(title_string2, 0, title_x2, line_height,
+	LLFontGL::getFontMonospace()->renderUTF8(title_string2, 0, title_x2, v_offset + line_height,
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
-	LLFontGL::getFontMonospace()->renderUTF8(title_string3, 0, title_x3, line_height,
+	LLFontGL::getFontMonospace()->renderUTF8(title_string3, 0, title_x3, v_offset + line_height,
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
-	LLFontGL::getFontMonospace()->renderUTF8(title_string4, 0, title_x4, line_height,
+	LLFontGL::getFontMonospace()->renderUTF8(title_string4, 0, title_x4, v_offset + line_height,
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 }
 
@@ -566,7 +659,7 @@ BOOL LLGLTexMemBar::handleMouseDown(S32 x, S32 y, MASK mask)
 LLRect LLGLTexMemBar::getRequiredRect()
 {
 	LLRect rect;
-	rect.mTop = 8;
+	rect.mTop = 50;
 	return rect;
 }
 
@@ -646,6 +739,7 @@ LLTextureView::LLTextureView(const std::string& name, const LLRect& rect)
 	
 	setDisplayChildren(TRUE);
 	mGLTexMemBar = 0;
+	mAvatarTexBar = 0;
 }
 
 LLTextureView::~LLTextureView()
@@ -653,6 +747,9 @@ LLTextureView::~LLTextureView()
 	// Children all cleaned up by default view destructor.
 	delete mGLTexMemBar;
 	mGLTexMemBar = 0;
+	
+	delete mAvatarTexBar;
+	mAvatarTexBar = 0;
 }
 
 typedef std::pair<F32,LLViewerFetchedTexture*> decode_pair_t;
@@ -664,6 +761,15 @@ struct compare_decode_pair
 	}
 };
 
+struct KillView
+{
+	void operator()(LLView* viewp)
+	{
+		viewp->getParent()->removeChild(viewp);
+		viewp->die();
+	}
+};
+
 void LLTextureView::draw()
 {
 	if (!mFreezeView)
@@ -671,12 +777,23 @@ void LLTextureView::draw()
 // 		LLViewerObject *objectp;
 // 		S32 te;
 
-		for_each(mTextureBars.begin(), mTextureBars.end(), DeletePointer());
+		for_each(mTextureBars.begin(), mTextureBars.end(), KillView());
 		mTextureBars.clear();
-	
-		delete mGLTexMemBar;
-		mGLTexMemBar = 0;
-	
+			
+		if (mGLTexMemBar)
+		{
+			removeChild(mGLTexMemBar);
+			mGLTexMemBar->die();
+			mGLTexMemBar = 0;
+		}
+
+		if (mAvatarTexBar)
+		{
+			removeChild(mAvatarTexBar);
+			mAvatarTexBar->die();
+			mAvatarTexBar = 0;
+		}
+
 		typedef std::multiset<decode_pair_t, compare_decode_pair > display_list_t;
 		display_list_t display_image_list;
 	
@@ -813,6 +930,7 @@ void LLTextureView::draw()
 		
 		static S32 max_count = 50;
 		S32 count = 0;
+		mNumTextureBars = 0 ;
 		for (display_list_t::iterator iter = display_image_list.begin();
 			 iter != display_image_list.end(); iter++)
 		{
@@ -840,6 +958,9 @@ void LLTextureView::draw()
 		mGLTexMemBar = new LLGLTexMemBar("gl texmem bar", this);
 		addChild(mGLTexMemBar);
 	
+		mAvatarTexBar = new LLAvatarTexBar("gl avatartex bar", this);
+		addChild(mAvatarTexBar);
+		
 		reshape(getRect().getWidth(), getRect().getHeight(), TRUE);
 
 		/*
@@ -920,7 +1041,7 @@ BOOL LLTextureView::handleKey(KEY key, MASK mask, BOOL called_from_parent)
 }
 
 //-----------------------------------------------------------------
-LLTextureSizeView::LLTextureSizeView(const std::string& name) : LLView(name, FALSE)
+LLTextureSizeView::LLTextureSizeView(const std::string& name) : LLContainerView(name, LLRect())
 {
 	setVisible(FALSE) ;
 

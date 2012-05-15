@@ -4853,7 +4853,9 @@ void process_sound_trigger(LLMessageSystem *msg, void **)
 	// Don't play sounds from gestures if they are not enabled.
 	if (object_id == owner_id && !gSavedSettings.getBOOL("EnableGestureSounds"))
 	{
-		return;
+		// Don't mute own gestures, if they're not muted.
+		if(owner_id != gAgent.getID() || !gSavedSettings.getBOOL("EnableGestureSoundsSelf"))
+			return;
 	}
 		
 	// <edit>

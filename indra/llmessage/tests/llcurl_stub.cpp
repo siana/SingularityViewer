@@ -77,8 +77,8 @@ void LLCurl::Responder::result(LLSD const&)
 {
 }
 
-namespace boost
-{
+//namespace boost
+//{
 	void intrusive_ptr_add_ref(LLCurl::Responder* p)
 	{
 		++p->mReferenceCount;
@@ -91,5 +91,5 @@ namespace boost
 			delete p;
 		}
 	}
-};
+//};
 

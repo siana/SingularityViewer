@@ -35,8 +35,11 @@
 
 #include "llkeyboard.h"
 
+#include "llmemberlistener.h"
+
 class LLTool;
 class LLToolset;
+class LLView;
 
 // Key bindings for common operations
 const MASK MASK_VERTICAL		= MASK_CONTROL;
@@ -52,14 +55,17 @@ public:
 	LLToolMgr();
 	~LLToolMgr();
 
+	void			initMenu(std::vector<LLPointer<LLMemberListener<LLView> > >& menu_list);
+
 	// Must be called after gSavedSettings set up.
 	void			initTools();
 
 	LLTool*			getCurrentTool(); // returns active tool, taking into account keyboard state
 	LLTool*			getBaseTool(); // returns active tool when overrides are deactivated
 
-	BOOL			inEdit();
+	bool			inEdit();
 	bool			canEdit();
+	void			toggleBuildMode();
 	
 	/* Determines if we are in Build mode or not. */
 	bool			inBuildMode();
@@ -117,10 +123,6 @@ protected:
 	typedef std::vector<LLTool*> tool_list_t;
 	tool_list_t 	mToolList;
 };
-
-// Handy callbacks for switching tools
-void select_tool(void *tool);
-
 
 // Globals
 

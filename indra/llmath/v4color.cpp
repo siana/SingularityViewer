@@ -704,9 +704,9 @@ BOOL LLColor4::parseColor(const std::string& buf, LLColor4* color)
 		{
 			color->set(LLColor4::orange6);
 		}
-		else if ( "clear" == color_name )
+		else if ( "clear" == color_name || "transparent" == color_name )
 		{
-			color->set(0.f, 0.f, 0.f, 0.f);
+			color->set(LLColor4::transparent);
 		}
 		else
 		{

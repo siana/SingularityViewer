@@ -487,10 +487,34 @@ void LLScriptLibrary::init()
 	addFunction(10.f, 0.f, dummy_func, "llSetContentType", NULL, "ki");
 	addFunction(10.f, 0.f, dummy_func, "llLinkSitTarget", NULL, "ivr");
 	addFunction(10.f, 0.f, dummy_func, "llAvatarOnLinkSitTarget", "k", "i");
-	/* No info on these new functions yet....
-	 * addFunction(10.f, 0.f, dummy_func, "llSetVelocity", "", "");
-	 * addFunction(10.f, 0.f, dummy_func, "llSetRotationalVelocity", "", "");
-	 */
+	addFunction(10.f, 0.f, dummy_func, "llGetMassMKS", "f", NULL);
+	addFunction(10.f, 0.f, dummy_func, "llGetMemoryLimit", "i", NULL);
+	addFunction(10.f, 0.f, dummy_func, "llGetParcelMusicURL", "s", NULL);
+	addFunction(10.f, 0.f, dummy_func, "llGetPhysicsMaterial", "l", NULL);
+	addFunction(10.f, 0.f, dummy_func, "llManageEstateAccess", "i", "ik");
+	addFunction(10.f, 0.f, dummy_func, "llSetAngularVelocity", NULL, "vi");
+	addFunction(10.f, 0.f, dummy_func, "llSetKeyframedMotion", NULL, "ll");
+	addFunction(10.f, 0.f, dummy_func, "llSetPhysicsMaterial", NULL, "iffff");
+	addFunction(10.f, 0.f, dummy_func, "llSetRegionPos", "i", "v");
+	addFunction(10.f, 0.f, dummy_func, "llSetVelocity", NULL, "vi");
+	addFunction(10.f, 0.f, dummy_func, "llTransferLindenDollars", "k", "ki");
+
+
+	//Pathfinder functions. Current state: alpha, thus subject to change.
+	//This and the preceding line are to be removed in future revisions of this file.
+	addFunction(10.f, 0.f, dummy_func, "llCreateCharacter", NULL, "l");
+	addFunction(10.f, 0.f, dummy_func, "llDeleteCharacter", NULL, NULL);
+	addFunction(10.f, 0.f, dummy_func, "llEvade", NULL, "kl");
+	addFunction(10.f, 0.f, dummy_func, "llExecCharacterCmd", NULL, "il");
+	addFunction(10.f, 0.f, dummy_func, "llGetClosestNavPoint", "l", "vl");
+	addFunction(10.f, 0.f, dummy_func, "llFleeFrom", NULL, "vfl");
+	addFunction(10.f, 0.f, dummy_func, "llNavigateTo", NULL, "vl");
+	addFunction(10.f, 0.f, dummy_func, "llPatrolPoints", NULL, "ll");
+	addFunction(10.f, 0.f, dummy_func, "llPursue", NULL, "kl");
+	addFunction(10.f, 0.f, dummy_func, "llUpdateCharacter", NULL, "l");
+	addFunction(10.f, 0.f, dummy_func, "llWanderWithin", NULL, "vfl");
+
+
 
 	// REGARDING OSSL FUNCTIONS
 	// These additions should be posted underneath the llFunctions
@@ -623,6 +647,16 @@ void LLScriptLibrary::init()
 	addFunction(10.f, 0.f, dummy_func, "osAgentSaveAppearance", "k", "ks");
 	addFunction(10.f, 0.f, dummy_func, "osNpcGetPos", "v", "k");
 	addFunction(10.f, 0.f, dummy_func, "osNpcStopMoveToTarget", NULL, "k");
+
+	addFunction(10.f, 0.f, dummy_func, "osIsNpc", "i", "k");
+	addFunction(10.f, 0.f, dummy_func, "osNpcGetOwner", "k", "k");
+	addFunction(10.f, 0.f, dummy_func, "osGetGridCustom", "s", "s");
+	addFunction(10.f, 0.f, dummy_func, "osGetGridHomeURI", "s", NULL);
+	addFunction(10.f, 0.f, dummy_func, "osNpcPlayAnimation", NULL, "ks");
+	addFunction(10.f, 0.f, dummy_func, "osNpcSit", NULL, "kki");
+	addFunction(10.f, 0.f, dummy_func, "osNpcStand", NULL, "k");
+	addFunction(10.f, 0.f, dummy_func, "osNpcStopAnimation", NULL, "ks");
+	addFunction(10.f, 0.f, dummy_func, "osSetRot", NULL, "kq");
 
 }
 

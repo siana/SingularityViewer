@@ -42,6 +42,7 @@
 #if LL_DARWIN || LL_LINUX
 // not required or present on Win32
 #include <sys/wait.h>
+#include <unistd.h>
 #endif
 
 LLProcessLauncher::LLProcessLauncher()

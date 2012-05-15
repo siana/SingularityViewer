@@ -416,7 +416,7 @@ public:
 		{	//we have data
 			mData.erase(data);
 			mElementCount = mData.size();
-			notifyRemoval(data);
+			this->notifyRemoval(data);
 			checkAlive();
 			return true;
 		}
@@ -454,7 +454,7 @@ public:
 		{
 			mData.erase(data);
 			mElementCount = mData.size();
-			notifyRemoval(data);
+			this->notifyRemoval(data);
 			llwarns << "FOUND!" << llendl;
 			checkAlive();
 			return;
@@ -663,7 +663,7 @@ public:
 			//(don't notify listeners of addition)
 			for (U32 i = 0; i < child->getChildCount(); i++)
 			{
-				addChild(child->getChild(i), TRUE);
+				this->addChild(child->getChild(i), TRUE);
 			}
 
 			//destroy child
@@ -707,10 +707,10 @@ public:
 			return false;
 		}
 
-		if (this->getSize()[0] > data->getBinRadius() && isInside(data->getPositionGroup()))
+		if (this->getSize()[0] > data->getBinRadius() && this->isInside(data->getPositionGroup()))
 		{
 			//we got it, just act like a branch
-			oct_node* node = getNodeAt(data);
+			oct_node* node = this->getNodeAt(data);
 			if (node == this)
 			{
 				LLOctreeNode<T>::insert(data);
@@ -723,7 +723,7 @@ public:
 		else if (this->getChildCount() == 0)
 		{
 			//first object being added, just wrap it up
-			while (!(this->getSize()[0] > data->getBinRadius() && isInside(data->getPositionGroup())))
+			while (!(this->getSize()[0] > data->getBinRadius() && this->isInside(data->getPositionGroup())))
 			{
 				LLVector4a center, size;
 				center = this->getCenter();
@@ -738,7 +738,7 @@ public:
 		}
 		else
 		{
-			while (!(this->getSize()[0] > data->getBinRadius() && isInside(data->getPositionGroup())))
+			while (!(this->getSize()[0] > data->getBinRadius() && this->isInside(data->getPositionGroup())))
 			{
 				//the data is outside the root node, we need to grow
 				LLVector4a center(this->getCenter());
@@ -764,7 +764,7 @@ public:
 
 				//clear our children and add the root copy
 				this->clearChildren();
-				addChild(newnode);
+				this->addChild(newnode);
 			}
 
 			//insert the data

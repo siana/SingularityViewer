@@ -51,10 +51,18 @@
 #include "lltoolselectland.h"
 #include "lltoolobjpicker.h"
 #include "lltoolpipette.h"
-#include "llviewerparcelmgr.h"
 #include "llagent.h"
 #include "llagentcamera.h"
 #include "llviewercontrol.h"
+#include "llmemberlistener.h"
+#include "llevent.h"
+#include "llviewerjoystick.h"
+#include "llviewermenu.h"
+#include "llviewerparcelmgr.h"
+#include "llfirstuse.h"
+#include "llfloatertools.h"
+
+#include "rlvhandler.h"
 
 
 // Used when app not active to avoid processing hover.
@@ -68,6 +76,24 @@ LLToolset*		gFaceEditToolset	= NULL;
 
 /////////////////////////////////////////////////////
 // LLToolMgr
+
+class LLViewBuildMode : public LLMemberListener<LLView>
+{
+	bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+	{
+		LLToolMgr::getInstance()->toggleBuildMode();
+		return true;
+	}
+};
+class LLViewCheckBuildMode : public LLMemberListener<LLView>
+{
+	bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+	{
+		bool new_value = LLToolMgr::getInstance()->inEdit();
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		return true;
+	}
+};
 
 LLToolMgr::LLToolMgr()
 	:
@@ -86,6 +112,14 @@ LLToolMgr::LLToolMgr()
 //	gLandToolset		= new LLToolset("Land");
 	gMouselookToolset	= new LLToolset("MouseLook");
 	gFaceEditToolset	= new LLToolset("FaceEdit");
+}
+
+void LLToolMgr::initMenu(std::vector<LLPointer<LLMemberListener<LLView> > >& menu_list)
+{
+	menu_list.push_back(new LLViewBuildMode());
+	menu_list.back()->registerListener(gMenuHolder, "View.BuildMode");
+	menu_list.push_back(new LLViewCheckBuildMode());
+	menu_list.back()->registerListener(gMenuHolder, "View.CheckBuildMode");
 }
 
 void LLToolMgr::initTools()
@@ -236,7 +270,7 @@ void LLToolMgr::updateToolStatus()
 	getCurrentTool();
 }
 
-BOOL LLToolMgr::inEdit()
+bool LLToolMgr::inEdit()
 {
 	return mBaseTool != LLToolPie::getInstance() && mBaseTool != gToolNull;
 }
@@ -244,6 +278,77 @@ BOOL LLToolMgr::inEdit()
 bool LLToolMgr::canEdit()
 {
 	return LLViewerParcelMgr::getInstance()->allowAgentBuild();
+}
+
+void LLToolMgr::toggleBuildMode()
+{
+	if (!inBuildMode())
+	{
+		ECameraMode camMode = gAgentCamera.getCameraMode();
+		if (CAMERA_MODE_MOUSELOOK == camMode ||	CAMERA_MODE_CUSTOMIZE_AVATAR == camMode)
+		{
+			// pull the user out of mouselook or appearance mode when entering build mode
+			handle_reset_view();
+		}
+
+		if (gSavedSettings.getBOOL("EditCameraMovement"))
+		{
+			// camera should be set
+			if (LLViewerJoystick::getInstance()->getOverrideCamera())
+			{
+				handle_toggle_flycam();
+			}
+				
+			if (gAgentCamera.getFocusOnAvatar())
+			{
+				// zoom in if we're looking at the avatar
+				gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
+				gAgentCamera.setFocusGlobal(gAgent.getPositionGlobal() + 2.0 * LLVector3d(gAgent.getAtAxis()));
+				gAgentCamera.cameraZoomIn(0.666f);
+				gAgentCamera.cameraOrbitOver( 30.f * DEG_TO_RAD );
+			}
+		}
+
+// [RLVa:KB] - Checked: 2009-07-05 (RLVa-1.0.0b)
+		bool fRlvCanEdit = (!gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ));
+		if (!fRlvCanEdit)
+		{
+			LLObjectSelectionHandle hSel = LLSelectMgr::getInstance()->getSelection();
+			RlvSelectIsEditable f;
+			if ((hSel.notNull()) && ((hSel->getFirstRootNode(&f, TRUE)) != NULL))
+				LLSelectMgr::getInstance()->deselectAll();
+		}
+// [/RLVa:KB]
+
+		setCurrentToolset(gBasicToolset);
+		getCurrentToolset()->selectTool( LLToolCompCreate::getInstance() );
+
+		// Could be first use
+		LLFirstUse::useBuild();
+
+		gAgentCamera.resetView(false);
+
+		// avoid spurious avatar movements
+		LLViewerJoystick::getInstance()->setNeedsReset();
+
+	}
+	else
+	{
+		if (gSavedSettings.getBOOL("EditCameraMovement"))
+		{
+			// just reset the view, will pull us out of edit mode
+			handle_reset_view();
+		}
+		else
+		{
+			// manually disable edit mode, but do not affect the camera
+			gAgentCamera.resetView(false);
+			gFloaterTools->close();
+			gViewerWindow->showCursor();			
+		}
+		// avoid spurious avatar movements pulling out of edit mode
+		LLViewerJoystick::getInstance()->setNeedsReset();
+	}
 }
 bool LLToolMgr::inBuildMode()
 {
@@ -407,10 +512,4 @@ void LLToolset::selectPrevTool()
 	{
 		selectToolByIndex((S32)mToolList.size()-1);
 	}
-}
-
-void select_tool( void *tool_pointer )
-{
-	LLTool *tool = (LLTool *)tool_pointer;
-	LLToolMgr::getInstance()->getCurrentToolset()->selectTool( tool );
 }

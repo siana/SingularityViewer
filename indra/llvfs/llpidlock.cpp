@@ -54,6 +54,7 @@ static bool isProcessAlive(U32 pid)
 }
 
 #else   //Everyone Else
+#include <unistd.h>
 
 static U32 getPID() {
 	return getpid();

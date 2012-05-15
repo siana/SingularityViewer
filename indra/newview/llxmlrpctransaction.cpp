@@ -469,7 +469,7 @@ void LLXMLRPCTransaction::Impl::setCurlStatus(CURLcode code)
 		case CURLE_SSL_CACERT:
 		case CURLE_SSL_CONNECT_ERROR:
 			message =
-				"Often this means that your computer\'s clock is set incorrectly.\n"
+				"Often this means that your computer's clock is set incorrectly.\n"
 				"Please go to Control Panels and make sure the time and date\n"
 				"are set correctly.\n"
 				"\n"

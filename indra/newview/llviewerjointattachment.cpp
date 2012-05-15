@@ -164,6 +164,7 @@ BOOL LLViewerJointAttachment::addObject(LLViewerObject* object)
 	if (isObjectAttached(object))
 	{
 		llinfos << "(same object re-attached)" << llendl;
+		LL_INFOS("Attachment") << object->getID() << " ("<<object->getAttachmentPointName()<<") OBJECT re-attached" << llendl;
 		removeObject(object);
 		// Pass through anyway to let setupDrawable()
 		// re-connect object to the joint correctly
@@ -178,6 +179,7 @@ BOOL LLViewerJointAttachment::addObject(LLViewerObject* object)
 	if (getAttachedObject(object->getAttachmentItemID()))
 	{
 		llinfos << "(same object re-attached)" << llendl;
+		LL_INFOS("Attachment") << object->getID() << " ("<<object->getAttachmentPointName()<<") ITEM re-attached" << llendl;
 		object->markDead();
 
 		// If this happens to be attached to self, then detach.

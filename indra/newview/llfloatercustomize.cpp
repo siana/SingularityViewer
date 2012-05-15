@@ -1154,20 +1154,6 @@ void LLPanelEditWearable::draw()
 				ctrl->set(textureIsInvisible(te));
 			}
 		}
-
-		for (std::map<std::string, S32>::iterator iter = mInvisibilityList.begin();
-			 iter != mInvisibilityList.end(); ++iter)
-		{
-			std::string name = iter->first;
-			ETextureIndex te = (ETextureIndex)iter->second;
-			childSetVisible(name, is_copyable && is_modifiable && is_complete);
-			childSetEnabled(name, is_copyable && is_modifiable && is_complete);
-			LLCheckBoxCtrl* ctrl = getChild<LLCheckBoxCtrl>(name);
-			if (ctrl)
-			{
-				ctrl->set(textureIsInvisible(te));
-			}
-		}
 	}
 	else
 	{
@@ -1318,11 +1304,6 @@ void LLPanelEditWearable::setUIPermissions(U32 perm_mask, BOOL is_complete)
 	{
 		childSetVisible(iter->first, is_copyable && is_modifiable && is_complete);
 	}
-	for (std::map<std::string, S32>::iterator iter = mInvisibilityList.begin();
-		 iter != mInvisibilityList.end(); ++iter)
-	{
-		childSetVisible(iter->first, is_copyable && is_modifiable && is_complete);
-	}
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -1342,15 +1323,9 @@ public:
 	static void			onSliderMoved(LLUICtrl* ctrl, void* userdata);
 	static void			onSliderMouseUp(LLUICtrl* ctrl, void* userdata);
 
-	static void			onHintMinMouseDown(void* userdata);
-	static void			onHintMinHeldDown(void* userdata);
-	static void			onHintMaxMouseDown(void* userdata);
-	static void			onHintMaxHeldDown(void* userdata);
-	static void			onHintMinMouseUp(void* userdata);
-	static void			onHintMaxMouseUp(void* userdata);
-
-	void				onHintMouseDown( LLVisualParamHint* hint );
-	void				onHintHeldDown( LLVisualParamHint* hint );
+	void				onHintMouseUp( bool max );
+	void				onHintMouseDown( bool max );
+	void				onHintHeldDown( bool max );
 
 	F32					weightToPercent( F32 weight );
 	F32					percentToWeight( F32 percent );
@@ -1419,15 +1394,15 @@ LLScrollingPanelParam::LLScrollingPanelParam( const std::string& name,
 		childSetValue("min param text", min_name);
 		childSetValue("max param text", max_name);
 		mLess = getChild<LLButton>("less");
-		mLess->setMouseDownCallback( boost::bind(&LLScrollingPanelParam::onHintMinMouseDown, this) );
-		mLess->setMouseUpCallback( boost::bind(LLScrollingPanelParam::onHintMinMouseUp, this) );
-		mLess->setHeldDownCallback( boost::bind(LLScrollingPanelParam::onHintMinHeldDown, this) );
+		mLess->setMouseDownCallback( boost::bind(&LLScrollingPanelParam::onHintMouseDown, this, false) );
+		mLess->setMouseUpCallback( boost::bind(&LLScrollingPanelParam::onHintMouseUp, this, false) );
+		mLess->setHeldDownCallback( boost::bind(&LLScrollingPanelParam::onHintHeldDown, this, false) );
 		mLess->setHeldDownDelay( PARAM_STEP_TIME_THRESHOLD );
 
 		mMore = getChild<LLButton>("more");
-		mMore->setMouseDownCallback( boost::bind(LLScrollingPanelParam::onHintMaxMouseDown, this) );
-		mMore->setMouseUpCallback( boost::bind(LLScrollingPanelParam::onHintMaxMouseUp, this) );
-		mMore->setHeldDownCallback( boost::bind(LLScrollingPanelParam::onHintMaxHeldDown, this) );
+		mMore->setMouseDownCallback( boost::bind(&LLScrollingPanelParam::onHintMouseDown, this, true) );
+		mMore->setMouseUpCallback( boost::bind(&LLScrollingPanelParam::onHintMouseUp, this, true) );
+		mMore->setHeldDownCallback( boost::bind(&LLScrollingPanelParam::onHintHeldDown, this, true) );
 		mMore->setHeldDownDelay( PARAM_STEP_TIME_THRESHOLD );
 	}
 	else
@@ -1603,23 +1578,9 @@ void LLScrollingPanelParam::onSliderMouseUp(LLUICtrl* ctrl, void* userdata)
 	LLVisualParamHint::requestHintUpdates( self->mHintMin, self->mHintMax );
 }
 
-// static
-void LLScrollingPanelParam::onHintMinMouseDown( void* userdata )
+void LLScrollingPanelParam::onHintMouseDown( bool max )
 {
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-	self->onHintMouseDown( self->mHintMin );
-}
-
-// static
-void LLScrollingPanelParam::onHintMaxMouseDown( void* userdata )
-{
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-	self->onHintMouseDown( self->mHintMax );
-}
-
-
-void LLScrollingPanelParam::onHintMouseDown( LLVisualParamHint* hint )
-{
+	LLVisualParamHint* hint = max ? mHintMax : mHintMin;
 	// morph towards this result
 	F32 current_weight = gAgentAvatarp->getVisualParamWeight( hint->getVisualParam() );
 
@@ -1630,23 +1591,10 @@ void LLScrollingPanelParam::onHintMouseDown( LLVisualParamHint* hint )
 		mLastHeldTime = 0.f;
 	}
 }
-
-// static
-void LLScrollingPanelParam::onHintMinHeldDown( void* userdata )
-{
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-	self->onHintHeldDown( self->mHintMin );
-}
-
-// static
-void LLScrollingPanelParam::onHintMaxHeldDown( void* userdata )
-{
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-	self->onHintHeldDown( self->mHintMax );
-}
 	
-void LLScrollingPanelParam::onHintHeldDown( LLVisualParamHint* hint )
+void LLScrollingPanelParam::onHintHeldDown( bool max )
 {
+	LLVisualParamHint* hint = max ? mHintMax : mHintMin;
 	LLViewerVisualParam* param = hint->getVisualParam();
 
 	LLWearable* wearable = gAgentWearables.getWearable((LLWearableType::EType)param->getWearableType(),0);	// TODO: MULTI-WEARABLE
@@ -1691,59 +1639,14 @@ void LLScrollingPanelParam::onHintHeldDown( LLVisualParamHint* hint )
 	}
 }
 
-// static
-void LLScrollingPanelParam::onHintMinMouseUp( void* userdata )
+void LLScrollingPanelParam::onHintMouseUp( bool max )
 {
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-
-	F32 elapsed_time = self->mMouseDownTimer.getElapsedTimeF32();
+	F32 elapsed_time = mMouseDownTimer.getElapsedTimeF32();
 
 	LLVOAvatar* avatar = gAgentAvatarp;
 	if (avatar)
 	{
-		LLVisualParamHint* hint = self->mHintMin;
-
-		if (elapsed_time < PARAM_STEP_TIME_THRESHOLD)
-		{
-			LLViewerVisualParam* param = hint->getVisualParam();
-
-			LLWearable* wearable = gAgentWearables.getWearable((LLWearableType::EType)param->getWearableType(),0);	// TODO: MULTI-WEARABLE
-			if(wearable)
-			{
-				// step in direction
-				F32 current_weight = wearable->getVisualParamWeight( param->getID() );
-				F32 range = self->mHintMax->getVisualParamWeight() - self->mHintMin->getVisualParamWeight();
-				// step a fraction in the negative direction
-				F32 new_weight = current_weight - (range / 10.f);
-				F32 new_percent = self->weightToPercent(new_weight);
-				LLSliderCtrl* slider = self->getChild<LLSliderCtrl>("param slider");
-				if (slider)
-				{
-					if (slider->getMinValue() < new_percent
-						&& new_percent < slider->getMaxValue())
-					{
-						wearable->setVisualParamWeight(param->getID(), new_weight, TRUE);
-						wearable->writeToAvatar();
-						slider->setValue( self->weightToPercent( new_weight ) );
-					}
-				}
-			}
-		}
-	}
-
-	LLVisualParamHint::requestHintUpdates( self->mHintMin, self->mHintMax );
-}
-
-void LLScrollingPanelParam::onHintMaxMouseUp( void* userdata )
-{
-	LLScrollingPanelParam* self = (LLScrollingPanelParam*) userdata;
-
-	F32 elapsed_time = self->mMouseDownTimer.getElapsedTimeF32();
-
-	LLVOAvatar* avatar = gAgentAvatarp;
-	if (avatar)
-	{
-		LLVisualParamHint* hint = self->mHintMax;
+		LLVisualParamHint* hint			= max ? mHintMax : mHintMin;
 
 		if (elapsed_time < PARAM_STEP_TIME_THRESHOLD)
 		{
@@ -1754,11 +1657,14 @@ void LLScrollingPanelParam::onHintMaxMouseUp( void* userdata )
 			{
 				// step in direction
 				F32 current_weight = wearable->getVisualParamWeight( param->getID() );
-				F32 range = self->mHintMax->getVisualParamWeight() - self->mHintMin->getVisualParamWeight();
+				F32 range = mHintMax->getVisualParamWeight() - mHintMin->getVisualParamWeight();
+				//if min, range should be negative.
+				if(!max)
+					range *= -1.f;
 				// step a fraction in the negative direction
 				F32 new_weight = current_weight + (range / 10.f);
-				F32 new_percent = self->weightToPercent(new_weight);
-				LLSliderCtrl* slider = self->getChild<LLSliderCtrl>("param slider");
+				F32 new_percent = weightToPercent(new_weight);
+				LLSliderCtrl* slider = getChild<LLSliderCtrl>("param slider");
 				if (slider)
 				{
 					if (slider->getMinValue() < new_percent
@@ -1766,14 +1672,14 @@ void LLScrollingPanelParam::onHintMaxMouseUp( void* userdata )
 					{
 						wearable->setVisualParamWeight(param->getID(), new_weight, TRUE);
 						wearable->writeToAvatar();
-						slider->setValue( self->weightToPercent( new_weight ) );
+						slider->setValue( weightToPercent( new_weight ) );
 					}
 				}
 			}
 		}
 	}
 
-	LLVisualParamHint::requestHintUpdates( self->mHintMin, self->mHintMax );
+	LLVisualParamHint::requestHintUpdates( mHintMin, mHintMax );
 }
 
 

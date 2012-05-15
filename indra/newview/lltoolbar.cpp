@@ -537,7 +537,7 @@ void LLToolBar::onClickDirectory(void*)
 // static
 void LLToolBar::onClickBuild(void*)
 {
-	toggle_build_mode();
+	LLToolMgr::getInstance()->toggleBuildMode();
 }
 
 

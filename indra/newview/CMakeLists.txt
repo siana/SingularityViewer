@@ -1352,39 +1352,40 @@ if (OPENAL)
 endif (OPENAL)
 
 if (FMOD OR FMODEX)
-  if(FMODEX)
-	set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMODEX")
-  endif(FMODEX)
-  if(FMOD)
+  if (FMODEX)
+    set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMODEX")
+  endif (FMODEX)
+  if (FMOD)
     set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_FMOD")
-  endif(FMOD)
+  endif (FMOD)
 
-  if (NOT WINDOWS)
+  if (DARWIN)
     set(fmodwrapper_SOURCE_FILES fmodwrapper.cpp)
     add_library(fmodwrapper SHARED ${fmodwrapper_SOURCE_FILES})
-    if(FMOD AND FMODEX)
-		set(fmodwrapper_needed_LIBRARIES "${FMODEX_LIBRARY} ${FMOD_LIBRARY}")
-    else(FMOD AND FMODEX)
-        if(FMODEX)
-            set(fmodwrapper_needed_LIBRARIES ${FMODEX_LIBRARY})
-        endif(FMODEX)
-        if(FMOD)
-            set(fmodwrapper_needed_LIBRARIES "${FMOD_LIBRARY}")
-        endif(FMOD)
-    endif(FMOD AND FMODEX)
-    if (DARWIN)
-      list(APPEND fmodwrapper_needed_LIBRARIES ${CARBON_LIBRARY})
-      set_target_properties(
-        fmodwrapper
-        PROPERTIES
-        BUILD_WITH_INSTALL_RPATH 1
-        INSTALL_NAME_DIR "@executable_path/../Resources"
-        LINK_FLAGS "-unexported_symbols_list \"${CMAKE_CURRENT_SOURCE_DIR}/fmod_hidden_symbols.exp\""
-        )
-    endif (DARWIN)
+    if (FMODEX)
+      set(fmodwrapper_needed_LIBRARIES ${FMODEX_LIBRARY} ${CARBON_LIBRARY})
+    endif (FMODEX)
+    if (FMOD)
+      set(fmodwrapper_needed_LIBRARIES ${FMOD_LIBRARY} ${CARBON_LIBRARY})
+    endif (FMOD)
+    set_target_properties(
+      fmodwrapper
+      PROPERTIES
+      BUILD_WITH_INSTALL_RPATH 1
+      INSTALL_NAME_DIR "@executable_path/../Resources"
+      LINK_FLAGS "-unexported_symbols_list ${CMAKE_CURRENT_SOURCE_DIR}/fmod_hidden_symbols.exp"
+      )
     set(FMODWRAPPER_LIBRARY fmodwrapper)
     target_link_libraries(fmodwrapper ${fmodwrapper_needed_LIBRARIES})
-  endif (NOT WINDOWS)
+  else (DARWIN)
+    # fmodwrapper unnecessary on linux or windows, for fmod and fmodex
+    if (FMODEX)
+       set(FMODWRAPPER_LIBRARY ${FMODEX_LIBRARY})
+    endif (FMODEX)
+    if (FMOD)
+       set(FMODWRAPPER_LIBRARY ${FMOD_LIBRARY})
+    endif (FMOD)
+  endif (DARWIN)
 endif (FMOD OR FMODEX)
 
 set_source_files_properties(llstartup.cpp PROPERTIES COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS}")

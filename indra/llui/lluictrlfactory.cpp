@@ -455,9 +455,11 @@ LLPieMenu *LLUICtrlFactory::buildPieMenu(const std::string &filename, LLView* pa
 //-----------------------------------------------------------------------------
 void LLUICtrlFactory::rebuild()
 {
+	built_panel_t built_panels = mBuiltPanels;
+	mBuiltPanels.clear();
 	built_panel_t::iterator built_panel_it;
-	for (built_panel_it = mBuiltPanels.begin();
-		built_panel_it != mBuiltPanels.end();
+	for (built_panel_it = built_panels.begin();
+		built_panel_it != built_panels.end();
 		++built_panel_it)
 	{
 		std::string filename = built_panel_it->second;

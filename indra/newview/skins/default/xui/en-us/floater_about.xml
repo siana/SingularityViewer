@@ -22,7 +22,7 @@
 			follows="top|left"
 			font="SansSerif"
 			height="343"
-			bg_readonly_color="Transparent"
+			bg_readonly_color="transparent"
 			left="1"
 			max_length="65536"
 			name="support_editor"
@@ -49,7 +49,7 @@
 			<text_editor
 			 enabled="false" 
 			 follows="left|top"
-			 bg_readonly_color="Transparent"
+			 bg_readonly_color="transparent"
 			 left="1"
 			 text_color="LtGray"
 			 max_length="65536"

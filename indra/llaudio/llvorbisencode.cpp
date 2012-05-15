@@ -89,7 +89,7 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 
 	// ********************************
 	LLAPRFile infile ;
-    infile.open(in_fname,LL_APR_RB);
+	infile.open(in_fname,LL_APR_RB);
 	// ********************************
 	if (!infile.getFileHandle())
 	{

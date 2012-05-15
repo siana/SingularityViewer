@@ -824,7 +824,9 @@ LLVOAvatar::LLVOAvatar(const LLUUID& id,
 //------------------------------------------------------------------------
 LLVOAvatar::~LLVOAvatar()
 {
-	if (gSavedSettings.getBOOL("DebugAvatarRezTime"))
+	//App teardown is a mess. Avatar destruction can be unpredictable due to all potential refs to the smartptr.
+	//Cannot guarantee that LLNotificationUtil will be usable during shutdown chain.
+	if (!LLApp::isQuitting() && gSavedSettings.getBOOL("DebugAvatarRezTime"))
 	{
 		if (!mFullyLoaded)
 		{
@@ -6753,10 +6755,19 @@ void LLVOAvatar::addChild(LLViewerObject *childp)
 	LLViewerObject::addChild(childp);
 	if (childp->mDrawable)
 	{
+		if(isSelf())
+		{
+			LL_INFOS("Attachment") << childp->getID() << " ("<<childp->getAttachmentPointName()<<") attached." << llendl;
+			llassert(std::find(mPendingAttachment.begin(), mPendingAttachment.end(), childp) == mPendingAttachment.end());
+		}
 		attachObject(childp);
 	}
 	else
 	{
+		if(isSelf())
+		{
+			LL_INFOS("Attachment") << childp->getID() << " ("<<childp->getAttachmentPointName()<<") pending." << llendl;
+		}
 		mPendingAttachment.push_back(childp);
 	}
 }
@@ -6890,6 +6901,10 @@ void LLVOAvatar::lazyAttach()
 	{
 		if (mPendingAttachment[i]->mDrawable)
 		{
+			if(isSelf())
+			{
+				LL_INFOS("Attachment") << mPendingAttachment[i]->getID() << " ("<<mPendingAttachment[i]->getAttachmentPointName()<<") done pending. attached." << llendl;
+			}
 			attachObject(mPendingAttachment[i]);
 		}
 		else

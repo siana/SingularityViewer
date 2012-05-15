@@ -178,6 +178,7 @@ class AIFilePicker;
 class LLInventoryFVBridgeBuilder
 {
 public:
+	LLInventoryFVBridgeBuilder() {}
  	virtual ~LLInventoryFVBridgeBuilder() {}
 	virtual LLInvFVBridge* createBridge(LLAssetType::EType asset_type,
 										LLAssetType::EType actual_asset_type,
@@ -627,6 +628,7 @@ public:
 class LLRecentInventoryBridgeBuilder : public LLInventoryFVBridgeBuilder
 {
 public:
+	LLRecentInventoryBridgeBuilder(): LLInventoryFVBridgeBuilder() {}
 	// Overrides FolderBridge for Recent Inventory Panel.
 	// It use base functionality for bridges other than FolderBridge.
 	virtual LLInvFVBridge* createBridge(LLAssetType::EType asset_type,

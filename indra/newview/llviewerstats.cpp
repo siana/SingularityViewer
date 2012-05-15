@@ -89,7 +89,7 @@ const StatAttributes STAT_INFO[LLViewerStats::ST_COUNT] =
 	// ST_VERSION
 	StatAttributes("Version", TRUE, FALSE),
 	// ST_AVATAR_EDIT_SECONDS
-	StatAttributes("Seconds in Edit Appearence", FALSE, TRUE),
+	StatAttributes("Seconds in Edit Appearance", FALSE, TRUE),
 	// ST_TOOLBOX_SECONDS
 	StatAttributes("Seconds using Toolbox", FALSE, TRUE),
 	// ST_CHAT_COUNT

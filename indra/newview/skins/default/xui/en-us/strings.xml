@@ -2524,4 +2524,144 @@ Sets value of param property for plugin module.
 (OpenSim only.)
   </string>
   <string name="Unnamed">(Unnamed)</string>
+  <string name="LSLTipText_llGetMassMKS">
+float llGetMassMKS()
+Returns a float that is the mass (in
+Kilograms) of the object that the
+script is attached to.
+  </string>
+  <string name="LSLTipText_llGetMemoryLimit">
+integer llGetMemoryLimit()
+Get the maximum memory a script can use.
+  </string>
+  <string name="LSLTipText_llGetParcelMusicURL">
+string llGetParcelMusicURL()
+Returns a string containing the parcel streaming audio URL.
+The object owner must also be the land owner.
+  </string>
+  <string name="LSLTipText_llGetPhysicsMaterial">
+list llGetPhysicsMaterial()
+Used to get the physical characteristics of an object.
+Returns a list in the form [ float gravity_multiplier, float restitution, float friction, float density ]
+  </string>
+  <string name="LSLTipText_llManageEstateAccess">
+integer llManageEstateAccess(integer action, key avatar)
+Used to add or remove agents from the estate's agent access or ban lists or groups from the estate's group access list.
+  </string>
+  <string name="LSLTipText_llSetAngularVelocity">
+llSetAngularVelocity(vector force, integer local)
+Applies rotational velocity to object.
+  </string>
+  <string name="LSLTipText_llSetKeyframedMotion">
+llSetKeyframedMotion(list keyframes, list options)
+Specify a list of times, positions, and orientations to be followed by an object. The object will be  smoothly moved between keyframes by the simulator.
+  </string>
+  <string name="LSLTipText_llSetPhysicsMaterial">
+llSetPhysicsMaterial(integer material, float gravity,
+float restitution, float friction, float density)
+Used for setting the physical characteristics of an object.
+  </string>
+  <string name="LSLTipText_llSetRegionPos">
+integer llSetRegionPos(vector position)
+Tries to move the entire object so that the root prim is within 0.1m of position
+  </string>
+  <string name="LSLTipText_llSetVelocity">
+llSetVelocity(vector force, integer local)
+Applies velocity to an object
+  </string>
+  <string name="LSLTipText_llTransferLindenDollars">
+key llTransferLindenDollars(key destination, integer amount)
+Transfer amount of L$ money from script owner to destination avatar.
+  </string>
+
+<!-- Pathfinder functions. Current state: alpha -->
+  <string name="LSLTipText_llCreateCharacter">
+llCreateCharacter(list options)
+Creates a pathfinding entity, known as a "character" from the object containing the script.
+  </string>
+  <string name="LSLTipText_llDeleteCharacter">
+llDeleteCharacter()
+Convert the current linkset back to a standard object, removing all pathfinding properties.
+  </string>
+  <string name="LSLTipText_llEvade">
+llEvade(key target, list options)
+Characters will try to hide from their pursuers if there is a good hiding spot along their fleeing path.
+  </string>
+  <string name="LSLTipText_llExecCharacterCmd">
+llExecCharacterCmd(integer command, list options)
+Send a command to the pathing system.
+  </string>
+  <string name="LSLTipText_llGetClosestNavPoint">
+list llGetClosestNavPoint(vector point, list options)
+Finds the closest navpoint and returns a list with a single vector if succesful. Returns empty list when no navpoints found.
+  </string>
+  <string name="LSLTipText_llFleeFrom">
+llFleeFrom(vector source, float distance, list options)
+Tells an object to keep away from a defined position in the region or adjacent regions.
+  </string>
+  <string name="LSLTipText_llNavigateTo">
+llNavigateTo(vector pos, list options)
+Tells an object to travel to a defined position in the region or adjacent regions.
+  </string>
+  <string name="LSLTipText_llPatrolPoints">
+llPatrolPoints(list patrolPoints, list options)
+Sets the object patrolling between the points specified in patrolPoints.
+  </string>
+  <string name="LSLTipText_llPursue">
+llPursue(key target, list options)
+Causes the object to pursue a target.
+  </string>
+  <string name="LSLTipText_llUpdateCharacter">
+llUpdateCharacter(list options)
+Updates settings for a character.
+  </string>
+  <string name="LSLTipText_llWanderWithin">
+llWanderWithin(vector origin, float dist, list options)
+Sets a character to wander about a central spot within a specified radius.
+  </string>
+  <string name="LSLTipText_osIsNpc">
+integer osIsNpc(key npc)
+Returns TRUE if the given key is an NPC, false otherwise.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osNpcGetOwner">
+key osNpcGetOwner(key npc)
+Return the owner key of the given NPC. If the NPC is unowned or the input key does not belong to an NPC then it returns NULL_KEY.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osGetGridCustom">
+string osGetGridCustom(string key)
+Reads configuration strings from the [GridInfo] setion in OpenSim.ini.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osGetGridHomeURI">
+string osGetGridHomeURI()
+Returns the hypergrid URI of the grid where the user logged in.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osNpcPlayAnimation">
+osNpcPlayAnimation(key npc, string animation)
+Get an NPC to play an animation. The animation can either be a key or the name of an animation in the same object as the script.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osNpcSit">
+osNpcSit(key npc, key target, integer options)
+Sit an NPC on a prim target. No options have been implemented yet, so always input 0.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osNpcStand">
+osNpcStand(key npc)
+Make an NPC stand up.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osNpcStopAnimation">
+osNpcStopAnimation(key npc, string animation)
+Get an NPC to stop playing an animation. The animation can either be a key or the name of an animation in the same inventory as the script.
+(OpenSim only.)
+  </string>
+  <string name="LSLTipText_osSetRot">
+osSetRot(key target, quaternion rotation)
+Rotates an object or avatar.
+(OpenSim only.)
+  </string>
 </strings>

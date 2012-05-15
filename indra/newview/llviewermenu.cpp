@@ -344,7 +344,6 @@ typedef LLMemberListener<LLView> view_listener_t;
 //
 // Local prototypes
 //
-void handle_leave_group(void *);
 
 // File Menu
 void handle_compress_image(void*);
@@ -368,37 +367,34 @@ void handle_region_clear_temp_asset_data(void*);
 BOOL sitting_on_selection();
 
 void near_sit_object();
-void label_sit_or_stand(std::string& label, void*);
+//void label_sit_or_stand(std::string& label, void*);
 // buy and take alias into the same UI positions, so these
 // declarations handle this mess.
 BOOL is_selection_buy_not_take();
 S32 selection_price();
 BOOL enable_take();
 void handle_take();
-bool confirm_take(const LLSD& notification, const LLSD& response);
-BOOL enable_buy(void*); 
-void handle_buy(void *);
+bool confirm_take(const LLSD& notification, const LLSD& response, LLObjectSelectionHandle selection_handle);
+
 void handle_buy_object(LLSaleInfo sale_info);
 void handle_buy_contents(LLSaleInfo sale_info);
-void label_touch(std::string& label, void*);
+
+bool for_sale_selection(LLSelectNode* nodep);
 
 // Land pie menu
 void near_sit_down_point(BOOL success, void *);
 
 // Avatar pie menu
-void handle_follow(void *userdata);
 void handle_talk_to(void *userdata);
 
 // Debug menu
-void show_permissions_control(void*);
-void toggle_build_options(void* user_data);
-void reload_ui(void*);
+
+
 void handle_agent_stop_moving(void*);
 void print_packets_lost(void*);
 void drop_packet(void*);
 void velocity_interpolate( void* data );
 void toggle_wind_audio(void);
-void toggle_water_audio(void);
 void handle_rebake_textures(void*);
 BOOL check_admin_override(void*);
 void handle_admin_override_toggle(void*);
@@ -406,14 +402,6 @@ void handle_admin_override_toggle(void*);
 void handle_toggle_hacked_godmode(void*);
 BOOL check_toggle_hacked_godmode(void*);
 #endif
-
-void toggle_glow(void *);
-BOOL check_glow(void *);
-
-void toggle_vertex_shaders(void *);
-BOOL check_vertex_shaders(void *);
-
-void toggle_cull_small(void *);
 
 void toggle_show_xui_names(void *);
 BOOL check_show_xui_names(void *);
@@ -568,14 +556,8 @@ void handle_crash(void*);
 void handle_dump_followcam(void*);
 void handle_viewer_enable_message_log(void*);
 void handle_viewer_disable_message_log(void*);
-void handle_send_postcard(void*);
-void handle_gestures_old(void*);
-void handle_focus(void *);
+
 BOOL enable_buy_land(void*);
-void handle_move(void*);
-void handle_show_inventory(void*);
-void handle_activate(void*);
-BOOL enable_activate(void*);
 
 // Help menu
 void handle_buy_currency(void*);
@@ -686,6 +668,8 @@ void set_underclothes_menu_options()
 		gMenuBarView->getChild<LLView>("Menu Undershirt", TRUE)->setVisible(FALSE);
 	}
 }
+
+static std::vector<LLPointer<view_listener_t> > sMenus;
 
 void init_menus()
 {
@@ -892,6 +876,7 @@ void init_menus()
 
 	gMenuHolder->addChild(gLoginMenuBarView);
 	
+	LLToolMgr::getInstance()->initMenu(sMenus);
 }
 
 
@@ -900,8 +885,6 @@ void init_client_menu(LLMenuGL* menu)
 {
 	LLMenuGL* sub_menu = NULL;
 
-	//menu->addChild(new LLMenuItemCallGL("Permissions Control", &show_permissions_control));
-	// this is now in the view menu so we don't need it here!
 
 	{
 		// *TODO: Translate
@@ -1544,7 +1527,6 @@ void init_debug_rendering_menu(LLMenuGL* menu)
 
 	menu->addSeparator();
 	menu->addChild(new LLMenuItemCheckGL("Axes", menu_toggle_control, NULL, menu_check_control, (void*)"ShowAxes"));
-	//menu->addChild(new LLMenuItemCheckGL("Cull Small Objects", toggle_cull_small, NULL, menu_check_control, (void*)"RenderCullBySize"));
 
 	menu->addSeparator();
 	menu->addChild(new LLMenuItemCheckGL("Hide Selected", menu_toggle_control, NULL, menu_check_control, (void*)"HideSelectedObjects"));
@@ -1809,8 +1791,6 @@ void init_server_menu(LLMenuGL* menu)
 	menu->createJumpKeys();
 }
 
-static std::vector<LLPointer<view_listener_t> > sMenus;
-
 //-----------------------------------------------------------------------------
 // cleanup_menus()
 //-----------------------------------------------------------------------------
@@ -1968,18 +1948,19 @@ class LLObjectEnableTouch : public view_listener_t
 	}
 };
 
-void label_touch(std::string& label, void*)
-{
-	LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
-	if (node && node->mValid && !node->mTouchName.empty())
-	{
-		label.assign(node->mTouchName);
-	}
-	else
-	{
-		label.assign("Touch");
-	}
-}
+
+//void label_touch(std::string& label, void*)
+//{
+//	LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
+//	if (node && node->mValid && !node->mTouchName.empty())
+//	{
+//		label.assign(node->mTouchName);
+//	}
+//	else
+//	{
+//		label.assign("Touch");
+//	}
+//}
 
 bool handle_object_open()
 {
@@ -2028,95 +2009,7 @@ class LLObjectEnableOpen : public view_listener_t
 };
 
 
-class LLViewCheckBuildMode : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		bool new_value = LLToolMgr::getInstance()->inEdit();
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-		return true;
-	}
-};
 
-bool toggle_build_mode()
-{
-	if (LLToolMgr::getInstance()->inBuildMode())
-	{
-		if (gSavedSettings.getBOOL("EditCameraMovement"))
-		{
-			// just reset the view, will pull us out of edit mode
-			handle_reset_view();
-		}
-		else
-		{
-			// manually disable edit mode, but do not affect the camera
-			gAgentCamera.resetView(false);
-			gFloaterTools->close();
-			gViewerWindow->showCursor();			
-		}
-		// avoid spurious avatar movements pulling out of edit mode
-		LLViewerJoystick::getInstance()->setNeedsReset();
-	}
-	else
-	{
-		ECameraMode camMode = gAgentCamera.getCameraMode();
-		if (CAMERA_MODE_MOUSELOOK == camMode ||	CAMERA_MODE_CUSTOMIZE_AVATAR == camMode)
-		{
-			// pull the user out of mouselook or appearance mode when entering build mode
-			handle_reset_view();
-		}
-
-		if (gSavedSettings.getBOOL("EditCameraMovement"))
-		{
-			// camera should be set
-			if (LLViewerJoystick::getInstance()->getOverrideCamera())
-			{
-				handle_toggle_flycam();
-			}
-				
-			if (gAgentCamera.getFocusOnAvatar())
-			{
-				// zoom in if we're looking at the avatar
-				gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-				gAgentCamera.setFocusGlobal(gAgent.getPositionGlobal() + 2.0 * LLVector3d(gAgent.getAtAxis()));
-				gAgentCamera.cameraZoomIn(0.666f);
-				gAgentCamera.cameraOrbitOver( 30.f * DEG_TO_RAD );
-			}
-		}
-
-// [RLVa:KB] - Checked: 2009-07-05 (RLVa-1.0.0b)
-		bool fRlvCanEdit = (!gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ));
-		if (!fRlvCanEdit)
-		{
-			LLObjectSelectionHandle hSel = LLSelectMgr::getInstance()->getSelection();
-			RlvSelectIsEditable f;
-			if ((hSel.notNull()) && ((hSel->getFirstRootNode(&f, TRUE)) != NULL))
-				LLSelectMgr::getInstance()->deselectAll();
-		}
-// [/RLVa:KB]
-
-		LLToolMgr::getInstance()->setCurrentToolset(gBasicToolset);
-		LLToolMgr::getInstance()->getCurrentToolset()->selectTool( LLToolCompCreate::getInstance() );
-
-		// Could be first use
-		LLFirstUse::useBuild();
-
-		gAgentCamera.resetView(false);
-
-		// avoid spurious avatar movements
-		LLViewerJoystick::getInstance()->setNeedsReset();
-
-	}
-	return true;
-}
-
-class LLViewBuildMode : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		return toggle_build_mode();
-	}
-};
 
 
 class LLViewJoystickFlycam : public view_listener_t
@@ -2517,15 +2410,18 @@ BOOL enable_has_attachments(void*)
 //---------------------------------------------------------------------------
 // Avatar pie menu
 //---------------------------------------------------------------------------
-void handle_follow(void *userdata)
-{
-	// follow a given avatar by ID
-	LLViewerObject* objectp = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-	if (objectp)
-	{
-		gAgent.startFollowPilot(objectp->getID());
-	}
-}
+//---------------------------------------------------------------------------
+// Avatar pie menu
+//---------------------------------------------------------------------------
+//void handle_follow(void *userdata)
+//{
+//	// follow a given avatar by ID
+//	LLViewerObject* objectp = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+//	if (objectp)
+//	{
+//		gAgent.startFollowPilot(objectp->getID());
+//	}
+//}
 
 class LLObjectEnableMute : public view_listener_t
 {
@@ -3415,16 +3311,6 @@ bool callback_leave_group(const LLSD& notification, const LLSD& response)
 	return false;
 }
 
-void handle_leave_group(void *)
-{
-	if (gAgent.getGroupID() != LLUUID::null)
-	{
-		LLSD args;
-		args["GROUP"] = gAgent.getGroupName();
-		LLNotificationsUtil::add("GroupLeaveConfirmMember", args, LLSD(), callback_leave_group);
-	}
-}
-
 void append_aggregate(std::string& string, const LLAggregatePermissions& ag_perm, PermissionBit bit, const char* txt)
 {
 	LLAggregatePermissions::EValue val = ag_perm.getValue(bit);
@@ -3447,32 +3333,35 @@ void append_aggregate(std::string& string, const LLAggregatePermissions& ag_perm
 	string.append(buffer);
 }
 
-BOOL enable_buy(void*)
+bool enable_buy_object()
 {
     // In order to buy, there must only be 1 purchaseable object in
     // the selection manger.
-	if(LLSelectMgr::getInstance()->getSelection()->getRootObjectCount() != 1) return FALSE;
+	if(LLSelectMgr::getInstance()->getSelection()->getRootObjectCount() != 1) return false;
     LLViewerObject* obj = NULL;
     LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
 	if(node)
     {
         obj = node->getObject();
-        if(!obj) return FALSE;
+        if(!obj) return false;
 
-		if(node->mSaleInfo.isForSale() && node->mPermissions->getMaskOwner() & PERM_TRANSFER &&
-			(node->mPermissions->getMaskOwner() & PERM_COPY || node->mSaleInfo.getSaleType() != LLSaleInfo::FS_COPY))
+		if( for_sale_selection(node) )
 		{
-			if(obj->permAnyOwner()) return TRUE;
+			// *NOTE: Is this needed?  This checks to see if anyone owns the
+			// object, dating back to when we had "public" objects owned by
+			// no one.  JC
+			if(obj->permAnyOwner()) return true;
 		}
     }
-	return FALSE;
+	return false;
 }
+
 
 class LLObjectEnableBuy : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_value = enable_buy(NULL);
+		bool new_value = enable_buy_object();
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
 		return true;
 	}
@@ -4108,15 +3997,6 @@ class LLLandSit : public view_listener_t
 	}
 };
 
-void show_permissions_control(void*)
-{
-	LLFloaterPermissionsMgr* floaterp = LLFloaterPermissionsMgr::show();
-	floaterp->mPermissions->addPermissionsData("foo1", LLUUID::null, 0);
-	floaterp->mPermissions->addPermissionsData("foo2", LLUUID::null, 0);
-	floaterp->mPermissions->addPermissionsData("foo3", LLUUID::null, 0);
-}
-
-
 class LLCreateLandmarkCallback : public LLInventoryCallback
 {
 public:
@@ -4126,11 +4006,6 @@ public:
 			<< llendl;
 	}
 };
-
-void reload_ui(void *)
-{
-	LLUICtrlFactory::getInstance()->rebuild();
-}
 
 class LLWorldFly : public view_listener_t
 {
@@ -4278,7 +4153,9 @@ void reset_view_final( BOOL proceed )
 		return;
 	}
 
+	gAgentCamera.switchCameraPreset(CAMERA_PRESET_REAR_VIEW);
 	gAgentCamera.resetView(TRUE, TRUE);
+	gAgentCamera.setLookAt(LOOKAT_TARGET_CLEAR);
 }
 
 class LLViewLookAtLastChatter : public view_listener_t
@@ -4994,7 +4871,7 @@ void handle_take()
 
 	LLNotification::Params params("ConfirmObjectTakeLock");
 	params.payload(payload)
-		.functor(confirm_take);
+		.functor(boost::bind(&confirm_take, _1, _2, LLSelectMgr::instance().getSelection()));
 
 	if(locked_but_takeable_object ||
 	   !you_own_everything)
@@ -5021,7 +4898,7 @@ void handle_take()
 	}
 }
 
-bool confirm_take(const LLSD& notification, const LLSD& response)
+bool confirm_take(const LLSD& notification, const LLSD& response, LLObjectSelectionHandle selection_handle)
 {
 	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if(enable_take() && (option == 0))
@@ -5091,7 +4968,7 @@ class LLToolsBuyOrTake : public view_listener_t
 
 			if (total_price <= gStatusBar->getBalance() || total_price == 0)
 			{
-				handle_buy(NULL);
+			handle_buy();
 			}
 			else
 			{
@@ -5112,7 +4989,7 @@ class LLToolsEnableBuyOrTake : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		bool is_buy = is_selection_buy_not_take();
-		bool new_value = is_buy ? enable_buy(NULL) : enable_take();
+		bool new_value = is_buy ? enable_buy_object() : enable_take();
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
 
 		// Update label
@@ -5230,7 +5107,7 @@ void handle_buy_currency(void*)
 //	LLFloaterBuyCurrency::buyCurrency();
 }
 
-void handle_buy(void*)
+void handle_buy()
 {
 	if (LLSelectMgr::getInstance()->getSelection()->isEmpty()) return;
 
@@ -5252,10 +5129,25 @@ class LLObjectBuy : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		handle_buy(NULL);
+		handle_buy();
 		return true;
 	}
 };
+
+bool anyone_copy_selection(LLSelectNode* nodep)
+{
+	bool perm_copy = (bool)(nodep->getObject()->permCopy());
+	bool all_copy = (bool)(nodep->mPermissions->getMaskEveryone() & PERM_COPY);
+	return perm_copy && all_copy;
+}
+
+bool for_sale_selection(LLSelectNode* nodep)
+{
+	return nodep->mSaleInfo.isForSale()
+		&& nodep->mPermissions->getMaskOwner() & PERM_TRANSFER
+		&& (nodep->mPermissions->getMaskOwner() & PERM_COPY
+			|| nodep->mSaleInfo.getSaleType() != LLSaleInfo::FS_COPY);
+}
 
 BOOL sitting_on_selection()
 {
@@ -6843,33 +6735,6 @@ class LLShowAgentGroups : public view_listener_t
 		return true;
 	}
 };
-
-void handle_focus(void *)
-{
-	if (gDisconnected)
-	{
-		return;
-	}
-
-	if (gAgentCamera.getFocusOnAvatar())
-	{
-		// zoom in if we're looking at the avatar
-		gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-		gAgentCamera.setFocusGlobal(LLToolPie::getInstance()->getPick());
-		gAgentCamera.cameraZoomIn(0.666f);
-	}
-	else
-	{
-		gAgentCamera.setFocusGlobal(LLToolPie::getInstance()->getPick());
-	}
-
-	gViewerWindow->moveCursorToCenter();
-
-	// Switch to camera toolset
-//	LLToolMgr::getInstance()->setCurrentToolset(gCameraToolset);
-	LLToolMgr::getInstance()->getCurrentToolset()->selectTool( LLToolCamera::getInstance() );
-}
-
 class LLLandEdit : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -6928,26 +6793,6 @@ BOOL enable_buy_land(void*)
 }
 
 
-void handle_move(void*)
-{
-	if (gAgentCamera.getFocusOnAvatar())
-	{
-		// zoom in if we're looking at the avatar
-		gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-		gAgentCamera.setFocusGlobal(LLToolPie::getInstance()->getPick());
-
-		gAgentCamera.cameraZoomIn(0.666f);
-	}
-	else
-	{
-		gAgentCamera.setFocusGlobal(LLToolPie::getInstance()->getPick());
-	}
-
-	gViewerWindow->moveCursorToCenter();
-
-	LLToolMgr::getInstance()->setCurrentToolset(gBasicToolset);
-	LLToolMgr::getInstance()->getCurrentToolset()->selectTool( LLToolGrab::getInstance() );
-}
 
 class LLObjectAttachToAvatar : public view_listener_t
 {
@@ -7557,16 +7402,6 @@ class LLAvatarSendIM : public view_listener_t
 		return true;
 	}
 };
-
-
-void handle_activate(void*)
-{
-}
-
-BOOL enable_activate(void*)
-{
-	return FALSE;
-}
 
 namespace
 {
@@ -8302,19 +8137,6 @@ BOOL enable_god_basic(void*)
 	//return gAgent.getGodLevel() > GOD_NOT;
 }
 
-#if 0 // 1.9.2
-void toggle_vertex_shaders(void *)
-{
-	BOOL use_shaders = gPipeline.getUseVertexShaders();
-	gPipeline.setUseVertexShaders(use_shaders);
-}
-
-BOOL check_vertex_shaders(void *)
-{
-	return gPipeline.getUseVertexShaders();
-}
-#endif
-
 void toggle_show_xui_names(void *)
 {
 	BOOL showXUINames = gSavedSettings.getBOOL("ShowXUINames");
@@ -8326,15 +8148,6 @@ void toggle_show_xui_names(void *)
 BOOL check_show_xui_names(void *)
 {
 	return gSavedSettings.getBOOL("ShowXUINames");
-}
-
-
-
-void toggle_cull_small(void *)
-{
-//	gPipeline.mCullBySize = !gPipeline.mCullBySize;
-//
-//	gSavedSettings.setBOOL("RenderCullBySize", gPipeline.mCullBySize);
 }
 
 class LLToolsSelectOnlyMyObjects : public view_listener_t
@@ -9254,7 +9067,7 @@ class LLEditTakeOff : public view_listener_t
 				&& (gAgentWearables.getWearableCount(type) > 0))
 			{
 				// MULTI-WEARABLES: assuming user wanted to remove top shirt.
-				U32 wearable_index = gAgentWearables.getWearableCount(type) - 1;
+				S32 wearable_index = gAgentWearables.getWearableCount(type) - 1;
 
 // [RLVa:KB] - Checked: 2010-06-09 (RLVa-1.2.0g) | Added: RLVa-1.2.0g
 				if ( (rlv_handler_t::isEnabled()) && (gRlvWearableLocks.hasLockedWearable(type)) )
@@ -9424,7 +9237,7 @@ class LLWorldDayCycle : public view_listener_t
 	}
 };
 
-static void addMenu(view_listener_t *menu, const std::string& name)
+void addMenu(view_listener_t *menu, const std::string& name)
 {
 	sMenus.push_back(menu);
 	menu->registerListener(gMenuHolder, name);
@@ -9494,7 +9307,6 @@ void initialize_menus()
 
 	// View menu
 	addMenu(new LLViewMouselook(), "View.Mouselook");
-	addMenu(new LLViewBuildMode(), "View.BuildMode");
 	addMenu(new LLViewJoystickFlycam(), "View.JoystickFlycam");
 	addMenu(new LLViewCommunicate(), "View.Communicate");
 	addMenu(new LLViewResetView(), "View.ResetView");
@@ -9514,7 +9326,6 @@ void initialize_menus()
 	addMenu(new LLViewEnableLastChatter(), "View.EnableLastChatter");
 	addMenu(new LLViewToggleRadar(), "View.ToggleAvatarList");
 
-	addMenu(new LLViewCheckBuildMode(), "View.CheckBuildMode");
 	addMenu(new LLViewCheckJoystickFlycam(), "View.CheckJoystickFlycam");
 	addMenu(new LLViewCheckShowHoverTips(), "View.CheckShowHoverTips");
 	addMenu(new LLViewCheckHighlightTransparent(), "View.CheckHighlightTransparent");

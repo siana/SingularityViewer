@@ -128,7 +128,7 @@ LLAgentCamera::LLAgentCamera() :
 	mCameraMode( CAMERA_MODE_THIRD_PERSON ),
 	mLastCameraMode( CAMERA_MODE_THIRD_PERSON ),
 
-	//mCameraPreset(CAMERA_PRESET_REAR_VIEW),
+	mCameraPreset(CAMERA_PRESET_REAR_VIEW),
 
 	mCameraAnimating( FALSE ),
 	mAnimationCameraStartGlobal(),
@@ -141,7 +141,6 @@ LLAgentCamera::LLAgentCamera() :
 	mCameraFocusOffset(),
 	mCameraFOVDefault(DEFAULT_FIELD_OF_VIEW),
 
-	mCameraOffsetDefault(),
 	mCameraCollidePlane(),
 
 	mCurrentCameraDistance(2.f),		// meters, set in init()
@@ -212,8 +211,7 @@ void LLAgentCamera::init()
 
 	mCameraFocusOffsetTarget = LLVector4(gSavedSettings.getVector3("CameraOffsetBuild"));
 	
-	mCameraOffsetDefault = gSavedSettings.getVector3("CameraOffsetDefault");//Legacy
-	/*mCameraPreset = (ECameraPreset) gSavedSettings.getU32("CameraPreset");
+	mCameraPreset = (ECameraPreset) gSavedSettings.getU32("CameraPreset");
 
 	mCameraOffsetInitial[CAMERA_PRESET_REAR_VIEW] = gSavedSettings.getControl("CameraOffsetRearView");
 	mCameraOffsetInitial[CAMERA_PRESET_FRONT_VIEW] = gSavedSettings.getControl("CameraOffsetFrontView");
@@ -221,7 +219,7 @@ void LLAgentCamera::init()
 
 	mFocusOffsetInitial[CAMERA_PRESET_REAR_VIEW] = gSavedSettings.getControl("FocusOffsetRearView");
 	mFocusOffsetInitial[CAMERA_PRESET_FRONT_VIEW] = gSavedSettings.getControl("FocusOffsetFrontView");
-	mFocusOffsetInitial[CAMERA_PRESET_GROUP_VIEW] = gSavedSettings.getControl("FocusOffsetGroupView");*/
+	mFocusOffsetInitial[CAMERA_PRESET_GROUP_VIEW] = gSavedSettings.getControl("FocusOffsetGroupView");
 
 	mCameraCollidePlane.clearVec();
 	mCurrentCameraDistance = getCameraOffsetInitial().magVec() * gSavedSettings.getF32("CameraOffsetScale");
@@ -1681,14 +1679,13 @@ LLVector3d LLAgentCamera::calcThirdPersonFocusOffset()
 {
 	// ...offset from avatar
 	LLVector3d focus_offset;
-	focus_offset.setVec(gSavedSettings.getVector3("FocusOffsetDefault"));
 	LLQuaternion agent_rot = gAgent.getFrameAgent().getQuaternion();
 	if (isAgentAvatarValid() && gAgentAvatarp->getParent())
 	{
 		agent_rot *= ((LLViewerObject*)(gAgentAvatarp->getParent()))->getRenderRotation();
 	}
 
-	//focus_offset = convert_from_llsd<LLVector3d>(mFocusOffsetInitial[mCameraPreset]->get(), TYPE_VEC3D, "");
+	focus_offset = convert_from_llsd<LLVector3d>(mFocusOffsetInitial[mCameraPreset]->get(), TYPE_VEC3D, "");
 	return focus_offset * agent_rot;
 }
 
@@ -2023,8 +2020,7 @@ LLVector3d LLAgentCamera::calcCameraPositionTargetGlobal(BOOL *hit_limit)
 
 LLVector3 LLAgentCamera::getCameraOffsetInitial()
 {
-	//return convert_from_llsd<LLVector3>(mCameraOffsetInitial[mCameraPreset]->get(), TYPE_VEC3, "");
-	return mCameraOffsetDefault;
+	return convert_from_llsd<LLVector3>(mCameraOffsetInitial[mCameraPreset]->get(), TYPE_VEC3, "");
 }
 
 
@@ -2418,15 +2414,17 @@ void LLAgentCamera::changeCameraToCustomizeAvatar()
 			gAgentAvatarp->updateMeshTextures();
 		}
 	}
-	
 	// <edit>
 	if(!gSavedSettings.getBOOL("AppearanceCameraMovement"))
 	{
 		//hmm
 		mCameraAnimating = FALSE;
 		gAgent.endAnimationUpdateUI();
+		return;
 	}
-	/*LLVector3 agent_at = gAgent.getAtAxis();
+	// </edit>
+	
+	LLVector3 agent_at = gAgent.getAtAxis();
 	agent_at.mV[VZ] = 0.f;
 	agent_at.normalize();
 
@@ -2441,11 +2439,13 @@ void LLAgentCamera::changeCameraToCustomizeAvatar()
 	camera_offset *= CUSTOMIZE_AVATAR_CAMERA_DEFAULT_DIST;
 	LLVector3d focus_target_global = gAgent.getPosGlobalFromAgent(focus_target);
 	setAnimationDuration(gSavedSettings.getF32("ZoomTime"));
-	setCameraPosAndFocusGlobal(focus_target_global + camera_offset, focus_target_global, gAgent.getID());*/
+	setCameraPosAndFocusGlobal(focus_target_global + camera_offset, focus_target_global, gAgent.getID());
+	
+
 }
 
 
-/*void LLAgentCamera::switchCameraPreset(ECameraPreset preset)
+void LLAgentCamera::switchCameraPreset(ECameraPreset preset)
 {
 	//zoom is supposed to be reset for the front and group views
 	mCameraZoomFraction = 1.f;
@@ -2456,7 +2456,7 @@ void LLAgentCamera::changeCameraToCustomizeAvatar()
 	mCameraPreset = preset;
 
 	gSavedSettings.setU32("CameraPreset", mCameraPreset);
-}*/
+}
 
 
 //

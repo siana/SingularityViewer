@@ -724,6 +724,8 @@ bool LLAppViewer::init()
 				&LLURLDispatcher::dispatchFromTextEditor,
 				&LLURLDispatcher::dispatchFromTextEditor);
 	
+	LLToolMgr::getInstance(); // Initialize tool manager if not already instantiated
+		
 	/////////////////////////////////////////////////
 	//
 	// Load settings files
@@ -1376,12 +1378,6 @@ extern void cleanup_pose_stand(void);
 
 bool LLAppViewer::cleanup()
 {
-	
-	//HACK: the selectmgr may hold a ref to gAgentAvatarp, which will defer the actual
-	//  destruction until LLSelectMgr::cleanupGlobals() is called AFTER the UI has been destroyed.
-	//  This presents issue, as ~LLVOAvatarSelf spawns notifications if DebugAvatarRezTime is true, which will
-	//  crash if the UI has been destroyed before then.
-	LLSelectMgr::getInstance()->remove(gAgentAvatarp, SELECT_ALL_TES, false);
 	//ditch LLVOAvatarSelf instance
 	gAgentAvatarp = NULL;
 	cleanup_pose_stand();

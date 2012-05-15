@@ -89,10 +89,10 @@ public:
 	};
 };
 
-namespace boost
-{
+//namespace boost
+//{
 	void intrusive_ptr_add_ref(LLRegionPresenceVerifier::Response* p);
 	void intrusive_ptr_release(LLRegionPresenceVerifier::Response* p);
-};
+//};
 
 #endif //LL_LLREGIONPRESENCEVERIFIER_H

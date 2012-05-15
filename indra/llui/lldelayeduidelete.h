@@ -7,6 +7,7 @@ class LLDeleteJob
 {
 public:
 	virtual BOOL work(U32& completed);
+	virtual ~LLDeleteJob() {}
 };
 class LLViewDeleteJob : public LLDeleteJob
 {

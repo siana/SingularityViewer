@@ -1275,7 +1275,7 @@ void LLAudioEngine::assetCallback(LLVFS *vfs, const LLUUID &uuid, LLAssetType::E
 		// Need to mark data as bad to avoid constant rerequests.
 		LLAudioData *adp = gAudiop->getAudioData(uuid);
 		if (adp)
-        {
+        	{
 			adp->setHasValidData(false);
 			adp->setHasLocalData(false);
 			adp->setHasDecodedData(false);
@@ -1292,8 +1292,8 @@ void LLAudioEngine::assetCallback(LLVFS *vfs, const LLUUID &uuid, LLAssetType::E
 		else
 		{
 			adp->setHasValidData(true);
-		    adp->setHasLocalData(true);
-		    gAudioDecodeMgrp->addDecodeRequest(uuid);
+			adp->setHasLocalData(true);
+			gAudioDecodeMgrp->addDecodeRequest(uuid);
 		}
 	}
 	gAudiop->mCurrentTransfer = LLUUID::null;

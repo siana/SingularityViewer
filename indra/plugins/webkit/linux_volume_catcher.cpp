@@ -40,6 +40,9 @@
 
 #include "volume_catcher.h"
 
+#ifndef LL_WINDOWS
+#include <unistd.h>
+#endif
 
 extern "C" {
 #include <glib.h>

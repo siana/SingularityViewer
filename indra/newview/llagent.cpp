@@ -4047,7 +4047,7 @@ void LLAgent::sendAgentSetAppearance()
 
 	llinfos << "Avatar XML num VisualParams transmitted = " << transmitted_params << llendl;
 	if(transmitted_params < 218) {
-		LLNotificationsUtil::add("SGIncompleteAppearence");
+		LLNotificationsUtil::add("SGIncompleteAppearance");
 	}
 	sendReliableMessage();
 }

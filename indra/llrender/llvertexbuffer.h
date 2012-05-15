@@ -90,6 +90,7 @@ class LLGLFence
 public:
 	virtual void placeFence() = 0;
 	virtual void wait() = 0;
+	virtual ~LLGLFence() {}
 };
 
 //============================================================================

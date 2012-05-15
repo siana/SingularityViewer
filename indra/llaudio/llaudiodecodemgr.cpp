@@ -242,8 +242,8 @@ BOOL LLVorbisDecodeState::initDecode()
 		llwarns << "No default bitstream found" << llendl;	
 	}
 	// <edit>
-		// This magic value is equivilent to 150MiB of data.
-		// Prevents griffers from utilizin a huge xbox sound the size of god to instafry the viewer
+	// This magic value is equivalent to 150MiB of data.
+	// Prevents griefers from utilizing a huge xbox sound the size of god to instafry the viewer
 	if(size_guess >= 157286400)
 	{
 		llwarns << "Bad sound caught by zmagic" << llendl;

@@ -1435,10 +1435,10 @@ bool idle_startup()
 		{
 		case LLUserAuth::E_OK:
 			response = LLUserAuth::getInstance()->getResponse();
-			login_response = response["login"];
-			reason_response = response["reason"];
-			message_response = response["message"];
-			message_id = response["message_id"];
+			login_response = response["login"].asString();
+			reason_response = response["reason"].asString();
+			message_response = response["message"].asString();
+			message_id = response["message_id"].asString();
 			
 			if(login_response == "true")
 			{
@@ -4293,45 +4293,45 @@ bool process_login_success_response(std::string& password)
 
 	
 	// Override grid info with anything sent in the login response
-	std::string tmp = response["gridname"];
+	std::string tmp = response["gridname"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setGridName(tmp);
-	tmp = response["loginuri"];
+	tmp = response["loginuri"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginUri(tmp);
-	tmp = response["welcome"];
+	tmp = response["welcome"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginPage(tmp);
-	tmp = response["loginpage"];
+	tmp = response["loginpage"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginPage(tmp);
-	tmp = response["economy"];
+	tmp = response["economy"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setHelperUri(tmp);
-	tmp = response["helperuri"];
+	tmp = response["helperuri"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setHelperUri(tmp);
-	tmp = response["about"];
+	tmp = response["about"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setWebSite(tmp);
-	tmp = response["website"];
+	tmp = response["website"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setWebSite(tmp);
-	tmp = response["help"];
+	tmp = response["help"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSupportUrl(tmp);
-	tmp = response["support"];
+	tmp = response["support"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSupportUrl(tmp);
-	tmp = response["register"];
+	tmp = response["register"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRegisterUrl(tmp);
-	tmp = response["account"];
+	tmp = response["account"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRegisterUrl(tmp);
-	tmp = response["password"];
+	tmp = response["password"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setPasswordUrl(tmp);
-	tmp = response["search"];
+	tmp = response["search"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSearchUrl(tmp);
-	tmp = response["currency"];
+	tmp = response["currency"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setCurrencySymbol(tmp);
-	tmp = response["real_currency"];
+	tmp = response["real_currency"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRealCurrencySymbol(tmp);
-	tmp = response["directory_fee"];
+	tmp = response["directory_fee"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setDirectoryFee(atoi(tmp.c_str()));
-	tmp = response["max_groups"];
+	tmp = response["max_groups"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setMaxAgentGroups(atoi(tmp.c_str()));
-	tmp = response["max-agent-groups"];
+	tmp = response["max-agent-groups"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setMaxAgentGroups(atoi(tmp.c_str()));
-	tmp = response["VoiceConnector"];
+	tmp = response["VoiceConnector"].asString();
 	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setVoiceConnector(tmp);
 	gHippoGridManager->saveFile();
 	gHippoLimits->setLimits();
