@@ -104,6 +104,7 @@ LLWearableDictionary::LLWearableDictionary()
 	addEntry(LLWearableType::WT_PHYSICS,      new WearableEntry("physics",     "New Physics",		LLAssetType::AT_CLOTHING, 	LLInventoryType::ICONNAME_CLOTHING_PHYSICS, TRUE, FALSE));
 // [/SL:KB]
 
+	addEntry(LLWearableType::WT_UNKNOWN,      new WearableEntry("unknown",     "Clothing",			LLAssetType::AT_CLOTHING, 	LLInventoryType::ICONNAME_CLOTHING_UNKNOWN, FALSE, TRUE));
 	addEntry(LLWearableType::WT_INVALID,      new WearableEntry("invalid",     "Invalid Wearable", 	LLAssetType::AT_NONE, 		LLInventoryType::ICONNAME_NONE, FALSE, FALSE));
 	addEntry(LLWearableType::WT_NONE,      	  new WearableEntry("none",        "Invalid Wearable", 	LLAssetType::AT_NONE, 		LLInventoryType::ICONNAME_NONE, FALSE, FALSE));
 }

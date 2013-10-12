@@ -7,4 +7,5 @@
 	<slider label="Sons" label_width="65" name="SFX Volume"/>
 	<slider label="Son ambiant" label_width="65" name="Wind Volume"/>
 	<slider label="Interface" label_width="65" name="UI Volume"/>
+	<button label="Médias proches" name="nearby_media"/>
 </panel>

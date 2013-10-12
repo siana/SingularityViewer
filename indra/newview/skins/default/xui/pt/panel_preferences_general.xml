@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="Geral" name="general_panel">
 	<radio_group name="default_start_location">
-		<radio_item name="MyHome" tool_tip="Como padrão, registrar na minha casa.">
+		<radio_item name="home" tool_tip="Como padrão, registrar na minha casa.">
 			Minha Casa
 		</radio_item>
-		<radio_item name="MyLastLocation" tool_tip="Por padrão, registrar na minha última localidade.">
+		<radio_item name="last" tool_tip="Por padrão, registrar na minha última localidade.">
 			Minha Última Localidade
 		</radio_item>
 	</radio_group>

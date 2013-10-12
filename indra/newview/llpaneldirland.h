@@ -50,9 +50,8 @@ public:
 	void performQuery();
 
 protected:
-	static void onClickSort(void* data);
-	static void onCommitPrice(LLUICtrl* ctrl, void* data);
-	static void onCommitArea(LLUICtrl* ctrl, void* data);
+	void onCommitPrice(const LLSD& value);
+	void onCommitArea(const LLSD& value);
 
 };
 

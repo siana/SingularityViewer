@@ -1150,6 +1150,40 @@ bool LLInventoryItem::fromLLSD(const LLSD& sd)
 		{
 			mFlags = sd[w].asInteger();
 		}
+
+		//<singu>
+		// Define a few magic constants that are not accessible otherwise, from here.
+		// mInventoryType:
+		static U32 IT_WEARABLE = 18;	// LLInventoryType::IT_WEARABLE
+		// mType, these are the two asset types that are IT_WEARABLE:
+		static U32 AT_BODYPART = 13;	// LLAssetType::AT_BODYPART
+		// Viewer local values:
+		static U32 WT_UNKNOWN = 16;		// LLWearableType::WT_UNKNOWN
+		static U32 WT_COUNT = 17;		// LLWearableType::WT_COUNT
+		// The last 8 bits of mFlags contain the wearable type.
+		static U32 II_FLAGS_WEARABLES_MASK = 0xff;	// LLInventoryItemFlags::II_FLAGS_WEARABLES_MASK
+
+		// The wearable type is stored in the lower 8 bits of mFlags.
+		U32 wt = mFlags & II_FLAGS_WEARABLES_MASK;
+
+		// Because WT_UNKNOWN now has locally a special meaning, make sure we don't receive it from the server.
+		if (wt == WT_UNKNOWN)
+		{
+			llwarns << "Received inventory item with wearable type WT_UNKNOWN from server! You should upgrade your viewer." << llendl;
+			// Change this new wearable type to WT_COUNT, as if when we had not inserted WT_UNKNOWN locally.
+			mFlags += 1;
+			wt = WT_COUNT;
+		}
+
+		// Detect possible problematic items.
+		if (wt == 0 && mInventoryType == IT_WEARABLE && mType != AT_BODYPART)
+		{
+			// This is not possible, and therefore is probably an item creatd by a pre-multiwear viewer (or Second Inventory, etc).
+			// The wearable type is NOT a shape (0) in that case of course, but we don't know what it is without downloading the
+			// asset.
+			mFlags |= WT_UNKNOWN;
+		}
+		//</singu>
 	}
 	w = INV_NAME_LABEL;
 	if (sd.has(w))

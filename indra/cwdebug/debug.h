@@ -275,7 +275,7 @@ class TeeStream : public std::ostream {
 };
 
 #if CWDEBUG_LOCATION
-class BackTrace {
+class LL_COMMON_API BackTrace {
   private:
     boost::shared_array<void*> M_buffer;
     int M_frames;

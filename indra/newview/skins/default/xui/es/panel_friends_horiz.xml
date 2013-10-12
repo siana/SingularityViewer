@@ -17,7 +17,7 @@
 		<combo_item type="string" length="20" enabled="true" name="All" value="All">All</combo_item>
 	</combo_box-->
 	<!--text bottom_delta="-40" follows="left|top" font="SansSerifSmall" height="16" name="Contact Search:" width="110">Contact Search:</text-->
-	<search_editor name="buddy_search_lineedit" label="Buscar Contactos" tool_tip="El nombre del contacto que estás buscando"/>
+  <filter_editor name="buddy_search_lineedit" label="Buscar Contactos" tool_tip="El nombre del contacto que estás buscando"/>
 	<button label="0" name="expand_collapse_btn" tool_tip="Expandir/Retraer información extra"/>
 	<!--button bottom_delta="-25" follows="top|right" height="22" label="Set Contact" name="assign_btn" tool_tip="Assign a friend to a Contact Group" width="80"/-->
 	<text name="friends">Conectados:</text>

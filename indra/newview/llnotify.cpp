@@ -48,7 +48,6 @@
 #include "lluiconstants.h"
 #include "llui.h"
 #include "llxmlnode.h"
-#include "llalertdialog.h"
 #include "llviewercontrol.h"
 #include "llviewerdisplay.h"
 #include "llviewertexturelist.h"
@@ -323,8 +322,7 @@ LLNotifyBox::LLNotifyBox(LLNotificationPtr notification,
 						   std::string("notify_next.png"),
 						   std::string("notify_next.png"),
 						   LLStringUtil::null,
-						   onClickNext,
-						   this,
+						   boost::bind(&LLNotifyBox::onClickNext,this),
 						   sFont);
 		btn->setScaleImage(TRUE);
 		btn->setToolTip(LLTrans::getString("next"));
@@ -398,7 +396,6 @@ LLNotifyBox::LLNotifyBox(LLNotificationPtr notification,
 // virtual
 LLNotifyBox::~LLNotifyBox()
 {
-	std::for_each(mBtnCallbackData.begin(), mBtnCallbackData.end(), DeletePointer());
 }
 
 // virtual
@@ -435,14 +432,7 @@ LLButton* LLNotifyBox::addButton(const std::string& name, const std::string& lab
 		btn_width - 2*ignore_pad,
 		btn_height);
 
-	InstanceAndS32* userdata = new InstanceAndS32;
-	userdata->mSelf = this;
-	userdata->mButtonName = is_option ? name : "";
-
-	mBtnCallbackData.push_back(userdata);
-
-
-	btn = new LLButton(name, btn_rect, "", onClickButton, userdata);
+	btn = new LLButton(name, btn_rect, "", boost::bind(&LLNotifyBox::onClickButton, this, is_option ? name : ""));
 	btn->setLabel(label);
 	btn->setFont(font);
 
@@ -794,36 +784,29 @@ LLRect LLNotifyBox::getNotifyTipRect(const std::string &utf8message)
 }
 
 
-// static
-void LLNotifyBox::onClickButton(void* data)
+void LLNotifyBox::onClickButton(const std::string name)
 {
-	InstanceAndS32* self_and_button = (InstanceAndS32*)data;
-	LLNotifyBox* self = self_and_button->mSelf;
-	std::string button_name = self_and_button->mButtonName;
-
-	LLSD response = self->mNotification->getResponseTemplate();
-	if (!self->mAddedDefaultBtn && !button_name.empty())
+	LLSD response = mNotification->getResponseTemplate();
+	if (!mAddedDefaultBtn && !name.empty())
 	{
-		response[button_name] = true;
+		response[name] = true;
 	}
-	if (self->mUserInputBox)
+	if (mUserInputBox)
 	{
-		response[self->mUserInputBox->getName()] = self->mUserInputBox->getValue();
+		response[mUserInputBox->getName()] = mUserInputBox->getValue();
 	}
-	self->mNotification->respond(response);
+	mNotification->respond(response);
 }
 
 
-// static
-void LLNotifyBox::onClickNext(void* data)
+void LLNotifyBox::onClickNext()
 {
-	LLNotifyBox* self = static_cast<LLNotifyBox*>(data);
-	self->moveToBack(true);
+	moveToBack(true);
 }
 
 
 LLNotifyBoxView::LLNotifyBoxView(const std::string& name, const LLRect& rect, BOOL mouse_opaque, U32 follows)
-	: LLUICtrl(name,rect,mouse_opaque,NULL,NULL,follows) 
+	: LLUICtrl(name,rect,mouse_opaque,NULL,follows) 
 {
 }
 

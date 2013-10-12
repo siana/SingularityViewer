@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="Áudio &amp; Vídeo" name="Media panel">
-	<slider label="Mestre" name="System Volume"/>
-	<slider label="Música" name="Music Volume"/>
-	<slider label="Mídia" name="Media Volume"/>
-	<slider label="Voz" name="Voice Volume"/>
-	<slider label="Sons" name="SFX Volume"/>
-	<slider label="Ambiente" name="Wind Volume"/>
-	<slider label="UI" name="UI Volume"/>
+	<slider label="Mestre" name="System Volume"></slider>
+	<slider label="Música" name="Music Volume"></slider>
+	<slider label="Mídia" name="Media Volume"></slider>
+	<slider label="Voz" name="Voice Volume"></slider>
+	<slider label="Sons" name="SFX Volume"></slider>
+	<slider label="Ambiente" name="Wind Volume"></slider>
+	<slider label="UI" name="UI Volume"></slider>
+	<button label="Mídia por perto" name="nearby_media"/>
 </panel>

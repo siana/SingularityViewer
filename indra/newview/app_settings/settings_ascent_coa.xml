@@ -204,6 +204,24 @@
 			<key>IsCOA</key>
 			<integer>1</integer>
 		</map>
+		<key>MapAvatar</key>
+		<map>
+			<key>Comment</key>
+			<string>Color for map dots of residents who don't qualify for any color else.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Color4</string>
+			<key>Value</key>
+			<array>
+				<real>0.0</real>
+				<real>1.0</real>
+				<real>0.0</real>
+				<real>1.0</real>
+			</array>
+			<key>IsCOA</key>
+			<integer>1</integer>
+		</map>
         <key>ColorFriendChat</key>
         <map>
           <key>Comment</key>

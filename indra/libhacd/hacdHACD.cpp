@@ -679,7 +679,7 @@ namespace HACD
                 {
 					if ((!condition1) && m_callBack)
 					{
-						sprintf(msg, "\n-> %lu\t%f\t%f\t%f\n", m_pqueue.size(), m_graph.m_vertices[v1].m_surf*100.0/m_area, m_graph.m_vertices[v2].m_surf*100.0/m_area, m_graph.m_edges[currentEdge.m_name].m_concavity);
+						sprintf(msg, "\n-> %zu\t%f\t%f\t%f\n", m_pqueue.size(), m_graph.m_vertices[v1].m_surf*100.0/m_area, m_graph.m_vertices[v2].m_surf*100.0/m_area, m_graph.m_edges[currentEdge.m_name].m_concavity);
 						(*m_callBack)(msg, progress, globalConcavity,  m_graph.GetNVertices());
 					}
 					globalConcavity = std::max<double>(globalConcavity ,m_graph.m_edges[currentEdge.m_name].m_concavity);
@@ -879,7 +879,7 @@ namespace HACD
                 if (m_callBack) 
                 {
                     char msg[1024];
-                    sprintf(msg, "\t CH(%lu) \t %lu \t %lf \t %lu \t %f \t %lu\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
+                    sprintf(msg, "\t CH(%zu) \t %zu \t %lf \t %zu \t %f \t %zu\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
 					(*m_callBack)(msg, 0.0, 0.0, m_nClusters);
 					p++;
                 }

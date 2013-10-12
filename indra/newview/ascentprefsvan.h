@@ -47,11 +47,10 @@ public:
     void refreshValues();
 
 protected:
-    static void onCommitClientTag(LLUICtrl* ctrl, void* userdata);
-    static void onCommitUpdateAvatarOffsets(LLUICtrl* ctrl, void* userdata);
-    static void onCommitCheckBox(LLUICtrl* ctrl, void* user_data);
-    static void onCommitTextModified(LLUICtrl* ctrl, void* userdata);
-    static void onManualClientUpdate(void* data);
+	void onCommitClientTag(LLUICtrl* ctrl);
+	void onCommitCheckBox(LLUICtrl* ctrl, const LLSD& value);
+	void onCommitTextModified(LLUICtrl* ctrl, const LLSD& value);
+	static void onManualClientUpdate();
     //Main
     BOOL mUseAccountSettings;
     BOOL mShowTPScreen;
@@ -62,6 +61,9 @@ protected:
 	bool mTurnAround;
 	bool mAnnounceSnapshots;
 	bool mAnnounceStreamMetadata;
+	bool mUnfocusedFloatersOpaque;
+	bool mCompleteNameProfiles;
+	bool mScriptErrorsStealFocus;
     //Tags\Colors
     BOOL mAscentBroadcastTag;
     std::string mReportClientUUID;
@@ -69,6 +71,7 @@ protected:
     BOOL mShowSelfClientTag;
     BOOL mShowSelfClientTagColor;
     BOOL mShowFriendsTag;
+    BOOL mDisplayClientTagOnNewLine;
     BOOL mCustomTagOn;
     std::string mCustomTagLabel;
     LLColor4 mCustomTagColor;
@@ -82,6 +85,7 @@ protected:
     LLColor4 mEstateOwnerColor;
     LLColor4 mLindenColor;
     LLColor4 mMutedColor;
+	LLColor4 mMapAvatarColor;
 	LLColor4 mCustomColor;
 	bool mColorFriendChat;
 	bool mColorEOChat;

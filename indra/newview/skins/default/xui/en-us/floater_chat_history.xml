@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater bottom="27" can_close="true" can_drag_on_left="false" can_minimize="false" can_resize="true" can_tear_off="true" enabled="true" height="275" left="15"
-     min_height="150" min_width="425" name="chat floater" rect_control="FloaterChatRect" title="Local Chat" width="435">
+<floater bottom="27" can_close="true" can_drag_on_left="false" can_minimize="false" can_resize="true" can_tear_off="true" enabled="true" height="175" left="15"
+     min_height="100" min_width="425" name="chat floater" rect_control="FloaterChatRect" title="Local Chat" width="435">
 	<string name="ringing">Connecting to in-world Voice Chat...</string>
 	<string name="connected">Connected</string>
 	<string name="unavailable">Voice not available at your current location</string>
@@ -8,25 +8,10 @@
 	<string name="voice_icon">icn_voice-localchat.tga</string>
 	<string name="IM_logging_string">-- Instant message logging enabled --</string>
 	<string name="IM_end_log_string">-- End of Log --</string>
-	<string name="ScriptQuestionCautionChatGranted">'[OBJECTNAME]', an object owned by '[OWNERNAME]', located in [REGIONNAME] at [REGIONPOS], has been granted permission to: [PERMISSIONS].</string>
-	<string name="ScriptQuestionCautionChatDenied">'[OBJECTNAME]', an object owned by '[OWNERNAME]', located in [REGIONNAME] at [REGIONPOS], has been denied permission to: [PERMISSIONS].</string>
-	<string name="ScriptTakeMoney">Take in-world money ([CURRENCY]) from you</string>
-	<string name="ActOnControlInputs">Act on your control inputs</string>
-	<string name="RemapControlInputs">Remap your control inputs</string>
-	<string name="AnimateYourAvatar">Animate your avatar</string>
-	<string name="AttachToYourAvatar">Attach to your avatar</string>
-	<string name="ReleaseOwnership">Release ownership and become public</string>
-	<string name="LinkAndDelink">Link and delink from other objects</string>
-	<string name="AddAndRemoveJoints">Add and remove joints with other objects</string>
-	<string name="ChangePermissions">Change its permissions</string>
-	<string name="TrackYourCamera">Track your camera</string>
-	<string name="TeleportYourAgent">Teleport you</string>
-	<string name="ControlYourCamera">Control your camera</string>
-	<string name="OverrideAnimations">Override your default animations</string>
-	<layout_stack border="false" bottom="0" follows="left|top|right|bottom" height="260" left="0" orientation="horizontal" width="430" name="panels">
-		<layout_panel border="false" bottom="0" height="260" left="0" min_width="275" name="im_contents_panel" width="305">
-         <layout_stack border="false" bottom="0" default_tab_group="1" follows="all" height="260" left="0" orientation="vertical" name="im_contents_stack" width="305">
-          <layout_panel border="false" bottom="10" follows="all" height="235" left="0" name="history_panel" width="305">
+	<layout_stack border="false" bottom="0" follows="left|top|right|bottom" height="160" left="0" orientation="horizontal" width="430" name="panels">
+		<layout_panel border="false" bottom="0" height="160" left="0" min_width="275" name="im_contents_panel" width="305">
+         <layout_stack border="false" bottom="0" default_tab_group="1" follows="all" height="160" left="0" orientation="vertical" name="im_contents_stack" width="305">
+          <layout_panel border="false" bottom="10" follows="all" height="135" left="0" name="history_panel" width="305">
 			<combo_box follows="left|top" height="18" label="Gestures" left="6" name="Gesture" width="120">
 				<combo_item name="Gestures">Gestures</combo_item>
 			</combo_box>
@@ -34,8 +19,8 @@
 			<!--check_box bottom_delta="-15" enabled="true" follows="left|top" font="SansSerifSmall" height="20" initial_value="false" label="Translate Chat (powered by Google)" name="translate chat" width="100"/-->
 			<button bottom_delta="2" left_delta="120" follows="left|top" font="SansSerifSmall" height="20" width="100" label="Open History" name="chat_history_open" tool_tip="Click here to open chat history in external editor."/>
 			<button bottom_delta="0" follows="right|top" height="20" label="&lt; &lt;" label_selected="&gt; &gt;" left="272" name="toggle_active_speakers_btn" right="305" tool_tip="Click here to show a list of active participants in this IM session." width="80"/>
-			<text_editor type="string" length="1" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor" bottom="0" enabled="false" follows="left|top|right|bottom" font="SansSerif" height="207" left="5" max_length="2147483647" name="Chat History Editor" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="300" word_wrap="true"/>
-			<text_editor type="string" length="1" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor" bottom="0" enabled="false" follows="left|top|right|bottom" font="SansSerif" height="207" max_length="2147483647" name="Chat History Editor with mute" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="300" word_wrap="true"/>
+			<text_editor type="string" length="1" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor" bottom="0" enabled="false" follows="left|top|right|bottom" font="SansSerif" height="107" left="5" max_length="2147483647" name="Chat History Editor" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="300" word_wrap="true"/>
+			<text_editor type="string" length="1" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor" bottom="0" enabled="false" follows="left|top|right|bottom" font="SansSerif" height="107" max_length="2147483647" name="Chat History Editor with mute" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="300" word_wrap="true"/>
           </layout_panel>
           <layout_panel user_resize="false" auto_resize="false" bottom_delta="-25" follows="left|right|bottom" left="5" name="chat_layout_panel" right="-5" tab_group="1" height="25">
 			<panel bottom="5" follows="left|right|bottom" left="5" name="chat_panel" right="-5" top="25">

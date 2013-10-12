@@ -48,11 +48,10 @@ public:
 	void refresh();
 	void apply();
 	void cancel();
-	static void onComboBoxCommit(LLUICtrl* ctrl, void* userdata);
+	void onComboBoxCommit(const LLSD& value);
 	std::string mSkin;
 private:
 
-	static LLPanelSkins* sInstance;
 	std::string oldSkin;
 };
 

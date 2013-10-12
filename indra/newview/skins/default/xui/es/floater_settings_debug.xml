@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater name="settings_debug" title="Configurar Depurador">
-    <search_editor label="Buscar" name="search_settings_input" tool_tip="Escribe aquí el término que estás buscando. Los resultados mostrarán las coincidencias parciales del texto buscado ya sea en los nombres de clave o en los comentarios."/>
-
+<floater name="settings_debug" title="Configuraciones del Depurador">
+	<filter_editor label="Buscar" name="search_settings_input" tool_tip="Escribe aquí el término que estás buscando. Los resultados mostrarán las coincidencias parciales del texto buscado ya sea en los nombres de clave o en los comentarios."/>
+	<scroll_list name="settings_scroll_list"/>
+	<text_editor name="comment_text"/>
 	<radio_group name="boolean_combo">
 		<radio_item name="TRUE">
 			Verdadero
@@ -10,6 +11,7 @@
 			Falso
 		</radio_item>
 	</radio_group>
+	<line_editor name="val_text"/>
 	<color_swatch label="Color" name="val_color_swatch"/>
 	<spinner label="x" name="val_spinner_1"/>
 	<spinner label="x" name="val_spinner_2"/>

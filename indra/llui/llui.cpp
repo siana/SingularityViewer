@@ -60,14 +60,16 @@ BOOL gShowTextEditCursor = TRUE;
 std::map<std::string, std::string> gTranslation;
 std::list<std::string> gUntranslated;
 
-LLControlGroup* LLUI::sConfigGroup = NULL;
-LLControlGroup* LLUI::sIgnoresGroup = NULL;
-LLControlGroup* LLUI::sColorsGroup = NULL;
-LLUIAudioCallback LLUI::sAudioCallback = NULL;
-LLWindow*		LLUI::sWindow = NULL;
-LLHtmlHelp*		LLUI::sHtmlHelp = NULL;
-BOOL            LLUI::sShowXUINames = FALSE;
-BOOL            LLUI::sQAMode = FALSE;
+/*static*/ LLControlGroup* LLUI::sConfigGroup = NULL;
+/*static*/ LLControlGroup* LLUI::sAccountGroup = NULL;
+/*static*/ LLControlGroup* LLUI::sIgnoresGroup = NULL;
+/*static*/ LLControlGroup* LLUI::sColorsGroup = NULL;
+/*static*/ LLUIAudioCallback LLUI::sAudioCallback = NULL;
+/*static*/ LLWindow*		LLUI::sWindow = NULL;
+/*static*/ LLView*			LLUI::sRootView = NULL;
+/*static*/ LLHtmlHelp*		LLUI::sHtmlHelp = NULL;
+/*static*/ BOOL            LLUI::sShowXUINames = FALSE;
+/*static*/ BOOL            LLUI::sQAMode = FALSE;
 
 //
 // Functions
@@ -115,6 +117,7 @@ bool handleShowXUINamesChanged(const LLSD& newvalue)
 }
 
 void LLUI::initClass(LLControlGroup* config, 
+					 LLControlGroup* account, 
 					 LLControlGroup* ignores, 
 					 LLControlGroup* colors, 
 					 LLImageProviderInterface* image_provider,
@@ -125,10 +128,12 @@ void LLUI::initClass(LLControlGroup* config,
 {
 	LLRender2D::initClass(image_provider, scale_factor);
 	sConfigGroup = config;
+	sAccountGroup = account;
 	sIgnoresGroup = ignores;
 	sColorsGroup = colors;
 
 	if (sConfigGroup == NULL
+		|| sAccountGroup == NULL
 		|| sIgnoresGroup == NULL
 		|| sColorsGroup == NULL)
 	{
@@ -156,19 +161,15 @@ void LLUI::setMousePositionScreen(S32 x, S32 y)
 	screen_x = llround((F32)x * getScaleFactor().mV[VX]);
 	screen_y = llround((F32)y * getScaleFactor().mV[VY]);
 	
-	LLCoordWindow window_point;
-	LLView::getWindow()->convertCoords(LLCoordGL(screen_x, screen_y), &window_point);
-
-	LLView::getWindow()->setCursorPosition(window_point);
+	LLView::getWindow()->setCursorPosition(LLCoordGL(screen_x, screen_y).convert());
 }
 
 //static 
 void LLUI::getMousePositionScreen(S32 *x, S32 *y)
 {
 	LLCoordWindow cursor_pos_window;
-	LLView::getWindow()->getCursorPosition(&cursor_pos_window);
-	LLCoordGL cursor_pos_gl;
-	LLView::getWindow()->convertCoords(cursor_pos_window, &cursor_pos_gl);
+	getWindow()->getCursorPosition(&cursor_pos_window);
+	LLCoordGL cursor_pos_gl(cursor_pos_window.convert());
 	*x = llround((F32)cursor_pos_gl.mX / getScaleFactor().mV[VX]);
 	*y = llround((F32)cursor_pos_gl.mY / getScaleFactor().mV[VX]);
 }
@@ -284,6 +285,20 @@ void LLUI::glRectToScreen(const LLRect& gl, LLRect *screen)
 {
 	glPointToScreen(gl.mLeft, gl.mTop, &screen->mLeft, &screen->mTop);
 	glPointToScreen(gl.mRight, gl.mBottom, &screen->mRight, &screen->mBottom);
+}
+
+
+LLControlGroup& LLUI::getControlControlGroup (const std::string& controlname)
+{
+	if(sConfigGroup->controlExists(controlname))
+		return *sConfigGroup;
+	if(sAccountGroup->controlExists(controlname))
+		return *sAccountGroup;
+	//if(sIgnoresGroup->controlExists(controlname)) //Identical to sConfigGroup currently.
+	//	return *sIgnoresGroup;
+	if(sColorsGroup->controlExists(controlname))
+		return *sColorsGroup;
+	return *sConfigGroup;
 }
 
 // static 

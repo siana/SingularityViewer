@@ -70,7 +70,7 @@ LLFloaterEnvSettings::~LLFloaterEnvSettings()
 void LLFloaterEnvSettings::onClickHelp(void* data)
 {
 	LLFloaterEnvSettings* self = (LLFloaterEnvSettings*)data;
-	LLNotifications::instance().add(self->contextualNotification("EnvSettingsHelpButton"));
+	self->addContextualNotification("EnvSettingsHelpButton");
 }
 
 void LLFloaterEnvSettings::initCallbacks(void) 

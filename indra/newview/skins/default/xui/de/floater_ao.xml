@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="geminifloater" title="Animationssteuerung">
+
+  <drop_target name="ao_notecard" tool_tip="Ziehe eine ZHAO notecard hierhin. Die Animationen müssen im selben Ordner wie diese Notecard liegen."/>
+
+  <button name="opencard" label="Notecard anzeigen"/>
+  <button name="reloadcard" label="Neu laden"/>
+  
+  <check_box label="Animationssteuerung einschalten" name="AOEnabled"/>
+  <check_box label="Sitzposition ändern" name="AOSitsEnabled"/>
+  
+  <text name="buttons_desc">Stehpositionen:</text>
+  
+  <button name="prevstand" tool_tip="previous stand" label="&lt;&lt;"/>
+  <button name="nextstand" tool_tip="next stand" label="&gt;&gt; "/>
+  <check_box label="Zufällige Reihenfolge" name="AOStandRandomize"/>
+  <check_box label="Keine Stehposition im Mouselook" name="AONoStandsInMouselook"/>
+  <check_box label="AO Tools zeigen" name="ao_remote_checkbox"/>
+  <spinner name="standtime" label="Zeit für Stehposition:" tool_tip="Zeit für Stehposition"/>
+
+  <button name="newcard" label="Neue Notecard Vorlage"/>
+
+  <button label="Mehr &gt;&gt;" name="more_btn" tool_tip="Erweiterte Optionen"/>
+  <button label="&lt;&lt; Weniger" name="less_btn" tool_tip="Erweiterte Optionen"/>
+
+  <tab_container label="Standard" name="tabcontainer">
+    <panel label="Standardanimationen" name="tabdefaultanims">
+    
+      <text name="textdefaultwalk">Standardgang:</text>
+      
+
+      <text name="textdefaultrun">Standardlauf:</text>
+      
+      <text name="textdefaultjump">Standardsprung:</text>
+      
+      <text name="textdefaultsit">Standardsitz:</text>
+      
+      <text name="textdefaultgsit">Standard Sitz am Boden:</text>
+      
+      <text name="textdefaultcrouch">Standard hocken:</text>
+      
+      <text name="textdefaultcrouchwalk">Standard Schleichgang:</text>
+      
+      <text name="textdefaultfall">Standard fallen:</text>
+      
+      <text name="textdefaulthover">Standard schweben:</text>
+      
+      <text name="textdefaultfly">Standard fliegen:</text>
+      
+      <text name="textdefaultflyslow">Standard langsam fliegen:</text>
+      
+      <text name="textdefaultflyup">Standard hochfliegen:</text>
+      
+      <text name="textdefaultflydown">Standard herunterfliegen:</text>
+      
+      <text name="textdefaultland">Standardlandung:</text>
+      
+      <text name="textdefaultstandup">Standard aufstehen:</text>
+      
+      <text name="textdefaultprejump">Standard Sprungbeginn:</text>
+      
+  </panel>
+</tab_container>
+</floater>

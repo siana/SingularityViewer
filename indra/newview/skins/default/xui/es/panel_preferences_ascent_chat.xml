@@ -7,6 +7,7 @@
 			</text>
 			<check_box label="Anunciar Mensajes Instantáneos Entrantes" tool_tip="Abre una ventana de MI cuando alguien comienza a escribirte un MI. Esto te permite conocer cuando alguien te abre un MI antes de enviartelo." name="quickstart_im_check"/>
 			<check_box label="No enviar '[nombre] está escribiendo...'  en MIs" tool_tip="Tu contacto de MI no verá '______ está escribiendo...' cuando le respondes." name="hide_typing_check"/>
+			<check_box label="Aceptar IMs sólo de los amigos" name="InstantMessagesFriendsOnly"/>			
 			<check_box label="Permitir Método MU pose." tool_tip="Permite el uso de  /me y :  para enviar emotes." name="allow_mu_pose_check"/>
 			<check_box label="Cerrar Automáticamente comentarios OOC." tool_tip="Agregar automáticamente al final '))' en cualquier mensaje que comience con '((', o viseversa." name="close_ooc_check"/>
 			<text name="objects_link_text_box2" left="265" >
@@ -15,6 +16,8 @@
 			<check_box label="Ejecutar sonido de escritura en chat local" tool_tip="Silencia el sonido de escritura, haciendo que determinadas cosas sean mas tranquilas, como las actuaciones en vivo." name="play_typing_sound_check"/>
 			<check_box label="No Mostrar/registrar notificaciones en chat" name="hide_notifications_in_chat_check"/>
 			<check_box label="Mostrar nombre del grupo en el chat" tool_tip="El nombre del grupo también será mostrado si el MI es de un chat de grupo." name="append_group_name_check"/>
+			<check_box label="Mostrar cambios en Nombres Mostrados" tool_tip="Estando marcado, se mostrará una notificación en el chat local cuando un residente en la misma región cambie su nombre a mostrar." name="display_name_change"/>		
+			<check_box label="Usar burbuja indicadora de escritura" name="use_typing_bubbles"/>			
 			<text name="objects_link_text_box3">
 				Mostrar en el historial de chat links de chat de objetos para:
 			</text>
@@ -55,41 +58,54 @@
 					MM/DD/YYYY
 				</combo_item>
 			</combo_box>
-			<check_box bottom_delta="0" left="240" follows="top" control_name="SecondsInLog" label="Segundos en el registro de tiempo" name="seconds_in_log"/>			
-			<!-- Auto-responder -->
-			<check_box label="Habilitar Respuesta Automática" name="AscentInstantMessageResponseAnyone" tool_tip=" Envia un mensaje pre-grabado de tu elección cuando alguien te abre un IM. (Escribe tu mensaje en el área de texto de la Ventana Texto de Respuesta."/>
-			<check_box label="Responder a no amigos" name="AscentInstantMessageResponseFriends" tool_tip="Envia un mensaje pre-grabado de tu elección cuando alguien te abre un IM. (Escribe tu mensaje en el área de texto  de la Ventana Texto de Respuesta."/>
-			<check_box label="Responder a quienes tienes ignorados" name="AscentInstantMessageResponseMuted" tool_tip="Envia un mensaje pre-grabado de tu elección cuando alguien te abre un IM. (Escribe tu mensaje en el área de texto  de la Ventana Texto de Respuesta."/>
-			<check_box label="Enviar apenas comienzan a escribir" name="AscentInstantMessageShowOnTyping"/>
-			<check_box label="No mostrar MIs autorespondidos" name="AscentInstantMessageShowResponded"/>
-			<check_box label="Responder a todos los mensajes" name="AscentInstantMessageResponseRepeat"/>
-			<check_box label="Enviar un item junto con la respuesta" name="AscentInstantMessageResponseItem" tool_tip="Puedes incluir un item de tu inventario para enviar junto con tu respuesta automática, arrástrandolo desde tu inventario al cuadro inferior"/>
-			<text name="im_give_disp_rect_txt" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática">
-				Arrastra un ítem aquí (Actualmente: NINGUNO)
-			</text>
-			<text name="text_box1">
-				Texto de Respuesta:
-			</text>
-			<text name="text_box2">
-#f nombre de usuario, #l apellido del usuario,
-#t para fecha y hora, #r para tu SLURL,
-#i tu tiempo inactivo. (p.e. "5 mins")
-			</text>
+			<check_box bottom_delta="0" left="240" label="Segundos en el registro de tiempo" name="seconds_in_log"/>
 		</panel>
-		<!-- ============================== -->
-		<panel height="525" label="Chat UI" left="1" name="ChatUI" width="418">
+		<!-- =========================== -->
+		<panel label="Chat UI" name="ChatUI">
 			<check_box label="Usar Pestañas Verticales (Requiere reiniciar)" name="use_vertical_ims_check"/>		
 			<check_box label="Abrir nuevos MIs en ventanas separadas" name="chats_torn_off"/>
+			<check_box label="Foco en nuevo mensaje instantáneo" name="chat_steal_focus"/>
 			<check_box label="Mostrar barra de chat local en ventana flotante (Requiere reiniciar)" tool_tip="Mostrar o no la barra de entrada de texto inferior en la barra flotante de chat." name="show_local_chat_floater_bar"/>
-			<check_box label="Usar botones horizontales para la ventana de contactos (Requiere Reiniciar)" tool_tip="Habilitado, los botones en los paneles de Amigos y Grupos se colocarán en la parte inferior del panel, ordendados horizontalmente, en vez de verticales a la derecha." name="horiz_butt"/>	  
+			<check_box label="Usar botones horizontales para la ventana de contactos (Requiere Reiniciar)" tool_tip="Habilitado, los botones en los paneles de Amigos y Grupos se colocarán en la parte inferior del panel, ordendados horizontalmente, en vez de verticales a la derecha." name="horiz_butt"/>
+			<check_box label="Usar Nombres antiguos en la lista de participantes (Afecta a nuevos participantes)" tool_tip="Permite una mejor moderación de chats mostrando solo los nombres de usuario" name="legacy_speaker_names"/>
 			<check_box label="Colocar los Botones en la misma línea del nombre en los IMs (Sólo afecta en Nuevos MIs)" name="im_concise_butt"/>
 			<check_box label="Botones en chat de grupo en la línea del nombre del grupo (Afecta nuevos chats de grupo)" name="group_concise_butt"/>
-      <check_box label="Botones en la misma línea de título de conferencia (Afecta nuevas conferencias de Chat)" name="conf_concise_butt"/>			
-			<check_box label="Deshabilitar apertura atajo de Comunicación fuera de la lista de amigos" control_name="CommunicateSpecificShortcut" name="only_comm"/>
-    </panel>		
-		<!-- ============================== -->
+			<check_box label="Botones en la misma línea de título de conferencia (Afecta nuevas conferencias de Chat)" name="conf_concise_butt"/>
+			<check_box label="Deshabilitar apertura atajo de Comunicación fuera de la lista de amigos" name="only_comm"/>
+			<check_box label="Mensajes de acción en Itálica (/me)" name="italicize_actions"/>
+		</panel>
+		<!-- =========================== -->
+		<panel label="Respuesta Automática" name="Autoresponse">
+			<text name="Autoresponse Info">
+Esta funcionalidad hace que el visor envíe una respuesta personalizada a quienes te envíen un mensaje.
+Puedes usar los siguientes comodines para personalizar tus respuestas: #n para nombre de usuario,
+#d para su nombre mostrado, #r para SLURL a tu ubicación, #i para tu tiempo ausente, en minutos.
+			</text>
+			<check_box name="AscentInstantMessageResponseRepeat" label="Responder cada vez que recibas un mensaje para el cual tienes habilitada la respuesta automática"/>
+			<check_box name="AutoresponseAnyone" label="Enviar respuesta básica" tool_tip="Envía el mensaje de la caja inferior a las personas que no tienes ignoradas."/>
+			<check_box name="AutoresponseAnyoneFriendsOnly" label="Sólo a Amigos" tool_tip="Evita que esta respuesta sea enviada a desconocidos"/>
+			<check_box name="AutoresponseAnyoneItem" label="Enviar ítem"/>
+			<check_box name="AutoresponseAnyoneShow" label="Mostrar respuesta enviada"/>
+			<text_editor name="AutoresponseAnyoneMessage"/>
+			<drop_target name="AutoresponseAnyoneItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+			<check_box name="AutoresponseNonFriends" label="Responder a desconocidos" tool_tip="Envía el mensaje de la caja inferior a personas que no están en tu lista de amigos"/>
+			<check_box name="AutoresponseNonFriendsItem" label="Enviar ítem"/>
+			<check_box name="AutoresponseNonFriendsShow" label="Mostrar respuesta enviada"/>
+			<text_editor name="AutoresponseNonFriendsMessage"/>
+			<drop_target name="AutoresponseNonFriendsItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+			<check_box name="AutoresponseMuted" label="Responder a personas que has ignorado" tool_tip="Envía el mensaje de la caja inferior a personas a quienes has ignorado."/>
+			<check_box name="AutoresponseMutedItem" label="Enviar ítem"/>
+			<text_editor name="AutoresponseMutedMessage"/>
+			<drop_target name="AutoresponseMutedItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+			<text name="BusyModeResponseText" tool_tip="Envía el mensaje de la caja inferior a quienes te envían un mensaje estando tu ocupado.">Respuesta en Modo Ocupado:</text>
+			<check_box name="BusyModeResponseItem" label="Enviar ítem"/>
+			<check_box name="BusyModeResponseShow" label="Mostrar respueta enviada"/>
+			<text_editor name="BusyModeResponse"/>
+			<drop_target name="BusyModeResponseItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+		</panel>	 
+		<!-- =========================== -->
 		<panel label="Spam" name="Spam">
-			<check_box control_name="AntiSpamEnabled" label="Habilitar Antispam" name="enable_as"/>		
+			<check_box label="Habilitar Antispam" name="enable_as"/>
 			<button label="Reiniciar colas antispam" label_selected="Reiniciar colas antispam" name="reset_antispam" width="230"/>
 			<check_box label="Sin Mensajes específicos en la cola de Spam" name="spammsg_checkbox" width="256"/>			
 			<spinner label="Tiempo Antispam (segundos):" name="antispamtime" tool_tip="Mas bajo es menos sensible"/>
@@ -105,12 +121,16 @@
 			<check_box label="Alertas" name="Alerts"/>
 			<check_box label="Ofertas de Amistad" name="Friendship Offers"/>
 			<check_box label="Invitación a Grupos" name="Group Invites"/>
-			<check_box control_name="AntiSpamGroupFeeInvites" label="Invit. Grupos c/Pago" name="Group Fee Invites"/>			
+			<check_box label="Invit. Grupos c/Pago" name="Group Fee Invites"/>
 			<check_box label="Oferta de Ítems" name="Item Offers"/>
 			<check_box label="Scripts" name="Scripts"/>
 			<check_box label="Ofertas de Teleporte" name="Teleport Offers"/>
 			<check_box label="Avisos de Grupos" name="Group Notices"/>
-			<check_box control_name="EnableGestureSounds" label="Habilitar Sonidos de Gestos" name="Enable Gesture Sounds"/>
+			<check_box label="Solicitudes de Teleporte" name="Teleport Requests"/>
+			<text name="Except those from:" >Excepto de :</text>
+			<check_box label="Mis objetos" name="My objects"/>
+			<check_box label="Mis amigos" name="My friends"/>
+			<check_box label="Habilitar Sonidos de Gestos" name="Enable Gesture Sounds"/>
 		</panel>
 		<!-- ============================= -->
 		<panel label="Opciones de Texto" name="TextOptions">

@@ -30,12 +30,19 @@
 	<string name="inventory_item_offered">
 		Ofrecido un Ítem de Inventario
 	</string>
-	<button label="Perfil" left="135" name="profile_callee_btn" width="60"/>
-	<button label="Historial" left_delta="60" name="history_btn" width="60"/>
-	<button label="Teleportar" name="profile_tele_btn" width="70"/>
-	<check_box left_delta="70" name="rp_mode">
-		Modo RP
-	</check_box>
+	<flyout_button label="Perfil" name="instant_message_flyout">
+		<flyout_button_item label="Historial" name="history_btn"/>
+		<flyout_button_item label="Ofrecer Teleporte" name="profile_tele_btn"/>
+		<flyout_button_item label="Solicitar Teleporte" name="request_teleport_item"/>
+		<flyout_button_item label="Pagar" name="pay_item"/>
+		<flyout_button_item label="Invitar  a Grupo" name="group_invite_item"/>
+	</flyout_button>
+	<string name="ding on" value="Timbre en Nuevos Mensajes (Encendido)"/>
+    <string name="ding off" value="Timbre en Nuevos Mensajes (Apagado)"/>
+	<string name="rp mode on" value="Modo RP (Encendido)"/>
+	<string name="rp mode off" value="Modo RP (Apagado)"/>
+	<string name="add friend" value="Añadir Contacto"/>
+	<string name="remove friend" value="Eliminar Contacto"/>
 	<button label="Llamar" left_delta="67" name="start_call_btn" width="60"/>
 	<button label="Finalizar" name="end_call_btn" width="24"/>
 	<panel left_delta="16" name="speaker_controls" width="60">

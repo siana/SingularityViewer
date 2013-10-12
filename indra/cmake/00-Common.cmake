@@ -12,11 +12,25 @@ include(Variables)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-D_DEBUG -DLL_DEBUG=1")
 set(CMAKE_CXX_FLAGS_RELEASE
-    "-DLL_RELEASE=1 -DLL_RELEASE_FOR_DOWNLOAD=1 -D_SECURE_SCL=0 -DLL_SEND_CRASH_REPORTS=1 -DNDEBUG")
+    "-DLL_RELEASE=1 -DLL_RELEASE_FOR_DOWNLOAD=1 -D_SECURE_SCL=0 -DNDEBUG")
 set(CMAKE_C_FLAGS_RELEASE
     "${CMAKE_CXX_FLAGS_RELEASE}")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO 
-    "-DLL_RELEASE=1 -D_SECURE_SCL=0 -DLL_SEND_CRASH_REPORTS=0 -DNDEBUG -DLL_RELEASE_WITH_DEBUG_INFO=1")
+    "-DLL_RELEASE=1 -D_SECURE_SCL=0 -DNDEBUG -DLL_RELEASE_WITH_DEBUG_INFO=1")
+
+# Configure crash reporting
+set(RELEASE_CRASH_REPORTING OFF CACHE BOOL "Enable use of crash reporting in release builds")
+set(NON_RELEASE_CRASH_REPORTING OFF CACHE BOOL "Enable use of crash reporting in developer builds")
+
+if(RELEASE_CRASH_REPORTING)
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DLL_SEND_CRASH_REPORTS=1")
+endif()
+
+if(NON_RELEASE_CRASH_REPORTING)
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DLL_SEND_CRASH_REPORTS=1")
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DLL_SEND_CRASH_REPORTS=1")
+endif()
+
 
 # Don't bother with a MinSizeRel build.
 
@@ -103,12 +117,14 @@ if (LINUX)
       -pthread
       )
 
-    # Don't catch SIGCHLD in our base application class for the viewer
-    # some of our 3rd party libs may need their *own* SIGCHLD handler to work.  Sigh!  
-    # The viewer doesn't need to catch SIGCHLD anyway.
-    add_definitions(-DLL_IGNORE_SIGCHLD)
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -D_FORTIFY_SOURCE=2 ")
 
-  if(${CMAKE_C_COMPILER} MATCHES "gcc*")
+  # Don't catch SIGCHLD in our base application class for the viewer
+  # some of our 3rd party libs may need their *own* SIGCHLD handler to work.  Sigh!
+  # The viewer doesn't need to catch SIGCHLD anyway.
+  add_definitions(-DLL_IGNORE_SIGCHLD)
+
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     find_program(GXX g++)
     mark_as_advanced(GXX)
 
@@ -136,16 +152,6 @@ if (LINUX)
         OUTPUT_VARIABLE CXX_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    # Here's a giant hack for Fedora 8, where we can't use
-    # _FORTIFY_SOURCE if we're using a compiler older than gcc 4.1.
-    if (${GXX_VERSION} STREQUAL ${CXX_VERSION})
-      add_definitions(-D_FORTIFY_SOURCE=2)
-    else (${GXX_VERSION} STREQUAL ${CXX_VERSION})
-      if (NOT ${GXX_VERSION} MATCHES " 4.1.*Red Hat")
-        add_definitions(-D_FORTIFY_SOURCE=2)
-      endif (NOT ${GXX_VERSION} MATCHES " 4.1.*Red Hat")
-    endif (${GXX_VERSION} STREQUAL ${CXX_VERSION})
-
     #Lets actually get a numerical version of gxx's version
     STRING(REGEX REPLACE ".* ([0-9])\\.([0-9])\\.([0-9]).*" "\\1\\2\\3" CXX_VERSION ${CXX_VERSION})
 
@@ -158,6 +164,11 @@ if (LINUX)
     if(NOT ${CXX_VERSION} LESS 460)
       add_definitions(-Wno-unused-but-set-variable)
     endif (NOT ${CXX_VERSION} LESS 460)
+
+    #gcc 4.8 boost spam wall
+    if(NOT ${CXX_VERSION} LESS 480)
+      add_definitions(-Wno-unused-local-typedefs)
+    endif (NOT ${CXX_VERSION} LESS 480)
 
     # End of hacks.
 
@@ -184,24 +195,10 @@ if (LINUX)
       set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
       set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
     endif (${ARCH} STREQUAL "x86_64")
-  elseif(${CMAKE_C_COMPILER} MATCHES "clang*")
-    find_program(CLANG clang)
-    mark_as_advanced(CLANG)
-    
-    find_program(CLANGXX clang++)
-    mark_as_advanced(CLANGXX)
-
-    add_definitions(
-        -D_FORTIFY_SOURCE=2
-        )
-
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     if (NOT STANDALONE)
       # this stops us requiring a really recent glibc at runtime
       add_definitions(-fno-stack-protector)
-    endif (NOT STANDALONE)
-
-    if (NOT STANDALONE)
-      set(MARCH_FLAG " -march=pentium4")
     endif (NOT STANDALONE)
 
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse2")
@@ -210,13 +207,7 @@ if (LINUX)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}${MARCH_FLAG} -msse2")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse2")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse2")
-  elseif(${CMAKE_C_COMPILER} MATCHES "icc*" AND ${CMAKE_CXX_COMPILER} MATCHES "icpc*")
-    find_program(ICC icc)
-    mark_as_advanced(ICC)
-
-    add_definitions(
-        -D_FORTIFY_SOURCE=2
-        )
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
 
     if (NOT STANDALONE)
       # this stops us requiring a really recent glibc at runtime
@@ -248,7 +239,8 @@ if (DARWIN)
   add_definitions(-DLL_DARWIN=1 -D_XOPEN_SOURCE)
   set(CMAKE_CXX_LINK_FLAGS "-Wl,-headerpad_max_install_names,-search_paths_first")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_CXX_LINK_FLAGS}")
-  if(${CMAKE_C_COMPILER} MATCHES "gcc*")
+
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mlong-branch")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mlong-branch")
     # NOTE: it's critical that the optimization flag is put in front.
@@ -257,7 +249,7 @@ if (DARWIN)
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -msse3 -mtune=generic -mfpmath=sse ${GCC_EXTRA_OPTIMIZATIONS}")
     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3 -msse3 -mtune=generic -mfpmath=sse ${GCC_EXTRA_OPTIMIZATIONS}")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -O3 -msse3 -mtune=generic -mfpmath=sse ${GCC_EXTRA_OPTIMIZATIONS}")
-  elseif(${CMAKE_C_COMPILER} MATCHES "clang*")
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # NOTE: it's critical that the optimization flag is put in front.
     # NOTE: it's critical to have both CXX_FLAGS and C_FLAGS covered.
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -msse3")
@@ -269,20 +261,24 @@ endif (DARWIN)
 
 
 if (LINUX OR DARWIN)
-  if(${CMAKE_C_COMPILER} MATCHES "gcc*")
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    add_definitions(-DLL_GNUC=1)
     set(UNIX_WARNINGS "-Wall -Wno-sign-compare -Wno-trigraphs")
     set(UNIX_CXX_WARNINGS "${UNIX_WARNINGS} -Wno-reorder -Wno-non-virtual-dtor -Woverloaded-virtual")
-  elseif(${CMAKE_C_COMPILER} MATCHES "clang*")
-    set(UNIX_WARNINGS "-Wall -Wno-sign-compare -Wno-trigraphs -Wno-tautological-compare -Wno-char-subscripts -Wno-gnu -Wno-logical-op-parentheses -Wno-non-virtual-dtor ")
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    add_definitions(-DLL_CLANG=1)
+    set(UNIX_WARNINGS "-Wall -Wno-sign-compare -Wno-trigraphs -Wno-tautological-compare -Wno-char-subscripts -Wno-gnu -Wno-logical-op-parentheses -Wno-non-virtual-dtor")
     set(UNIX_WARNINGS "${UNIX_WARNINGS} -Woverloaded-virtual -Wno-parentheses-equality -Wno-reorder -Wno-unused-function -Wno-unused-value -Wno-unused-variable")
     set(UNIX_CXX_WARNINGS "${UNIX_WARNINGS}")
-  elseif(${CMAKE_C_COMPILER} MATCHES "icc")
+  elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+    add_definitions(-DLL_ICC=1)
     set(UNIX_WARNINGS "-wd327 -wd597 -wd858")
     set(UNIX_CXX_WARNINGS "${UNIX_WARNINGS}")
-  endif()
+  endif ()
   
   if (NOT DISABLE_FATAL_WARNINGS)
     set(UNIX_WARNINGS "${UNIX_WARNINGS} -Werror")
+    set(UNIX_CXX_WARNINGS "${UNIX_CXX_WARNINGS} -Werror")
   endif (NOT DISABLE_FATAL_WARNINGS)
 
   set(CMAKE_C_FLAGS "${UNIX_WARNINGS} ${CMAKE_C_FLAGS}")

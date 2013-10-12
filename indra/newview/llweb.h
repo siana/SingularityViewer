@@ -35,21 +35,28 @@
 #define LL_LLWEB_H
 
 #include <string>
-#include "llalertdialog.h"
 
+///
+/// The LLWeb class provides various static methods to display the
+/// contents of a Url in a web browser. Variations are provided to 
+/// let you specifically use the Second Life internal browser, the
+/// operating system's default browser, or to respect the user's
+/// setting for which of these two they prefer to use with SL.
+///
 class LLWeb
 {
 public:
 	static void initClass();
 	
-	// Loads unescaped url in either internal web browser or external
-	// browser, depending on user settings.
-	static void loadURL(const std::string& url);
-	
-	static void loadURL(const char* url) { loadURL( ll_safe_string(url) ); }
+	/// Load the given url in the operating system's web browser, async if we want to return immediately
+	/// before browser has spawned
+	static void loadURLExternal(const std::string& url) {loadURLExternal(url, LLStringUtil::null);}
+	static void loadURLExternal(const std::string& url, const std::string& uuid);
+	static void loadURLExternal(const std::string& url, bool async, const std::string& uuid = LLStringUtil::null);
 
-	// Loads unescaped url in external browser.
-	static void loadURLExternal(const std::string& url);
+	static void loadURL(const std::string& url, const std::string& target = LLStringUtil::null, const std::string& uuid = LLStringUtil::null);
+	// load content using built-in browser
+	static void loadURLInternal(const std::string &url, const std::string& target = LLStringUtil::null, const std::string& uuid = LLStringUtil::null);
 
 	// Behaves like the old curl_escape.
 	static std::string curlEscape(const std::string& url);
@@ -60,13 +67,6 @@ public:
 	/// Expands various strings like [LANG], [VERSION], etc. in a URL
 	static std::string expandURLSubstitutions(const std::string &url,
 											  const LLSD &default_subs);
-
-	class URLLoader : public LLAlertDialog::URLLoader
-	{
-		virtual void load(const std::string& url);
-	};
-
-	static URLLoader sAlertURLLoader;
 };
 
 #endif

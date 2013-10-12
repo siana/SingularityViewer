@@ -225,7 +225,7 @@ void HippoFloaterXml::execute(const std::string &cmds)
 				if (!floater->execute(floater, floater, cmds, offset, response))
 					break;
 				if (!response.empty())
-					send_chat_from_viewer(response, CHAT_TYPE_WHISPER, CHANNEL);
+					send_chat_from_viewer(response, CHAT_TYPE_WHISPER, floater->mChannel);
 			}
 		} else
 
@@ -356,23 +356,31 @@ bool HippoFloaterXmlImpl::execute(LLFloater *floater, LLUICtrl *ctrl,
 					/*ctrl->setLabel(value);*/
 				} else if (key == "setVisible") {
 					ctrl->setVisible(value != "0");
+				} else if (key == "setEnabled") {
+					ctrl->setEnabled(value != "0");
 				} else if (key == "notify") {
 					bool set = (value != "0");
 					if (HippoFloaterXmlImpl *floaterp = dynamic_cast<HippoFloaterXmlImpl*>(ctrl)) {
 						floaterp->mIsNotifyOnClose = set;
                     } else {
-                        if (set)
-                            ctrl->setCommitCallback(boost::bind(&notifyCallback, _1, floater), ctrl);
-                        else
-                            ctrl->setCommitCallback(0);
+						HippoFloaterXmlImpl *thisFloater = static_cast<HippoFloaterXmlImpl*>(floater);
+                        if (set) {
+							notice_ptr_t connptr(new notice_connection_t(ctrl->setCommitCallback(boost::bind(&notifyCallback, _1, floater), ctrl)));
+							thisFloater->mNotices[ctrl] = connptr;
+						} else {
+							thisFloater->mNotices.erase(ctrl);
+						}
                     }
 				} else if (key == "picker") {
 					bool set = (value != "0");
 					if (!dynamic_cast<HippoFloaterXmlImpl*>(ctrl)) {
-                        if (set)
-                            ctrl->setCommitCallback(boost::bind(&pickerCallback, _1, floater), ctrl);
-                        else
-                            ctrl->setCommitCallback(0);
+						HippoFloaterXmlImpl *thisFloater = static_cast<HippoFloaterXmlImpl*>(floater);
+                        if (set) {
+							notice_ptr_t connptr(new notice_connection_t(ctrl->setCommitCallback(boost::bind(&pickerCallback, _1, floater), ctrl)));
+							thisFloater->mNotices[ctrl] = connptr;
+						} else {
+							thisFloater->mNotices.erase(ctrl);
+						}
 					}
 				}
 			}

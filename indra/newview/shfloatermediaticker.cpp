@@ -83,6 +83,9 @@ SHFloaterMediaTicker::SHFloaterMediaTicker() : LLFloater()/*, LLSingleton<SHFloa
 }
 void SHFloaterMediaTicker::updateTickerText() //called via draw.
 {
+	if(!gAudiop)
+		return;
+
 	bool stream_paused = gAudiop->getStreamingAudioImpl()->isPlaying() != 1;	//will return 1 if playing.
 
 	bool dirty = setPaused(stream_paused);
@@ -119,7 +122,7 @@ void SHFloaterMediaTicker::updateTickerText() //called via draw.
 
 void SHFloaterMediaTicker::drawOscilloscope() //called via draw.
 {
-	if(!mVisualizer || !gAudiop->getStreamingAudioImpl()->supportsWaveData())
+	if(!gAudiop || !mVisualizer || !gAudiop->getStreamingAudioImpl()->supportsWaveData())
 		return;
 
 	static const S32 NUM_LINE_STRIPS = 64;			//How many lines to draw. 64 is more than enough.

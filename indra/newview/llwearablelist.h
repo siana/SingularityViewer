@@ -55,7 +55,7 @@ public:
 								 void(*asset_arrived_callback)(LLViewerWearable*, void* userdata),
 								 void* userdata);
 
-	LLViewerWearable*			createCopy(const LLViewerWearable* old_wearable, const std::string& new_name = std::string());
+	LLViewerWearable*			createCopy(const LLViewerWearable* old_wearable, const std::string& new_name = std::string(), const std::string& new_description = std::string());
 	LLViewerWearable*			createNewWearable(LLWearableType::EType type, LLAvatarAppearance *avatarp);
 	
 	// Callback

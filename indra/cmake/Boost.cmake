@@ -8,32 +8,77 @@ if (STANDALONE)
   include(FindBoost)
 
   set(Boost_USE_MULTITHREADED ON)
-  find_package(Boost 1.40.0 COMPONENTS date_time filesystem program_options regex system thread wave)
+  find_package(Boost 1.51.0 COMPONENTS date_time filesystem program_options regex system thread wave context)
 else (STANDALONE)
   use_prebuilt_binary(boost)
   set(Boost_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/${LL_ARCH_DIR}/include)
+  set(Boost_VERSION "1.52")
 
   if (WINDOWS)
-    set(BOOST_VERSION 1_45)
-    set(BOOST_OPTIM_SUFFIX mt)
-    set(BOOST_DEBUG_SUFFIX mt-gd)
-
+    set(Boost_CONTEXT_LIBRARY 
+        optimized libboost_context-mt
+        debug libboost_context-mt-gd)
+    set(Boost_FILESYSTEM_LIBRARY 
+        optimized libboost_filesystem-mt
+        debug libboost_filesystem-mt-gd)
     set(Boost_PROGRAM_OPTIONS_LIBRARY 
-          optimized libboost_program_options-vc${MSVC_SUFFIX}-${BOOST_OPTIM_SUFFIX}-${BOOST_VERSION}
-          debug libboost_program_options-vc${MSVC_SUFFIX}-${BOOST_DEBUG_SUFFIX}-${BOOST_VERSION})
+        optimized libboost_program_options-mt
+        debug libboost_program_options-mt-gd)
     set(Boost_REGEX_LIBRARY
-          optimized libboost_regex-vc${MSVC_SUFFIX}-${BOOST_OPTIM_SUFFIX}-${BOOST_VERSION}
-          debug libboost_regex-vc${MSVC_SUFFIX}-${BOOST_DEBUG_SUFFIX}-${BOOST_VERSION})
-
-  elseif (DARWIN)
-    set(Boost_FILESYSTEM_LIBRARY boost_filesystem)
-    set(Boost_PROGRAM_OPTIONS_LIBRARY boost_program_options)
-    set(Boost_REGEX_LIBRARY boost_regex)
-    set(Boost_SYSTEM_LIBRARY boost_system)  
+        optimized libboost_regex-mt
+        debug libboost_regex-mt-gd)
+    set(Boost_SIGNALS_LIBRARY 
+        optimized libboost_signals-mt
+        debug libboost_signals-mt-gd)
+    set(Boost_SYSTEM_LIBRARY 
+        optimized libboost_system-mt
+        debug libboost_system-mt-gd)
+    set(Boost_THREAD_LIBRARY 
+        optimized libboost_thread-mt
+        debug libboost_thread-mt-gd)
   elseif (LINUX)
-    set(Boost_FILESYSTEM_LIBRARY boost_filesystem-mt)
-    set(Boost_PROGRAM_OPTIONS_LIBRARY boost_program_options-mt)
-    set(Boost_REGEX_LIBRARY boost_regex-mt)
-    set(Boost_SYSTEM_LIBRARY boost_system-mt)  
+    set(Boost_CONTEXT_LIBRARY
+        optimized boost_context-mt.a
+        debug boost_context-mt-d.a)
+    set(Boost_FILESYSTEM_LIBRARY
+        optimized boost_filesystem-mt.a
+        debug boost_filesystem-mt-d.a)
+    set(Boost_PROGRAM_OPTIONS_LIBRARY
+        optimized boost_program_options-mt.a
+        debug boost_program_options-mt-d.a)
+    set(Boost_REGEX_LIBRARY
+        optimized boost_regex-mt.a
+        debug boost_regex-mt-d.a)
+    set(Boost_SIGNALS_LIBRARY
+        optimized boost_signals-mt.a
+        debug boost_signals-mt-d.a)
+    set(Boost_SYSTEM_LIBRARY
+        optimized boost_system-mt.a
+        debug boost_system-mt-d.a)
+    set(Boost_THREAD_LIBRARY
+        optimized boost_thread-mt.a
+        debug boost_thread-mt-d.a)
+  elseif (DARWIN)
+    set(Boost_CONTEXT_LIBRARY
+        optimized boost_context-mt
+        debug boost_context-mt-d)
+    set(Boost_FILESYSTEM_LIBRARY
+        optimized boost_filesystem-mt
+        debug boost_filesystem-mt-d)
+    set(Boost_PROGRAM_OPTIONS_LIBRARY
+        optimized boost_program_options-mt
+        debug boost_program_options-mt-d)
+    set(Boost_REGEX_LIBRARY
+        optimized boost_regex-mt
+        debug boost_regex-mt-d)
+    set(Boost_SIGNALS_LIBRARY
+        optimized boost_signals-mt
+        debug boost_signals-mt-d)
+    set(Boost_SYSTEM_LIBRARY
+        optimized boost_system-mt
+        debug boost_system-mt-d)
+    set(Boost_THREAD_LIBRARY
+        optimized boost_thread-mt
+        debug boost_thread-mt-d)
   endif (WINDOWS)
 endif (STANDALONE)

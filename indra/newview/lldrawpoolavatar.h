@@ -190,7 +190,7 @@ public:
 		RIGGED_DEFERRED_BUMP_MASK = LLVertexBuffer::MAP_VERTEX | 
 							 LLVertexBuffer::MAP_NORMAL | 
 							 LLVertexBuffer::MAP_TEXCOORD0 |
-							 LLVertexBuffer::MAP_BINORMAL |
+							 LLVertexBuffer::MAP_TANGENT |
 							 LLVertexBuffer::MAP_COLOR |
 							 LLVertexBuffer::MAP_WEIGHT4,
 		RIGGED_DEFERRED_SIMPLE_MASK = LLVertexBuffer::MAP_VERTEX | 

@@ -75,6 +75,7 @@ namespace AICurlPrivate {
 class BufferedCurlEasyRequest {
 public:
   char const* getLowercaseHostname(void) const { return "hostname.com"; }
+  char const* getLowercaseServicename(void) const { return "hostname.com:12047"; }
   void getinfo(const int&, double* p) { *p = 0.1; }
 };
 
@@ -96,8 +97,9 @@ namespace curlthread {
 // HTTPTimeout
 
 //static
-F64 const HTTPTimeout::sClockWidth = 1.0 / calc_clock_frequency();	// Time between two clock ticks, in seconds.
-U64 HTTPTimeout::sClockCount;										// Clock count, set once per select() exit.
+F64 const HTTPTimeout::sClockWidth_10ms = 100.0 / calc_clock_frequency();		// Time between two clock ticks, in 10ms units.
+F64 const HTTPTimeout::sClockWidth_40ms = HTTPTimeout::sClockWidth_10ms * 0.25;	// Time between two clock ticks, in 40ms units.
+U64 HTTPTimeout::sTime_10ms;													// Time in 10ms units, set once per select() exit.
 
 // CURL-THREAD
 // This is called when body data was sent to the server socket.
@@ -125,7 +127,7 @@ bool HTTPTimeout::data_sent(size_t n, bool finished)
 //                                                    |                                        |
 void HTTPTimeout::reset_lowspeed(void)
 {
-  mLowSpeedClock = sClockCount;
+  mLowSpeedClock = sTime_10ms;
   mLowSpeedOn = true;
   mLastBytesSent = false;	// We're just starting!
   mLastSecond = -1;			// This causes lowspeed to initialize the rest.
@@ -155,15 +157,18 @@ void HTTPTimeout::upload_starting(void)
 //                                                                             |
 void HTTPTimeout::upload_finished(void)
 {
+  // Disable this assert when there isn't enough debug output to do anything with it.
+#if defined(CWDEBUG) || defined(DEBUG_CURLIO)
   llassert(!mUploadFinished);	// If we get here twice, then the 'upload finished' detection failed.
+#endif
   mUploadFinished = true;
   // Only accept a call to upload_starting() if being_redirected() is called after this point.
   mBeingRedirected = false;
   // We finished uploading (if there was a body to upload at all), so no more transfer rate timeouts.
   mLowSpeedOn = false;
   // Timeout if the server doesn't reply quick enough.
-  mStalled = sClockCount + mPolicy->getReplyDelay() / sClockWidth;
-  DoutCurl("upload_finished: mStalled set to sClockCount (" << sClockCount << ") + " << (mStalled - sClockCount) << " (" << mPolicy->getReplyDelay() << " seconds)");
+  mStalled = sTime_10ms + 100 * mPolicy->getReplyDelay();
+  DoutCurl("upload_finished: mStalled set to Time_10ms (" << sTime_10ms << ") + " << (mStalled - sTime_10ms) << " (" << mPolicy->getReplyDelay() << " seconds)");
 }
 
 // CURL-THREAD
@@ -230,8 +235,7 @@ bool HTTPTimeout::lowspeed(size_t bytes, bool finished)
   // less than low_speed_limit, we abort.
 
   // When are we?
-  S32 second = (sClockCount - mLowSpeedClock) * sClockWidth;
-  llassert(sClockWidth > 0.0);
+  S32 second = (sTime_10ms - mLowSpeedClock) / 100;
   // This REALLY should never happen, but due to another bug it did happened
   // and caused something so evil and hard to find that... NEVER AGAIN!
   llassert(second >= 0);
@@ -315,8 +319,8 @@ bool HTTPTimeout::lowspeed(size_t bytes, bool finished)
 		// Just give these bytes 4 more seconds to be written to the socket (after which we'll
 		// assume that the 'upload finished' detection failed and we'll wait another ReplyDelay
 		// seconds before finally, actually timing out.
-		mStalled = sClockCount + 4 / sClockWidth;
-		DoutCurl("mStalled set to sClockCount (" << sClockCount << ") + " << (mStalled - sClockCount) << " (4 seconds)");
+		mStalled = sTime_10ms + 400;		// 4 seconds into the future.
+		DoutCurl("mStalled set to sTime_10ms (" << sTime_10ms << ") + 400 (4 seconds)");
 		return false;
 	  }
 	  // The average transfer rate over the passed low_speed_time seconds is too low. Abort the transfer.
@@ -368,8 +372,8 @@ bool HTTPTimeout::lowspeed(size_t bytes, bool finished)
 	while(total_bytes >= mintotalbytes);
   }
   // If this function isn't called again within max_stall_time seconds, we stalled.
-  mStalled = sClockCount + max_stall_time / sClockWidth;
-  DoutCurl("mStalled set to sClockCount (" << sClockCount << ") + " << (mStalled - sClockCount) << " (" << max_stall_time << " seconds)");
+  mStalled = sTime_10ms + 100 * max_stall_time;
+  DoutCurl("mStalled set to sTime_10ms (" << sTime_10ms << ") + " << (mStalled - sTime_10ms) << " (" << max_stall_time << " seconds)");
 
   return false;
 }
@@ -435,7 +439,7 @@ bool HTTPTimeout::maybe_upload_finished(void)
 void HTTPTimeout::print_diagnostics(CurlEasyRequest const* curl_easy_request, char const* eff_url)
 {
 #ifndef HTTPTIMEOUT_TESTSUITE
-  llwarns << "Request to \"" << curl_easy_request->getLowercaseHostname() << "\" timed out for " << curl_easy_request->getTimeoutPolicy()->name() << llendl;
+  llwarns << "Request to \"" << curl_easy_request->getLowercaseServicename() << "\" timed out for " << curl_easy_request->getTimeoutPolicy()->name() << llendl;
   llinfos << "Effective URL: \"" << eff_url << "\"." << llendl;
   double namelookup_time, connect_time, appconnect_time, pretransfer_time, starttransfer_time;
   curl_easy_request->getinfo(CURLINFO_NAMELOOKUP_TIME, &namelookup_time);

@@ -62,10 +62,12 @@ public:
 	
 	// changes camera angle to default for selected subpart
 	void				changeCamera(U8 subpart);
+	bool				updatePermissions();
 
 	const std::string&	getLabel()	{ return LLWearableType::getTypeLabel( mType ); }
 	LLWearableType::EType		getType() const{ return mType; }
 	LLViewerWearable* 		getWearable() 	const;
+	U32	 getIndex() const;
 
 	void			onTabChanged(LLUICtrl* ctrl);
 	bool			onTabPrecommit();
@@ -108,6 +110,7 @@ public:
 
 	void				onColorSwatchCommit(const LLUICtrl*);
 	void				onTexturePickerCommit(const LLUICtrl*);
+	void				setNewImageID(ETextureIndex te_index, LLUUID const& uuid);	//Singu note: this used to be part of onTexturePickerCommit.
 	
 	//alpha mask checkboxes
 	void configureAlphaCheckbox(LLAvatarAppearanceDefines::ETextureIndex te, const std::string& name);

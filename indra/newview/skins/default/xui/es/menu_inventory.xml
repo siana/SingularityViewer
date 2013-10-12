@@ -6,13 +6,17 @@
 	<menu_item_call name="Task Properties" label="Propiedades"/>
 	<menu_item_call name="Task Rename" label="Renombrar"/>
 	<menu_item_call name="Task Remove" label="Borrar"/>
+	<menu_item_call label="Reiniciar" name="Task Reset"/>
+	<menu_item_call label="Detener Script" name="Task Set Not Running"/>
+	<menu_item_call label="Ejecutar Script" name="Task Set Running"/>
 	<menu_item_call name="Empty Trash" label="Vaciar Papelera"/>
-	<menu_item_call name="Empty Lost And Found" label="Vaciar Perdidos y Encontrados"/>
+	<menu_item_call name="Empty Lost And Found" label="Vaciar Elementos Perdidos"/>
+	<menu_item_call label="Abrir en Nueva Ventana" name="Open Folder In New Window"/>
 	<menu_item_call name="New Folder" label="Carpeta nueva"/>
 	<menu_item_call name="New Script" label="Script nuevo"/>
 	<menu_item_call name="New Note" label="Nota nueva"/>
 	<menu_item_call name="New Gesture" label="Gesto nuevo"/>
-	<menu name="New Clothes" label="Nuevas Ropas">
+	<menu name="New Clothes" label="Ropas Nuevas">
 		<menu_item_call name="New Shirt" label="Camisa nueva"/>
 		<menu_item_call name="New Pants" label="Pantalones nuevos"/>
 		<menu_item_call name="New Shoes" label="Zapatos nuevos"/>
@@ -32,11 +36,11 @@
 		<menu_item_call name="New Hair" label="Pelo nuevo"/>
 		<menu_item_call name="New Eyes" label="Ojos nuevos"/>
 	</menu>
-	<menu_item_call name="Landmark Open" label="Teleport"/>
+	<menu_item_call name="Landmark Open" label="Teleportar"/>
 	<menu_item_call name="Animation Open" label="Abrir"/>
 	<menu_item_call name="Sound Open" label="Abrir"/>
 	<menu_item_call name="Find Original" label="Encontrar original"/>
-	<menu_item_call name="Purge Item" label="Limpiar objeto"/>
+	<menu_item_call name="Purge Item" label="Eliminar objeto"/>
 	<menu_item_call name="Restore Item" label="Restaurar objeto"/>
 	<menu name="Open With..." label="Abrir con...">
 		<menu_item_call name="Hex Open" label="Editor Hexa"/>
@@ -46,32 +50,41 @@
 	<menu_item_call name="Open" label="Abrir"/>
 	<menu_item_call name="Properties" label="Propiedades"/>
 	<menu_item_call name="Rename" label="Renombrar"/>
-	<menu_item_call name="Copy Asset UUID" label="Copiar Asset UUID"/>
-	<menu_item_call name="Reupload..." label="Resubir..."/>
-	<menu_item_call name="Acquire Asset ID" label="Adquirir Asset ID"/>
+	<menu_item_call name="Copy Asset UUID" label="Copiar UUID de Asset"/>
+	<menu_item_call name="Acquire Asset ID" label="Obtener ID de Asset"/>
 	<menu_item_call name="Cut" label="Cortar"/>
 	<menu_item_call name="Copy" label="Copiar"/>
 	<menu_item_call name="Paste" label="Pegar"/>
 	<menu_item_call name="Paste As Copy" label="Pegar como Copia"/>	
-	<menu_item_call name="Paste As Link" label="Pegar como Link"/>
+	<menu_item_call name="Paste As Link" label="Pegar como Enlace"/>
 	<menu_item_call name="Restore to Last Position" label="Restaurar en el mundo"/>
-	<menu_item_call name="Remove Link" label="Borrar Link"/>
+	<menu_item_call name="Remove Link" label="Borrar Enlace"/>
 	<menu_item_call name="Delete" label="Borrar"/>
+	<menu_item_call name="Delete System Folder" label="Borrar carpeta del sistema"/>
 	<menu_item_call name="Wear Items" label="Vestirse objetos"/>
 	<menu_item_call name="Add To Outfit" label="Añadir al vestuario"/>
 	<menu_item_call name="Replace Outfit" label="Reemplazar Vestuario"/>
+  <menu_item_separator name="Replace Remove Separator"/>
 	<menu_item_call name="Remove From Outfit" label="Quitar del Vestuario"/>
 	<menu_item_call name="Conference Chat Folder" label="Iniciar Conferencia Grupal"/>
 	<menu_item_call name="Sound Play" label="Reproducir"/>
 	<menu_item_call name="Teleport To Landmark" label="Sobre el hito"/>
+	<menu_item_call label="Mostrar en el Mapa" name="Show On Map"/>
+	<menu_item_separator name="Animation Separator" />	
 	<menu_item_call name="Animation Play" label="Reproducir en el mundo"/>
 	<menu_item_call name="Animation Audition" label="Reproducir localmente" />
+	<menu_item_separator name="Send Instant Message Separator" />
+	<menu_item_call label="Perfil Web" name="Web Profile"/>
 	<menu_item_call name="Send Instant Message" label="Enviar MI"/>
-	<menu_item_call name="Offer Teleport..." label="Ofrecer Teleport..."/>
+	<menu_item_call name="Offer Teleport..." label="Ofrecer Teleporte..."/>
+	<menu_item_call label="Solicitar Teleporte..." name="Request Teleport..."/>
 	<menu_item_call name="Conference Chat" label="Iniciar Conferencia Grupal"/>
 	<menu_item_call name="Activate" label="Activar"/>
 	<menu_item_call name="Deactivate" label="Desactivar"/>
-	<menu_item_call name="Wearable And Object Wear" label="Vestirse Objeto"/>
+	<menu_item_separator name="Texture Separator"/>
+	<menu_item_call label="Guardar como" name="Save As"/>
+	<menu_item_separator name="Wearable And Object Separator" />	
+	<menu_item_call name="Wearable And Object Wear" label="Vestirse Ítem"/>
 	<menu_item_call name="Wearable Add" label="Añadir al Vestuario"/>
 	<menu_item_call name="Wearable Move Forward" label="&#9650; Hacia Adelante"/>
 	<menu_item_call name="Wearable Move Back" label="&#9660; Hacia Atrás"/>

@@ -174,6 +174,8 @@ bool checkExceptionHandler()
 }
 #endif
 
+bool self_test = false;
+
 // If this application on Windows platform is a console application, a console is always
 // created which is bad. Making it a Windows "application" via CMake settings but not
 // adding any code to explicitly create windows does the right thing.
@@ -220,21 +222,29 @@ int main(int argc, char **argv)
 		LL_ERRS("slplugin") << "usage: " << argv[0] << " launcher_port" << LL_ENDL;
 	}
 
-	U32 port = 0;
-	if(!LLStringUtil::convertToU32(argv[1], port))
+	U32 port = 61916;	// Test port.
+	if (strcmp(argv[1], "TESTPLUGIN") == 0)
+	{
+		std::cout << "Running self test..." << std::endl;
+		self_test = true;
+	}
+	else if (!LLStringUtil::convertToU32(argv[1], port))
 	{
 		LL_ERRS("slplugin") << "port number must be numeric" << LL_ENDL;
 	}
 
-	// Catch signals that most kinds of crashes will generate, and exit cleanly so the system crash dialog isn't shown.
-	signal(SIGILL, &crash_handler);		// illegal instruction
+	if (!self_test)
+	{
+	  // Catch signals that most kinds of crashes will generate, and exit cleanly so the system crash dialog isn't shown.
+	  signal(SIGILL, &crash_handler);		// illegal instruction
 # if LL_DARWIN
-	signal(SIGEMT, &crash_handler);		// emulate instruction executed
+	  signal(SIGEMT, &crash_handler);		// emulate instruction executed
 # endif // LL_DARWIN
-	signal(SIGFPE, &crash_handler);		// floating-point exception
-	signal(SIGBUS, &crash_handler);		// bus error
-	signal(SIGSEGV, &crash_handler);	// segmentation violation
-	signal(SIGSYS, &crash_handler);		// non-existent system call invoked
+	  signal(SIGFPE, &crash_handler);		// floating-point exception
+	  signal(SIGBUS, &crash_handler);		// bus error
+	  signal(SIGSEGV, &crash_handler);	// segmentation violation
+	  signal(SIGSYS, &crash_handler);		// non-existent system call invoked
+	}
 #endif
 
 #if LL_DARWIN
@@ -247,7 +257,7 @@ int main(int argc, char **argv)
 	plugin->init(port);
 
 #if LL_DARWIN
-		deleteAutoReleasePool();
+	deleteAutoReleasePool();
 #endif
 
 	LLTimer timer;

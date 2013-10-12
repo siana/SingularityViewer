@@ -140,10 +140,13 @@ public:
 
 	const LLCallbackMap::map_t& getFactoryMap() const { return mFactoryMap; }
 
-	BOOL initPanelXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
+	CommitCallbackRegistry::ScopedRegistrar& getCommitCallbackRegistrar() { return mCommitCallbackRegistrar; }
+	EnableCallbackRegistry::ScopedRegistrar& getEnableCallbackRegistrar() { return mEnableCallbackRegistrar; }
+	virtual BOOL initPanelXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 	void initChildrenXML(LLXMLNodePtr node, LLUICtrlFactory* factory);
 	void setPanelParameters(LLXMLNodePtr node, LLView *parentp);
 
+	bool hasString(const std::string& name);
 	std::string getString(const std::string& name, const LLStringUtil::format_map_t& args) const;
 	std::string getString(const std::string& name) const;
 
@@ -169,9 +172,13 @@ public:
 	void childSetFocus(const std::string& id, BOOL focus = TRUE);
 	BOOL childHasFocus(const std::string& id);
 	
-	void childSetCommitCallback(const std::string& id, void (*cb)(LLUICtrl*, void*), void* userdata = NULL );
-	void childSetValidate(const std::string& id, BOOL (*cb)(LLUICtrl*, void*) );
-	void childSetUserData(const std::string& id, void* userdata);
+	// *TODO: Deprecate; for backwards compatability only:
+	// Prefer getChild<LLUICtrl>("foo")->setCommitCallback(boost:bind(...)),
+	// which takes a generic slot.  Or use mCommitCallbackRegistrar.add() with
+	// a named callback and reference it in XML.
+	void childSetCommitCallback(const std::string& id, boost::function<void (LLUICtrl*,void*)> cb, void* data = NULL);
+
+	void childSetValidate(const std::string& id, boost::function<bool (const LLSD& data)> cb );
 
 	void childSetColor(const std::string& id, const LLColor4& color);
 	void childSetAlpha(const std::string& id, F32 alpha);
@@ -205,14 +212,13 @@ public:
 	void childSetText(const std::string& id, const LLStringExplicit& text) { childSetValue(id, LLSD(text)); }
 	std::string childGetText(const std::string& id) const { return childGetValue(id).asString(); }
 
-	// LLLineEditor
-	void childSetKeystrokeCallback(const std::string& id, void (*keystroke_callback)(LLLineEditor* caller, void* user_data), void *user_data);
-	void childSetPrevalidate(const std::string& id, BOOL (*func)(const LLWString &) );
-
 	// LLButton
 	void childSetAction(const std::string& id, boost::function<void(void*)> function, void* value);
 	void childSetAction(const std::string& id, const commit_signal_t::slot_type& function);
-	void childSetActionTextbox(const std::string& id, void(*function)(void*), void* value = NULL);
+
+	// LLTextBox
+	void childSetActionTextbox(const std::string& id, boost::function<void(void*)> function, void* value = NULL);
+
 	void childSetControlName(const std::string& id, const std::string& control_name);
 
 	// Error reporting
@@ -226,6 +232,8 @@ protected:
 	// Override to set not found list
 	LLButton*		getDefaultButton() { return mDefaultBtn; }
 	LLCallbackMap::map_t mFactoryMap;
+	CommitCallbackRegistry::ScopedRegistrar mCommitCallbackRegistrar;
+	EnableCallbackRegistry::ScopedRegistrar mEnableCallbackRegistrar;
 
 	commit_signal_t* mVisibleSignal;		// Called when visibility changes, passes new visibility as LLSD()
 private:
@@ -253,57 +261,5 @@ private:
 	std::string		mRequirementsError;
 
 }; // end class LLPanel
-
-
-class LLLayoutStack : public LLView
-{
-public:
-	typedef enum e_layout_orientation
-	{
-		HORIZONTAL,
-		VERTICAL
-	} eLayoutOrientation;
-
-	LLLayoutStack(eLayoutOrientation orientation);
-	virtual ~LLLayoutStack();
-
-	/*virtual*/ void draw();
-	/*virtual*/ LLXMLNodePtr getXML(bool save_children = true) const;
-	/*virtual*/ void removeChild(LLView* ctrl);
-
-	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
-
-	S32 getMinWidth() const { return mMinWidth; }
-	S32 getMinHeight() const { return mMinHeight; }
-	
-	typedef enum e_animate
-	{
-		NO_ANIMATE,
-		ANIMATE
-	} EAnimate;
-
-	void addPanel(LLPanel* panel, S32 min_width, S32 min_height, BOOL auto_resize, BOOL user_resize, EAnimate animate = NO_ANIMATE, S32 index = S32_MAX);
-	void removePanel(LLPanel* panel);
-	void collapsePanel(LLPanel* panel, BOOL collapsed = TRUE);
-	S32 getNumPanels() { return mPanels.size(); }
-
-private:
-	struct LLEmbeddedPanel;
-
-	void updateLayout(BOOL force_resize = FALSE);
-	void calcMinExtents();
-	S32 getDefaultHeight(S32 cur_height);
-	S32 getDefaultWidth(S32 cur_width);
-
-	const eLayoutOrientation mOrientation;
-
-	typedef std::vector<LLEmbeddedPanel*> e_panel_list_t;
-	e_panel_list_t mPanels;
-	LLEmbeddedPanel* findEmbeddedPanel(LLPanel* panelp) const;
-
-	S32 mMinWidth;
-	S32 mMinHeight;
-	S32 mPanelSpacing;
-}; // end class LLLayoutStack
 
 #endif

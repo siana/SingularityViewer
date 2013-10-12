@@ -54,7 +54,10 @@ protected:
 	template<typename STATICDATA, class TRACKED>
 	static STATICDATA& getStatic()
 	{
-		void *& instances = getInstances(typeid(TRACKED));
+		//Singu note: Don't de-static the instances variable. getInstances is incredibly
+		//expensive. Calling getInstances once and caching the result is sufficient
+		//to avoid the instance-per-module issue noted above.
+		static void *& instances = getInstances(typeid(TRACKED));
 		if (! instances)
 		{
 			instances = new STATICDATA;
@@ -83,6 +86,7 @@ class LLInstanceTracker : public LLInstanceTrackerBase
 {
 	typedef LLInstanceTracker<T, KEY> MyT;
 	typedef typename std::map<KEY, T*> InstanceMap;
+	typedef typename InstanceMap::iterator::difference_type difference_type;
 	struct StaticData: public StaticBase
 	{
 		InstanceMap sMap;
@@ -112,6 +116,11 @@ public:
 		friend class boost::iterator_core_access;
 
 		void increment() { mIterator++; }
+		void decrement() { --mIterator; }
+		difference_type distance_to(instance_iter const& other) const
+		{
+			return std::distance(mIterator, other.mIterator);
+		}
 		bool equal(instance_iter const& other) const
 		{
 			return mIterator == other.mIterator;
@@ -152,6 +161,11 @@ public:
 		friend class boost::iterator_core_access;
 
 		void increment() { mIterator++; }
+		void decrement() { --mIterator; }
+		difference_type distance_to(instance_iter const& other) const
+		{
+			return std::distance(mIterator, other.mIterator);
+		}
 		bool equal(key_iter const& other) const
 		{
 			return mIterator == other.mIterator;

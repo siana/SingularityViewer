@@ -62,7 +62,7 @@ void LLToolGun::handleSelect()
 {
 	gViewerWindow->hideCursor();
 	gViewerWindow->moveCursorToCenter();
-	gViewerWindow->mWindow->setMouseClipping(TRUE);
+	gViewerWindow->getWindow()->setMouseClipping(TRUE);
 	mIsSelected = TRUE;
 }
 
@@ -70,7 +70,7 @@ void LLToolGun::handleDeselect()
 {
 	gViewerWindow->moveCursorToCenter();
 	gViewerWindow->showCursor();
-	gViewerWindow->mWindow->setMouseClipping(FALSE);
+	gViewerWindow->getWindow()->setMouseClipping(FALSE);
 	mIsSelected = FALSE;
 }
 

@@ -34,36 +34,22 @@
 
 #include "llfloaterwater.h"
 
-#include "pipeline.h"
-#include "llsky.h"
-
-#include "llsliderctrl.h"
-#include "llspinctrl.h"
-#include "llcolorswatch.h"
+// libs
 #include "llcheckboxctrl.h"
+#include "llcolorswatch.h"
+#include "llcombobox.h"
+#include "llnotificationsutil.h"
+#include "llsliderctrl.h"
 #include "lltexturectrl.h"
 #include "lluictrlfactory.h"
-#include "llviewercamera.h"
-#include "llcombobox.h"
-#include "lllineeditor.h"
 #include "llfloaterdaycycle.h"
-#include "llboost.h"
-#include "llmultisliderctrl.h"
 
+// newview
 #include "llagent.h"
-#include "llinventorymodel.h"
-#include "llviewerinventory.h"
-
-#include "v4math.h"
-#include "llviewerdisplay.h"
-#include "llviewercontrol.h"
-#include "llviewerwindow.h"
-#include "llsavedsettingsglue.h"
-
-#include "llwaterparamset.h"
 #include "llwaterparammanager.h"
+#include "llwaterparamset.h"
 
-#undef max
+#undef max // Fixes a Windows compiler error
 
 LLFloaterWater* LLFloaterWater::sWaterMenu = NULL;
 
@@ -79,15 +65,13 @@ LLFloaterWater::LLFloaterWater() : LLFloater(std::string("water floater"))
 	if (mWaterPresetCombo != NULL)
 	{
 		populateWaterPresetsList();
-		mWaterPresetCombo->setCommitCallback(onChangePresetName);
+		mWaterPresetCombo->setCommitCallback(boost::bind(&LLFloaterWater::onChangePresetName, this, _1));
 	}
 
 
-	std::string def_water = getString("WLDefaultWaterNames");
-
 	// no editing or deleting of the blank string
 	sDefaultPresets.insert("");
-	boost_tokenizer tokens(def_water, boost::char_separator<char>(":"));
+	boost_tokenizer tokens(getString("WLDefaultWaterNames"), boost::char_separator<char>(":"));
 	for (boost_tokenizer::iterator token_iter = tokens.begin(); token_iter != tokens.end(); ++token_iter)
 	{
 		std::string tok(*token_iter);
@@ -102,7 +86,8 @@ LLFloaterWater::~LLFloaterWater()
 {
 }
 
-void LLFloaterWater::initCallbacks(void) {
+void LLFloaterWater::initCallbacks(void)
+{
 
 	// help buttons
 	initHelpBtn("WaterFogColorHelp", "HelpWaterFogColor");
@@ -121,52 +106,52 @@ void LLFloaterWater::initCallbacks(void) {
 	initHelpBtn("WaterWave1Help", "HelpWaterWave1");
 	initHelpBtn("WaterWave2Help", "HelpWaterWave2");
 
-	LLWaterParamManager * param_mgr = LLWaterParamManager::getInstance();
+	//-------------------------------------------------------------------------
 
-	childSetCommitCallback("WaterFogColor", onWaterFogColorMoved, &param_mgr->mFogColor);
+	LLWaterParamManager& water_mgr = LLWaterParamManager::instance();
 
-	// 
-	//childSetCommitCallback("WaterGlow", onColorControlAMoved, &param_mgr->mFogColor);
+	getChild<LLUICtrl>("WaterFogColor")->setCommitCallback(boost::bind(&LLFloaterWater::onWaterFogColorMoved, this, _1, &water_mgr.mFogColor));
+	//getChild<LLUICtrl>("WaterGlow")->setCommitCallback(boost::bind(&LLFloaterWater::onColorControlAMoved, this, _1, &water_mgr.mFogColor));
 
 	// fog density
-	childSetCommitCallback("WaterFogDensity", onExpFloatControlMoved, &param_mgr->mFogDensity);
-	childSetCommitCallback("WaterUnderWaterFogMod", onFloatControlMoved, &param_mgr->mUnderWaterFogMod);
+	getChild<LLUICtrl>("WaterFogDensity")->setCommitCallback(boost::bind(&LLFloaterWater::onExpFloatControlMoved, this, _1, &water_mgr.mFogDensity));
+	getChild<LLUICtrl>("WaterUnderWaterFogMod")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mUnderWaterFogMod));
 
 	// blue density
-	childSetCommitCallback("WaterNormalScaleX", onVector3ControlXMoved, &param_mgr->mNormalScale);
-	childSetCommitCallback("WaterNormalScaleY", onVector3ControlYMoved, &param_mgr->mNormalScale);
-	childSetCommitCallback("WaterNormalScaleZ", onVector3ControlZMoved, &param_mgr->mNormalScale);
+	getChild<LLUICtrl>("WaterNormalScaleX")->setCommitCallback(boost::bind(&LLFloaterWater::onVector3ControlXMoved, this, _1, &water_mgr.mNormalScale));
+	getChild<LLUICtrl>("WaterNormalScaleY")->setCommitCallback(boost::bind(&LLFloaterWater::onVector3ControlYMoved, this, _1, &water_mgr.mNormalScale));
+	getChild<LLUICtrl>("WaterNormalScaleZ")->setCommitCallback(boost::bind(&LLFloaterWater::onVector3ControlZMoved, this, _1, &water_mgr.mNormalScale));
 
 	// fresnel
-	childSetCommitCallback("WaterFresnelScale", onFloatControlMoved, &param_mgr->mFresnelScale);
-	childSetCommitCallback("WaterFresnelOffset", onFloatControlMoved, &param_mgr->mFresnelOffset);
+	getChild<LLUICtrl>("WaterFresnelScale")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mFresnelScale));
+	getChild<LLUICtrl>("WaterFresnelOffset")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mFresnelOffset));
 
 	// scale above/below
-	childSetCommitCallback("WaterScaleAbove", onFloatControlMoved, &param_mgr->mScaleAbove);
-	childSetCommitCallback("WaterScaleBelow", onFloatControlMoved, &param_mgr->mScaleBelow);
+	getChild<LLUICtrl>("WaterScaleAbove")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mScaleAbove));
+	getChild<LLUICtrl>("WaterScaleBelow")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mScaleBelow));
 
 	// blur mult
-	childSetCommitCallback("WaterBlurMult", onFloatControlMoved, &param_mgr->mBlurMultiplier);
+	getChild<LLUICtrl>("WaterBlurMult")->setCommitCallback(boost::bind(&LLFloaterWater::onFloatControlMoved, this, _1, &water_mgr.mBlurMultiplier));
 
 	// Load/save
-	//childSetAction("WaterLoadPreset", onLoadPreset, mWaterPresetCombo);
-	childSetAction("WaterNewPreset", onNewPreset, mWaterPresetCombo);
-	childSetAction("WaterDeletePreset", onDeletePreset, mWaterPresetCombo);
-	childSetCommitCallback("WaterSavePreset", onSavePreset, this);
+	//getChild<LLUICtrl>("WaterLoadPreset")->setCommitCallback(boost::bind(&LLFloaterWater::onLoadPreset, this, mWaterPresetCombo));
+	getChild<LLUICtrl>("WaterNewPreset")->setCommitCallback(boost::bind(&LLFloaterWater::onNewPreset, this));
+	getChild<LLUICtrl>("WaterDeletePreset")->setCommitCallback(boost::bind(&LLFloaterWater::onDeletePreset, this));
+	getChild<LLUICtrl>("WaterSavePreset")->setCommitCallback(boost::bind(&LLFloaterWater::onSavePreset, this, _1));
 
 	// wave direction
-	childSetCommitCallback("WaterWave1DirX", onVector2ControlXMoved, &param_mgr->mWave1Dir);
-	childSetCommitCallback("WaterWave1DirY", onVector2ControlYMoved, &param_mgr->mWave1Dir);
-	childSetCommitCallback("WaterWave2DirX", onVector2ControlXMoved, &param_mgr->mWave2Dir);
-	childSetCommitCallback("WaterWave2DirY", onVector2ControlYMoved, &param_mgr->mWave2Dir);
+	getChild<LLUICtrl>("WaterWave1DirX")->setCommitCallback(boost::bind(&LLFloaterWater::onVector2ControlXMoved, this, _1, &water_mgr.mWave1Dir));
+	getChild<LLUICtrl>("WaterWave1DirY")->setCommitCallback(boost::bind(&LLFloaterWater::onVector2ControlYMoved, this, _1, &water_mgr.mWave1Dir));
+	getChild<LLUICtrl>("WaterWave2DirX")->setCommitCallback(boost::bind(&LLFloaterWater::onVector2ControlXMoved, this, _1, &water_mgr.mWave2Dir));
+	getChild<LLUICtrl>("WaterWave2DirY")->setCommitCallback(boost::bind(&LLFloaterWater::onVector2ControlYMoved, this, _1, &water_mgr.mWave2Dir));
 
-	LLTextureCtrl* textCtrl = getChild<LLTextureCtrl>("WaterNormalMap");
-	textCtrl->setDefaultImageAssetID(DEFAULT_WATER_NORMAL);
-	childSetCommitCallback("WaterNormalMap", onNormalMapPicked, NULL);
+	LLTextureCtrl* texture_ctrl = getChild<LLTextureCtrl>("WaterNormalMap");
+	texture_ctrl->setDefaultImageAssetID(DEFAULT_WATER_NORMAL);
+	texture_ctrl->setCommitCallback(boost::bind(&LLFloaterWater::onNormalMapPicked, this, _1));
 
 	// next/prev buttons
-	//childSetAction("next", onClickNext, this);
-	//childSetAction("prev", onClickPrev, this);
+	//getChild<LLUICtrl>("next")->setCommitCallback(boost::bind(&LLFloaterWater::onClickNext, this));
+	//getChild<LLUICtrl>("prev")->setCommitCallback(boost::bind(&LLFloaterWater::onClickPrev, this));
 }
 
 void LLFloaterWater::onClickHelp(void* data)
@@ -174,7 +159,7 @@ void LLFloaterWater::onClickHelp(void* data)
 	LLFloaterWater* self = LLFloaterWater::instance();
 
 	const std::string* xml_alert = (std::string*)data;
-	LLNotifications::instance().add(self->contextualNotification(*xml_alert));
+	self->addContextualNotification(*xml_alert);
 }
 
 void LLFloaterWater::initHelpBtn(const std::string& name, const std::string& xml_alert)
@@ -185,14 +170,14 @@ void LLFloaterWater::initHelpBtn(const std::string& name, const std::string& xml
 bool LLFloaterWater::newPromptCallback(const LLSD& notification, const LLSD& response)
 {
 	std::string text = response["message"].asString();
-	S32 option = LLNotification::getSelectedOption(notification, response);
-
-	if(text == "")
+	if(text.empty())
 	{
 		return false;
 	}
 
-	if(option == 0) {
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	if(option == 0)
+	{
 		LLWaterParamManager * param_mgr = LLWaterParamManager::getInstance();
 
 		// add the current parameters to the list
@@ -201,10 +186,9 @@ bool LLFloaterWater::newPromptCallback(const LLSD& notification, const LLSD& res
 		if(!LLWaterParamManager::getInstance()->hasParamSet(text))
 		{
 			param_mgr->addParamSet(text, param_mgr->mCurParams);
-			sWaterMenu->mWaterPresetCombo->add(text);
-			sWaterMenu->mWaterPresetCombo->sortByName();
-
-			sWaterMenu->mWaterPresetCombo->selectByValue(text);
+			mWaterPresetCombo->add(text);
+			mWaterPresetCombo->sortByName();
+			mWaterPresetCombo->selectByValue(text);
 
 			param_mgr->savePreset(text);
 
@@ -214,7 +198,7 @@ bool LLFloaterWater::newPromptCallback(const LLSD& notification, const LLSD& res
 		} 
 		else 
 		{
-			LLNotifications::instance().add("ExistsWaterPresetAlert");
+			LLNotificationsUtil::add("ExistsWaterPresetAlert");
 		}
 	}
 	return false;
@@ -224,9 +208,9 @@ void LLFloaterWater::syncMenu()
 {
 	bool err;
 
-	LLWaterParamManager * param_mgr = LLWaterParamManager::getInstance();
+	LLWaterParamManager& water_mgr = LLWaterParamManager::instance();
 
-	LLWaterParamSet & current_params = param_mgr->mCurParams;
+	LLWaterParamSet& current_params = water_mgr.mCurParams;
 
 	if (mWaterPresetCombo->getSelectedItemLabel() != LLEnvManagerNew::instance().getWaterPresetName())
 	{
@@ -234,58 +218,56 @@ void LLFloaterWater::syncMenu()
 	}
 
 	// blue horizon
-	param_mgr->mFogColor = current_params.getVector4(param_mgr->mFogColor.mName, err);
+	water_mgr.mFogColor = current_params.getVector4(water_mgr.mFogColor.mName, err);
 
-	LLColor4 col = param_mgr->getFogColor();
-	//childSetValue("WaterGlow", col.mV[3]);
+	LLColor4 col = water_mgr.getFogColor();
+	//getChild<LLUICtrl>("WaterGlow")->setValue(col.mV[3]);
 	col.mV[3] = 1.0f;
-	LLColorSwatchCtrl* colCtrl = sWaterMenu->getChild<LLColorSwatchCtrl>("WaterFogColor");
-
-	colCtrl->set(col);
+	getChild<LLColorSwatchCtrl>("WaterFogColor")->set(col);
 
 	// fog and wavelets
-	param_mgr->mFogDensity.mExp = 
-		log(current_params.getFloat(param_mgr->mFogDensity.mName, err)) / 
-		log(param_mgr->mFogDensity.mBase);
-	param_mgr->setDensitySliderValue(param_mgr->mFogDensity.mExp);
-	childSetValue("WaterFogDensity", param_mgr->mFogDensity.mExp);
+	water_mgr.mFogDensity.mExp =
+		log(current_params.getFloat(water_mgr.mFogDensity.mName, err)) /
+		log(water_mgr.mFogDensity.mBase);
+	water_mgr.setDensitySliderValue(water_mgr.mFogDensity.mExp);
+	getChild<LLUICtrl>("WaterFogDensity")->setValue(water_mgr.mFogDensity.mExp);
 	
-	param_mgr->mUnderWaterFogMod.mX = 
-		current_params.getFloat(param_mgr->mUnderWaterFogMod.mName, err);
-	childSetValue("WaterUnderWaterFogMod", param_mgr->mUnderWaterFogMod.mX);
+	water_mgr.mUnderWaterFogMod.mX =
+		current_params.getFloat(water_mgr.mUnderWaterFogMod.mName, err);
+	getChild<LLUICtrl>("WaterUnderWaterFogMod")->setValue(water_mgr.mUnderWaterFogMod.mX);
 
-	param_mgr->mNormalScale = current_params.getVector3(param_mgr->mNormalScale.mName, err);
-	childSetValue("WaterNormalScaleX", param_mgr->mNormalScale.mX);
-	childSetValue("WaterNormalScaleY", param_mgr->mNormalScale.mY);
-	childSetValue("WaterNormalScaleZ", param_mgr->mNormalScale.mZ);
+	water_mgr.mNormalScale = current_params.getVector3(water_mgr.mNormalScale.mName, err);
+	getChild<LLUICtrl>("WaterNormalScaleX")->setValue(water_mgr.mNormalScale.mX);
+	getChild<LLUICtrl>("WaterNormalScaleY")->setValue(water_mgr.mNormalScale.mY);
+	getChild<LLUICtrl>("WaterNormalScaleZ")->setValue(water_mgr.mNormalScale.mZ);
 
 	// Fresnel
-	param_mgr->mFresnelScale.mX = current_params.getFloat(param_mgr->mFresnelScale.mName, err);
-	childSetValue("WaterFresnelScale", param_mgr->mFresnelScale.mX);
-	param_mgr->mFresnelOffset.mX = current_params.getFloat(param_mgr->mFresnelOffset.mName, err);
-	childSetValue("WaterFresnelOffset", param_mgr->mFresnelOffset.mX);
+	water_mgr.mFresnelScale.mX = current_params.getFloat(water_mgr.mFresnelScale.mName, err);
+	getChild<LLUICtrl>("WaterFresnelScale")->setValue(water_mgr.mFresnelScale.mX);
+	water_mgr.mFresnelOffset.mX = current_params.getFloat(water_mgr.mFresnelOffset.mName, err);
+	getChild<LLUICtrl>("WaterFresnelOffset")->setValue(water_mgr.mFresnelOffset.mX);
 
 	// Scale Above/Below
-	param_mgr->mScaleAbove.mX = current_params.getFloat(param_mgr->mScaleAbove.mName, err);
-	childSetValue("WaterScaleAbove", param_mgr->mScaleAbove.mX);
-	param_mgr->mScaleBelow.mX = current_params.getFloat(param_mgr->mScaleBelow.mName, err);
-	childSetValue("WaterScaleBelow", param_mgr->mScaleBelow.mX);
+	water_mgr.mScaleAbove.mX = current_params.getFloat(water_mgr.mScaleAbove.mName, err);
+	getChild<LLUICtrl>("WaterScaleAbove")->setValue(water_mgr.mScaleAbove.mX);
+	water_mgr.mScaleBelow.mX = current_params.getFloat(water_mgr.mScaleBelow.mName, err);
+	getChild<LLUICtrl>("WaterScaleBelow")->setValue(water_mgr.mScaleBelow.mX);
 
 	// blur mult
-	param_mgr->mBlurMultiplier.mX = current_params.getFloat(param_mgr->mBlurMultiplier.mName, err);
-	childSetValue("WaterBlurMult", param_mgr->mBlurMultiplier.mX);
+	water_mgr.mBlurMultiplier.mX = current_params.getFloat(water_mgr.mBlurMultiplier.mName, err);
+	getChild<LLUICtrl>("WaterBlurMult")->setValue(water_mgr.mBlurMultiplier.mX);
 
 	// wave directions
-	param_mgr->mWave1Dir = current_params.getVector2(param_mgr->mWave1Dir.mName, err);
-	childSetValue("WaterWave1DirX", param_mgr->mWave1Dir.mX);
-	childSetValue("WaterWave1DirY", param_mgr->mWave1Dir.mY);
+	water_mgr.mWave1Dir = current_params.getVector2(water_mgr.mWave1Dir.mName, err);
+	getChild<LLUICtrl>("WaterWave1DirX")->setValue(water_mgr.mWave1Dir.mX);
+	getChild<LLUICtrl>("WaterWave1DirY")->setValue(water_mgr.mWave1Dir.mY);
 
-	param_mgr->mWave2Dir = current_params.getVector2(param_mgr->mWave2Dir.mName, err);
-	childSetValue("WaterWave2DirX", param_mgr->mWave2Dir.mX);
-	childSetValue("WaterWave2DirY", param_mgr->mWave2Dir.mY);
+	water_mgr.mWave2Dir = current_params.getVector2(water_mgr.mWave2Dir.mName, err);
+	getChild<LLUICtrl>("WaterWave2DirX")->setValue(water_mgr.mWave2Dir.mX);
+	getChild<LLUICtrl>("WaterWave2DirY")->setValue(water_mgr.mWave2Dir.mY);
 
-	LLTextureCtrl* textCtrl = sWaterMenu->getChild<LLTextureCtrl>("WaterNormalMap");
-	textCtrl->setImageAssetID(param_mgr->getNormalMapID());
+	LLTextureCtrl* textCtrl = getChild<LLTextureCtrl>("WaterNormalMap");
+	textCtrl->setImageAssetID(water_mgr.getNormalMapID());
 }
 
 
@@ -342,276 +324,257 @@ void LLFloaterWater::onClose(bool app_quitting)
 	}
 }
 
-// vector control callbacks
-void LLFloaterWater::onVector3ControlXMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterVector3Control * vectorControl = static_cast<WaterVector3Control *>(userData);
-
-	vectorControl->mX = sldrCtrl->getValueF32();
-
-	vectorControl->update(LLWaterParamManager::getInstance()->mCurParams);
-
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-
-// vector control callbacks
-void LLFloaterWater::onVector3ControlYMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterVector3Control * vectorControl = static_cast<WaterVector3Control *>(userData);
-
-	vectorControl->mY = sldrCtrl->getValueF32();
-
-	vectorControl->update(LLWaterParamManager::getInstance()->mCurParams);
-
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-
-// vector control callbacks
-void LLFloaterWater::onVector3ControlZMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterVector3Control * vectorControl = static_cast<WaterVector3Control *>(userData);
-
-	vectorControl->mZ = sldrCtrl->getValueF32();
-
-	vectorControl->update(LLWaterParamManager::getInstance()->mCurParams);
-
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-
-
-// vector control callbacks
-void LLFloaterWater::onVector2ControlXMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterVector2Control * vectorControl = static_cast<WaterVector2Control *>(userData);
-
-	vectorControl->mX = sldrCtrl->getValueF32();
-
-	vectorControl->update(LLWaterParamManager::getInstance()->mCurParams);
-
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-
-// vector control callbacks
-void LLFloaterWater::onVector2ControlYMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterVector2Control * vectorControl = static_cast<WaterVector2Control *>(userData);
-
-	vectorControl->mY = sldrCtrl->getValueF32();
-
-	vectorControl->update(LLWaterParamManager::getInstance()->mCurParams);
-
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-
 // color control callbacks
-void LLFloaterWater::onColorControlRMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onColorControlRMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	colorControl->mR = sldrCtrl->getValueF32();
+	color_ctrl->mR = sldr_ctrl->getValueF32();
 
 	// move i if it's the max
-	if(colorControl->mR >= colorControl->mG 
-		&& colorControl->mR >= colorControl->mB 
-		&& colorControl->mHasSliderName)
+	if (color_ctrl->mR >= color_ctrl->mG
+		&& color_ctrl->mR >= color_ctrl->mB
+		&& color_ctrl->mHasSliderName)
 	{
-		colorControl->mI = colorControl->mR;
-		std::string name = colorControl->mSliderName;
+		color_ctrl->mI = color_ctrl->mR;
+		std::string name = color_ctrl->mSliderName;
 		name.append("I");
 		
-		sWaterMenu->childSetValue(name, colorControl->mR);
+		getChild<LLUICtrl>(name)->setValue(color_ctrl->mR);
 	}
 
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
-void LLFloaterWater::onColorControlGMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onColorControlGMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	colorControl->mG = sldrCtrl->getValueF32();
+	color_ctrl->mG = sldr_ctrl->getValueF32();
 
 	// move i if it's the max
-	if(colorControl->mG >= colorControl->mR 
-		&& colorControl->mG >= colorControl->mB
-		&& colorControl->mHasSliderName)
+	if (color_ctrl->mG >= color_ctrl->mR
+		&& color_ctrl->mG >= color_ctrl->mB
+		&& color_ctrl->mHasSliderName)
 	{
-		colorControl->mI = colorControl->mG;
-		std::string name = colorControl->mSliderName;
+		color_ctrl->mI = color_ctrl->mG;
+		std::string name = color_ctrl->mSliderName;
 		name.append("I");
 
-		sWaterMenu->childSetValue(name, colorControl->mG);
+		getChild<LLUICtrl>(name)->setValue(color_ctrl->mG);
 
 	}
 
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
-void LLFloaterWater::onColorControlBMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onColorControlBMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	colorControl->mB = sldrCtrl->getValueF32();
+	color_ctrl->mB = sldr_ctrl->getValueF32();
 
 	// move i if it's the max
-	if(colorControl->mB >= colorControl->mR
-		&& colorControl->mB >= colorControl->mG
-		&& colorControl->mHasSliderName)
+	if (color_ctrl->mB >= color_ctrl->mR
+		&& color_ctrl->mB >= color_ctrl->mG
+		&& color_ctrl->mHasSliderName)
 	{
-		colorControl->mI = colorControl->mB;
-		std::string name = colorControl->mSliderName;
+		color_ctrl->mI = color_ctrl->mB;
+		std::string name = color_ctrl->mSliderName;
 		name.append("I");
 
-		sWaterMenu->childSetValue(name, colorControl->mB);
+		getChild<LLUICtrl>(name)->setValue(color_ctrl->mB);
 	}
 
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
-void LLFloaterWater::onColorControlAMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onColorControlAMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	colorControl->mA = sldrCtrl->getValueF32();
+	color_ctrl->mA = sldr_ctrl->getValueF32();
 
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
 
-void LLFloaterWater::onColorControlIMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onColorControlIMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	colorControl->mI = sldrCtrl->getValueF32();
+	color_ctrl->mI = sldr_ctrl->getValueF32();
 	
 	// only for sliders where we pass a name
-	if(colorControl->mHasSliderName) 
+	if (color_ctrl->mHasSliderName)
 	{
 		// set it to the top
-		F32 maxVal = std::max(std::max(colorControl->mR, colorControl->mG), colorControl->mB);
+		F32 maxVal = std::max(std::max(color_ctrl->mR, color_ctrl->mG), color_ctrl->mB);
 		F32 iVal;
 
-		iVal = colorControl->mI;
+		iVal = color_ctrl->mI;
 
 		// get the names of the other sliders
-		std::string rName = colorControl->mSliderName;
+		std::string rName = color_ctrl->mSliderName;
 		rName.append("R");
-		std::string gName = colorControl->mSliderName;
+		std::string gName = color_ctrl->mSliderName;
 		gName.append("G");
-		std::string bName = colorControl->mSliderName;
+		std::string bName = color_ctrl->mSliderName;
 		bName.append("B");
 
 		// handle if at 0
 		if(iVal == 0)
 		{
-			colorControl->mR = 0;
-			colorControl->mG = 0;
-			colorControl->mB = 0;
+			color_ctrl->mR = 0;
+			color_ctrl->mG = 0;
+			color_ctrl->mB = 0;
 		
 		// if all at the start
 		// set them all to the intensity
 		}
 		else if (maxVal == 0)
 		{
-			colorControl->mR = iVal;
-			colorControl->mG = iVal;
-			colorControl->mB = iVal;
+			color_ctrl->mR = iVal;
+			color_ctrl->mG = iVal;
+			color_ctrl->mB = iVal;
 		}
 		else
 		{
 			// add delta amounts to each
 			F32 delta = (iVal - maxVal) / maxVal;
-			colorControl->mR *= (1.0f + delta);
-			colorControl->mG *= (1.0f + delta);
-			colorControl->mB *= (1.0f + delta);
+			color_ctrl->mR *= (1.0f + delta);
+			color_ctrl->mG *= (1.0f + delta);
+			color_ctrl->mB *= (1.0f + delta);
 		}
 
 		// set the sliders to the new vals
-		sWaterMenu->childSetValue(rName, colorControl->mR);
-		sWaterMenu->childSetValue(gName, colorControl->mG);
-		sWaterMenu->childSetValue(bName, colorControl->mB);
+		getChild<LLUICtrl>(rName)->setValue(color_ctrl->mR);
+		getChild<LLUICtrl>(gName)->setValue(color_ctrl->mG);
+		getChild<LLUICtrl>(bName)->setValue(color_ctrl->mB);
 	}
 
 	// now update the current parameters and send them to shaders
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
-void LLFloaterWater::onExpFloatControlMoved(LLUICtrl* ctrl, void* userData)
+// vector control callbacks
+void LLFloaterWater::onVector3ControlXMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl)
 {
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterExpFloatControl * expFloatControl = static_cast<WaterExpFloatControl *>(userData);
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
 
-	F32 val = sldrCtrl->getValueF32();
+	vector_ctrl->mX = sldr_ctrl->getValueF32();
+
+	vector_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
+
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+// vector control callbacks
+void LLFloaterWater::onVector3ControlYMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	vector_ctrl->mY = sldr_ctrl->getValueF32();
+
+	vector_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
+
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+// vector control callbacks
+void LLFloaterWater::onVector3ControlZMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	vector_ctrl->mZ = sldr_ctrl->getValueF32();
+
+	vector_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
+
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+
+// vector control callbacks
+void LLFloaterWater::onVector2ControlXMoved(LLUICtrl* ctrl, WaterVector2Control* vector_ctrl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	vector_ctrl->mX = sldr_ctrl->getValueF32();
+
+	vector_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
+
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+// vector control callbacks
+void LLFloaterWater::onVector2ControlYMoved(LLUICtrl* ctrl, WaterVector2Control* vector_ctrl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	vector_ctrl->mY = sldr_ctrl->getValueF32();
+
+	vector_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
+
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+void LLFloaterWater::onFloatControlMoved(LLUICtrl* ctrl, WaterFloatControl* floatControl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	floatControl->mX = sldr_ctrl->getValueF32() / floatControl->mMult;
+
+	floatControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	LLWaterParamManager::getInstance()->propagateParameters();
+}
+
+void LLFloaterWater::onExpFloatControlMoved(LLUICtrl* ctrl, WaterExpFloatControl* expFloatControl)
+{
+	LLSliderCtrl* sldr_ctrl = static_cast<LLSliderCtrl*>(ctrl);
+
+	F32 val = sldr_ctrl->getValueF32();
 	expFloatControl->mExp = val;
 	LLWaterParamManager::getInstance()->setDensitySliderValue(val);
 
 	expFloatControl->update(LLWaterParamManager::getInstance()->mCurParams);
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
-
-void LLFloaterWater::onFloatControlMoved(LLUICtrl* ctrl, void* userData)
-{
-	LLSliderCtrl* sldrCtrl = static_cast<LLSliderCtrl*>(ctrl);
-	WaterFloatControl * floatControl = static_cast<WaterFloatControl *>(userData);
-
-	floatControl->mX = sldrCtrl->getValueF32() / floatControl->mMult;
-
-	floatControl->update(LLWaterParamManager::getInstance()->mCurParams);
-	LLWaterParamManager::getInstance()->propagateParameters();
-}
-void LLFloaterWater::onWaterFogColorMoved(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onWaterFogColorMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl)
 {
 	LLColorSwatchCtrl* swatch = static_cast<LLColorSwatchCtrl*>(ctrl);
-	WaterColorControl * colorControl = static_cast<WaterColorControl *>(userData);	
-	*colorControl = swatch->get();
+	*color_ctrl = swatch->get();
 
-	colorControl->update(LLWaterParamManager::getInstance()->mCurParams);
+	color_ctrl->update(LLWaterParamManager::getInstance()->mCurParams);
 	LLWaterParamManager::getInstance()->propagateParameters();
 }
 
-void LLFloaterWater::onBoolToggle(LLUICtrl* ctrl, void* userData)
-{
-	LLCheckBoxCtrl* cbCtrl = static_cast<LLCheckBoxCtrl*>(ctrl);
-
-	bool value = cbCtrl->get();
-	(*(static_cast<BOOL *>(userData))) = value;
-}
-
-void LLFloaterWater::onNormalMapPicked(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onNormalMapPicked(LLUICtrl* ctrl)
 {
 	LLTextureCtrl* textCtrl = static_cast<LLTextureCtrl*>(ctrl);
 	LLUUID textID = textCtrl->getImageAssetID();
 	LLWaterParamManager::getInstance()->setNormalMapID(textID);
 }
 
-void LLFloaterWater::onNewPreset(void* userData)
+//=============================================================================
+
+void LLFloaterWater::onNewPreset()
 {
-	LLNotifications::instance().add("NewWaterPreset", LLSD(),  LLSD(), newPromptCallback);
+	LLNotificationsUtil::add("NewWaterPreset", LLSD(),  LLSD(), boost::bind(&LLFloaterWater::newPromptCallback, this, _1, _2));
 }
 
-void LLFloaterWater::onSavePreset(LLUICtrl* ctrl, void* userData)
+void LLFloaterWater::onSavePreset(LLUICtrl* ctrl)
 {
 	// don't save the empty name
-	if(sWaterMenu->mWaterPresetCombo->getSelectedItemLabel() == "")
+	if(mWaterPresetCombo->getSelectedItemLabel().empty())
 	{
 		return;
 	}
@@ -622,25 +585,23 @@ void LLFloaterWater::onSavePreset(LLUICtrl* ctrl, void* userData)
 	}
 	else
 	{
-		LLWaterParamManager::getInstance()->mCurParams.mName =
-			sWaterMenu->mWaterPresetCombo->getSelectedItemLabel();
+		LLWaterParamManager::getInstance()->mCurParams.mName = mWaterPresetCombo->getSelectedItemLabel();
 
 		// check to see if it's a default and shouldn't be overwritten
-		std::set<std::string>::iterator sIt = sDefaultPresets.find(
-			sWaterMenu->mWaterPresetCombo->getSelectedItemLabel());
+		std::set<std::string>::iterator sIt = sDefaultPresets.find(mWaterPresetCombo->getSelectedItemLabel());
 		if(sIt != sDefaultPresets.end() && !gSavedSettings.getBOOL("WaterEditPresets")) 
 		{
-			LLNotifications::instance().add("WLNoEditDefault");
+			LLNotificationsUtil::add("WLNoEditDefault");
 			return;
 		}
 
-		LLNotifications::instance().add("WLSavePresetAlert", LLSD(), LLSD(), saveAlertCallback);
+		LLNotificationsUtil::add("WLSavePresetAlert", LLSD(), LLSD(), boost::bind(&LLFloaterWater::saveAlertCallback, this, _1, _2));
 	}
 }
 
 bool LLFloaterWater::saveNotecardCallback(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	// if they choose save, do it.  Otherwise, don't do anything
 	if(option == 0) 
 	{
@@ -653,15 +614,13 @@ bool LLFloaterWater::saveNotecardCallback(const LLSD& notification, const LLSD& 
 
 bool LLFloaterWater::saveAlertCallback(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	// if they choose save, do it.  Otherwise, don't do anything
 	if(option == 0) 
 	{
-		LLWaterParamManager * param_mgr = LLWaterParamManager::getInstance();
+		LLWaterParamManager* param_mgr = LLWaterParamManager::getInstance();
 
-		param_mgr->setParamSet(
-			param_mgr->mCurParams.mName, 
-			param_mgr->mCurParams);
+		param_mgr->setParamSet(param_mgr->mCurParams.mName, param_mgr->mCurParams);
 
 		// comment this back in to save to file
 		param_mgr->savePreset(param_mgr->mCurParams.mName);
@@ -669,22 +628,23 @@ bool LLFloaterWater::saveAlertCallback(const LLSD& notification, const LLSD& res
 	return false;
 }
 
-void LLFloaterWater::onDeletePreset(void* userData)
+void LLFloaterWater::onDeletePreset()
 {
-	if(sWaterMenu->mWaterPresetCombo->getSelectedValue().asString() == "")
+	if(mWaterPresetCombo->getSelectedValue().asString().empty())
 	{
 		return;
 	}
 
 	LLSD args;
-	args["SKY"] = sWaterMenu->mWaterPresetCombo->getSelectedValue().asString();
-	LLNotifications::instance().add("WLDeletePresetAlert", args, LLSD(), deleteAlertCallback);
+	args["SKY"] = mWaterPresetCombo->getSelectedValue().asString();
+	LLNotificationsUtil::add("WLDeletePresetAlert", args, LLSD(), boost::bind(&LLFloaterWater::deleteAlertCallback, this, _1, _2));
 }
 
 bool LLFloaterWater::deleteAlertCallback(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
-	// if they choose delete, do it.  Otherwise, don't do anything
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+
+	// If they choose delete, do it.  Otherwise, don't do anything
 	if(option == 0) 
 	{
 		LLFloaterDayCycle* day_cycle = NULL;
@@ -696,22 +656,22 @@ bool LLFloaterWater::deleteAlertCallback(const LLSD& notification, const LLSD& r
 			key_combo = day_cycle->getChild<LLComboBox>("WaterKeyPresets");
 		}
 
-		std::string name = sWaterMenu->mWaterPresetCombo->getSelectedValue().asString();
+		std::string name = mWaterPresetCombo->getSelectedValue().asString();
 
 		// check to see if it's a default and shouldn't be deleted
 		std::set<std::string>::iterator sIt = sDefaultPresets.find(name);
 		if(sIt != sDefaultPresets.end()) 
 		{
-			LLNotifications::instance().add("WaterNoEditDefault");
+			LLNotificationsUtil::add("WaterNoEditDefault");
 			return false;
 		}
 
 		LLWaterParamManager::getInstance()->removeParamSet(name, true);
 		
 		// remove and choose another
-		S32 new_index = sWaterMenu->mWaterPresetCombo->getCurrentIndex();
+		S32 new_index = mWaterPresetCombo->getCurrentIndex();
 
-		sWaterMenu->mWaterPresetCombo->remove(name);
+		mWaterPresetCombo->remove(name);
 
 		if(key_combo != NULL) 
 		{
@@ -724,23 +684,22 @@ bool LLFloaterWater::deleteAlertCallback(const LLSD& notification, const LLSD& r
 		// pick the previously selected index after delete
 		if(new_index > 0) 
 		{
-			new_index--;
+			--new_index;
 		}
 		
-		if(sWaterMenu->mWaterPresetCombo->getItemCount() > 0) 
+		if(mWaterPresetCombo->getItemCount() > 0) 
 		{
-			sWaterMenu->mWaterPresetCombo->setCurrentByIndex(new_index);
+			mWaterPresetCombo->setCurrentByIndex(new_index);
 		}
 	}
 	return false;
 }
 
-
-void LLFloaterWater::onChangePresetName(LLUICtrl* ctrl, void * userData)
+void LLFloaterWater::onChangePresetName(LLUICtrl* ctrl)
 {
-	LLComboBox * combo_box = static_cast<LLComboBox*>(ctrl);
+	LLComboBox* combo_box = static_cast<LLComboBox*>(ctrl);
 	
-	if(combo_box->getSimple() == "")
+	if(combo_box->getSimple().empty())
 	{
 		return;
 	}
@@ -756,29 +715,29 @@ void LLFloaterWater::onChangePresetName(LLUICtrl* ctrl, void * userData)
 		// LLEnvManagerNew::instance().useRegionWater();
 		LLEnvManagerNew::instance().setUseWaterPreset("Default");
 	}
-	sWaterMenu->syncMenu();
+	syncMenu();
 }
 
-void LLFloaterWater::onClickNext(void* user_data)
+void LLFloaterWater::onClickNext()
 {
-	S32 index = sWaterMenu->mWaterPresetCombo->getCurrentIndex();
-	index++;
-	if (index == sWaterMenu->mWaterPresetCombo->getItemCount())
+	S32 index = mWaterPresetCombo->getCurrentIndex();
+	++index;
+	if (index == mWaterPresetCombo->getItemCount())
 		index = 0;
-	sWaterMenu->mWaterPresetCombo->setCurrentByIndex(index);
+	mWaterPresetCombo->setCurrentByIndex(index);
 
-	LLFloaterWater::onChangePresetName(sWaterMenu->mWaterPresetCombo, sWaterMenu);
+	LLFloaterWater::onChangePresetName(mWaterPresetCombo);
 }
 
-void LLFloaterWater::onClickPrev(void* user_data)
+void LLFloaterWater::onClickPrev()
 {
-	S32 index = sWaterMenu->mWaterPresetCombo->getCurrentIndex();
+	S32 index = mWaterPresetCombo->getCurrentIndex();
 	if (index == 0)
-		index = sWaterMenu->mWaterPresetCombo->getItemCount();
-	index--;
-	sWaterMenu->mWaterPresetCombo->setCurrentByIndex(index);
+		index = mWaterPresetCombo->getItemCount();
+	--index;
+	mWaterPresetCombo->setCurrentByIndex(index);
 
-	LLFloaterWater::onChangePresetName(sWaterMenu->mWaterPresetCombo, sWaterMenu);
+	LLFloaterWater::onChangePresetName(mWaterPresetCombo);
 }
 
 void LLFloaterWater::populateWaterPresetsList()

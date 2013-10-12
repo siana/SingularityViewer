@@ -67,6 +67,7 @@ public:
 	virtual void showProperties(void) = 0;
 	virtual BOOL isItemRenameable() const = 0;
 	virtual BOOL renameItem(const std::string& new_name) = 0;
+	virtual void nameOrDescriptionChanged(void) const { }		// Singu note: Currently only used by LLWearableBridge.
 	virtual BOOL isItemMovable( void ) const = 0;		// Can be moved to another folder
 	virtual BOOL isItemRemovable( void ) const = 0;		// Can be destroyed
 	virtual BOOL isItemInTrash( void) const { return FALSE; } // TODO: make into pure virtual.

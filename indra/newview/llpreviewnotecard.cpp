@@ -144,7 +144,7 @@ LLPreviewNotecard::LLPreviewNotecard(const std::string& name,
 		childSetCommitCallback("desc", LLPreview::onText, this);
 		if (const LLInventoryItem* item = getItem())
 			childSetText("desc", item->getDescription());
-		childSetPrevalidate("desc", &LLLineEditor::prevalidatePrintableNotPipe);
+		getChild<LLLineEditor>("desc")->setPrevalidate(&LLLineEditor::prevalidatePrintableNotPipe);
 	}
 
 	setTitle(title);
@@ -159,8 +159,6 @@ LLPreviewNotecard::LLPreviewNotecard(const std::string& name,
 	}
 
 	initMenu();
-
-	gAgentCamera.changeCameraToDefault();
 }
 
 LLPreviewNotecard::~LLPreviewNotecard()

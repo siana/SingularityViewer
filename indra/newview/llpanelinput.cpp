@@ -45,10 +45,9 @@ LLPanelInput::LLPanelInput()
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_input.xml");
 }
 
-static void onFOVAdjust(LLUICtrl* source, void* data)
+static void onFOVAdjust(const LLSD& value)
 {
-	LLSliderCtrl* slider = dynamic_cast<LLSliderCtrl*>(source);
-	LLViewerCamera::getInstance()->setDefaultFOV(slider->getValueF32());
+	LLViewerCamera::getInstance()->setDefaultFOV(value.asFloat());
 }
 
 BOOL LLPanelInput::postBuild()
@@ -68,7 +67,7 @@ BOOL LLPanelInput::postBuild()
 	childSetValue("first_person_avatar_visible", gSavedSettings.getBOOL("FirstPersonAvatarVisible"));
 
 	LLSliderCtrl* fov_slider = getChild<LLSliderCtrl>("camera_fov");
-	fov_slider->setCommitCallback(&onFOVAdjust);
+	fov_slider->setCommitCallback(boost::bind(onFOVAdjust, _2));
 	fov_slider->setMinValue(LLViewerCamera::getInstance()->getMinView());
 	fov_slider->setMaxValue(LLViewerCamera::getInstance()->getMaxView());
 	fov_slider->setValue(LLViewerCamera::getInstance()->getView());

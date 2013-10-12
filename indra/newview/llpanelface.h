@@ -56,6 +56,8 @@ public:
 	virtual ~LLPanelFace();
 
 	void			refresh();
+	void			setMediaURL(const std::string& url);
+	void			setMediaType(const std::string& mime_type);
 
 protected:
 	void			getState();
@@ -69,29 +71,30 @@ protected:
 	void			sendShiny();			// applies and sends shininess
 	void			sendFullbright();		// applies and sends full bright
 	void            sendGlow();
+	void			sendMedia();
 
-	// this function is to return TRUE if the dra should succeed.
-	static BOOL onDragTexture(LLUICtrl* ctrl, LLInventoryItem* item, void* ud);
+	// this function is to return TRUE if the drag should succeed.
+	static BOOL onDragTexture(LLUICtrl* ctrl, LLInventoryItem* item);
 
-	static void 	onCommitTexture(		LLUICtrl* ctrl, void* userdata);
-	static void 	onCancelTexture(		LLUICtrl* ctrl, void* userdata);
-	static void 	onSelectTexture(		LLUICtrl* ctrl, void* userdata);
+	void 	onCommitTexture(const LLSD& data);
+	void 	onCancelTexture(const LLSD& data);
+	void 	onSelectTexture(const LLSD& data);
+	void 	onCommitColor(const LLSD& data);
+	void 	onCommitAlpha(const LLSD& data);
+	void 	onCancelColor(const LLSD& data);
+	void 	onSelectColor(const LLSD& data);
 	static void 	onCommitTextureInfo(	LLUICtrl* ctrl, void* userdata);
-	static void 	onCommitColor(			LLUICtrl* ctrl, void* userdata);
-	static void 	onCommitAlpha(			LLUICtrl* ctrl, void* userdata);
-	static void 	onCancelColor(			LLUICtrl* ctrl, void* userdata);
-	static void 	onSelectColor(			LLUICtrl* ctrl, void* userdata);
 	static void		onCommitBump(			LLUICtrl* ctrl, void* userdata);
 	static void		onCommitTexGen(			LLUICtrl* ctrl, void* userdata);
 	static void		onCommitShiny(			LLUICtrl* ctrl, void* userdata);
 	static void		onCommitFullbright(		LLUICtrl* ctrl, void* userdata);
 	static void     onCommitGlow(           LLUICtrl* ctrl, void *userdata);
 	static void		onCommitPlanarAlign(	LLUICtrl* ctrl, void* userdata);
-
 	static void		onClickApply(void*);
 	static void		onClickAutoFix(void*);
 	static void		onClickCopy(void*);
 	static void		onClickPaste(void*);
+
 	static F32      valueGlow(LLViewerObject* object, S32 face);
 };
 

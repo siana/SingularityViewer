@@ -1,13 +1,12 @@
 /** 
  * @file llfloaterreporter.h
  * @author Andrew Meadows
- * @brief Bug and abuse reports.
+ * @brief Abuse reports.
  *
  * $LicenseInfo:firstyear=2006&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2006-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -49,7 +48,7 @@ class LLMeanCollisionData;
 struct LLResourceData;
 
 // these flags are used to label info requests to the server
-const U32 BUG_REPORT_REQUEST 		= 0x01 << 0;
+//const U32 BUG_REPORT_REQUEST 		= 0x01 << 0; // DEPRECATED
 const U32 COMPLAINT_REPORT_REQUEST 	= 0x01 << 1;
 const U32 OBJECT_PAY_REQUEST		= 0x01 << 2;
 
@@ -74,48 +73,45 @@ enum EReportType
 {
 	NULL_REPORT = 0,		// don't use this value anywhere
 	UNKNOWN_REPORT = 1,
-	BUG_REPORT = 2,
+	//BUG_REPORT = 2, // DEPRECATED
 	COMPLAINT_REPORT = 3,
 	CS_REQUEST_REPORT = 4
 };
 
 class LLFloaterReporter
-:	public LLFloater
+:	public LLFloater, public LLSingleton<LLFloaterReporter>
 {
 public:
-	LLFloaterReporter(const std::string& name, 
-					  const LLRect &rect, 
-					  const std::string& title, 
-					  EReportType = UNKNOWN_REPORT);
+	LLFloaterReporter();
 	/*virtual*/ ~LLFloaterReporter();
-
+	/*virtual*/ BOOL postBuild();
 	virtual void draw();
+
+	void setReportType(EReportType type) { mReportType = type; }
 
 	// Enables all buttons
 	static void showFromMenu(EReportType report_type);
 
 	static void showFromObject(const LLUUID& object_id);
+	static void showFromAvatar(const LLUUID& avatar_id, const std::string avatar_name);
 
 	static void onClickSend			(void *userdata);
 	static void onClickCancel		(void *userdata);
 	static void onClickObjPicker	(void *userdata);
-	static void onClickSelectAbuser (void *userdata);
+	void onClickSelectAbuser ();
 	static void closePickTool	(void *userdata);
 	static void uploadDoneCallback(const LLUUID &uuid, void* user_data, S32 result, LLExtStat ext_status);
 	static void addDescription(const std::string& description, LLMeanCollisionData *mcd = NULL);
 	static void setDescription(const std::string& description, LLMeanCollisionData *mcd = NULL);
 	
-	// returns a pointer to reporter of report_type
-	static LLFloaterReporter* getReporter(EReportType report_type);
-	static LLFloaterReporter* createNewAbuseReporter();
-	static LLFloaterReporter* createNewBugReporter();
-
 	// static
 	static void processRegionInfo(LLMessageSystem* msg);
 	
 	void setPickedObjectProperties(const std::string& object_name, const std::string& owner_name, const LLUUID owner_id);
 
 private:
+	static void show(const LLUUID& object_id, const std::string& avatar_name = LLStringUtil::null);
+
 	void takeScreenshot();
 	void sendReportViaCaps(std::string url);
 	void uploadImage();
@@ -128,12 +124,16 @@ private:
 	void enableControls(BOOL own_avatar);
 	void getObjectInfo(const LLUUID& object_id);
 	void callbackAvatarID(const uuid_vec_t& ids, const std::vector<LLAvatarName>& names);
+	void setFromAvatarID(const LLUUID& avatar_id);
+	void onAvatarNameCache(const LLUUID& avatar_id, const LLAvatarName& av_name);
 
 private:
 	EReportType		mReportType;
 	LLUUID 			mObjectID;
 	LLUUID			mScreenID;
 	LLUUID			mAbuserID;
+	// Store the real name, not the link, for upstream reporting
+	std::string		mOwnerName;
 	BOOL			mDeselectOnClose;
 	BOOL 			mPicking;
 	LLVector3		mPosition;

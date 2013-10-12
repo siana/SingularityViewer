@@ -57,12 +57,12 @@ public:
 	void setDay(S32 day);
 
 protected:
-	static void onDateModeCallback(LLUICtrl* ctrl, void *data);
-	static void onBackBtn(void* data);
-	static void onForwardBtn(void* data);
-	static void onClickToday(void *userdata);
-	static void onClickSearch(void *data);
-	static void onClickDelete(void *data);
+	void onDateModeCallback();
+	void onBackBtn();
+	void onForwardBtn();
+	void onClickToday();
+	void onClickSearch();
+	void onClickDelete();
 
 protected:
 	BOOL		mDoneQuery;

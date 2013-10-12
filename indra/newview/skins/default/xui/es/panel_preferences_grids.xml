@@ -9,20 +9,16 @@
 		([DEFAULT])
 	</text>
 	<!-- Buttons -->
-	<button label="Quitar" name="btn_delete" />
-	<button label="Añadir" name="btn_add"/>
-	<button label="Copiar" name="btn_copy"/>
+	<button label="Borrar" label_selected="Borrar"  name="btn_delete" tool_tip="Borrar de la lista el Grid seleccionado"/>
+	<button label="Añadir" name="btn_add" tool_tip="Agregar un nuevo Grid a la lista"/>
+	<button label="Copiar" label_selected="Copiar" name="btn_copy" tool_tip="Crear una nueva entrada usando la seleccionada como plantilla"/>
 	<!-- Advanced -->
-	<button label="Avanzado" name="btn_advanced"/>
+	<button label="Avanzado" label_selected="Avanzado" name="btn_advanced"/>
 	<!-- Login URI -->
 	<text name="loginuri_label">
 		URL de Inicio:
 	</text>
-	<!--<button label="Get Grid Info" label_selected="Get Grid Info" enabled="true" name="btn_gridinfo"
-	height="18" width="100" left="120" bottom_delta="-22"
-	halign="center"
-	follows="left|top" scale_image="true"
-		font="SansSerifSmall" mouse_opaque="true" />-->
+	<button label="Actualizar Información del Grid" name="btn_gridinfo" width="174" left="120" tool_tip="Recuperar toda la información del grid desde la URI de inicio de sesión indicada (sobreescribiendo las URLs actuales, ver Avanzado)"/>-->
 	<!-- Platform -->
 	<text name="platform_label">
 		Plataforma:

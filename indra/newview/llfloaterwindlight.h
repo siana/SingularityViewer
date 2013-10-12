@@ -39,9 +39,6 @@
 
 #include "llfloater.h"
 
-#include <vector>
-#include "llwlparamset.h"
-
 struct WLColorControl;
 struct WLFloatControl;
 
@@ -55,84 +52,76 @@ public:
 	LLFloaterWindLight();
 	virtual ~LLFloaterWindLight();
 	
-	/// initialize all
+	// initialize all
 	void initCallbacks(void);
 
-	/// one and one instance only
+	// one and one instance only
 	static LLFloaterWindLight* instance();
 
 	// help button stuff
 	static void onClickHelp(void* data);
 	void initHelpBtn(const std::string& name, const std::string& xml_alert);
 
-	static bool newPromptCallback(const LLSD& notification, const LLSD& response);
+	bool newPromptCallback(const LLSD& notification, const LLSD& response);
 
 	void setColorSwatch(const std::string& name, const WLColorControl& from_ctrl, F32 k);
 	
-	/// general purpose callbacks for dealing with color controllers
-	static void onColorControlRMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlGMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlBMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlIMoved(LLUICtrl* ctrl, void* userData);
-	static void onFloatControlMoved(LLUICtrl* ctrl, void* userData);
-	static void onBoolToggle(LLUICtrl* ctrl, void* userData);
+	// general purpose callbacks for dealing with color controllers
+	void onColorControlRMoved(LLUICtrl* ctrl, void* userdata);
+	void onColorControlGMoved(LLUICtrl* ctrl, void* userdata);
+	void onColorControlBMoved(LLUICtrl* ctrl, void* userdata);
+	void onColorControlIMoved(LLUICtrl* ctrl, void* userdata);
+	void onFloatControlMoved(LLUICtrl* ctrl, void* userdata);
 
-	/// lighting callbacks for glow
-	static void onGlowRMoved(LLUICtrl* ctrl, void* userData);
-	//static void onGlowGMoved(LLUICtrl* ctrl, void* userData);
-	static void onGlowBMoved(LLUICtrl* ctrl, void* userData);
+	// lighting callbacks for glow
+	void onGlowRMoved(LLUICtrl* ctrl, void* userdata);
+	void onGlowBMoved(LLUICtrl* ctrl, void* userdata);
 
-	/// lighting callbacks for sun
-	static void onSunMoved(LLUICtrl* ctrl, void* userData);
+	// lighting callbacks for sun
+	void onSunMoved(LLUICtrl* ctrl, void* userdata);
 
-	/// handle if float is changed
-	static void onFloatTweakMoved(LLUICtrl* ctrl, void* userData);
+	// for handling when the star slider is moved to adjust the alpha
+	void onStarAlphaMoved(LLUICtrl* ctrl);
 
-	/// for handling when the star slider is moved to adjust the alpha
-	static void onStarAlphaMoved(LLUICtrl* ctrl, void* userData);
+	// when user hits the load preset button
+	void onNewPreset();
 
-	/// when user hits the load preset button
-	static void onNewPreset(void* userData);
-
-	/// when user hits the save to file button
-	static void onSavePreset(LLUICtrl* ctrl, void* userData);
+	// when user hits the save to file button
+	void onSavePreset(LLUICtrl* ctrl);
 	
-	/// prompts a user when overwriting a preset notecard
-	static bool saveNotecardCallback(const LLSD& notification, const LLSD& response);
+	// prompts a user when overwriting a preset notecard
+	bool saveNotecardCallback(const LLSD& notification, const LLSD& response);
 
-	/// prompts a user when overwriting a preset
-	static bool saveAlertCallback(const LLSD& notification, const LLSD& response);
+	// prompts a user when overwriting a preset
+	bool saveAlertCallback(const LLSD& notification, const LLSD& response);
 
-	/// when user hits the save preset button
-	static void onDeletePreset(void* userData);
+	// when user hits the save preset button
+	void onDeletePreset();
 
-	/// prompts a user when overwriting a preset
+	// prompts a user when overwriting a preset
 	bool deleteAlertCallback(const LLSD& notification, const LLSD& response);
 
-	/// what to do when you change the preset name
-	static void onChangePresetName(LLUICtrl* ctrl, void* userData);
+	// what to do when you change the preset name
+	void onChangePresetName(LLUICtrl* ctrl);
 
-	/// when user hits the save preset button
-	static void onOpenDayCycle(void* userData);
-
-	/// handle cloud scrolling
-	static void onCloudScrollXMoved(LLUICtrl* ctrl, void* userData);
-	static void onCloudScrollYMoved(LLUICtrl* ctrl, void* userData);
-	static void onCloudScrollXToggled(LLUICtrl* ctrl, void* userData);
-	static void onCloudScrollYToggled(LLUICtrl* ctrl, void* userData);
+	// handle cloud scrolling
+	void onCloudScrollXMoved(const LLSD& value);
+	void onCloudScrollYMoved(const LLSD& value);
+	void onCloudScrollXToggled(const LLSD& value);
+	void onCloudScrollYToggled(const LLSD& value);
 
 	//// menu management
 
-	/// show off our menu
+	// show off our menu
 	static void show();
 
-	/// return if the menu exists or not
+	// return if the menu exists or not
 	static bool isOpen();
 
-	/// stuff to do on exit
+	// stuff to do on exit
 	virtual void onClose(bool app_quitting);
 
-	/// sync up sliders with parameters
+	// sync up sliders with parameters
 	void syncMenu();
 
 
@@ -144,11 +133,11 @@ private:
 
 	static std::set<std::string> sDefaultPresets;
 
-	static void onClickNext(void* user_data);
-	static void onClickPrev(void* user_data);
-	
+	void onClickNext();
+	void onClickPrev();
+
 	void populateSkyPresetsList();
-	
+
 	LLComboBox*		mSkyPresetCombo;
 };
 

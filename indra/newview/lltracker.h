@@ -81,8 +81,8 @@ public:
 	// these are static so that they can be used a callbacks
 	static ETrackingStatus getTrackingStatus() { return instance()->mTrackingStatus; }
 	static ETrackingLocationType getTrackedLocationType() { return instance()->mTrackingLocationType; }
-	static BOOL isTracking(void*) { return instance()->mTrackingStatus != TRACKING_NOTHING; }
-	static void stopTracking(void*);
+	static BOOL isTracking() { return instance()->mTrackingStatus != TRACKING_NOTHING; }
+	static void stopTracking(bool);
 	static void clearFocus();
 	
 	static const LLUUID& getTrackedLandmarkAssetID() { return instance()->mTrackedLandmarkAssetID; }

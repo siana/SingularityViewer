@@ -234,7 +234,7 @@ extern LLGLSLShader			gTransformPositionProgram;
 extern LLGLSLShader			gTransformTexCoordProgram;
 extern LLGLSLShader			gTransformNormalProgram;
 extern LLGLSLShader			gTransformColorProgram;
-extern LLGLSLShader			gTransformBinormalProgram;
+extern LLGLSLShader			gTransformTangentProgram;
 //utility shaders
 extern LLGLSLShader			gOcclusionProgram;
 extern LLGLSLShader			gOcclusionCubeProgram;
@@ -244,7 +244,6 @@ extern LLGLSLShader			gSplatTextureRectProgram;
 extern LLGLSLShader			gGlowCombineFXAAProgram;
 extern LLGLSLShader			gDebugProgram;
 extern LLGLSLShader			gClipProgram;
-extern LLGLSLShader			gAlphaMaskProgram;
 
 //output tex0[tc0] + tex1[tc1]
 extern LLGLSLShader			gTwoTextureAddProgram;

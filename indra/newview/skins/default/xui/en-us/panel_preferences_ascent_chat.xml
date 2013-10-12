@@ -8,6 +8,7 @@
         label="Announce incoming instant messages" tool_tip="Opens an IM window when someone starts typing an IM to you. This gives you a heads up that someone is IMing you before they hit enter." name="quickstart_im_check"/>
       <check_box bottom_delta="-20" follows="left|top" control_name="AscentHideTypingNotification" initial_value="false"
         label="Don't send '[name] is typing...' in IMs" tool_tip="IM partners will not see '______ is typing...' when you're responding." name="hide_typing_check"/>
+      <check_box bottom_delta="-20" follows="left|top" control_name="InstantMessagesFriendsOnly" label="Only accept IMs from Friends" name="InstantMessagesFriendsOnly"/>
       <check_box bottom_delta="-20" follows="left|top" control_name="AscentAllowMUpose" initial_value="false"
         label="Allow MU pose method." tool_tip="Allows the use of both /me and : to perform emotes." name="allow_mu_pose_check"/>
       <check_box bottom_delta="-20" follows="left|top" control_name="AscentAutoCloseOOC"
@@ -24,7 +25,8 @@
       <check_box bottom_delta="-20" follows="left|top" control_name="OptionShowGroupNameInChatIM" initial_value="false"
         label="Show group name in chat" tool_tip="The name of the group will also be displayed if the IM is from group chat." name="append_group_name_check"/>
       <check_box bottom_delta="-20" follows="left|top" control_name="ShowDisplayNameChanges" label="Show display name changes" tool_tip="When checked, a notification will come up in chat whenever someone's display name changes." name="display_name_change"/>
-      <text bottom="-150" left="10" follows="left|top" name="objects_link_text_box3">Show links on chatting object names in chat history for:</text>
+      <check_box bottom_delta="-20" follows="left|top" control_name="UseTypingBubbles" label="Use overhead typing indicator bubbles" name="use_typing_bubbles"/>
+      <text bottom="-160" left="10" follows="left|top" name="objects_link_text_box3">Show links on chatting object names in chat history for:</text>
       <radio_group bottom_delta="-26" control_name="LinksForChattingObjects" tool_tip="Enables a link to show you the owner of the speaking object."
         follows="top" height="20" left="20" name="objects_link" width="350">
         <radio_item bottom_delta="0" left_delta="5" name="no_object" width="48">No object</radio_item>
@@ -44,40 +46,51 @@
         <combo_item name="month_first" value="default">MM/DD/YYYY</combo_item>
       </combo_box>
       <check_box bottom_delta="0" left="240" follows="top" control_name="SecondsInLog" label="Seconds in Log timestamps" name="seconds_in_log"/>
-      <!-- Auto-responder -->
-      <view_border bottom="-420" left="5" height="190" bevel_style="none" border_thickness="1" name="GraphicsBorder" width="485"/>
-      <check_box bottom_delta="168" left="10" follows="top" initial_value="false" label="Enable Autoresponse"
-        name="AscentInstantMessageResponseAnyone" tool_tip="Sends a pre made message of your choosing, when people start IMing you. (Enter your message in the Response Text. Text area), located below."/>
-	  <check_box bottom_delta="-20" follows="left|top" initial_value="false"
-		label="Autorespond to non-friends" name="AscentInstantMessageResponseFriends" tool_tip="Sends a pre made message of your choosing, when people start IMing you. (Enter your message in the Response Text. Text area), located below."/>
-	  <check_box bottom_delta="-20" follows="left|top" initial_value="false" 
-		label="Autorespond to people you have muted" name="AscentInstantMessageResponseMuted" tool_tip="Sends a pre made message of your choosing, when people start IMing you. (Enter your message in the Response Text. Text area), located below."/>
-      <check_box bottom_delta="-20" follows="left|top" initial_value="false" label="Send as soon as they start typing" name="AscentInstantMessageShowOnTyping"/>
-      <check_box bottom_delta="-20" follows="left|top" initial_value="false" label="Don't show IMs you auto-responsed to" name="AscentInstantMessageShowResponded"/>
-      <check_box bottom_delta="-20" follows="left|top" initial_value="false" label="Autorespond to every message" name="AscentInstantMessageResponseRepeat"/>
-	  <check_box bottom_delta="-20" follows="left|top" initial_value="false" label="Send an item along with the response" name="AscentInstantMessageResponseItem" tool_tip="You can include an inventory item to send along with your auto response by dragging it from your inventory to the location below"/>
-      <view_border blevel_style="in" bottom_delta="-20" follows="left|top" height="18" left_delta="5" mouse_opaque="false" name="im_give_drop_target_rect" width="220"/>
-	  <text bottom_delta="0" drop_shadow_visible="true" follows="left|top" halign="center" height="16" name="im_give_disp_rect_txt" tool_tip="Drop an inventory item here to have it given along with the auto-response." width="230">Drop item here (Currently: NONE)</text>
-	  <text bottom_delta="140" left_delta="240" follows="left|top" height="18" name="text_box1">Response Text:</text>
-      <text_editor bottom_delta="-110" follows="left|top" height="110" max_length="1100" name="im_response" width="230" word_wrap="true" spell_check="true" hide_scrollbar="true"/>
-      <text bottom_delta="-25" follows="left|top" height="18" name="text_box2">
-#f for user's first name, #l for last name,
-#t for timestamp, #r for SLURL to you,
-#i for your idle time. (e.g. "5 mins")
-      </text>
-    </panel>
+  </panel>
 
-    <panel border="true" bottom="-580" height="525" label="Chat UI" left="1" name="ChatUI" width="418">
+  <panel border="true" bottom="-580" height="525" label="Chat UI" left="1" name="ChatUI" width="418">
       <check_box bottom_delta="-25" left="10" follows="top" initial_value="false" control_name="WoLfVerticalIMTabs"
         label="Use Vertical IMs (Requires a restart)" name="use_vertical_ims_check"/>
       <check_box bottom_delta="-20" follows="top" control_name="OtherChatsTornOff" label="Open new IMs in separate floaters" name="chats_torn_off"/>
+      <check_box bottom_delta="-20" follows="top" control_name="PhoenixIMAnnounceStealFocus" label="Focus new instant messages" name="chat_steal_focus"/>
       <check_box bottom_delta="-20" follows="left|top" control_name="ShowLocalChatFloaterBar" label="Show chat bar in torn-off local chat floater" name="show_local_chat_floater_bar"/>
       <check_box bottom_delta="-20" control_name="ContactsUseHorizontalButtons" follows="top" height="16" label="Use horizontal buttons for contacts floater (Needs restart)" tool_tip="When enabled, the buttons on the Friends and Groups panels will be at the bottom, horizontally arranged, instead of vertically arranged on the right." name="horiz_butt"/>	  
+      <check_box bottom_delta="-20" follows="top" height="16" control_name="LiruLegacySpeakerNames" label="Use legacy names for speaker lists (Affects new speakers)" tool_tip="Allows for easier moderation of chats by showing only the account names" name="legacy_speaker_names"/>
       <check_box bottom_delta="-20" control_name="UseConciseIMButtons" follows="top" height="16" label="Buttons on the same line as name for IMs (Affects new IMs)" name="im_concise_butt"/>
       <check_box bottom_delta="-20" control_name="UseConciseGroupChatButtons" follows="top" height="16" label="Buttons on group chat name line (Affects new group chats)" name="group_concise_butt"/>
       <check_box bottom_delta="-20" control_name="UseConciseConferenceButtons" follows="top" height="16" label="Buttons on conference title line (Affects new conferences)" name="conf_concise_butt"/>
       <check_box bottom_delta="-20" follows="top" height="16" initial_value="false" label="Disallow communicate shortcut opening detached friends list" control_name="CommunicateSpecificShortcut" name="only_comm"/>
-    </panel>
+      <check_box bottom_delta="-20" follows="top" height="16" control_name="LiruItalicizeActions" label="Italicize action messages (/me)" name="italicize_actions"/>
+  </panel>
+
+  <panel border="true" bottom="-580" height="525" label="Autoresponse" left="1" name="Autoresponse" width="525">
+    <text bottom="-25" follows="left|top" height="18" left="4" name="Autoresponse Info">
+Autoresponse makes the viewer respond to people who message you, with a custom message.
+The following wildcards are available to enhance your autoresponses: #n for user's legacy name,
+#d for their display name, #r for SLURL to your location, #i for your idle time in minutes.
+    </text>
+    <check_box bottom_delta="-40" follows="left|top" control_name="AscentInstantMessageResponseRepeat" name="AscentInstantMessageResponseRepeat" label="Autorespond every time you receive a message you've enabled autoresponse for"/>
+    <check_box bottom_delta="-20" left="6" follows="top" control_name="AutoresponseAnyone" name="AutoresponseAnyone" label="Send basic autoresponse" tool_tip="Send the message in the box below to people you haven't muted."/>
+    <check_box bottom_delta="0" left_delta="150" follows="left|top" control_name="AutoresponseAnyoneFriendsOnly" name="AutoresponseAnyoneFriendsOnly" label="to friends only" tool_tip="Avoids sending this response to those you don't know"/>
+    <check_box bottom_delta="0" left_delta="100" follows="left|top" control_name="AutoresponseAnyoneItem" name="AutoresponseAnyoneItem" label="Send item"/>
+    <check_box bottom_delta="0" left_delta="80" follows="left|top" control_name="AutoresponseAnyoneShow" name="AutoresponseAnyoneShow" label="Show that this was sent"/>
+    <text_editor bottom_delta="-47" left="8" font="SansSerifSmall" follows="left|top" height="45" max_length="1100" control_name="AutoresponseAnyoneMessage" name="AutoresponseAnyoneMessage" width="480" word_wrap="true" spell_check="true" hide_scrollbar="true"/>
+    <drop_target bottom_delta="-124" left="8" height="17" width="480" control_name="AutoresponseAnyoneItemID" name="AutoresponseAnyoneItemID" tool_tip="Drop an item here to have it sent with the above response."/>
+    <check_box bottom_delta="82" left="6" follows="left|top" control_name="AutoresponseNonFriends" name="AutoresponseNonFriends" label="Autorespond to nonfriends" tool_tip="Send the message in the box below to people who are not your friends"/>
+    <check_box bottom_delta="0" left_delta="250" follows="left|top" control_name="AutoresponseNonFriendsItem" name="AutoresponseNonFriendsItem" label="Send item"/>
+    <check_box bottom_delta="0" left_delta="80" follows="left|top" control_name="AutoresponseNonFriendsShow" name="AutoresponseNonFriendsShow" label="Show that this was sent"/>
+    <text_editor bottom_delta="-47" left="8" font="SansSerifSmall" follows="left|top" height="45" max_length="1100" control_name="AutoresponseNonFriendsMessage" name="AutoresponseNonFriendsMessage" width="480" word_wrap="true" spell_check="true" hide_scrollbar="true"/>
+    <drop_target bottom_delta="-124" left="8" height="17" width="480" control_name="AutoresponseNonFriendsItemID" name="AutoresponseNonFriendsItemID" tool_tip="Drop an item here to have it sent with the above response."/>
+    <check_box bottom_delta="82" left="6" follows="left|top" control_name="AutoresponseMuted" name="AutoresponseMuted" label="Autorespond to people you have muted" tool_tip="Send the message in the box below to people you have muted."/>
+    <check_box bottom_delta="0" left_delta="250" follows="left|top" control_name="AutoresponseMutedItem" name="AutoresponseMutedItem" label="Send item"/>
+    <text_editor bottom_delta="-47" left="8" font="SansSerifSmall" follows="left|top" height="45" max_length="1100" control_name="AutoresponseMutedMessage" name="AutoresponseMutedMessage" width="480" word_wrap="true" spell_check="true" hide_scrollbar="true"/>
+    <drop_target bottom_delta="-124" left="8" height="17" width="480" control_name="AutoresponseMutedItemID" name="AutoresponseMutedItemID" tool_tip="Drop an item here to have it sent with the above response."/>
+    <text bottom_delta="88" left="8" follows="left|top" name="BusyModeResponseText" tool_tip="Send the message in the box below to people who message when you are busy.">Busy Mode Response:</text>
+    <check_box bottom_delta="-5" left_delta="250" follows="left|top" control_name="BusyModeResponseItem" name="BusyModeResponseItem" label="Send item"/>
+    <check_box bottom_delta="0" left_delta="80" follows="left|top" control_name="BusyModeResponseShow" name="BusyModeResponseShow" label="Show that this was sent"/>
+    <text_editor bottom_delta="-47" left="8" font="SansSerifSmall" follows="left|top" height="45" max_length="1100" control_name="BusyModeResponse" name="BusyModeResponse" width="480" word_wrap="true" spell_check="true" hide_scrollbar="true"/>
+    <drop_target bottom_delta="-124" left="8" height="17" width="480" control_name="BusyModeResponseItemID" name="BusyModeResponseItemID" tool_tip="Drop an item here to have it sent with the above response."/>
+  </panel>
 
     <panel border="true" left="1" bottom="-408" height="408" width="500" label="Spam" name="Spam">
       <check_box control_name="AntiSpamEnabled" label="Enable Antispam" name="enable_as" width="256" left="3"/>
@@ -99,6 +112,10 @@
       <check_box control_name="AntiSpamScripts" height="16" label="Scripts" name="Scripts" bottom_delta="0" left_delta="120"/>
       <check_box control_name="AntiSpamTeleports" height="16" label="Teleport Offers" name="Teleport Offers" bottom_delta="0" left_delta="120"/>
       <check_box control_name="AntiSpamGroupNotices" height="16" label="Group Notices" name="Group Notices" bottom_delta="0" left_delta="120"/>
+      <check_box control_name="AntiSpamTeleportRequests" height="16" label="Teleport Requests" name="Teleport Requests" left="14" bottom_delta="-20"/>
+      <text name="Except those from:" left="21" bottom_delta="-10">Except those from:</text>
+      <check_box control_name="AntiSpamNotMine" height="16" label="My objects" name="My objects" left="25" bottom_delta="-23"/>
+      <check_box control_name="AntiSpamNotFriends" height="16" label="My friends" name="My friends" bottom_delta="0" left_delta="120"/>
       <check_box control_name="EnableGestureSounds" label="Enable Gesture Sounds" name="Enable Gesture Sounds" left="3" bottom_delta="-20"/>
     </panel>
 

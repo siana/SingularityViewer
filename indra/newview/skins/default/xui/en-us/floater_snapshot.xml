@@ -1,71 +1,61 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater bottom="-300" can_close="true" can_drag_on_left="false" can_minimize="false"
-     can_resize="false" follows="left|top" height="629" name="Snapshot" 
+     can_resize="false" follows="left|top" height="629" name="Snapshot"
      rect_control="FloaterSnapshotRect" title="Snapshot Preview" width="219">
-	<text bottom="-201" right="-6" height="25" name="file_size_label" halign="right" width="120">
+	<text bottom="-210" right="-10" follows="left|top" height="25" name="file_size_label" halign="right" width="150">
 		File size: [SIZE] KB
 	</text>
-	<text bottom="-195" height="15" left="10" name="type_label" halign="left">
+	<text bottom_delta="10" follows="top|left" height="15" left="10" name="type_label">
 		Target
 	</text>
-	<radio_group bottom_delta="-79" follows="left|top" height="79" label="Snapshot type"
+	<radio_group bottom_delta="-82" follows="left|top" height="79" label="Snapshot type"
 	     left="10" name="snapshot_type_radio" width="200">
 		<radio_item bottom="-19" height="16" name="feed">
-			Post to my.secondlife.com feed
+			Post to profile feed
 		</radio_item>
 		<radio_item bottom="-38" height="16" name="postcard">
 			Send via email
 		</radio_item>
 		<radio_item bottom="-57" height="16" name="texture">
-			Save to my inventory ([UPLOADFEE])
+			Save to inventory ([UPLOADFEE])
 		</radio_item>
 		<radio_item bottom="-76" height="16" name="local">
-			Save to my hard drive
+			Save to hard drive
 		</radio_item>
 	</radio_group>
-	<button bottom_delta="-28" follows="left|top" height="20" label="Refresh snapshot" left="10"
-	  name="new_snapshot_btn" width="115" tool_tip="Make a snapshot of the current view. Use the save and/or upload button to actually save it. The latest snapshot is shown in the thumbnail. In Freeze Time mode a preview of the new snapshot is also shown full screen (note that this has NOT the same quality as the real thing that will be saved: it is downscaled from the actual formatted image to a power of two with a max. resolution of 1024x1024, in order to be displayed in openGL and then probably stretched again to fill your screen). Press ESC to go back to Freeze Time." />
-	<button bottom_delta="0" follows="left|top" height="20" label="Freeze time" left="129"
-	     name="freeze_time_btn" width="80" tool_tip="Freeze time and show a fullscreen preview. Allows to cam around as if time is frozen and make multiple snapshots of the same scene. Press ESC to undo!" />
+	<button bottom="-309" follows="left|top" height="20" label="Refresh" left="10"
+	  name="new_snapshot_btn" width="105"/>
+	<button bottom_delta="0" follows="left|top" height="20" label="Freeze" left="120"
+	     name="freeze_time_btn" width="90" tool_tip="Show a fullscreen preview. Allows camming around as if time is frozen to make multiple snapshots of the same scene. Press ESC to undo!" />
 	<button bottom_delta="-22" follows="left|top" height="20" label="Upload" left="10"
 	     name="feed_btn" width="105" />
 	<button bottom_delta="0" follows="left|top" height="20" label="Send" left="10"
 	     name="send_btn" width="105" />
 	<button bottom_delta="0" follows="left|top" height="20" label="Upload ([UPLOADFEE])" left="10"
 	     name="upload_btn" width="105" />
-	<flyout_button bottom_delta="-2" follows="left|top" height="20" label="Save" left="10"
+	<flyout_button bottom_delta="0" follows="left|top" height="20" label="Save" left="10"
        list_position="below" mouse_opaque="true" name="save_btn" tool_tip="Save image to a file" width="105">
     <flyout_button_item value="save" name="save_item">Save</flyout_button_item>
     <flyout_button_item value="saveas" name="saveas_item">Save As...</flyout_button_item>
 	</flyout_button>
-	<combo_box bottom_delta="-4" follows="left|top" height="20" label="Format" left="139"
-	     name="local_format_combo" width="70">
-		<combo_item name="PNG">
-			PNG
-		</combo_item>
-		<combo_item name="JPEG">
-			JPEG
-		</combo_item>
-		<combo_item name="BMP">
-			BMP
-		</combo_item>
-	</combo_box>
-	<button bottom_delta="-22" follows="left|top" font="SansSerifSmall" halign="center"
-	     height="20" label="Advanced&gt;&gt;" left="10"
+	<button bottom_delta="0" follows="left|top" height="20" label="Cancel" left="120" name="discard_btn" width="90"/>
+	<button bottom="-353" follows="left|top" font="SansSerifSmall" halign="center"
+	     height="20" label="More &gt;&gt;" left="10"
 	     mouse_opaque="true" name="more_btn" scale_image="TRUE"
-	     tool_tip="Advanced Options. Default uses current window size ((cropped to) 4:3 for profile feed)." width="72" />
+	     tool_tip="Advanced Options" width="80" />
 	<button bottom_delta="0" follows="left|top" font="SansSerifSmall" halign="center"
-	     height="20" label="&lt;&lt;Default" left_delta="0"
+	     height="20" label="&lt;&lt; Less" left_delta="0"
 	     mouse_opaque="true" name="less_btn" scale_image="TRUE"
-	     tool_tip="Advanced Options. Default uses current window size ((cropped to) 4:3 for profile feed)." width="72" />
-	<slider bottom_delta="0" decimal_digits="0" follows="left|top" height="15"
-	     increment="1" initial_val="75" left="80"
-	     max_val="100" min_val="0" name="image_quality_slider" width="150" />
+	     tool_tip="Advanced Options" width="80" />
 	<text bottom_delta="-20" follows="top|left" height="15" left="10" name="type_label2" width="115">
 	Target Resolution
 	</text>
+	<text bottom_delta="0" follows="top|left" height="15" left="130" name="format_label"
+	     width="70">
+	Format
+	</text>
 	<combo_box bottom_delta="-22" follows="left|top" height="20" label="Resolution" left="10"
-	     name="feed_size_combo" width="125">
+	     name="feed_size_combo" width="115">
 		<combo_item name="CurrentWindow" value="[i0,i0]">
 			Current Window
 		</combo_item>
@@ -175,18 +165,30 @@
 			Custom
 		</combo_item>
 	</combo_box>
+	<combo_box bottom_delta="0" follows="left|top" height="20" label="Format" left="130"
+	     name="local_format_combo" width="80">
+		<combo_item name="PNG">
+			PNG
+		</combo_item>
+		<combo_item name="JPEG">
+			JPEG
+		</combo_item>
+		<combo_item name="BMP">
+			BMP
+		</combo_item>
+	</combo_box>
 	<spinner bottom_delta="-25" decimal_digits="0" follows="left|top" height="20"
-	     increment="32" label="Width" label_width="30" left="14" max_val="6016"
-	     min_val="32" name="snapshot_width" width="95" allow_text_entry="false"/>
+	     increment="32" label="Width" label_width="30" left="10" max_val="6016"
+	     min_val="32" name="snapshot_width" width="95"/>
 	<spinner bottom_delta="0" decimal_digits="0" follows="left|top" height="20"
-	     increment="32" label="Height" label_width="35" left="114" max_val="6016"
-	     min_val="32" name="snapshot_height" width="95" allow_text_entry="false"/>
-	<check_box bottom_delta="-14" follows="top|left" label="Keep aspect ratio"
-	     left="10" name="keep_aspect" tool_tip="When changing the resolution keep its aspect ratio the same. This also enforces this aspect ratio to be equal to the target aspect (as if the Aspect was set to Default): changing the target aspect will change the aspect of the resolution. Note: setting the resolution to non-Custom, or the Aspect to Default will reset this check box because they are not compatible." />
-	<text bottom_delta="-20" follows="top|left" height="15" left="10" name="type_label3"
-	     width="200">
-		 place holder, see targetAR / sourceAR
-	</text>
+	     increment="32" label="Height" label_width="38" left="112" max_val="6016"
+	     min_val="32" name="snapshot_height" width="98"/>
+	<slider bottom_delta="-15" decimal_digits="0" follows="left|top" height="15"
+	     increment="1" initial_val="75" label="Image Quality" left="10"
+	     max_val="100" min_val="0" name="image_quality_slider" width="210" />
+	<check_box bottom_delta="-19" follows="top|left" label="Keep aspect ratio"
+	     left="8" name="keep_aspect" tool_tip="Note: setting the resolution to non-Custom, or the Aspect to Default will reset this check box because they aren't compatible." />
+	<text bottom_delta="-15" follows="top|left" height="15" left="10" name="type_label3" width="200"/>
 	<combo_box bottom_delta="-22" follows="left|top" height="20" label="Aspect" left="10"
 	     name="feed_aspect_combo" width="115">
 		<combo_item name="Default" value="-2">
@@ -268,16 +270,16 @@
 			Custom
 		</combo_item>
 	</combo_box>
-	<spinner bottom_delta="0" decimal_digits="5" follows="left|top" height="20"
+	<spinner bottom_delta="-4" decimal_digits="5" follows="left|top" height="20"
 	     increment="0.01" label="" left="130" max_val="32"
 	     min_val="0.03125" name="aspect_ratio" width="64" allow_text_entry="false"/>
     <text bottom_delta="-4" height="20" left="196" name="aspect_one_label">:1</text>
-	<text bottom_delta="-26" follows="left|top" height="20" left="15"
+	<text bottom_delta="-20" follows="left|top" height="20" left="10"
 	     name="layer_type_label" width="50">
 		Capture:
 	</text>
 	<combo_box bottom_delta="3" follows="left|top" height="20" label="Image Layers" left="61"
-	     name="layer_types" width="145">
+	     name="layer_types" width="149">
 		<combo_item name="Colors" value="colors">
 			Colors
 		</combo_item>
@@ -285,27 +287,27 @@
 			Depth
 		</combo_item>
 	</combo_box>
-	<check_box bottom_delta="-18" follows="left|top" label="Show interface in snapshot"
-	     left="10" name="ui_check" tool_tip="Show the UI in the snapshot. This enforces the resolution of the snapshot to that of your current window." />
-	<check_box bottom_delta="-20" follows="left|top" label="Show HUD objects in snapshot"
-	     left="10" name="hud_check" tool_tip="Show your HUD objects in the snapshot. This enforces the resolution of the snapshot to that of your current window." />
-	<check_box bottom_delta="-20" follows="left|top" label="Keep open after saving" left="10"
-	     name="keep_open_check" tool_tip="Do not close the snapshot floater after saving or uploading. This allows you to save, upload or send the SAME snapshot again with different formats and/or to a different destination." />
-	<check_box bottom_delta="-20" follows="left|top" label="Open floater in Freeze Time mode"
-	     left="10" name="freeze_time_check" tool_tip="This allows one to quickly press cntrl-shift-S and then take your time to choose the camera position and even make multiple shots of the frozen scene." />
-	<check_box bottom_delta="-20" follows="left|top" label="Auto-refresh" left="10"
+	<check_box bottom_delta="-20" follows="left|top" label="Show interface in snapshot"
+	     left="10" name="ui_check" tool_tip="Locks resolution to current window size." />
+	<check_box bottom_delta="-17" follows="left|top" label="Show HUD objects in snapshot"
+	     left="10" name="hud_check" tool_tip="Locks resolution to current window size." />
+	<check_box bottom_delta="-17" follows="left|top" label="Keep open after saving" left="10"
+	     name="keep_open_check" />
+	<check_box bottom_delta="-17" follows="left|top" label="Open floater in Freeze Time mode"
+	     left="10" name="freeze_time_check" tool_tip="Allows to quickly open snapshot floater, then position camera and take multiple shots of frozen scene." />
+	<check_box bottom_delta="-17" follows="left|top" label="Auto-refresh" left="10"
 	     name="auto_snapshot_check" tool_tip="Handy in conjunction with Freeze Time: creates a new fullscreen preview whenever you stop camming." />
-	<check_box bottom_delta="-20" follows="left|top" control_name="TemporaryUpload" enabled="true"
+	<check_box bottom_delta="-17" follows="left|top" control_name="TemporaryUpload" enabled="true"
              initial_value="false" label="Temporary Image (Free)" left="10"
-             name="temp_check" tool_tip="Uploads the texture to the sim instead of the asset server, meaning it's free but only visible in the current sim and deleted when you leave the sim." />
+             name="temp_check" tool_tip="Sets the asset to be temporary, meaning it's free, but in return, only good for a short time before it ceases to exist. (May not work on SL grid)" />
 	<string name="unknown">
 		unknown
 	</string>
 	<string name="targetAR">
-		Target Aspect Ratio
+		Target aspect ratio
 	</string>
 	<string name="sourceAR">
-		Resolution- AND Target- Aspect Ratio
+		Resolution AND Target aspect ratio
 	</string>
 </floater>
- 
+

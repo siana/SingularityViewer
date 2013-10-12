@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<floater name="item properties" title="Propiedades de los Items de Inventario">
+<floater name="item properties" title="Propiedades Ítems de Inventario">
+	<icon name="IconLocked"/>
 	<text name="LabelItemNameTitle">
 		Nombre:
 	</text>
+	<line_editor name="LabelItemName"/>
 	<text name="LabelItemDescTitle">
 		Descripción:
 	</text>
+	<line_editor name="LabelItemDesc"/>
 	<text name="LabelCreatorTitle">
 		Creador:
 	</text>
@@ -20,6 +23,13 @@
 		Thrax Linden
 	</text>
 	<button label="Perfil..." label_selected="" name="BtnOwner"/>
+	<text name="LabelLastOwnerTitle">
+		Últ. Propiet.:
+	</text>
+	<text name="LabelLastOwnerName">
+		Eraseunavezun Linden
+	</text>
+	<button label="Perfil..." label_selected="" name="BtnLastOwner"/>
 	<text name="LabelAcquiredTitle">
 		Adquirido:
 	</text>
@@ -29,9 +39,10 @@
 	<text name="OwnerLabel">
 		Puedes:
 	</text>
-	<check_box label="Modificar" name="CheckOwnerModify"/>
-	<check_box label="Copiar" name="CheckOwnerCopy"/>
-	<check_box label="Venderlo/Darlo" name="CheckOwnerTransfer"/>
+	<check_box label="Modificarlo" name="CheckOwnerModify"/>
+	<check_box label="Copiarlo" name="CheckOwnerCopy"/>
+	<check_box label="Transferirlo" name="CheckOwnerTransfer"/>
+	<check_box name="CheckOwnerExport" label="Exportarlo"/>	
 	<text name="BaseMaskDebug">
 		B:
 	</text>
@@ -51,19 +62,20 @@
 		Los miembros del grupo pueden:
 	</text>
 	<check_box label="Modificarlo" name="CheckGroupMod"/>
-	<check_box label="Copiarlo" name="CheckGroupCopy"/>
-	<check_box label="Moverlo" name="CheckGroupMove"/>
+	<check_box label="Copiarlo" name="CheckGroupCopy" left_delta="88"/>
+	<check_box label="Moverlo" name="CheckGroupMove" left_delta="78"/>
 	<text name="EveryoneLabel">
 		Cualquiera puede:
 	</text>
-	<check_box label="Copiarlo" name="CheckEveryoneCopy"/>
-	<check_box label="Moverlo" name="CheckEveryoneMove"/>
+	<check_box label="Copiarlo" name="CheckEveryoneCopy" left="98"/>
+	<check_box label="Moverlo" name="CheckEveryoneMove" left_delta="78"/>
+	<check_box name="CheckExport" label="Exportarlo"/>	
 	<text name="NextOwnerLabel" width="250">
 		El próximo propietario puede:
 	</text>
 	<check_box label="Modificarlo" name="CheckNextOwnerModify"/>
-	<check_box label="Copiarlo" name="CheckNextOwnerCopy"/>
-	<check_box label="Venderlo/Darlo" name="CheckNextOwnerTransfer"/>
+	<check_box label="Copiarlo" name="CheckNextOwnerCopy" left_delta="88"/>
+	<check_box label="Transferirlo" name="CheckNextOwnerTransfer" left_delta="78"/>
 	<text name="SaleLabel" width="150">
 		Marcar Ítem como:
 	</text>
@@ -79,6 +91,7 @@
 	<text name="TextPrice">
 		Precio:  [CURRENCY]
 	</text>
+	<line_editor name="Edit Cost"/>
 	<string name="unknown">
 		(desconocido)
 	</string>

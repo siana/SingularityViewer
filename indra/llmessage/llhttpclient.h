@@ -38,6 +38,7 @@
 #include "llassettype.h"
 #include "llhttpstatuscodes.h"
 #include "aihttpheaders.h"
+#include "aicurlperservice.h"
 
 class LLUUID;
 class LLPumpIO;
@@ -216,12 +217,22 @@ public:
 		// Derived classes that implement completed_headers()/completedHeaders() should return true here.
 		virtual bool needsHeaders(void) const { return false; }
 
-		// A derived class should return true if curl should follow redirections.
-		// The default is not to follow redirections.
-		virtual bool followRedir(void) const { return false; }
+		// A derived class should return true if curl should close the connection when done.
+		// The default is to keep connections open for possible reuse.
+		virtual bool forbidReuse(void) const { return false; }
+
+		// A derived class should return true if curl should not follow redirections, but instead pass redirection status codes to the responder.
+		// The default is to follow redirections and not pass them to the responder.
+		virtual bool pass_redirect_status(void) const { return false; }
 
 		// If this function returns false then we generate an error when a redirect status (300..399) is received.
-		virtual bool redirect_status_ok(void) const { return followRedir(); }
+		virtual bool redirect_status_ok(void) const { return true; }
+
+		// Overridden by LLEventPollResponder to return true.
+		virtual bool is_event_poll(void) const { return false; }
+
+		// Returns the capability type used by this responder.
+		virtual AICapabilityType capability_type(void) const { return cap_other; }
 
 		// Timeout policy to use.
 		virtual AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const = 0;
@@ -251,7 +262,6 @@ public:
 	class ResponderHeadersOnly : public ResponderBase {
 	private:
 		/*virtual*/ bool needsHeaders(void) const { return true; }
-		/*virtual*/ bool followRedir(void) const { return true; }
 
 	protected:
 		// ResponderBase event
@@ -426,7 +436,8 @@ public:
 		ERequestAction method,
 		Injector* body_injector,
 		ResponderPtr responder,
-		AIHTTPHeaders& headers/*,*/
+		AIHTTPHeaders& headers,
+		AIPerService::Approvement* approved/*,*/
 		DEBUG_CURLIO_PARAM(EDebugCurl debug),
 		EKeepAlive keepalive = keep_alive,
 		EDoesAuthentication does_auth = no_does_authentication,
@@ -464,6 +475,10 @@ public:
 	static void post(std::string const& url, LLSD const& body, ResponderPtr responder, AIHTTPHeaders& headers/*,*/ DEBUG_CURLIO_PARAM(EDebugCurl debug = debug_off), EKeepAlive keepalive = keep_alive, AIStateMachine* parent = NULL, U32 new_parent_state = 0);
 	static void post(std::string const& url, LLSD const& body, ResponderPtr responder/*,*/ DEBUG_CURLIO_PARAM(EDebugCurl debug = debug_off), EKeepAlive keepalive = keep_alive, AIStateMachine* parent = NULL, U32 new_parent_state = 0)
 	    { AIHTTPHeaders headers; post(url, body, responder, headers/*,*/ DEBUG_CURLIO_PARAM(debug), keepalive, parent, new_parent_state); }
+
+	static void post_approved(std::string const& url, LLSD const& body, ResponderPtr responder, AIHTTPHeaders& headers, AIPerService::Approvement* approved/*,*/ DEBUG_CURLIO_PARAM(EDebugCurl debug = debug_off), EKeepAlive keepalive = keep_alive, AIStateMachine* parent = NULL, U32 new_parent_state = 0);
+	static void post_approved(std::string const& url, LLSD const& body, ResponderPtr responder, AIPerService::Approvement* approved/*,*/ DEBUG_CURLIO_PARAM(EDebugCurl debug = debug_off), EKeepAlive keepalive = keep_alive, AIStateMachine* parent = NULL, U32 new_parent_state = 0)
+	    { AIHTTPHeaders headers; post_approved(url, body, responder, headers, approved/*,*/ DEBUG_CURLIO_PARAM(debug), keepalive, parent, new_parent_state); }
 
 	/** Takes ownership of request and deletes it when sent */
 	static void postXMLRPC(std::string const& url, XMLRPC_REQUEST request, ResponderPtr responder, AIHTTPHeaders& headers/*,*/ DEBUG_CURLIO_PARAM(EDebugCurl debug = debug_off), EKeepAlive keepalive = keep_alive);

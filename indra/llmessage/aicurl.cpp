@@ -58,7 +58,7 @@
 #include "aihttpheaders.h"
 #include "aihttptimeoutpolicy.h"
 #include "aicurleasyrequeststatemachine.h"
-#include "aicurlperhost.h"
+#include "aicurlperservice.h"
 
 //==================================================================================
 // Debug Settings
@@ -298,6 +298,7 @@ LLAtomicU32 Stats::easy_init_errors;
 LLAtomicU32 Stats::easy_cleanup_calls;
 LLAtomicU32 Stats::multi_calls;
 LLAtomicU32 Stats::multi_errors;
+LLAtomicU32 Stats::running_handles;
 LLAtomicU32 Stats::AICurlEasyRequest_count;
 LLAtomicU32 Stats::AICurlEasyRequestStateMachine_count;
 LLAtomicU32 Stats::BufferedCurlEasyRequest_count;
@@ -458,6 +459,12 @@ void setCAPath(std::string const& path)
 {
   CertificateAuthority_wat CertificateAuthority_w(gCertificateAuthority);
   CertificateAuthority_w->path = path;
+}
+
+// THREAD-SAFE
+U32 getNumHTTPRunning(void)
+{
+  return Stats::running_handles;
 }
 
 //static
@@ -952,9 +959,9 @@ CurlEasyRequest::~CurlEasyRequest()
   // be available anymore.
   send_handle_events_to(NULL);
   revokeCallbacks();
-  if (mPerHostPtr)
+  if (mPerServicePtr)
   {
-	 PerHostRequestQueue::release(mPerHostPtr);
+	 AIPerService::release(mPerServicePtr);
   }
   // This wasn't freed yet if the request never finished.
   curl_slist_free_all(mHeaders);
@@ -1084,56 +1091,6 @@ void CurlEasyRequest::applyDefaultOptions(void)
   );
 }
 
-// url must be of the form
-// (see http://www.ietf.org/rfc/rfc3986.txt Appendix A for definitions not given here):
-//
-// url			= sheme ":" hier-part [ "?" query ] [ "#" fragment ]
-// hier-part	= "//" authority path-abempty
-// authority     = [ userinfo "@" ] host [ ":" port ]
-// path-abempty  = *( "/" segment )
-//
-// That is, a hier-part of the form '/ path-absolute', '/ path-rootless' or
-// '/ path-empty' is NOT allowed here. This should be safe because we only
-// call this function for curl access, any file access would use APR.
-//
-// However, as a special exception, this function allows:
-//
-// url			= authority path-abempty
-//
-// without the 'sheme ":" "//"' parts.
-//
-// As follows from the ABNF (see RFC, Appendix A):
-// - authority is either terminated by a '/' or by the end of the string because
-//   neither userinfo, host nor port may contain a '/'.
-// - userinfo does not contain a '@', and if it exists, is always terminated by a '@'.
-// - port does not contain a ':', and if it exists is always prepended by a ':'.
-//
-// Only called by CurlEasyRequest::finalizeRequest.
-static std::string extract_canonical_hostname(std::string const& url)
-{
-  std::string::size_type pos;
-  std::string::size_type authority = 0;														// Default if there is no sheme.
-  if ((pos = url.find("://")) != url.npos && pos < url.find('/')) authority = pos + 3;		// Skip the "sheme://" if any, the second find is to avoid finding a "://" as part of path-abempty.
-  std::string::size_type host = authority;													// Default if there is no userinfo.
-  if ((pos = url.find('@', authority)) != url.npos) host = pos + 1;							// Skip the "userinfo@" if any.
-  authority = url.length() - 1;																// Default last character of host if there is no path-abempty.
-  if ((pos = url.find('/', host)) != url.npos) authority = pos - 1;							// Point to last character of host.
-  std::string::size_type len = url.find_last_not_of(":0123456789", authority) - host + 1;	// Skip trailing ":port", if any.
-  std::string hostname(url, host, len);
-#if APR_CHARSET_EBCDIC
-#error Not implemented
-#else
-  // Convert hostname to lowercase in a way that we compare two hostnames equal iff libcurl does.
-  for (std::string::iterator iter = hostname.begin(); iter != hostname.end(); ++iter)
-  {
-	int c = *iter;
-	if (c >= 'A' && c <= 'Z')
-	  *iter = c + ('a' - 'A');
-  }
-#endif
-  return hostname;
-}
-
 void CurlEasyRequest::finalizeRequest(std::string const& url, AIHTTPTimeoutPolicy const& policy, AICurlEasyRequestStateMachine* state_machine)
 {
   DoutCurlEntering("CurlEasyRequest::finalizeRequest(\"" << url << "\", " << policy.name() << ", " << (void*)state_machine << ")");
@@ -1156,8 +1113,8 @@ void CurlEasyRequest::finalizeRequest(std::string const& url, AIHTTPTimeoutPolic
 #endif
   setopt(CURLOPT_HTTPHEADER, mHeaders);
   setoptString(CURLOPT_URL, url);
-  llassert(!mPerHostPtr);
-  mLowercaseHostname = extract_canonical_hostname(url);
+  llassert(!mPerServicePtr);
+  mLowercaseServicename = AIPerService::extract_canonical_servicename(url);
   mTimeoutPolicy = &policy;
   state_machine->setTotalDelayTimeout(policy.getTotalDelay());
   // The following line is a bit tricky: we store a pointer to the object without increasing its reference count.
@@ -1183,7 +1140,7 @@ void CurlEasyRequest::finalizeRequest(std::string const& url, AIHTTPTimeoutPolic
 // // get less connect time, while it still (also) has to wait for this DNS lookup.
 void CurlEasyRequest::set_timeout_opts(void)
 {
-  setopt(CURLOPT_CONNECTTIMEOUT, mTimeoutPolicy->getConnectTimeout(mLowercaseHostname));
+  setopt(CURLOPT_CONNECTTIMEOUT, mTimeoutPolicy->getConnectTimeout(getLowercaseHostname()));
   setopt(CURLOPT_TIMEOUT, mTimeoutPolicy->getCurlTransaction());
 }
 
@@ -1279,34 +1236,42 @@ void CurlEasyRequest::queued_for_removal(AICurlEasyRequest_wat& curl_easy_reques
 }
 #endif
 
-PerHostRequestQueuePtr CurlEasyRequest::getPerHostPtr(void)
+AIPerServicePtr CurlEasyRequest::getPerServicePtr(void)
 {
-  if (!mPerHostPtr)
+  if (!mPerServicePtr)
   {
-	// mPerHostPtr is really just a speed-up cache.
-	// The reason we can cache it is because mLowercaseHostname is only set
+	// mPerServicePtr is really just a speed-up cache.
+	// The reason we can cache it is because mLowercaseServicename is only set
 	// in finalizeRequest which may only be called once: it never changes.
-	mPerHostPtr = PerHostRequestQueue::instance(mLowercaseHostname);
+	mPerServicePtr = AIPerService::instance(mLowercaseServicename);
   }
-  return mPerHostPtr;
+  return mPerServicePtr;
 }
 
-bool CurlEasyRequest::removeFromPerHostQueue(AICurlEasyRequest const& easy_request) const
+bool CurlEasyRequest::removeFromPerServiceQueue(AICurlEasyRequest const& easy_request, AICapabilityType capability_type) const
 {
   // Note that easy_request (must) represent(s) this object; it's just passed for convenience.
-  return mPerHostPtr && PerHostRequestQueue_wat(*mPerHostPtr)->cancel(easy_request);
+  return mPerServicePtr && PerService_wat(*mPerServicePtr)->cancel(easy_request, capability_type);
+}
+
+std::string CurlEasyRequest::getLowercaseHostname(void) const
+{
+  return mLowercaseServicename.substr(0, mLowercaseServicename.find_last_of(':'));
 }
 
 //-----------------------------------------------------------------------------
 // BufferedCurlEasyRequest
 
-static int const HTTP_REDIRECTS_DEFAULT = 10;
+static int const HTTP_REDIRECTS_DEFAULT = 16;	// Singu note: I've seen up to 10 redirects, so setting the limit to 10 is cutting it.
+												// This limit is only here to avoid a redirect loop (infinite redirections).
 
 LLChannelDescriptors const BufferedCurlEasyRequest::sChannels;
 LLMutex BufferedCurlEasyRequest::sResponderCallbackMutex;
 bool BufferedCurlEasyRequest::sShuttingDown = false;
+AIAverage BufferedCurlEasyRequest::sHTTPBandwidth(25);
 
-BufferedCurlEasyRequest::BufferedCurlEasyRequest() : mRequestTransferedBytes(0), mResponseTransferedBytes(0), mBufferEventsTarget(NULL), mStatus(HTTP_INTERNAL_ERROR_OTHER)
+BufferedCurlEasyRequest::BufferedCurlEasyRequest() :
+	mRequestTransferedBytes(0), mTotalRawBytes(0), mStatus(HTTP_INTERNAL_ERROR_OTHER), mBufferEventsTarget(NULL), mCapabilityType(number_of_capability_types)
 {
   AICurlInterface::Stats::BufferedCurlEasyRequest_count++;
 }
@@ -1359,6 +1324,34 @@ void BufferedCurlEasyRequest::bad_socket(void)
   mResponder = NULL;
 }
 
+#if defined(CWDEBUG) || defined(DEBUG_CURLIO)
+static AIPerServicePtr sConnections[64];
+
+void BufferedCurlEasyRequest::connection_established(int connectionnr)
+{
+  PerService_rat per_service_r(*mPerServicePtr);
+  int n = per_service_r->connection_established();
+  llassert(sConnections[connectionnr] == NULL);		// Only one service can use a connection at a time.
+  llassert_always(connectionnr < 64);
+  sConnections[connectionnr] = mPerServicePtr;
+  Dout(dc::curlio, (void*)get_lockobj() << " Connection established (#" << connectionnr << "). Now " << n << " connections [" << (void*)&*per_service_r << "].");
+  llassert(sConnections[connectionnr] != NULL);
+}
+
+void BufferedCurlEasyRequest::connection_closed(int connectionnr)
+{
+  if (sConnections[connectionnr] == NULL)
+  {
+	Dout(dc::curlio, "Closing connection that never connected (#" << connectionnr << ").");
+	return;
+  }
+  PerService_rat per_service_r(*sConnections[connectionnr]);
+  int n = per_service_r->connection_closed();
+  sConnections[connectionnr] = NULL;
+  Dout(dc::curlio, (void*)get_lockobj() << " Connection closed (#" << connectionnr << "); " << n << " connections remaining [" << (void*)&*per_service_r << "].");
+}
+#endif
+
 void BufferedCurlEasyRequest::resetState(void)
 {
   llassert(!mResponder);
@@ -1370,7 +1363,7 @@ void BufferedCurlEasyRequest::resetState(void)
   mOutput.reset();
   mInput.reset();
   mRequestTransferedBytes = 0;
-  mResponseTransferedBytes = 0;
+  mTotalRawBytes = 0;
   mBufferEventsTarget = NULL;
   mStatus = HTTP_INTERNAL_ERROR_OTHER;
 }
@@ -1419,14 +1412,18 @@ void BufferedCurlEasyRequest::prepRequest(AICurlEasyRequest_wat& curl_easy_reque
   curl_easy_request_w->setHeaderCallback(&curlHeaderCallback, lockobj);
 
   bool allow_cookies = headers.hasHeader("Cookie");
-  // Allow up to ten redirects.
-  if (responder->followRedir())
+  // Allow up to sixteen redirects.
+  if (!responder->pass_redirect_status())
   {
 	curl_easy_request_w->setopt(CURLOPT_FOLLOWLOCATION, 1);
 	curl_easy_request_w->setopt(CURLOPT_MAXREDIRS, HTTP_REDIRECTS_DEFAULT);
 	// This is needed (at least) for authentication after temporary redirection
 	// to id.secondlife.com for marketplace.secondlife.com.
 	allow_cookies = true;
+  }
+  if (responder->forbidReuse())
+  {
+	curl_easy_request_w->setopt(CURLOPT_FORBID_REUSE, 1);
   }
   if (allow_cookies)
   {
@@ -1438,6 +1435,10 @@ void BufferedCurlEasyRequest::prepRequest(AICurlEasyRequest_wat& curl_easy_reque
 
   // Keep responder alive.
   mResponder = responder;
+  // Cache capability type, because it will be needed even after the responder was removed.
+  mCapabilityType = responder->capability_type();
+  mIsEventPoll = responder->is_event_poll();
+
   // Send header events to responder if needed.
   if (mResponder->needsHeaders())
   {

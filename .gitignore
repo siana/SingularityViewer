@@ -24,3 +24,5 @@
 /edited-files.txt
 qtcreator-build/
 /.pc
+/build-*
+/viewer-*

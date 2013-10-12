@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<pie_menu name="Self Pie">
+	<menu_item_call label="Profil..." name="Profile..."/>
+	<menu_item_call label="Gruppen..." name="Groups..."/>
+	<pie_menu label="Ausziehen &gt;" name="Take Off &gt;">
+		<pie_menu label="Kleidung &gt;" name="Clothes &gt;">
+			<menu_item_call label="Hemd" name="Shirt"/>
+			<menu_item_call label="Hose" name="Pants"/>
+			<menu_item_call label="Schuhe" name="Shoes"/>
+			<menu_item_call label="Socken" name="Socks"/>
+			<menu_item_call label="Jacke" name="Jacket"/>
+			<menu_item_call label="Handschuhe" name="Gloves"/>
+			<pie_menu label="Mehr &gt;" name="More &gt;">
+				<menu_item_call label="Unterhemd" name="Self Undershirt"/>
+				
+				<menu_item_call label="Alle Kleider" name="All Clothes"/>
+				<menu_item_call label="Tätowierung" name="Self Tattoo"/>
+				<menu_item_call label="Alpha" name="Self Alpha"/>
+				<menu_item_call label="Unterhose" name="Self Underpants"/>
+        <menu_item_call label="Physik" name="Self Physics"/>
+			</pie_menu>
+			<menu_item_call label="Rock" name="Skirt"/>
+		</pie_menu>
+		<pie_menu label="HUD &gt;" name="Object Detach HUD"/>
+		
+		<pie_menu label="Abnehmen &gt;" name="Object Detach"/>
+		
+		<menu_item_call label="Alles abnehmen" name="Detach All"/>
+	</pie_menu>
+  <pie_menu label="Werkzeuge &gt;" name="Tools &gt;">
+      <menu_item_call label="Neu laden" name="Reload Textures"/>
+	  <menu_item_call label="Animationen" name="Anims..."/>
+	  <menu_item_call label="S. Count" name="ScriptCount"/>
+	  <menu_item_call label="Skript-Info" name="Script Info"/>
+    <menu_item_call label="Debug" name="Debug Layers"/>
+    <menu_item_call label="UUID kopieren" name="CopyUUID"/>
+    <menu_item_call label="Save OBJ..." name="Save OBJ..."/>
+  </pie_menu>
+	<menu_item_call label="Aufstehen" name="Stand Up Self"/>
+	<menu_item_call label="Gesten..." name="Gestures..."/>
+	<menu_item_call label="Aussehen..." name="Appearance..."/>
+</pie_menu>

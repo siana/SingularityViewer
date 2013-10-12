@@ -105,7 +105,7 @@ void process_generic_message(LLMessageSystem* msg, void**)
 	}
 	else if (agent_id != gAgent.getID())
 	{
-		llwarns << "GenericMessage for wrong agent" << llendl;
+		llwarns << "GenericMessage for wrong agent " << agent_id << llendl;
 		return;
 	}
 	else

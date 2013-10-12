@@ -136,7 +136,7 @@ const F32 ACTIVATE_HIGHLIGHT_TIME = 0.3f;
 
 // Default constructor
 LLMenuItemGL::LLMenuItemGL( const std::string& name, const std::string& label, KEY key, MASK mask ) :
-	LLUICtrl( name, LLRect(), TRUE, NULL, NULL ),
+	LLUICtrl( name ),
 	mJumpKey(KEY_NONE),
 	mAllowKeyRepeat(FALSE),
 	mHighlight( FALSE ),
@@ -268,19 +268,6 @@ BOOL LLMenuItemGL::addToAcceleratorList(std::list <LLKeyBinding*> *listp)
 			accelerator = *list_it;
 			if ((accelerator->mKey == mAcceleratorKey) && (accelerator->mMask == (mAcceleratorMask & MASK_NORMALKEYS)))
 			{
-
-			// *NOTE: get calling code to throw up warning or route
-			// warning messages back to app-provided output
-			//	std::string warning;
-			//	warning.append("Duplicate key binding <");
-			//	appendAcceleratorString( warning );
-			//	warning.append("> for menu items:\n    ");
-			//	warning.append(accelerator->mName);
-			//	warning.append("\n    ");
-			//	warning.append(mLabel);
-
-			//	llwarns << warning << llendl;
-			//	LLAlertDialog::modalAlert(warning);
 				return FALSE;
 			}
 		}
@@ -1826,7 +1813,7 @@ static LLRegisterWidget<LLMenuGL> r1("menu");
 
 // Default constructor
 LLMenuGL::LLMenuGL( const std::string& name, const std::string& label )
-:	LLUICtrl( name, LLRect(), FALSE, NULL, NULL ),
+:	LLUICtrl( name, LLRect(), FALSE),
 	mBackgroundColor( sDefaultBackgroundColor ),
 	mBgVisible( TRUE ),
 	mHasSelection( FALSE ),
@@ -1852,7 +1839,7 @@ LLMenuGL::LLMenuGL( const std::string& name, const std::string& label )
 }
 
 LLMenuGL::LLMenuGL( const std::string& label)
-:	LLUICtrl( label, LLRect(), FALSE, NULL, NULL ),
+:	LLUICtrl( label, LLRect(), FALSE),
 	mBackgroundColor( sDefaultBackgroundColor ),
 	mBgVisible( TRUE ),
 	mHasSelection( FALSE ),
@@ -1941,6 +1928,7 @@ LLXMLNodePtr LLMenuGL::getXML(bool save_children) const
 
 void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory *factory)
 {
+	std::string name(child->getName()->mString);
 	if (child->hasName(LL_MENU_GL_TAG))
 	{
 		// SUBMENU
@@ -2038,7 +2026,7 @@ void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory
 
 			for (call_child = child->getFirstChild(); call_child.notNull(); call_child = call_child->getNextSibling())
 			{
-				if (call_child->hasName("on_check"))
+				if (call_child->hasName("on_check") || call_child->hasName(name+".on_check"))
 				{
 					std::string callback_name;
 					std::string control_name;
@@ -2096,7 +2084,7 @@ void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory
 
 		for (call_child = child->getFirstChild(); call_child.notNull(); call_child = call_child->getNextSibling())
 		{
-			if (call_child->hasName("on_click"))
+			if (call_child->hasName("on_click") || call_child->hasName(name+".on_click"))
 			{
 				std::string callback_name;
 				call_child->getAttributeString("function", callback_name);
@@ -2117,7 +2105,7 @@ void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory
 
 				new_item->addListener(callback, "on_click", callback_data);
 			}
-			if (call_child->hasName("on_enable"))
+			if (call_child->hasName("on_enable") || call_child->hasName(name+".on_enable"))
 			{
 				std::string callback_name;
 				std::string control_name;
@@ -2161,7 +2149,7 @@ void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory
 				}
 				new_item->setEnabledControl(control_name, parent);
 			}
-			if (call_child->hasName("on_visible"))
+			if (call_child->hasName("on_visible") || call_child->hasName(name+".on_visible"))
 			{
 				std::string callback_name;
 				std::string control_name;
@@ -2257,6 +2245,11 @@ void LLMenuGL::removeChild( LLView* ctrl)
 	return LLUICtrl::removeChild(ctrl);
 }
 
+BOOL LLMenuGL::postBuild()
+{
+	return LLUICtrl::postBuild();
+}
+
 // are we the childmost active menu and hence our jump keys should be enabled?
 // or are we a free-standing torn-off menu (which uses jump keys too)
 BOOL LLMenuGL::jumpKeysActive()
@@ -2330,7 +2323,7 @@ LLView* LLMenuGL::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *fa
 		++token_count;
 	}
 
-	BOOL opaque = FALSE;
+	BOOL opaque = TRUE;
 	node->getAttributeBOOL("opaque", opaque);
 
 	LLMenuGL *menu = new LLMenuGL(name, new_menu_label);
@@ -2405,7 +2398,6 @@ void LLMenuGL::arrange( void )
 
 		// Scrolling support
 		item_list_t::iterator first_visible_item_iter;
-		item_list_t::iterator first_hidden_item_iter = mItems.end();
 		//S32 height_before_first_visible_item = -1;
 		//S32 visible_items_height = 0;
 		//U32 scrollable_items_cnt = 0;
@@ -2903,9 +2895,6 @@ LLMenuItemGL* LLMenuGL::highlightNextItem(LLMenuItemGL* cur_item, BOOL skip_disa
 		next_item_iter = cur_item_iter;
 		next_item_iter++;
 
-		// First visible item position in the items list
-		item_list_t::iterator first_visible_item_iter = std::find(mItems.begin(), mItems.end(), mFirstVisibleItem);
-
 		if (next_item_iter == mItems.end())
 		{
 			next_item_iter = mItems.begin();
@@ -2980,9 +2969,6 @@ LLMenuItemGL* LLMenuGL::highlightPrevItem(LLMenuItemGL* cur_item, BOOL skip_disa
 	{
 		prev_item_iter = cur_item_iter;
 		prev_item_iter++;
-
-		// First visible item reverse position in the items list
-		item_list_t::reverse_iterator first_visible_item_iter = std::find(mItems.rbegin(), mItems.rend(), mFirstVisibleItem);
 
 		if (prev_item_iter == mItems.rend())
 		{
@@ -3764,9 +3750,9 @@ void LLPieMenu::draw()
 	F32 center_y = height/2;
 	S32 steps = 100;
 
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	{
-		gGL.translatef(center_x, center_y, 0.f);
+		gGL.translateUI(center_x, center_y, 0.f);
 
 		F32 line_width = LLUI::sConfigGroup->getF32("PieMenuLineWidth");
 		LLColor4 line_color = LLUI::sColorsGroup->getColor("PieMenuLineColor");
@@ -3814,7 +3800,7 @@ void LLPieMenu::draw()
 
 		LLUI::setLineWidth(1.0f);
 	}
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 
 	mHoverThisFrame = FALSE;
 
@@ -3830,9 +3816,9 @@ void LLPieMenu::drawBackground(LLMenuItemGL* itemp, LLColor4& color)
 	S32 steps = 100;
 
 	gGL.color4fv( color.mV );
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	{
-		gGL.translatef(center_x - itemp->getRect().mLeft, center_y - itemp->getRect().mBottom, 0.f);
+		gGL.translateUI(center_x - itemp->getRect().mLeft, center_y - itemp->getRect().mBottom, 0.f);
 
 		item_list_t::iterator item_iter;
 		S32 i = 0;
@@ -3852,7 +3838,7 @@ void LLPieMenu::drawBackground(LLMenuItemGL* itemp, LLColor4& color)
 			i++;
 		}
 	}
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 // virtual
@@ -4165,13 +4151,10 @@ LLXMLNodePtr LLMenuBarGL::getXML(bool save_children) const
 
 LLView* LLMenuBarGL::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("menu");
-	node->getAttributeString("name", name);
-
 	BOOL opaque = FALSE;
 	node->getAttributeBOOL("opaque", opaque);
 
-	LLMenuBarGL *menubar = new LLMenuBarGL(name);
+	LLMenuBarGL *menubar = new LLMenuBarGL("menu");
 
 	LLHandle<LLFloater> parent_handle;
 	LLFloater* parent_floater = dynamic_cast<LLFloater*>(parent);

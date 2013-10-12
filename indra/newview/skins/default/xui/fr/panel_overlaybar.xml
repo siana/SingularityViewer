@@ -15,7 +15,9 @@
 					     tool_tip="Im en attente."
 					     width="150" />
 				</layout_panel>
-				<layout_panel name="chat_bar"/>
+        <layout_panel name="chat_bar_layout_panel">
+          <panel name="chat_bar"/>
+        </layout_panel>
 			</layout_stack>
 		</layout_panel>
 		<layout_panel min_width="220" name="media_remote_container" width="220"/>

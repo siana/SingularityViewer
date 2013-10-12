@@ -84,7 +84,6 @@
 #include "aicurl.h"
 #include "aihttptimeoutpolicy.h"
 
-
 #ifdef TOGGLE_HACKED_GODLIKE_VIEWER
 BOOL 				gHackGodmode = FALSE;
 #endif
@@ -171,7 +170,7 @@ static bool handleRenderPerfTestChanged(const LLSD& newvalue)
                                                                          LLPipeline::RENDER_TYPE_CLASSIC_CLOUDS,
                                                                          LLPipeline::RENDER_TYPE_HUD_PARTICLES,
                                                                          LLPipeline::END_RENDER_TYPES); 
-               gPipeline.setRenderDebugFeatureControl(LLPipeline::RENDER_DEBUG_FEATURE_UI, false);
+               gPipeline.setRenderDebugFeatureControl(~(U32)0, false);	// Reset all RENDER_DEBUG_FEATURE_* flags.
        }
        else 
        {
@@ -330,6 +329,12 @@ static bool handleBandwidthChanged(const LLSD& newvalue)
 	return true;
 }
 
+static bool handleHTTPBandwidthChanged(const LLSD& newvalue)
+{
+	AIPerService::setHTTPThrottleBandwidth((F32) newvalue.asReal());
+	return true;
+}
+
 static bool handleChatFontSizeChanged(const LLSD& newvalue)
 {
 	if(gConsole)
@@ -350,7 +355,7 @@ static bool handleChatPersistTimeChanged(const LLSD& newvalue)
 
 static void handleAudioVolumeChanged(const LLSD& newvalue)
 {
-	audio_update_volume(true);
+	audio_update_volume(false);
 }
 
 static bool handleJoystickChanged(const LLSD& newvalue)
@@ -542,6 +547,12 @@ bool handleEffectColorChanged(const LLSD& newvalue)
 	return true;
 }
 
+bool handleVoiceClientPrefsChanged(const LLSD& newvalue)
+{
+	LLVoiceClient::getInstance()->updateSettings();
+	return true;
+}
+
 bool handleVelocityInterpolate(const LLSD& newvalue)
 {
 	LLMessageSystem* msg = gMessageSystem;
@@ -562,15 +573,6 @@ bool handleVelocityInterpolate(const LLSD& newvalue)
 		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
 		gAgent.sendReliableMessage();
 		llinfos << "Velocity Interpolation Off" << llendl;
-	}
-	return true;
-}
-
-bool handleVoiceClientPrefsChanged(const LLSD& newvalue)
-{
-	if(gVoiceClient)
-	{
-		gVoiceClient->updateSettings();
 	}
 	return true;
 }
@@ -640,7 +642,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("OctreeAlphaDistanceFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeAttachmentSizeFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("RenderMaxTextureIndex")->getSignal()->connect(boost::bind(&handleSetShaderChanged, _2));
-	//gSavedSettings.getControl("RenderAnimateTrees")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
+	gSavedSettings.getControl("RenderAnimateTrees")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("RenderAvatarVP")->getSignal()->connect(boost::bind(&handleSetShaderChanged, _2));
 	gSavedSettings.getControl("VertexShaderEnable")->getSignal()->connect(boost::bind(&handleSetShaderChanged, _2));
 	gSavedSettings.getControl("RenderDepthOfField")->getSignal()->connect(boost::bind(&handleReleaseGLBufferChanged, _2));
@@ -666,6 +668,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("RenderTreeLODFactor")->getSignal()->connect(boost::bind(&handleTreeLODChanged, _2));
 	gSavedSettings.getControl("RenderFlexTimeFactor")->getSignal()->connect(boost::bind(&handleFlexLODChanged, _2));
 	gSavedSettings.getControl("ThrottleBandwidthKBPS")->getSignal()->connect(boost::bind(&handleBandwidthChanged, _2));
+	gSavedSettings.getControl("HTTPThrottleBandwidth")->getSignal()->connect(boost::bind(&handleHTTPBandwidthChanged, _2));
 	gSavedSettings.getControl("RenderGamma")->getSignal()->connect(boost::bind(&handleGammaChanged, _2));
 	gSavedSettings.getControl("RenderFogRatio")->getSignal()->connect(boost::bind(&handleFogRatioChanged, _2));
 	gSavedSettings.getControl("RenderMaxPartCount")->getSignal()->connect(boost::bind(&handleMaxPartCountChanged, _2));
@@ -792,7 +795,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("AscentAvatarZModifier")->getSignal()->connect(boost::bind(&handleAscentAvatarModifier, _2));
 
 	gSavedSettings.getControl("CurlMaxTotalConcurrentConnections")->getSignal()->connect(boost::bind(&AICurlInterface::handleCurlMaxTotalConcurrentConnections, _2));
-	gSavedSettings.getControl("CurlConcurrentConnectionsPerHost")->getSignal()->connect(boost::bind(&AICurlInterface::handleCurlConcurrentConnectionsPerHost, _2));
+	gSavedSettings.getControl("CurlConcurrentConnectionsPerService")->getSignal()->connect(boost::bind(&AICurlInterface::handleCurlConcurrentConnectionsPerService, _2));
 	gSavedSettings.getControl("NoVerifySSLCert")->getSignal()->connect(boost::bind(&AICurlInterface::handleNoVerifySSLCert, _2));
 
 	gSavedSettings.getControl("CurlTimeoutDNSLookup")->getValidateSignal()->connect(boost::bind(&validateCurlTimeoutDNSLookup, _2));

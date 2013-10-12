@@ -72,10 +72,16 @@
 
   <button bottom_delta="-27" enabled="true" follows="left|top" font="SansSerif"
 	     halign="center" height="20" label="Check All" label_selected="All" left="8"
-	     mouse_opaque="true" name="check_all" scale_image="true" width="100" />
+	     mouse_opaque="true" name="check_all" scale_image="true" width="100" >
+      <button.commit_callback
+       function="BulkPermission.CheckAll" />
+    </button>
   <button bottom_delta="-24" enabled="true" follows="left|top" font="SansSerif"
 	     halign="center" height="20" label="Uncheck All" label_selected="None" left="8"
-	     mouse_opaque="true" name="check_none" scale_image="true" width="100" />
+	     mouse_opaque="true" name="check_none" scale_image="true" width="100" >
+      <button.commit_callback
+       function="BulkPermission.UncheckAll"/>
+    </button>
 
   <text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
        bottom="-40" drop_shadow_visible="true" enabled="true" follows="left|top"
@@ -103,7 +109,10 @@
   <check_box bottom_delta="0" follows="left|top" width="88" height="16"
        left_delta="78" radio_style="false" font="SansSerifSmall"
        initial_value="false" label="Copy" mouse_opaque="true"
-       name="next_owner_copy" control_name="BulkChangeNextOwnerCopy" />
+       name="next_owner_copy" control_name="BulkChangeNextOwnerCopy" >
+      <check_box.commit_callback
+       function="BulkPermission.CommitCopy"/>
+     </check_box>
   <check_box bottom_delta="0" follows="left|top" width="106" height="16"
        left_delta="88" radio_style="false" font="SansSerifSmall"
        initial_value="true" label="Resell/Give away" mouse_opaque="true" enabled="false" 
@@ -117,14 +126,23 @@
 
   <button bottom="10" left="10" width="90" height="20" follows="left|top"
        label="Help" name="help" enabled="true"
-       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" />
+       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" >
+      <button.commit_callback
+       function="BulkPermission.Help"/>
+    </button>
 
   <button bottom="10" left="265" width="100" height="20" follows="left|top"
        label="Apply" name="apply" enabled="true"
-       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" />
+       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" >
+      <button.commit_callback
+       function="BulkPermission.Apply"/>
+    </button>
   <button bottom_delta="0" left_delta="105" width="100" height="20" follows="left|top"
        label="Close" name="close" enabled="true"
-       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" />
+       mouse_opaque="true" font="SansSerif" scale_image="true" halign="center" >
+      <button.commit_callback
+       function="BulkPermission.Close"/>
+    </button>
 
   <string name="nothing_to_modify_text">Selection contains no editable contents.</string>
   <string name="status_text">Setting permissions on [NAME]</string>

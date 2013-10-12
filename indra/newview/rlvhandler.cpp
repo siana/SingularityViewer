@@ -18,9 +18,9 @@
 #include "llagent.h"
 #include "llappearancemgr.h"
 #include "llappviewer.h"
+#include "llgroupactions.h"
 #include "llhudtext.h"
 #include "llstartup.h"
-#include "llviewermenu.h"
 #include "llviewermessage.h"
 #include "llviewerobjectlist.h"
 #include "llviewerparcelmgr.h"
@@ -195,7 +195,7 @@ void RlvHandler::removeCommandHandler(RlvCommandHandler* pCmdHandler)
 		m_CommandHandlers.remove(pCmdHandler);
 }
 
-// Checked: 2009-10-26 (RLVa-1.1.0a) | Modified: RLVa-1.1.0a
+// Checked: 2010-04-07 (RLVa-1.2.0d) | Modified: RLVa-1.1.0a
 void RlvHandler::clearCommandHandlers()
 {
 	std::list<RlvCommandHandler*>::const_iterator itHandler = m_CommandHandlers.begin();
@@ -730,7 +730,6 @@ size_t utf8str_strlen(const std::string& utf8)
 	return length;
 }
 
-// TODO-RLV: works, but more testing won't hurt
 std::string utf8str_chtruncate(const std::string& utf8, size_t length)
 {
 	if (0 == length)
@@ -1113,7 +1112,7 @@ void RlvHandler::clearState()
 #define VERIFY_OPTION(x)		{ if (!(x)) { eRet = RLV_RET_FAILED_OPTION; break; } }
 #define VERIFY_OPTION_REF(x)	{ if (!(x)) { eRet = RLV_RET_FAILED_OPTION; break; } fRefCount = true; }
 
-// Checked: 2010-03-03 (RLVa-1.1.3b) | Modified: RLVa-1.2.0a
+// Checked: 2010-03-03 (RLVa-1.2.0a) | Modified: RLVa-1.2.0a
 ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 {
 	// NOTE: - at this point the command has already been:
@@ -1154,8 +1153,8 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 				VERIFY_OPTION_REF(strOption.empty());
 			}
 			break;
-		case RLV_BHVR_ADDOUTFIT:			// @addoutfit[:<layer>]=n|y			- Checked: 2010-08-29 (RLVa-1.1.3b) | Modified: RLVa-1.2.1c
-		case RLV_BHVR_REMOUTFIT:			// @remoutfit[:<layer>]=n|y			- Checked: 2010-08-29 (RLVa-1.1.3b) | Modified: RLVa-1.2.1c
+		case RLV_BHVR_ADDOUTFIT:			// @addoutfit[:<layer>]=n|y			- Checked: 2010-08-29 (RLVa-1.2.1c) | Modified: RLVa-1.2.1c
+		case RLV_BHVR_REMOUTFIT:			// @remoutfit[:<layer>]=n|y			- Checked: 2010-08-29 (RLVa-1.2.1c) | Modified: RLVa-1.2.1c
 			{
 				// If there's an option it should specify a wearable type name (reference count on no option *and* a valid option)
 				RlvCommandOptionGeneric rlvCmdOption(rlvCmd.getOption());
@@ -1244,7 +1243,7 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 				VERIFY_OPTION_REF(strOption.empty());
 			}
 			break;
-		case RLV_BHVR_NOTIFY:				// @notify:<params>=add|rem			- Checked: 2010-03-03 (RLVa-1.1.3a) | Modified: RLVa-1.2.0a
+		case RLV_BHVR_NOTIFY:				// @notify:<params>=add|rem			- Checked: 2010-03-03 (RLVa-1.2.0a) | Modified: RLVa-1.2.0a
 			{
 				// There should be an option that we can successfully parse (if there's an empty option the command is invalid)
 				S32 nChannel; std::string strFilter;
@@ -1277,10 +1276,10 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 		case RLV_BHVR_SHOWLOC:				// @showloc=n|y						- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_SHOWNAMES:			// @shownames=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_EMOTE:				// @emote=n|y						- Checked: 2010-03-26 (RLVa-1.2.0b)
-		case RLV_BHVR_SENDCHAT:				// @sendchat=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_CHATWHISPER:			// @chatwhisper=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_CHATNORMAL:			// @chatnormal=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_CHATSHOUT:			// @chatshout=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
+		case RLV_BHVR_SENDCHAT:				// @sendchat=n|y					- Checked: 2010-03-26 (RLVa-1.2.0b)
+		case RLV_BHVR_CHATWHISPER:			// @chatwhisper=n|y					- Checked: 2010-03-26 (RLVa-1.2.0b)
+		case RLV_BHVR_CHATNORMAL:			// @chatnormal=n|y					- Checked: 2010-03-26 (RLVa-1.2.0b)
+		case RLV_BHVR_CHATSHOUT:			// @chatshout=n|y					- Checked: 2010-03-26 (RLVa-1.2.0b)
 		case RLV_BHVR_PERMISSIVE:			// @permissive=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_SHOWINV:				// @showinv=n|y						- Checked: 2010-03-01 (RLVa-1.2.0a)
 		case RLV_BHVR_SHOWMINIMAP:			// @showminimap=n|y					- Checked: 2010-02-28 (RLVa-1.2.0a)
@@ -1291,12 +1290,12 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 		case RLV_BHVR_STANDTP:				// @standtp=n|y						- Checked: 2010-08-29 (RLVa-1.2.1c)
 		case RLV_BHVR_TPLM:					// @tplm=n|y						- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_TPLOC:				// @tploc=n|y						- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_VIEWNOTE:				// @viewnote=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_VIEWSCRIPT:			// @viewscript=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_VIEWTEXTURE:			// @viewtexture=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
+		case RLV_BHVR_VIEWNOTE:				// @viewnote=n|y					- Checked: 2010-03-27 (RLVa-1.2.0b)
+		case RLV_BHVR_VIEWSCRIPT:			// @viewscript=n|y					- Checked: 2010-03-27 (RLVa-1.2.0b)
+		case RLV_BHVR_VIEWTEXTURE:			// @viewtexture=n|y					- Checked: 2010-03-27 (RLVa-1.2.0b)
 		case RLV_BHVR_ACCEPTPERMISSION:		// @acceptpermission=n|y			- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 #ifdef RLV_EXTENSION_CMD_ALLOWIDLE
-		case RLV_BHVR_ALLOWIDLE:			// @allowidle=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
+		case RLV_BHVR_ALLOWIDLE:			// @allowidle=n|y					- Checked: 2010-05-03 (RLVa-1.2.0g) | Modified: RLVa-1.1.0h
 #endif // RLV_EXTENSION_CMD_ALLOWIDLE
 		case RLV_BHVR_REZ:					// @rez=n|y							- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_FARTOUCH:				// @fartouch=n|y					- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
@@ -1318,10 +1317,11 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 			VERIFY_OPTION_REF(strOption.empty());
 			break;
 		// The following block is only valid if there's no option (= restriction) or if it specifies a valid UUID (= behaviour exception)
-		case RLV_BHVR_RECVCHAT:				// @recvchat[:<uuid>]=n|y			- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
-		case RLV_BHVR_RECVEMOTE:			// @recvemote[:<uuid>]=n|y			- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
+		case RLV_BHVR_RECVCHAT:				// @recvchat[:<uuid>]=n|y			- Checked: 2010-03-26 (RLVa-1.2.0b)
+		case RLV_BHVR_RECVEMOTE:			// @recvemote[:<uuid>]=n|y			- Checked: 2010-03-26 (RLVa-1.2.0b)
 		case RLV_BHVR_SENDIM:				// @sendim[:<uuid>]=n|y				- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_RECVIM:				// @recvim[:<uuid>]=n|y				- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
+		case RLV_BHVR_STARTIM:				// @startim[:<uuid>]=n|y			- Checked: 2011-04-11 (RLVa-1.3.0h) | Added: RLVa-1.3.0h
 		case RLV_BHVR_TPLURE:				// @tplure[:<uuid>]=n|y				- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_ACCEPTTP:				// @accepttp[:<uuid>]=n|y			- Checked: 2009-12-05 (RLVa-1.1.0h) | Modified: RLVa-1.1.0h
 		case RLV_BHVR_TOUCHATTACH:			// @touchattach[:<uuid>=n|y			- Checked: 2010-01-01 (RLVa-1.1.0l) | Added: RLVa-1.1.0l
@@ -1350,6 +1350,7 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 		case RLV_BHVR_RECVEMOTEFROM:		// @recvemotefrom:<uuid>=n|y		- Checked: 2010-11-30 (RLVa-1.3.0c) | Added: RLVa-1.3.0c
 		case RLV_BHVR_SENDIMTO:				// @sendimto:<uuid>=n|y				- Checked: 2010-11-30 (RLVa-1.3.0c) | Added: RLVa-1.3.0c
 		case RLV_BHVR_RECVIMFROM:			// @recvimfrom:<uuid>=n|y			- Checked: 2010-11-30 (RLVa-1.3.0c) | Added: RLVa-1.3.0c
+		case RLV_BHVR_STARTIMTO:			// @startimto:<uuid>=n|y			- Checked: 2011-04-11 (RLVa-1.3.0h) | Added: RLVa-1.3.0h
 		case RLV_BHVR_EDITOBJ:				// @editobj:<uuid>=n|y				- Checked: 2010-11-29 (RLVa-1.3.0c) | Added: RLVa-1.3.0c
 		case RLV_BHVR_TOUCHTHIS:			// @touchthis:<uuid>=n|y			- Checked: 2010-01-01 (RLVa-1.1.0l) | Added: RLVa-1.1.0l
 			{
@@ -1399,7 +1400,7 @@ ERlvCmdRet RlvHandler::processAddRemCommand(const RlvCommand& rlvCmd)
 	return eRet;
 }
 
-// Checked: 2010-03-03 (RLVa-1.1.3b) | Modified: RLVa-1.2.0a
+// Checked: 2010-03-03 (RLVa-1.2.0a) | Modified: RLVa-1.2.0a
 ERlvCmdRet RlvHandler::onAddRemAttach(const RlvCommand& rlvCmd, bool& fRefCount)
 {
 	RLV_ASSERT( (RLV_TYPE_ADD == rlvCmd.getParamType()) || (RLV_TYPE_REMOVE == rlvCmd.getParamType()) );
@@ -1434,7 +1435,7 @@ ERlvCmdRet RlvHandler::onAddRemAttach(const RlvCommand& rlvCmd, bool& fRefCount)
 	return RLV_RET_SUCCESS;
 }
 
-// Checked: 2010-02-28 (RLVa-1.1.3b) | Modified: RLVa-1.2.0a
+// Checked: 2010-02-28 (RLVa-1.2.0a) | Modified: RLVa-1.2.0a
 ERlvCmdRet RlvHandler::onAddRemDetach(const RlvCommand& rlvCmd, bool& fRefCount)
 {
 	RLV_ASSERT( (RLV_TYPE_ADD == rlvCmd.getParamType()) || (RLV_TYPE_REMOVE == rlvCmd.getParamType()) );
@@ -1608,7 +1609,10 @@ ERlvCmdRet RlvHandler::processForceCommand(const RlvCommand& rlvCmd) const
 				{
 					F32 nValue = (rlvCmdOption.m_nPelvisToFoot - gAgentAvatarp->getPelvisToFoot()) * rlvCmdOption.m_nPelvisToFootDeltaMult;
 					nValue += rlvCmdOption.m_nPelvisToFootOffset;
-					gSavedSettings.setF32(RLV_SETTING_AVATAROFFSET_Z, llclamp<F32>(nValue, -1.0f, 1.0f));
+					if (!gAgentAvatarp->isUsingServerBakes())
+						gSavedSettings.setF32(RLV_SETTING_AVATAROFFSET_Z, llclamp<F32>(nValue, -1.0f, 1.0f));
+					else
+						eRet = RLV_RET_FAILED_DISABLED;
 				}
 			}
 			break;
@@ -1665,7 +1669,7 @@ ERlvCmdRet RlvHandler::processForceCommand(const RlvCommand& rlvCmd) const
 	return eRet;
 }
 
-// Checked: 2010-08-29 (RLVa-1.1.3b) | Modified: RLVa-1.2.1c
+// Checked: 2010-08-29 (RLVa-1.2.1c) | Modified: RLVa-1.2.1c
 ERlvCmdRet RlvHandler::onForceRemAttach(const RlvCommand& rlvCmd) const
 {
 	RLV_ASSERT(RLV_TYPE_FORCE == rlvCmd.getParamType());
@@ -1700,7 +1704,7 @@ ERlvCmdRet RlvHandler::onForceRemAttach(const RlvCommand& rlvCmd) const
 	return RLV_RET_FAILED_OPTION;
 }
 
-// Checked: 2010-08-29 (RLVa-1.1.3b) | Modified: RLVa-1.2.1c
+// Checked: 2010-08-29 (RLVa-1.2.1c) | Modified: RLVa-1.2.1c
 ERlvCmdRet RlvHandler::onForceRemOutfit(const RlvCommand& rlvCmd) const
 {
 	RlvCommandOptionGeneric rlvCmdOption(rlvCmd.getOption());
@@ -1739,14 +1743,7 @@ ERlvCmdRet RlvHandler::onForceGroup(const RlvCommand& rlvCmd) const
 	if (fValid)
 	{
 		m_idAgentGroup = idGroup;
-
-		LLMessageSystem* msg = gMessageSystem;
-		msg->newMessageFast(_PREHASH_ActivateGroup);
-		msg->nextBlockFast(_PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->addUUIDFast(_PREHASH_GroupID, idGroup);
-		gAgent.sendReliableMessage();
+		LLGroupActions::activate(idGroup);
 	}
 
 	return (fValid) ? RLV_RET_SUCCESS : RLV_RET_FAILED_OPTION;
@@ -1831,7 +1828,7 @@ void RlvHandler::onForceWearCallback(const uuid_vec_t& idItems, ERlvBehaviour eB
 // Command handlers (RLV_TYPE_REPLY)
 //
 
-// Checked: 2009-11-26 (RLVa-1.1.0f) | Modified: RLVa-1.1.0f
+// Checked: 2010-04-07 (RLVa-1.2.0d) | Modified: RLVa-1.1.0f
 ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());
@@ -1844,12 +1841,12 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 	ERlvCmdRet eRet = RLV_RET_SUCCESS; std::string strReply;
 	switch (rlvCmd.getBehaviourType())
 	{
-		case RLV_BHVR_VERSION:			// @version=<channel>					- Checked: 2010-03-27 (RLVa-1.2.0b)
-		case RLV_BHVR_VERSIONNEW:		// @versionnew=<channel>				- Checked: 2010-03-27 (RLVa-1.2.0b) | Added: RLVa-1.2.0b
+		case RLV_BHVR_VERSION:			// @version=<channel>					- Checked: 2010-03-27 (RLVa-1.4.0a)
+		case RLV_BHVR_VERSIONNEW:		// @versionnew=<channel>				- Checked: 2010-03-27 (RLVa-1.4.0a) | Added: RLVa-1.2.0b
 			// NOTE: RLV will respond even if there's an option
 			strReply = RlvStrings::getVersion(RLV_BHVR_VERSION == rlvCmd.getBehaviourType());
 			break;
-		case RLV_BHVR_VERSIONNUM:		// @versionnum=<channel>				- Checked: 2009-11-26 (RLVa-1.1.0f) | Added: RLVa-1.0.4b
+		case RLV_BHVR_VERSIONNUM:		// @versionnum=<channel>				- Checked: 2010-03-27 (RLVa-1.4.0a) | Added: RLVa-1.0.4b
 			// NOTE: RLV will respond even if there's an option
 			strReply = RlvStrings::getVersionNum();
 			break;
@@ -1886,7 +1883,7 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 		case RLV_BHVR_GETINV:			// @getinv[:<path>]=<channel>
 			eRet = onGetInv(rlvCmd, strReply);
 			break;
-		case RLV_BHVR_GETINVWORN:		// @getinvworn[:path]=<channel>
+		case RLV_BHVR_GETINVWORN:		// @getinvworn[:<path>]=<channel>
 			eRet = onGetInvWorn(rlvCmd, strReply);
 			break;
 		case RLV_BHVR_GETGROUP:			// @getgroup=<channel>					- Checked: 2011-03-28 (RLVa-1.4.1a) | Added: RLVa-1.3.0f
@@ -1915,7 +1912,7 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 			}
 			break;
 #endif // RLV_EXTENSION_CMD_GETCOMMAND
-		case RLV_BHVR_GETSTATUS:		// @getstatus[:<option>]=<channel>		- Checked: 2009-11-26 (RLVa-1.1.0f) | Modified: RLVa-1.1.0f
+		case RLV_BHVR_GETSTATUS:		// @getstatus[:<option>]=<channel>		- Checked: 2010-04-07 (RLVa-1.2.0d) | Modified: RLVa-1.1.0f
 			{
 				// NOTE: specification says response should start with '/' but RLV-1.16.1 returns an empty string when no rules are set
 				rlv_object_map_t::const_iterator itObj = m_Objects.find(rlvCmd.getObjectID());
@@ -1923,7 +1920,7 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 					strReply = itObj->second.getStatusString(rlvCmd.getOption());
 			}
 			break;
-		case RLV_BHVR_GETSTATUSALL:		// @getstatusall[:<option>]=<channel>	- Checked: 2009-11-26 (RLVa-1.1.0f) | Modified: RLVa-1.1.0f
+		case RLV_BHVR_GETSTATUSALL:		// @getstatusall[:<option>]=<channel>	- Checked: 2010-04-07 (RLVa-1.2.0d) | Modified: RLVa-1.1.0f
 			{
 				// NOTE: specification says response should start with '/' but RLV-1.16.1 returns an empty string when no rules are set
 				for (rlv_object_map_t::const_iterator itObj = m_Objects.begin(); itObj != m_Objects.end(); ++itObj)
@@ -1946,7 +1943,7 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 	return eRet;
 }
 
-// Checked: 2010-04-07 (RLVa-1.1.3a) | Modified: RLVa-1.1.0f
+// Checked: 2010-04-07 (RLVa-1.2.0d) | Modified: RLVa-1.1.0f
 ERlvCmdRet RlvHandler::onFindFolder(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());
@@ -1989,7 +1986,7 @@ ERlvCmdRet RlvHandler::onFindFolder(const RlvCommand& rlvCmd, std::string& strRe
 	return RLV_RET_SUCCESS;
 }
 
-// Checked: 2010-03-19 (RLVa-1.1.3b) | Modified: RLVa-1.1.0e
+// Checked: 2010-03-19 (RLVa-1.4.0a) | Modified: RLVa-1.1.0e
 ERlvCmdRet RlvHandler::onGetAttach(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());
@@ -2021,7 +2018,7 @@ ERlvCmdRet RlvHandler::onGetAttach(const RlvCommand& rlvCmd, std::string& strRep
 	return RLV_RET_SUCCESS;
 }
 
-// Checked: 2010-03-19 (RLVa-1.1.3b) | Added: RLVa-1.1.0e
+// Checked: 2011-05-28 (RLVa-1.4.0a) | Modified: RLVa-1.4.0a
 ERlvCmdRet RlvHandler::onGetAttachNames(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());
@@ -2100,7 +2097,7 @@ ERlvCmdRet RlvHandler::onGetInv(const RlvCommand& rlvCmd, std::string& strReply)
 
 struct rlv_wear_info { U32 cntWorn, cntTotal, cntChildWorn, cntChildTotal; };
 
-// Checked: 2010-04-05 (RLVa-1.1.3a) | Modified: RLVa-1.1.0f
+// Checked: 2010-04-05 (RLVa-1.2.0d) | Modified: RLVa-1.1.0f
 ERlvCmdRet RlvHandler::onGetInvWorn(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	// Sanity check - gAgentAvatarp can't be NULL [see RlvForceWear::isWearingItem()]
@@ -2175,7 +2172,7 @@ ERlvCmdRet RlvHandler::onGetInvWorn(const RlvCommand& rlvCmd, std::string& strRe
 	return RLV_RET_SUCCESS;
 }
 
-// Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
+// Checked: 2010-03-19 (RLVa-1.4.0a) | Modified: RLVa-1.2.0a
 ERlvCmdRet RlvHandler::onGetOutfit(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());
@@ -2210,7 +2207,7 @@ ERlvCmdRet RlvHandler::onGetOutfit(const RlvCommand& rlvCmd, std::string& strRep
 	return RLV_RET_SUCCESS;
 }
 
-// Checked: 2009-11-21 (RLVa-1.1.0f) | Added: RLVa-1.1.0e
+// Checked: 2011-05-28 (RLVa-1.4.0a) | Modified: RLVa-1.4.0a
 ERlvCmdRet RlvHandler::onGetOutfitNames(const RlvCommand& rlvCmd, std::string& strReply) const
 {
 	RLV_ASSERT(RLV_TYPE_REPLY == rlvCmd.getParamType());

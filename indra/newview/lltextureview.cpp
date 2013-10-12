@@ -37,6 +37,7 @@
 #include "llimageworker.h"
 #include "llrender.h"
 
+#include "aicurlperservice.h"
 #include "llappviewer.h"
 #include "llselectmgr.h"
 #include "llviewertexlayer.h"
@@ -48,6 +49,7 @@
 #include "llviewertexturelist.h"
 #include "llvovolume.h"
 #include "llviewerstats.h"
+#include "lluictrlfactory.h"
 
 // For avatar texture view
 #include "llvoavatarself.h"
@@ -64,13 +66,22 @@ LLTextureSizeView *gTextureCategoryView = NULL;
 //static
 std::set<LLViewerFetchedTexture*> LLTextureView::sDebugImages;
 
+// Forward declaration.
+namespace AICurlInterface {
+  U32 getNumHTTPCommands(void);
+  U32 getNumHTTPQueued(void);
+  U32 getNumHTTPAdded(void);
+  U32 getNumHTTPRunning(void);
+  size_t getHTTPBandwidth(void);
+} // namespace AICurlInterface
+
 ////////////////////////////////////////////////////////////////////////////
 
 static std::string title_string1a("Tex UUID Area  DDis(Req)  DecodePri(Fetch)     [download] pk/max");
 static std::string title_string1b("Tex UUID Area  DDis(Req)  Fetch(DecodePri)     [download] pk/max");
 static std::string title_string2("State");
 static std::string title_string3("Pkt Bnd");
-static std::string title_string4("  W x H (Dis) Mem");
+static std::string title_string4("  W x  H (Dis) Mem    Type");
 
 static S32 title_x1 = 0;
 static S32 title_x2 = 460;
@@ -87,12 +98,20 @@ public:
 	S32 mHilite;
 
 public:
-	LLTextureBar(const std::string& name, const LLRect& r, LLTextureView* texview)
-		: LLView(name, r, FALSE),
-		  mHilite(0),
-		  mTextureView(texview)
+	struct Params : public LLInitParam::Block<Params, LLView::Params>
 	{
-	}
+		Mandatory<LLTextureView*> texture_view;
+		Params()
+		:	texture_view("texture_view")
+		{
+			changeDefault(mouse_opaque, false);
+		}
+	};
+	LLTextureBar(const Params& p)
+	:	LLView(p),
+		mHilite(0),
+		mTextureView(p.texture_view)
+	{}
 
 	virtual void draw();
 	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask);
@@ -192,6 +211,9 @@ void LLTextureBar::draw()
 	std::string uuid_str;
 	mImagep->mID.toString(uuid_str);
 	uuid_str = uuid_str.substr(0,7);
+
+	std::string vsstr = llformat("%f",mImagep->mMaxVirtualSize);
+	std::string dpstr = llformat("%f",mImagep->getDecodePriority());
 	if (mTextureView->mOrderFetch)
 	{
 		tex_str = llformat("%s %7.0f %d(%d) 0x%08x(%8.0f)",
@@ -204,14 +226,14 @@ void LLTextureBar::draw()
 	}
 	else
 	{
-		tex_str = llformat("%s %7.0f %d(%d) %8.0f(0x%08x) %1.2f",
+		tex_str = llformat("%s %7.0f %d(%d) %8.0f(0x%08x) %3d%%",
 						   uuid_str.c_str(),
 						   mImagep->mMaxVirtualSize,
 						   mImagep->mDesiredDiscardLevel,
 						   mImagep->mRequestedDiscardLevel,
 						   mImagep->getDecodePriority(),
 						   mImagep->mFetchPriority,
-						   mImagep->mDownloadProgress);
+						   llfloor(mImagep->mDownloadProgress*100.f));
 	}
 
 	LLFontGL::getFontMonospace()->renderUTF8(tex_str, 0, title_x1, getRect().getHeight(),
@@ -220,12 +242,14 @@ void LLTextureBar::draw()
 	// State
 	// Hack: mirrored from lltexturefetch.cpp
 	struct { const std::string desc; LLColor4 color; } fetch_state_desc[] = {
-		{ "---", LLColor4::red },	// INVALID
+		{ "-?-", LLColor4::red },	// INVALID
 		{ "INI", LLColor4::white },	// INIT
 		{ "DSK", LLColor4::cyan },	// LOAD_FROM_TEXTURE_CACHE
 		{ "DSK", LLColor4::blue },	// CACHE_POST
 		{ "NET", LLColor4::green },	// LOAD_FROM_NETWORK
 		{ "SIM", LLColor4::green },	// LOAD_FROM_SIMULATOR
+		{ "REQ", LLColor4::magenta },// SEND_UDP_REQ
+		{ "UDP", LLColor4::cyan },	// WAIT_UDP_REQ
 		{ "REQ", LLColor4::yellow },// SEND_HTTP_REQ
 		{ "HTP", LLColor4::green },	// WAIT_HTTP_REQ
 		{ "DEC", LLColor4::yellow },// DECODE_IMAGE
@@ -233,12 +257,12 @@ void LLTextureBar::draw()
 		{ "WRT", LLColor4::purple },// WRITE_TO_CACHE
 		{ "WRT", LLColor4::orange },// WAIT_ON_WRITE
 		{ "END", LLColor4::red },   // DONE
-#define LAST_STATE 12
+#define LAST_STATE 14
 		{ "CRE", LLColor4::magenta }, // LAST_STATE+1
 		{ "FUL", LLColor4::green }, // LAST_STATE+2
 		{ "BAD", LLColor4::red }, // LAST_STATE+3
 		{ "MIS", LLColor4::red }, // LAST_STATE+4
-		{ "---", LLColor4::white }, // LAST_STATE+5
+		{ "-!-", LLColor4::white }, // LAST_STATE+5
 	};
 	const S32 fetch_state_desc_size = (S32)LL_ARRAY_SIZE(fetch_state_desc);
 	S32 state =
@@ -351,8 +375,39 @@ void LLTextureBar::draw()
 		
 		// draw the image size at the end
 		{
-			std::string num_str = llformat("%3dx%3d (%d) %7d", mImagep->getWidth(), mImagep->getHeight(),
-				mImagep->getDiscardLevel(), mImagep->hasGLTexture() ? mImagep->getTextureMemory() : 0);
+			std::string boost_lvl("UNKNOWN");
+			switch(mImagep->getBoostLevel())
+			{
+#define BOOST_LVL(type) case LLGLTexture::BOOST_##type: boost_lvl="B_"#type; break;
+#define CAT_LVL(type) case LLGLTexture::type: boost_lvl=#type; break;
+				BOOST_LVL(NONE)
+				BOOST_LVL(AVATAR_BAKED)
+				BOOST_LVL(AVATAR)
+				BOOST_LVL(CLOUDS)
+				BOOST_LVL(SCULPTED)
+				BOOST_LVL(HIGH)
+				BOOST_LVL(BUMP)
+				BOOST_LVL(TERRAIN)
+				BOOST_LVL(SELECTED)
+				BOOST_LVL(AVATAR_BAKED_SELF)
+				BOOST_LVL(AVATAR_SELF)
+				BOOST_LVL(SUPER_HIGH)
+				BOOST_LVL(HUD)
+				BOOST_LVL(ICON)
+				BOOST_LVL(UI)
+				BOOST_LVL(PREVIEW)
+				BOOST_LVL(MAP)
+				BOOST_LVL(MAP_VISIBLE)
+				CAT_LVL(LOCAL)
+				CAT_LVL(AVATAR_SCRATCH_TEX)
+				CAT_LVL(DYNAMIC_TEX)
+				CAT_LVL(MEDIA)
+				CAT_LVL(OTHER)
+				CAT_LVL(MAX_GL_IMAGE_CATEGORY)
+				default:;
+			};
+			std::string num_str = llformat("%4dx%4d (%+d) %7d %s", mImagep->getWidth(), mImagep->getHeight(),
+				mImagep->getDiscardLevel(), mImagep->hasGLTexture() ? mImagep->getTextureMemory() : 0, boost_lvl.c_str());
 			LLFontGL::getFontMonospace()->renderUTF8(num_str, 0, title_x4, getRect().getHeight(), color,
 											LLFontGL::LEFT, LLFontGL::TOP);
 		}
@@ -384,14 +439,21 @@ LLRect LLTextureBar::getRequiredRect()
 class LLAvatarTexBar : public LLView
 {
 public:
-
-	LLAvatarTexBar(const std::string& name, LLTextureView* texview)
-	:	LLView(name, FALSE),
-		mTextureView(texview)
+	struct Params : public LLInitParam::Block<Params, LLView::Params>
 	{
-		S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
-		setRect(LLRect(0,0,100,line_height * 4));
-	}
+		Mandatory<LLTextureView*>	texture_view;
+		Params()
+		:	texture_view("texture_view")
+		{
+			S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
+			changeDefault(rect, LLRect(0,0,100,line_height * 4));
+		}
+	};
+
+	LLAvatarTexBar(const Params& p)
+	:	LLView(p),
+		mTextureView(p.texture_view)
+	{}
 
 	virtual void draw();	
 	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask);
@@ -476,13 +538,21 @@ LLRect LLAvatarTexBar::getRequiredRect()
 class LLGLTexMemBar : public LLView
 {
 public:
-	LLGLTexMemBar(const std::string& name, LLTextureView* texview)
-		: LLView(name, FALSE),
-		  mTextureView(texview)
+	struct Params : public LLInitParam::Block<Params, LLView::Params>
 	{
-		S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
-		setRect(LLRect(0,0,100,line_height * 4));
-	}
+		Mandatory<LLTextureView*>	texture_view;
+		Params()
+		:	texture_view("texture_view")
+		{
+			S32 line_height = (S32)(LLFontGL::getFontMonospace()->getLineHeight() + .5f);
+			changeDefault(rect, LLRect(0,0,100,line_height * 4));
+		}
+	};
+
+	LLGLTexMemBar(const Params& p)
+	:	LLView(p),
+		mTextureView(p.texture_view)
+	{}
 
 	virtual void draw();	
 	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask);
@@ -593,7 +663,7 @@ void LLGLTexMemBar::draw()
 #endif
 	//----------------------------------------------------------------------------
 
-	text = llformat("Textures: %d Fetch: %d(%d) Pkts:%d(%d) Cache R/W: %d/%d LFS:%d IW:%d RAW:%d(%d) HTP:%d DEC:%d CRE:%d ",
+	text = llformat("Textures: %d Fetch: %d(%d) Pkts:%d(%d) Cache R/W: %d/%d LFS:%d IW:%d RAW:%d(%d) HTTP:%d/%d/%d/%d DEC:%d CRE:%d ",
 					gTextureList.getNumImages(),
 					LLAppViewer::getTextureFetch()->getNumRequests(), LLAppViewer::getTextureFetch()->getNumDeletes(),
 					LLAppViewer::getTextureFetch()->mPacketCount, LLAppViewer::getTextureFetch()->mBadPacketCount, 
@@ -601,7 +671,10 @@ void LLGLTexMemBar::draw()
 					LLLFSThread::sLocal->getPending(),
 					LLAppViewer::getImageDecodeThread()->getPending(),
 					LLImageRaw::sRawImageCount, LLImageRaw::sRawImageCachedCount,
-					LLAppViewer::getTextureFetch()->getNumHTTPRequests(),
+					AICurlInterface::getNumHTTPCommands(),
+					AICurlInterface::getNumHTTPQueued(),
+					AICurlInterface::getNumHTTPAdded(),
+					AICurlInterface::getNumHTTPRunning(),
 					LLAppViewer::getImageDecodeThread()->getPending(), 
 					gTextureList.mCreateTextureList.size());
 
@@ -609,14 +682,15 @@ void LLGLTexMemBar::draw()
 									 text_color, LLFontGL::LEFT, LLFontGL::TOP);
 
 	left += LLFontGL::getFontMonospace()->getWidth(text);
-	F32 bandwidth = LLAppViewer::getTextureFetch()->getTextureBandwidth();
-	F32 max_bandwidth = gSavedSettings.getF32("HTTPThrottleBandwidth");
-	color = bandwidth > max_bandwidth ? LLColor4::red : bandwidth > max_bandwidth*.75f ? LLColor4::yellow : text_color;
+	// This bandwidth is averaged over 1 seconds (in bytes/s).
+	size_t const bandwidth = AICurlInterface::getHTTPBandwidth();
+	size_t const max_bandwidth = AIPerService::getHTTPThrottleBandwidth125();
+	color = (bandwidth > max_bandwidth) ? LLColor4::red : ((bandwidth > max_bandwidth * .75f) ? LLColor4::yellow : text_color);
 	color[VALPHA] = text_color[VALPHA];
-	text = llformat("BW:%.0f/%.0f",bandwidth, max_bandwidth);
+	text = llformat("BW:%lu/%lu", bandwidth / 125, max_bandwidth / 125);
 	LLFontGL::getFontMonospace()->renderUTF8(text, 0, left, v_offset + line_height*2,
 											 color, LLFontGL::LEFT, LLFontGL::TOP);
-	
+
 	S32 dx1 = 0;
 	if (LLAppViewer::getTextureFetch()->mDebugPause)
 	{
@@ -728,8 +802,8 @@ void LLGLTexSizeBar::draw()
 }
 ////////////////////////////////////////////////////////////////////////////
 
-LLTextureView::LLTextureView(const std::string& name, const LLRect& rect)
-	:	LLContainerView(name, rect),
+LLTextureView::LLTextureView(const LLTextureView::Params& p)
+	:	LLContainerView(p),
 		mFreezeView(FALSE),
 		mOrderFetch(FALSE),
 		mPrintList(FALSE),
@@ -955,11 +1029,24 @@ void LLTextureView::draw()
 		else
 			sortChildren(LLTextureBar::sort());
 
-		mGLTexMemBar = new LLGLTexMemBar("gl texmem bar", this);
+		LLGLTexMemBar::Params tmbp;
+		LLRect tmbr;
+		tmbp.name("gl texmem bar");
+		tmbp.rect(tmbr);
+		tmbp.follows.flags = FOLLOWS_LEFT|FOLLOWS_TOP;
+		tmbp.texture_view(this);
+		mGLTexMemBar = LLUICtrlFactory::create<LLGLTexMemBar>(tmbp);
 		addChild(mGLTexMemBar);
-	
-		mAvatarTexBar = new LLAvatarTexBar("gl avatartex bar", this);
+		//sendChildToFront(mGLTexMemBar);
+
+		LLAvatarTexBar::Params atbp;
+		LLRect atbr;
+		atbp.name("gl avatartex bar");
+		atbp.texture_view(this);
+		atbp.rect(atbr);
+		mAvatarTexBar = LLUICtrlFactory::create<LLAvatarTexBar>(atbp);
 		addChild(mAvatarTexBar);
+		//sendChildToFront(mAvatarTexBar);
 		
 		reshape(getRect().getWidth(), getRect().getHeight(), TRUE);
 
@@ -995,7 +1082,11 @@ BOOL LLTextureView::addBar(LLViewerFetchedTexture *imagep, S32 hilite)
 
 	mNumTextureBars++;
 
-	barp = new LLTextureBar("texture bar", r, this);
+	LLTextureBar::Params tbp;
+	tbp.name("texture bar");
+	tbp.rect(r);
+	tbp.texture_view(this);
+	barp = LLUICtrlFactory::create<LLTextureBar>(tbp);
 	barp->mImagep = imagep;	
 	barp->mHilite = hilite;
 
@@ -1041,10 +1132,8 @@ BOOL LLTextureView::handleKey(KEY key, MASK mask, BOOL called_from_parent)
 }
 
 //-----------------------------------------------------------------
-LLTextureSizeView::LLTextureSizeView(const std::string& name) : LLContainerView(name, LLRect())
+LLTextureSizeView::LLTextureSizeView(const Params& p) : LLContainerView(p)
 {
-	setVisible(FALSE) ;
-
 	mTextureSizeBarWidth = 30 ;
 }
 

@@ -98,7 +98,6 @@
 			</combo_box>
 			<button label="Parcourir" label_selected="Parcourir" name="Browse"/>
 			<button label="Rechercher" label_selected="Rechercher" name="Search" width="85"/>
-			<button label="Passer une annonce" label_selected="Passer une annonce" name="Place an Ad..."/>
 			<button label="Supprimer" label_selected="Supprimer" name="Delete"/>
 			<scroll_list name="results">
 				<column label="Nom" name="name"/>
@@ -117,7 +116,6 @@
 			<text name="text2">
 				Trouver
 			</text>
-			<line_editor name="event_search_text"/>
 			<radio_group name="date_mode">
 				<radio_item name="current">
 					En cours et futurs

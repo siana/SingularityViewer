@@ -3,10 +3,9 @@
  * @brief LLColorSwatch class definition
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2001-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -56,12 +55,7 @@ public:
 		COLOR_CANCEL
 	} EColorPickOp;
 
-	LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const LLColor4& color,
-		void (*on_commit_callback)(LLUICtrl* ctrl, void* userdata),
-		void* callback_userdata);
-	LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const std::string& label, const LLColor4& color,
-		void (*on_commit_callback)(LLUICtrl* ctrl, void* userdata),
-		void* callback_userdata);
+	LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const std::string& label, const LLColor4& color);
 
 	~LLColorSwatchCtrl ();
 
@@ -75,8 +69,8 @@ public:
 	void			setValid(BOOL valid);
 	void			setLabel(const std::string& label);
 	void			setCanApplyImmediately(BOOL apply) { mCanApplyImmediately = apply; }
-	void			setOnCancelCallback(LLUICtrlCallback cb) { mOnCancelCallback = cb; }
-	void			setOnSelectCallback(LLUICtrlCallback cb) { mOnSelectCallback = cb; }
+	void			setOnCancelCallback(commit_callback_t cb) { mOnCancelCallback = cb; }
+	void			setOnSelectCallback(commit_callback_t cb) { mOnSelectCallback = cb; }
 	void			setFallbackImageName(const std::string& name) { mFallbackImageName = name; }
 
 	void			showPicker(BOOL take_focus);
@@ -101,8 +95,8 @@ protected:
 	LLHandle<LLFloater> mPickerHandle;
 	LLViewBorder*	mBorder;
 	BOOL			mCanApplyImmediately;
-	LLUICtrlCallback mOnCancelCallback;
-	LLUICtrlCallback mOnSelectCallback;
+	commit_callback_t mOnCancelCallback;
+	commit_callback_t mOnSelectCallback;
 
 	LLPointer<LLUIImage> mAlphaGradientImage;
 	std::string		mFallbackImageName;

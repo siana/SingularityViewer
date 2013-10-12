@@ -49,7 +49,7 @@ LLIconCtrl::LLIconCtrl(const std::string& name, const LLRect &rect, const LLUUID
 :	LLUICtrl(name, 
 			 rect, 
 			 FALSE, // mouse opaque
-			 NULL, NULL, 
+			 NULL, 
 			 FOLLOWS_LEFT | FOLLOWS_TOP),
 	mColor( LLColor4::white )
 {
@@ -61,7 +61,7 @@ LLIconCtrl::LLIconCtrl(const std::string& name, const LLRect &rect, const std::s
 :	LLUICtrl(name, 
 			 rect, 
 			 FALSE, // mouse opaque
-			 NULL, NULL, 
+			 NULL,
 			 FOLLOWS_LEFT | FOLLOWS_TOP),
 	mColor( LLColor4::white ),
 	mImageName(image_name)
@@ -106,7 +106,8 @@ void LLIconCtrl::draw()
 {
 	if( mImagep.notNull() )
 	{
-		mImagep->draw(getLocalRect(), mColor );
+		const F32 alpha = getDrawContext().mAlpha;
+		mImagep->draw(getLocalRect(), mColor % alpha );
 	}
 
 	LLUICtrl::draw();
@@ -157,9 +158,6 @@ LLXMLNodePtr LLIconCtrl::getXML(bool save_children) const
 
 LLView* LLIconCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("icon");
-	node->getAttributeString("name", name);
-
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
@@ -172,7 +170,7 @@ LLView* LLIconCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *
 	LLColor4 color(LLColor4::white);
 	LLUICtrlFactory::getAttributeColor(node,"color", color);
 
-	LLIconCtrl* icon = new LLIconCtrl(name, rect, image_name);
+	LLIconCtrl* icon = new LLIconCtrl("icon", rect, image_name);
 
 	icon->setColor(color);
 

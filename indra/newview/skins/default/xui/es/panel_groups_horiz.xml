@@ -22,7 +22,4 @@
 	<button label="Buscar..." left_delta="87" name="Search..." width="85"/>
 	<button label="Invitar..." name="Invite..." width="85"/>
 	<button label="Títulos..." left_delta="87" name="Titles..." width="85"/>
-  <string name="none">
-		ninguno
-  </string>
 </panel>

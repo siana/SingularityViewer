@@ -19,23 +19,23 @@
 		desconocido
 	</text>
 	<check_box label="Bloquear Terraformado" name="block_terraform_check"/>
-	<button label="?" name="terraform_help"/>
+	<button label="?" name="terraform_help" left="225"/>
 	<check_box label="Bloquear Volar" name="block_fly_check"/>
-	<button label="?" name="fly_help"/>
+	<button label="?" name="fly_help" left="225"/>
 	<check_box label="Permitir Daño" name="allow_damage_check"/>
-	<button label="?" name="damage_help"/>
+	<button label="?" name="damage_help" left="225"/>
 	<check_box label="Restringir Empujones" name="restrict_pushobject"/>
-	<button label="?" name="restrict_pushobject_help"/>
+	<button label="?" name="restrict_pushobject_help" left="225"/>
 	<check_box label="Permitir reventa de terreno" name="allow_land_resell_check"/>
-	<button label="?" name="land_resell_help"/>
+	<button label="?" name="land_resell_help" left="225"/>
 	<check_box label="Permitir Unir/Dividir Terreno" name="allow_parcel_changes_check"/>
-	<button label="?" name="parcel_changes_help"/>
-	<check_box label="Bloquear Mostrar Parcela en la Búsqueda" name="block_parcel_search_check" tool_tip="Permitir (o no) que la gente vea a esta región y sus parcelas en los resultados de las búsquedas"/>
-	<button label="?" name="parcel_search_help"/>
+	<button label="?" name="parcel_changes_help" left="225"/>
+	<check_box label="Bloquear Mostrar Parcela en Búsqueda" name="block_parcel_search_check" tool_tip="Permitir (o no) que la gente vea a esta región y sus parcelas en los resultados de las búsquedas"/>
+	<button label="?" name="parcel_search_help" left="225"/>
 	<spinner label="Límite de Avatares" name="agent_limit_spin"/>
-	<button label="?" name="agent_limit_help"/>
+	<button label="?" name="agent_limit_help" left="225"/>
 	<spinner label="Bonus de Objetos" name="object_bonus_spin"/>
-	<button label="?" name="object_bonus_help"/>
+	<button label="?" name="object_bonus_help" left="225"/>
 	<text label="Calificación" name="access_text">
 		Calificación:
 	</text>
@@ -50,10 +50,15 @@
 			PG
 		</combo_item>
 	</combo_box>
-	<button label="?" name="access_help"/>
+	<button label="?" name="access_help" left="225"/>
+	<check_box label="Usar Sol del Estado" left="250" name="use_estate_sun_check" width="200"/>
+	<button label="?" name="use_estate_sun_help" left_delta="200"/>
+	<check_box label="Fijar Sol" left_delta="-200" name="fixed_sun_check" width="100"/>
+	<button label="?" name="fixed_sun_help" left_delta="200"/>
+    <slider label="Fase" left_delta="-35" name="sun_hour_slider"/>	
 	<button label="Aplicar" name="apply_btn"/>
-	<button label="Teleportar Usuario a su Base..." name="kick_btn"/>
-	<button label="Teleportar a todos los usuarios a su base..." name="kick_all_btn"/>
+	<button label="Teleportar Usuario a su Base..." name="kick_btn" width="250"/>
+	<button label="Teleportar a todos los usuarios a su base..." name="kick_all_btn" width="260"/>
 	<button label="Enviar mensaje a la Región..." name="im_btn"/>
-	<button label="Administrar Telepuerto..." name="manage_telehub_btn"/>
+	<button label="Administrar Telepuerto..." name="manage_telehub_btn" left="270"/>
 </panel>

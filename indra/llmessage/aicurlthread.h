@@ -39,6 +39,8 @@
 namespace AICurlPrivate {
 namespace curlthread {
 
+extern U32 curl_max_total_concurrent_connections;
+
 class PollSet;
 
 // For ordering a std::set with AICurlEasyRequest objects.
@@ -59,7 +61,7 @@ class MultiHandle : public CurlMultiHandle
 	~MultiHandle();
 
 	// Add/remove an easy handle to/from a multi session.
-	void add_easy_request(AICurlEasyRequest const& easy_request);
+	bool add_easy_request(AICurlEasyRequest const& easy_request, bool from_queue);
 	CURLMcode remove_easy_request(AICurlEasyRequest const& easy_request, bool as_per_command = false);
 
 	// Reads/writes available data from a particular socket (non-blocking).
@@ -75,12 +77,13 @@ class MultiHandle : public CurlMultiHandle
 	typedef std::set<AICurlEasyRequest, AICurlEasyRequestCompare> addedEasyRequests_type;
 	addedEasyRequests_type mAddedEasyRequests;	// All easy requests currently added to the multi handle.
 	long mTimeout;								// The last timeout in ms as set by the callback CURLMOPT_TIMERFUNCTION.
+	static LLAtomicU32 sTotalAdded;				// The (sum of the) size of mAddedEasyRequests (of every MultiHandle, but there is only one).
 
   private:
 	// Store result and trigger events for easy request.
 	void finish_easy_request(AICurlEasyRequest const& easy_request, CURLcode result);
 	// Remove easy request at iter (must exist).
-	// Note that it's possible that a new request from a PerHostRequestQueue::mQueuedRequests is inserted before iter.
+	// Note that it's possible that a new request from a AIPerService::mQueuedRequests is inserted before iter.
 	CURLMcode remove_easy_request(addedEasyRequests_type::iterator const& iter, bool as_per_command);
 
     static int socket_callback(CURL* easy, curl_socket_t s, int action, void* userp, void* socketp);
@@ -90,11 +93,20 @@ class MultiHandle : public CurlMultiHandle
 	// Returns how long to wait for socket action before calling socket_action(CURL_SOCKET_TIMEOUT, 0), in ms.
 	int getTimeout(void) const { return mTimeout; }
 
+	// We slept delta_ms instead of mTimeout ms. Update mTimeout to be the remaining time.
+	void update_timeout(long delta_ms) { mTimeout -= delta_ms; }
+
 	// This is called before sleeping, after calling (one or more times) socket_action.
 	void check_msg_queue(void);
 
 	// Called from the main loop every time select() timed out.
 	void handle_stalls(void);
+
+	// Return the total number of added curl requests.
+	static U32 total_added_size(void) { return sTotalAdded; }
+
+	// Return true if we reached the global maximum number of connections.
+	static bool added_maximum(void) { return sTotalAdded >= curl_max_total_concurrent_connections; }
 
   public:
 	//-----------------------------------------------------------------------------

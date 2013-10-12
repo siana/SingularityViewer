@@ -13,10 +13,12 @@
 			<text name="find">
 				Buscar:
 			</text>
+			 <line_editor name="name"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adulto" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar" />
 			<scroll_list name="results">
 				<column label="" name="icon"/>
 				<column label="Nombre" name="name"/>
@@ -29,7 +31,9 @@
 				<column label="Conectado" name="online"/>
 				<column label="Miembros" name="members"/>
 			</scroll_list>
-		</panel>		 
+			<text name="result_text"/>
+		</panel>
+		<!-- ========================== -->
 		<panel label="Todo" name="find_all_panel">
 			<string name="searching_text">
 				Buscando...
@@ -68,7 +72,10 @@
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Conenido Mature" name="incmature"/>
 			<check_box label="Contenido Adulto" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar" />
 			<button label="?" label_selected="?" name="?"/>
+			<web_browser name="find_browser"/>
+			<text name="status_text"/>
 			<string name="loading_text">
 				Cargando...
 			</string>
@@ -82,6 +89,7 @@
 				"http://secondlife.com/app/search/index.php?"
 			</string>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Clasificados" name="classified_panel">
 			<string name="searching_text">
 				Buscando...
@@ -92,9 +100,11 @@
 			<text name="find">
 				Buscar:
 			</text>
+			<line_editor name="name"/>
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adult" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar"/>
 			<combo_box name="Category">
 				<combo_item name="AnyCategory">
 					Cualquier Categoría
@@ -129,7 +139,6 @@
 			</combo_box>
 			<button label="Navegar" label_selected="Navegar" name="Browse"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
-			<button label="Poner un Anuncio..." label_selected="Poner un Anuncio..." name="Place an Ad..."/>
 			<button label="Borrar" label_selected="Borrar" name="Delete"/>
 			<scroll_list name="results">
 				<column label="" name="icon"/>
@@ -137,9 +146,11 @@
 				<column label="Nombre" name="name"/>
 				<column label="Precio" name="price"/>
 			</scroll_list>
+			<text name="result_text"/>
 			<button label="Sig. &gt;" label_selected="Sig. &gt;" name="Next &gt;"/>
 			<button label="&lt; Ant." label_selected="&lt; Ant." name="&lt; Prev"/>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Eventos" name="events_panel">
 			<string name="searching_text">
 				Buscando...
@@ -150,6 +161,7 @@
 			<text name="text2">
 				Buscar:
 			</text>
+			<line_editor name="name"/>
 			<radio_group name="date_mode">
 				<radio_item name="current">
 					En curso y próximos
@@ -208,6 +220,7 @@
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adult" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
 			<button label="Borrar" label_selected="Borrar" name="Delete"/>
 			<scroll_list name="results">
@@ -218,9 +231,11 @@
 				<column label="" name="event_id"/>
 				<column label="Hora" name="time"/>
 			</scroll_list>
+			<text name="result_text"/>
 			<button label="Sig. &gt;" label_selected="Sig. &gt;" name="Next &gt;"/>
 			<button label="&lt; Ant." label_selected="&lt; Ant." name="&lt; Prev"/>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Escaparate" name="showcase_panel">
 			<string name="searching_text">
 				Buscando...
@@ -232,6 +247,8 @@
 			<button label="" name="forward_btn"/>
 			<button label="" name="reload_btn"/>
 			<!-- No mature content checkbox, showcase is all PG -->
+			<web_browser name="showcase_browser"/>
+			<text name="status_text"/>
 			<string name="loading_text">
 				Cargando...
 			</string>
@@ -245,6 +262,7 @@
 				"http://secondlife.com/app/showcase/index.php?"
 			</string>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Venta de Terrenos" name="land_sales_panel">
 			<string name="searching_text">
 				Buscando...
@@ -259,12 +277,10 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 			<text name="find">
 				Buscar:
 			</text>
-				<text name="find">
-				Buscar:
-			</text>
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adult" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar"/>
 			<combo_box name="type">
 				<combo_item name="AllTypes">
 					Todos los tipos
@@ -287,6 +303,7 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 			<text name="areacheck_symbol">
 				m²
 			</text>
+			<line_editor name="priceedit"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
 			<scroll_list name="results">
 				<column label="" name="icon"/>
@@ -297,9 +314,11 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 				<column label="Superficie" name="area"/>
 				<column label="[CURRENCY]/m²" name="per_meter"/>
 			</scroll_list>
+			<text name="result_text"/>
 			<button label="Sig. &gt;" label_selected="Sig. &gt;" name="Next &gt;"/>
 			<button label="&lt; Ant." label_selected="&lt; Ant." name="&lt; Prev"/>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Lugares" name="places_panel">
 			<string name="searching_text">
 				Buscando...
@@ -310,9 +329,11 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 			<text name="find">
 				Buscar:
 			</text>
+			<line_editor name="name"/>
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adulto" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar"/>
 			<combo_box name="Category">
 				<combo_item name="AnyCategory">
 					Cualquier Categoría
@@ -408,9 +429,11 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 				<column abel="Nombre" name="name" />
 				<column label="Tráfico" name="dwell"/>
 			</scroll_list>
+			<text name="result_text"/>
 			<button label="Sig. &gt;" label_selected="Sig. &gt;" name="Next &gt;"/>
 			<button label="&lt; Ant." label_selected="&lt; Ant." name="&lt; Prev"/>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Personas" name="people_panel">
 			<string name="searching_text">
 				Buscando...
@@ -421,15 +444,18 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 			<text name="find">
 				Buscar:
 			</text>
+			<line_editor name="name"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
 			<scroll_list name="results">
 				<column label="" name="icon"/>
 				<column label="" name="type"/>
 				<column label="Nombre" name="name"/>
 			</scroll_list>
+			<text name="result_text"/>
 			<button label="Sig. &gt;" label_selected="Sig. &gt;" name="Next &gt;"/>
 			<button label="&lt; Ant." label_selected="&lt; Ant." name="&lt; Prev"/>
 		</panel>
+		<!-- ========================== -->
 		<panel label="Grupos" name="groups_panel">
 			<string name="searching_text">
 				Buscando...
@@ -442,10 +468,12 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 			<text name="find">
 				Buscar:
 			</text>
+			<line_editor name="name"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
 			<check_box label="Contenido PG" name="incpg"/>
 			<check_box label="Contenido Mature" name="incmature"/>
 			<check_box label="Contenido Adulto" name="incadult"/>
+			<check_box name="filter_gaming" label="Ocultar Juegos de Azar"/>
 			<scroll_list name="results">
 				<column label="" name="icon"/>
 				<column label="" name="type"/>
@@ -453,7 +481,20 @@ subasta. Para comprarlo directamente, visítalo y pulsa en el nombre del terreno
 				<column label="Miembros" name="members"/>
 				<column label="" name="score"/>
 			</scroll_list>
+			<text name="result_text"/>
 		</panel>
+		<!-- ========================== -->
+		<panel label="Mercado en Línea" name="market_panel">
+			<button label="" name="back_btn"/>
+			<button label="" name="forward_btn"/>
+			<button label="" name="reload_btn"/>
+			<button label="" tooltip="restablecer" name="reset_btn"/>
+			<web_browser name="market_browser"/>
+			<text name="status_text"/>
+			<string name="loading_text">Cargando...</string>
+			<string name="done_text">Hecho</string>
+			<string name="redirect_404_url">http://www.singularityviewer.org/404</string>
+		</panel>		
 	</tab_container>
 	<panel name="classified_details_panel"/>
 	<panel name="Panel Avatar"/>

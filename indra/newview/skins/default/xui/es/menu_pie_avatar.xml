@@ -4,16 +4,17 @@
 	<menu_item_call  label="Silenciar" name="Avatar Mute"/>
 	<menu_item_call label="Ir a" name="Go To"/>
 	<menu_item_call label="Denunciar..." name="abuse"/>
-	<menu_item_call label="Añadir como Amigo..." name="Add Friend"/>
+	<menu_item_call label="Añadir Amigo..." name="Add Friend"/>
 	<menu_item_call label="Pagar..." name="Pay..."/>
 	<pie_menu label="Más &gt;" name="More &gt;">
 		<menu_item_call label="Congelar..." name="Freeze..."/>
 		<menu_item_call label="Dar Tarjeta" name="Give Card"/>
 		<menu_item_call label="Invitar a Grupo..." name="Invite..."/>
 		<pie_menu label="Herramientas &gt;" name="Tools &gt;">
+			<menu_item_call label="Contar Scripts" name="ScriptCount"/>
 			<menu_item_call label="Copiar UUID" name="CopyUUID"/>
 			<menu_item_call label="ID Cliente" name="ClientID"/>
-			<menu_item_call label="Derenderizar" name="Derender"/>
+			<menu_item_call label="Desdibujar" name="Derender"/>
 			<menu_item_call label="Recargar" name="Reload Textures"/>
 		</pie_menu>
 		<menu_item_call label="Expulsar..." name="Eject..."/>

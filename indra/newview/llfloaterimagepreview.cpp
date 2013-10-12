@@ -3,10 +3,9 @@
  * @brief LLFloaterImagePreview class implementation
  *
  * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2004-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -60,14 +59,8 @@
 #include "llviewershadermgr.h"
 #include "llviewertexturelist.h"
 #include "llstring.h"
-// <edit>
-#include "llviewercontrol.h"
-// </edit>
 
 #include "hippogridmanager.h"
-
-//static
-S32 LLFloaterImagePreview::sUploadAmount = 10;
 
 const S32 PREVIEW_BORDER_WIDTH = 2;
 const S32 PREVIEW_RESIZE_HANDLE_SIZE = S32(RESIZE_HANDLE_WIDTH * OO_SQRT2) + PREVIEW_BORDER_WIDTH;
@@ -79,20 +72,11 @@ const S32 PREVIEW_TEXTURE_HEIGHT = 300;
 //-----------------------------------------------------------------------------
 // LLFloaterImagePreview()
 //-----------------------------------------------------------------------------
-LLFloaterImagePreview::LLFloaterImagePreview(const std::string& filename) : 
-	LLFloaterNameDesc(filename),
-	mAvatarPreview(NULL),
-	mSculptedPreview(NULL),
-	mLastMouseX(0),
-	mLastMouseY(0),
-	mImagep(NULL)
-{
-	loadImage(mFilenameAndPath);
-}
-
 // <edit>
 LLFloaterImagePreview::LLFloaterImagePreview(const std::string& filename, void* item) : 
 	LLFloaterNameDesc(filename, item),
+// </edit>
+
 	mAvatarPreview(NULL),
 	mSculptedPreview(NULL),
 	mLastMouseX(0),
@@ -101,7 +85,6 @@ LLFloaterImagePreview::LLFloaterImagePreview(const std::string& filename, void* 
 {
 	loadImage(mFilenameAndPath);
 }
-// </edit>
 
 //-----------------------------------------------------------------------------
 // postBuild()
@@ -114,7 +97,6 @@ BOOL LLFloaterImagePreview::postBuild()
 	}
 
 	childSetLabelArg("ok_btn", "[UPLOADFEE]", gHippoGridManager->getConnectedGrid()->getUploadFee());
-	childSetAction("ok_btn", onBtnOK, this);
 
 	LLCtrlSelectionInterface* iface = childGetSelectionInterface("clothing_type_combo");
 	if (iface)
@@ -129,7 +111,7 @@ BOOL LLFloaterImagePreview::postBuild()
 		PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 	mPreviewImageRect.set(0.f, 1.f, 1.f, 0.f);
 
-	childHide("bad_image_text");
+	getChildView("bad_image_text")->setVisible(FALSE);
 
 	if (mRawImagep.notNull() && gAgent.getRegion() != NULL)
 	{
@@ -140,7 +122,7 @@ BOOL LLFloaterImagePreview::postBuild()
 		mSculptedPreview->setPreviewTarget(mRawImagep, 2.0f);
 
 		if (mRawImagep->getWidth() * mRawImagep->getHeight () <= LL_IMAGE_REZ_LOSSLESS_CUTOFF * LL_IMAGE_REZ_LOSSLESS_CUTOFF)
-			childEnable("lossless_check");
+			getChildView("lossless_check")->setEnabled(TRUE);
 
 		// <edit>
 		gSavedSettings.setBOOL("TemporaryUpload",FALSE);
@@ -151,10 +133,12 @@ BOOL LLFloaterImagePreview::postBuild()
 	{
 		mAvatarPreview = NULL;
 		mSculptedPreview = NULL;
-		childShow("bad_image_text");
-		childDisable("clothing_type_combo");
-		childDisable("ok_btn");
+		getChildView("bad_image_text")->setVisible(TRUE);
+		getChildView("clothing_type_combo")->setEnabled(FALSE);
+		getChildView("ok_btn")->setEnabled(FALSE);
 	}
+
+	getChild<LLUICtrl>("ok_btn")->setCommitCallback(boost::bind(&LLFloaterNameDesc::onBtnOK, this));
 
 	return TRUE;
 }
@@ -169,7 +153,6 @@ LLFloaterImagePreview::~LLFloaterImagePreview()
 	mRawImagep = NULL;
 	mAvatarPreview = NULL;
 	mSculptedPreview = NULL;
-	
 	mImagep = NULL ;
 }
 
@@ -352,7 +335,6 @@ void LLFloaterImagePreview::draw()
 bool LLFloaterImagePreview::loadImage(const std::string& src_filename)
 {
 	std::string exten = gDirUtilp->getExtension(src_filename);
-	
 	U32 codec = LLImageBase::getCodecFromExtension(exten);
 
 	LLPointer<LLImageRaw> raw_image = new LLImageRaw;
@@ -721,6 +703,8 @@ BOOL LLImagePreviewAvatar::render()
 	mNeedsUpdate = FALSE;
 	LLVOAvatar* avatarp = mDummyAvatar;
 
+	gGL.pushUIMatrix();
+	gGL.loadUIIdentity();
 
 	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.pushMatrix();
@@ -769,7 +753,6 @@ BOOL LLImagePreviewAvatar::render()
 	LLVertexBuffer::unbind();
 	avatarp->updateLOD();
 	
-
 	if (avatarp->mDrawable.notNull())
 	{
 		LLGLDepthTest gls_depth(GL_TRUE, GL_TRUE);
@@ -785,6 +768,7 @@ BOOL LLImagePreviewAvatar::render()
 		}
 	}
 
+	gGL.popUIMatrix();
 	gGL.color4f(1,1,1,1);
 	return TRUE;
 }
@@ -915,7 +899,6 @@ void LLImagePreviewSculpted::setPreviewTarget(LLImageRaw* imagep, F32 distance)
 BOOL LLImagePreviewSculpted::render()
 {
 	mNeedsUpdate = FALSE;
-
 	LLGLSUIDefault def;
 	LLGLDisable no_blend(GL_BLEND);
 	LLGLEnable cull(GL_CULL_FACE);

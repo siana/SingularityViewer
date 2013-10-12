@@ -61,7 +61,10 @@ public:
 		WT_ALPHA	  = 13,
 		WT_TATTOO	  = 14,
 		WT_PHYSICS	  = 15,
-		WT_COUNT	  = 16,
+		WT_UNKNOWN	  = 16,	// Singu note: used for corrupt wearables that do not have their type set in the inventory database.
+							// While all the above values are serialized and stored in the database, this value is local only:
+							// When a new item with value 16 is added by upstream, just increase this value to 17 (and WT_COUNT to 18).
+		WT_COUNT	  = 17,
 
 		WT_INVALID	  = 255,
 		WT_NONE		  = -1,

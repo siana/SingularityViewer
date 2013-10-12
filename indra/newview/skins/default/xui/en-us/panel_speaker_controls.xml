@@ -9,7 +9,7 @@
 			</combo_box>
 		</layout_panel>
 		<layout_panel auto_resize="true" bottom="0" can_resize="false" height="120" min_height="100" name="moderate_chat_panel" top_delta="0" user_resize="false" visible="true" width="140">
-			<scroll_list bottom="78" can_resize="false" column_padding="0" draw_heading="true" draw_stripes="false" follows="left|top|bottom|right" left="0" multi_select="false" name="speakers_list" right="140" search_column="1" sort_column="2" top="113">
+			<scroll_list bottom="78" can_resize="false" column_padding="0" draw_heading="true" draw_stripes="false" follows="left|top|bottom|right" left="0" multi_select="false" name="speakers_list" right="140" search_column="1" sort_column="2" top="113" menu_file="menu_avs_list.xml">
 				<column name="icon_speaking_status" sort="speaking_status" width="20"/>
 				<column dynamicwidth="true" label="Name" name="speaker_name"/>
 				<column label="" name="speaking_status" width="0"/>

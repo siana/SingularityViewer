@@ -42,31 +42,25 @@
 
 const U32 KEYWORD_FILE_CURRENT_VERSION = 2;
 
-inline BOOL LLKeywordToken::isHead(const llwchar* s, bool search_end_c_comment) const
+inline BOOL LLKeywordToken::isHead(const llwchar* s) const
 {
 	// strncmp is much faster than string compare
+	BOOL res = TRUE;
 	const llwchar* t = mToken.c_str();
 	S32 len = mToken.size();
-	if (search_end_c_comment && len == 2 && t[0] == '/' && t[1] == '*')
-	{
-		// Special case for C-like */ end comment token
-		if (s[0] == '*' && s[1] == '/')
-		{
-			return TRUE;
-		}
-		else
-		{
-			return FALSE;
-		}
-	}
-	for (S32 i = 0; i < len; i++)
+	for (S32 i=0; i<len; i++)
 	{
 		if (s[i] != t[i])
 		{
-			return FALSE;
+			res = FALSE;
+			break;
 		}
 	}
-	return TRUE;
+	return res;
+}
+
+LLKeywords::LLKeywords() : mLoaded(FALSE)
+{
 }
 
 inline BOOL LLKeywordToken::isTail(const llwchar* s) const
@@ -83,10 +77,6 @@ inline BOOL LLKeywordToken::isTail(const llwchar* s) const
 		}
 	}
 	return res;
-}
-
-LLKeywords::LLKeywords() : mLoaded(FALSE)
-{
 }
 
 LLKeywords::~LLKeywords()
@@ -138,7 +128,7 @@ BOOL LLKeywords::loadFromFile( const std::string& filename )
 	std::string SOL_LINE("[line ");
 	std::string SOL_ONE_SIDED_DELIMITER("[one_sided_delimiter ");
 	std::string SOL_TWO_SIDED_DELIMITER("[two_sided_delimiter ");
-	std::string SOL_TWO_SIDED_DELIMITER_ESC("[two_sided_delimiter_esc ");
+	std::string SOL_DOUBLE_QUOTATION_MARKS("[double_quotation_marks ");
 
 	LLColor3 cur_color( 1, 0, 0 );
 	LLKeywordToken::TOKEN_TYPE cur_type = LLKeywordToken::WORD;
@@ -170,10 +160,10 @@ BOOL LLKeywords::loadFromFile( const std::string& filename )
 			cur_type = LLKeywordToken::TWO_SIDED_DELIMITER;
 			continue;
 		}
-		else if( line.find(SOL_TWO_SIDED_DELIMITER_ESC) == 0 )
+		else if( line.find(SOL_DOUBLE_QUOTATION_MARKS) == 0 )
 		{
-			cur_color = readColor( line.substr(SOL_TWO_SIDED_DELIMITER_ESC.size()) );
-			cur_type = LLKeywordToken::TWO_SIDED_DELIMITER_ESC;
+			cur_color = readColor( line.substr(SOL_DOUBLE_QUOTATION_MARKS.size()) );
+			cur_type = LLKeywordToken::DOUBLE_QUOTATION_MARKS;
 			continue;
 		}
 		else if( line.find(SOL_ONE_SIDED_DELIMITER) == 0 )	
@@ -193,19 +183,24 @@ BOOL LLKeywords::loadFromFile( const std::string& filename )
 
 		if( !token_buffer.empty() && token_word_iter != word_tokens.end() )
 		{
-			// first word is keyword
+			// first word is the keyword or a left delimiter
 			std::string keyword = (*token_word_iter);
 			LLStringUtil::trim(keyword);
-			// second word may be right delimiter
 
+			// second word may be a right delimiter
 			std::string delimiter;
-			if (cur_type == LLKeywordToken::TWO_SIDED_DELIMITER || cur_type == LLKeywordToken::TWO_SIDED_DELIMITER_ESC)
+			if (cur_type == LLKeywordToken::TWO_SIDED_DELIMITER)
 			{
 				while (delimiter.length() == 0 && ++token_word_iter != word_tokens.end())
 				{
 					delimiter = *token_word_iter;
 					LLStringUtil::trim(delimiter);
 				}
+			}
+			else if (cur_type == LLKeywordToken::DOUBLE_QUOTATION_MARKS)
+			{
+				// Closing delimiter is identical to the opening one.
+				delimiter = keyword;
 			}
 
 			// following words are tooltip
@@ -256,7 +251,7 @@ void LLKeywords::addToken(LLKeywordToken::TOKEN_TYPE type,
 		break;
 
 	case LLKeywordToken::TWO_SIDED_DELIMITER:
-	case LLKeywordToken::TWO_SIDED_DELIMITER_ESC:
+	case LLKeywordToken::DOUBLE_QUOTATION_MARKS:
 	case LLKeywordToken::ONE_SIDED_DELIMITER:
 		mDelimiterTokenList.push_front(new LLKeywordToken(type, color, key, tool_tip, delimiter));
 		break;
@@ -265,24 +260,106 @@ void LLKeywords::addToken(LLKeywordToken::TOKEN_TYPE type,
 		llassert(0);
 	}
 }
+LLKeywords::WStringMapIndex::WStringMapIndex(const WStringMapIndex& other)
+{
+	if(other.mOwner)
+	{
+		copyData(other.mData, other.mLength);
+	}
+	else
+	{
+		mOwner = false;
+		mLength = other.mLength;
+		mData = other.mData;
+	}
+}
+
+LLKeywords::WStringMapIndex::WStringMapIndex(const LLWString& str)
+{
+	copyData(str.data(), str.size());
+}
+
+LLKeywords::WStringMapIndex::WStringMapIndex(const llwchar *start, size_t length):
+mData(start), mLength(length), mOwner(false)
+{
+}
+
+LLKeywords::WStringMapIndex::~WStringMapIndex()
+{
+	if(mOwner)
+		delete[] mData;
+}
+
+void LLKeywords::WStringMapIndex::copyData(const llwchar *start, size_t length)
+{
+	llwchar *data = new llwchar[length];
+	memcpy((void*)data, (const void*)start, length * sizeof(llwchar));
+
+	mOwner = true;
+	mLength = length;
+	mData = data;
+}
+
+bool LLKeywords::WStringMapIndex::operator<(const LLKeywords::WStringMapIndex &other) const
+{
+	// NOTE: Since this is only used to organize a std::map, it doesn't matter if it uses correct collate order or not.
+	// The comparison only needs to strictly order all possible strings, and be stable.
+	
+	bool result = false;
+	const llwchar* self_iter = mData;
+	const llwchar* self_end = mData + mLength;
+	const llwchar* other_iter = other.mData;
+	const llwchar* other_end = other.mData + other.mLength;
+	
+	while(true)
+	{
+		if(other_iter >= other_end)
+		{
+			// We've hit the end of other.
+			// This covers two cases: other being shorter than self, or the strings being equal.
+			// In either case, we want to return false.
+			result = false;
+			break;
+		}
+		else if(self_iter >= self_end)
+		{
+			// self is shorter than other.
+			result = true;
+			break; 
+		}
+		else if(*self_iter != *other_iter)
+		{
+			// The current character differs.  The strings are not equal.
+			result = *self_iter < *other_iter;
+			break;
+		}
+
+		self_iter++;
+		other_iter++;
+	}
+	
+	return result;
+}
 
 LLColor3 LLKeywords::readColor( const std::string& s )
 {
 	F32 r, g, b;
 	r = g = b = 0.0f;
-	S32 read = sscanf(s.c_str(), "%f, %f, %f]", &r, &g, &b );
-	if( read != 3 )	/* Flawfinder: ignore */
+	S32 values_read = sscanf(s.c_str(), "%f, %f, %f]", &r, &g, &b );
+	if( values_read != 3 )
 	{
 		llinfos << " poorly formed color in keyword file" << llendl;
 	}
 	return LLColor3( r, g, b );
 }
 
+LLFastTimer::DeclareTimer FTM_SYNTAX_COLORING("Syntax Coloring");
+
 // Walk through a string, applying the rules specified by the keyword token list and
 // create a list of color segments.
-void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWString& wtext, const LLColor4 &defaultColor)
+void LLKeywords::findSegments(std::vector<LLTextSegmentPtr>* seg_list, const LLWString& wtext, const LLColor4 &defaultColor)
 {
-	std::for_each(seg_list->begin(), seg_list->end(), DeletePointer());
+	LLFastTimer ft(FTM_SYNTAX_COLORING);
 	seg_list->clear();
 
 	if( wtext.empty() )
@@ -343,9 +420,9 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 						}
 						S32 seg_end = cur - base;
 						
-						LLTextSegment* text_segment = new LLTextSegment( cur_token->getColor(), seg_start, seg_end );
+						LLTextSegmentPtr text_segment = new LLTextSegment( cur_token->getColor(), seg_start, seg_end );
 						text_segment->setToken( cur_token );
-						insertSegment( seg_list, text_segment, text_len, defaultColor);
+						insertSegment( *seg_list, text_segment, text_len, defaultColor);
 						line_done = TRUE; // to break out of second loop.
 						break;
 					}
@@ -387,17 +464,15 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 					S32 seg_end = 0;
 
 					seg_start = cur - base;
-					cur += cur_delimiter->getLength();
+					cur += cur_delimiter->getLengthHead();
 					
-					//if( cur_delimiter->getType() == LLKeywordToken::TWO_SIDED_DELIMITER )
 					LLKeywordToken::TOKEN_TYPE type = cur_delimiter->getType();
-					if( type == LLKeywordToken::TWO_SIDED_DELIMITER || type == LLKeywordToken::TWO_SIDED_DELIMITER_ESC )
+					if( type == LLKeywordToken::TWO_SIDED_DELIMITER || type == LLKeywordToken::DOUBLE_QUOTATION_MARKS )
 					{
-						//llassert( cur_delimiter->getDelimiter() != NULL );
-						while( *cur && !cur_delimiter->isTail(cur) )
+						while( *cur && !cur_delimiter->isTail(cur))
 						{
 							// Check for an escape sequence.
-							if (type == LLKeywordToken::TWO_SIDED_DELIMITER_ESC && *cur == '\\')
+							if (type == LLKeywordToken::DOUBLE_QUOTATION_MARKS && *cur == '\\')
 							{
 								// Count the number of backslashes.
 								S32 num_backslashes = 0;
@@ -433,13 +508,13 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 
 						if( *cur )
 						{
-							cur += cur_delimiter->getLength();
-							seg_end = seg_start + between_delimiters + cur_delimiter->getLength() + cur_delimiter->getLength2();
+							cur += cur_delimiter->getLengthHead();
+							seg_end = seg_start + between_delimiters + cur_delimiter->getLengthHead() + cur_delimiter->getLengthTail();
 						}
 						else
 						{
 							// eof
-							seg_end = seg_start + between_delimiters + cur_delimiter->getLength();
+							seg_end = seg_start + between_delimiters + cur_delimiter->getLengthHead();
 						}
 					}
 					else
@@ -451,13 +526,13 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 							between_delimiters++;
 							cur++;
 						}
-						seg_end = seg_start + between_delimiters + cur_delimiter->getLength();
+						seg_end = seg_start + between_delimiters + cur_delimiter->getLengthHead();
 					}
 
 
-					LLTextSegment* text_segment = new LLTextSegment( cur_delimiter->getColor(), seg_start, seg_end );
+					LLTextSegmentPtr text_segment = new LLTextSegment( cur_delimiter->getColor(), seg_start, seg_end );
 					text_segment->setToken( cur_delimiter );
-					insertSegment( seg_list, text_segment, text_len, defaultColor);
+					insertSegment( *seg_list, text_segment, text_len, defaultColor);
 
 					// Note: we don't increment cur, since the end of one delimited seg may be immediately
 					// followed by the start of another one.
@@ -477,7 +552,7 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 				S32 seg_len = p - cur;
 				if( seg_len > 0 )
 				{
-					LLWString word( cur, 0, seg_len );
+					WStringMapIndex word( cur, seg_len );
 					word_token_map_t::iterator map_iter = mWordTokenMap.find(word);
 					if( map_iter != mWordTokenMap.end() )
 					{
@@ -488,9 +563,9 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 						// llinfos << "Seg: [" << word.c_str() << "]" << llendl;
 
 
-						LLTextSegment* text_segment = new LLTextSegment( cur_token->getColor(), seg_start, seg_end );
+						LLTextSegmentPtr text_segment = new LLTextSegment( cur_token->getColor(), seg_start, seg_end );
 						text_segment->setToken( cur_token );
-						insertSegment( seg_list, text_segment, text_len, defaultColor);
+						insertSegment( *seg_list, text_segment, text_len, defaultColor);
 					}
 					cur += seg_len; 
 					continue;
@@ -505,25 +580,25 @@ void LLKeywords::findSegments(std::vector<LLTextSegment *>* seg_list, const LLWS
 	}
 }
 
-void LLKeywords::insertSegment(std::vector<LLTextSegment*>* seg_list, LLTextSegment* new_segment, S32 text_len, const LLColor4 &defaultColor )
+void LLKeywords::insertSegment(std::vector<LLTextSegmentPtr>& seg_list, LLTextSegmentPtr new_segment, S32 text_len, const LLColor4 &defaultColor )
 {
-	LLTextSegment* last = seg_list->back();
+	LLTextSegmentPtr last = seg_list.back();
 	S32 new_seg_end = new_segment->getEnd();
+	llassert(new_seg_end <= text_len);
 
 	if( new_segment->getStart() == last->getStart() )
 	{
-		*last = *new_segment;
-		delete new_segment;
+		seg_list.pop_back();
 	}
 	else
 	{
 		last->setEnd( new_segment->getStart() );
-		seg_list->push_back( new_segment );
 	}
+	seg_list.push_back( new_segment );
 
 	if( new_seg_end < text_len )
 	{
-		seg_list->push_back( new LLTextSegment( defaultColor, new_seg_end, text_len ) );
+		seg_list.push_back( new LLTextSegment( defaultColor, new_seg_end, text_len ) );
 	}
 }
 

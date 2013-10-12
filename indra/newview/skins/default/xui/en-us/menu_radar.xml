@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="Radar Menu" create_jump_keys="true">
+  <menu label="Avatar" name="Avatar" create_jump_keys="true">
+    <menu_item_call label="Profile" name="Profile">
+      <on_click function="List.ShowProfile"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Web Profile" name="Web Profile">
+      <on_click function="List.ShowWebProfile"/>
+      <on_visible function="List.VisibleWebProfile"/>
+    </menu_item_call>
+    <menu_item_call label="Pay" name="Pay">
+      <on_click function="List.Pay"/>
+      <on_enable function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Instant Message" name="Instant Message">
+      <on_click function="List.StartIM"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Conference Chat" name="Conference Chat">
+      <on_click function="List.StartConference"/>
+      <on_visible function="List.EnableMultipleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Call" name="Call">
+      <on_click function="List.StartCall"/>
+      <on_enable function="List.EnableCall"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Conference Call" name="Conference Call">
+      <on_click function="List.StartAdhocCall"/>
+      <on_enable function="List.EnableCall"/>
+      <on_visible function="List.EnableMultipleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Add Friend" name="Add Friend">
+      <on_click function="List.RequestFriendship"/>
+      <on_enable function="List.EnableSingleSelected"/>
+      <on_visible function="List.EnableIsNotFriend"/>
+    </menu_item_call>
+    <menu_item_call label="Remove Friend" name="Remove Friend">
+      <on_click function="List.RemoveFriend"/>
+      <on_enable function="List.EnableSingleSelected"/>
+      <on_visible function="List.EnableIsFriend"/>
+    </menu_item_call>
+    <menu_item_call label="Invite To Group" name="Invite To Group">
+      <on_click function="List.InviteToGroup"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Offer Teleport" name="Offer Teleport">
+      <on_click function="List.OfferTeleport"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Teleport To" name="Teleport To" shortcut="control|Enter">
+      <on_click function="Radar.TeleportTo"/>
+      <on_enable function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Request Teleport" name="Request Teleport">
+      <on_click function="List.RequestTeleport"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Track/Untrack" name="Track/Untrack">
+      <on_click function="Radar.Track"/>
+      <on_enable function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Copy Key" name="Copy Key">
+      <on_click function="List.CopyUUIDs"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+  </menu>
+  <menu label="Focusing" name="Focusing" create_jump_keys="true">
+    <menu_item_call label="Focus" name="Focus" shortcut="Enter">
+      <on_click function="Radar.Focus"/>
+      <on_enable function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Focus Next" name="Focus Next">
+      <on_click function="Radar.FocusNext" userdata="0"/>
+    </menu_item_call>
+    <menu_item_call label="Focus Previous" name="Focus Previous">
+      <on_click function="Radar.FocusPrev" userdata="0"/>
+    </menu_item_call>
+    <menu_item_separator/>
+    <menu_item_call label="Mark/Unmark" name="Mark/Unmark">
+      <on_click function="Radar.Mark"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Focus Next Marked" name="Focus Next Marked">
+      <on_click function="Radar.FocusNext" userdata="1"/>
+    </menu_item_call>
+    <menu_item_call label="Focus Previous Marked" name="Focus Previous Marked">
+      <on_click function="Radar.FocusPrev" userdata="1"/>
+    </menu_item_call>
+  </menu>
+  <menu label="Alerts" name="Alerts" create_jump_keys="true">
+    <menu_item_check label="Display alerts when an avatar" name="Display alerts in chat">
+      <on_click function="ToggleControl" userdata="RadarChatAlerts"/>
+      <on_check control="RadarChatAlerts"/>
+    </menu_item_check>
+    <menu_item_check label="enters/leaves the sim" name="sim alerts">
+      <on_click function="ToggleControl" userdata="RadarAlertSim"/>
+      <on_check control="RadarAlertSim"/>
+    </menu_item_check>
+    <menu_item_check label="enters/leaves draw distance" name="draw distance alerts">
+      <on_click function="ToggleControl" userdata="RadarAlertDraw"/>
+      <on_check control="RadarAlertDraw"/>
+    </menu_item_check>
+    <menu_item_check label="enters/leave shout range" name="shout range alerts">
+      <on_click function="ToggleControl" userdata="RadarAlertShoutRange"/>
+      <on_check control="RadarAlertShoutRange"/>
+    </menu_item_check>
+    <menu_item_check label="enters/leaves chat range" name="chat range alerts">
+      <on_click function="ToggleControl" userdata="RadarAlertChatRange"/>
+      <on_check control="RadarAlertChatRange"/>
+    </menu_item_check>
+    <menu_item_check label="is below the age threshold" name="chat range alerts">
+      <on_click function="ToggleControl" userdata="RadarAlertAge"/>
+      <on_check control="RadarAlertAge"/>
+    </menu_item_check>
+    <menu_item_separator/>
+    <menu_item_check label="Announce even when closed" name="Announce even when closed">
+      <on_click function="ToggleControl" userdata="RadarKeepOpen"/>
+      <on_check control="RadarKeepOpen"/>
+    </menu_item_check>
+    <menu_item_check label="Announce keys to HUD" name="Announce keys to HUD">
+      <on_click function="ToggleControl" userdata="RadarChatKeys"/>
+      <on_check control="RadarChatKeys"/>
+    </menu_item_check>
+    <menu_item_call label="Announce keys now" name="Announce keys now">
+      <on_click function="Radar.AnnounceKeys"/>
+    </menu_item_call>
+  </menu>
+  <menu label="Moderation" name="Moderation" create_jump_keys="true">
+    <menu_item_call label="Mute/Unmute" name="Mute/Unmute">
+      <on_click function="List.Mute"/>
+      <on_enable function="List.EnableMute"/>
+      <on_visible function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <!--menu_item_call label="Report Abuse" name="Report Abuse">
+      <on_click function="List.ReportAbuse"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call-->
+    <menu_item_separator/>
+    <menu_item_call label="Freeze" name="Freeze">
+      <on_click function="List.Freeze"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Eject/Ban from Parcel" name="Eject/Ban from Parcel">
+      <on_click function="List.ParcelEject"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Eject from estate" name="Eject from estate">
+      <on_click function="List.EstateEject"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Eject and ban from estate" name="Eject and ban from estate">
+      <on_click function="List.EstateBan"/>
+      <on_enable function="List.EnableAnySelected"/>
+    </menu_item_call>
+  </menu>
+  <menu label="Hide Columns" name="Hide Columns" create_jump_keys="true">
+    <menu_item_check label="Mark" name="Mark">
+      <on_click function="ToggleControl" userdata="RadarColumnMarkHidden"/>
+      <on_check control="RadarColumnMarkHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Position" name="Position">
+      <on_click function="ToggleControl" userdata="RadarColumnPositionHidden"/>
+      <on_check control="RadarColumnPositionHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Altitude" name="Altitude">
+      <on_click function="ToggleControl" userdata="RadarColumnAltitudeHidden"/>
+      <on_check control="RadarColumnAltitudeHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Activity" name="Activity">
+      <on_click function="ToggleControl" userdata="RadarColumnActivityHidden"/>
+      <on_check control="RadarColumnActivityHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Age" name="Age">
+      <on_click function="ToggleControl" userdata="RadarColumnAgeHidden"/>
+      <on_check control="RadarColumnAgeHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Time" name="Time">
+      <on_click function="ToggleControl" userdata="RadarColumnTimeHidden"/>
+      <on_check control="RadarColumnTimeHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Client" name="Client">
+      <on_click function="ToggleControl" userdata="RadarColumnClientHidden"/>
+      <on_check control="RadarColumnClientHidden"/>
+      <on_visible function="VisibleNotSecondLife"/>
+    </menu_item_check>
+  </menu>
+  <menu_item_check label="Update List" name="Update List">
+    <on_click function="ToggleControl" userdata="RadarUpdateEnabled"/>
+    <on_check control="RadarUpdateEnabled"/>
+  </menu_item_check>
+  <!-- Singu TODO: One day this will hide the controls, making the list take up the entire floater
+  <menu_item_check label="Show Controls" name="Show Controls">
+    <on_click function="ToggleControl" userdata="RadarShowControls"/>
+    <on_check control="RadarShowControls"/>
+  </menu_item_check>
+  -->
+</menu>

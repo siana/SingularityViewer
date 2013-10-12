@@ -82,6 +82,8 @@ private:
 	LLVector3		globalPosToView(const LLVector3d& global_pos, BOOL rotated);
 	LLVector3d		viewPosToGlobal(S32 x,S32 y, BOOL rotated);
 
+	void			drawRing(const F32 radius, LLVector3 pos_map, const LLColor4& color);
+
 	void			drawTracking( const LLVector3d& pos_global,
 							BOOL rotated,
 							const LLColor4& color,
@@ -145,13 +147,13 @@ private:
 		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
 	};
 
-	class LLRotateMap : public LLMemberListener<LLNetMap>
+	class LLChatRings : public LLMemberListener<LLNetMap>
 	{
 	public:
 		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
 	};
 
-	class LLCheckRotateMap : public LLMemberListener<LLNetMap>
+	class LLCheckChatRings : public LLMemberListener<LLNetMap>
 	{
 	public:
 		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
@@ -230,6 +232,13 @@ private:
 	public:
 		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
 	};
+	
+	class LLToggleControl : public LLMemberListener<LLNetMap>
+	{
+	public:
+		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
+	};
+	
 };
 
 

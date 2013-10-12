@@ -21,9 +21,34 @@
 	</menu_item_check>
 	<menu_item_check bottom_delta="-18" enabled="true" height="18" label="Rotate Mini-Map"
 		left="0" mouse_opaque="true" name="Rotate Mini-Map" width="128">
-	  <on_click function="MiniMap.Rotate" userdata="" />
-	  <on_check function="MiniMap.CheckRotate" userdata="" />
+	  <on_click function="MiniMap.ToggleControl" userdata="MiniMapRotate" />
+	  <on_check control="MiniMapRotate" />
 	</menu_item_check>
+    <menu_item_check bottom_delta="-18" enabled="false" height="18" label="Show Objects"
+        left="0" mouse_opaque="true" name="Show Objects" width="128">
+      <on_click function="MiniMap.ToggleControl" userdata="ShowMiniMapObjects" />
+      <on_check control="ShowMiniMapObjects" />
+    </menu_item_check>
+	<menu bottom_delta="0" color="MenuDefaultBgColor" drop_shadow="true" height="175" left="0"
+	     mouse_opaque="false" name="Chat Distance Rings" label="Chat Distance Rings" opaque="true" tear_off="false" width="125">
+		<menu_item_check label="Show All" name="Show All">
+			<on_check function="MiniMap.CheckChatRings" />
+			<on_click function="MiniMap.ChatRings" />
+		</menu_item_check>
+		<menu_item_separator />
+		<menu_item_check label="Show Whisper Ring" name="Show Whisper Ring">
+			<on_check control="MiniMapWhisperRing" />
+			<on_click function="MiniMap.ToggleControl" userdata="MiniMapWhisperRing" />
+		</menu_item_check>
+		<menu_item_check label="Show Chat Ring" name="Show Chat Ring">
+			<on_check control="MiniMapChatRing" />
+			<on_click function="MiniMap.ToggleControl" userdata="MiniMapChatRing" />
+		</menu_item_check>
+		<menu_item_check label="Show Shout Ring" name="Show Shout Ring">
+			<on_check control="MiniMapShoutRing" />
+			<on_click function="MiniMap.ToggleControl" userdata="MiniMapShoutRing" />
+		</menu_item_check>
+    </menu>
 	<menu_item_separator />
 	<menu_item_call bottom_delta="-18" enabled = "false" height="18" label="Stop Tracking"
 		 left="0" mouse_opaque="true" name="Stop Tracking" width="128">
@@ -41,9 +66,7 @@
 		<on_enable function="MiniMap.EnableProfile" />
 	</menu_item_call>
 	<menu bottom_delta="0" color="MenuDefaultBgColor" drop_shadow="true" height="175" left="0"
-	     mouse_opaque="false" name="Mark" opaque="true" tear_off="false"
-	     width="125">
-		<on_enable function="MiniMap.EnableProfile" />
+	     mouse_opaque="false" name="Mark" label="Mark" opaque="true" tear_off="false" width="125">
 		<menu_item_call bottom_delta="-18" enabled = "true" height="18" label="Red"
 			 left="0" mouse_opaque="true" name="Red" width="128">
 			<on_click function="MiniMap.setred" />

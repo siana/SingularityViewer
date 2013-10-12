@@ -2,4 +2,7 @@
 <panel name="media_remote">
 	<panel filename="panel_bg_tab.xml"/>
 	<panel filename="panel_media_controls.xml"/>
+	<string name="Title">Título</string>
+	<string name="Artist">Artista</string>
+	<string name="Now_playing">Ejecutándose ahora</string>
 </panel>

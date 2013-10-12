@@ -3,9 +3,9 @@
 	<string name="Title">Radar</string>
 	<string name="TitleOneAvatar">Radar (1 Avatar)</string>
 	<string name="TitleWithCount">Radar ([COUNT] Avatares)</string>
-	<scroll_list name="avatar_list" tool_tip="Mantén presionada la tecla Mayús o la tecla Ctrl al  pulsar con el mouse para seleccionar multiples avatares">
+	<scroll_list name="avatar_list" tool_tip="Mantén presionada la tecla Mayús o la tecla Ctrl al pulsar con el mouse para seleccionar multiples avatares">
 		<column name="marked" label="Marcar" tool_tip="Avatares Marcados"/>
-		<column name="avatar_name" label="Nombre" tool_tip="Mantén presionada la tecla Mayús o la tecla Ctrl al  pulsar con el mouse para seleccionar multiples avatares"/>
+		<column name="avatar_name" label="Nombre" tool_tip="Mantén presionada la tecla Mayús o la tecla Ctrl al pulsar con el mouse para seleccionar multiples avatares"/>
 		<column name="distance" label="Dist." tool_tip="Distancia desde tu avatar (rojo=dentro del rango de chat, amarillo=dentro del rango de gritos, verde=dentro de la distancia de dibujo)"/>
 		<column name="position" label="Pos." tool_tip="Posición (X, Y) dentro del sim, o dirección general (punto cardinal) fuera del sim"/>
 		<column name="altitude" label="Alt." tool_tip="Altitud"/>
@@ -19,34 +19,30 @@
 		<panel label="Avatar" name="actions_tab">
 			<!-- upper row -->
 			<button name="profile_btn" label="Perfil" tool_tip="Mostrar foto, grupos y demás información"/>
-			<button name="track_btn" label="(No)Rastrear" tool_tip="Rastrea la posición del avatar"/>
+			<button name="track_btn" label="(No)Rastrear" tool_tip="Rastrea/Deja de rastrear la posición del avatar"/>
 			<button name="get_key_btn" label="Obtener Key" tool_tip="Copia la Key del avatar al portapapeles"/>
 			<!-- upper middle row -->
 			<button name="im_btn" label="MI" tool_tip="Abre una sesión de Mensaje Instantáneo"/>
 			<button name="offer_btn" label="Ofrecer TP" tool_tip="Ofrecer Teleporte"/>
-			<button name="teleport_btn" label="TP a" tool_tip="Teleportarse a la posición del avatar"/>			
+			<button name="teleport_btn" label="TP a" tool_tip="Teleportarse a la posición del avatar (Ctrl+Enter)"/>
 			<!-- lower middle row-->
 			<button name="mark_btn" label="(Des)Marcar" tool_tip="Marca/Desmarca a este avatar de la lista"/>
 			<button name="prev_marked_btn" label="Marcado Ant." tool_tip="Enfoca la cámara en el avatar marcado previo de la lista"/>
-			<button name="next_marked_btn" label="Marcado Sig." tool_tip="Enfoca la cámara en el avatar marcado siguiente de la lista"/>
+			<button name="next_marked_btn" label="Marcado Sig." tool_tip="Enfoca la cámara en el avatar marcado siguiente de la lista (Enter)"/>
 			<!-- lower row-->
 			<button name="focus_btn" label="Foco" tool_tip="Enfoca la cámara en este avatar de la lista"/>
 			<button name="prev_in_list_btn" label="Anterior" tool_tip="Enfoca la cámara en el anterior avatar de la lista"/>
 			<button name="next_in_list_btn" label="Siguiente" tool_tip="Enfoca la cámara en el siguiente avatar de la lista"/>
 		</panel>
-		<!-- =============================== -->
+		<!-- =========================== -->
 		<panel label="Alertas" name="alerts_tab">
-			<check_box label="Mostrar Alertas en el chat" name="radar_alerts" tool_tip="Muestra en el chat las alertas de llegada y salida de los avatares" />
-
-			<check_box label="Avatares entrando/saliendo del sim" name="alerts_sim" tool_tip="Reporta los avatares que entran o salen del sim" />
-
-			<check_box label="Avatares entrando/saliendo de la distancia de dibujo" name="alerts_draw" tool_tip="Reporta los avatares que entran o salen de la distancia de dibujo" />
-
-			<check_box label="Avatares entrando/saliendo del rango de gritos" name="alerts_chat" tool_tip="Reporta los avatares que entran o salen del rango de gritos" />
-
-			<check_box label="Avatares entrando/saliendo del rango de chat" name="alerts_chat" tool_tip="Reporta los avatares que entran o salen del rango de chat" />
+			<check_box label="Mostrar Alertas en el chat" name="radar_alerts" tool_tip="Muestra en la consola de chat las alertas de llegada y salida de los avatares" />
+			<check_box label="Avatares entrando/saliendo del sim" name="alerts_sim" tool_tip="Anuncia los avatares que entran o salen del sim" />
+			<check_box label="Avatares entrando/saliendo de la distancia de dibujo" name="alerts_draw" tool_tip="Anuncia los avatares que entran o salen de la distancia de dibujo" />
+			<check_box label="Avatares entrando/saliendo del rango de gritos" name="alerts_chat" tool_tip="Anuncia los avatares que entran o salen del rango de gritos" />
+			<check_box label="Avatares entrando/saliendo del rango de chat" name="alerts_chat" tool_tip="Anuncia los avatares que entran o salen del rango de chat" />
 		</panel>
-		<!-- =============================== -->
+		<!-- =========================== -->
 		<panel label="Moderación" name="land_tab">
 			<!-- Upper row -->
 			<button name="mute_btn" label="(No)Ignorar" tool_tip="Ignorar o dejar de ignorar a este avatar (los nombre de los avatares ignorados se resaltan en rojo en la lista)."/>
@@ -75,14 +71,14 @@
 					Baja
 				</radio_item>
 			</radio_group>
-			<check_box label="Anunciar aun estando cerrado" name="keep_open" tool_tip="Oculta el radar en vez de cerrarlo para seguir enviando los avisos al chat" />
-			<check_box label="Anunciar keys all HUD" name="radar_chat_keys" tool_tip="Definir cuando enviar las keys de los avarares a los scritps LSL" />
+			<check_box label="Anunciar aún estando cerrado" name="keep_open" tool_tip="Oculta el radar en vez de cerrarlo para seguir enviando los avisos al chat" />
+			<check_box label="Anunciar keys al HUD" name="radar_chat_keys" tool_tip="Definir cuando enviar las keys de los avarares a los scritps LSL" />
 			<button name="send_keys_btn" label="Anunciar Ahora" tool_tip="Envia todas las keys al HUD ahora"/>
 		</panel>
-		<!-- =============================== -->
+		<!-- =========================== -->
 		<panel label="Extras" name="extras_tab">
 			<check_box label="Alerta Edad Avatar" name="agealert" tool_tip="Habilita el Alerta por Edad del Avatar" />
-			<spinner name="AgeAlertDays" left_delta="150" label="Umbral de Edad" tool_tip="La cantidad mínima de días que un avatar puede estar en el grid sin disparar el alerta" />
+			<spinner name="AgeAlertDays" left_delta="150" label="Umbral de Edad" tool_tip="La cantidad mínima de días que un avatar existe en el grid sin disparar el alerta" />
 			<text name="hide_columns">Ocultar Columnas:</text>
 			<check_box name="hide_mark" label="Marca"/>
 			<check_box name="hide_pos" label="Pos." tool_tip="Posición"/>
@@ -93,6 +89,7 @@
 			<check_box name="hide_client" label="Cliente"/>
 		</panel>
 	</tab_container>
+	<string name="Out Of Range">Fuera de Rango</string>	
 	<string name="Moving">Moviéndose</string>
 	<string name="Playing a gesture">Ejecutando un Gesto</string>
 	<string name="Playing a sound">Ejecutando un sonido</string>

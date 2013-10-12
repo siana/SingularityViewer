@@ -1,16 +1,27 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="toolbox floater" title="" short_title="Construire">
-	<button label="" label_selected="" name="button focus" tool_tip="Mise au point"/>
-	<button label="" label_selected="" name="button move" tool_tip="Déplacer"/>
-	<button label="" label_selected="" name="button edit" tool_tip="Modifier"/>
-	<button label="" label_selected="" name="button create" tool_tip="Créer"/>
-	<button label="" label_selected="" name="button land" tool_tip="Terrain"/>
+
+<!-- Main floater tabs -->
+
+	<button name="button focus" tool_tip="Mise au point"/>
+	<button name="button move" tool_tip="Déplacer"/>
+	<button name="button edit" tool_tip="Modifier"/>
+	<button name="button create" tool_tip="Créer"/>
+	<button name="button land" tool_tip="Terrain"/>
+
+<!-- Focus panel -->
+
 	<check_box label="Zoom" name="radio zoom"/>
 	<check_box label="Orbite (Ctrl)" name="radio orbit"/>
 	<check_box label="Panoramique (Ctrl-Maj)" name="radio pan"/>
+
+<!-- Move panel -->
+
 	<check_box label="Déplacer" name="radio move"/>
 	<check_box label="Orbite (Ctrl)" name="radio lift"/>
 	<check_box label="Faire tourner (Ctrl-Maj)" name="radio spin"/>
+
+<!-- Edit panel -->
 	<check_box label="Positionner" name="radio position"/>
 	<check_box label="Pivoter (Ctrl)" name="radio rotate"/>
 	<check_box label="Étirer (Ctrl-Maj)" name="radio stretch"/>
@@ -32,11 +43,20 @@
 	</combo_box>
 	<check_box label="Étirer les deux côtés" name="checkbox uniform"/>
 	<check_box label="Étirer les textures" name="checkbox stretch textures"/>
-	<check_box label="Utiliser la grille" name="checkbox snap to grid"/>
+	<check_box label="Limiter le 'drag distance'" name="checkbox limit drag distance"/>
+	<check_box label="Editer l'axe sur le 'Root'" name="checkbox actual root"/>
+	<check_box label="Montrer les ojb. invisibles" name="checkbox show highlight"/>
+	<check_box label="Grille" name="checkbox snap to grid"/>
 	<button label="Options" label_selected="Options" name="Options"/>
+
+<!-- Help text -->
+
 	<text name="text status">
 		Glissez pour déplacer, Maj-glissez pour copier.
 	</text>
+
+<!-- Create panel -->
+
 	<button name="ToolCube" tool_tip="Cube"/>
 	<button name="ToolPrism" tool_tip="Prisme droit"/>
 	<button name="ToolPyramid" tool_tip="Pyramide"/>
@@ -56,6 +76,9 @@
 	<check_box label="Copier la sélection" name="checkbox copy selection"/>
 	<check_box label="Centrer" name="checkbox copy centers"/>
 	<check_box label="Pivoter" name="checkbox copy rotates"/>
+
+<!-- Land panel -->
+
 	<check_box label="Sélectionner le terrain" name="radio select land"/>
 	<check_box label="Aplatir" name="radio flatten"/>
 	<check_box label="Élever" name="radio raise"/>
@@ -73,12 +96,12 @@
 	<text name="Strength:">
 		Force
 	</text>
-	<text name="obj_count">
-		Objets sélectionnés : [COUNT]
-	</text>
 	<text name="prim_count">
-		Prims : [COUNT]
+		Prims : [COUNT]
 	</text>
+
+<!-- Sub-tabs -->
+
 	<tab_container name="Object Info Tabs">
 		<panel label="Général" name="General">
 			<text name="Name:">
@@ -97,15 +120,10 @@
 			<text name="Owner:">
 				Propriétaire :
 			</text>
-
 		    <button label="Profil" label_selected="Profil" name="button last owner profile"/>
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-				bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
-				font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
-				mouse_opaque="true" name="Last Owner:" v_pad="0" width="78">
+			<text name="Last Owner:">
 				Dernier Proprio :
 			</text>
-
 			<text name="Owner Name">
 				Thrax Linden
 			</text>
@@ -113,9 +131,7 @@
 			<text name="Group:">
 				Groupe :
 			</text>
-			<text name="Group Name Proxy">
-				Les Lindens
-			</text>
+      <name_box initial_value="Chargement..." name="Group Name Proxy"></name_box>
 			<button label="Définir" label_selected="Définir" name="button set group"/>
 			<button label="Voir" name="button open group"/>
 			<text name="Permissions :">
@@ -124,7 +140,7 @@
 			<text name="perm_modify">
 				Vous pouvez modifier cet objet.
 			</text>
-			<check_box label="Partager avec le groupe" name="checkbox share with group" tool_tip="Autorise tous les membres du groupe choisi à utiliser et à partager vos droits pour cet objet. Pour activer les restrictions de rôles, vous devez d&apos;abord cliquer sur Transférer."/>
+			<check_box label="Partager avec le groupe" name="checkbox share with group" tool_tip="Autorise tous les membres du groupe choisi à utiliser et à partager vos droits pour cet objet. Pour activer les restrictions de rôles, vous devez d'abord cliquer sur Transférer."/>
 			<string name="text deed continued">
 				Transférer
 			</string>
@@ -132,12 +148,14 @@
 				Transférer
 			</string>
 			<button label="Céder" label_selected="Céder" name="button deed" tool_tip="Les objets partagés par un groupe peuvent être cédés par un officier."/>
-			<check_box label="Autoriser tout le monde à déplacer" name="checkbox allow everyone move"/>
-			<check_box label="Autoriser tout le monde à copier" name="checkbox allow everyone copy"/>
-			<check_box label="Afficher dans la recherche" name="search_check" tool_tip="Affiche l&apos;objet dans les résultats de recherche"/>
+			<text name="text anyone can">Tout le monde peux:</text>
+			<check_box label="Déplacer" name="checkbox allow everyone move"/>
+			<check_box label="Copier" name="checkbox allow everyone copy"/>
+			<check_box name="checkbox allow export" label="Exporter"/>
+			<check_box label="Afficher dans la recherche" name="search_check" tool_tip="Affiche l'objet dans les résultats de recherche"/>
 			<check_box label="À vendre" name="checkbox for sale"/>
 			<text name="Cost">
-				Prix : [CURRENCY]
+				Prix : [CURRENCY]
 			</text>
 			<radio_group name="sale type">
 				<radio_item name="Original">
@@ -151,26 +169,26 @@
 				</radio_item>
 			</radio_group>
 			<text name="Next owner can:">
-				Le prochain propriétaire pourra :
+				Le prochain propriétaire pourra :
 			</text>
 			<check_box label="Modifier" name="checkbox next owner can modify"/>
 			<check_box label="Copier" left_delta="66" name="checkbox next owner can copy"/>
 			<check_box label="Revendre/Donner" name="checkbox next owner can transfer"/>
 			<text name="label click action">
-				Action du clic-gauche :
+				Action du clic-gauche :
 			</text>
 			<combo_box name="clickaction" width="178">
 				<combo_item name="Touch/grab(default)">
 					Toucher/attraper (défaut)
 				</combo_item>
 				<combo_item name="Sitonobject">
-					S&apos;asseoir sur l&apos;objet
+					S'asseoir sur l'objet
 				</combo_item>
 				<combo_item name="Buyobject">
-					Acheter l&apos;objet
+					Acheter l'objet
 				</combo_item>
 				<combo_item name="Payobject">
-					Payer l&apos;objet
+					Payer l'objet
 				</combo_item>
 				<combo_item name="Open">
 					Ouvrir
@@ -183,24 +201,14 @@
 				</combo_item>
 			</combo_box>
 			<button bottom="-338" label="Copier la Clef" tool_tip="Copie la clef dans le presse-papier." width="80"/>
-			<text name="B:">
-				B :
-			</text>
-			<text name="O:">
-				O :
-			</text>
-			<text name="G:">
-				G :
-			</text>
-			<text name="E:">
-				E :
-			</text>
-			<text name="N:">
-				N :
-			</text>
-			<text name="F:">
-				F :
-			</text>
+      <panel name="pathfinding_attrs_panel">
+        <text name="pathfinding_attributes_label">
+          Pathfinding :
+        </text>
+        <text name="pathfinding_attributes_value">
+          Tester
+        </text>
+      </panel>
 			<string name="text modify info 1">
 				Vous pouvez modifier cet objet.
 			</string>
@@ -217,13 +225,13 @@
 				Sélectionnez l'objet en entier.
 			</string>
 			<string name="Cost Default">
-				Prix :           [CURRENCY]
+				Prix :           [CURRENCY]
 			</string>
 			<string name="Cost Total">
-				Prix total :  [CURRENCY]
+				Prix total :  [CURRENCY]
 			</string>
 			<string name="Cost Per Unit">
-				Prix par :     [CURRENCY]
+				Prix par :     [CURRENCY]
 			</string>
 			<string name="Cost Mixed">
 				Prix mixte
@@ -232,19 +240,12 @@
 				Vente mixte
 			</string>
 		</panel>
+
+<!-- Object sub-tab -->
+
 		<panel label="Objet" name="Object">
-			<text name="select_single">
-				
-			</text>
-			<text name="edit_object">
-				
-			</text>
-			<button bottom="-26" follows="top|right" font="SansSerifSmall" halign="center"
-			     height="18" label="Lier" left="10" mouse_opaque="true" name="link_obj"  enabled="true"
-			     tool_tip=""  width="50" />
-			<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-			     height="18" label="Delier" left_delta="50" mouse_opaque="true" name="unlink_obj"  enabled="true"
-			     tool_tip="Unlinks linkset."  width="50" />
+			<button label="Lier" name="link_obj"/>
+			<button label="Delier" name="unlink_obj"/>
 			<check_box label="Verrouillé" name="checkbox locked" tool_tip="Empêche l'objet d'être déplacé ou supprimé. Utile pendant la construction pour éviter les modifications involontaires."/>
 			<check_box label="Physique" name="Physical Checkbox Ctrl" tool_tip="Permet à l'objet d'être poussé et affecté par la gravité"/>
 			<check_box label="Temporaire" name="Temporary Checkbox Ctrl" tool_tip="L'objet est supprimé 2 mn après sa création."/>
@@ -252,21 +253,12 @@
 			<text name="label position">
 				Position (mètres)
 			</text>
-			<spinner label="X" name="Pos X"/>
-			<spinner label="Y" name="Pos Y"/>
-			<spinner label="Z" name="Pos Z"/>
 			<text name="label size">
 				Taille (mètres)
 			</text>
-			<spinner label="X" name="Scale X"/>
-			<spinner label="Y" name="Scale Y"/>
-			<spinner label="Z" name="Scale Z"/>
 			<text name="label rotation">
 				Rotation (degrés)
 			</text>
-			<spinner label="X" name="Rot X"/>
-			<spinner label="Y" name="Rot Y"/>
-			<spinner label="Z" name="Rot Z"/>
 			<text name="label material">
 				Matériau
 			</text>
@@ -414,12 +406,15 @@
 				</combo_item>
 			</combo_box>
 		</panel>
+
+<!-- Features sub-tab -->
+
 		<panel label="Attributs" name="Features">
 			<text name="select_single">
 				Sélectionnez un prim pour modifier les attributs.
 			</text>
 			<text name="edit_object">
-				Modifiez les attributs de l'objet :
+				Modifiez les attributs de l'objet :
 			</text>
 			<check_box label="Flexibilité" name="Flexible1D Checkbox Ctrl" tool_tip="Donne à l'objet de la souplesse sur l'axe des Z (côté client uniquement)."/>
 			<spinner label="Souplesse" name="FlexNumSections"/>
@@ -539,9 +534,7 @@
 			<text name="tex scale">
 				Répétitions par face
 			</text>
-			<spinner label="Horizontal (U)" name="TexScaleU"/>
 			<check_box label="Inverser" name="checkbox flip s"/>
-			<spinner label="Vertical (V)" name="TexScaleV"/>
 			<check_box label="Inverser" name="checkbox flip t"/>
 			<text name="tex rotate">
 				Rotation (degrés)
@@ -561,21 +554,13 @@
 			<text name="tex offset">
 				Décalage
 			</text>
-			<spinner label="Horizontal (U)" name="TexOffsetU"/>
-			<spinner label="Vertical (V)" name="TexOffsetV"/>
-			<text name="textbox autofix">
-				Ajuster la texture du média
-(chargement préalable)
-			</text>
 			<button label="Ajuster" label_selected="Ajuster" left="140" name="button align" width="45"/>
-
 			<text name="textbox params">Paramètres</text>
 			<button label="Copier" name="copytextures" tool_tip="Copie les paramètres de la texture dans le presse papier"  width="55"/>
 			<button label="Coller" name="pastetextures" tool_tip="Colle les paramètres de la texture du presse papier"  width="55"/>
 		</panel>
 		<panel label="Contenu" name="Contents">
 			<button label="Nouveau script" label_selected="Nouveau script" name="button new script"/>
-			<button label="Permissions" name="button permissions"/>
 		</panel>
 	</tab_container>
 	<panel name="land info panel">

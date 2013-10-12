@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="area search" title="Objektbereich Suche">
+	<text name="name_label">Name durchsuchen nach:</text>
+	<text name="desc_label">Beschreibung durchsuchen nach:</text>
+  
+  
+	<text name="owner_label">Eigentümer durchsuchen nach:</text>
+	<text name="group_label">Gruppe durchsuchen nach:</text>
+  
+  
+	<scroll_list name="result_list">
+		<column name="Name" label="Name" tool_tip="Auf Eintrag doppelklicken, um Leuchtmarkierung auf Objektposition zu setzen."/>
+    	<column name="Description" label="Beschreibung" tool_tip="Auf Eintrag doppelklicken, um Leuchtmarkierung auf Objektposition zu setzen."/>
+    	<column name="Owner" label="Eigentümer" tool_tip="Auf Eintrag doppelklicken, um Leuchtmarkierung auf Objektposition zu setzen."/>
+		<column name="Group" label="Gruppe" tool_tip="Auf Eintrag doppelklicken, um Leuchtmarkierung auf Objektposition zu setzen."/>
+	</scroll_list>
+	<button name="Refresh" label="Aktualisieren"/>
+	<button name="Stop" label="Stop"/>
+	<text name="counter">Gelistet/Offen/Total</text>
+</floater>

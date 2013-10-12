@@ -39,17 +39,17 @@
 #include "llbutton.h"
 #include "llcallingcard.h"
 #include "llcombobox.h"
+#include "llgroupactions.h"
 #include "llgroupmgr.h"
 #include "llnamelistctrl.h"
 #include "llnotificationsutil.h"
+#include "llscrolllistitem.h"
 #include "llspinctrl.h"
 #include "lltextbox.h"
 #include "llviewerobject.h"
 #include "llviewerobjectlist.h"
 #include "lluictrlfactory.h"
 #include "llviewerwindow.h"
-
-#include <boost/signals2.hpp>
 
 class LLPanelGroupInvite::impl : public boost::signals2::trackable
 {
@@ -149,7 +149,7 @@ void LLPanelGroupInvite::impl::addUsers(const std::vector<std::string>& names,
 		row["columns"][0]["column"] = "name";
 		row["columns"][0]["value"] = name;
 
-		mInvitees->addNameItem(row);
+		mInvitees->addElement(row);
 	}
 }
 
@@ -183,7 +183,7 @@ void LLPanelGroupInvite::impl::submitInvitations()
 		 iter != items.end(); ++iter)
 	{
 		LLScrollListItem* item = *iter;
-		if(gdatap->mMembers.find(item->getUUID()) != gdatap->mMembers.end())
+		if(LLGroupActions::isAvatarMemberOfGroup(mGroupID, item->getUUID()))
 		{
 			already_in_group = true;
 			continue;

@@ -57,7 +57,7 @@ class LLScrollingPanelList : public LLUICtrl
 {
 public:
 	LLScrollingPanelList(const std::string& name, const LLRect& rect)
-		:	LLUICtrl(name, rect, TRUE, NULL, NULL, FOLLOWS_LEFT | FOLLOWS_BOTTOM ) {}
+		:	LLUICtrl(name, rect, TRUE, NULL, FOLLOWS_LEFT | FOLLOWS_BOTTOM ) {}
 
 	typedef std::deque<LLScrollingPanel*>	panel_list_t;
 

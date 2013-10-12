@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater border="true" bottom="-298" can_close="true" can_resize="true" default_tab_group="1" follows="left|top|right|bottom" height="297" label="(unknown)" left="1" min_height="155" min_width="425" name="im_floater" rect_control="" title="(unknown)" width="501">
+<floater border="true" bottom="-298" can_close="true" can_resize="true" default_tab_group="1" follows="left|top|right|bottom" height="197" label="(unknown)" left="1" min_height="100" min_width="425" name="im_floater" rect_control="" title="(unknown)" width="501">
 	<string name="answering">Connecting...</string>
 	<string name="ringing">Calling...</string>
 	<string name="connected">Connected, click End Call to hang up</string>
@@ -11,17 +11,28 @@
 	<string name="default_text_label">Click here to instant message.</string>
 	<string name="unavailable_text_label">Text chat is not available for this call.</string>
 	<string name="inventory_item_offered">Inventory item offered</string>
-	<button bottom="-37" height="20" label="Profile" left="5" name="profile_callee_btn" width="80"/>
-	<button bottom="-37" follows="left|top" halign="center" height="20" label="History" left_delta="80" name="history_btn" visible="true" width="80"/>
-	<button bottom="-37" height="20" label="Teleport" left_delta="80" name="profile_tele_btn" width="80"/>
-	<check_box bottom="-37" follows="top" height="20" left_delta="80" name="rp_mode">RP Mode</check_box>
-	<button bottom="-37" follows="left|top" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Call" left_delta="80" name="start_call_btn" width="80"/>
+    <flyout_button bottom="-37" height="20" label="Profile" left="5" name="instant_message_flyout" width="80" list_position="below">
+      <flyout_button_item label="Request Teleport" name="request_teleport_item" value="3"/>
+      <flyout_button_item label="Invite To Group" name="group_invite_item" value="5"/>
+    </flyout_button>
+    <string name="ding on" value="Ding on new messages (On)"/>
+    <string name="ding off" value="Ding on new messages (Off)"/>
+    <string name="rp mode on" value="RP Mode (On)"/>
+    <string name="rp mode off" value="RP Mode (Off)"/>
+    <string name="add friend" value="Add Friend"/>
+    <string name="remove friend" value="Remove Friend"/>
+    <!--string name="mute" value="Mute"/>
+    <string name="unmute" value="Unmute"/-->
+    <button bottom_delta="0" follows="left|top" height="20" left_delta="81" width="50" name="tp_btn" label="TP"/>
+    <button bottom_delta="0" follows="left|top" height="20" left_delta="50" width="50" name="pay_btn" label="Pay"/>
+    <button bottom_delta="0" follows="left|top" height="20" left_delta="50" width="50" name="history_btn" label="Log"/>
+	<button bottom="-37" follows="left|top" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Call" left_delta="50" name="start_call_btn" width="80"/>
 	<button bottom="-37" follows="top" height="20" image_overlay="icn_voice-call-end.tga" image_overlay_alignment="left" label="End" name="end_call_btn" visible="false" width="80"/>
 	<panel border="false" bottom="-34" follows="left|top" height="20" left_delta="80" name="speaker_controls" width="100">
 		<volume_slider bottom="0" follows="bottom" height="15" increment="0.05" initial_val="0.5" max_val="1.0" min_val="0.0" name="speaker_volume" width="56"/>
 		<button bottom="0" height="20" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" label="" left_delta="56" name="mute_btn" tool_tip="Mute voice" width="25"/>
 	</panel>
-	<text_editor bottom="28" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor"	enabled="false" follows="left|top|right|bottom" height="228" left="5" max_length="2147483647" name="im_history" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="488" word_wrap="true"/>
+	<text_editor bottom="28" bg_readonly_color="ChatHistoryBgColor" bg_writeable_color="ChatHistoryBgColor"	enabled="false" follows="left|top|right|bottom" height="128" left="5" max_length="2147483647" name="im_history" text_color="ChatHistoryTextColor" track_bottom="true" text_readonly_color="ChatHistoryTextColor" width="488" word_wrap="true"/>
 	<line_editor bevel_style="in" border_style="line" border_thickness="1" bottom="5" follows="left|right" font="SansSerif" height="20" label="Click here to instant message" max_length="2147483647" name="chat_editor" select_all_on_focus_received="false" select_on_focus="false" tab_group="1" width="423" spell_check="true"/>
 	<button bottom="5" follows="right|bottom" height="20" label="Send" left="433" name="send_btn" scale_image="true" width="60"/>
 	<string name="live_help_dialog">*** Welcome to Help Request ***

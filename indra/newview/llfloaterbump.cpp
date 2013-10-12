@@ -3,31 +3,25 @@
  * @brief Floater showing recent bumps, hits with objects, pushes, etc.
  * @author Cory Ondrejka, James Cook
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
  
@@ -44,7 +38,7 @@
 ///----------------------------------------------------------------------------
 /// Local function declarations, constants, enums, and typedefs
 ///----------------------------------------------------------------------------
-LLFloaterBump* LLFloaterBump::sInstance = NULL;
+static LLFloaterBump* sInstance = NULL;
 
 ///----------------------------------------------------------------------------
 /// Class LLFloaterBump
@@ -54,9 +48,6 @@ LLFloaterBump* LLFloaterBump::sInstance = NULL;
 LLFloaterBump::LLFloaterBump() 
 :	LLFloater()
 {
-	sInstance = this;
-
-	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_bumps.xml");
 }
 
 
@@ -67,25 +58,28 @@ LLFloaterBump::~LLFloaterBump()
 }
 
 // static
-void LLFloaterBump::show(void *contents)
+void LLFloaterBump::show(void *)
 {
-	if (gNoRender)
-	{
-		return;
-	}
-
 	if (!sInstance)
 	{
 		sInstance = new LLFloaterBump();
+		LLUICtrlFactory::getInstance()->buildFloater(sInstance, "floater_bumps.xml", NULL, false);
 	}
-	
-	LLScrollListCtrl* list = sInstance->getChild<LLScrollListCtrl>("bump_list");
-	if (!list) return;
+
+	sInstance->open();
+}
+
+// virtual
+void LLFloaterBump::onOpen()
+{
+	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("bump_list");
+	if (!list)
+		return;
 	list->deleteAllItems();
 
 	if (gMeanCollisionList.empty())
 	{
-		std::string none_detected = sInstance->getString("none_detected");
+		std::string none_detected = getString("none_detected");
 		LLSD row;
 		row["columns"][0]["value"] = none_detected;
 		row["columns"][0]["font"] = "SansSerifBold";
@@ -97,33 +91,24 @@ void LLFloaterBump::show(void *contents)
 			 iter != gMeanCollisionList.end(); ++iter)
 		{
 			LLMeanCollisionData *mcd = *iter;
-			LLFloaterBump::add(list, mcd);
+			add(list, mcd);
 		}
 	}
-	
-	sInstance->open();	/*Flawfinder: ignore*/
 }
 
 void LLFloaterBump::add(LLScrollListCtrl* list, LLMeanCollisionData* mcd)
 {
-	if (!sInstance)
-	{
-		new LLFloaterBump();
-	}
-	
 	if (mcd->mFullName.empty() || list->getItemCount() >= 20)
 	{
 		return;
 	}
 
 	// There's only one internal tm buffer.
-	struct tm* timep;
-	
 	// Convert to Pacific, based on server's opinion of whether
 	// it's daylight savings time there.
-	timep = utc_to_pacific_time(mcd->mTime, gPacificDaylightTime);
+	tm* timep = utc_to_pacific_time(mcd->mTime, gPacificDaylightTime);
 	
-	std::string time = llformat("[%d:%02d]", timep->tm_hour, timep->tm_min);
+	std::string timeStr = llformat("[%d:%02d]", timep->tm_hour, timep->tm_min);
 
 	std::string action;
 	switch(mcd->mType)
@@ -150,8 +135,8 @@ void LLFloaterBump::add(LLScrollListCtrl* list, LLMeanCollisionData* mcd)
 	}
 
 	// All above action strings are in XML file
-	LLUIString text = sInstance->getString(action);
-	text.setArg("[TIME]", time);
+	LLUIString text = getString(action);
+	text.setArg("[TIME]", timeStr);
 	text.setArg("[NAME]", mcd->mFullName);
 
 	LLSD row;

@@ -40,23 +40,22 @@
 #include "llfocusmgr.h"
 #include "llwindow.h"
 
-LLResizeBar::LLResizeBar( const std::string& name, LLView* resizing_view, const LLRect& rect, S32 min_size, S32 max_size, Side side )
-	:
-	LLView( name, rect, TRUE ),
+LLResizeBar::LLResizeBar(const LLResizeBar::Params& p)
+:	LLView(p),
 	mDragLastScreenX( 0 ),
 	mDragLastScreenY( 0 ),
 	mLastMouseScreenX( 0 ),
 	mLastMouseScreenY( 0 ),
-	mMinSize( min_size ),
-	mMaxSize( max_size ),
-	mSide( side ),
-	mSnappingEnabled(TRUE),
-	mAllowDoubleClickSnapping(TRUE),
-	mResizingView(resizing_view)
+	mMinSize( p.min_size ),
+	mMaxSize( p.max_size ),
+	mSide( p.side ),
+	mSnappingEnabled(p.snapping_enabled),
+	mAllowDoubleClickSnapping(p.allow_double_click_snapping),
+	mResizingView(p.resizing_view)
 {
 	setFollowsNone();
 	// set up some generically good follow code.
-	switch( side )
+	switch( mSide )
 	{
 	case LEFT:
 		setFollowsLeft();
@@ -180,6 +179,11 @@ BOOL LLResizeBar::handleHover(S32 x, S32 y, MASK mask)
 				break;
 			}
 
+			notifyParent(LLSD().with("action", "resize")
+				.with("view_name", mResizingView->getName())
+				.with("new_height", new_height)
+				.with("new_width", new_width));
+
 			scaled_rect.mTop = scaled_rect.mBottom + new_height;
 			scaled_rect.mRight = scaled_rect.mLeft + new_width;
 			mResizingView->setRect(scaled_rect);
@@ -188,8 +192,7 @@ BOOL LLResizeBar::handleHover(S32 x, S32 y, MASK mask)
 
 			if (mSnappingEnabled)
 			{
-				//static LLCachedControl<S32> snap_margin (*LLUI::sConfigGroup,"SnapMargin", 0);
-				S32 snap_margin = LLUI::sConfigGroup->getS32("SnapMargin");
+				static LLUICachedControl<S32> snap_margin ("SnapMargin", 0);
 				switch( mSide )
 				{
 				case LEFT:
@@ -220,17 +223,62 @@ BOOL LLResizeBar::handleHover(S32 x, S32 y, MASK mask)
 			switch(mSide)
 			{
 			case LEFT:
-				mDragLastScreenX += new_rect.mLeft - orig_rect.mLeft;
+			{
+				S32 actual_delta_x = new_rect.mLeft - orig_rect.mLeft;
+				if (actual_delta_x != delta_x)
+				{
+					// restore everything by left
+					new_rect.mBottom = orig_rect.mBottom;
+					new_rect.mTop = orig_rect.mTop;
+					new_rect.mRight = orig_rect.mRight;
+					mResizingView->setShape(new_rect, true);
+				}
+				mDragLastScreenX += actual_delta_x;
+
 				break;
+			}
 			case RIGHT:
+			{
+				S32 actual_delta_x = new_rect.mRight - orig_rect.mRight;
+				if (actual_delta_x != delta_x)
+				{
+					// restore everything by left
+					new_rect.mBottom = orig_rect.mBottom;
+					new_rect.mTop = orig_rect.mTop;
+					new_rect.mLeft = orig_rect.mLeft;
+					mResizingView->setShape(new_rect, true);
+				}
 				mDragLastScreenX += new_rect.mRight - orig_rect.mRight;
 				break;
+			}
 			case TOP:
+			{
+				S32 actual_delta_y = new_rect.mTop - orig_rect.mTop;
+				if (actual_delta_y != delta_y)
+				{
+					// restore everything by left
+					new_rect.mBottom = orig_rect.mBottom;
+					new_rect.mLeft = orig_rect.mLeft;
+					new_rect.mRight = orig_rect.mRight;
+					mResizingView->setShape(new_rect, true);
+				}
 				mDragLastScreenY += new_rect.mTop - orig_rect.mTop;
 				break;
+			}
 			case BOTTOM:
+			{
+				S32 actual_delta_y = new_rect.mBottom - orig_rect.mBottom;
+				if (actual_delta_y != delta_y)
+				{
+					// restore everything by left
+					new_rect.mTop = orig_rect.mTop;
+					new_rect.mLeft = orig_rect.mLeft;
+					new_rect.mRight = orig_rect.mRight;
+					mResizingView->setShape(new_rect, true);
+				}
 				mDragLastScreenY += new_rect.mBottom- orig_rect.mBottom;
 				break;
+			}
 			default:
 				break;
 			}

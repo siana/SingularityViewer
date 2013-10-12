@@ -33,11 +33,16 @@
 #define LL_wlfPanel_AdvSettings_H
 
 #include "llpanel.h"
+#include <boost/ptr_container/ptr_list.hpp>
+
+// [RLVa:KB]
+#include "rlvhandler.h"
+// [/RLVa:KB]
 
 class LLComboBox;
 class LLSliderCtrl;
 
-class wlfPanel_AdvSettings : public LLPanel
+class wlfPanel_AdvSettings : public LLPanel, public LLSingleton<wlfPanel_AdvSettings>
 {
 public:
 	wlfPanel_AdvSettings ();
@@ -45,24 +50,25 @@ public:
 	~wlfPanel_AdvSettings ();
 	BOOL postBuild();
 	void draw();
-	void refresh();
-	static void fixPanel();
+
+	void updateRlvVisibility();
+	void onRlvBehaviorChange(ERlvBehaviour eBhvr, ERlvParamType eType);
+
+	static void updateClass();
 
 	static void onClickExpandBtn(void* user_data);
-	static void onChangeWWPresetName(LLUICtrl* ctrl, void* userData);
-	static void onChangeWLPresetName(LLUICtrl* ctrl, void* userData);
+	void onChangeWWPresetName(const LLSD& value);
+	void onChangeWLPresetName(const LLSD& value);
 
 protected:
 	void build();
 
-	static void onUseRegionSettings(LLUICtrl* ctrl, void* userdata);
-	static void onClickWWNext(void* user_data);
-	static void onClickWWPrev(void* user_data);
-	static void onClickWLNext(void* user_data);
-	static void onClickWLPrev(void* user_data);
-	static void onOpenAdvancedSky(void* userData);
-	static void onOpenAdvancedWater(void* userData);
-	static void onChangeDayTime(LLUICtrl* ctrl, void* userData);
+	void onUseRegionSettings(const LLSD& value);
+	void onClickWWNext();
+	void onClickWWPrev();
+	void onClickWLNext();
+	void onClickWLPrev();
+	void onChangeDayTime(const LLSD& value);
 
 	void refreshLists(); /// update controls with user prefs
 
@@ -75,6 +81,10 @@ protected:
 	LLComboBox*		mSkyPresetCombo;
 	// LLComboBox*		mDayCyclePresetCombo;
 	LLSliderCtrl*		mTimeSlider;
+
+	bool mExpanded;
+
+	boost::ptr_list<boost::signals2::scoped_connection> mConnections;
 };
 
 #endif // LL_wlfPanel_AdvSettings_H

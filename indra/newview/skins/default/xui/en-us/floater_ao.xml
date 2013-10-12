@@ -10,35 +10,14 @@
 	width="610"
 	height="380">
 
-  <view_border blevel_style="in" border_thickness="0" bottom="-380" follows="left|top" height="380" left="1"
-       mouse_opaque="false" name="ao_notecard" width="610" />
-  <view_border blevel_style="in" bottom="340" follows="left|top" height="16" left="10"
-       mouse_opaque="false" name="ao_notecard_vis" width="180" />
-  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-       bottom_delta="0" drop_shadow_visible="true" follows="left|top"
-       font="SansSerifSmall" h_pad="0" halign="center" height="16" left_delta="0"
-       mouse_opaque="true" name="Give inventory"
-       tool_tip="Drop a ZHAO notecard here. Animations have to be in the same Inventory folder as the notecard." v_pad="2"
-       width="180">
-    Drop a ZHAO II notecard here
-  </text>
-  <view_border blevel_style="in" bottom_delta="-18" follows="left|top" height="16" left_delta="0"
-       mouse_opaque="false" name="ao_notecard_disp" width="180" />
-  <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-       bottom_delta="0" drop_shadow_visible="true" follows="left|top"
-       font="SansSerifSmall" h_pad="0" halign="center" height="16" left_delta="0"
-       mouse_opaque="true" name="ao_nc_text"
-       tool_tip="" v_pad="2"
-       width="180">
-    Currently set to: ITEM
-  </text>
+  <drop_target bottom="-80" height="17" left="12" width="180" control_name="AOConfigNotecardID" fill_parent="true" name="ao_notecard" tool_tip="Drop a ZHAO notecard here. Animations have to be in the same Inventory folder as the notecard."/>
 
   <button
       name="opencard"
       label="View Notecard"
       font="SansSerifSmall"
       left="10"
-      bottom_delta="-30"
+      bottom="-108"
       width="110"
       height="20"
       follows="bottom|left"

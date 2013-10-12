@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="Avatar Menu" create_jump_keys="true">
+	<menu_item_call label="Perfil" name="Profile"/>
+	<menu_item_call label="Perfil Web" name="Web Profile"/>
+	<menu_item_call label="Pagar" name="Pay"/>
+	<menu_item_call label="Mensaje Instantáneo" name="Instant Message"/>
+	<menu_item_call label="Conferencia de  Chat" name="Conference Chat"/>
+	<menu_item_call label="Llamar" name="Call"/>
+	<menu_item_call label="Conferencia de Voz" name="Conference Call"/>
+	<menu_item_call label="Añadir Amigo" name="Add Friend"/>
+	<menu_item_call label="Quitar Amigo" name="Remove Friend"/>
+	<menu_item_call label="Invitar a Grupo" name="Invite To Group"/>
+	<menu_item_call label="Ofrecer Teleporte" name="Offer Teleport"/>
+	<menu_item_call label="Solicitar Teleporte" name="Request Teleport"/>
+	<menu_item_separator/>
+	<menu_item_call label="Ignorar/No Ignorar" name="Mute/Unmute"/>
+	<menu_item_call label="Reportar Abuso" name="Report Abuse"/>
+	<menu_item_call label="Copiar UUID" name="Copy Key"/>
+</menu>

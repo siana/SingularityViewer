@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel name="Place" title="Lugar">
+	<texture_picker name="snapshot_ctrl"/>
 	<text name="name_label">
 		Nombre:
 	</text>
+	<text left_delta="65" name="name_editor" width="361" />	
 	<text name="description_label">
 		Descripción:
 	</text>
@@ -13,7 +15,7 @@
 		Ubicación:
 	</text>
 	<button label="Teleportar" name="teleport_btn"/>
-	<button label="Mostrar en el Mapa" name="map_btn"/>
+	<button label="Mostrar en el Mapa" name="map_btn" width="120" />
 	<button label="Ofertas..." name="auction_btn"/>
 	<string name="traffic_text">
 		Tráfico: [TRAFFIC]
@@ -36,4 +38,7 @@
 	<string name="server_forbidden_text">
 		La información de esta ubicación no está disponible debido a la restricción de acceso. Por favor, verifica tus permisos con el propietario de la parcela.
 	</string>
+	<string name="internal_timeout_text">
+		La información de esta ubicación no está disponible debido a que se ha agotado el tiempo de espera de la red, por favor, intenta de nuevo mas tarde.
+	</string>	
 </panel>

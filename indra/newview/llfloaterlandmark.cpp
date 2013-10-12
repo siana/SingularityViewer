@@ -37,16 +37,18 @@
 #include "llagent.h"
 #include "llagentui.h"
 #include "llcheckboxctrl.h"
-#include "llviewerparcelmgr.h"
+#include "llfiltereditor.h"
 #include "llfolderview.h"
 #include "llfoldervieweventlistener.h"
 #include "llinventory.h"
 #include "llinventoryfunctions.h"
 #include "llinventorypanel.h"
-#include "llviewerinventory.h"
+#include "llparcel.h"
 #include "llpermissions.h"
 #include "llsaleinfo.h"
-#include "llparcel.h"
+#include "llviewerinventory.h"
+#include "llviewerparcelmgr.h"
+
 #include "llnotificationsutil.h"
 
 #include "llviewerwindow.h"		// alertXml
@@ -67,21 +69,26 @@ LLFloaterLandmark::LLFloaterLandmark(const LLSD& data)
 	mResolutionLabel(NULL),
 	mIsDirty( FALSE ),
 	mActive( TRUE ),
-	mSearchEdit(NULL),
-	mContextConeOpacity(0.f)
+	mFilterEdit(NULL),
+	mContextConeOpacity(0.f),
+	mInventoryPanel(NULL),
+	mSavedFolderState(NULL),
+	mNoCopyLandmarkSelected( FALSE )
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this,"floater_landmark_ctrl.xml");
-
+}
+BOOL LLFloaterLandmark::postBuild()
+{
 	mTentativeLabel = getChild<LLTextBox>("Multiple");
 
 	mResolutionLabel = getChild<LLTextBox>("unknown");
 
-		
-	childSetCommitCallback("show_folders_check", onShowFolders, this);
-	childSetVisible("show_folders_check", FALSE);
+	LLUICtrl* show_folders_check = getChild<LLUICtrl>("show_folders_check");
+	show_folders_check->setCommitCallback(boost::bind(&LLFloaterLandmark::onShowFolders,this, _1));
+	show_folders_check->setVisible(FALSE);
 	
-	mSearchEdit = getChild<LLSearchEditor>("inventory search editor");
-	mSearchEdit->setSearchCallback(onSearchEdit, this);
+	mFilterEdit = getChild<LLFilterEditor>("inventory search editor");
+	mFilterEdit->setCommitCallback(boost::bind(&LLFloaterLandmark::onFilterEdit, this, _2));
 		
 	mInventoryPanel = getChild<LLInventoryPanel>("inventory panel");
 
@@ -93,7 +100,7 @@ LLFloaterLandmark::LLFloaterLandmark(const LLSD& data)
 
 		mInventoryPanel->setFilterTypes(filter_types);
 		//mInventoryPanel->setFilterPermMask(getFilterPermMask());  //Commented out due to no-copy texture loss.
-		mInventoryPanel->setSelectCallback(boost::bind(&LLFloaterLandmark::onSelectionChange, _1, _2, (void*)this));
+		mInventoryPanel->setSelectCallback(boost::bind(&LLFloaterLandmark::onSelectionChange, this, _1, _2));
 		mInventoryPanel->setShowFolderState(LLInventoryFilter::SHOW_NON_EMPTY_FOLDERS);
 		mInventoryPanel->setAllowMultiSelect(FALSE);
 
@@ -110,17 +117,19 @@ LLFloaterLandmark::LLFloaterLandmark(const LLSD& data)
 
 	mSavedFolderState = new LLSaveFolderState();
 	mNoCopyLandmarkSelected = FALSE;
-		
-	childSetAction("Close", LLFloaterLandmark::onBtnClose,this);
-	childSetAction("New", LLFloaterLandmark::onBtnNew,this);
-	childSetAction("NewFolder", LLFloaterLandmark::onBtnNewFolder,this);
-	childSetAction("Edit", LLFloaterLandmark::onBtnEdit,this);
-	childSetAction("Rename", LLFloaterLandmark::onBtnRename,this);
-	childSetAction("Delete", LLFloaterLandmark::onBtnDelete,this);
+	
+	getChild<LLButton>("Close")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnClose,this));
+	getChild<LLButton>("New")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnNew,this));
+	getChild<LLButton>("NewFolder")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnNewFolder,this));
+	getChild<LLButton>("Edit")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnEdit,this));
+	getChild<LLButton>("Rename")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnRename,this));
+	getChild<LLButton>("Delete")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnDelete,this));
 
 	setCanMinimize(FALSE);
 
 	mSavedFolderState->setApply(FALSE);
+
+	return true;
 }
 
 LLFloaterLandmark::~LLFloaterLandmark()
@@ -185,9 +194,9 @@ BOOL LLFloaterLandmark::handleKeyHere(KEY key, MASK mask)
 {
 	LLFolderView* root_folder = mInventoryPanel->getRootFolder();
 
-	if (root_folder && mSearchEdit)
+	if (root_folder && mFilterEdit)
 	{
-		if (mSearchEdit->hasFocus() &&
+		if (mFilterEdit->hasFocus() &&
 		    (key == KEY_RETURN || key == KEY_DOWN) &&
 		    mask == MASK_NONE)
 		{
@@ -209,7 +218,7 @@ BOOL LLFloaterLandmark::handleKeyHere(KEY key, MASK mask)
 		
 		if (root_folder->hasFocus() && key == KEY_UP)
 		{
-			mSearchEdit->focusFirstItem(TRUE);
+			mFilterEdit->focusFirstItem(TRUE);
 		}
 	}
 
@@ -261,27 +270,23 @@ const LLUUID& LLFloaterLandmark::findItemID(const LLUUID& asset_id, BOOL copyabl
 	return LLUUID::null;
 }
 
-// static
-void LLFloaterLandmark::onBtnClose(void* userdata)
+void LLFloaterLandmark::onBtnClose()
 {
-	LLFloaterLandmark* self = (LLFloaterLandmark*) userdata;
-	self->mIsDirty = FALSE;
-	self->close();
+	mIsDirty = FALSE;
+	close();
 }
 
-// static
-void LLFloaterLandmark::onBtnEdit(void* userdata)
+void LLFloaterLandmark::onBtnEdit()
 {
-	LLFloaterLandmark* self = (LLFloaterLandmark*) userdata;
 	// There isn't one, so make a new preview
-	LLViewerInventoryItem* itemp = gInventory.getItem(self->mImageAssetID);
+	LLViewerInventoryItem* itemp = gInventory.getItem(mImageAssetID);
 	if(itemp)
 	{
 		open_landmark(itemp, itemp->getName(), TRUE);
 	}
 }
-// static
-void LLFloaterLandmark::onBtnNew(void* userdata)
+
+void LLFloaterLandmark::onBtnNew()
 {
 	LLViewerRegion* agent_region = gAgent.getRegion();
 	if(!agent_region)
@@ -316,17 +321,15 @@ void LLFloaterLandmark::onBtnNew(void* userdata)
 		NOT_WEARABLE, PERM_ALL, 
 		NULL);
 }
-// static
-void LLFloaterLandmark::onBtnNewFolder(void* userdata)
+
+void LLFloaterLandmark::onBtnNewFolder()
 {
 
 }
-// static
-void LLFloaterLandmark::onBtnDelete(void* userdata)
-{
-	LLFloaterLandmark* self = (LLFloaterLandmark*)userdata;
 
-	LLViewerInventoryItem* item = gInventory.getItem(self->mImageAssetID);
+void LLFloaterLandmark::onBtnDelete()
+{
+	LLViewerInventoryItem* item = gInventory.getItem(mImageAssetID);
 	if(item)
 	{
 		// Move the item to the trash
@@ -360,82 +363,75 @@ void LLFloaterLandmark::onBtnDelete(void* userdata)
 
 }
 
-// static
-void LLFloaterLandmark::onBtnRename(void* userdata)
+void LLFloaterLandmark::onBtnRename()
 {
 
 }
 
-// static 
-void LLFloaterLandmark::onSelectionChange(const std::deque<LLFolderViewItem*> &items, BOOL user_action, void* data)
+void LLFloaterLandmark::onSelectionChange(const std::deque<LLFolderViewItem*> &items, BOOL user_action)
 {
-	LLFloaterLandmark* self = (LLFloaterLandmark*)data;
 	if (items.size())
 	{
 		LLFolderViewItem* first_item = items.front();
 		LLInventoryItem* itemp = gInventory.getItem(first_item->getListener()->getUUID());
-		self->mNoCopyLandmarkSelected = FALSE;
+		mNoCopyLandmarkSelected = FALSE;
 		if (itemp)
 		{
 			if (!itemp->getPermissions().allowCopyBy(gAgent.getID()))
 			{
-				self->mNoCopyLandmarkSelected = TRUE;
+				mNoCopyLandmarkSelected = TRUE;
 			}
-			self->mImageAssetID = itemp->getUUID();
-			self->mIsDirty = TRUE;
+			mImageAssetID = itemp->getUUID();
+			mIsDirty = TRUE;
 		}
 	}
 }
 
-// static
-void LLFloaterLandmark::onShowFolders(LLUICtrl* ctrl, void *user_data)
+void LLFloaterLandmark::onShowFolders(LLUICtrl* ctrl)
 {
 	LLCheckBoxCtrl* check_box = (LLCheckBoxCtrl*)ctrl;
-	LLFloaterLandmark* picker = (LLFloaterLandmark*)user_data;
 
 	if (check_box->get())
 	{
-		picker->mInventoryPanel->setShowFolderState(LLInventoryFilter::SHOW_NON_EMPTY_FOLDERS);
+		mInventoryPanel->setShowFolderState(LLInventoryFilter::SHOW_NON_EMPTY_FOLDERS);
 	}
 	else
 	{
-		picker->mInventoryPanel->setShowFolderState(LLInventoryFilter::SHOW_NO_FOLDERS);
+		mInventoryPanel->setShowFolderState(LLInventoryFilter::SHOW_NO_FOLDERS);
 	}
 }
 
-void LLFloaterLandmark::onSearchEdit(const std::string& search_string, void* user_data )
+void LLFloaterLandmark::onFilterEdit(const LLSD& value )
 {
-	LLFloaterLandmark* picker = (LLFloaterLandmark*)user_data;
-
-	std::string upper_case_search_string = search_string;
+	std::string upper_case_search_string = value.asString();
 	LLStringUtil::toUpper(upper_case_search_string);
 
 	if (upper_case_search_string.empty())
 	{
-		if (picker->mInventoryPanel->getFilterSubString().empty())
+		if (mInventoryPanel->getFilterSubString().empty())
 		{
 			// current filter and new filter empty, do nothing
 			return;
 		}
 
-		picker->mSavedFolderState->setApply(TRUE);
-		picker->mInventoryPanel->getRootFolder()->applyFunctorRecursively(*picker->mSavedFolderState);
+		mSavedFolderState->setApply(TRUE);
+		mInventoryPanel->getRootFolder()->applyFunctorRecursively(*mSavedFolderState);
 		// add folder with current item to list of previously opened folders
 		LLOpenFoldersWithSelection opener;
-		picker->mInventoryPanel->getRootFolder()->applyFunctorRecursively(opener);
-		picker->mInventoryPanel->getRootFolder()->scrollToShowSelection();
+		mInventoryPanel->getRootFolder()->applyFunctorRecursively(opener);
+		mInventoryPanel->getRootFolder()->scrollToShowSelection();
 
 	}
-	else if (picker->mInventoryPanel->getFilterSubString().empty())
+	else if (mInventoryPanel->getFilterSubString().empty())
 	{
 		// first letter in search term, save existing folder open state
-		if (!picker->mInventoryPanel->getRootFolder()->isFilterModified())
+		if (!mInventoryPanel->getRootFolder()->isFilterModified())
 		{
-			picker->mSavedFolderState->setApply(FALSE);
-			picker->mInventoryPanel->getRootFolder()->applyFunctorRecursively(*picker->mSavedFolderState);
+			mSavedFolderState->setApply(FALSE);
+			mInventoryPanel->getRootFolder()->applyFunctorRecursively(*mSavedFolderState);
 		}
 	}
 
-	picker->mInventoryPanel->setFilterSubString(upper_case_search_string);
+	mInventoryPanel->setFilterSubString(upper_case_search_string);
 }
 

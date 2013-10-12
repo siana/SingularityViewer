@@ -63,6 +63,7 @@ enum LAND_STAT_FLAGS
 	STAT_FILTER_BY_PARCEL	= 0x00000001,
 	STAT_FILTER_BY_OWNER	= 0x00000002,
 	STAT_FILTER_BY_OBJECT	= 0x00000004,
+	STAT_FILTER_BY_PARCEL_NAME	= 0x00000008,
 	STAT_REQUEST_LAST_ENTRY	= 0x80000000,
 };
 
@@ -147,6 +148,14 @@ const	char	LAND_LAYER_CODE					= 'L';
 const	char	WATER_LAYER_CODE				= 'W';
 const	char	WIND_LAYER_CODE					= '7';
 const	char	CLOUD_LAYER_CODE				= '8';
+
+// <FS:CR> Aurora Sim
+// Extended land layer for Aurora Sim
+const	char	AURORA_LAND_LAYER_CODE			= 'M';
+const	char	AURORA_WATER_LAYER_CODE			= 'X';
+const	char	AURORA_WIND_LAYER_CODE			= '9';
+const	char	AURORA_CLOUD_LAYER_CODE			= ':';
+// </FS:CR> Aurora Sim
 
 // keys
 // Bit masks for various keyboard modifier keys.

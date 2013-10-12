@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu_bar name="Main Menu">
+	<menu label="Datei" name="File">
+    <menu_item_call label="Bild ([UPLOADFEE])..." name="Upload Image"/>
+    <menu_item_call label="Sound ([UPLOADFEE])..." name="Upload Sound"/>
+    <menu_item_call label="Animation ([UPLOADFEE])..." name="Upload Animation"/>
+	<menu_item_call label="Mesh hochladen" name="Upload Mesh"/>
+    <menu_item_call label="Massen ([UPLOADFEE] je Datei)..." name="Bulk Upload"/>
+	<menu_item_call label="Importiere XML" name="Import"/>
+	<menu_item_call label="Importiere mit Texturen" name="Import2"/>
+	<menu_item_call label="Ändere lokale Texturen" name="Change Local Textures"/>
+    <menu_item_separator label="-----------" name="separator"/>
+    <menu_item_call label="Setze Standard-Berechtigungen" name="perm prefs"/>
+    <!--menu_item_check mouse_opaque="true" label="Show Voice Morpher" name="voice effect">
+        <on_click function="ShowFloater" userdata="voice effect"/>
+        <on_check function="FloaterVisible" userdata="voice effect"/>
+    </menu_item_check-->
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_call label="Alle Fenster minimieren" name="Minimize All Windows"/>
+		<menu_item_call label="Fenster schließen" name="Close Window"/>
+		<menu_item_call label="Alle Fenster schließen" name="Close All Windows"/>
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_call label="Speichere Vorschau unter (TGA)" name="Save Preview As..."/>
+		<menu_item_call label="Speichere Vorschau unter (PNG)" name="Save Preview AsPNG..."/>
+		<menu_item_separator label="-----------" name="separator3"/>
+		<menu_item_call label="Foto machen" name="Take Snapshot"/>
+		<menu_item_call label="Foto auf Datenträger" name="Snapshot to Disk"/>
+		<menu_item_separator label="-----------" name="separator4"/>
+		<menu_item_call label="Beenden" name="Quit"/>
+	    <!--menu_item_call bottom="-259" enabled="true" height="19" label="Log Out" left="0" color="1 0 0 1"
+			mouse_opaque="true" name="Log Out" width="243">
+			<on_click function="File.LogOut" userdata="" />
+		</menu_item_call-->
+	</menu>
+	<menu label="Bearbeiten" name="Edit">
+		<menu_item_call label="Rückgängig" name="Undo"/>
+		<menu_item_call label="Wiederherstellen" name="Redo"/>
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_call label="Ausschneiden" name="Cut"/>
+		<menu_item_call label="Kopieren" name="Copy"/>
+		<menu_item_call label="Einfügen" name="Paste"/>
+		<menu_item_call label="Löschen" name="Delete"/>
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_call label="Suchen..." name="Search..."/>
+		<menu_item_separator label="-----------" name="separator3"/>
+		<menu_item_call label="Alle auswählen" name="Select All"/>
+		<menu_item_call label="Auswahl aufheben" name="Deselect"/>
+		<menu_item_separator label="-----------" name="separator4"/>
+		<menu_item_call label="Duplizieren" name="Duplicate"/>
+		<menu_item_separator label="-----------" name="separator5"/>
+		<menu label="Objekt anhängen" name="Attach Object"/>
+		<menu label="Objekt abnehmen" name="Detach Object"/>
+		<menu label="Kleider ausziehen" name="Take Off Clothing">
+			<menu_item_call label="Hemd" name="Shirt"/>
+			<menu_item_call label="Hose" name="Pants"/>
+			<menu_item_call label="Schuhe" name="Shoes"/>
+			<menu_item_call label="Socken" name="Socks"/>
+			<menu_item_call label="Jacke" name="Jacket"/>
+			<menu_item_call label="Handschuhe" name="Gloves"/>
+			<menu_item_call label="Unterhemd" name="Menu Undershirt"/>
+			<menu_item_call label="Unterhose" name="Menu Underpants"/>
+			<menu_item_call label="Rock" name="Skirt"/>
+			<menu_item_call label="Tätowierung" name="Tattoo"/>
+            <menu_item_separator label="-----------" name="separator51"/>
+			<menu_item_call label="Alpha" name="Alpha"/>
+            <menu_item_call label="Physik" name="Physics"/>
+            <menu_item_separator label="-----------" name="separator51"/>
+			<menu_item_call label="Alle Kleider" name="All Clothes"/>
+		</menu>
+		<menu_item_separator label="-----------" name="separator6"/>
+		<menu_item_call label="Gesten..." name="Gestures..."/>
+		<menu_item_call label="Profil..." name="Profile..."/>
+		<menu_item_call label="Aussehen..." name="Appearance..."/>
+		<menu_item_call label="Outfit erstellen..." name="Make Outfit..."/>
+		<menu_item_call label="Display Name..." name="Display Name..."/>
+		<menu_item_separator label="-----------" name="separator7"/>
+		<menu_item_check label="Freunde..." name="Friends..."/>
+		<menu_item_call label="Gruppen..." name="Groups..."/>
+		<menu_item_separator label="-----------" name="separator8"/>
+		<menu_item_call label="Einstellungen..." name="Preferences..."/>
+	</menu>
+	<menu label="Anzeigen" name="View">
+		<tearoff_menu label="~~~~~~~~~~~" name="~~~~~~~~~~~"/>
+		<menu_item_call label="Mouselook-Modus" name="Mouselook"/>
+		<menu_item_check label="Bauen" name="Build"/>
+		<menu_item_check label="Joystick-Flycam" name="Joystick Flycam"/>
+		<menu_item_call label="Ansicht zurücksetzen" name="Reset View"/>
+		<menu_item_check label="Motion Resets Camera" name="Motion Resets Camera"/>
+		<menu_item_call label="Letzten Chatter ansehen" name="Look at Last Chatter"/>
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_check label="Symbolleistenschaltflächen" name="Toolbar"/>
+		<menu_item_check label="Lokaler Chat" name="Chat History"/>
+		<menu_item_check label="Unterhalten" name="Instant Message"/>
+		<menu_item_check label="Inventar" name="Inventory"/>
+		<menu_item_check label="Aktive Sprecher" name="Active Speakers"/>
+		<menu_item_check label="Stummschalten-Liste" name="Mute List"/>
+		<menu_item_check label="Teleport-Liste" name="Teleport History"/>
+		<menu_item_check label="Medienfilter" name="Media Filter"/>
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_check label="Kamerasteuerung" name="Camera Controls"/>
+		<menu_item_check label="Bewegungssteuerung" name="Movement Controls"/>
+		<menu_item_check label="Karte" name="World Map"/>
+		<menu_item_check label="Minikarte" name="Mini-Map"/>
+		<menu_item_check label="Radar" name="Radar"/>
+		<menu_item_separator label="-----------" name="separator3"/>
+		<menu_item_check label="Statistikleiste" name="Statistics Bar"/>
+		<menu_item_separator label="-----------" name="separator100"/>
+		<menu_item_check label="Areal-Suche" name="Area Search"/>
+		<menu_item_check label="Grundstücksgrenzen" name="Property Lines"/>
+		<menu_item_check label="Absperrungen" name="Banlines"/>
+		<menu_item_check label="Landeigentümer" name="Land Owners"/>
+		<menu_item_separator label="-----------" name="separator4"/>
+		<menu label="Schwebe-Tipps" name="Hover Tips">
+			<menu_item_check label="Tipps anzeigen" name="Show Tips"/>
+			<menu_item_separator label="-----------" name="separator"/>
+			<menu_item_check label="Landtipps" name="Land Tips"/>
+			<menu_item_check label="Tipps zu allen Objekten" name="Tips On All Objects"/>
+		</menu>
+		<menu_item_check label="Durchsichtig hervorheben" name="Highlight Transparent"/>
+		<menu_item_check name="beacons" label="Strahlen"/>
+    <menu_item_check label="Partikel ausblenden" name="Hide Particles"/>
+    <menu_item_check label="HUD-Anhänge anzeigen" name="Show HUD Attachments"/>
+		<menu_item_separator label="-----------" name="separator5"/>
+		<menu_item_call label="Hineinzoomen" name="Zoom In"/>
+		<menu_item_call label="Zoom-Standard" name="Zoom Default"/>
+		<menu_item_call label="Wegzoomen" name="Zoom Out"/>
+		<menu_item_separator label="-----------" name="separator6"/>
+		<menu_item_call label="Vollbild" name="Toggle Fullscreen"/>
+		<menu_item_call label="UI-Größe auf Standard setzen" name="Set UI Size to Default"/>
+	</menu>
+	<menu label="Welt" name="World">
+		<menu_item_call label="Chat" name="Chat"/>
+		<menu_item_check label="Immer rennen" name="Always Run"/>
+		<menu_item_call label="Auf Boden sitzen" name="Sit on Ground"/>
+		<menu_item_check label="Fliegen" name="Fly"/>
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_call label="Landmarke hier setzen" name="Create Landmark Here"/>
+		<menu_item_call label="Hier als Zuhause wählen" name="Set Home to Here"/>
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_call label="Estate: Teleport nach Hause" name="Teleport Home"/>
+		<menu_item_separator label="-----------" name="separator3"/>
+    	<menu_item_call label="Täusche Abwesend-Status vor" name="Fake Away Status"/>
+		<menu_item_call label="Als abwesend anzeigen" name="Set Away"/>
+		<menu_item_call label="Als beschäftigt anzeigen" name="Set Busy"/>
+		<menu_item_call label="Avatar nicht mehr animieren" name="Stop Animating My Avatar"/>
+		<menu_item_call label="Tasten freigeben" name="Release Keys"/>
+		
+		<menu_item_separator label="-----------" name="separator4"/>
+		<menu_item_call label="Kontostatistik..." name="Account History..."/>
+		<menu_item_call label="Mein Konto verwalten..." name="Manage My Account..."/>
+        <menu_item_check label="Händler Ausgangsbox" name="MerchantOutbox"/>
+		<menu_item_call label="L$ kaufen..." name="Buy and Sell L$..."/>
+		<menu_item_separator label="-----------" name="separator5"/>
+        <menu_item_call label="Meine Outfits" name="My Outfits"/>
+        <menu_item_call label="Favoriten" name="Favorites"/>
+        <menu_item_separator label="-----------" name="separator5"/>
+		<menu_item_call label="Mein Land..." name="My Land..."/>
+		<menu_item_call label="Land-Info..." name="About Land..."/>
+		<menu_item_call label="Land kaufen..." name="Buy Land..."/>
+		<menu_item_call label="Region/Grundstück..." name="Region/Estate..."/>
+		
+		<menu_item_separator label="-----------" name="separator6"/>
+		<menu label="Umgebungseinstellungen" name="Environment Settings">
+			<menu_item_call label="Sonnenaufgang" name="Sunrise"/>
+			<menu_item_call label="Mittag" name="Noon"/>
+			<menu_item_call label="Sonnenuntergang" name="Sunset"/>
+			<menu_item_call label="Mitternacht" name="Midnight"/>
+			<menu_item_call label="Auf Regionsstandard zurücksetzen" name="Revert to Region Default"/>
+			<menu_item_separator label="-----------" name="separator"/>
+      <menu_item_call label="Umwelt-Editor" name="Environment Editor"/>
+      <menu_item_call label="Tageszyklus-Editor" name="Day Cycle Editor"/>
+	  <menu_item_call label="Post-Processing-Einstellungen" name="Post-Processing Effects"/>
+		</menu>
+	</menu>
+	<menu label="Werkzeug" name="Tools">
+		<menu label="Fehlermeldungen" name="Select Tool">
+			<menu_item_call label="Fokus" name="Focus"/>
+			<menu_item_call label="Bewegen" name="Move"/>
+			<menu_item_call label="Bearbeiten" name="Edit"/>
+			<menu_item_call label="Erstellen" name="Create"/>
+			<menu_item_call label="Land" name="Land"/>
+		</menu>
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_check label="Nur meine Objekte auswählen" name="Select Only My Objects"/>
+		<menu_item_check label="Nur bewegliche Objekte auswählen" name="Select Only Movable Objects"/>
+		<menu_item_check label="Nach Umgebung auswählen" name="Select By Surrounding"/>
+		<menu_item_check label="Zeige Auswahl-Umrisse" name="Show Selection Outlines"/>
+		<menu_item_check label="Ausgeblendete Auswahl anzeigen" name="Show Hidden Selection"/>
+		<menu_item_check label="Lichtradius für Auswahl anzeigen" name="Show Light Radius for Selection"/>
+		<menu_item_check label="Auswahlstrahl anzeigen" name="Show Selection Beam"/>
+		
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_check label="An Raster ausrichten" name="Snap to Grid"/>
+		<menu_item_call label="Objekt-XY an Raster ausrichten" name="Snap Object XY to Grid"/>
+		<menu_item_call label="Auswahl für Raster verwenden" name="Use Selection for Grid"/>
+		<menu_item_call label="Rasteroptionen..." name="Grid Options..."/>
+		<menu_item_separator label="-----------" name="separator3"/>
+		<menu_item_check label="Verknüpfte Teile bearbeiten" name="Edit Linked Parts"/>
+		<menu label="Verknüpfte Teile auswählen" name="Select Linked Parts">
+			<menu_item_call label="Nächstes Teil auswählen" name="Select Next Part"/>
+			<menu_item_call label="Vorheriges Teil auswählen" name="Select Previous Part"/>
+			<menu_item_call label="Nächstes Teil einbinden" name="Include Next Part"/>
+			<menu_item_call label="Vorheriges Teil einbinden" name="Include Previous Part"/>
+		</menu>
+		<menu_item_call label="Verknüpfen" name="Link"/>
+		<menu_item_call label="Verknüpfung auflösen" name="Unlink"/>
+		<menu_item_separator label="-----------" name="separator4"/>
+		<menu_item_call label="Fokus auf Auswahl" name="Focus on Selection"/>
+		<menu_item_call label="Auf Auswahl zoomen" name="Zoom to Selection"/>
+		<menu_item_call label="Objekt kaufen" name="Menu Object Take"/>
+		<menu_item_call label="Kopie nehmen" name="Take Copy"/>
+		<menu_item_call label="Objekte zurückgeben" name="Return..."/>
+		<menu_item_call label="Objekt wieder in Objektinhalt speichern" name="Save Object Back to Object Contents"/>
+		<menu_item_call label="Admin-Löschen" name="Admin Delete"/>
+		<menu_item_separator label="-----------" name="separator6"/>
+		<menu_item_call label="Skriptwarnung/Fehlerfenster anzeigen" name="Show Script Warning/Error Window"/>
+		<menu label="Skripte in Auswahl neu kompilieren" name="Recompile Scripts in Selection">
+		     <menu_item_call label="Mono" name="Mono"/>
+		     <menu_item_call label="LSL" name="LSL"/>
+		</menu>
+		<menu_item_call label="Skripte in Auswahl zurücksetzen" name="Reset Scripts in Selection"/>
+		<menu_item_call label="Skripte in Auswahl so einstellen, dass sie ausgeführt werden" name="Set Scripts to Running in Selection"/>
+		<menu_item_call label="Skripte in Auswahl so einstellen, dass sie nicht ausgeführt werden" name="Set Scripts to Not Running in Selection"/>
+    <menu_item_call label="Skripte in Auswahl entfernen" name="Remove Scripts in Selection"/>
+    <menu_item_call label="Skripte in Auswahl zählen" name="Count Scripts in Selection"/>
+      <menu label="Pathfinding" name="Pathfinding">
+        <menu_item_check label="Linksets..." name="pathfinding_linksets_menu_item"/>
+        <menu_item_check label="Charaktere..." name="pathfinding_characters_menu_item"/>
+        <menu_item_call label="Region neu erzeugen" name="pathfinding_rebake_navmesh_item"/>
+      </menu>
+	</menu>
+	<menu label="Hilfe" name="Help">
+		<!--menu_item_call bottom="-29" enabled="true" height="19" label="Second Life Help" left="0"
+		     mouse_opaque="true" name="Second Life Help" shortcut="F1" width="166">
+			<on_click function="ShowFloater" userdata="help f1" />
+		</menu_item_call-->
+		<menu_item_call label="Anleitung" name="Tutorial"/>
+		<menu_item_separator label="-----------" name="separator"/>
+		<menu_item_call label="Offizielles Linden-Blog..." name="Official Linden Blog..."/>
+		<menu_item_separator label="-----------" name="separator2"/>
+		<menu_item_call label="Scripting-Portal..." name="Scripting Portal..."/>
+		<menu_item_separator label="-----------" name="separator3"/>
+		<menu_item_call label="Missbrauch melden..." name="Report Abuse..."/>
+		<menu_item_call label="Rempler, Stöße und Schläge..." name="Bumps, Pushes &amp;amp; Hits..."/>
+		<menu_item_call label="Lag-Anzeige" name="Lag Meter"/>
+		<menu_item_separator label="-----------" name="separator7"/>
+		<menu label="Fehlermeldungen" name="Bug Reporting">
+			<menu_item_call label="Allgemeiner Probleme-Tracker..." name="Public Issue Tracker..."/>
+			<menu_item_call label="Hilfe zum Allgemeinen Probleme-Tracker..." name="Publc Issue Tracker Help..."/>
+			<menu_item_call label="Singularity Probleme-Tracker..." name="Singularity Issue Tracker..."/>
+			<menu_item_separator label="-----------" name="separator7"/>
+			<menu_item_call label="Fehlermeldungs 101..." name="Bug Reporting 101..."/>
+			<menu_item_call label="Sicherheitsprobleme..." name="Security Issues..."/>
+			<menu_item_call label="QA-Wiki..." name="QA Wiki..."/>
+			<menu_item_separator label="-----------" name="separator9"/>
+			<menu_item_call label="Fehler melden..." name="Report Bug..."/>
+			<menu_item_call label="Singularity Problem berichten..." name="Report Singularity Bug..."/>
+			<menu_item_call label="Neue Funktionalität nachfragen..." name="Request New Feature..."/>
+		</menu>
+		<menu_item_call label="Über Snowglobe..." name="About Second Life..."/>
+	</menu>
+	<menu label="Singularity" name="Singularity">
+		<menu_item_call label="Alle Dialoge schließen" name="Close All Dialogs"/>
+		
+		<menu_item_call label="Täusche Abwesend-Status vor" name="Fake Away Status"/>
+		<menu_item_call label="Erzwinge auf dem Boden zu sitzen" name="Force Ground Sit"/>
+		
+		<menu_item_call label="Animationsübersteuerung" name="Animation Override ..."/>
+		<menu_item_check label="leichtfüßig" name="Nimble"/>
+		
+		<menu_item_check label="Areal-Objektsuche" name="Object Area Search"/>
+		<menu_item_check label="Sound Explorer" name="Sound Explorer"/>
+		<menu_item_check label="Asset-Blacklist" name="Asset Blacklist"/>
+		<menu_item_check label="Streaming-Audio Anzeige" name="Streaming Audio Display"/>
+		<menu_item_check label="Pose-Stand" name="Pose Stand"/>
+		<menu_item_check label="Region Debug Konsole" name="Region Debug Console"/>
+		
+		<menu_item_call label="Rebake" name="Rebake"/>
+	</menu>
+</menu_bar>

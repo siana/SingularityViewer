@@ -39,13 +39,13 @@
 #include "llbutton.h"
 #include "lliconctrl.h"
 #include "llfloaterchat.h"	// for add_chat_history()
+#include "llgroupactions.h"
 #include "llnotify.h"
 #include "lltextbox.h"
 #include "llviewertexteditor.h"
 #include "lluiconstants.h"
 #include "llui.h"
 #include "llviewercontrol.h"
-#include "llfloatergroupinfo.h"
 #include "llinventoryicon.h"
 #include "llinventory.h"
 #include "lltrans.h"
@@ -250,8 +250,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 				std::string("notify_next.png"),
 				std::string("notify_next.png"),
 				LLStringUtil::null,
-				onClickNext,
-				this,
+				boost::bind(&LLGroupNotifyBox::onClickNext, this),
 				LLFontGL::getFontSansSerif());
 	btn->setToolTip(LLTrans::getString("next"));
 	btn->setScaleImage(TRUE);
@@ -268,7 +267,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 								btn_width,
 								BTN_HEIGHT);
 
-	btn = new LLButton(LLTrans::getString("ok"), btn_rect, LLStringUtil::null, onClickOk, this);
+	btn = new LLButton(LLTrans::getString("ok"), btn_rect, LLStringUtil::null, boost::bind(&LLGroupNotifyBox::onClickOk,this));
 	addChild(btn, -1);
 	setDefaultBtn(btn);
 
@@ -280,7 +279,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 								wide_btn_width,
 								BTN_HEIGHT);
 
-	btn = new LLButton(LLTrans::getString("GroupNotifyGroupNotices"), btn_rect, LLStringUtil::null, onClickGroupInfo, this);
+	btn = new LLButton(LLTrans::getString("GroupNotifyGroupNotices"), btn_rect, LLStringUtil::null, boost::bind(LLGroupActions::showTab, mGroupID, "notices_tab"));
 	btn->setToolTip(LLTrans::getString("GroupNotifyViewPastNotices"));
 	addChild(btn, -1);
 
@@ -302,7 +301,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 		{
 			btn_lbl = LLTrans::getString("GroupNotifySaveAttachment");
 		}
-		mSaveInventoryBtn = new LLButton(btn_lbl, btn_rect, LLStringUtil::null, onClickSaveInventory, this);
+		mSaveInventoryBtn = new LLButton(btn_lbl, btn_rect, LLStringUtil::null, boost::bind(&LLGroupNotifyBox::onClickSaveInventory,this));
 		mSaveInventoryBtn->setVisible(mHasInventory);
 		addChild(mSaveInventoryBtn);
 	}
@@ -453,41 +452,23 @@ LLRect LLGroupNotifyBox::getGroupNotifyRect()
 }
 
 
-// static
-void LLGroupNotifyBox::onClickOk(void* data)
+void LLGroupNotifyBox::onClickOk()
 {
-	LLGroupNotifyBox* self = (LLGroupNotifyBox*)data;
-	if (self) self->close();
+	close();
 }
 
-void LLGroupNotifyBox::onClickGroupInfo(void* data)
+void LLGroupNotifyBox::onClickSaveInventory()
 {
-	LLGroupNotifyBox* self = (LLGroupNotifyBox*)data;
+	mInventoryOffer->forceResponse(IOR_ACCEPT);
 
-	if (self)
-	{
-		LLFloaterGroupInfo::showFromUUID(self->mGroupID, "notices_tab");
-	}
-
-	//Leave notice open until explicitly closed
-}
-
-void LLGroupNotifyBox::onClickSaveInventory(void* data)
-{
-	LLGroupNotifyBox* self = (LLGroupNotifyBox*)data;
-
-	self->mInventoryOffer->forceResponse(IOR_ACCEPT);
-
-	self->mInventoryOffer = NULL;
-	self->mHasInventory = FALSE;
+	mInventoryOffer = NULL;
+	mHasInventory = FALSE;
 
 	// Each item can only be received once, so disable the button.
-	self->mSaveInventoryBtn->setEnabled(FALSE);
+	mSaveInventoryBtn->setEnabled(FALSE);
 }
 
-// static
-void LLGroupNotifyBox::onClickNext(void* data)
+void LLGroupNotifyBox::onClickNext()
 {
-	LLGroupNotifyBox* self = (LLGroupNotifyBox*)data;
-	self->moveToBack();
+	moveToBack();
 }

@@ -1,56 +1,29 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <menu name="popup">
-	<menu_item_call name="Zoom Close" label="Acercar" >
-		<on_click function="MiniMap.ZoomLevel" userdata="2" />
-	</menu_item_call>
-	<menu_item_call name="Zoom Medium" label="Normal" >
-		<on_click function="MiniMap.ZoomLevel" userdata="1" />
-	</menu_item_call>
-	<menu_item_call  name="Zoom Far" label="Alejar" >
-		<on_click function="MiniMap.ZoomLevel" userdata="0" />
-	</menu_item_call>
+	<menu_item_call name="Zoom Close" label="Acercar"/>
+	<menu_item_call name="Zoom Medium" label="Normal"/>
+	<menu_item_call  name="Zoom Far" label="Alejar"/>
 	<menu_item_separator />
-	<menu_item_check name="Center on Camera" label="Centrar en Cámara">
-		<on_click function="MiniMap.Center" userdata="1" />
-		<on_check function="MiniMap.CheckCenter" userdata="1" />
-	</menu_item_check>
-	<menu_item_check name="Rotate Mini-Map" label="Rotar Mini-Mapa">
-	  <on_click function="MiniMap.Rotate" userdata="" />
-	  <on_check function="MiniMap.CheckRotate" userdata="" />
-	</menu_item_check>
+	<menu_item_check name="Center on Camera" label="Centrar en Cámara"/>
+	<menu_item_check name="Rotate Mini-Map" label="Rotar Mini-Mapa"/>
+	<menu_item_check label="Mostrar Objetos" name="Show Objects"/>
+	<menu name="Chat Distance Rings" label="Anillos de Rangos de Chat">
+		<menu_item_check label="Mostrar Todos" name="Show All"/>
+		<menu_item_separator />
+		<menu_item_check label="Mostrar rango Sururros" name="Show Whisper Ring"/>
+		<menu_item_check label="Mostrar rango Chat" name="Show Chat Ring"/>
+		<menu_item_check label="Mostrar rango Gritos" name="Show Shout Ring"/>
+    </menu>
 	<menu_item_separator />
-	<menu_item_call name="Stop Tracking" label="Detener Seguimiento" >
-		<on_click function="MiniMap.StopTracking" />
-		<on_enable function="MiniMap.EnableTracking" />
-	</menu_item_call>
-	<menu_item_call name="Profile" label="Perfil..." >
-		<on_click function="MiniMap.ShowProfile" />
-		<on_enable function="MiniMap.EnableProfile" />
-	</menu_item_call>
-	<menu_item_call name="Camfollow" label="Cámara..." >
-		<on_click function="MiniMap.CamFollow" />
-		<on_enable function="MiniMap.EnableProfile" />
-	</menu_item_call>
-	<menu name="Mark">
-		<on_enable function="MiniMap.EnableProfile" />
-		<menu_item_call name="Red" label="Rojo" >
-			<on_click function="MiniMap.setred" />
-		</menu_item_call>
-		<menu_item_call name="Green" label="Verde" >
-			<on_click function="MiniMap.setgreen" />
-		</menu_item_call>
-		<menu_item_call name="Blue" label="Azul" >
-			<on_click function="MiniMap.setblue" />
-		</menu_item_call>
-		<menu_item_call name="Yellow" label="Amarillo">
-			<on_click function="MiniMap.setyellow" />
-		</menu_item_call>
-		<menu_item_call name="Custom" label="Personalizar...">
-			<on_click function="MiniMap.setcustom" />
-		</menu_item_call>
+	<menu_item_call name="Stop Tracking" label="Detener Seguimiento"/>
+	<menu_item_call name="Profile" label="Perfil..."/>
+	<menu_item_call name="Camfollow" label="Cámara..."/>
+	<menu name="Mark" label="Marcar">
+		<menu_item_call name="Red" label="Rojo"/>
+		<menu_item_call name="Green" label="Verde"/>
+		<menu_item_call name="Blue" label="Azul"/>
+		<menu_item_call name="Yellow" label="Amarillo"/>
+		<menu_item_call name="Custom" label="Personalizado..."/>
   </menu>
-  <menu_item_call name="Unmark" label="Desmarcar" >
-    <on_click function="MiniMap.setunmark" />
-    <on_enable function="MiniMap.enableunmark" />
-  </menu_item_call>
+  <menu_item_call name="Unmark" label="Desmarcar"/>
 </menu>

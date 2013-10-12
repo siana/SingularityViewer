@@ -59,11 +59,12 @@ LLHost::LLHost(const std::string& ip_and_port)
 		mIP = ip_string_to_u32(ip_str.c_str());
 		mPort = atol(port_str.c_str());
 	}
+	mHostNotFound = 0;
 }
 
 std::string LLHost::getString() const
 {
-	return llformat("%s:%u", u32_to_ip_string(mIP), mPort);
+	return llformat("%s:%hu", u32_to_ip_string(mIP), mPort);
 }
 
 
@@ -87,16 +88,27 @@ std::string LLHost::getHostName() const
 		llwarns << "LLHost::getHostName() : Invalid IP address" << llendl;
 		return std::string();
 	}
+	if (mHostNotFound)
+	{
+		// We already checked this... avoid freezing the viewer 5 seconds again and again.
+		llwarns << "LLHost::getHostName() : Returning cached HOST_NOT_FOUND." << llendl;
+		return std::string();
+	}
 	he = gethostbyaddr((char *)&mIP, sizeof(mIP), AF_INET);
 	if (!he)
 	{
 #if LL_WINDOWS
-		llwarns << "LLHost::getHostName() : Couldn't find host name for address " << mIP << ", Error: " 
-			<< WSAGetLastError() << llendl;
+		int err = WSAGetLastError();
+		int err_host_not_found = WSAHOST_NOT_FOUND;
 #else
-		llwarns << "LLHost::getHostName() : Couldn't find host name for address " << mIP << ", Error: " 
-			<< h_errno << llendl;
+		int err = h_errno;
+		int err_host_not_found = HOST_NOT_FOUND;
 #endif
+		llwarns << "LLHost::getHostName() : Couldn't find host name for address " << mIP << ", Error: " << err << llendl;
+		if (err == err_host_not_found)
+		{
+			mHostNotFound = 1;
+		}
 		return std::string();
 	}
 	else
@@ -125,6 +137,7 @@ BOOL LLHost::setHostByName(const std::string& hostname)
 	if (he)
 	{
 		mIP = *(U32 *)he->h_addr_list[0];
+		mHostNotFound = 0;
 		return TRUE;
 	}
 	else 

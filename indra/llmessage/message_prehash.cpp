@@ -37,8 +37,6 @@ F32 const gPrehashVersionNumber = 2.000f;
 char const* const _PREHASH_X = LLMessageStringTable::getInstance()->getString("X");
 char const* const _PREHASH_Y = LLMessageStringTable::getInstance()->getString("Y");
 char const* const _PREHASH_Z = LLMessageStringTable::getInstance()->getString("Z");
-char const* const _PREHASH_SizeX = LLMessageStringTable::getInstance()->getString("SizeX");
-char const* const _PREHASH_SizeY = LLMessageStringTable::getInstance()->getString("SizeY");
 char const* const _PREHASH_AddFlags = LLMessageStringTable::getInstance()->getString("AddFlags");
 char const* const _PREHASH_FailureInfo = LLMessageStringTable::getInstance()->getString("FailureInfo");
 char const* const _PREHASH_MapData = LLMessageStringTable::getInstance()->getString("MapData");
@@ -1386,3 +1384,10 @@ char const* const _PREHASH_GroupAVSounds = LLMessageStringTable::getInstance()->
 char const* const _PREHASH_AppearanceData = LLMessageStringTable::getInstance()->getString("AppearanceData");
 char const* const _PREHASH_AppearanceVersion = LLMessageStringTable::getInstance()->getString("AppearanceVersion");
 char const* const _PREHASH_CofVersion = LLMessageStringTable::getInstance()->getString("CofVersion");
+
+// <FS:CR> Aurora Sim
+char const* const _PREHASH_RegionSizeX = LLMessageStringTable::getInstance()->getString("RegionSizeX");
+char const* const _PREHASH_RegionSizeY = LLMessageStringTable::getInstance()->getString("RegionSizeY");
+char const* const _PREHASH_SizeX = LLMessageStringTable::getInstance()->getString("SizeX");
+char const* const _PREHASH_SizeY = LLMessageStringTable::getInstance()->getString("SizeY");
+// </FS:CR> Aurora Sim

@@ -80,7 +80,6 @@ private:
 private:
 	ETOSType		mType;
 	std::string		mMessage;
-	int				mWebBrowserWindowId;
 	int				mLoadCompleteCount;
 
 	static LLFloaterTOS* sInstance;

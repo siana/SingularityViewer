@@ -173,7 +173,8 @@ public:
 	void optimizeVolumeFaces();
 	void offsetMesh( const LLVector3& pivotPoint );
 	void getNormalizedScaleTranslation(LLVector3& scale_out, LLVector3& translation_out);
-	
+	LLVector3 getTransformedCenter(const LLMatrix4& mat);
+
 	//reorder face list based on mMaterialList in this and reference so 
 	//order matches that of reference (material ordering touchup)
 	bool matchMaterialOrder(LLModel* ref, int& refFaceCnt, int& modelFaceCnt );

@@ -335,7 +335,7 @@ void LLDrawPoolAlpha::render(S32 pass)
 			gPipeline.enableLightsFullbright(LLColor4(1,1,1,1));
 		}
 
-		gGL.diffuseColor4f(1,0,0,1);
+		gGL.diffuseColor4f(0.9,0,0,0.4);
 				
 		LLViewerFetchedTexture::sSmokeImagep->addTextureStats(1024.f*1024.f);
 		gGL.getTexUnit(0)->bind(LLViewerFetchedTexture::sSmokeImagep, TRUE) ;

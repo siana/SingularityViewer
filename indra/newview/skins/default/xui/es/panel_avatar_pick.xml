@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel name="Pick" title="Destacados">
+	<texture_picker name="snapshot_ctrl"/>
+	<line_editor name="given_name_editor"/>
+	<text_editor name="desc_editor"/>
+	<line_editor name="location_editor"/>
 	<button label="Fijar Ubicación" name="set_location_btn" width="100" left="200"/>
+    <button label="Abrir Imagen" name="open_picture_btn" width="110"/>
 	<button label="Teleportar" name="pick_teleport_btn" width="74"/>
 	<button label="Mostrar en Mapa" name="pick_map_btn" width="116" left="84"/>
-	<text name="sort_order_text">
-		Ordenar:
-	</text>
-	<check_box label="Activado" name="enabled_check"/>
 </panel>

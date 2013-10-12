@@ -185,9 +185,7 @@ void LLViewerTextureList::doPreloadImages()
 
 static std::string get_texture_list_name()
 {
-	//return std::string("texture_list_") + gSavedSettings.getString("LoginLocation") + ".xml";
-	bool login_last = gSavedSettings.getBOOL("LoginLastLocation");
-	return std::string("texture_list_") + (login_last?"last":"home") + ".xml";
+	return std::string("texture_list_") + gSavedSettings.getString("LoginLocation") + ".xml";
 }
 
 void LLViewerTextureList::doPrefetchImages()
@@ -687,8 +685,6 @@ void LLViewerTextureList::updateImages(F32 max_time)
 	}
 	cleared = FALSE;
 
-	LLAppViewer::getTextureFetch()->setTextureBandwidth(LLViewerStats::getInstance()->mTextureKBitStat.getMeanPerSec());
-
 	S32 global_raw_memory;
 	{
 		global_raw_memory = *AIAccess<S32>(LLImageRaw::sGlobalRawMemory);
@@ -746,12 +742,7 @@ void LLViewerTextureList::updateImages(F32 max_time)
 			}
 		}
 	}
-	//Required for old media system
-	if (!gNoRender && !gGLManager.mIsDisabled)
-	{
-		LLFastTimer t(FTM_IMAGE_MEDIA);
-		LLViewerMedia::updateMedia();
-	}
+
 	{
 		LLFastTimer t(FTM_IMAGE_STATS);
 		updateImagesUpdateStats();
@@ -1342,6 +1333,7 @@ void LLViewerTextureList::receiveImageHeader(LLMessageSystem *msg, void **user_d
 	{
 		received_size = msg->getReceiveSize() ;		
 	}
+	// Only used for statistics and texture console.
 	gTextureList.sTextureBits += received_size * 8;
 	gTextureList.sTexturePackets++;
 	
@@ -1474,6 +1466,7 @@ void LLViewerTextureList::processImageNotInDatabase(LLMessageSystem *msg,void **
 	LLViewerFetchedTexture* image = gTextureList.findImage( image_id );
 	if( image )
 	{
+		llwarns << "not in db" << llendl;
 		image->setIsMissingAsset();
 	}
 }

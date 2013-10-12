@@ -3,10 +3,9 @@
  * @brief LLFloaterImagePreview class definition
  *
  * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2004-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -115,9 +114,8 @@ protected:
 class LLFloaterImagePreview : public LLFloaterNameDesc
 {
 public:
-	LLFloaterImagePreview(const std::string& filename);
 	// <edit>
-	LLFloaterImagePreview(const std::string& filename, void* item);
+	LLFloaterImagePreview(const std::string& filename, void* item = NULL);
 	// </edit>
 	virtual ~LLFloaterImagePreview();
 
@@ -129,7 +127,6 @@ public:
 	BOOL handleScrollWheel(S32 x, S32 y, S32 clicks); 
 
 	static void onMouseCaptureLostImagePreview(LLMouseHandler*);
-	static void setUploadAmount(S32 amount) { sUploadAmount = amount; }
 
 	void clearAllPreviewTextures();
 
@@ -146,8 +143,6 @@ protected:
 	LLRect			mPreviewRect;
 	LLRectf			mPreviewImageRect;
 	LLPointer<LLViewerTexture> mImagep ;
-
-	static S32		sUploadAmount;
 };
 
 #endif  // LL_LLFLOATERIMAGEPREVIEW_H

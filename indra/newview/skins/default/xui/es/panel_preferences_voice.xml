@@ -3,42 +3,33 @@
 	<text name="voice_unavailable">
 		El Chat de Voz no está Disponible
 	</text>
-	<check_box bottom_delta="0" follows="top" height="16" initial_value="false" label="Habilitar Chat de Voz" left="8" name="enable_voice_check"/>
-	<radio_group bottom_delta="-46" draw_border="false" follows="top" height="40" left_delta="20" name="ear_location" width="364">
+	<check_box label="Habilitar Chat de Voz" name="enable_voice_check"/>
+	<check_box name="enable_multivoice_check"/>
+	<string value="Permitir múltiples instancias de [APP_NAME] usar el voice simultáneamente (req. reiniciar)" name="multivoice_label"/>
+	<radio_group name="ear_location">
 		<radio_item name="0">
-			Oir el chat desde la posición de la cámara.
+			Escuchar chat de voz desde la posición de la cámara.
 		</radio_item>
 		<radio_item name="1">
-			Oir el chat desde la posición del avatar.
+			Escuchar chat de voz desde la posición del avatar.
+		</radio_item>
+		<radio_item name="3">
+			Escuchar chat de voz desde cualquier posición.
 		</radio_item>
 	</radio_group>
 	<text name="push_to_talk_heading">
 		Apretar para Hablar
 	</text>
-	<text name="voice_chat_description">
-		El modo Apretar para Hablar controla cuándo tu voz se transmite. En el modo 
-'un toque', pulsa y suelta el botón Apretar para Hablar para activar y desactivar 
-tu micrófono. Si no se está en el modo 'un toque', el micrófono está activo
-sólo cuando se mantiene pulsado el botón.
-	</text>
-	<check_box label="Usar Apretar para Hablar en el modo 'Un Toque'" name="push_to_talk_toggle_check"/>
+	<check_box label="Usar Apretar para Hablar en el modo 'Un Toque'" name="push_to_talk_toggle_check" tool_tip="El modo Apretar para Hablar controla cuándo tu voz se transmite. En el modo 'un toque', pulsa y suelta el botón Apretar para Hablar para activar y desactivar tu micrófono. Si no se está en el modo 'un toque', el micrófono está activo sólo cuando se mantiene pulsado el botón."/>
 	<text name="push_to_talk_label">
 		Botón Apretar para Hablar:
 	</text>
+	<line_editor name="modifier_combo"/>
 	<button label="Definir Tecla" name="set_voice_hotkey_button" width="115"/>
 	<button label="Botón medio del Ratón" left_delta="120" name="set_voice_middlemouse_button" width="160"/>
-	<text name="lip_sync_heading" width="445">
-		Activar animación de Labios
-	</text>
 	<check_box label="Activar Animación de Labios" left_delta="20" name="enable_lip_sync_check"/>
-	<text name="privacy_heading">
-		Opciones de Privacidad
-	</text>
-	<check_box label="Aceptar llamadas sólo de mis contactos" left_delta="20" name="voice_call_friends_only_check"/>
+	<check_box label="Aceptar llamadas sólo de mis contactos" name="voice_call_friends_only_check"/>
 	<check_box label="Apagar el micrófono al terminar la llamada por MI" name="auto_disengage_mic_check"/>
-	<button label="Configuración de Dispositivos" left="28" name="device_settings_btn" width="200"/>
-	<text name="device_settings_text">
-		NOTA: Ejecutar esta configuración te desconectará temporalmente del chat de voz, 
-y los cambios se aplicarán inmediatamente..
-	</text>
+	<button label="Configuración de Dispositivos" name="device_settings_btn" width="200" tool_tip="Ejecutar esta configuración te desconectará temporalmente del chat de voz, y los cambios se aplicarán inmediatamente."/>
+	<panel name="device_settings_panel"/>
 </panel>

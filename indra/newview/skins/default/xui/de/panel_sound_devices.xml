@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="device_settings_panel">
+    <string name="default_text">Standard</string>
+    <string name="name_no_device">Kein Gerät</string>
+    <string name="name_default_system_device">Standardsystemgerät</string>
+	<text name="Input">Input (microphone):</text>
+	
+	<text name="Output">Output (speakers):</text>
+	
+	<text name="My volume label">Input Level:</text>
+	<volume_slider name="mic_volume_slider" tool_tip="Lautstärke mit diesem Regler ändern"/>
+	<text name="wait_text">Bitte warten</text>
+	
+	
+	
+	
+	
+</panel>

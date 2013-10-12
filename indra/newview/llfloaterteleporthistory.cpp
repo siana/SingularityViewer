@@ -32,27 +32,20 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#include "linden_common.h"
-
-#include <algorithm>
-
-//MK
-#include "llworld.h"
-#include "lleventpoll.h"
-#include "llagent.h"
-//mk
-#include "llappviewer.h"
 #include "llfloaterteleporthistory.h"
+
+#include "llappviewer.h"
 #include "llfloaterworldmap.h"
-#include "lltimer.h"
+#include "llscrolllistcolumn.h"
+#include "llscrolllistitem.h"
+#include "llsdserialize.h"
+#include "llslurl.h"
 #include "lluictrlfactory.h"
-#include "llurldispatcher.h"
-#include "llurlsimstring.h"
-#include "llviewercontrol.h"
+#include "llurlaction.h"
 #include "llviewerwindow.h"
 #include "llwindow.h"
 #include "llweb.h"
-#include "llsdserialize.h"
+
 // [RLVa:KB]
 #include "rlvhandler.h"
 // [/RLVa:KB]
@@ -137,12 +130,12 @@ void LLFloaterTeleportHistory::addPendingEntry(std::string regionName, S16 x, S1
 	// Set pending position
 	mPendingPosition = llformat("%d, %d, %d", x, y, z);
 
+	LLSLURL slurl(regionName, LLVector3(x, y, z));
 	// prepare simstring for later parsing
-	mPendingSimString = regionName + llformat("/%d/%d/%d", x, y, z); 
-	mPendingSimString = LLWeb::escapeURL(mPendingSimString);
+	mPendingSimString = LLWeb::escapeURL(slurl.getLocationString());
 
 	// Prepare the SLURL
-	mPendingSLURL = LLURLDispatcher::buildSLURL(regionName, x, y, z);
+	mPendingSLURL = slurl.getSLURLString();
 }
 
 void LLFloaterTeleportHistory::addEntry(std::string parcelName)
@@ -333,8 +326,7 @@ void LLFloaterTeleportHistory::onTeleport(void* data)
 
 	// build secondlife::/app link from simstring for instant teleport to destination
 	std::string slapp = "secondlife:///app/teleport/" + self->mPlacesList->getFirstSelected()->getColumn(LIST_SIMSTRING)->getValue().asString();
-	LLMediaCtrl* web = NULL;
-	LLURLDispatcher::dispatch(slapp, web, TRUE);
+	LLUrlAction::teleportToLocation(slapp);
 }
 
 // static
@@ -344,16 +336,12 @@ void LLFloaterTeleportHistory::onShowOnMap(void* data)
 
 	// get simstring from selected entry and parse it for its components
 	std::string simString = self->mPlacesList->getFirstSelected()->getColumn(LIST_SIMSTRING)->getValue().asString();
-	std::string region = "";
-	S32 x = 128;
-	S32 y = 128;
-	S32 z = 20;
 
-	LLURLSimString::parse(simString, &region, &x, &y, &z);
+	LLSLURL slurl(simString);
 
 	// point world map at position
-	gFloaterWorldMap->trackURL(region, x, y, z);
-	LLFloaterWorldMap::show(NULL, TRUE);
+	gFloaterWorldMap->trackURL(slurl.getRegion(), slurl.getPosition().mV[VX], slurl.getPosition().mV[VY], slurl.getPosition().mV[VZ]);
+	LLFloaterWorldMap::show(true);
 }
 
 // static
@@ -363,5 +351,5 @@ void LLFloaterTeleportHistory::onCopySLURL(void* data)
 
 	// get SLURL of the selected entry and copy it to the clipboard
 	std::string SLURL = self->mPlacesList->getFirstSelected()->getColumn(LIST_SLURL)->getValue().asString();
-	gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(SLURL));
+	gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(SLURL));
 }

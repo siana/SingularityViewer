@@ -38,23 +38,19 @@
 #define LL_LLPANELCLASSIFIED_H
 
 #include "llavatarpropertiesprocessor.h"
-#include "llpanel.h"
 #include "llclassifiedinfo.h"
 #include "v3dmath.h"
 #include "lluuid.h"
 #include "llfloater.h"
-//#include "llrect.h"
 
 class LLButton;
 class LLCheckBoxCtrl;
 class LLComboBox;
-class LLIconCtrl;
 class LLLineEditor;
 class LLTextBox;
 class LLTextEditor;
 class LLTextureCtrl;
 class LLUICtrl;
-class LLMessageSystem;
 
 class LLPanelClassified : public LLPanel, public LLAvatarPropertiesObserver
 {
@@ -104,7 +100,7 @@ public:
 	// Confirmation dialogs flow in this order
 	bool confirmMature(const LLSD& notification, const LLSD& response);
 	void gotMature();
-	static void callbackGotPriceForListing(S32 option, std::string text, void* data);
+	void callbackGotPriceForListing(const std::string& text);
 	bool confirmPublish(const LLSD& notification, const LLSD& response);
 
 	void sendClassifiedClickMessage(const std::string& type);
@@ -112,14 +108,11 @@ public:
 protected:
 	bool saveCallback(const LLSD& notification, const LLSD& response);
 
-	static void onClickUpdate(void* data);
-    static void onClickTeleport(void* data);
-    static void onClickMap(void* data);
-	static void onClickProfile(void* data);
-    static void onClickSet(void* data);
-
-	static void focusReceived(LLFocusableElement* ctrl, void* data);
-	static void onCommitAny(LLUICtrl* ctrl, void* data);
+	void onClickUpdate();
+	void onClickTeleport();
+	void onClickMap();
+	void onClickProfile();
+	void onClickSet();
 
 	void setDefaultAccessCombo(); // Default AO and PG regions to proper classified access
 	
@@ -183,20 +176,15 @@ class LLFloaterPriceForListing
 : public LLFloater
 {
 public:
-	LLFloaterPriceForListing();
+	typedef boost::signals2::signal<void(const std::string& value)> signal_t;
+	LLFloaterPriceForListing(const signal_t::slot_type& cb);
 	virtual ~LLFloaterPriceForListing();
 	virtual BOOL postBuild();
 
-	static void show( void (*callback)(S32 option, std::string value, void* userdata), void* userdata );
-
 private:
-	static void onClickSetPrice(void*);
-	static void onClickCancel(void*);
-	static void buttonCore(S32 button, void* data);
+	void buttonCore();
 
-private:
-	void (*mCallback)(S32 option, std::string, void*);
-	void* mUserData;
+	signal_t* mSignal;
 };
 
 

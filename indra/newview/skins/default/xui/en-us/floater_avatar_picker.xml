@@ -63,7 +63,10 @@
 			</text>
 			<button bottom_delta="-3" left_delta="25" width="90" height="20" follows="top|right" 
 		           label="Refresh List" label_selected="Refresh List" halign="center"
-		           font="SansSerif" mouse_opaque="true" name="RefreshFriends" scale_image="TRUE" />
+		           font="SansSerif" mouse_opaque="true" name="RefreshFriends" scale_image="TRUE">
+             <button.commit_callback
+              function="Refresh.FriendList"/>
+            </button>
 			<scroll_list background_visible="true" bottom_delta="-115" column_padding="5"
 			     draw_border="true" draw_heading="false" draw_stripes="true"
 			     follows="left|top|right|bottom" height="110" left="10" mouse_opaque="true"

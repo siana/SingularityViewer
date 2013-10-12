@@ -37,29 +37,25 @@
 
 class LLUICtrl;
 
-class LLFloaterTopObjects : public LLFloater
+class LLFloaterTopObjects : public LLFloater, public LLSingleton<LLFloaterTopObjects>
 {
+	friend class LLSingleton<LLFloaterTopObjects>;
 public:
 	// Opens the floater on screen.
-	static void show();
+//	static void show();
 
 	// Opens the floater if it's not on-screen.
 	// Juggles the UI based on method = "scripts" or "colliders"
 	static void handle_land_reply(LLMessageSystem* msg, void** data);
 	void handleReply(LLMessageSystem* msg, void** data);
 	
-	static void clearList();
+	void clearList();
 	void updateSelectionInfo();
 	virtual BOOL postBuild();
 
-	static void onRefresh(void* data);
+	void onRefresh();
 
-	static void setMode(U32 mode)		{ if (sInstance) sInstance->mCurrentMode = mode; }
-
-	void onProfile(void* data);
-	void onKick(void* data);
-	void onTP(void* data);
-	void onLagWarning(void* data);
+	static void setMode(U32 mode);
 
 private:
 	LLFloaterTopObjects();
@@ -67,31 +63,27 @@ private:
 
 	void initColumns(LLCtrlListInterface *list);
 
-	static void onCommitObjectsList(LLUICtrl* ctrl, void* data);
+	void onCommitObjectsList();
 	static void onDoubleClickObjectsList(void* data);
-	 void lookAtAvatar();
-	static void onClickShowBeacon(void* data);
+	void onClickShowBeacon();
 
 	void doToObjects(int action, bool all);
 
-	static void onReturnAll(void* data);
-	static void onReturnSelected(void* data);
-	static void onDisableAll(void* data);
-	static void onDisableSelected(void* data);
+	void onReturnAll();
+	void onReturnSelected();
+	void onDisableAll();
+	void onDisableSelected();
 
-	static void onProfileBtn(void* data);
-	static void onKickBtn(void* data);
-	static void onTPBtn(void* data);
-	static void onLagWarningBtn(void* data);
-	
+	void onTeleportToObject();
+	void onKick();
+	void onProfile();
+
 	static bool callbackReturnAll(const LLSD& notification, const LLSD& response);
 	static bool callbackDisableAll(const LLSD& notification, const LLSD& response);
 
-	static void onGetByOwnerName(LLUICtrl* ctrl, void* data);
-	static void onGetByObjectName(LLUICtrl* ctrl, void* data);
-
-	static void onGetByOwnerNameClicked(void* data)  { onGetByOwnerName(NULL, data); };
-	static void onGetByObjectNameClicked(void* data) { onGetByObjectName(NULL, data); };
+	void onGetByOwnerName();
+	void onGetByObjectName();
+	void onGetByParcelName();
 
 	void showBeacon();
 
@@ -99,7 +91,7 @@ private:
 	std::string mMethod;
 
 	LLSD mObjectListData;
-	std::vector<LLUUID> mObjectListIDs;
+	uuid_vec_t mObjectListIDs;
 
 	U32 mCurrentMode;
 	U32 mFlags;

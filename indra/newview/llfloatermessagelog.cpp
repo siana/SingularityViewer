@@ -1,19 +1,22 @@
 // <edit>
 #include "llviewerprecompiledheaders.h"
+
 #include "llfloatermessagelog.h"
-#include "lluictrlfactory.h"
-#include "llworld.h"
-#include "llnotificationsutil.h"
-#include "llviewerregion.h"
-#include "llscrolllistctrl.h"
-#include "lltexteditor.h"
-#include "llviewerwindow.h" // alertXml
-#include "llmessagetemplate.h"
-#include <boost/tokenizer.hpp>
-#include "llmenugl.h"
+
 #include "lleventtimer.h"
+#include "llmenugl.h"
+#include "llmessagetemplate.h"
+#include "llnotificationsutil.h"
+#include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
+#include "lltexteditor.h"
+#include "lluictrlfactory.h"
 
 #include "llagent.h"
+#include "llviewerregion.h"
+#include "llworld.h"
+#include <boost/tokenizer.hpp>
+
 
 
 ////////////////////////////////
@@ -826,7 +829,7 @@ BOOL LLFloaterMessageLog::onClickCloseCircuit(void* user_data)
 // static
 bool LLFloaterMessageLog::onConfirmCloseCircuit(const LLSD& notification, const LLSD& response )
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	LLCircuitData* cdp = gMessageSystem->mCircuitInfo.findCircuit(LLHost(notification["payload"]["circuittoclose"].asString()));
 	if(!cdp) return false;
 	LLViewerRegion* regionp = LLWorld::getInstance()->getRegion(cdp->getHost());
@@ -861,7 +864,7 @@ bool LLFloaterMessageLog::onConfirmCloseCircuit(const LLSD& notification, const 
 // static
 bool LLFloaterMessageLog::onConfirmRemoveRegion(const LLSD& notification, const LLSD& response )
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if(option == 0) // yes
 		LLWorld::getInstance()->removeRegion(LLHost(notification["payload"]["regionhost"].asString()));
 	return false;

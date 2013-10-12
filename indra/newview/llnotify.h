@@ -90,10 +90,10 @@ protected:
 	static LLRect getNotifyTipRect(const std::string &message);
 
 	// internal handler for button being clicked
-	static void onClickButton(void* data);
+	void onClickButton(const std::string name);
 
 	// for "next" button
-	static void onClickNext(void* data);
+	void onClickNext();
 
 	//static LLNotifyBox* findExistingNotify(LLPointer<LLNotifyBoxTemplate> notify_template, const LLString::format_map_t& args);
 
@@ -130,8 +130,6 @@ protected:
 		LLNotifyBox* mSelf;
 		std::string	mButtonName;
 	};
-	std::vector<InstanceAndS32*> mBtnCallbackData;
-
 	static S32 sNotifyBoxCount;
 	static const LLFontGL* sFont;
 	static const LLFontGL* sFontSmall;

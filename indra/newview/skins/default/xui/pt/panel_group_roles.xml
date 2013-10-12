@@ -47,9 +47,7 @@ podem executar essa habilidade.
 	</panel>
 	<tab_container height="164" name="roles_tab_container">
 		<panel height="148" label="Membros" name="members_sub_tab" tool_tip="Membros">
-			<line_editor bottom="127" name="search_text"/>
-			<button label="Pesquisar" name="search_button" width="75"/>
-			<button label="Mostrar todos" name="show_all_button" left_delta="80"/>
+			<filter_editor bottom="127" name="filter_input"/>
 			<name_list name="member_list" bottom_delta="-105" height="104" >
 				<column label="Nome do membro" name="name"/>
 				<column label="Tarifa doada" name="donated"/>
@@ -62,9 +60,7 @@ podem executar essa habilidade.
 			</string>
 		</panel>
 		<panel height="148" label="Funções" name="roles_sub_tab">
-			<line_editor bottom="127" name="search_text"/>
-			<button label="Busca" name="search_button" width="75"/>
-			<button label="Mostrar todos" name="show_all_button" left_delta="80"/>
+			<filter_editor bottom="127" name="filter_input"/>
 			<scroll_list name="role_list" bottom_delta="-104" height="104">
 				<column label="Nome da função" name="name"/>
 				<column label="Título" name="title"/>
@@ -82,9 +78,7 @@ permitidas que os membros podem executar. Os membros poderão ter um ou mais fun
 			</string>
 		</panel>
 		<panel height="148" label="Habilidades" name="actions_sub_tab">
-			<line_editor bottom="127" name="search_text"/>
-			<button label="Busca" name="search_button" width="75"/>
-			<button label="Mostrar todos" name="show_all_button" left_delta="80"/>
+			<filter_editor bottom="127" name="filter_input"/>
 			<scroll_list bottom_delta="-120" height="118" name="action_list" tool_tip="Selecione uma habilidade para ver mais detalhes."/>
 			<string name="help_text">
 				As habilidades permitem que os membros nas funções façam coisas específicas dentro do grupo.

@@ -38,6 +38,8 @@
 #include "string_table.h"
 #include "llpointer.h"
 #include "llthread.h"
+#include "llsortedvector.h"
+#include <boost/unordered_map.hpp>
 
 class LLPolyMesh;
 
@@ -208,21 +210,21 @@ public:
 	// visual parameter accessors
 	LLVisualParam*	getFirstVisualParam()
 	{
-		mCurIterator = mVisualParamIndexMap.begin();
+		mCurIterator = mVisualParamSortedVector.begin();
 		return getNextVisualParam();
 	}
 	LLVisualParam*	getNextVisualParam()
 	{
-		if (mCurIterator == mVisualParamIndexMap.end())
+		if (mCurIterator == mVisualParamSortedVector.end())
 			return 0;
 		return (mCurIterator++)->second;
 	}
-
+	
 	S32 getVisualParamCountInGroup(const EVisualParamGroup group) const
 	{
 		S32 rtn = 0;
-		for (visual_param_index_map_t::const_iterator iter = mVisualParamIndexMap.begin();
-		     iter != mVisualParamIndexMap.end();
+		for (visual_param_sorted_vec_t::const_iterator iter = mVisualParamSortedVector.begin();
+		     iter != mVisualParamSortedVector.end();
 		     /* */ )
 		{
 			if ((iter++)->second->getGroup() == group)
@@ -238,7 +240,7 @@ public:
 		visual_param_index_map_t::const_iterator iter = mVisualParamIndexMap.find(id);
 		return (iter == mVisualParamIndexMap.end()) ? 0 : iter->second;
 	}
-	S32 getVisualParamID(LLVisualParam *id)
+	/*S32 getVisualParamID(LLVisualParam *id)
 	{
 		visual_param_index_map_t::iterator iter;
 		for (iter = mVisualParamIndexMap.begin(); iter != mVisualParamIndexMap.end(); iter++)
@@ -247,7 +249,7 @@ public:
 				return iter->first;
 		}
 		return 0;
-	}
+	}*/
 	S32				getVisualParamCount() const { return (S32)mVisualParamIndexMap.size(); }
 	LLVisualParam*	getVisualParam(const char *name);
 
@@ -278,13 +280,15 @@ protected:
 
 private:
 	// visual parameter stuff
-	typedef std::map<S32, LLVisualParam *> 		visual_param_index_map_t;
-	typedef std::map<char *, LLVisualParam *> 	visual_param_name_map_t;
+	//typedef std::map<S32, LLVisualParam *> 		visual_param_index_map_t;
+	typedef boost::unordered_map<S32, LLVisualParam *> 		visual_param_index_map_t;	//Hash map for fast lookup.
+	typedef LLSortedVector<S32,LLVisualParam *>				visual_param_sorted_vec_t;	//Contiguous sorted array.
+	typedef std::map<char *, LLVisualParam *> 				visual_param_name_map_t;	
 
-	visual_param_index_map_t::iterator 			mCurIterator;
-	visual_param_index_map_t 					mVisualParamIndexMap;
-	visual_param_name_map_t  					mVisualParamNameMap;
-
+	visual_param_sorted_vec_t::iterator 			mCurIterator;
+	visual_param_sorted_vec_t						mVisualParamSortedVector;
+	visual_param_index_map_t 						mVisualParamIndexMap;
+	visual_param_name_map_t  						mVisualParamNameMap;
 	static LLStringTable sVisualParamNames;	
 };
 

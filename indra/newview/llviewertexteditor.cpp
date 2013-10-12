@@ -3,10 +3,9 @@
  * @brief Text editor widget to let users enter a multi-line document.
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2001-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -32,41 +31,38 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#include "llfocusmgr.h"
-#include "llaudioengine.h"
-#include "llagent.h"
-#include "llinventory.h"
-#include "llinventorydefines.h"
-#include "llinventorymodel.h"
-#include "llinventorypanel.h"
-#include "llinventorybridge.h"	// for landmark prefix string
-
 #include "llviewertexteditor.h"
 
-#include "llfloaterchat.h"
+#include "llagent.h"
+#include "llaudioengine.h"
+#include "llavataractions.h"
 #include "llfloaterworldmap.h"
-#include "llnotify.h"
+#include "llfocusmgr.h"
+#include "llinventorybridge.h"	// for landmark prefix string
+#include "llinventorydefines.h"
+#include "llinventorymodel.h"
+#include "llmemorystream.h"
+#include "llmenugl.h"
+#include "llnotecard.h"
+#include "llnotificationsutil.h"
 #include "llpreview.h"
 #include "llpreviewtexture.h"
 #include "llpreviewnotecard.h"
-#include "llpreviewlandmark.h"
 #include "llscrollbar.h"
 #include "lltooldraganddrop.h"
+#include "lluictrlfactory.h"
+#include "llviewerassettype.h"
 #include "llviewercontrol.h"
+#include "llviewerinventory.h"
 #include "llviewertexturelist.h"
 #include "llviewerwindow.h"
-#include "llviewerinventory.h"
-#include "lluictrlfactory.h"
-#include "llnotecard.h"
-#include "llmemorystream.h"
-#include "llmenugl.h"
-#include "llviewerassettype.h"
-
-#include "llappviewer.h" // for gPacificDaylightTime
 
 // [RLVa:KB]
 #include "rlvhandler.h"
 // [/RLVa:KB]
+
+void open_landmark(LLViewerInventoryItem* inv_item, const std::string& title, BOOL show_keep_discard, const LLUUID& source_id, BOOL take_focus);
+extern BOOL gPacificDaylightTime;
 
 static LLRegisterWidget<LLViewerTextEditor> r("text_editor");
 
@@ -113,7 +109,7 @@ public:
 			// See if we can bring an existing preview to the front
 			if(!LLPreview::show(item->getUUID(), true))
 			{
-				if(!gSavedSettings.getBOOL("ShowNewInventory"))
+				if (gSavedSettings.getBOOL("ShowNewInventory")) // Singu Note: ShowNewInventory is true, not false, when they want a preview
 				{
 					// There isn't one, so make a new preview
 					S32 left, top;
@@ -869,7 +865,7 @@ BOOL LLViewerTextEditor::handleHover(S32 x, S32 y, MASK mask)
 		// Check to see if we're over an HTML-style link
 		if( !mSegments.empty() )
 		{
-			const LLTextSegment* cur_segment = getSegmentAtLocalPos( x, y );
+			LLTextSegment* cur_segment = getSegmentAtLocalPos( x, y );
 			if( cur_segment )
 			{
 				if(cur_segment->getStyle()->isLink())
@@ -1407,6 +1403,10 @@ BOOL LLViewerTextEditor::openEmbeddedItem(LLInventoryItem* item, llwchar wc)
 		openEmbeddedLandmark( item, wc );
 		return TRUE;
 
+	case LLAssetType::AT_CALLINGCARD:
+		openEmbeddedCallingcard( item, wc );
+		return TRUE;
+
 	case LLAssetType::AT_LSL_TEXT:
 	case LLAssetType::AT_CLOTHING:
 	case LLAssetType::AT_OBJECT:
@@ -1483,18 +1483,26 @@ void LLViewerTextEditor::openEmbeddedNotecard( LLInventoryItem* item, llwchar wc
 	copyInventory(item, gInventoryCallbacks.registerCB(mInventoryCallback));
 }
 
+void LLViewerTextEditor::openEmbeddedCallingcard( LLInventoryItem* item, llwchar wc )
+{
+	if(item && !item->getCreatorUUID().isNull())
+	{
+		LLAvatarActions::showProfile(item->getCreatorUUID());
+	}
+}
+
 void LLViewerTextEditor::showUnsavedAlertDialog( LLInventoryItem* item )
 {
 	LLSD payload;
 	payload["item_id"] = item->getUUID();
 	payload["notecard_id"] = mNotecardInventoryID;
-	LLNotifications::instance().add( "ConfirmNotecardSave", LLSD(), payload, LLViewerTextEditor::onNotecardDialog);
+	LLNotificationsUtil::add( "ConfirmNotecardSave", LLSD(), payload, LLViewerTextEditor::onNotecardDialog);
 }
 
 // static
 bool LLViewerTextEditor::onNotecardDialog(const LLSD& notification, const LLSD& response )
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if( option == 0 )
 	{
 		// itemptr is deleted by LLPreview::save
@@ -1512,13 +1520,13 @@ void LLViewerTextEditor::showCopyToInvDialog( LLInventoryItem* item, llwchar wc 
 	LLUUID item_id = item->getUUID();
 	payload["item_id"] = item_id;
 	payload["item_wc"] = LLSD::Integer(wc);
-	LLNotifications::instance().add( "ConfirmItemCopy", LLSD(), payload,
+	LLNotificationsUtil::add( "ConfirmItemCopy", LLSD(), payload,
 		boost::bind(&LLViewerTextEditor::onCopyToInvDialog, this, _1, _2));
 }
 
 bool LLViewerTextEditor::onCopyToInvDialog(const LLSD& notification, const LLSD& response)
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if( 0 == option )
 	{
 		LLUUID item_id = notification["payload"]["item_id"].asUUID();
@@ -1625,9 +1633,6 @@ LLXMLNodePtr LLViewerTextEditor::getXML(bool save_children) const
 
 LLView* LLViewerTextEditor::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("text_editor");
-	node->getAttributeString("name", name);
-
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
@@ -1648,7 +1653,7 @@ LLView* LLViewerTextEditor::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlF
 		text.erase(max_text_length);
 	}
 
-	LLViewerTextEditor* text_editor = new LLViewerTextEditor(name, 
+	LLViewerTextEditor* text_editor = new LLViewerTextEditor("text_editor", 
 								rect,
 								max_text_length,
 								LLStringUtil::null,

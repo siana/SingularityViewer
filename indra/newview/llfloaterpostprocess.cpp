@@ -75,8 +75,8 @@ LLFloaterPostProcess::LLFloaterPostProcess() : LLFloater(std::string("Post-Proce
 				//Hacky, but for now checkboxes and sliders are assumed to link to shader uniforms.
 				if(dynamic_cast<LLSliderCtrl*>(*child_it) || dynamic_cast<LLCheckBoxCtrl*>(*child_it))
 				{
-					LLUICtrl *ctrl = dynamic_cast<LLUICtrl*>(*child_it);
-					ctrl->setCommitCallback(boost::bind(&LLFloaterPostProcess::onControlChanged, _1, (void*)ctrl->getName().c_str()));
+					LLUICtrl* ctrl = static_cast<LLUICtrl*>(*child_it);
+					ctrl->setCommitCallback(boost::bind(&LLFloaterPostProcess::onControlChanged, _1, _2));
 				}
 			}
 		}
@@ -84,14 +84,13 @@ LLFloaterPostProcess::LLFloaterPostProcess() : LLFloater(std::string("Post-Proce
 
 	// Effect loading and saving.
 	LLComboBox* comboBox = getChild<LLComboBox>("PPEffectsCombo");
-	childSetAction("PPLoadEffect", &LLFloaterPostProcess::onLoadEffect, comboBox);
-	comboBox->setCommitCallback(onChangeEffectName);
+	getChild<LLUICtrl>("PPLoadEffect")->setCommitCallback(boost::bind(&LLFloaterPostProcess::onLoadEffect, this, comboBox));
+	comboBox->setCommitCallback(boost::bind(&LLFloaterPostProcess::onChangeEffectName, this, _1));
 
 	LLLineEditor* editBox = getChild<LLLineEditor>("PPEffectNameEditor");
-	childSetAction("PPSaveEffect", &LLFloaterPostProcess::onSaveEffect, editBox);
+	getChild<LLUICtrl>("PPSaveEffect")->setCommitCallback(boost::bind(&LLFloaterPostProcess::onSaveEffect, this, editBox));
 
 	syncMenu();
-	
 }
 
 LLFloaterPostProcess::~LLFloaterPostProcess()
@@ -113,47 +112,42 @@ LLFloaterPostProcess* LLFloaterPostProcess::instance()
 }
 
 
-void LLFloaterPostProcess::onControlChanged(LLUICtrl* ctrl, void* userData)
+void LLFloaterPostProcess::onControlChanged(LLUICtrl* ctrl, const LLSD& v)
 {
-	LLSD v = ctrl->getValue();
-	LLPostProcess::getInstance()->setSelectedEffectValue((char const *)userData, v);
+	LLPostProcess::getInstance()->setSelectedEffectValue(ctrl->getName(), v);
 }
 
-void LLFloaterPostProcess::onLoadEffect(void* userData)
+void LLFloaterPostProcess::onLoadEffect(LLComboBox* comboBox)
 {
-	LLComboBox* comboBox = static_cast<LLComboBox*>(userData);
-
 	LLSD::String effectName(comboBox->getSelectedValue().asString());
 
 	LLPostProcess::getInstance()->setSelectedEffect(effectName);
 
-	sPostProcess->syncMenu();
+	syncMenu();
 }
 
-void LLFloaterPostProcess::onSaveEffect(void* userData)
+void LLFloaterPostProcess::onSaveEffect(LLLineEditor* editBox)
 {
-	LLLineEditor* editBox = static_cast<LLLineEditor*>(userData);
-
 	std::string effectName(editBox->getValue().asString());
 
 	if (LLPostProcess::getInstance()->getAllEffectInfo().has(effectName))
 	{
 		LLSD payload;
 		payload["effect_name"] = effectName;
-		LLNotificationsUtil::add("PPSaveEffectAlert", LLSD(), payload, &LLFloaterPostProcess::saveAlertCallback);
+		LLNotificationsUtil::add("PPSaveEffectAlert", LLSD(), payload, boost::bind(&LLFloaterPostProcess::saveAlertCallback, this, _1, _2));
 	}
 	else
 	{
 		LLPostProcess::getInstance()->saveEffectAs(effectName);
-		sPostProcess->syncMenu();
+		syncMenu();
 	}
 }
 
-void LLFloaterPostProcess::onChangeEffectName(LLUICtrl* ctrl, void * userData)
+void LLFloaterPostProcess::onChangeEffectName(LLUICtrl* ctrl)
 {
 	// get the combo box and name
 	LLComboBox * comboBox = static_cast<LLComboBox*>(ctrl);
-	LLLineEditor* editBox = sPostProcess->getChild<LLLineEditor>("PPEffectNameEditor");
+	LLLineEditor* editBox = getChild<LLLineEditor>("PPEffectNameEditor");
 
 	// set the parameter's new name
 	editBox->setValue(comboBox->getSelectedValue());
@@ -168,7 +162,7 @@ bool LLFloaterPostProcess::saveAlertCallback(const LLSD& notification, const LLS
 	{
 		LLPostProcess::getInstance()->saveEffectAs(notification["payload"]["effect_name"].asString());
 
-		sPostProcess->syncMenu();
+		syncMenu();
 	}
 	return false;
 }

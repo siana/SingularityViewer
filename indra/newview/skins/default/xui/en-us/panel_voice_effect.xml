@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel
+ bottom="0"
+ follows="all"
+ height="23"
+ layout="topleft"
+ name="panel_voice_effect"
+ auto_resize="false"
+ user_resize="false"
+ visiblity_control="VoiceMorphingEnabled" 
+ width="200">
+  <string name="no_voice_effect">
+    Voice Morphing Off
+  </string>
+  <string name="preview_voice_effects">
+    Preview Voice Morphing  ▶
+  </string>
+  <string name="get_voice_effects">
+    Get Voice Morphing  ▶
+  </string>
+  <combo_box
+   enabled="false"
+   follows="left|top|right"
+   height="20"
+   name="voice_effect"
+   tool_tip="Select a Voice Morph to change your voice"
+   bottom="0"
+   width="200">
+    <combo_item
+     label="Voice Morphing Off"
+     name="no_voice_effect"
+	 top_pad="0"
+     value="0" />
+    <combo_box.commit_callback
+     function="Voice.CommitVoiceEffect" />
+  </combo_box>
+</panel>

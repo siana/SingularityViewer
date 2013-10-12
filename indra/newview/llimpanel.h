@@ -3,10 +3,9 @@
  * @brief LLIMPanel class definition
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2001-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -33,150 +32,21 @@
 #ifndef LL_IMPANEL_H
 #define LL_IMPANEL_H
 
-#include "llavatarnamecache.h"
+#include "llcallingcard.h"
 #include "llfloater.h"
 #include "lllogchat.h"
-#include "lluuid.h"
-#include "lldarray.h"
-#include "llinstantmessage.h"
-#include "llvoiceclient.h"
-#include "llstyle.h"
 
-class LLLineEditor;
-class LLViewerTextEditor;
-class LLInventoryItem;
-class LLInventoryCategory;
+class LLAvatarName;
 class LLIMSpeakerMgr;
-class LLPanelActiveSpeakers;
-class LLPanel;
-class LLButton;
+class LLIMInfo;
+class LLInventoryCategory;
+class LLInventoryItem;
+class LLLineEditor;
+class LLParticipantList;
+class LLViewerTextEditor;
+class LLVoiceChannel;
 
-class LLVoiceChannel : public LLVoiceClientStatusObserver
-{
-public:
-	typedef enum e_voice_channel_state
-	{
-		STATE_NO_CHANNEL_INFO,
-		STATE_ERROR,
-		STATE_HUNG_UP,
-		STATE_READY,
-		STATE_CALL_STARTED,
-		STATE_RINGING,
-		STATE_CONNECTED
-	} EState;
-
-	LLVoiceChannel(const LLUUID& session_id, const std::string& session_name);
-	virtual ~LLVoiceChannel();
-
-	/*virtual*/ void onChange(EStatusType status, const std::string &channelURI, bool proximal);
-
-	virtual void handleStatusChange(EStatusType status);
-	virtual void handleError(EStatusType status);
-	virtual void deactivate();
-	virtual void activate();
-	virtual void setChannelInfo(
-		const std::string& uri,
-		const std::string& credentials);
-	virtual void getChannelInfo();
-	virtual BOOL isActive();
-	virtual BOOL callStarted();
-
-	const LLUUID getSessionID() { return mSessionID; }
-	EState getState() { return mState; }
-
-	void updateSessionID(const LLUUID& new_session_id);
-	const LLSD& getNotifyArgs() { return mNotifyArgs; }
-
-	static LLVoiceChannel* getChannelByID(const LLUUID& session_id);
-	static LLVoiceChannel* getChannelByURI(std::string uri);
-	static LLVoiceChannel* getCurrentVoiceChannel() { return sCurrentVoiceChannel; }
-	static void initClass();
-	
-	static void suspend();
-	static void resume();
-
-protected:
-	virtual void setState(EState state);
-	void setURI(std::string uri);
-
-	std::string	mURI;
-	std::string	mCredentials;
-	LLUUID		mSessionID;
-	EState		mState;
-	std::string	mSessionName;
-	LLSD mNotifyArgs;
-	BOOL		mIgnoreNextSessionLeave;
-	LLHandle<LLPanel> mLoginNotificationHandle;
-
-	typedef std::map<LLUUID, LLVoiceChannel*> voice_channel_map_t;
-	static voice_channel_map_t sVoiceChannelMap;
-
-	typedef std::map<std::string, LLVoiceChannel*> voice_channel_map_uri_t;
-	static voice_channel_map_uri_t sVoiceChannelURIMap;
-
-	static LLVoiceChannel* sCurrentVoiceChannel;
-	static LLVoiceChannel* sSuspendedVoiceChannel;
-	static BOOL sSuspended;
-};
-
-class LLVoiceChannelGroup : public LLVoiceChannel
-{
-public:
-	LLVoiceChannelGroup(const LLUUID& session_id, const std::string& session_name);
-
-	/*virtual*/ void handleStatusChange(EStatusType status);
-	/*virtual*/ void handleError(EStatusType status);
-	/*virtual*/ void activate();
-	/*virtual*/ void deactivate();
-	/*vritual*/ void setChannelInfo(
-		const std::string& uri,
-		const std::string& credentials);
-	/*virtual*/ void getChannelInfo();
-
-protected:
-	virtual void setState(EState state);
-
-private:
-	U32 mRetries;
-	BOOL mIsRetrying;
-};
-
-class LLVoiceChannelProximal : public LLVoiceChannel, public LLSingleton<LLVoiceChannelProximal>
-{
-public:
-	LLVoiceChannelProximal();
-
-	/*virtual*/ void onChange(EStatusType status, const std::string &channelURI, bool proximal);
-	/*virtual*/ void handleStatusChange(EStatusType status);
-	/*virtual*/ void handleError(EStatusType status);
-	/*virtual*/ BOOL isActive();
-	/*virtual*/ void activate();
-	/*virtual*/ void deactivate();
-
-};
-
-class LLVoiceChannelP2P : public LLVoiceChannelGroup
-{
-public:
-	LLVoiceChannelP2P(const LLUUID& session_id, const std::string& session_name, const LLUUID& other_user_id);
-
-	/*virtual*/ void handleStatusChange(EStatusType status);
-	/*virtual*/ void handleError(EStatusType status);
-    /*virtual*/ void activate();
-	/*virtual*/ void getChannelInfo();
-
-	void setSessionHandle(const std::string& handle, const std::string &inURI);
-
-protected:
-	virtual void setState(EState state);
-
-private:
-	std::string	mSessionHandle;
-	LLUUID		mOtherUserID;
-	BOOL		mReceivedCall;
-};
-
-class LLFloaterIMPanel : public LLFloater
+class LLFloaterIMPanel : public LLFloater, public LLFriendObserver
 {
 public:
 
@@ -185,20 +55,16 @@ public:
 	// the default. For example, if you open a session though a
 	// calling card, a new session id will be generated, but the
 	// target_id will be the agent referenced by the calling card.
-	LLFloaterIMPanel(const std::string& session_label,
+	LLFloaterIMPanel(const std::string& log_label,
 					 const LLUUID& session_id,
 					 const LLUUID& target_id,
-					 EInstantMessage dialog);
-	LLFloaterIMPanel(const std::string& session_label,
-					 const LLUUID& session_id,
-					 const LLUUID& target_id,
-					 const LLDynamicArray<LLUUID>& ids,
-					 EInstantMessage dialog);
+					 const EInstantMessage& dialog,
+					 const LLDynamicArray<LLUUID>& ids = LLDynamicArray<LLUUID>());
 	virtual ~LLFloaterIMPanel();
 
-	void lookupName();
-	void onAvatarNameLookup(const LLUUID&, const LLAvatarName& avatar_name);
+	void onAvatarNameLookup(const LLAvatarName& avatar_name);
 
+	/*virtual*/ void changed(U32 mask); // From LLFriendObserver, check friend status
 	/*virtual*/ BOOL postBuild();
 
 	// Check typing timeout timer.
@@ -208,7 +74,7 @@ public:
 
 	// add target ids to the session. 
 	// Return TRUE if successful, otherwise FALSE.
-	BOOL inviteToSession(const LLDynamicArray<LLUUID>& agent_ids);
+	bool inviteToSession(const LLDynamicArray<LLUUID>& agent_ids);
 
 	void addHistoryLine(const std::string &utf8msg, 
 						LLColor4 incolor = LLColor4::white, 
@@ -216,12 +82,9 @@ public:
 						const LLUUID& source = LLUUID::null,
 						const std::string& name = LLStringUtil::null);
 
-	void setInputFocus( BOOL b );
+	void setInputFocus(bool b);
 
-	void selectAll();
-	void selectNone();
 	void setVisible(BOOL b);
-	BOOL mRPMode;
 
 	S32 getNumUnreadMessages() { return mNumUnreadMessages; }
 
@@ -235,41 +98,32 @@ public:
 
 	void            onFocusReceived();
 	void			onInputEditorFocusReceived();
-	void			onInputEditorFocusLost();
-	static void		onInputEditorKeystroke(LLLineEditor* caller, void* userdata);
-	static void		onCommitChat(LLUICtrl* caller, void* userdata);
-	static void		onTabClick( void* userdata );
+	void			onInputEditorKeystroke(LLLineEditor* caller);
 
-	void			onClickProfile();
-	static void		onClickHistory( void* userdata );
-	void			onRPMode(const LLSD& value);
-	void			onClickTeleport();
-	void			onClickGroupInfo();
-	static void		onClickClose( void* userdata );
-	static void		onClickStartCall( void* userdata );
-	static void		onClickEndCall( void* userdata );
-	static void		onClickSend( void* userdata );
+	void			onClickHistory();
+	void			onFlyoutCommit(class LLComboBox* flyout, const LLSD& value);
 	void			onClickToggleActiveSpeakers(const LLSD& value);
 	static void*	createSpeakersPanel(void* data);
 
 	//callbacks for P2P muting and volume control
-	static void onClickMuteVoice(void* user_data);
-	static void onVolumeChange(LLUICtrl* source, void* user_data);
+	void onClickMuteVoice();
 
+	enum SType
+	{
+		P2P_SESSION,
+		GROUP_SESSION,
+		ADHOC_SESSION
+	};
+	const SType& getSessionType() const { return mSessionType; }
 	const LLUUID& getSessionID() const { return mSessionUUID; }
-	const LLUUID& getOtherParticipantID() const { return mOtherParticipantUUID; }
-	void updateSpeakersList(const LLSD& speaker_updates);
 	void processSessionUpdate(const LLSD& update);
-	void setSpeakers(const LLSD& speaker_list);
 	LLVoiceChannel* getVoiceChannel() { return mVoiceChannel; }
-	EInstantMessage getDialogType() const { return mDialog; }
-
-	void requestAutoConnect();
+	LLIMSpeakerMgr* getSpeakerManager() const { return mSpeakers; } // Singu TODO: LLIMModel::getSpeakerManager
 
 	void sessionInitReplyReceived(const LLUUID& im_session_id);
 
 	// Handle other participant in the session typing.
-	void processIMTyping(const LLIMInfo* im_info, BOOL typing);
+	void processIMTyping(const LLIMInfo* im_info, bool typing);
 	static void chatFromLogFile(LLLogChat::ELogLineType type, std::string line, void* userdata);
 
 	//show error statuses to the user
@@ -281,34 +135,32 @@ public:
 
 	static bool onConfirmForceCloseError(const LLSD& notification, const LLSD& response);
 
-	typedef enum e_session_type
-	{
-		P2P_SESSION,
-		GROUP_SESSION,
-		ADHOC_SESSION
-	} SType;
-	bool isP2PSessionType() const { return mSessionType == P2P_SESSION;}
-	bool isAdHocSessionType() const { return mSessionType == ADHOC_SESSION;}
-	bool isGroupSessionType() const { return mSessionType == GROUP_SESSION;}
-	SType mSessionType;
+	// LLIMModel Functionality
+	bool getSessionInitialized() const { return mSessionInitialized; }
+	bool mStartCallOnInitialize;
 
 private:
-	// called by constructors
-	void init(const std::string& session_label);
-
 	// Called by UI methods.
-	void sendMsg();
+	void onSendMsg();
+
+	// Build the flyout list
+	void rebuildDynamics(LLComboBox* flyout) { removeDynamics(flyout); addDynamics(flyout); }
+	void removeDynamics(LLComboBox* flyout);
+	void addDynamics(LLComboBox* flyout);
+
+	// Called by handleKeyHere
+	void closeIfNotPinned();
 
 	// for adding agents via the UI. Return TRUE if possible, do it if 
 	BOOL dropCallingCard(LLInventoryItem* item, BOOL drop);
 	BOOL dropCategory(LLInventoryCategory* category, BOOL drop);
 
 	// test if local agent can add agents.
-	BOOL isInviteAllowed() const;
+	bool isInviteAllowed() const;
 
 	// Called whenever the user starts or stops typing.
 	// Sends the typing state to the other user if necessary.
-	void setTyping(BOOL typing);
+	void setTyping(bool typing);
 
 	// Add the "User is typing..." indicator.
 	void addTypingIndicator(const std::string &name);
@@ -316,13 +168,20 @@ private:
 	// Remove the "User is typing..." indicator.
 	void removeTypingIndicator(const LLIMInfo* im_info);
 
-	void sendTypingState(BOOL typing);
+	void sendTypingState(bool typing);
 
 	const bool isModerator(const LLUUID& speaker_id);
 	
 private:
 	LLLineEditor* mInputEditor;
 	LLViewerTextEditor* mHistoryEditor;
+
+	bool mSessionInitialized;
+
+	// Where does the "Starting session..." line start?
+	S32 mSessionStartMsgPos;
+
+	SType mSessionType;
 
 	// The value of the mSessionUUID depends on how the IM session was started:
 	//   one-on-one  ==> random id
@@ -331,10 +190,9 @@ private:
 	//   911 ==> Gaurdian_Angel_Group_ID ^ gAgent.getID()
 	LLUUID mSessionUUID;
 
-	std::string mSessionLabel;
-	LLVoiceChannel*	mVoiceChannel;
+	// mLogLabel is the name of the log file before directories and extensions
+	std::string mLogLabel;
 
-	BOOL mSessionInitialized;
 	LLSD mQueuedMsgsForInit;
 
 	// The value mOtherParticipantUUID depends on how the IM session was started:
@@ -343,38 +201,36 @@ private:
 	//   inventory folder ==> first target id in list
 	//   911 ==> sender
 	LLUUID mOtherParticipantUUID;
-	LLDynamicArray<LLUUID> mSessionInitialTargetIDs;
 
 	EInstantMessage mDialog;
 
 	// Are you currently typing?
-	BOOL mTyping;
+	bool mTyping;
+
+	// Where does the "User is typing..." line start?
+	S32 mTypingLineStartIndex;
 
 	// Is other user currently typing?
-	BOOL mOtherTyping;
+	bool mOtherTyping;
 
 	// name of other user who is currently typing
 	std::string mOtherTypingName;
 
-	// Where does the "User is typing..." line start?
-	S32 mTypingLineStartIndex;
-	// Where does the "Starting session..." line start?
-	S32 mSessionStartMsgPos;
-	
 	S32 mNumUnreadMessages;
 
-	BOOL mSentTypingState;
+	bool mSentTypingState;
 
-	BOOL mShowSpeakersOnConnect;
+	bool mShowSpeakersOnConnect;
 
-	BOOL mAutoConnect;
-	
-	BOOL mTextIMPossible;
-	BOOL mProfileButtonEnabled;
-	BOOL mCallBackEnabled;
+	bool mDing; // Whether or not to play a ding on new messages
+	bool mRPMode;
+
+	bool mTextIMPossible;
+	bool mCallBackEnabled;
 
 	LLIMSpeakerMgr* mSpeakers;
-	LLPanelActiveSpeakers* mSpeakerPanel;
+	LLParticipantList* mSpeakerPanel;
+	LLVoiceChannel*	mVoiceChannel;
 	
 	// Optimization:  Don't send "User is typing..." until the
 	// user has actually been typing for a little while.  Prevents
@@ -388,17 +244,10 @@ private:
 
 
 	CachedUICtrl<LLUICtrl> mVolumeSlider;
-	CachedUICtrl<LLButton> mEndCallBtn;
-	CachedUICtrl<LLButton> mStartCallBtn;
-	CachedUICtrl<LLButton> mSendBtn;
-	CachedUICtrl<LLButton> mMuteBtn;
-
-	void disableWhileSessionStarting();
-
-	typedef std::map<LLUUID, LLStyleSP> styleMap;
-	static styleMap mStyleMap;
-	
-	static std::set<LLFloaterIMPanel*> sFloaterIMPanels;
+	CachedUICtrl<LLUICtrl> mEndCallBtn;
+	CachedUICtrl<LLUICtrl> mStartCallBtn;
+	CachedUICtrl<LLUICtrl> mSendBtn;
+	CachedUICtrl<LLUICtrl> mMuteBtn;
 };
 
 

@@ -38,13 +38,14 @@
 //#include "llfirstuse.h"
 #include "llfloater.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "llspinctrl.h"
 #include "lltexteditor.h"
 #include "lluictrlfactory.h"
 #include "llviewercontrol.h"
 #include "llwindow.h"
 
-// [RLVa:KB]
+// [RLVa:KB] - Checked: 2010-03-18 (RLVa-1.2.0a)
 #include "rlvhandler.h"
 #include "rlvextensions.h"
 // [/RLVa:KB]
@@ -55,6 +56,12 @@ LLFloaterSettingsDebug::LLFloaterSettingsDebug()
 ,	mOldControlVariable(NULL)
 ,	mOldSearchTerm(std::string("---"))
 {
+	mCommitCallbackRegistrar.add("SettingSelect",	boost::bind(&LLFloaterSettingsDebug::onSettingSelect, this));
+	mCommitCallbackRegistrar.add("CommitSettings",	boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
+	mCommitCallbackRegistrar.add("ClickDefault",	boost::bind(&LLFloaterSettingsDebug::onClickDefault, this));
+	mCommitCallbackRegistrar.add("UpdateFilter",	boost::bind(&LLFloaterSettingsDebug::onUpdateFilter, this, _2));
+	mCommitCallbackRegistrar.add("ClickCopy",		boost::bind(&LLFloaterSettingsDebug::onCopyToClipboard, this));
+
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_settings_debug.xml");
 }
 
@@ -95,19 +102,9 @@ BOOL LLFloaterSettingsDebug::postBuild()
 		}
 	}
 	mSettingsScrollList->sortByColumnIndex(0, true);
-	mSettingsScrollList->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onSettingSelect, this));
 
 	llinfos << mSettingsScrollList->getItemCount() << " total debug settings displayed." << llendl;
 
-	getChild<LLUICtrl>("val_spinner_1")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("val_spinner_2")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("val_spinner_3")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("val_spinner_4")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("val_text")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("boolean_combo")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCommitSettings, this));
-	getChild<LLUICtrl>("copy_btn")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onCopyToClipboard, this));
-	getChild<LLUICtrl>("default_btn")->setCommitCallback(boost::bind(&LLFloaterSettingsDebug::onClickDefault, this));
-	getChild<LLSearchEditor>("search_settings_input")->setSearchCallback(onUpdateFilter, this);
 	mComment = getChild<LLTextEditor>("comment_text");
 	return TRUE;
 }
@@ -532,9 +529,9 @@ void LLFloaterSettingsDebug::updateControl()
 
 }
 
-void LLFloaterSettingsDebug::onUpdateFilter(const std::string& searchTerm, void*)
+void LLFloaterSettingsDebug::onUpdateFilter(const LLSD& value)
 {
-	LLFloaterSettingsDebug::getInstance()->updateFilter(searchTerm);
+	updateFilter(value.asString());
 }
 
 void LLFloaterSettingsDebug::updateFilter(std::string searchTerm)

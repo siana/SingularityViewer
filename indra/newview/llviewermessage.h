@@ -216,10 +216,13 @@ bool highlight_offered_object(const LLUUID& obj_id);
 void set_dad_inventory_item(LLInventoryItem* inv_item, const LLUUID& into_folder_uuid);
 void set_dad_inbox_object(const LLUUID& object_id);
 
-struct LLOfferInfo
+class LLOfferInfo
 {
-	LLOfferInfo() {};
+public:
+	LLOfferInfo();
 	LLOfferInfo(const LLSD& sd);
+
+	LLOfferInfo(const LLOfferInfo& info);
 
 	void forceResponse(InventoryOfferResponse response);
 
@@ -243,5 +246,3 @@ struct LLOfferInfo
 void process_feature_disabled_message(LLMessageSystem* msg, void**);
 
 #endif
-
-

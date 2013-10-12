@@ -3,10 +3,9 @@
  * @brief Object editing (position, scale, etc.) in the tools floater
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2001-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -117,16 +116,16 @@ BOOL	LLPanelVolume::postBuild()
 		childSetCommitCallback("Light Checkbox Ctrl",onCommitIsLight,this);
 		LLColorSwatchCtrl*	LightColorSwatch = getChild<LLColorSwatchCtrl>("colorswatch");
 		if(LightColorSwatch){
-			LightColorSwatch->setOnCancelCallback(onLightCancelColor);
-			LightColorSwatch->setOnSelectCallback(onLightSelectColor);
+			LightColorSwatch->setOnCancelCallback(boost::bind(&LLPanelVolume::onLightCancelColor, this, _2));
+			LightColorSwatch->setOnSelectCallback(boost::bind(&LLPanelVolume::onLightSelectColor, this, _2));
 			childSetCommitCallback("colorswatch",onCommitLight,this);
 		}
 
 		LLTextureCtrl* LightTexPicker = getChild<LLTextureCtrl>("light texture control");
 		if (LightTexPicker)
 		{
-			LightTexPicker->setOnCancelCallback(onLightCancelTexture);
-			LightTexPicker->setOnSelectCallback(onLightSelectTexture);
+			LightTexPicker->setOnCancelCallback(boost::bind(&LLPanelVolume::onLightCancelTexture, this, _2));
+			LightTexPicker->setOnSelectCallback(boost::bind(&LLPanelVolume::onLightSelectTexture, this, _2));
 			childSetCommitCallback("light texture control", onCommitLight, this);
 		}
 
@@ -650,31 +649,28 @@ void LLPanelVolume::refreshCost()
 	}
 }
 
-void LLPanelVolume::onLightCancelColor(LLUICtrl* ctrl, void* userdata)
+void LLPanelVolume::onLightCancelColor(const LLSD& data)
 {
-	LLPanelVolume* self = (LLPanelVolume*) userdata;
-	LLColorSwatchCtrl*	LightColorSwatch = self->getChild<LLColorSwatchCtrl>("colorswatch");
+	LLColorSwatchCtrl*	LightColorSwatch = getChild<LLColorSwatchCtrl>("colorswatch");
 	if(LightColorSwatch)
 	{
-		LightColorSwatch->setColor(self->mLightSavedColor);
+		LightColorSwatch->setColor(mLightSavedColor);
 	}
-	onLightSelectColor(NULL, userdata);
+	onLightSelectColor(data);
 }
 
-void LLPanelVolume::onLightCancelTexture(LLUICtrl* ctrl, void* userdata)
+void LLPanelVolume::onLightCancelTexture(const LLSD& data)
 {
-	LLPanelVolume* self = (LLPanelVolume*) userdata;
-	LLTextureCtrl* LightTextureCtrl = self->getChild<LLTextureCtrl>("light texture control");
+	LLTextureCtrl* LightTextureCtrl = getChild<LLTextureCtrl>("light texture control");
 	if (LightTextureCtrl)
 	{
-		LightTextureCtrl->setImageAssetID(self->mLightSavedTexture);
+		LightTextureCtrl->setImageAssetID(mLightSavedTexture);
 	}
 }
 
-void LLPanelVolume::onLightSelectColor(LLUICtrl* ctrl, void* userdata)
+void LLPanelVolume::onLightSelectColor(const LLSD& data)
 {
-	LLPanelVolume* self = (LLPanelVolume*) userdata;
-	LLViewerObject* objectp = self->mObject;
+	LLViewerObject* objectp = mObject;
 	if (!objectp || (objectp->getPCode() != LL_PCODE_VOLUME))
 	{
 		return;
@@ -682,32 +678,31 @@ void LLPanelVolume::onLightSelectColor(LLUICtrl* ctrl, void* userdata)
 	LLVOVolume *volobjp = (LLVOVolume *)objectp;
 
 
-	LLColorSwatchCtrl*	LightColorSwatch = self->getChild<LLColorSwatchCtrl>("colorswatch");
+	LLColorSwatchCtrl*	LightColorSwatch = getChild<LLColorSwatchCtrl>("colorswatch");
 	if(LightColorSwatch)
 	{
 		LLColor4	clr = LightColorSwatch->get();
 		LLColor3	clr3( clr );
 		volobjp->setLightColor(clr3);
-		self->mLightSavedColor = clr;
+		mLightSavedColor = clr;
 	}
 }
 
-void LLPanelVolume::onLightSelectTexture(LLUICtrl* ctrl, void* userdata)
+void LLPanelVolume::onLightSelectTexture(const LLSD& data)
 {
-	LLPanelVolume* self = (LLPanelVolume*) userdata;
-	LLVOVolume *volobjp = (LLVOVolume*)self->mObject.get();
-	if (!volobjp || (volobjp->getPCode() != LL_PCODE_VOLUME))
+	if (mObject.isNull() || (mObject->getPCode() != LL_PCODE_VOLUME))
 	{
 		return;
 	}	
+	LLVOVolume *volobjp = (LLVOVolume *) mObject.get();
 
 
-	LLTextureCtrl*	LightTextureCtrl = self->getChild<LLTextureCtrl>("light texture control");
+	LLTextureCtrl*	LightTextureCtrl = getChild<LLTextureCtrl>("light texture control");
 	if(LightTextureCtrl)
 	{
 		LLUUID id = LightTextureCtrl->getImageAssetID();
 		volobjp->setLightTextureID(id);
-		self->mLightSavedTexture = id;
+		mLightSavedTexture = id;
 	}
 }
 

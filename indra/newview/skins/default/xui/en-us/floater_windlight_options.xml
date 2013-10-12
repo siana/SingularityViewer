@@ -579,7 +579,7 @@
 			     initial_val="0.5" label="" left="494" max_val="10" min_val="-10"
 			     mouse_opaque="true" name="WLCloudScrollY" show_text="true" value="0.0"
 			     width="200" />
-			<check_box bottom="-120" control_name="DrawClassicClouds" follows="left"
+			<check_box bottom="-120" control_name="SkyUseClassicClouds" follows="left"
 			     font="SansSerifSmall" height="16" initial_value="false"
 			     label="Draw Classic Clouds" left="480" mouse_opaque="true"
 			     name="DrawClassicClouds" width="200" />

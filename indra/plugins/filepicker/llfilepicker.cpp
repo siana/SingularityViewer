@@ -49,7 +49,7 @@ LLFilePicker LLFilePicker::sInstance;
 #define AO_FILTER L"Animation Override (*.ao)\0*.ao\0"
 #define BLACKLIST_FILTER L"Asset Blacklist (*.blacklist)\0*.blacklist\0"
 // </edit>
-#define ANIM_FILTER L"Animations (*.bvh)\0*.bvh\0"
+#define ANIM_FILTER L"Animations (*.bvh; *.anim)\0*.bvh;*.anim\0"
 #define COLLADA_FILTER L"Scene (*.dae)\0*.dae\0"
 #ifdef _CORY_TESTING
 #define GEOMETRY_FILTER L"SL Geometry (*.slg)\0*.slg\0"
@@ -692,6 +692,18 @@ bool LLFilePickerBase::getSaveFile(ESaveFilter filter, std::string const& filena
 			L"Landmarks (*.phy)\0*.phy\0" \
 			L"\0";
 		break;
+	case FFSAVE_IMAGE:
+		mOFN.lpstrDefExt = NULL;
+		mOFN.lpstrFilter =
+			L"Image (*.bmp *.dxt *.jpg *.jpeg *.j2c *.mip *.png *.tga)\0*.bmp;*.dxt;*.jpg;*.jpeg;*.j2c;*.mip;*.png;*.tga\0" \
+			L"PNG Image (*.png)\0*.png\0" \
+			L"Targa Image (*.tga)\0*.tga\0" \
+			L"Bitmap Image (*.bmp)\0*.bmp\0" \
+			L"JPEG Image (*.jpg *.jpeg)\0*.jpg;*.jpeg\0" \
+			L"Compressed Image (*.j2c)\0*.j2c\0" \
+			L"DXT Image (*.dxt *.mip)\0*.dxt;*.mip\0" \
+			L"\0";
+		break;
 	// </edit>
 	default:
 		return FALSE;
@@ -747,7 +759,7 @@ Boolean LLFilePickerBase::navOpenFilterProc(AEDesc *theItem, void *info, void *c
 							if (fileInfo.filetype != 'JPEG' && fileInfo.filetype != 'JPG ' && 
 								fileInfo.filetype != 'BMP ' && fileInfo.filetype != 'TGA ' &&
 								fileInfo.filetype != 'BMPf' && fileInfo.filetype != 'TPIC' &&
-								fileInfo.filetype != 'PNG ' && fileInfo.filetype != 'JP2' &&
+								fileInfo.filetype != 'PNG ' && fileInfo.filetype != 'JP2 ' &&
 								(fileInfo.extension && (CFStringCompare(fileInfo.extension, CFSTR("jpeg"), kCFCompareCaseInsensitive) != kCFCompareEqualTo &&
 								CFStringCompare(fileInfo.extension, CFSTR("jpg"), kCFCompareCaseInsensitive) != kCFCompareEqualTo &&
 								CFStringCompare(fileInfo.extension, CFSTR("bmp"), kCFCompareCaseInsensitive) != kCFCompareEqualTo &&
@@ -773,9 +785,9 @@ Boolean LLFilePickerBase::navOpenFilterProc(AEDesc *theItem, void *info, void *c
 						}
 						else if (filter == FFLOAD_ANIM)
 						{
-							if (fileInfo.filetype != 'BVH ' && 
-								(fileInfo.extension && (CFStringCompare(fileInfo.extension, CFSTR("bvh"), kCFCompareCaseInsensitive) != kCFCompareEqualTo))
-							)
+							if (fileInfo.filetype != 'BVH ' &&  fileInfo.filetype != 'ANIM' &&
+								(fileInfo.extension && (CFStringCompare(fileInfo.extension, CFSTR("bvh"), kCFCompareCaseInsensitive) != kCFCompareEqualTo) &&
+								 CFStringCompare(fileInfo.extension, CFSTR("anim"), kCFCompareCaseInsensitive) != kCFCompareEqualTo))
 							{
 								result = false;
 							}
@@ -911,7 +923,7 @@ OSStatus	LLFilePickerBase::doNavChooseDialog(ELoadFilter filter, std::string con
 	//   (It is destroyed by NavDialogDispose() below.)
 	error = NavCreateChooseFileDialog(&mNavOptions, NULL, eventProc, NULL, navOpenFilterProc, (void*)this, &navRef);
 
-	//gViewerWindow->mWindow->beforeDialog();
+	//gViewerWindow->getWindow()->beforeDialog();
 
 	if (error == noErr)
 	{
@@ -919,7 +931,7 @@ OSStatus	LLFilePickerBase::doNavChooseDialog(ELoadFilter filter, std::string con
 		error = NavDialogRun(navRef);
 	}
 
-	//gViewerWindow->mWindow->afterDialog();
+	//gViewerWindow->getWindow()->afterDialog();
 
 	if (error == noErr)
 		error = NavDialogGetReply(navRef, &navReply);
@@ -1081,7 +1093,7 @@ OSStatus	LLFilePickerBase::doNavSaveDialog(ESaveFilter filter, std::string const
 		}
 	}
 	
-	//gViewerWindow->mWindow->beforeDialog();
+	//gViewerWindow->getWindow()->beforeDialog();
 
 	// Run the dialog
 	if (error == noErr)
@@ -1090,7 +1102,7 @@ OSStatus	LLFilePickerBase::doNavSaveDialog(ESaveFilter filter, std::string const
 		error = NavDialogRun(navRef);
 	}
 
-	//gViewerWindow->mWindow->afterDialog();
+	//gViewerWindow->getWindow()->afterDialog();
 
 	if (error == noErr)
 		error = NavDialogGetReply(navRef, &navReply);
@@ -1388,10 +1400,14 @@ static std::string add_wav_filter_to_gtkchooser(GtkWindow *picker)
 								LLTrans::getString("sound_files") + " (*.wav)");
 }
 
-static std::string add_bvh_filter_to_gtkchooser(GtkWindow *picker)
+static std::string add_anim_filter_to_gtkchooser(GtkWindow *picker)
 {
-	return add_simple_pattern_filter_to_gtkchooser(picker,  "*.bvh",
-						       LLTrans::getString("animation_files") + " (*.bvh)");
+	GtkFileFilter *gfilter = gtk_file_filter_new();
+	gtk_file_filter_add_pattern(gfilter, "*.bvh");
+	gtk_file_filter_add_pattern(gfilter, "*.anim");
+	std::string filtername = LLTrans::getString("animation_files") + " (*.bvh; *.anim)";
+	add_common_filters_to_gtkchooser(gfilter, picker, filtername);
+	return filtername;
 }
 
 static std::string add_xml_filter_to_gtkchooser(GtkWindow *picker)
@@ -1419,6 +1435,21 @@ static std::string add_imageload_filter_to_gtkchooser(GtkWindow *picker)
 	return filtername;
 }
 
+static std::string add_imagesave_filter_to_gtkchooser(GtkWindow *picker)
+{
+	GtkFileFilter *gfilter = gtk_file_filter_new();
+	gtk_file_filter_add_mime_type(gfilter, "image/bmp");
+	gtk_file_filter_add_pattern(gfilter, "*.dxt");
+	gtk_file_filter_add_mime_type(gfilter, "image/jpeg");
+	gtk_file_filter_add_pattern(gfilter, "*.j2c");
+	gtk_file_filter_add_pattern(gfilter, "*.mip");
+	gtk_file_filter_add_mime_type(gfilter, "image/png");
+	gtk_file_filter_add_pattern(gfilter, "*.tga");
+	std::string filtername = LLTrans::getString("image_files") + "(*.bmp; *.dxt; *.jpg; *.jpeg; *.j2c; *.mip; *.png; *.tga)";
+	add_common_filters_to_gtkchooser(gfilter, picker, filtername);
+	return filtername;
+}
+
 static std::string add_script_filter_to_gtkchooser(GtkWindow *picker)
 {
 	return add_simple_mime_filter_to_gtkchooser(picker,  "text/plain",
@@ -1435,7 +1466,7 @@ bool LLFilePickerBase::getSaveFile(ESaveFilter filter, std::string const& filena
 {
 	bool rtn = FALSE;
 
-	//gViewerWindow->mWindow->beforeDialog();
+	//gViewerWindow->getWindow()->beforeDialog();
 
 	reset();
 	
@@ -1493,6 +1524,10 @@ bool LLFilePickerBase::getSaveFile(ESaveFilter filter, std::string const& filena
 			caption += add_script_filter_to_gtkchooser(picker);
 			suggest_ext = ".lsl";
 			break;
+		case FFSAVE_IMAGE:
+			caption += add_imagesave_filter_to_gtkchooser(picker);
+			suggest_ext = ".png";
+			break;
 		default:;
 			break;
 		}
@@ -1520,7 +1555,7 @@ bool LLFilePickerBase::getSaveFile(ESaveFilter filter, std::string const& filena
 		rtn = (getFileCount() == 1);
 	}
 
-	//gViewerWindow->mWindow->afterDialog();
+	//gViewerWindow->getWindow()->afterDialog();
 
 	return rtn;
 }
@@ -1529,7 +1564,7 @@ bool LLFilePickerBase::getLoadFile(ELoadFilter filter, std::string const& folder
 {
 	bool rtn = FALSE;
 
-	//gViewerWindow->mWindow->beforeDialog();
+	//gViewerWindow->getWindow()->beforeDialog();
 
 	reset();
 	
@@ -1545,7 +1580,7 @@ bool LLFilePickerBase::getLoadFile(ELoadFilter filter, std::string const& folder
 			filtername = add_wav_filter_to_gtkchooser(picker);
 			break;
 		case FFLOAD_ANIM:
-			filtername = add_bvh_filter_to_gtkchooser(picker);
+			filtername = add_anim_filter_to_gtkchooser(picker);
 			break;
 		case FFLOAD_COLLADA:
 			filtername = add_collada_filter_to_gtkchooser(picker);
@@ -1577,7 +1612,7 @@ bool LLFilePickerBase::getLoadFile(ELoadFilter filter, std::string const& folder
 		rtn = (getFileCount() == 1);
 	}
 
-	//gViewerWindow->mWindow->afterDialog();
+	//gViewerWindow->getWindow()->afterDialog();
 
 	return rtn;
 }
@@ -1586,7 +1621,7 @@ bool LLFilePickerBase::getMultipleLoadFiles(ELoadFilter filter, std::string cons
 {
 	bool rtn = FALSE;
 
-	//gViewerWindow->mWindow->beforeDialog();
+	//gViewerWindow->getWindow()->beforeDialog();
 
 	reset();
 	
@@ -1605,7 +1640,7 @@ bool LLFilePickerBase::getMultipleLoadFiles(ELoadFilter filter, std::string cons
 		rtn = !mFiles.empty();
 	}
 
-	//gViewerWindow->mWindow->afterDialog();
+	//gViewerWindow->getWindow()->afterDialog();
 
 	return rtn;
 }

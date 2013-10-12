@@ -42,8 +42,8 @@
 
 #include "llagent.h"
 #include "llbutton.h"
-#include "llfloatergroupinfo.h"
 #include "llfloaterworldmap.h"
+#include "llgroupactions.h"
 #include "llproductinforequest.h"
 #include "llscrolllistctrl.h"
 #include "llstatusbar.h"
@@ -103,7 +103,7 @@ BOOL LLFloaterLandHoldings::postBuild()
 	LLScrollListCtrl *grant_list = getChild<LLScrollListCtrl>("grant list");
 
 	// Grant list
-	grant_list->setDoubleClickCallback(boost::bind(&LLFloaterLandHoldings::onGrantList,this));
+	grant_list->setDoubleClickCallback(boost::bind(LLGroupActions::show, boost::bind(&LLScrollListCtrl::getCurrentID, grant_list)));
 
 	LLCtrlListInterface *list = grant_list->getListInterface();
 	if (!list) return TRUE;
@@ -300,7 +300,7 @@ void LLFloaterLandHoldings::buttonCore(S32 which)
 		break;
 	case 1:
 		gFloaterWorldMap->trackLocation(pos_global);
-		LLFloaterWorldMap::show(NULL, TRUE);
+		LLFloaterWorldMap::show(true);
 		break;
 	default:
 		break;
@@ -321,19 +321,6 @@ void LLFloaterLandHoldings::onClickMap(void* data)
 {
 	LLFloaterLandHoldings* self = (LLFloaterLandHoldings*)data;
 	self->buttonCore(1);
-}
-
-// static
-void LLFloaterLandHoldings::onGrantList(void* data)
-{
-	LLFloaterLandHoldings* self = (LLFloaterLandHoldings*)data;
-	LLCtrlSelectionInterface *list = self->childGetSelectionInterface("grant list");
-	if (!list) return;
-	LLUUID group_id = list->getCurrentID();
-	if (group_id.notNull())
-	{
-		LLFloaterGroupInfo::showFromUUID(group_id);
-	}
 }
 
 void LLFloaterLandHoldings::refreshAggregates()

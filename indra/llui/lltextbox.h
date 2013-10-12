@@ -43,6 +43,7 @@ class LLTextBox
 :	public LLUICtrl
 {
 public:
+	typedef boost::function<void (void)> callback_t;
 	// By default, follows top and left and is mouse-opaque.
 	// If no text, text = name.
 	// If no font, uses default system font.
@@ -62,6 +63,7 @@ public:
 
 	virtual ~LLTextBox() {}
 
+	virtual void initFromXML(LLXMLNodePtr node, LLView* parent);
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
 	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, class LLUICtrlFactory *factory);
 
@@ -93,7 +95,7 @@ public:
 	void			setVPad(S32 pixels)						{ mVPad = pixels; }
 	void			setRightAlign()							{ mHAlign = LLFontGL::RIGHT; }
 	void			setHAlign( LLFontGL::HAlign align )		{ mHAlign = align; }
-	void			setClickedCallback( void (*cb)(void *data), void* data = NULL ){ mClickedCallback = cb; mCallbackUserData = data; }		// mouse down and up within button
+	void			setClickedCallback( callback_t cb )		{ mClickedCallback = cb; }
 
 	const LLFontGL* getFont() const							{ return mFontGL; }
 
@@ -137,8 +139,7 @@ private:
 	LLFontGL::VAlign mVAlign;
 
 	std::vector<S32> mLineLengthList;
-	void			(*mClickedCallback)(void* data );
-	void*			mCallbackUserData;
+	callback_t			mClickedCallback;
 };
 
 #endif

@@ -5,7 +5,4 @@
 	</text>
 	<button label="OK" label_selected="OK" name="OK"/>
 	<button label="Annuler" label_selected="Annuler" name="Cancel"/>
-	<string name="none">
-		aucun
-	</string>
 </floater>

@@ -279,6 +279,8 @@ public:
 
 	// Escapes " (quot) ' (apos) & (amp) < (lt) > (gt)
 	static std::string escapeXML(const std::string& xml);
+	// Escapes -- (double-hyphen)
+	static std::string commentEscape(std::string const& comment);
 
 	// Set the default node corresponding to this default node
 	void setDefault(LLXMLNode *default_node);

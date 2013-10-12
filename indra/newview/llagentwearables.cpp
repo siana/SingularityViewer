@@ -473,7 +473,7 @@ void LLAgentWearables::saveWearable(const LLWearableType::EType type, const U32 
 LLViewerWearable* LLAgentWearables::saveWearableAs(const LLWearableType::EType type,
 									  const U32 index,
 									  const std::string& new_name,
-									  const std::string& description,
+									  const std::string& new_description,
 									  BOOL save_in_lost_and_found)
 {
 	if (!isWearableCopyable(type, index))
@@ -496,9 +496,12 @@ LLViewerWearable* LLAgentWearables::saveWearableAs(const LLWearableType::EType t
 	}
 	std::string trunc_name(new_name);
 	LLStringUtil::truncate(trunc_name, DB_INV_ITEM_NAME_STR_LEN);
+	std::string trunc_description(new_description);
+	LLStringUtil::truncate(trunc_description, DB_INV_ITEM_DESC_STR_LEN);
 	LLViewerWearable* new_wearable = LLWearableList::instance().createCopy(
 		old_wearable,
-		trunc_name);
+		trunc_name,
+		trunc_description);
 	LLPointer<LLInventoryCallback> cb =
 		new addWearableToAgentInventoryCallback(
 			LLPointer<LLRefCount>(NULL),
@@ -506,7 +509,7 @@ LLViewerWearable* LLAgentWearables::saveWearableAs(const LLWearableType::EType t
 			index,
 			new_wearable,
 			addWearableToAgentInventoryCallback::CALL_WEARITEM,
-			description
+			trunc_description
 			);
 	LLUUID category_id;
 	if (save_in_lost_and_found)
@@ -595,6 +598,33 @@ void LLAgentWearables::setWearableName(const LLUUID& item_id, const std::string&
 	}
 }
 
+void LLAgentWearables::nameOrDescriptionChanged(LLUUID const& item_id)
+{
+	for (int i = 0; i < LLWearableType::WT_COUNT; ++i)
+	{
+		LLWearableType::EType type = (LLWearableType::EType)i;
+		for (U32 j = 0; j < getWearableCount(type); ++j)
+		{
+			LLUUID curr_item_id = getWearableItemID(type, j);
+			if (curr_item_id == item_id)
+			{
+				LLViewerWearable* wearable = getViewerWearable(type, j);
+				llassert(wearable);
+				if (!wearable) continue;
+
+				wearable->refreshNameAndDescription();
+				
+				// Update the name in the appearance editor.
+				if (LLFloaterCustomize::instanceExists())
+				{
+					LLFloaterCustomize::getInstance()->wearablesChanged(type);
+				}
+
+				return;
+			}
+		}
+	}
+}
 
 BOOL LLAgentWearables::isWearableModifiable(LLWearableType::EType type, U32 index) const
 {
@@ -751,7 +781,7 @@ void LLAgentWearables::wearableUpdated(LLWearable *wearable, BOOL removed)
 	if (!removed)
 	{
 		LLViewerWearable* viewer_wearable = dynamic_cast<LLViewerWearable*>(wearable);	
-		viewer_wearable->refreshName();
+		viewer_wearable->refreshNameAndDescription();
 
 		// Hack pt 2. If the wearable we just loaded has definition version 24,
 		// then force a re-save of this wearable after slamming the version number to 22.
@@ -1334,6 +1364,7 @@ void LLAgentWearables::setWearableOutfit(const LLInventoryItem::item_array_t& it
 			const LLWearableType::EType type = new_wearable->getType();
 
 			new_wearable->setName(new_item->getName());
+			new_wearable->setDescription(new_item->getDescription());
 			new_wearable->setItemID(new_item->getUUID());
 
 			if (LLWearableType::getAssetType(type) == LLAssetType::AT_BODYPART)

@@ -181,7 +181,7 @@ void LLMediaRemoteCtrl::enableMediaButtons()
 	std::string media_url = mControls->getString("default_tooltip_label");
 	LLParcel* parcel = LLViewerParcelMgr::getInstance()->getAgentParcel();
 
-	if (gSavedSettings.getBOOL("AudioStreamingVideo"))
+	if (gSavedSettings.getBOOL("AudioStreamingMedia"))
 	{
 		if ( parcel && !parcel->getMediaURL().empty())
 		{

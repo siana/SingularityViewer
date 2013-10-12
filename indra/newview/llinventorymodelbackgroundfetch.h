@@ -29,6 +29,7 @@
 
 #include "llsingleton.h"
 #include "lluuid.h"
+#include "aicurlperservice.h"
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Class LLInventoryModelBackgroundFetch
@@ -75,11 +76,13 @@ private:
 	BOOL mRecursiveLibraryFetchStarted;
 	BOOL mAllFoldersFetched;
 
-	BOOL mBackgroundFetchActive;
+	BOOL mBackgroundFetchActive;		// TRUE if LLInventoryModelBackgroundFetch::backgroundFetchCB is being called from idle().
 	bool mFolderFetchActive;
 	S16 mFetchCount;
 	BOOL mTimelyFetchPending;
 	S32  mNumFetchRetries;
+
+	AIPerServicePtr mPerServicePtr;		// Pointer to the AIPerService corresponding to the FetchInventory2 capability.
 
 	LLFrameTimer mFetchTimer;
 	F32 mMinTimeBetweenFetches;

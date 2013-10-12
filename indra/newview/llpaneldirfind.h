@@ -65,13 +65,12 @@ public:
 	const std::string getSearchURLSuffix(bool inc_pg, bool inc_mature, bool inc_adult, bool is_web) const;
 
 private:
-	static void onClickBack( void* data );
-	static void onClickForward( void* data );
-	static void onClickHome( void* data );
-	static void onClickRefresh( void* data );
-	static void onClickSearch( void* data );
-	static void onCommitSearch(LLUICtrl*, void* data);
-	static void onClickHelp( void* data );
+	void onClickBack();
+	void onClickForward();
+	void onClickHome();
+	void onClickRefresh();
+	void onClickSearch();
+	void onClickHelp();
 
 	// inherited from LLViewerMediaObserver
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event);
@@ -100,9 +99,7 @@ public:
 
 	/*virtual*/ void draw();
 
-	static void onClickSearch(void *userdata);
-	static void onCommitScope(LLUICtrl* ctrl, void* data);
-	static void onKeystrokeName(LLLineEditor* line, void* data);
+	void onClickSearch();
 };
 
 #endif

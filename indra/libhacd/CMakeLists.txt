@@ -1,13 +1,39 @@
-cmake_minimum_required(VERSION 2.6.4)
+# -*- cmake -*-
 
-project(libhacd CXX C)
+project(libhacd)
 include(00-Common)
 
-file (GLOB SOURCE_FILES *.cpp )
-file (GLOB INCLUDE_FILES *.h )
+set(libhacd_SOURCE_FILES
+    hacdGraph.cpp
+    hacdHACD.cpp
+    hacdICHull.cpp
+    hacdManifoldMesh.cpp
+    hacdMeshDecimator.cpp
+    hacdMicroAllocator.cpp
+    hacdRaycastMesh.cpp
+)
+
+set(libhacd_HEADER_FILES
+    hacdCircularList.h
+    hacdCircularList.inl
+    hacdGraph.h
+    hacdHACD.h
+    hacdICHull.h
+    hacdManifoldMesh.h
+    hacdMeshDecimator.h
+    hacdMicroAllocator.h
+    hacdRaycastMesh.h
+    hacdSArray.h
+    hacdVector.h
+    hacdVector.inl
+    hacdVersion.h
+)
+
+set_source_files_properties(${libhacd_HEADER_FILES}
+                            PROPERTIES HEADER_FILE_ONLY TRUE)
 
 IF(WINDOWS)
    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 ENDIF(WINDOWS)
 
-add_library(hacd ${SOURCE_FILES} ${INCLUDE_FILES})
+add_library(hacd ${libhacd_SOURCE_FILES} ${libhacd_INCLUDE_FILES})

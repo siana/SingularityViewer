@@ -44,10 +44,9 @@ class LLNameBox
 :	public LLTextBox
 {
 public:
-	LLNameBox(const std::string& name, const LLRect& rect, const LLUUID& name_id = LLUUID::null, BOOL is_group = FALSE, const LLFontGL* font = NULL, BOOL mouse_opaque = TRUE );
-		// By default, follows top and left and is mouse-opaque.
-		// If no text, text = name.
-		// If no font, uses default system font.
+	virtual void initFromXML(LLXMLNodePtr node, LLView* parent);
+	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
+
 	virtual ~LLNameBox();
 
 	void setNameID(const LLUUID& name_id, BOOL is_group);
@@ -56,11 +55,19 @@ public:
 
 	static void refreshAll(const LLUUID& id, const std::string& full_name, bool is_group);
 
+protected:
+	LLNameBox (const std::string& name);
+	
+	friend class LLUICtrlFactory;
 private:
+	void setName(const std::string& name, BOOL is_group);
+
 	static std::set<LLNameBox*> sInstances;
 
 private:
 	LLUUID mNameID;
+	BOOL mLink;
+	std::string mInitialValue;
 
 };
 

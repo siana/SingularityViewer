@@ -66,7 +66,6 @@ public:
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event);
 
 private:
-	int				mWebBrowserWindowId;
 	int				mLoadCompleteCount;
 };
 

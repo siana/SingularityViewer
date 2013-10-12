@@ -57,7 +57,7 @@ public:
 	class URLLoader
 	{
 	public:
-		virtual void load(const std::string& url) = 0;
+		virtual void load(const std::string& url, bool force_open_externally) = 0;
 		virtual ~URLLoader() {}
 	};
 	

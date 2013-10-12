@@ -37,6 +37,7 @@
 	<text left="435" name="text_box5">
 		(# líneas)
 	</text>
+	<spinner name="chat_bottom_offset" label="Desplazamiento Inferior" label_width="120" width="170" tool_tip="Desplazamiento en píxeles entre la consola de chat y el borde inferior del visor."/>	
 	<slider label="Opacidad" name="console_opacity"/>
 	<check_box label="Usar Ancho completo de pantalla (Requeire reinicio)" name="chat_full_width_check"/>
 	<text name="text_box6" >

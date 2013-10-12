@@ -219,17 +219,15 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 		}
 	}
 
-	gGL.pushMatrix();
-	gGL.loadIdentity();
-	gGL.translatef(floorf(sCurOrigin.mX*sScaleX), floorf(sCurOrigin.mY*sScaleY), sCurDepth);
+	gGL.pushUIMatrix();
 
-	// this code snaps the text origin to a pixel grid to start with
-	F32 pixel_offset_x = llround((F32)sCurOrigin.mX) - (sCurOrigin.mX);
-	F32 pixel_offset_y = llround((F32)sCurOrigin.mY) - (sCurOrigin.mY);
-	gGL.translatef(-pixel_offset_x, -pixel_offset_y, 0.f);
+	gGL.loadUIIdentity();
+	
+	LLVector2 origin(floorf(sCurOrigin.mX*sScaleX), floorf(sCurOrigin.mY*sScaleY));
 
-
-	gGL.color4fv( color.mV );
+	// Depth translation, so that floating text appears 'in-world'
+	// and is correctly occluded.
+	gGL.translatef(0.f,0.f,sCurDepth);
 
 	S32 chars_drawn = 0;
 	S32 i;
@@ -249,20 +247,21 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
  	// Not guaranteed to be set correctly
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
 	
-	cur_x = ((F32)x * sScaleX);
-	cur_y = ((F32)y * sScaleY);
+	cur_x = ((F32)x * sScaleX) + origin.mV[VX];
+	cur_y = ((F32)y * sScaleY) + origin.mV[VY];
 
 	// Offset y by vertical alignment.
+	// use unscaled font metrics here
 	switch (valign)
 	{
 	case TOP:
-		cur_y -= mAscender;
+		cur_y -= llceil(mAscender);
 		break;
 	case BOTTOM:
-		cur_y += mDescender;
+		cur_y += llceil(mDescender);
 		break;
 	case VCENTER:
-		cur_y -= ((mAscender - mDescender)/2.f);
+		cur_y -= llceil((llceil(mAscender) - llceil(mDescender))/2.f);
 		break;
 	case BASELINE:
 		// Baseline, do nothing.
@@ -276,10 +275,10 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	case LEFT:
 		break;
 	case RIGHT:
-	  	cur_x -= llmin(scaled_max_pixels, llround(getWidthF32(wstr.c_str(), 0, length) * sScaleX));
+	  	cur_x -= llmin(scaled_max_pixels, llround(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX));
 		break;
 	case HCENTER:
-	    cur_x -= llmin(scaled_max_pixels, llround(getWidthF32(wstr.c_str(), 0, length) * sScaleX)) / 2;
+	    cur_x -= llmin(scaled_max_pixels, llround(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX)) / 2;
 		break;
 	default:
 		break;
@@ -288,10 +287,12 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	cur_render_y = cur_y;
 	cur_render_x = cur_x;
 
-	F32 start_x = cur_x;
+	F32 start_x = (F32)llround(cur_x);
 
-	F32 inv_width = 1.f / mFontBitmapCachep->getBitmapWidth();
-	F32 inv_height = 1.f / mFontBitmapCachep->getBitmapHeight();
+	const LLFontBitmapCache* font_bitmap_cache = mFontBitmapCachep;
+
+	F32 inv_width = 1.f / font_bitmap_cache->getBitmapWidth();
+	F32 inv_height = 1.f / font_bitmap_cache->getBitmapHeight();
 
 	const S32 LAST_CHARACTER = LLFontFreetype::LAST_CHAR_FULL;
 
@@ -300,7 +301,8 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	if (use_ellipses && halign == LEFT)
 	{
 		// check for too long of a string
-		if (getWidthF32(wstr.c_str(), 0, max_chars) * sScaleX > scaled_max_pixels)
+		S32 string_width = llround(getWidthF32(wstr.c_str(), begin_offset, max_chars) * sScaleX);
+		if (string_width > scaled_max_pixels)
 		{
 			// use four dots for ellipsis width to generate padding
 			const LLWString dots(utf8str_to_wstring(std::string("....")));
@@ -358,12 +360,9 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 			if (!label.empty())
 			{
 				gGL.pushMatrix();
-				//gGL.loadIdentity();
-				//gGL.translatef(sCurOrigin.mX, sCurOrigin.mY, 0.0f);
-				//gGL.scalef(sScaleX, sScaleY, 1.f);
 				getFontExtChar()->render(label, 0,
-									 /*llfloor*/((ext_x + (F32)ext_image->getWidth() + EXT_X_BEARING) / sScaleX), 
-									 /*llfloor*/(cur_y / sScaleY),
+									 /*llfloor*/(ext_x / sScaleX) + ext_image->getWidth() + EXT_X_BEARING - sCurOrigin.mX, 
+									 /*llfloor*/(cur_render_y / sScaleY) - sCurOrigin.mY,
 									 color,
 									 halign, BASELINE, NORMAL, NO_SHADOW, S32_MAX, S32_MAX, NULL,
 									 TRUE );
@@ -412,12 +411,12 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 			LLRectf uv_rect((fgi->mXBitmapOffset) * inv_width,
 					(fgi->mYBitmapOffset + fgi->mHeight + PAD_UVY) * inv_height,
 					(fgi->mXBitmapOffset + fgi->mWidth) * inv_width,
-					(fgi->mYBitmapOffset - PAD_UVY) * inv_height);
-			// snap glyph origin to whole screen pixel
-			LLRectf screen_rect(llround(cur_render_x + (F32)fgi->mXBearing),
-					    llround(cur_render_y + (F32)fgi->mYBearing),
-					    llround(cur_render_x + (F32)fgi->mXBearing) + (F32)fgi->mWidth,
-					    llround(cur_render_y + (F32)fgi->mYBearing) - (F32)fgi->mHeight);
+				(fgi->mYBitmapOffset - PAD_UVY) * inv_height);
+		// snap glyph origin to whole screen pixel
+		LLRectf screen_rect((F32)llround(cur_render_x + (F32)fgi->mXBearing),
+				    (F32)llround(cur_render_y + (F32)fgi->mYBearing),
+				    (F32)llround(cur_render_x + (F32)fgi->mXBearing) + (F32)fgi->mWidth,
+				    (F32)llround(cur_render_y + (F32)fgi->mYBearing) - (F32)fgi->mHeight);
 			
 			drawGlyph(screen_rect, uv_rect, color, style, shadow, drop_shadow_strength);
 
@@ -440,8 +439,8 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 			// Must do this to cur_x, not just to cur_render_x, otherwise you
 			// will squish sub-pixel kerned characters too close together.
 			// For example, "CCCCC" looks bad.
-			cur_x = (F32)llfloor(cur_x + 0.5f);
-			//cur_y = (F32)llfloor(cur_y + 0.5f);
+			cur_x = (F32)llround(cur_x);
+			//cur_y = (F32)llround(cur_y);
 
 			cur_render_x = cur_x;
 			cur_render_y = cur_y;
@@ -450,41 +449,40 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 
 	if (right_x)
 	{
-		*right_x = cur_x / sScaleX;
+		*right_x = (cur_x - origin.mV[VX]) / sScaleX;
 	}
 
 	if (style & UNDERLINE)
 	{
+		F32 descender = (F32)llfloor(mDescender);
+
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		gGL.begin(LLRender::LINES);
-		gGL.vertex2f(start_x, cur_y - (mDescender));
-		gGL.vertex2f(cur_x, cur_y - (mDescender));
+		gGL.vertex2f(start_x, cur_y - descender);
+		gGL.vertex2f(cur_x, cur_y - descender);
 		gGL.end();
 	}
 
-	// *FIX: get this working in all alignment cases, etc.
 	if (draw_ellipses)
 	{
+
 		// recursively render ellipses at end of string
 		// we've already reserved enough room
-		gGL.pushMatrix();
-		//gGL.loadIdentity();
-		//gGL.translatef(sCurOrigin.mX, sCurOrigin.mY, 0.0f);
-		//gGL.scalef(sScaleX, sScaleY, 1.f);
+		gGL.pushUIMatrix();
 		renderUTF8(std::string("..."), 
 				0,
-				cur_x / sScaleX, (F32)y,
+				(cur_x - origin.mV[VX]) / sScaleX, (F32)y,
 				color,
 				LEFT, valign,
 				style,
-				LLFontGL::NO_SHADOW,
+				shadow,
 				S32_MAX, max_pixels,
 				right_x,
 				FALSE); 
-		gGL.popMatrix();
+		gGL.popUIMatrix();
 	}
 
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 
 	return chars_drawn;
 }
@@ -578,7 +576,7 @@ F32 LLFontGL::getWidthF32(const llwchar* wchars, const S32 begin_offset, const S
 			cur_x += getXAdvance(wch);
 			llwchar next_char = wchars[i+1];
 
-			if (((i + 1) < max_chars) 
+			if (((i + 1) < begin_offset + max_chars) 
 				&& next_char 
 				&& (next_char < LAST_CHARACTER))
 			{
@@ -587,7 +585,7 @@ F32 LLFontGL::getWidthF32(const llwchar* wchars, const S32 begin_offset, const S
 			}
 		}
 		// Round after kerning.
-		cur_x = (F32)llfloor(cur_x + 0.5f);
+		cur_x = (F32)llround(cur_x);
 	}
 
 	return cur_x / sScaleX;
@@ -694,7 +692,7 @@ S32 LLFontGL::maxDrawableChars(const llwchar* wchars, F32 max_pixels, S32 max_ch
 			}
 		}
 		// Round after kerning.
-		cur_x = (F32)llfloor(cur_x + 0.5f);
+		cur_x = (F32)llround(cur_x);
 		drawn_x = cur_x;
 	}
 
@@ -871,7 +869,7 @@ S32 LLFontGL::charFromPixelOffset(const llwchar* wchars, const S32 begin_offset,
 			}
 
 			// Round after kerning.
-			cur_x = (F32)llfloor(cur_x + 0.5f);
+			cur_x = (F32)llround(cur_x);
 		}
 	}
 

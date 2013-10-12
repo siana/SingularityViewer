@@ -133,7 +133,7 @@ BOOL HippoPanelGridsImpl::postBuild()
 	requires<LLButton>("btn_add");
 	requires<LLButton>("btn_copy");
 	requires<LLButton>("btn_default");
-	//requires<LLButton>("btn_gridinfo");
+	requires<LLButton>("btn_gridinfo");
 	requires<LLButton>("btn_help_render_compat");
 	if (!checkRequirements()) return false;
 	
@@ -146,7 +146,7 @@ BOOL HippoPanelGridsImpl::postBuild()
 	childSetAction("btn_add", onClickAdd, this);
 	childSetAction("btn_copy", onClickCopy, this);
 	childSetAction("btn_default", onClickDefault, this);
-	//childSetAction("btn_gridinfo", onClickGridInfo, this);
+	childSetAction("btn_gridinfo", onClickGridInfo, this);
 	childSetAction("btn_help_render_compat", onClickHelpRenderCompat, this);
 	childSetAction("btn_advanced", onClickAdvanced, this);
 	
@@ -164,7 +164,7 @@ BOOL HippoPanelGridsImpl::postBuild()
 // called internally too
 void HippoPanelGridsImpl::refresh()
 {
-	const std::string &defaultGrid = gHippoGridManager->getDefaultGridNick();
+	const std::string &defaultGrid = gHippoGridManager->getDefaultGridName();
 
 	LLComboBox *grids = getChild<LLComboBox>("grid_selector");
 	S32 selectIndex = -1, i = 0;
@@ -227,7 +227,6 @@ void HippoPanelGridsImpl::apply()
 		// adding new grid did not fail
 		gHippoGridManager->setCurrentGrid(mCurGrid);
 	}
-	LLPanelLogin::refreshLoginPage();
 	gHippoGridManager->saveFile();
 	refresh();
 	// update render compatibility
@@ -365,7 +364,7 @@ bool HippoPanelGridsImpl::saveCurGrid()
 void HippoPanelGridsImpl::reset()
 {
 	mState = NORMAL;
-	mCurGrid = gHippoGridManager->getCurrentGridNick();
+	mCurGrid = gHippoGridManager->getCurrentGridName();
 	loadCurGrid();
 }
 

@@ -51,14 +51,14 @@ public:
 
 	void refreshView(LLView* view);
 	void refreshButton(LLView* view);
-	static void	navigateHierarchyButtonPressed(void*	data);
+	static void	navigateHierarchyButtonPressed(S32 i);
 	static void show(void* unused = NULL);
 
 	static BOOL processKeystroke(KEY key, MASK mask);
 
-	static void onCommitLabel(LLUICtrl* ctrl, void* data);
-	static void onCommitHeight(LLUICtrl* ctrl, void* data);
-	static void onCommitWidth(LLUICtrl* ctrl, void* data);
+	static void onCommitLabel(LLUICtrl* ctrl);
+	static void onCommitHeight(LLUICtrl* ctrl);
+	static void onCommitWidth(LLUICtrl* ctrl);
 
 protected:
 	LLView* mLastView;

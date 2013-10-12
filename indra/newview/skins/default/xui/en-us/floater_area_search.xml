@@ -8,11 +8,11 @@
 	<text name="desc_label" bottom_delta="0" follows="top|left" height="15" left="218">
 		Description search string:
 	</text>
-	<line_editor name="Name query chunk" tool_tip=""
+  <filter_editor name="Name query chunk" tool_tip=""
 		bevel_style="in" border_style="line" border_thickness="1"
 		height="20" width="200" left="10" bottom_delta="-20" follows="left|top"
 		font="SansSerifSmall" max_length="256" mouse_opaque="true" />
-	<line_editor name="Description query chunk" tool_tip=""
+  <filter_editor name="Description query chunk" tool_tip=""
 		bevel_style="in" border_style="line" border_thickness="1"
 		height="20" width="200" left_delta="206" bottom_delta="0" follows="left|top"
 		font="SansSerifSmall" max_length="256" mouse_opaque="true" spell_check="true" />
@@ -22,11 +22,11 @@
 	<text name="group_label" bottom_delta="0" follows="top|left" height="15" left="218">
 		Group search string:
 	</text>
-	<line_editor name="Owner query chunk" tool_tip=""
+  <filter_editor name="Owner query chunk" tool_tip=""
 		bevel_style="in" border_style="line" border_thickness="1"
 		height="20" width="200" left="10" bottom_delta="-20" follows="left|top"
 		font="SansSerifSmall" max_length="256" mouse_opaque="true" />
-	<line_editor name="Group query chunk" tool_tip=""
+  <filter_editor name="Group query chunk" tool_tip=""
 		bevel_style="in" border_style="line" border_thickness="1"
 		height="20" width="200" left_delta="206" bottom_delta="0" follows="left|top"
 		font="SansSerifSmall" max_length="256" mouse_opaque="true" />

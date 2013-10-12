@@ -62,9 +62,9 @@ LLMakeOutfitDialog::LLMakeOutfitDialog(bool modal) : LLModalDialog(LLStringUtil:
 		else
 		{
 			bool enabled = gAgentWearables.getWearableCount((LLWearableType::EType)i);	// TODO: MULTI-WEARABLE
-			bool selected = enabled && (LLWearableType::WT_SHIRT <= i); // only select clothing by default
+			//bool selected = enabled && (LLWearableType::WT_SHIRT <= i); // only select clothing by default
 			childSetEnabled(name, enabled);
-			childSetValue(name, selected);
+			childSetValue(name, enabled);
 		}
 	}
 
@@ -81,12 +81,12 @@ LLMakeOutfitDialog::LLMakeOutfitDialog(bool modal) : LLModalDialog(LLStringUtil:
 			std::string name = std::string("checkbox_") + attachment->getName();
 			mCheckBoxList.push_back(std::make_pair(name, attachment_pt));
 			childSetEnabled(name, object_attached);
+			childSetValue(name, object_attached);
 		}
 	}
 
 	if (!gHippoGridManager->getConnectedGrid()->supportsInvLinks())
 	{
-		childSetEnabled("checkbox_use_links", false);
 		childSetValue("checkbox_use_links", false);
 		childSetEnabled("checkbox_use_outfits", false);
 		childSetValue("checkbox_use_outfits", false);
@@ -140,7 +140,8 @@ void LLMakeOutfitDialog::refresh()
 		if (fUseOutfits)
 			pCheckCtrl->setValue(true);
 	}
-	childSetEnabled("checkbox_use_links", !fUseOutfits);
+	getChild<LLUICtrl>("checkbox_use_links")->setEnabled(!fUseOutfits && gHippoGridManager->getConnectedGrid()->supportsInvLinks());
+	getChild<LLUICtrl>("checkbox_legacy_copy_changes")->setEnabled(!fUseOutfits);
 }
 
 

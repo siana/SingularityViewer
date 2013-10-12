@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<panel label="Vanity" name="ascvan">
-  <tab_container label="Singularity Vanity" name="Ascent Vanity">
+<panel name="ascvan">
+  <tab_container name="Ascent Vanity">
     <panel label="Principal" name="General">
       <check_box label="Lorsque c'est possible, sauver le setting personnalisé par compte." tool_tip="Sauve le settings customis&#xE9; pour chaque alt." name="use_account_settings_check"/>
       <check_box label="Masquer la barre de 'TP in progress'" tool_tip="Ceci permet de continuer des lire vos IMs durant le TP." name="disable_tp_screen_check"/>
@@ -11,6 +11,9 @@
       <check_box label="Pivote l'avatar quand on marche en arriere" tool_tip="Certains AO peuvent empecher la fontion." name="turn_around"/>
       <check_box label="Préviens quand quelqu'un prend une photo" tool_tip="Sauf si la personne a elle même choisi le mode silencieux." name="announce_snapshots"/>
       <check_box label="Annonce les titres des chansons dans le chat local" tool_tip="" name="announce_stream_metadata"/>
+      <check_box label="Garder les menus flottants opaques en arrière plan (Cliquer une fois en 1er plan pour activer)" tool_tip="peux poser des conflits avec certains thèmes (skin viewers)." name="unfocused_floaters_opaque"/>
+      <check_box label="Montrer les noms complets : display + ancient names dans les profils" tool_tip="Ne fonctionnera pas si les display sont désactivés dans le menu général." name="complete_name_profiles"/>
+      <check_box label="Garder les scripts en premier plan quand ils ne peuvent pas être compilés suite a une erreur" name="script_errors_steal_focus"/>
     </panel>
     <panel label="Tags/Couleurs" name="TagsColors">
       <!-- Client tag options -->
@@ -19,6 +22,7 @@
       <check_box label="Fonction d&#xE9;sactiv&#xE9;e par Linden Lab" tool_tip="Le viewer utilis&#xE9; par les avatars ne peut plus &#xEA;tre visible depuis que Linden lab l&#x27;a d&#xE9;sactiv&#xE9;" name="show_self_tag_check"/>
       <check_box label="Afficher sa propre couleur custom " tool_tip="Vous seul la voyez." name="show_self_tag_color_check"/>
       <check_box label="Afficher le tag (Friend)" tool_tip="Rajoute (friends) dans le tag quand vous voyez un(e) ami(e)." name="show_friend_tag_check"/>
+      <check_box label="Afficher le tag sur une nouvelle ligne" tool_tip="L&apos;activation de cette montrera le tag sur une nouvelle ligne." name="display_client_new_line_check"/>
       <!-- End of Left Side -->
       <check_box label="Choisir une couleur custom (Mode Local uniquement)" left_delta="205" tool_tip="Vous seul(e) la voyez." name="customize_own_tag_check"/>
       <text name="custom_tag_label_text">Label :</text>
@@ -46,13 +50,7 @@
       <check_box name="color_linden_check" tool_tip="Color Linden Chat"/>
       <check_box name="color_muted_check" tool_tip="Color Muted Chat"/>
     </panel>
-    <panel label="Body Dyn. (Bouger les n&#xE9;n&#xE9;s)" name="Body Dynamics">
-      <check_box label="Activer les &#x22;physics&#x22; des n&#xE9;n&#xE9;s voire du popotin des avatars ^^" name="EmBreastsToggle"/>
-      <slider name="EmeraldBoobMass" label="Masse :" />
-      <slider name="EmeraldBoobHardness" label="Rebond :"/>
-      <slider name="EmeraldBoobVelMax" label="V&#xE9;locit&#xE9; max :"/>
-      <slider name="EmeraldBoobFriction" label="Friction :"/>
-      <slider name="EmeraldBoobVelMin" label="V&#xE9;locit&#xE9; min :"/>
+    <panel label="Body Dyn.(Offset de l'avatar)" name="Body Dynamics">
       <text name="av_mod_textbox" follows="top">Modifier l'offset de l'avatar</text>
       <spinner label="X Modif." name="X Modifier"/>
       <spinner label="Y Modif." name="Y Modifier"/>

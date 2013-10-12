@@ -44,7 +44,7 @@
 
 LLFloaterEditUI* LLFloaterEditUI::sInstance = NULL;
 
-void	LLFloaterEditUI::navigateHierarchyButtonPressed(void*	data)
+void	LLFloaterEditUI::navigateHierarchyButtonPressed(S32 i)
 {
 	LLView* view = LLView::sEditingUIView;
 	if( !view ) return;
@@ -62,7 +62,7 @@ void	LLFloaterEditUI::navigateHierarchyButtonPressed(void*	data)
 	for(idx = 0,itor = parentChildren->begin();itor!=parentChildren->end();itor++,idx++){
 		if((*itor)==view)break;
 	}
-	switch((intptr_t)data)
+	switch(i)
 	{
 		case	0	://up
 			view = view->getParent();
@@ -142,10 +142,7 @@ LLFloaterEditUI::LLFloaterEditUI()
 		LLStringUtil::null,
 		NULL,
 		254,
-		onCommitLabel,
-		NULL,
-		NULL,
-		this);
+		boost::bind(&LLFloaterEditUI::onCommitLabel,_1));
 	addChild(line);
 	mLabelLine = line;
 
@@ -154,8 +151,7 @@ LLFloaterEditUI::LLFloaterEditUI()
 
 	spin = new LLSpinCtrl(std::string("height_spin"), LLRect(x, y+20, x+100, y),
 		std::string("Height:"), LLFontGL::getFontSansSerifSmall(),
-		onCommitHeight,
-		this,
+		boost::bind(&LLFloaterEditUI::onCommitHeight,_1),
 		0.f,
 		2.f,
 		1000.f,
@@ -168,8 +164,7 @@ LLFloaterEditUI::LLFloaterEditUI()
 
 	spin = new LLSpinCtrl(std::string("width_spin"), LLRect(x, y+20, x+100, y),
 		std::string("Width:"), LLFontGL::getFontSansSerifSmall(),
-		onCommitWidth,
-		this,
+		boost::bind(&LLFloaterEditUI::onCommitHeight,_1),
 		0.f,
 		2.f,
 		1000.f,
@@ -190,28 +185,22 @@ LLFloaterEditUI::LLFloaterEditUI()
 	y -= VPAD + 20;
 
 	x += 40;
-	button = new LLButton(std::string("up"),LLRect(x, y+16, x+32, y));
+	button = new LLButton(std::string("up"),LLRect(x, y+16, x+32, y), std::string(), boost::bind(LLFloaterEditUI::navigateHierarchyButtonPressed,0));
 	addChild(button);
 	x -= 40;
 	y -= VPAD + 20;
-	button = new LLButton(std::string("<<"),LLRect(x, y+16, x+32, y));
+	button = new LLButton(std::string("<<"),LLRect(x, y+16, x+32, y), std::string(), boost::bind(LLFloaterEditUI::navigateHierarchyButtonPressed,2));
 	addChild(button);
 	x += 40;
-	button = new LLButton(std::string("rfrsh"),LLRect(x, y+16, x+32, y));
+	button = new LLButton(std::string("rfrsh"),LLRect(x, y+16, x+32, y), std::string(), boost::bind(LLFloaterEditUI::navigateHierarchyButtonPressed,4));
 	addChild(button);
 	x += 40;
-	button = new LLButton(std::string(">>"),LLRect(x, y+16, x+32, y));
+	button = new LLButton(std::string(">>"),LLRect(x, y+16, x+32, y), std::string(), boost::bind(LLFloaterEditUI::navigateHierarchyButtonPressed,3));
 	addChild(button);
 	x -= 40;
 	y -= VPAD + 20;
-	button = new LLButton(std::string("dn"),LLRect(x, y+16, x+32, y));
+	button = new LLButton(std::string("dn"),LLRect(x, y+16, x+32, y), std::string(), boost::bind(LLFloaterEditUI::navigateHierarchyButtonPressed,1));
 	addChild(button);
-
-	childSetAction("up",navigateHierarchyButtonPressed,(void*)0);
-	childSetAction("dn",navigateHierarchyButtonPressed,(void*)1);
-	childSetAction("<<",navigateHierarchyButtonPressed,(void*)2);
-	childSetAction(">>",navigateHierarchyButtonPressed,(void*)3);
-	childSetAction("rfrsh",navigateHierarchyButtonPressed,(void*)4);
 	sInstance = this;
 }
 
@@ -380,7 +369,7 @@ BOOL LLFloaterEditUI::processKeystroke(KEY key, MASK mask)
 }
 
 // static
-void LLFloaterEditUI::onCommitLabel(LLUICtrl* ctrl, void* data)
+void LLFloaterEditUI::onCommitLabel(LLUICtrl* ctrl)
 {
 	LLView* view = LLView::sEditingUIView;
 	if (!view) return;
@@ -396,7 +385,7 @@ void LLFloaterEditUI::onCommitLabel(LLUICtrl* ctrl, void* data)
 }
 
 // static
-void LLFloaterEditUI::onCommitHeight(LLUICtrl* ctrl, void* data)
+void LLFloaterEditUI::onCommitHeight(LLUICtrl* ctrl)
 {
 	LLView* view = LLView::sEditingUIView;
 	if (!view) return;
@@ -410,7 +399,7 @@ void LLFloaterEditUI::onCommitHeight(LLUICtrl* ctrl, void* data)
 }
 
 // static
-void LLFloaterEditUI::onCommitWidth(LLUICtrl* ctrl, void* data)
+void LLFloaterEditUI::onCommitWidth(LLUICtrl* ctrl)
 {
 	LLView* view = LLView::sEditingUIView;
 	if (!view) return;

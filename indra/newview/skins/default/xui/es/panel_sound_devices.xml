@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<panel label="Configuración del dispositivo" name="device_settings_panel">
+	<string name="default_text">
+		Por defecto
+	</string>
+	<string name="name_no_device">
+		Ningún dispositivo
+	</string>
+	<string name="name_default_system_device">
+		Dispositivo del sistema por defecto
+	</string>
+	<text name="Input">
+		Entrada (mic):
+	</text>
+	<combo_box name="voice_input_device"/>
+	<text name="Output">
+		Salida (Parlantes):
+	</text>
+	<combo_box name="voice_output_device"/>
+	<text name="My volume label">
+		Nivel de Entrada:
+	</text>
+	<volume_slider name="mic_volume_slider"
+	     tool_tip="Cambia el volumen usando este deslizable"/>
+	<text name="wait_text">
+		Por favor, espera
+	</text>
+	<locate name="bar0"/>
+	<locate name="bar1"/>
+	<locate name="bar2"/>
+	<locate name="bar3"/>
+	<locate name="bar4"/>
+</panel>

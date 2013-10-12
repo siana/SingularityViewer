@@ -44,8 +44,5 @@
 	     label="Inviter" name="Invite..." width="80" />
 	<button bottom_delta="-25" follows="top|right" font="SansSerif" height="22"
 	     label="Titres" name="Titles..." width="80" />
-  <string name="none">
-		Aucun
-  </string>
 </panel>
 

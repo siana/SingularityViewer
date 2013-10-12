@@ -33,7 +33,6 @@
 #ifndef LL_TOOLPLACER_H
 #define LL_TOOLPLACER_H
 
-#include "llprimitive.h"
 #include "llpanel.h"
 #include "lltool.h"
 
@@ -66,29 +65,6 @@ private:
 	BOOL raycastForNewObjPos( S32 x, S32 y, LLViewerObject** hit_obj, S32* hit_face, 
 							  BOOL* b_hit_land, LLVector3* ray_start_region, LLVector3* ray_end_region, LLViewerRegion** region );
 	BOOL addDuplicate(S32 x, S32 y);
-};
-
-////////////////////////////////////////////////////
-// LLToolPlacerPanel
-
-
-const S32 TOOL_PLACER_NUM_BUTTONS = 14;
-
-
-class LLToolPlacerPanel : public LLPanel
-{
-public:
-
-	LLToolPlacerPanel(const std::string& name, const LLRect& rect);
- 	
-	static void	setObjectType( void* data );
-
-private:
-	void		addButton( const std::string& up_state, const std::string& down_state, LLPCode* pcode );
-
-private:
-	static S32			sButtonsAdded;
-	static LLButton*	sButtons[ TOOL_PLACER_NUM_BUTTONS ];
 };
 
 #endif

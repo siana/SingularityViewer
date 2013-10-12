@@ -75,10 +75,15 @@ std::string LLURLRequest::actionAsVerb(LLURLRequest::ERequestAction action)
 
 // This might throw AICurlNoEasyHandle.
 LLURLRequest::LLURLRequest(LLURLRequest::ERequestAction action, std::string const& url, Injector* body,
-	LLHTTPClient::ResponderPtr responder, AIHTTPHeaders& headers, bool keepalive, bool is_auth, bool compression) :
+	LLHTTPClient::ResponderPtr responder, AIHTTPHeaders& headers, AIPerService::Approvement* approved,
+	bool keepalive, bool is_auth, bool compression) :
     mAction(action), mURL(url), mKeepAlive(keepalive), mIsAuth(is_auth), mNoCompression(!compression),
 	mBody(body), mResponder(responder), mHeaders(headers), mResponderNameCache(responder ? responder->getName() : "<uninitialized>")
 {
+	if (approved)
+	{
+		AICurlEasyRequest_wat(*mCurlEasyRequest)->setApproved(approved);
+	}
 }
 
 void LLURLRequest::initialize_impl(void)

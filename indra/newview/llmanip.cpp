@@ -47,9 +47,9 @@
 #include "llviewercamera.h"
 #include "llviewerjoint.h"
 #include "llviewerobject.h"
+#include "llviewerregion.h"
 #include "llviewerwindow.h"
 #include "llvoavatar.h"
-#include "llworld.h"		// for LLWorld::getInstance()
 #include "llresmgr.h"
 #include "pipeline.h"
 #include "llglheaders.h"
@@ -406,7 +406,7 @@ void LLManip::renderGuidelines(BOOL draw_x, BOOL draw_y, BOOL draw_z)
 		grid_rot.getAngleAxis(&angle_radians, &x, &y, &z);
 		gGL.rotatef(angle_radians * RAD_TO_DEG, x, y, z);
 
-		F32 region_size = LLWorld::getInstance()->getRegionWidthInMeters();
+		F32 region_size = object->getRegion()->getWidth();
 
 		const F32 LINE_ALPHA = 0.33f;
 

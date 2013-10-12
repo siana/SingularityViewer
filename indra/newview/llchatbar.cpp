@@ -87,7 +87,7 @@ const F32 AGENT_TYPING_TIMEOUT = 5.f;	// seconds
 LLChatBar *gChatBar = NULL;
 
 // legacy calllback glue
-void toggleChatHistory(LLUICtrl*, const LLSD&);
+void toggleChatHistory();
 //void send_chat_from_viewer(const std::string& utf8_out_text, EChatType type, S32 channel);
 // [RLVa:KB] - Checked: 2009-07-07 (RLVa-1.0.0d) | Modified: RLVa-0.2.2a
 void send_chat_from_viewer(std::string utf8_out_text, EChatType type, S32 channel);
@@ -111,7 +111,7 @@ private:
 //
 
 LLChatBar::LLChatBar() 
-:	LLPanel(LLStringUtil::null, LLRect(), BORDER_NO),
+:	LLPanel(),
 	mInputEditor(NULL),
 	mGestureLabelTimer(),
 	mLastSpecialChatChannel(0),
@@ -138,7 +138,7 @@ LLChatBar::~LLChatBar()
 BOOL LLChatBar::postBuild()
 {
 	if (LLUICtrl* history_ctrl = findChild<LLUICtrl>("History"))
-		history_ctrl->setCommitCallback(toggleChatHistory);
+		history_ctrl->setCommitCallback(boost::bind(&toggleChatHistory));
 	if (LLUICtrl* say_ctrl = getChild<LLUICtrl>("Say"))
 		say_ctrl->setCommitCallback(boost::bind(&LLChatBar::onClickSay, this, _1));
 
@@ -149,8 +149,7 @@ BOOL LLChatBar::postBuild()
 	mInputEditor = findChild<LLLineEditor>("Chat Editor");
 	if (mInputEditor)
 	{
-		mInputEditor->setCallbackUserData(this);
-		mInputEditor->setKeystrokeCallback(&onInputEditorKeystroke);
+		mInputEditor->setKeystrokeCallback(boost::bind(&LLChatBar::onInputEditorKeystroke,this));
 		mInputEditor->setFocusLostCallback(boost::bind(&LLChatBar::onInputEditorFocusLost));
 		mInputEditor->setFocusReceivedCallback(boost::bind(&LLChatBar::onInputEditorGainFocus));
 		mInputEditor->setCommitOnFocusLost( FALSE );
@@ -405,6 +404,63 @@ LLWString LLChatBar::stripChannelNumber(const LLWString &mesg, S32* channel)
 	}
 }
 
+// Returns whether or not this is an action
+bool convert_roleplay_text(std::string& utf8text)
+{
+	bool action(true); // Using /me with autoclose /me ((does something ooc))
+	// Allow CAPSlock /me here
+	if (utf8text.find("/ME'") == 0 || utf8text.find("/ME ") == 0)
+	{
+		utf8text.replace(1, 2, "me");
+	}
+	// Convert MU*s style poses into IRC emotes here.
+	else if (gSavedSettings.getBOOL("AscentAllowMUpose") && utf8text.length() > 3 && utf8text.find(":") == 0)
+	{
+		if (utf8text[1] == '\'')
+			utf8text.replace(0, 1, "/me");
+		else if (isalpha(utf8text[1]))	// Do not prevent smileys and such.
+			utf8text.replace(0, 1, "/me ");
+		else
+			action = false;
+	}
+	else if (utf8text.find("/me'") != 0 && utf8text.find("/me ") != 0)
+	{
+		action = false;
+	}
+
+	if (gSavedSettings.getBOOL("AscentAutoCloseOOC") && (utf8text.length() > 3))
+	{
+		const U32 pos(action ? 4 : 0);
+		//Check if it needs the end-of-chat brackets -HgB
+		if (utf8text.find("((") == pos && utf8text.find("))") == std::string::npos)
+		{
+			if (*utf8text.rbegin() == ')')
+				utf8text += " ";
+			utf8text += "))";
+		}
+		else if (utf8text.find("[[") == pos && utf8text.find("]]") == std::string::npos)
+		{
+			if (*utf8text.rbegin() == ']')
+				utf8text += " ";
+			utf8text += "]]";
+		}
+		// Check if it needs start-of-chat brackets
+		else if (utf8text.find("((") == std::string::npos && utf8text.find("))") == (utf8text.length() - 2))
+		{
+			if (utf8text.at(pos) == '(')
+				utf8text.insert(pos, " ");
+			utf8text.insert(pos, "((");
+		}
+		else if (utf8text.find("[[") == std::string::npos && utf8text.find("]]") == (utf8text.length() - 2))
+		{
+			if (utf8text.at(pos) == '[')
+				utf8text.insert(pos, " ");
+			utf8text.insert(pos, "[[");
+		}
+	}
+	return action;
+}
+
 // <dogmode>
 void LLChatBar::sendChat( EChatType type )
 {
@@ -424,47 +480,7 @@ void LLChatBar::sendChat( EChatType type )
 			std::string utf8_revised_text;
 			if (0 == channel)
 			{
-				if (gSavedSettings.getBOOL("AscentAutoCloseOOC") && (utf8text.length() > 1))
-				{
-					//Check if it needs the end-of-chat brackets -HgB
-					if (utf8text.find("((") == 0 && utf8text.find("))") == -1)
-					{
-						if(utf8text.at(utf8text.length() - 1) == ')')
-							utf8text+=" ";
-						utf8text+="))";
-					}
-					else if(utf8text.find("[[") == 0 && utf8text.find("]]") == -1)
-					{
-						if(utf8text.at(utf8text.length() - 1) == ']')
-							utf8text+=" ";
-						utf8text+="]]";
-					}
-
-					if (utf8text.find("((") == -1 && utf8text.find("))") == (utf8text.length() - 2))
-					{
-						if(utf8text.at(0) == '(')
-							utf8text.insert(0," ");
-						utf8text.insert(0,"((");
-					}
-					else if (utf8text.find("[[") == -1 && utf8text.find("]]") == (utf8text.length() - 2))
-					{
-						if(utf8text.at(0) == '[')
-							utf8text.insert(0," ");
-						utf8text.insert(0,"[[");
-					}
-				}
-				// Convert MU*s style poses into IRC emotes here.
-				if (gSavedSettings.getBOOL("AscentAllowMUpose") && utf8text.find(":") == 0 && utf8text.length() > 3)
-				{
-					if (utf8text.find(":'") == 0)
-					{
-						utf8text.replace(0, 1, "/me");
-	 				}
-					else if (isalpha(utf8text.at(1)))	// Do not prevent smileys and such.
-					{
-						utf8text.replace(0, 1, "/me ");
-					}
-				}
+				convert_roleplay_text(utf8text);
 				// discard returned "found" boolean
 				LLGestureMgr::instance().triggerAndReviseString(utf8text, &utf8_revised_text);
 			}
@@ -474,11 +490,7 @@ void LLChatBar::sendChat( EChatType type )
 			}
 
 			utf8_revised_text = utf8str_trim(utf8_revised_text);
-			EChatType nType;
-			if(type == CHAT_TYPE_OOC)
-				nType=CHAT_TYPE_NORMAL;
-			else
-				nType=type;
+			EChatType nType(type == CHAT_TYPE_OOC ? CHAT_TYPE_NORMAL : type);
 			if (!utf8_revised_text.empty() && cmd_line_chat(utf8_revised_text, nType))
 			{
 				// Chat with animation
@@ -510,7 +522,7 @@ void LLChatBar::sendChat( EChatType type )
 // static 
 void LLChatBar::startChat(const char* line)
 {
-	gChatBar->setVisible(TRUE);
+	gChatBar->getParent()->setVisible(TRUE);
 	gChatBar->setKeyboardFocus(TRUE);
 	gSavedSettings.setBOOL("ChatVisible", TRUE);
 
@@ -541,17 +553,14 @@ void LLChatBar::stopChat()
 	gAgent.stopTyping();
 
 	// hide chat bar so it doesn't grab focus back
-	gChatBar->setVisible(FALSE);
+	gChatBar->getParent()->setVisible(FALSE);
 	gSavedSettings.setBOOL("ChatVisible", FALSE);
 }
 
-// static
-void LLChatBar::onInputEditorKeystroke( LLLineEditor* caller, void* userdata )
+void LLChatBar::onInputEditorKeystroke()
 {
-	LLChatBar* self = (LLChatBar *)userdata;
-
 	LLWString raw_text;
-	if (self->mInputEditor) raw_text = self->mInputEditor->getWText();
+	if (mInputEditor) raw_text = mInputEditor->getWText();
 
 	// Can't trim the end, because that will cause autocompletion
 	// to eat trailing spaces that might be part of a gesture.
@@ -580,8 +589,8 @@ void LLChatBar::onInputEditorKeystroke( LLLineEditor* caller, void* userdata )
 		// the selection will already be deleted, but we need to trim
 		// off the character before
 		std::string new_text = raw_text.substr(0, length-1);
-		self->mInputEditor->setText( new_text );
-		self->mInputEditor->setCursorToEnd();
+		mInputEditor->setText( new_text );
+		mInputEditor->setCursorToEnd();
 		length = length - 1;
 	}
 	*/
@@ -600,15 +609,15 @@ void LLChatBar::onInputEditorKeystroke( LLLineEditor* caller, void* userdata )
 
 		if (LLGestureMgr::instance().matchPrefix(utf8_trigger, &utf8_out_str))
 		{
-			if (self->mInputEditor)
+			if (mInputEditor)
 			{
 				std::string rest_of_match = utf8_out_str.substr(utf8_trigger.size());
-				self->mInputEditor->setText(utf8_trigger + rest_of_match); // keep original capitalization for user-entered part
-				S32 outlength = self->mInputEditor->getLength(); // in characters
+				mInputEditor->setText(utf8_trigger + rest_of_match); // keep original capitalization for user-entered part
+				S32 outlength = mInputEditor->getLength(); // in characters
 			
 				// Select to end of line, starting from the character
 				// after the last one the user typed.
-				self->mInputEditor->setSelection(length, outlength);
+				mInputEditor->setSelection(length, outlength);
 			}
 		}
 
@@ -890,7 +899,7 @@ void LLChatBar::onCommitGesture(LLUICtrl* ctrl)
 	}
 }
 
-void toggleChatHistory(LLUICtrl* ctrl, const LLSD&)
+void toggleChatHistory()
 {
 	LLFloaterChat::toggleInstance(LLSD());
 }
@@ -900,7 +909,7 @@ class LLChatHandler : public LLCommandHandler
 {
 public:
 	// not allowed from outside the app
-	LLChatHandler() : LLCommandHandler("chat", true) { }
+	LLChatHandler() : LLCommandHandler("chat",  UNTRUSTED_BLOCK) { }
 
     // Your code here
 	bool handle(const LLSD& tokens, const LLSD& query_map,

@@ -9,6 +9,17 @@
 		<string>settings_rlv.xml</string>
 	</array>
 
+    <key>PhoenixIMAnnounceStealFocus</key>
+    <map>
+      <key>Comment</key>
+      <string>Open a new IM tab when another person begins typing to you and announce that they are doing so.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>UseNewTargetOmegaCode</key>
     <map>
       <key>Comment</key>
@@ -171,44 +182,14 @@
     <key>Value</key>
     <integer>1</integer>
   </map>
-	
-  <key>HTTPRequestRate</key>
-  <map>
-    <key>Comment</key>
-    <string>Number of HTTP texture requests fired per second.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>U32</string>
-    <key>Value</key>
-    <integer>30</integer>
-  </map>
-  <key>HTTPMaxRequests</key>
-  <map>
-    <key>Comment</key>
-    <string>Maximum number of simultaneous HTTP requests in progress.</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>U32</string>
-    <key>Value</key>
-    <integer>12</integer>
-  </map>
-  <key>HTTPMinRequests</key>
-  <map>
-    <key>Comment</key>
-    <string>Attempt to maintain at least this many HTTP requests in progress by ignoring bandwidth</string>
-    <key>Persist</key>
-    <integer>1</integer>
-    <key>Type</key>
-    <string>U32</string>
-    <key>Value</key>
-    <integer>2</integer>
-  </map>
+
   <key>HTTPThrottleBandwidth</key>
   <map>
     <key>Comment</key>
-    <string>The bandwidth (in kbit/s) to strive for</string>
+    <string>The bandwidth (in kbit/s) to strive for. Smaller values might reduce network
+ congestion (sim ping time, aka avatar responsiveness). Higher values might download
+ textures and the inventory faster, although in some cases a too high value might
+ actually slow that down due to serverside throttling. If unsure, choose 2000.</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -444,7 +425,19 @@
     </array>
   </map>
 
-  <!-- Begin: AO-->
+    <key>ShowNearbyMediaFloater</key>
+    <map>
+      <key>Comment</key>
+      <string>Show nearby media floter</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    
+    <!-- Begin: AO-->
 
   <key>ShowAOSitPopup</key>
   <map>
@@ -681,6 +674,41 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>LiruGridInTitle</key>
+    <map>
+      <key>Comment</key>
+      <string>Show grid name in the viewer window title (takes effect upon next login)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruGroupNoticeTimes</key>
+    <map>
+      <key>Comment</key>
+      <string>Append timestamp to date in the lists of past group notices</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+    </map>
+    <key>LiruItalicizeActions</key>
+    <map>
+      <key>Comment</key>
+      <string>When enabled, /me chat will be italicized.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>LiruFlyAfterTeleport</key>
     <map>
       <key>Comment</key>
@@ -692,6 +720,109 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>LiruLegacyLandmarks</key>
+    <map>
+      <key>Comment</key>
+      <string>When creating a new landmark, the legacy format (parcel name, region name (x, y, z)) will be used.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruLegacyLogLaunch</key>
+    <map>
+      <key>Comment</key>
+      <string>When opening a chat log, open in an external text editor instead of a browser floater(Windows Only).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+    </map>
+    <key>LiruLegacyOutfitStoreObjChanges</key>
+    <map>
+      <key>Comment</key>
+      <string>While true, automatic detach is performed upon all copyable attachments just before legacy outfit creation to preserve any modifications to them.  As a last resort, setting this false allows creating a legacy outfit that won't save changes made to copyable attachments since wearing them or login.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruLegacySpeakerNames</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether all lists of speakers use legacy names, or your desired way of displaying names.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>LiruLocalTime</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to display system time in the top bar instead of server time.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+    </map>
+    <key>LiruMapShowAvCount</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to display the count of avatars in each region on the world map as part of the region name and maturity label.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>LiruNewARCLimit</key>
+    <map>
+      <key>Comment</key>
+      <string>The high threshold number used to calculate the colors displayed for new ARC numbers, when LiruSensibleARC is false.  Default is 20000.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>20000</integer>
+    </map>
+    <key>LiruNewMessageSound</key>
+    <map>
+      <key>Comment</key>
+      <string>Sound ID to play when ding is on for an IM session and an IM comes in.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>67cc2844-00f3-2b3c-b991-6418d01e1bb7</string>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruNewMessageSoundForSystemMessages</key>
+    <map>
+      <key>Comment</key>
+      <string>Sound ID to play when ding is on for an IM session and a system message comes through, like when the correspondent starts typing or logs off. (Defaults to off)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string/>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
     <key>LiruNoTransactionClutter</key>
     <map>
       <key>Comment</key>
@@ -702,6 +833,17 @@
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>LiruScriptErrorsStealFocus</key>
+    <map>
+      <key>Comment</key>
+      <string>When false, scripts that have errors won't steal focus once they've been failed to compile</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
     <key>LiruSensibleARC</key>
     <map>
@@ -715,10 +857,78 @@ Found in Advanced->Rendering->Info Displays</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>LiruShowLastNameResident</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to bypass stripping out the last name Resident</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>SLBShowFPS</key>
+    <map>
+      <key>Comment</key>
+      <string>Show FPS</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>SLBDisplayClientTagOnNewLine</key>
+    <map>
+      <key>Comment</key>
+      <string>Display the client tag on a new line</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>LogShowHistoryLines</key>
+    <map>
+      <key>Comment</key>
+      <string>Lines of history to load from log file if LogShowHistory is true.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>32</integer>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
     <key>ContactsUseHorizontalButtons</key>
     <map>
       <key>Comment</key>
 	  <string>Whether or not groups and friends lists use horizontal buttons at the bottom of the panel or vertical ones on the right, requires a restart.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>FakeAway</key>
+    <map>
+      <key>HideFromEditor</key>
+      <integer>1</integer>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>FloaterUnfocusedBackgroundOpaque</key>
+    <map>
+      <key>Comment</key>
+      <string>Disables floaters going transparent when not in focus, may conflict with some skins, though.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -826,6 +1036,28 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <real>60.0</real>
     </map>
+    <key>NewIMsPerConversation</key>
+    <map>
+      <key>Comment</key>
+      <string>The New IMs button in the bottom left will show the count of unread conversations instead of the total count of unread IMs if this is true.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+    </map>
+    <key>NewIMsPerConversationReset</key>
+    <map>
+      <key>Comment</key>
+      <string>When NewIMsPerConversation is on, this determines when the New IMs button becomes visible while the communicate floater is closed.  True will wait until a new IM is received, false displays as long as a conversation is unread.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>1</boolean>
+    </map>
     <key>ResetFocusOnSelfClick</key>
 		<map>
 		<key>Comment</key>
@@ -837,6 +1069,17 @@ This should be as low as possible, but too low may break functionality</string>
 		<key>Value</key>
 		<integer>1</integer>
 		</map>
+    <key>ResetViewTurnsAvatar</key>
+    <map>
+      <key>Comment</key>
+      <string>When true, resetting view by hitting escape or using the menu entry will turn your avatar to the direction the camera was pointed</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+    </map>
     <key>ShowDisplayNameChanges</key>
     <map>
       <key>Comment</key>
@@ -859,6 +1102,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>ShowUnreadIMsCounts</key>
+    <map>
+      <key>Comment</key>
+      <string>Show the count of unread IMs in the communicate flyout list</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>1</boolean>
+    </map>
     <key>StatusBarPositionBeforeParcel</key>
     <map>
       <key>Comment</key>
@@ -870,16 +1124,16 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>MoyFastMiniMap</key>
+    <key>ShowMiniMapObjects</key>
     <map>
       <key>Comment</key>
-      <string>Don't show buildings on mini-map</string>
+      <string>Show buildings and megaprims on the mini-map</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>BeauchampFloaterGroupTitlesRect</key>
     <map>
@@ -1122,11 +1376,11 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Comment</key>
       <string>Show Windlight popup</string>
       <key>Persist</key>
-      <integer>0</integer>
+      <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>WoLfVerticalIMTabs</key>
     <map>
@@ -1216,6 +1470,28 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>AntiSpamNotFriend</key>
+    <map>
+      <key>Comment</key>
+      <string>When true, dialogs from friends will not be blocked unless the _NACL_Antispam is true.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AntiSpamNotMine</key>
+    <map>
+      <key>Comment</key>
+      <string>When true, dialogs from your own objects will not be blocked unless the _NACL_Antispam is true.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>AntiSpamNotify</key>
     <map>
       <key>Comment</key>
@@ -1238,10 +1514,21 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>AntiSpamTeleports</key>
+    <key>AntiSpamTeleportRequests</key>
     <map>
       <key>Comment</key>
       <string>When true, dialogs from teleport requests from other residents will be blocked.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AntiSpamTeleports</key>
+    <map>
+      <key>Comment</key>
+      <string>When true, dialogs from teleport offers from other residents will be blocked.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -1914,6 +2201,17 @@ This should be as low as possible, but too low may break functionality</string>
 		<integer>1</integer>
     </map>
     <!-- Standard SL options (To my knowledge) -->
+    <key>CrashHostUrl</key>
+    <map>
+      <key>Comment</key>
+      <string>A URL pointing to a crash report handler; overrides cluster negotiation to locate crash handler.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>http://crash.singularityviewer.org/report.php</string>>
+    </map>
     <key>AFKTimeout</key>
     <map>
       <key>Comment</key>
@@ -2034,6 +2332,28 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>AppearanceCloseOnEscape</key>
+    <map>
+      <key>Comment</key>
+      <string>When in appearance editing mode, hitting escape will work the same as the close button</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AppearanceSpecialLighting</key>
+    <map>
+      <key>Comment</key>
+      <string>When in appearance editing mode, avatar is shown with special lighting</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>1</boolean>
     </map>
     <key>ApplyColorImmediately</key>
     <map>
@@ -2222,6 +2542,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <real>0.075</real>
     </map>
+	<key>AudioStreamingMedia</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable streaming</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>AudioStreamingMusic</key>
     <map>
       <key>Comment</key>
@@ -2233,23 +2564,23 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>AudioStreamingVideo</key>
-    <map>
-      <key>Comment</key>
-      <string>Enable streaming video</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
     <key>AuditTexture</key>
     <map>
       <key>Comment</key>
       <string>Enable texture auditting.</string>
       <key>Persist</key>
       <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoAcceptAllNewInventory</key>
+    <map>
+      <key>Comment</key>
+      <string>Automatically accept new inventory, regardless of type</string>
+      <key>Persist</key>
+      <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
@@ -2688,23 +3019,23 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>PluginAttachDebuggerToPlugins</key>
+    <key>BrowserEnableJSObject</key>
     <map>
       <key>Comment</key>
-      <string>Opens a terminal window with a debugger and attach it, every time a new SLPlugin process is started.</string>
+      <string>(WARNING: Advanced feature. Use if you are aware of the implications). Enable or disable the viewer to Javascript bridge object.</string>
       <key>Persist</key>
-      <integer>1</integer>
+      <integer>0</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-	  <integer>0</integer>
+      <integer>0</integer>
     </map>
     <key>BlockAvatarAppearanceMessages</key>
-    <map>
-      <key>Comment</key>
-      <string>Ignores appearance messages (for simulating Ruth)</string>
-      <key>Persist</key>
-      <integer>1</integer>
+        <map>
+        <key>Comment</key>
+            <string>Ignores appearance messages (for simulating Ruth)</string>
+        <key>Persist</key>
+            <integer>1</integer>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
@@ -3766,17 +4097,6 @@ This should be as low as possible, but too low may break functionality</string>
         <string/>
       </array>
     </map>
-    <key>CmdLineRegionURI</key>
-    <map>
-      <key>Comment</key>
-      <string>URL of region to connect to through Agent Domain.</string>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>String</string>
-      <key>Value</key>
-      <string/>
-    </map>
     <key>ColorPaletteEntry01</key>
     <map>
       <key>Comment</key>
@@ -4289,17 +4609,6 @@ This should be as low as possible, but too low may break functionality</string>
         <real>1.0</real>
       </array>
     </map>
-    <key>ColumnHeaderDropDownDelay</key>
-    <map>
-      <key>Comment</key>
-      <string>Time in seconds of mouse click before column header shows sort options list</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>F32</string>
-      <key>Value</key>
-      <real>0.300000011921</real>
-    </map>
     <key>CompileOutputRect</key>
     <map>
       <key>Comment</key>
@@ -4359,6 +4668,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>F32</string>
       <key>Value</key>
       <real>0.700</real>
+    </map>
+    <key>ConsoleBottomOffset</key>
+    <map>
+      <key>Comment</key>
+      <string>User definable offset between the bottom of the chat console and the bottom of the window; increase to move text in the console up</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <real>0</real>
     </map>
     <key>ConsoleBufferSize</key>
     <map>
@@ -4481,16 +4801,16 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>64</integer>
     </map>
-    <key>CurlConcurrentConnectionsPerHost</key>
+    <key>CurlConcurrentConnectionsPerService</key>
     <map>
       <key>Comment</key>
-      <string>Maximum number of simultaneous curl connections per host</string>
+      <string>Maximum number of simultaneous curl connections per host:port service</string>
       <key>Persist</key>
       <integer>0</integer>
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>16</integer>
+      <integer>8</integer>
     </map>
     <key>CurlTimeoutDNSLookup</key>
     <map>
@@ -4943,7 +5263,18 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>-1</integer>
     </map>
-    <key>DebugStatModeTexture</key>
+    <key>DebugStatModeHTTPTexture</key>
+    <map>
+      <key>Comment</key>
+      <string>Mode of stat in Statistics floater</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>-1</integer>
+    </map>
+    <key>DebugStatModeUDPTexture</key>
     <map>
       <key>Comment</key>
       <string>Mode of stat in Statistics floater</string>
@@ -5394,10 +5725,32 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>DisableExternalBrowser</key>
+    <map>
+      <key>Comment</key>
+      <string>Disable opening an external browser.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>DisableRendering</key>
     <map>
       <key>Comment</key>
       <string>Disable GL rendering and GUI (load testing)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>DisableTextHyperlinkActions</key>
+    <map>
+      <key>Comment</key>
+      <string>Disable highlighting and linking of URLs in XUI text boxes</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -5526,6 +5879,28 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>ClickActionBuyEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable click to buy actions in tool pie menu</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>ClickActionPayEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable click to pay actions in tool pie menu</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>DoubleClickAutoPilot</key>
     <map>
       <key>Comment</key>
@@ -5547,6 +5922,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>DoubleClickTeleportMap</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable double-click-teleport for the map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
     <key>DoubleClickTeleportMiniMap</key>
     <map>
@@ -5570,10 +5956,21 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <real>0.10000000149</real>
     </map>
+    <key>DragAndDropDistanceThreshold</key>
+    <map>
+      <key>Comment</key>
+      <string>Number of pixels that mouse should move before triggering drag and drop mode</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>3</integer>
+    </map>
     <key>DropShadowButton</key>
     <map>
       <key>Comment</key>
-	  <string>Drop shadow width for buttons (pixels)</string>
+      <string>Drop shadow width for buttons (pixels)</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -5680,6 +6077,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>EnableGrab</key>
+    <map>
+      <key>Comment</key>
+      <string>Use Ctrl+mouse to grab and manipulate objects</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>EnableGestureSounds</key>
     <map>
       <key>Comment</key>
@@ -5694,7 +6102,7 @@ This should be as low as possible, but too low may break functionality</string>
     <key>EnableGestureSoundsSelf</key>
     <map>
       <key>Comment</key>
-      <string>Play sounds from your gestures when EnableGestureSounds is false. (Useless otherewise)</string>
+      <string>Play sounds from your gestures when EnableGestureSounds is false. (Useless otherwise)</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -5934,17 +6342,6 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>FirstLoginThisInstall</key>
-    <map>
-      <key>Comment</key>
-      <string>Specifies that you have not successfully logged in since you installed the latest update</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>FirstName</key>
     <map>
       <key>Comment</key>
@@ -5982,6 +6379,17 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>Specifies that you have not run the viewer since you installed the latest update</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>FirstLoginThisInstall</key>
+    <map>
+      <key>Comment</key>
+      <string>Specifies that you have not successfully logged in since you installed the latest update</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -6534,22 +6942,6 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>100</integer>
       </array>
     </map>
-    <key>FloaterIMRect</key>
-    <map>
-      <key>Comment</key>
-      <string>Rectangle for IM window</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Rect</string>
-      <key>Value</key>
-      <array>
-        <integer>0</integer>
-        <integer>160</integer>
-        <integer>500</integer>
-        <integer>0</integer>
-      </array>
-    </map>
     <key>FloaterInspectRect</key>
     <map>
       <key>Comment</key>
@@ -6570,6 +6962,22 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>Rectangle for inventory window</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>0</integer>
+        <integer>400</integer>
+        <integer>300</integer>
+        <integer>0</integer>
+      </array>
+    </map>
+    <key>FloaterInvPanelRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for new inventory windows a folder is opened in</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -6805,6 +7213,30 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>RadarRangeRadius</key>
+    <map>
+      <key>Comment</key>
+      <string>How far away avatars on the radar can be, 0 for no limit</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0</real>
+    </map>
+    <key>RadarUpdateEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>When false, pauses the radar until further notice, good for banning someone who just left.</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>HideFromEditor</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
     <key>RadarUpdateRate</key>
     <map>
@@ -7172,6 +7604,22 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
       </array>
     </map>
+    <key>FloaterSearchRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for web search browser window</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>16</integer>
+        <integer>650</integer>
+        <integer>600</integer>
+        <integer>128</integer>
+      </array>
+    </map>
     <key>FloaterSnapshotRect</key>
     <map>
       <key>Comment</key>
@@ -7322,6 +7770,22 @@ This should be as low as possible, but too low may break functionality</string>
       <string>S32</string>
       <key>Value</key>
       <integer>-1</integer>
+    </map>
+    <key>FloaterVoiceEffectRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for voice morpher floater</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>0</integer>
+        <integer>300</integer>
+        <integer>360</integer>
+        <integer>0</integer>
+      </array>
     </map>
     <key>FloaterWorldMapRect2</key>
     <map>
@@ -8061,6 +8525,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <string>help/index.html</string>
     </map>
+    <key>SearchURL</key>
+    <map>
+      <key>Comment</key>
+      <string>URL for Search website, displayed in the Find floater</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>http://search.secondlife.com/viewer/[CATEGORY]/?q=[QUERY]&amp;p=[AUTH_TOKEN]&amp;r=[MATURITY]&amp;lang=[LANGUAGE]&amp;g=[GODLIKE]&amp;sid=[SESSION_ID]&amp;rid=[REGION_ID]&amp;pid=[PARCEL_ID]&amp;channel=[CHANNEL]&amp;version=[VERSION]&amp;major=[VERSION_MAJOR]&amp;minor=[VERSION_MINOR]&amp;patch=[VERSION_PATCH]&amp;build=[VERSION_BUILD]</string>
+    </map>
     <key>WebProfileURL</key>
     <map>
       <key>Comment</key>
@@ -8697,6 +9172,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>LastMediaSettingsTab</key>
+    <map>
+      <key>Comment</key>
+      <string>Last selected tab in media settings window</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>LastRunVersion</key>
     <map>
       <key>Comment</key>
@@ -9016,16 +9502,16 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>LoginLastLocation</key>
+    <key>LoginLocation</key>
     <map>
       <key>Comment</key>
-      <string>Login at same location you last logged out</string>
+      <string>Default Login location ('last', 'home') preference</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
-      <string>Boolean</string>
+      <string>String</string>
       <key>Value</key>
-      <integer>1</integer>
+      <string>last</string>
     </map>
     <key>LoginPage</key>
     <map>
@@ -9342,13 +9828,68 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>MemoryFailurePreventionEnabled</key>
-    <map>
-      <key>Comment</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>MediaPerformanceManagerDebug</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether to show debug data for the media performance manager in the nearby media list.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>MediaShowOnOthers</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether or not to show media on other avatars</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>MediaShowOutsideParcel</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether or not to show media from outside the current parcel</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>MediaShowWithinParcel</key>
+  <map>
+    <key>Comment</key>
+    <string>Whether or not to show media within the current parcel</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>MediaTentativeAutoPlay</key>
+  <map>
+    <key>Comment</key>
+    <string>This is a tentative flag that may be temporarily set off by the user, until she teleports</string>
+    <key>Persist</key>
+    <integer>0</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
+  <key>MemoryFailurePreventionEnabled</key>
+  <map>
+    <key>Comment</key>
       <string>If set, the viewer will quit to avoid crash when memory failure happens</string>
       <key>Persist</key>
       <integer>1</integer>
@@ -9500,6 +10041,28 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>MiniMapPrimMaxAltitudeDelta</key>
+    <map>
+      <key>Comment</key>
+      <string>Max allowed altitude difference between your avatar and prims others own for them to be displayed on the minimap (0 means unlimited).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <real>256</real>
+    </map>
+    <key>MiniMapPrimMaxAltitudeDeltaOwn</key>
+    <map>
+      <key>Comment</key>
+      <string>Max allowed altitude difference between your avatar and prims you own for them to be displayed on the minimap (0 means unlimited).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <real>0</real>
+    </map>
     <key>MiniMapPrimMaxRadius</key>
     <map>
       <key>Comment</key>
@@ -9532,6 +10095,87 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>MiniMapWhisperRing</key>
+    <map>
+      <key>Comment</key>
+      <string>Display whisper distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>MiniMapWhisperRingColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Color for whisper distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Color4</string>
+      <key>Value</key>
+      <array>
+        <real>0.0</real>
+        <real>1.0</real>
+        <real>0.0</real>
+        <real>0.5</real>
+      </array>
+    </map>
+    <key>MiniMapChatRing</key>
+    <map>
+      <key>Comment</key>
+      <string>Display chat distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>MiniMapChatRingColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Color for chat distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Color4</string>
+      <key>Value</key>
+      <array>
+        <real>1.0</real>
+        <real>1.0</real>
+        <real>0.0</real>
+        <real>0.5</real>
+      </array>
+    </map>
+    <key>MiniMapShoutRing</key>
+    <map>
+      <key>Comment</key>
+      <string>Display shout distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>MiniMapShoutRingColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Color for shout distance ring on mini map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Color4</string>
+      <key>Value</key>
+      <array>
+        <real>1.0</real>
+        <real>0.0</real>
+        <real>0.0</real>
+        <real>0.5</real>
+      </array>
     </map>
     <key>MiniMapScale</key>
     <map>
@@ -10185,6 +10829,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>PrimMediaAutoPlayEnable</key>
+    <map>
+      <key>Comment</key>
+      <string>Auto play prim media when available</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>PerAccountSettingsFile</key>
     <map>
       <key>Comment</key>
@@ -10332,6 +10987,86 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>PluginAttachDebuggerToPlugins</key>
+    <map>
+      <key>Comment</key>
+      <string>If true, attach a debugger session to each plugin process as it's launched.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PluginInstancesCPULimit</key>
+    <map>
+      <key>Comment</key>
+      <string>Amount of total plugin CPU usage before inworld plugins start getting turned down to "slideshow" priority.  Set to 0 to disable this check.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.9</real>
+    </map>
+    
+   <key>PlainTextChatHistory</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable/Disable plain text chat history style</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    
+    <key>PluginInstancesLow</key>
+    <map>
+      <key>Comment</key>
+      <string>Limit on the number of inworld media plugins that will run at "low" priority</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>4</integer>
+    </map>
+    <key>PluginInstancesNormal</key>
+    <map>
+      <key>Comment</key>
+      <string>Limit on the number of inworld media plugins that will run at "normal" or higher priority</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>2</integer>
+    </map>
+    <key>PluginInstancesTotal</key>
+    <map>
+      <key>Comment</key>
+      <string>Hard limit on the number of plugins that will be instantiated at once for inworld media</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>8</integer>
+    </map>
+
+   <key>PluginUseReadThread</key>
+    <map>
+      <key>Comment</key>
+      <string>Use a separate thread to read incoming messages from plugins</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>PlayTypingSound</key>
     <map>
@@ -10536,6 +11271,94 @@ This should be as low as possible, but too low may break functionality</string>
     </array>
   </map>
 
+  <key>PrimMediaMasterEnabled</key>
+	<map>
+	  <key>Comment</key>
+      <string>Whether or not Media on a Prim is enabled.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+	<key>PrimMediaControlsUseHoverControlSet</key>
+	<map>
+	  <key>Comment</key>
+      <string>Whether or not hovering over prim media uses minimal "hover" controls or the authored control set.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>PrimMediaDragNDrop</key>
+	<map>
+		<key>Comment</key>
+		<string>Enable drag and drop of URLs onto prim faces</string>
+		<key>Persist</key>
+		<integer>1</integer>
+		<key>Type</key>
+		<string>Boolean</string>
+		<key>Value</key>
+		<integer>1</integer>
+	</map>
+     <key>PrimMediaMaxRetries</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum number of retries for media queries.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>4</integer>
+    </map>
+    <key>PrimMediaRequestQueueDelay</key>
+    <map>
+      <key>Comment</key>
+      <string>Timer delay for fetching media from the queue (in seconds).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1.0</real>
+    </map>
+    <key>PrimMediaRetryTimerDelay</key>
+    <map>
+      <key>Comment</key>
+      <string>Timer delay for retrying on media queries (in seconds).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>5.0</real>
+    </map>
+	<key>PrimMediaMaxSortedQueueSize</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum number of objects the viewer will load media for initially</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>100000</integer>
+    </map>
+	<key>PrimMediaMaxRoundRobinQueueSize</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum number of objects the viewer will continuously update media for</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>100000</integer>
+    </map>
     <key>PreviewAnimRect</key>
     <map>
       <key>Comment</key>
@@ -10844,6 +11667,50 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <real>1.0</real>
     </map>
+    <key>WebContentWindowLimit</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum number of web browser windows that can be open at once in the Web content floater (0 for no limit)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>5</integer>
+    </map>
+  <key>MediaRollOffRate</key>
+  <map>
+    <key>Comment</key>
+    <string>Multiplier to change rate of media attenuation</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>0.125</real>
+  </map>
+  <key>MediaRollOffMin</key>
+  <map>
+    <key>Comment</key>
+    <string>Adjusts the distance at which media attentuation starts</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>5.0</real>
+  </map>
+  <key>MediaRollOffMax</key>
+  <map>
+    <key>Comment</key>
+    <string>Distance at which media volume is set to 0</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>30.0</real>
+  </map>
     <key>RecentItemsSortOrder</key>
     <map>
       <key>Comment</key>
@@ -11485,7 +12352,7 @@ This should be as low as possible, but too low may break functionality</string>
     <integer>0</integer>
   </map>
 
-    <!--<key>RenderAnimateTrees</key>
+    <key>RenderAnimateTrees</key>
     <map>
       <key>Comment</key>
       <string>Use GL matrix ops to animate tree branches.</string>
@@ -11495,7 +12362,7 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
-    </map>-->
+    </map>
   <key>RenderNoAlpha</key>
   <map>
     <key>Comment</key>
@@ -12951,7 +13818,7 @@ This should be as low as possible, but too low may break functionality</string>
     <key>Type</key>
     <string>U32</string>
     <key>Value</key>
-    <integer>128</integer>
+    <integer>32</integer>
   </map>
   <key>RunBtnState</key>
   <map>
@@ -13034,6 +13901,17 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>Never sit by clicking a prim</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>DisableClickSitOtherOwner</key>
+    <map>
+      <key>Comment</key>
+      <string>Never sit by clicking a prim that isn't owned by you</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -13985,6 +14863,17 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>Controls visibility of the current voice channel popup above the voice tab</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>ShowVoiceVisualizersInCalls</key>
+    <map>
+      <key>Comment</key>
+      <string>Enables in-world voice visualizers, voice gestures and lip-sync while in group or P2P calls.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -15107,6 +15996,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>UseTypingBubbles</key>
+    <map>
+      <key>Comment</key>
+      <string>Show typing indicator in avatar nametags</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>UseDebugMenus</key>
     <map>
       <key>Comment</key>
@@ -15271,6 +16171,28 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>SpeakerParticipantDefaultOrder</key>
+    <map>
+      <key>Comment</key>
+      <string>Order for displaying speakers in voice controls.  0 = alphabetical. 1 = recent.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>SpeakerParticipantRemoveDelay</key>
+    <map>
+      <key>Comment</key>
+      <string>Timeout to remove participants who is not in channel before removed from list of active speakers (text/voice chat)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>10.0</real>
     </map>
     <key>UseNewWalkRun</key>
     <map>
@@ -15491,6 +16413,61 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>InstantMessagesFriendsOnly</key>
+    <map>
+      <key>Comment</key>
+      <string>Only accept instant messages from residents on your friends list</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>VoiceCallsRejectGroup</key>
+    <map>
+      <key>Comment</key>
+      <string>Silently reject all incoming group voice calls.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>VoiceDisableMic</key>
+    <map>
+      <key>Comment</key>
+      <string>Completely disable the ability to open the mic.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>VoiceEffectExpiryWarningTime</key>
+    <map>
+      <key>Comment</key>
+      <string>How much notice to give of Voice Morph subscriptions expiry, in seconds.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>259200</integer>
+    </map>
+    <key>VoiceMorphingEnabled</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to enable Voice Morphs and show the UI.</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>AutoDisengageMic</key>
     <map>
       <key>Comment</key>
@@ -15501,6 +16478,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>ShowDeviceSettings</key>
+    <map>
+      <key>Comment</key>
+      <string>Show device settings</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>VoiceEarLocation</key>
     <map>
@@ -15612,6 +16600,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <string>Default</string>
     </map>
+    <key>VoiceLogFile</key>
+    <map>
+      <key>Comment</key>
+      <string>Log file to use when launching the voice daemon</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string></string>
+    </map>
     <key>VoiceOutputAudioDevice</key>
     <map>
       <key>Comment</key>
@@ -15644,6 +16643,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>VoiceServerType</key>
+    <map>
+      <key>Comment</key>
+      <string>The type of voice server to connect to.</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>vivox</string>
     </map>
     <key>WLSkyDetail</key>
     <map>
@@ -16217,6 +17227,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <real>0.40000000596</real>
     </map>
+    <key>moapbeacon</key>
+    <map>
+      <key>Comment</key>
+      <string>Beacon / Highlight media on a prim sources</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>particlesbeacon</key>
     <map>
       <key>Comment</key>
@@ -16316,6 +17337,28 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
+	<key>SLURLDragNDrop</key>
+	<map>
+		<key>Comment</key>
+		<string>Enable drag and drop of SLURLs onto the viewer</string>
+		<key>Persist</key>
+		<integer>1</integer>
+		<key>Type</key>
+		<string>Boolean</string>
+		<key>Value</key>
+		<integer>1</integer>
+	</map>
+    <key>SLURLPassToOtherInstance</key>
+    <map>
+    <key>Comment</key>
+    <string>Pass execution to prevoius viewer instances if there is a given slurl</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    </map>
     <key>soundsbeacon</key>
     <map>
       <key>Comment</key>
@@ -16327,10 +17370,10 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>keepbeacons</key>
+    <key>ClearBeaconAfterTeleport</key>
     <map>
       <key>Comment</key>
-      <string>Keep beacons when closing floater</string>
+      <string>Clear the red tracker beacon after you teleport</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -16382,6 +17425,19 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>180</integer>
     </map>
+    
+    <key>SLURLTeleportDirectly</key>
+    <map>
+      <key>Comment</key>
+      <string>Clicking on a slurl will teleport you directly instead of opening places panel</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    
     <key>UseHTTPInventory</key>
     <map>
       <key>Comment</key>
@@ -16392,6 +17448,33 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>ClickToWalk</key>
+    <map>
+      <key>Comment</key>
+      <string>Click in world to walk to location</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>WebProfileFloaterRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Web profile floater dimensions</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>0</integer>
+        <integer>680</integer>
+        <integer>485</integer>
+        <integer>0</integer>
+      </array>
     </map>
   <key>SimulateFBOFailure</key>
   <map>
@@ -16490,6 +17573,22 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>473</integer>
       </array>
     </map>
+    <key>FloaterNearbyMediaRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for nearby media floater.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>0</integer>
+        <integer>0</integer>
+        <integer>0</integer>
+        <integer>0</integer>
+      </array>
+    </map>    
     <key>WindEnabled</key>
     <map>
       <key>Comment</key>
@@ -16533,6 +17632,110 @@ This should be as low as possible, but too low may break functionality</string>
       <string>String</string>
       <key>Value</key>
       <string>Random</string>
+    </map>
+    <key>DerenderHugeAttachments</key>
+    <map>
+      <key>Comment</key>
+      <string>Allow the viewer to automatically hide attachments that are really just way too big</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>MaxAttachmentSpan</key>
+    <map>
+      <key>Comment</key>
+      <string>Size constraint for attachments (minimum value == 256.0)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1280.0</real>
+    </map>
+    <key>ColladaExportFloaterRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Collada floater position</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>0</integer>
+        <integer>0</integer>
+        <integer>0</integer>
+        <integer>0</integer>
+      </array>
+    </map>
+    <key>DAEExportConsolidateMaterials</key>
+    <map>
+      <key>Comment</key>
+      <string>Combine faces with same texture</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>DAEExportSkipTransparent</key>
+    <map>
+      <key>Comment</key>
+      <string>Skip exporting faces with default transparent texture or full transparent</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>DAEExportTextures</key>
+    <map>
+      <key>Comment</key>
+      <string>Export textures when exporting Collada</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>DAEExportTextureParams</key>
+    <map>
+      <key>Comment</key>
+      <string>Apply texture params suchs as repeats to the exported UV map</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>DAEExportTexturesType</key>
+    <map>
+      <key>Comment</key>
+      <string>Image file format to use when exporting Collada</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>CrashSubmitBehavior</key>
+    <map>
+      <key>Comment</key>
+      <string>Controls behavior when viewer crashes (0 = ask before sending crash report, 1 = always send crash report, 2 = never send crash report)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>1</integer>
     </map>
   </map>
 </llsd>

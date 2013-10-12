@@ -111,9 +111,8 @@ LLTracker::~LLTracker()
 
 
 // static
-void LLTracker::stopTracking(void* userdata)
+void LLTracker::stopTracking(bool clear_ui)
 {
-	BOOL clear_ui = ((BOOL)(intptr_t)userdata);
 	instance()->stopTrackingAll(clear_ui);
 }
 

@@ -54,7 +54,6 @@
 #include "llpanelnetwork.h"
 #include "llpanelaudioprefs.h"
 #include "llpaneldisplay.h"
-#include "llpaneldebug.h"
 #include "llpanelgeneral.h"
 #include "llpanelinput.h"
 #include "llpanellogin.h"
@@ -94,7 +93,7 @@ class LLPreferencesHandler : public LLCommandHandler
 {
 public:
 	// requires trusted browser
-	LLPreferencesHandler() : LLCommandHandler("preferences", true) { }
+	LLPreferencesHandler() : LLCommandHandler("preferences", UNTRUSTED_BLOCK) { }
 	bool handle(const LLSD& tokens, const LLSD& query_map,
 				LLMediaCtrl* web)
 	{
@@ -462,7 +461,8 @@ void LLFloaterPreference::onBtnOK( void* userdata )
 		
 		std::string crash_settings_filename = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, CRASH_SETTINGS_FILE);
 		// save all settings, even if equals defaults
-		gCrashSettings.saveToFile(crash_settings_filename, FALSE);
+		// Singu Note: crash settings no longer separate
+		// gCrashSettings.saveToFile(crash_settings_filename, FALSE);
 	}
 	else
 	{
@@ -470,7 +470,7 @@ void LLFloaterPreference::onBtnOK( void* userdata )
 		llinfos << "Can't close preferences!" << llendl;
 	}
 
-	LLPanelLogin::refreshLocation( false );
+	LLPanelLogin::updateLocationSelectorsVisibility();
 }
 
 
@@ -481,14 +481,14 @@ void LLFloaterPreference::onBtnApply( void* userdata )
 	if (fp->hasFocus())
 	{
 		LLUICtrl* cur_focus = dynamic_cast<LLUICtrl*>(gFocusMgr.getKeyboardFocus());
-		if (cur_focus->acceptsTextInput())
+		if (cur_focus && cur_focus->acceptsTextInput())
 		{
 			cur_focus->onCommit();
 		}
 	}
 	fp->apply();
 
-	LLPanelLogin::refreshLocation( false );
+	LLPanelLogin::updateLocationSelectorsVisibility();
 }
 
 

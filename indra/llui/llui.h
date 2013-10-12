@@ -32,6 +32,7 @@
 #include "llcontrol.h"
 #include "llcoord.h"
 #include "v2math.h"
+#include "llregistry.h"
 #include "llrender2dutils.h"
 #include "llpointer.h"
 #include "lluiimage.h"
@@ -62,6 +63,7 @@ public:
 	// Methods
 	//
 	static void initClass(LLControlGroup* config, 
+						  LLControlGroup* account,
 						  LLControlGroup* ignores,
 						  LLControlGroup* colors, 
 						  LLImageProviderInterface* image_provider,
@@ -80,6 +82,8 @@ public:
 	static std::string getLanguage();
 
 	//helper functions (should probably move free standing rendering helper functions here)
+	static LLView* getRootView() { return sRootView; }
+	static void setRootView(LLView* view) { sRootView = view; }
 	static std::string locateSkin(const std::string& filename);
 	static void setMousePositionScreen(S32 x, S32 y);
 	static void getMousePositionScreen(S32 *x, S32 *y);
@@ -97,16 +101,21 @@ public:
 	static void glPointToScreen(S32 gl_x, S32 gl_y, S32 *screen_x, S32 *screen_y);
 	static void screenRectToGL(const LLRect& screen, LLRect *gl);
 	static void glRectToScreen(const LLRect& gl, LLRect *screen);
+	// Returns the control group containing the control name, or the default group
+	static LLControlGroup& getControlControlGroup (const std::string& controlname);
+	static LLWindow* getWindow() { return sWindow; }
 	static void setHtmlHelp(LLHtmlHelp* html_help);
 
 	//
 	// Data
 	//
 	static LLControlGroup* sConfigGroup;
+	static LLControlGroup* sAccountGroup;
 	static LLControlGroup* sIgnoresGroup;
 	static LLControlGroup* sColorsGroup;
 	static LLUIAudioCallback sAudioCallback;
 	static LLWindow*		sWindow;
+	static LLView*			sRootView;
 	static BOOL             sShowXUINames;
 	static LLHtmlHelp*		sHtmlHelp;
 
@@ -387,6 +396,24 @@ private:
 
 template <typename T> LLRegisterWith<LLInitClassList> LLInitClass<T>::sRegister(&T::initClass);
 template <typename T> LLRegisterWith<LLDestroyClassList> LLDestroyClass<T>::sRegister(&T::destroyClass);
+
+
+template <class T>
+class LLUICachedControl : public LLCachedControl<T>
+{
+public:
+	// This constructor will declare a control if it doesn't exist in the contol group
+	LLUICachedControl(const std::string& name,
+					  const T& default_value,
+					  const std::string& comment = "Declared In Code")
+	:	LLCachedControl<T>(LLUI::getControlControlGroup(name), name, default_value, comment)
+	{}
+
+	// This constructor will signal an error if the control doesn't exist in the control group
+	LLUICachedControl(const std::string& name)
+	:	LLCachedControl<T>(LLUI::getControlControlGroup(name), name)
+	{}
+};
 
 
 template <typename DERIVED>

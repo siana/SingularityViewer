@@ -85,7 +85,6 @@ LLFloaterTOS::LLFloaterTOS(ETOSType type, const std::string & message)
 :	LLModalDialog( std::string(" "), 100, 100 ),
 	mType(type),
 	mMessage(message),
-	mWebBrowserWindowId( 0 ),
 	mLoadCompleteCount( 0 )
 {
 }
@@ -132,7 +131,7 @@ class LLIamHere : public LLHTTPClient::ResponderWithResult
 		};
 
 		/*virtual*/  AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return iamHere_timeout; }
-		/*virtual*/ bool redirect_status_ok(void) const { return true; }
+		/*virtual*/ bool pass_redirect_status(void) const { return true; }
 		/*virtual*/ char const* getName(void) const { return "LLIamHere"; }
 };
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="Collada Export" title="Collada Export" width="600" height="260" can_close="true" can_minimize="true">
+  <string name="texture_progress">Collada Export: Saving textures ([COUNT] remaining)</string>
+  <text name="file name" follows="bottom|left" left="10" bottom="-48" height="20">File Name:</text>
+  <line_editor name="file name editor" follows="bottom|left" left_delta="60" bottom_delta="4" width="360" height="20" enabled="false"/>
+  <button name="browse button" label="Browse" follows="bottom|left" left_delta="363" bottom_delta="0" width="80" height="20">
+    <button.commit_callback function="ColladaExport.FilePicker"/>
+  </button>
+  <button name="export button" label="Export" follows="bottom|left" left_delta="83" bottom_delta="0" width="80" height="20" enabled="false">
+    <button.commit_callback function="ColladaExport.Export"/>
+  </button>
+  <panel border="true" left="10" bottom_delta="-88" height="80" width="200" follows="bottom|left" name="object info panel">
+    <text name="Object info" bottom="-20" height="20" left="5">Object Info</text>
+    <text name="Object Name" bottom_delta="-20" height="20" left="10">Name: [NAME]</text>
+    <text name="Exportable Prims" bottom_delta="-20" height="20" left="10">Exportable Prims: [COUNT]/[TOTAL]</text>
+    <text name="Exportable Textures" bottom_delta="-20" height="20">Exportable Textures: [COUNT]/[TOTAL]</text>
+  </panel>
+  <panel border="true" bottom_delta="-120" height="115" width="200" follows="bottom|left" name="options panel">
+    <text name="Options" bottom="-20" height="20" left="5">Options</text>
+    <check_box name="texture export check" label="Export Textures" height="20" bottom_delta="-20" left="10" control_name="DAEExportTextures">
+      <check_box.commit_callback function="ColladaExport.TextureExport"/>
+    </check_box>
+    <combo_box name="texture type combo" bottom_delta="0" left_delta="120" height="20" width="60" control_name="DAEExportTexturesType">
+      <combo_item name="tga" value="0">TGA</combo_item>
+      <combo_item name="png" value="1">PNG</combo_item>
+      <combo_item name="j2c" value="2">J2C</combo_item>
+      <combo_item name="bmp" value="3">BMP</combo_item>
+      <combo_item name="jpg" value="4">JPG</combo_item>
+      <combo_box.commit_callback function="ColladaExport.TextureTypeCombo" />
+    </combo_box>
+    <check_box name="consolidate check" label="Consolidate faces" tool_tip="Export faces that have the same texture as one" bottom_delta="-20" left="10" height="20" control_name="DAEExportConsolidateMaterials"/>
+    <check_box name="skip transparent check" label="Skip transparent textures" bottom_delta="-20" height="20" control_name="DAEExportSkipTransparent"/>
+    <check_box name="texture params check" label="Apply texture params" bottom_delta="-20" height="20" control_name="DAEExportTextureParams"/>
+  </panel>
+  <scroll_container name="textures container" follows="all" bottom="-252" left_delta="205" width="380" height="200"/>
+</floater>

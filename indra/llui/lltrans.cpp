@@ -35,7 +35,6 @@
 #include "lltrans.h"
 #include "llxmlnode.h"
 #include "lluictrlfactory.h"
-#include "llalertdialog.h"
 #include "llnotificationsutil.h"
 
 #include <map>

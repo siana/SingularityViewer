@@ -154,6 +154,7 @@
 					Todo
 				</combo_item>
 			</combo_box>
+			
 			<slider label="  Física de Avatar:" name="AvatarPhysicsDetail" width="165"/>
 			<text name="AvatarPhysicsDetailText">
 				Apagada

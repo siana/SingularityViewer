@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="top_objects" title="Top-Objekte">
+    <string name="top_scripts_title">Top-Skripte</string>
+    <string name="top_scripts_text">[COUNT] Skripts benötigen insgesamt [TIME] ms</string>
+    <string name="scripts_score_label">Uhrzeit</string>
+    <string name="top_colliders_title">Top-Kollisionsobjekte</string>
+    <string name="top_colliders_text">Top [COUNT] Objekte mit vielen potenziellen Kollisionen</string>
+    <string name="colliders_score_label">Wertung</string>
+    <string name="none_descriptor">Nicht gefunden.</string>
+    <text name="title_text">Wird geladen...</text>
+    <scroll_list name="objects_list">
+        <column label="Wertung" name="score"/>
+        <column label="Name" name="name"/>
+        <column label="Eigentümer" name="owner"/>
+        <column label="Position" name="location"/>
+        <column label="Parzelle" name="parcel"/>
+        <column label="Uhrzeit" name="time"/>
+        <column label="URLs" name="URLs"/>
+        <column label="Speicher (KB)" name="memory"/>
+		
+    </scroll_list>
+    <text name="id_text">Objekt-ID:</text>
+    
+    <button label="Beacon anzeigen" name="show_beacon_btn"/>
+    <text name="obj_name_text">Objektname:</text>
+    
+    <button label="Filter" name="filter_object_btn"/>
+    <text name="owner_name_text">Eigentümer:</text>
+    
+    <button label="Filter" name="filter_owner_btn"/>
+    <text name="parcel_name_text">Parzelle:</text>
+    
+    <button label="Filter" name="filter_parcel_btn"/>
+    <button label="Aktualisieren" name="refresh_btn"/>
+    <button label="Auswahl zurückgeben" name="return_selected_btn"/>
+    <button label="Alle zurückgeben" name="return_all_btn"/>
+    <button label="Teleportieren zu" name="teleport_to_btn"/>
+    <button label="Profil" name="profile_btn"/>
+    <button label="Auswahl deaktivieren" name="disable_selected_btn"/>
+    <button label="Alle deaktivieren" name="disable_all_btn"/>
+    <button label="Estate: Hinauswerfen" name="estate_kick_btn"/>
+</floater>

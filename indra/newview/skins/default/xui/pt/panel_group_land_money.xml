@@ -7,6 +7,9 @@
 	<string name="cant_view_group_land_text">
 		Você não tem permissão para ver as terras pertencentes ao grupo.
 	</string>
+  <string name="epmty_view_group_land_text">
+    Nada consta
+  </string>
 	<string name="cant_view_group_accounting_text">
 		Você não tem permissão para ver as informações sobre as contas do grupo.
 	</string>

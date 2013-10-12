@@ -22,6 +22,7 @@
 	<text bottom_delta="6" follows="top" height="10" left="282" name="text_box4">(seconds)</text>
 	<spinner bottom_delta="-6" decimal_digits="0" follows="top" height="16" increment="1" initial_val="10" left="340" max_val="50" min_val="1" name="max_chat_count" width="60"/>
 	<text bottom_delta="6" follows="left|top" height="10" left="405" name="text_box5">(# lines)</text>
+	<spinner bottom_delta="-25" decimal_digits="0" follows="top" height="16" increment="1" left="148" max_val="3000" min_val="0" width="130" control_name="ConsoleBottomOffset" name="chat_bottom_offset" label="Bottom offset" label_width="80" tool_tip="Offset in pixels between the chat console and the bottom of the viewer."/>
 	<slider bottom_delta="-25" control_name="ConsoleBackgroundOpacity" follows="top" height="12" increment="0.05" initial_val="1" label="Opacity" left="148" max_val="1" min_val="0" name="console_opacity" value="0.4" width="200"/>
 	<check_box bottom_delta="-25" control_name="ChatFullWidth" follows="top" height="16" initial_value="false" label="Use full screen width (Requires restart)" name="chat_full_width_check"/>
 	<text bottom_delta="-12" height="10" left="12"	     mouse_opaque="false" name="text_box6" v_pad="0" width="135">Chat Options:</text>

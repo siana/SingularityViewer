@@ -176,7 +176,7 @@ void LLMemory::logMemoryInfo(BOOL update)
 
 	llinfos << "Current allocated physical memory(KB): " << sAllocatedMemInKB << llendl ;
 	llinfos << "Current allocated page size (KB): " << sAllocatedPageSizeInKB << llendl ;
-	llinfos << "Current availabe physical memory(KB): " << sAvailPhysicalMemInKB << llendl ;
+	llinfos << "Current available physical memory(KB): " << sAvailPhysicalMemInKB << llendl ;
 	llinfos << "Current max usable memory(KB): " << sMaxPhysicalMemInKB << llendl ;
 
 	llinfos << "--- private pool information -- " << llendl ;

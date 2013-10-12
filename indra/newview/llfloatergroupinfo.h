@@ -39,48 +39,29 @@
 #define LL_LLFLOATERGROUPINFO_H
 
 #include "llfloater.h"
-#include "lluuid.h"
+#include "llinstancetracker.h"
 
 class LLPanelGroup;
-struct LLOfferInfo;
 
 class LLFloaterGroupInfo
-: public LLFloater
+: public LLFloater, public LLInstanceTracker<LLFloaterGroupInfo, LLUUID>
 {
 public:
+	LLFloaterGroupInfo(const LLUUID& group_id);
 	virtual ~LLFloaterGroupInfo();
-
-	static void showCreateGroup(void *);
-	static void showMyGroupInfo(void *);
-	static void showFromUUID(const LLUUID &group_id,
-							 const std::string& tab_name = std::string());
-	static void closeCreateGroup();
-	static void closeGroup(const LLUUID& group_id);
-	static void refreshGroup(const LLUUID& group_id);
-
-	static void showNotice(const std::string& subject,
-						   const std::string& message,
-						   const LLUUID& group_id,
-						   const bool& has_inventory,
-						   const std::string& inventory_name,
-						   LLOfferInfo* inventory_offer);
-
-	LLUUID		getGroupID() { return mGroupID;}
 
 	void selectTabByName(std::string tab_name);
 
-	// This allow us to block the user from closing the floater
-	// if there is information that needs to be applied.
+	// This allows us to block the user from closing the floater if there is information that needs to be applied.
 	virtual BOOL canClose();
+
 protected:
-	LLFloaterGroupInfo(const std::string& name, const LLRect &rect, const std::string& title, const LLUUID& group_id = LLUUID::null, const std::string& tab_name = std::string());
+	friend class LLGroupActions;
+	LLPanelGroup*	mPanelGroupp;
 
 private:
-	static void callbackLoadGroupName(const LLUUID& id, const std::string& full_name, bool is_group);
-	static std::map<LLUUID, LLFloaterGroupInfo*> sInstances;
-
-	LLUUID			mGroupID;
-	LLPanelGroup*	mPanelGroupp;
+	void callbackLoadGroupName(const std::string& full_name);
 };
 
 #endif
+

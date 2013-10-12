@@ -3,10 +3,9 @@
  * @brief LLFloaterNameDesc class definition
  *
  * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2002-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -44,29 +43,49 @@ class LLRadioGroup;
 class LLFloaterNameDesc : public LLFloater
 {
 public:
-	LLFloaterNameDesc(const std::string& filename);
 	// <edit>
-	LLFloaterNameDesc(const std::string& filename, void* item);
+	LLFloaterNameDesc(const LLSD& filename, void* item = NULL);
 	// </edit>
 	virtual ~LLFloaterNameDesc();
 	virtual BOOL postBuild();
 
-	static void			doCommit(class LLUICtrl *, void* userdata);
+	void		onBtnOK();
+	void		onBtnCancel();
+	void		doCommit();
+
 protected:
 	virtual void		onCommit();
 
 protected:
 	BOOL        mIsAudio;
+	bool		mIsText;
 
 	std::string		mFilenameAndPath;
 	std::string		mFilename;
-	
 	// <edit>
 	void* mItem;
 	// </edit>
+};
 
-	static void		onBtnOK(void*);
-	static void		onBtnCancel(void*);
+class LLFloaterSoundPreview : public LLFloaterNameDesc
+{
+public:
+	LLFloaterSoundPreview(const LLSD& filename, void* item = NULL );
+	virtual BOOL postBuild();
+};
+
+class LLFloaterAnimPreview : public LLFloaterNameDesc
+{
+public:
+	LLFloaterAnimPreview(const LLSD& filename, void* item = NULL );
+	virtual BOOL postBuild();
+};
+
+class LLFloaterScriptPreview : public LLFloaterNameDesc
+{
+public:
+	LLFloaterScriptPreview(const LLSD& filename, void* item = NULL );
+	virtual BOOL postBuild();
 };
 
 #endif  // LL_LLFLOATERNAMEDESC_H

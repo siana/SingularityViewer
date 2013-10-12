@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater title="Meldungen" name="notifications_console">
+  <combo_box name="notification_types" label="Meldungsart auswählen"/>
+  <button name="add_notification" label="Hinzufügen"/>
+  
+</floater>

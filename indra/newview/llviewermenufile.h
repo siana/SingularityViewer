@@ -48,8 +48,6 @@ class NewResourceItemCallback : public LLInventoryCallback
 
 class LLTransactionID;
 
-extern std::deque<std::string> gUploadQueue;
-
 void init_menu_file();
 
 void upload_new_resource(const std::string& src_filename,

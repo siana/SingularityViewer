@@ -671,6 +671,36 @@ BOOL LLTaskInvFVBridge::dragOrDrop(MASK mask, BOOL drop,
 //	llwarns << "LLTaskInvFVBridge::dropped() - not implemented" << llendl;
 //}
 
+void pack_script_message(LLMessageSystem*, const LLInventoryItem*, const LLViewerObject*);
+
+void reset_script(const LLInventoryItem* item, const LLViewerObject* obj)
+{
+	if (!item || !obj) return;
+	gMessageSystem->newMessageFast(_PREHASH_ScriptReset);
+	pack_script_message(gMessageSystem, item, obj);
+	gMessageSystem->sendReliable(obj->getRegion()->getHost());
+}
+
+void set_script_running(bool running, const LLInventoryItem* item, const LLViewerObject* obj)
+{
+	if (!item || !obj) return;
+	LLMessageSystem* msg = gMessageSystem;
+	msg->newMessageFast(_PREHASH_SetScriptRunning);
+	pack_script_message(msg, item, obj);
+	msg->addBOOLFast(_PREHASH_Running, running);
+	msg->sendReliable(obj->getRegion()->getHost());
+}
+
+void pack_script_message(LLMessageSystem* msg, const LLInventoryItem* item, const LLViewerObject* obj)
+{
+	msg->nextBlockFast(_PREHASH_AgentData);
+	msg->addUUIDFast(_PREHASH_AgentID, gAgentID);
+	msg->addUUIDFast(_PREHASH_SessionID, gAgentSessionID);
+	msg->nextBlockFast(_PREHASH_Script);
+	msg->addUUIDFast(_PREHASH_ObjectID, obj->getID());
+	msg->addUUIDFast(_PREHASH_ItemID, item->getUUID());
+}
+
 // virtual
 void LLTaskInvFVBridge::performAction(LLInventoryModel* model, std::string action)
 {
@@ -703,6 +733,18 @@ void LLTaskInvFVBridge::performAction(LLInventoryModel* model, std::string actio
 	else if (action == "task_properties")
 	{
 		showProperties();
+	}
+	else if (action == "reset_script")
+	{
+		reset_script(findItem(), gObjectList.findObject(mPanel->getTaskUUID()));
+	}
+	else if (action == "start_script")
+	{
+		set_script_running(true, findItem(), gObjectList.findObject(mPanel->getTaskUUID()));
+	}
+	else if (action == "stop_script")
+	{
+		set_script_running(false, findItem(), gObjectList.findObject(mPanel->getTaskUUID()));
 	}
 }
 
@@ -752,6 +794,20 @@ void LLTaskInvFVBridge::buildContextMenu(LLMenuGL& menu, U32 flags)
 	}
 	else if (canOpenItem())
 	{
+		if (LLAssetType::AT_LSL_TEXT == item->getType())
+		{
+			items.push_back(std::string("Task Reset"));
+			items.push_back(std::string("Task Set Running"));
+			items.push_back(std::string("Task Set Not Running"));
+			const LLViewerObject* obj = gObjectList.findObject(mPanel->getTaskUUID());
+			if (!obj || !(obj->permModify() || obj->permYouOwner()))
+			{
+				disabled_items.push_back(std::string("Task Reset"));
+				disabled_items.push_back(std::string("Task Set Running"));
+				disabled_items.push_back(std::string("Task Set Not Running"));
+			}
+		}
+
 		items.push_back(std::string("Task Open"));
 		if (!isItemCopyable())
 		{
@@ -1181,7 +1237,6 @@ BOOL LLTaskCallingCardBridge::renameItem(const std::string& new_name)
 	return FALSE;
 }
 
-
 ///----------------------------------------------------------------------------
 /// Class LLTaskScriptBridge
 ///----------------------------------------------------------------------------
@@ -1216,7 +1271,7 @@ public:
 void LLTaskLSLBridge::openItem()
 {
 	llinfos << "LLTaskLSLBridge::openItem() " << mUUID << llendl;
-	if(LLLiveLSLEditor::show(mUUID, mPanel->getTaskUUID()))
+	if(LLLiveLSLEditor::show(mUUID))
 	{
 		return;
 	}
@@ -1265,7 +1320,7 @@ void LLTaskLSLBridge::openItem()
 
 BOOL LLTaskLSLBridge::removeItem()
 {
-	LLLiveLSLEditor::hide(mUUID, mPanel->getTaskUUID());
+	LLLiveLSLEditor::hide(mUUID);
 	return LLTaskInvFVBridge::removeItem();
 }
 
@@ -1629,7 +1684,7 @@ void LLPanelObjectInventory::reset()
 	mFolders->getFilter()->setShowFolderState(LLInventoryFilter::SHOW_ALL_FOLDERS);
 
 	LLRect scroller_rect(0, getRect().getHeight(), getRect().getWidth(), 0);
-	mScroller = new LLScrollableContainerView(std::string("task inventory scroller"), scroller_rect, mFolders );
+	mScroller = new LLScrollContainer(std::string("task inventory scroller"), scroller_rect, mFolders );
 	mScroller->setFollowsAll();
 	addChild(mScroller);
 

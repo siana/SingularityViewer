@@ -37,10 +37,6 @@
 #include "llmap.h"
 #include "lluuid.h"
 
-#include "llbutton.h"
-#include "lltexteditor.h"
-#include "llpanel.h"
-
 class LLPanelGroupLandMoney : public LLPanelGroupTab
 {
 public:
@@ -64,6 +60,8 @@ public:
 	static void processGroupAccountDetailsReply(LLMessageSystem* msg,  void** data);
 	static void processGroupAccountTransactionsReply(LLMessageSystem* msg, void** data);
 	static void processGroupAccountSummaryReply(LLMessageSystem* msg, void** data);
+
+	virtual void onLandSelectionChanged();
 	
 protected:
 	class impl;

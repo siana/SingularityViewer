@@ -229,7 +229,7 @@ void LLPanelEvent::onClickMap(void* data)
 	if (!self->mEventInfo.mPosGlobal.isExactlyZero())
 	{
 		gFloaterWorldMap->trackLocation(self->mEventInfo.mPosGlobal);
-		LLFloaterWorldMap::show(NULL, TRUE);
+		LLFloaterWorldMap::show(true);
 	}
 }
 

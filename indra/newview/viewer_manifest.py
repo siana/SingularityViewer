@@ -1,35 +1,36 @@
-#!/usr/bin/python
-# @file viewer_manifest.py
-# @author Ryan Williams
-# @brief Description of all installer viewer files, and methods for packaging
-#        them into installers for all supported platforms.
-#
-# $LicenseInfo:firstyear=2006&license=viewergpl$
-#
-# Copyright (c) 2006-2009, Linden Research, Inc.
-#
-# Second Life Viewer Source Code
-# The source code in this file ("Source Code") is provided by Linden Lab
-# to you under the terms of the GNU General Public License, version 2.0
-# ("GPL"), unless you have obtained a separate licensing agreement
-# ("Other License"), formally executed by you and Linden Lab.  Terms of
-# the GPL can be found in doc/GPL-license.txt in this distribution, or
-# online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
-#
-# There are special exceptions to the terms and conditions of the GPL as
-# it is applied to this Source Code. View the full text of the exception
-# in the file doc/FLOSS-exception.txt in this software distribution, or
-# online at
-# http://secondlifegrid.net/programs/open_source/licensing/flossexception
-#
-# By copying, modifying or distributing this software, you acknowledge
-# that you have read and understood your obligations described above,
-# and agree to abide by those obligations.
-#
-# ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
-# WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
-# COMPLETENESS OR PERFORMANCE.
-# $/LicenseInfo$
+#!/usr/bin/env python
+"""\
+@file viewer_manifest.py
+@author Ryan Williams
+@brief Description of all installer viewer files, and methods for packaging
+       them into installers for all supported platforms.
+
+$LicenseInfo:firstyear=2006&license=viewergpl$
+Second Life Viewer Source Code
+Copyright (c) 2006-2009, Linden Research, Inc.
+
+The source code in this file ("Source Code") is provided by Linden Lab
+to you under the terms of the GNU General Public License, version 2.0
+("GPL"), unless you have obtained a separate licensing agreement
+("Other License"), formally executed by you and Linden Lab.  Terms of
+the GPL can be found in doc/GPL-license.txt in this distribution, or
+online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+
+There are special exceptions to the terms and conditions of the GPL as
+it is applied to this Source Code. View the full text of the exception
+in the file doc/FLOSS-exception.txt in this software distribution, or
+online at
+http://secondlifegrid.net/programs/open_source/licensing/flossexception
+
+By copying, modifying or distributing this software, you acknowledge
+that you have read and understood your obligations described above,
+and agree to abide by those obligations.
+
+ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
+WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
+COMPLETENESS OR PERFORMANCE.
+$/LicenseInfo$
+"""
 import sys
 import os.path
 import re
@@ -56,10 +57,13 @@ class ViewerManifest(LLManifest):
 
             # include the entire shaders directory recursively
             self.path("shaders")
+
             # ... and the entire windlight directory
             self.path("windlight")
+
             # ... and the hunspell dictionaries
             self.path("dictionaries")
+
             self.end_prefix("app_settings")
 
         if self.prefix(src="character"):
@@ -104,6 +108,7 @@ class ViewerManifest(LLManifest):
                 self.path("*/*/*.html")
                 self.path("*/*/*.gif")
                 self.end_prefix("*/html")
+
             self.end_prefix("skins")
 
         # Files in the newview/ directory
@@ -186,6 +191,11 @@ class WindowsManifest(ViewerManifest):
                                'llplugin', 'slplugin', self.args['configuration'], "SLPlugin.exe"),
                   "SLPlugin.exe")
 
+        # Plugin volume control
+        if self.prefix(src=self.args['configuration'], dst=""):
+            self.path("winmm.dll")
+            self.end_prefix()
+
         self.path(src="licenses-win32.txt", dst="licenses.txt")
 
         self.path("featuretable.txt")
@@ -195,7 +205,7 @@ class WindowsManifest(ViewerManifest):
             self.path("libhunspell.dll")
             self.end_prefix()
 
-		# For mesh upload
+        # For mesh upload
         if self.prefix(src=self.args['configuration'], dst=""):
             self.path("libcollada14dom22.dll")
             self.path("glod.dll")
@@ -329,9 +339,7 @@ class WindowsManifest(ViewerManifest):
                     self.path(path_pair[1])
                     self.end_prefix()
 
-        # pull in the crash logger and updater from other projects
-        self.path(src='../win_crash_logger/%s/windows-crash-logger.exe' % self.args['configuration'], dst="win_crash_logger.exe")
-        self.path(src='../win_updater/%s/windows-updater.exe' % self.args['configuration'], dst="updater.exe")
+        self.package_file = 'npne'
 
 
     def nsi_file_commands(self, install=True):
@@ -343,6 +351,7 @@ class WindowsManifest(ViewerManifest):
 
         result = ""
         dest_files = [pair[1] for pair in self.file_list if pair[0] and os.path.isfile(pair[1])]
+        dest_files = list(set(dest_files)) # remove duplicates
         # sort deepest hierarchy first
         dest_files.sort(lambda a,b: cmp(a.count(os.path.sep),b.count(os.path.sep)) or cmp(a,b))
         dest_files.reverse()
@@ -359,6 +368,7 @@ class WindowsManifest(ViewerManifest):
                 result += 'File ' + pkg_file + '\n'
             else:
                 result += 'Delete ' + wpath(os.path.join('$INSTDIR', rel_file)) + '\n'
+
         # at the end of a delete, just rmdir all the directories
         if not install:
             deleted_file_dirs = [os.path.dirname(pair[1].replace(self.get_dst_prefix()+os.path.sep,'')) for pair in self.file_list]
@@ -514,7 +524,8 @@ class DarwinManifest(ViewerManifest):
                                 "libaprutil-1.0.dylib",
                                 "libcollada14dom.dylib",
                                 "libexpat.1.5.2.dylib",
-                                "libGLOD.dylib"):
+                                "libGLOD.dylib",
+                                "libexception_handler.dylib"):
                     self.path(os.path.join(libdir, libfile), libfile)
 
                 # For using FMOD for sound...but, fmod is proprietary so some might not use it...
@@ -533,23 +544,16 @@ class DarwinManifest(ViewerManifest):
                     print "Skipping libfmodex.dylib - not found"
                     pass
 
-                # our apps
-                try:
-                    self.path("../mac_crash_logger/" + self.args['configuration'] + "/mac-crash-logger.app", "mac-crash-logger.app")
-                    self.path("../mac_updater/" + self.args['configuration'] + "/mac-updater.app", "mac-updater.app")
-                except:
-                    pass
-
                 # plugin launcher
                 self.path("../llplugin/slplugin/" + self.args['configuration'] + "/SLPlugin.app", "SLPlugin.app")
 
                 # dependencies on shared libs
-                mac_crash_logger_res_path = self.dst_path_of("mac-crash-logger.app/Contents/Resources")
                 slplugin_res_path = self.dst_path_of("SLPlugin.app/Contents/Resources")
                 for libfile in ("libllcommon.dylib",
                                 "libapr-1.0.dylib",
                                 "libaprutil-1.0.dylib",
-                                "libexpat.1.5.2.dylib"):
+                                "libexpat.1.5.2.dylib",
+                                "libexception_handler.dylib"):
                     target_lib = os.path.join('../../..', libfile)
                     self.run_command("ln -sf %(target)r %(link)r" %
                                      {'target': target_lib,
@@ -695,19 +699,21 @@ class LinuxManifest(ViewerManifest):
             self.path("wrapper.sh",self.wrapper_name())
             self.path("handle_secondlifeprotocol.sh")
             self.path("register_secondlifeprotocol.sh")
+            self.path("refresh_desktop_app_entry.sh")
+            self.path("launch_url.sh")
+            self.path("install.sh")
             self.end_prefix("linux_tools")
 
         # Create an appropriate gridargs.dat for this package, denoting required grid.
         self.put_in_file(self.flags_list(), 'gridargs.dat')
 
-        if self.buildtype().lower()=='release':
-            self.path("secondlife-stripped","bin/"+self.binary_name())
-            self.path("../linux_crash_logger/linux-crash-logger-stripped","linux-crash-logger.bin")
-        else:
-            self.path("secondlife-bin","bin/"+self.binary_name())
-            self.path("../linux_crash_logger/linux-crash-logger","linux-crash-logger.bin")
+        ## Singu note: we'll go strip crazy later on
+        #if self.buildtype().lower()=='release':
+        #    self.path("secondlife-stripped","bin/"+self.binary_name())
+        #else:
+        #    self.path("secondlife-bin","bin/"+self.binary_name())
+        self.path("secondlife-bin","bin/"+self.binary_name())
 
-        self.path("linux_tools/launch_url.sh","launch_url.sh")
         self.path("../llplugin/slplugin/SLPlugin", "bin/SLPlugin")
         if self.prefix("res-sdl"):
             self.path("*")
@@ -801,14 +807,14 @@ class Linux_i686Manifest(LinuxManifest):
             self.path("libSDL-1.2.so*")
             self.path("libapr-1.so*")
             self.path("libaprutil-1.so*")
-            self.path("libcollada14dom.so")
+            self.path("libcollada14dom.so.2.2", "libcollada14dom.so")
             self.path("libcrypto.so*")
             self.path("libdb*.so")
             self.path("libdirect-1.*.so*")
             self.path("libdirectfb-1.*.so*")
             self.path("libfusion-1.*.so*")
             self.path("libglod.so")
-            self.path("libminizip.so")
+            self.path("libminizip.so.1.2.3", "libminizip.so");
             self.path("libexpat.so*")
             self.path("libhunspell-*.so.*")
             self.path("libssl.so*")
@@ -852,7 +858,6 @@ class Linux_x86_64Manifest(LinuxManifest):
             self.path("libexpat.so*")
             self.path("libglod.so")
             self.path("libhunspell-1.3.so*")
-            self.path("libpcre.so.3");
             self.path("libminizip.so.1.2.3", "libminizip.so");
             self.path("libssl.so*")
             self.path("libuuid.so*")

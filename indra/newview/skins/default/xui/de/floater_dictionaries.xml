@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="EmeraldIRC_dictionaries" title="Download Wörterbuch">
+     <text name="EmDics_txt">Unten ist eine Liste von zusätzlichen Wörterbücher,
+       die heruntergeladen werden können.
+
+       Bitte wählen Sie Ihre Wahl und drücken Sie zum Download.</text>
+	
+     <button label="Herunterladen" name="Emerald_dic_download"/>
+</floater>

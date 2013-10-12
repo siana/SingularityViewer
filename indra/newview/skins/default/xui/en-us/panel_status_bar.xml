@@ -15,21 +15,29 @@
 	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="-20" disabled_color="BalanceTextColor" drop_shadow_visible="true"
 	     enabled="true" follows="right|bottom" font="SansSerifSmall" h_pad="0"
-	     halign="right" height="18" left="-230" mouse_opaque="true"
+	     halign="right" height="18" left="-280" mouse_opaque="true"
 	     name="BalanceText" text_color="BalanceTextColor" tool_tip="Account Balance"
 	     v_pad="2" width="86">
 		Loading...
+	</text>
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom="-20" disabled_color="BalanceTextColor" drop_shadow_visible="true"
+	     enabled="true" follows="right|bottom" font="SansSerifSmall" h_pad="0"
+	     halign="right" height="18" left="-350" mouse_opaque="true"
+	     name="UPCText" text_color="BalanceTextColor" tool_tip="Upload credits"
+	     v_pad="2" width="106">
+		UPC - N/A -
 	</text>
 	<button bottom="-17" enabled="true" follows="right|bottom" font="SansSerifSmall"
 	     halign="center" height="16" 
 	     image_selected="status_buy_currency_pressed.tga"
 	     image_unselected="status_buy_currency.tga" label=""
-	     left="-220" mouse_opaque="true" name="buycurrency" scale_image="true"
+	     left="-340" mouse_opaque="true" name="buycurrency" scale_image="true"
 	     tool_tip="Buy currency" width="16" />
 	<text type="string" length="12" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="-20" disabled_color="TimeTextColor" drop_shadow_visible="true"
 	     enabled="true" follows="right|bottom" font="SansSerifSmall" h_pad="0"
-	     halign="right" height="18" left="-310" mouse_opaque="true" name="TimeText"
+	     halign="right" height="18" left="-430" mouse_opaque="true" name="TimeText"
 	     text_color="TimeTextColor" tool_tip="Current Time (Pacific)" v_pad="2" width="80">
 		12:00 AM
 	</text>
@@ -129,4 +137,5 @@
 	<string name="bandwidth_tooltip">
 		Bandwidth
 	</string>
+	<string name="Local">Local</string>
 </panel>

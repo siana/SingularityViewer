@@ -86,6 +86,8 @@ class LLViewerParcelMedia : public LLViewerMediaObserver
 
 		static LLViewerMediaImpl::EMediaStatus getStatus();
 		static std::string getMimeType();
+		static std::string getURL();
+		static std::string getName();
 		static viewer_media_t getParcelMedia();
 
 		static void processParcelMediaCommandMessage( LLMessageSystem *msg, void ** );

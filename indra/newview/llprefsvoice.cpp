@@ -37,11 +37,11 @@
 
 #include "floatervoicelicense.h"
 #include "llcheckboxctrl.h"
-#include "llfloatervoicedevicesettings.h"
 #include "llfocusmgr.h"
 #include "llkeyboard.h"
 #include "llmodaldialog.h"
-#include "llviewercontrol.h"
+#include "llpanelvoicedevicesettings.h"
+#include "lltrans.h"
 #include "lluictrlfactory.h"
 
 
@@ -97,12 +97,22 @@ void LLVoiceSetKeyDialog::onCancel(void* user_data)
 	self->close();
 }
 
+namespace
+{
+	void* createDevicePanel(void*)
+	{
+		return new LLPanelVoiceDeviceSettings;
+	}
+}
+
 //--------------------------------------------------------------------
 //LLPrefsVoice
 LLPrefsVoice::LLPrefsVoice()
 	:	LLPanel(std::string("Voice Chat Panel"))
-{ 
-	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_voice.xml");
+{
+	mFactoryMap["device_settings_panel"] = LLCallbackMap(createDevicePanel, NULL);
+
+	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_voice.xml", &getFactoryMap());
 }
 
 LLPrefsVoice::~LLPrefsVoice()
@@ -114,7 +124,6 @@ BOOL LLPrefsVoice::postBuild()
 	childSetCommitCallback("enable_voice_check", onCommitEnableVoiceChat, this);
 	childSetAction("set_voice_hotkey_button", onClickSetKey, this);
 	childSetAction("set_voice_middlemouse_button", onClickSetMiddleMouse, this);
-	childSetAction("device_settings_btn", onClickVoiceDeviceSettings, this);
 
 	BOOL voice_disabled = gSavedSettings.getBOOL("CmdLineDisableVoice");
 	childSetVisible("voice_unavailable", voice_disabled);
@@ -124,6 +133,12 @@ BOOL LLPrefsVoice::postBuild()
 	bool enable = !voice_disabled && gSavedSettings.getBOOL("EnableVoiceChat");
 	childSetValue("enable_voice_check", enable);
 	onCommitEnableVoiceChat(getChild<LLCheckBoxCtrl>("enable_voice_check"), this);
+
+	if (LLCheckBoxCtrl* check = getChild<LLCheckBoxCtrl>("enable_multivoice_check"))
+	{
+		check->setValue(gSavedSettings.getBOOL("VoiceMultiInstance"));
+		check->setLabel(getString("multivoice_label", LLTrans::getDefaultArgs()));
+	}
 
 	childSetValue("modifier_combo", gSavedSettings.getString("PushToTalkButton"));
 	childSetValue("voice_call_friends_only_check", gSavedSettings.getBOOL("VoiceCallsFriendsOnly"));
@@ -143,9 +158,9 @@ void LLPrefsVoice::apply()
 	gSavedSettings.setBOOL("PushToTalkToggle", childGetValue("push_to_talk_toggle_check"));
 	gSavedSettings.setS32("VoiceEarLocation", childGetValue("ear_location"));
 	gSavedSettings.setBOOL("LipSyncEnabled", childGetValue("enable_lip_sync_check"));
+	gSavedSettings.setBOOL("VoiceMultiInstance", childGetValue("enable_multivoice_check"));
 	
-	LLFloaterVoiceDeviceSettings* voice_device_settings = LLFloaterVoiceDeviceSettings::getInstance();
-	if(voice_device_settings)
+	if (LLPanelVoiceDeviceSettings* voice_device_settings = getChild<LLPanelVoiceDeviceSettings>("device_settings_panel"))
 	{
 		voice_device_settings->apply();
 	}
@@ -165,8 +180,7 @@ void LLPrefsVoice::apply()
 
 void LLPrefsVoice::cancel()
 {
-	LLFloaterVoiceDeviceSettings* voice_device_settings = LLFloaterVoiceDeviceSettings::getInstance();
-	if(voice_device_settings)
+	if (LLPanelVoiceDeviceSettings* voice_device_settings = getChild<LLPanelVoiceDeviceSettings>("device_settings_panel"))
 	{
 		voice_device_settings->cancel();
 	}
@@ -186,7 +200,6 @@ void LLPrefsVoice::onCommitEnableVoiceChat(LLUICtrl* ctrl, void* user_data)
 	bool enable = enable_voice_chat->getValue();
 
 	self->childSetEnabled("modifier_combo", enable);
-	//self->childSetEnabled("friends_only_check", enable);
 	self->childSetEnabled("push_to_talk_label", enable);
 	self->childSetEnabled("voice_call_friends_only_check", enable);
 	self->childSetEnabled("auto_disengage_mic_check", enable);
@@ -196,6 +209,7 @@ void LLPrefsVoice::onCommitEnableVoiceChat(LLUICtrl* ctrl, void* user_data)
 	self->childSetEnabled("set_voice_hotkey_button", enable);
 	self->childSetEnabled("set_voice_middlemouse_button", enable);
 	self->childSetEnabled("device_settings_btn", enable);
+	self->childSetEnabled("device_settings_panel", enable);
 }
 
 //static
@@ -211,17 +225,5 @@ void LLPrefsVoice::onClickSetMiddleMouse(void* user_data)
 {
 	LLPrefsVoice* self = (LLPrefsVoice*)user_data;
 	self->childSetValue("modifier_combo", "MiddleMouse");
-}
-
-//static
-void LLPrefsVoice::onClickVoiceDeviceSettings(void* user_data)
-{
-	LLPrefsVoice* voice_prefs = (LLPrefsVoice*)user_data;
-	LLFloaterVoiceDeviceSettings* device_settings_floater = LLFloaterVoiceDeviceSettings::showInstance();
-	LLFloater* parent_floater = gFloaterView->getParentFloater(voice_prefs);
-	if(parent_floater)
-	{
-		parent_floater->addDependentFloater(device_settings_floater, FALSE);
-	}
 }
 

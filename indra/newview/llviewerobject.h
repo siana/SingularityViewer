@@ -156,8 +156,9 @@ public:
 	// Return codes for processUpdateMessage
 	enum { 
 		MEDIA_URL_REMOVED = 0x1, 
-		MEDIA_URL_ADDED = 0x2, 
-		MEDIA_URL_UPDATED = 0x4, 
+        MEDIA_URL_ADDED = 0x2, 
+        MEDIA_URL_UPDATED = 0x4, 
+        MEDIA_FLAGS_CHANGED = 0x8,
 		INVALID_UPDATE = 0x80000000 
 	};
 
@@ -261,17 +262,17 @@ public:
 
 	//detect if given line segment (in agent space) intersects with this viewer object.
 	//returns TRUE if intersection detected and returns information about intersection
-	virtual BOOL lineSegmentIntersect(const LLVector3& start, const LLVector3& end,
+	virtual BOOL lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end,
 									  S32 face = -1,                          // which face to check, -1 = ALL_SIDES
 									  BOOL pick_transparent = FALSE,
 									  S32* face_hit = NULL,                   // which face was hit
-									  LLVector3* intersection = NULL,         // return the intersection point
+									  LLVector4a* intersection = NULL,         // return the intersection point
 									  LLVector2* tex_coord = NULL,            // return the texture coordinates of the intersection point
-									  LLVector3* normal = NULL,               // return the surface normal at the intersection point
-									  LLVector3* bi_normal = NULL             // return the surface bi-normal at the intersection point
+									  LLVector4a* normal = NULL,               // return the surface normal at the intersection point
+									  LLVector4a* tangent = NULL             // return the surface tangent at the intersection point
 		);
 	
-	virtual BOOL lineSegmentBoundingBox(const LLVector3& start, const LLVector3& end);
+	virtual BOOL lineSegmentBoundingBox(const LLVector4a& start, const LLVector4a& end);
 
 	virtual const LLVector3d getPositionGlobal() const;
 	virtual const LLVector3 &getPositionRegion() const;
@@ -324,7 +325,7 @@ public:
 	/*virtual*/ S32     setTEGlow(const U8 te, const F32 glow);
 	/*virtual*/	BOOL	setMaterial(const U8 material);
 	virtual		void	setTEImage(const U8 te, LLViewerTexture *imagep); // Not derived from LLPrimitive
-	void                changeTEImage(S32 index, LLViewerTexture* new_image)  ;
+	virtual     void	changeTEImage(S32 index, LLViewerTexture* new_image)  ;
 	LLViewerTexture		*getTEImage(const U8 te) const;
 	
 	void fitFaceTexture(const U8 face);

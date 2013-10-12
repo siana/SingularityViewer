@@ -40,7 +40,7 @@ static LLRegisterWidget<LLTextBox> r("text");
 
 LLTextBox::LLTextBox(const std::string& name, const LLRect& rect, const std::string& text,
 					 const LLFontGL* font, BOOL mouse_opaque)
-:	LLUICtrl(name, rect, mouse_opaque, NULL, NULL, FOLLOWS_LEFT | FOLLOWS_TOP ),
+:	LLUICtrl(name, rect, mouse_opaque, NULL, FOLLOWS_LEFT | FOLLOWS_TOP ),
 	mFontGL(font ? font : LLFontGL::getFontSansSerifSmall())
 {
 	initDefaults();
@@ -50,7 +50,7 @@ LLTextBox::LLTextBox(const std::string& name, const LLRect& rect, const std::str
 
 LLTextBox::LLTextBox(const std::string& name, const std::string& text, F32 max_width,
 					 const LLFontGL* font, BOOL mouse_opaque) :
-	LLUICtrl(name, LLRect(0, 0, 1, 1), mouse_opaque, NULL, NULL, FOLLOWS_LEFT | FOLLOWS_TOP),	
+	LLUICtrl(name, LLRect(0, 0, 1, 1), mouse_opaque, NULL, FOLLOWS_LEFT | FOLLOWS_TOP),	
 	mFontGL(font ? font : LLFontGL::getFontSansSerifSmall())
 {
 	initDefaults();
@@ -60,7 +60,7 @@ LLTextBox::LLTextBox(const std::string& name, const std::string& text, F32 max_w
 }
 
 LLTextBox::LLTextBox(const std::string& name_and_label, const LLRect& rect) :
-	LLUICtrl(name_and_label, rect, TRUE, NULL, NULL, FOLLOWS_LEFT | FOLLOWS_TOP),	
+	LLUICtrl(name_and_label, rect, TRUE, NULL, FOLLOWS_LEFT | FOLLOWS_TOP),	
 	mFontGL(LLFontGL::getFontSansSerifSmall())
 {
 	initDefaults();
@@ -89,7 +89,6 @@ void LLTextBox::initDefaults()
 	mHAlign = LLFontGL::LEFT;
 	mVAlign = LLFontGL::TOP;
 	mClickedCallback = NULL;
-	mCallbackUserData = NULL;
 }
 
 BOOL LLTextBox::handleMouseDown(S32 x, S32 y, MASK mask)
@@ -140,7 +139,7 @@ BOOL LLTextBox::handleMouseUp(S32 x, S32 y, MASK mask)
 		// If mouseup in the widget, it's been clicked
 		if (mClickedCallback)
 		{
-			(*mClickedCallback)( mCallbackUserData );
+			mClickedCallback();
 		}
 	}
 
@@ -198,12 +197,16 @@ void LLTextBox::setWrappedText(const LLStringExplicit& in_text, F32 max_width)
 	{
 		max_width = (F32)getRect().getWidth();
 	}
+	if(max_width <= 0.0f)
+	{
+		return;	//It makes no sense to try to wrap text to fit zero-width columns. (In fact, it causes infinite recursion in the following while loop!)
+	}
 
 	LLWString wtext = utf8str_to_wstring(in_text);
 	LLWString final_wtext;
 
 	LLWString::size_type  cur = 0;;
-	LLWString::size_type  len = wtext.size();
+	LLWString::size_type  len = wtext.length();
 
 	while (cur < len)
 	{
@@ -283,6 +286,7 @@ BOOL LLTextBox::setTextArg( const std::string& key, const LLStringExplicit& text
 
 void LLTextBox::draw()
 {
+	F32 alpha = getDrawContext().mAlpha;
 	if (mBorderVisible)
 	{
 		gl_rect_2d_offset_local(getLocalRect(), 2, FALSE);
@@ -293,13 +297,12 @@ void LLTextBox::draw()
 		static LLColor4 color_drop_shadow = LLUI::sColorsGroup->getColor("ColorDropShadow");
 		static S32 drop_shadow_tooltip = LLUI::sConfigGroup->getS32("DropShadowTooltip");
 		gl_drop_shadow(0, getRect().getHeight(), getRect().getWidth(), 0,
-			color_drop_shadow, drop_shadow_tooltip);
+			color_drop_shadow % alpha, drop_shadow_tooltip);
 	}
 
 	if (mBackgroundVisible)
 	{
-		LLRect r( 0, getRect().getHeight(), getRect().getWidth(), 0 );
-		gl_rect_2d( r, mBackgroundColor );
+		gl_rect_2d( getLocalRect(), mBackgroundColor % alpha );
 	}
 
 	S32 text_x = 0;
@@ -322,16 +325,16 @@ void LLTextBox::draw()
 	{
 		if(mHasHover)
 		{
-			drawText( text_x, text_y, mHoverColor );
+			drawText( text_x, text_y, mHoverColor % alpha );
 		}
 		else
 		{
-			drawText( text_x, text_y, mTextColor );
+			drawText( text_x, text_y, mTextColor % alpha );
 		}				
 	}
 	else
 	{
-		drawText( text_x, text_y, mDisabledColor );
+		drawText( text_x, text_y, mDisabledColor % alpha );
 	}
 
 	if (sDebugRects)
@@ -385,6 +388,69 @@ void LLTextBox::reshapeToFitText()
 }
 
 // virtual
+void LLTextBox::initFromXML(LLXMLNodePtr node, LLView* parent)
+{
+	LLUICtrl::initFromXML(node, parent);
+	
+	LLFontGL* font = LLView::selectFont(node);
+	if(font)
+		mFontGL = font;
+		
+	setText(node->getTextContents());
+	
+	LLFontGL::HAlign halign = LLView::selectFontHAlign(node);
+	setHAlign(halign);
+
+	node->getAttributeS32("line_spacing", mLineSpacing);
+
+	std::string font_style;
+	if (node->getAttributeString("font-style", font_style))
+	{
+		mFontStyle = LLFontGL::getStyleFromString(font_style);
+	}
+
+	if (node->getAttributeString("font-shadow", font_style))
+	{
+		if(font_style == "soft")
+			mFontShadow = LLFontGL::DROP_SHADOW_SOFT;
+		else if(font_style == "hard")
+			mFontShadow = LLFontGL::DROP_SHADOW;
+		else 
+			mFontShadow = LLFontGL::NO_SHADOW;
+	}
+
+	BOOL mouse_opaque = getMouseOpaque();
+	if (node->getAttributeBOOL("mouse_opaque", mouse_opaque))
+	{
+		setMouseOpaque(mouse_opaque);
+	}	
+
+	if(node->hasAttribute("text_color"))
+	{
+		LLColor4 color;
+		LLUICtrlFactory::getAttributeColor(node, "text_color", color);
+		setColor(color);
+	}
+
+	if(node->hasAttribute("hover_color"))
+	{
+		LLColor4 color;
+		LLUICtrlFactory::getAttributeColor(node, "hover_color", color);
+		setHoverColor(color);
+		setHoverActive(true);
+	}
+
+	BOOL hover_active = FALSE;
+	if(node->getAttributeBOOL("hover", hover_active))
+	{
+		setHoverActive(hover_active);
+	}
+
+	node->getAttributeBOOL("use_ellipses", mUseEllipses);
+	
+}
+
+// virtual
 LLXMLNodePtr LLTextBox::getXML(bool save_children) const
 {
 	LLXMLNodePtr node = LLUICtrl::getXML();
@@ -413,68 +479,8 @@ LLXMLNodePtr LLTextBox::getXML(bool save_children) const
 // static
 LLView* LLTextBox::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("text_box");
-	node->getAttributeString("name", name);
-	LLFontGL* font = LLView::selectFont(node);
-
-	std::string text = node->getTextContents();
-
-	LLTextBox* text_box = new LLTextBox(name,
-		LLRect(),
-		text,
-		font,
-		FALSE);
-		
-
-	LLFontGL::HAlign halign = LLView::selectFontHAlign(node);
-	text_box->setHAlign(halign);
-
+	LLTextBox* text_box = new LLTextBox("text_box", LLRect(), "" , NULL, FALSE);
 	text_box->initFromXML(node, parent);
-
-	node->getAttributeS32("line_spacing", text_box->mLineSpacing);
-
-	std::string font_style;
-	if (node->getAttributeString("font-style", font_style))
-	{
-		text_box->mFontStyle = LLFontGL::getStyleFromString(font_style);
-	}
-
-	if (node->getAttributeString("font-shadow", font_style))
-	{
-		if(font_style == "soft")
-			text_box->mFontShadow = LLFontGL::DROP_SHADOW_SOFT;
-		else if(font_style == "hard")
-			text_box->mFontShadow = LLFontGL::DROP_SHADOW;
-		else 
-			text_box->mFontShadow = LLFontGL::NO_SHADOW;
-	}
-
-	BOOL mouse_opaque = text_box->getMouseOpaque();
-	if (node->getAttributeBOOL("mouse_opaque", mouse_opaque))
-	{
-		text_box->setMouseOpaque(mouse_opaque);
-	}	
-
-	if(node->hasAttribute("text_color"))
-	{
-		LLColor4 color;
-		LLUICtrlFactory::getAttributeColor(node, "text_color", color);
-		text_box->setColor(color);
-	}
-
-	if(node->hasAttribute("hover_color"))
-	{
-		LLColor4 color;
-		LLUICtrlFactory::getAttributeColor(node, "hover_color", color);
-		text_box->setHoverColor(color);
-		text_box->setHoverActive(true);
-	}
-
-	BOOL hover_active = FALSE;
-	if(node->getAttributeBOOL("hover", hover_active))
-	{
-		text_box->setHoverActive(hover_active);
-	}
 
 	return text_box;
 }

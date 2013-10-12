@@ -42,7 +42,7 @@
   <string name="linkset_is_non_volume_state">[concave]</string>
   <string name="linkset_is_restricted_non_volume_state">[restricted,concave]</string>
   <string name="linkset_choose_use">Choose linkset use...</string>
-  <panel
+  <panel name="pathfinding_linksets_main" 
       bottom="160"
       border="false"
       bevel_style="none"
@@ -51,7 +51,7 @@
       height="226"
       mouse_opaque="false"
       width="1059">
-    <text
+    <text name="linksets_filter_label"
         height="13"
         word_wrap="false"
         use_ellipses="false"
@@ -65,7 +65,7 @@
         width="67">
       Filter by:
     </text>
-    <text
+    <text name="linksets_name_label"
         height="13"
         word_wrap="false"
         use_ellipses="false"
@@ -91,7 +91,7 @@
         name="filter_by_name"
         bottom_delta="-5"
         width="161" />
-    <text
+    <text name="linksets_desc_label"
         height="13"
         word_wrap="false"
         use_ellipses="false"
@@ -297,7 +297,7 @@
       top_pad="0"
       left="18"
       width="1039"/>
-  <panel
+  <panel name="pathfinding_linksets_actions" 
       border="false"
       bevel_style="none"
       follows="left|right|bottom"
@@ -306,7 +306,7 @@
       height="67"
       mouse_opaque="false"
       width="1010">
-    <text
+    <text name="linksets_actions_label" 
         height="13"
         word_wrap="false"
         use_ellipses="false"
@@ -391,7 +391,7 @@
       top_pad="0"
       left="18"
       width="1039"/>
-  <panel
+  <panel name="pathfinding_linksets_attributes" 
       border="false"
       bevel_style="none"
       follows="left|right|bottom"
@@ -400,7 +400,7 @@
       height="75"
       mouse_opaque="false"
       width="1010">
-    <text
+    <text name="linksets_attributes_label"
         height="13"
         word_wrap="false"
         use_ellipses="false"

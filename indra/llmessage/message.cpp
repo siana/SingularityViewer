@@ -50,7 +50,6 @@
 #include "lldarray.h"
 #include "lldir.h"
 #include "llerror.h"
-#include "llerrorlegacy.h"
 #include "llfasttimer.h"
 #include "llhttpclient.h"
 #include "llhttpnodeadapter.h"

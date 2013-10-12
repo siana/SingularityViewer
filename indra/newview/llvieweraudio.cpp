@@ -46,28 +46,15 @@
 
 /////////////////////////////////////////////////////////
 
-void init_audio() 
+void precache_audio() 
 {
-	if (!gAudiop) 
-	{
-		llwarns << "Failed to create an appropriate Audio Engine" << llendl;
+	static bool already_precached = false;
+	if(already_precached)
 		return;
-	}
-	LLVector3d lpos_global = gAgentCamera.getCameraPositionGlobal();
-	LLVector3 lpos_global_f;
+	already_precached = true;
 
-	lpos_global_f.setVec(lpos_global);
-					
-	gAudiop->setListener(lpos_global_f,
-						  LLVector3::zero,	// LLViewerCamera::getInstance()->getVelocity(),    // !!! BUG need to replace this with smoothed velocity!
-						  LLViewerCamera::getInstance()->getUpAxis(),
-						  LLViewerCamera::getInstance()->getAtAxis());
-
-// load up our initial set of sounds we'll want so they're in memory and ready to be played
-
-	BOOL mute_audio = gSavedSettings.getBOOL("MuteAudio");
-
-	if (!mute_audio && FALSE == gSavedSettings.getBOOL("NoPreload"))
+	// load up our initial set of sounds we'll want so they're in memory and ready to be played
+	if (gAudiop && !gSavedSettings.getBOOL("MuteAudio") && !gSavedSettings.getBOOL("NoPreload"))
 	{
 		gAudiop->preloadSound(LLUUID(gSavedSettings.getString("UISndAlert")));
 		gAudiop->preloadSound(LLUUID(gSavedSettings.getString("UISndBadKeystroke")));
@@ -110,11 +97,9 @@ void init_audio()
 		gAudiop->preloadSound(LLUUID(gSavedSettings.getString("UISndWindowClose")));
 		gAudiop->preloadSound(LLUUID(gSavedSettings.getString("UISndWindowOpen")));
 	}
-
-	audio_update_volume(true);
 }
 
-void audio_update_volume(bool force_update)
+void audio_update_volume( bool wind_fade )
 {
 	static const LLCachedControl<F32> master_volume("AudioLevelMaster",1.0);
 	static const LLCachedControl<F32> audio_level_sfx("AudioLevelSFX",1.0);
@@ -154,11 +139,6 @@ void audio_update_volume(bool force_update)
 			gAudiop->setRolloffFactor( audio_level_underwater_rolloff );
 
 		gAudiop->setMuted(mute_audio);
-		
-		if (force_update)
-		{
-			audio_update_wind(true);
-		}
 
 		// handle secondary gains
 		gAudiop->setSecondaryGain(LLAudioEngine::AUDIO_TYPE_SFX,
@@ -167,6 +147,8 @@ void audio_update_volume(bool force_update)
 								  mute_ui ? 0.f : audio_level_ui);
 		gAudiop->setSecondaryGain(LLAudioEngine::AUDIO_TYPE_AMBIENT,
 								  mute_ambient ? 0.f : audio_level_ambient);
+
+		audio_update_wind(wind_fade);
 	}
 
 	// Streaming Music
@@ -182,19 +164,19 @@ void audio_update_volume(bool force_update)
 	LLViewerMedia::setVolume( mute_media ? 0.0f : media_volume );
 
 	// Voice
-	if (gVoiceClient)
+	if (LLVoiceClient::instanceExists())
 	{
 		F32 voice_volume = mute_volume * master_volume * audio_level_voice;
-		gVoiceClient->setVoiceVolume(mute_voice ? 0.f : voice_volume);
-		gVoiceClient->setMicGain(mute_voice ? 0.f : audio_level_mic);
+		LLVoiceClient::getInstance()->setVoiceVolume(mute_voice ? 0.f : voice_volume);
+		LLVoiceClient::getInstance()->setMicGain(mute_voice ? 0.f : audio_level_mic);
 
 		if (!gViewerWindow->getActive() && mute_when_minimized)
 		{
-			gVoiceClient->setMuteMic(true);
+			LLVoiceClient::getInstance()->setMuteMic(true);
 		}
 		else
 		{
-			gVoiceClient->setMuteMic(false);
+			LLVoiceClient::getInstance()->setMuteMic(false);
 		}
 	}
 }
@@ -217,17 +199,23 @@ void audio_update_listener()
 	}
 }
 
-void audio_update_wind(bool force_update)
+void audio_update_wind(bool fade)
 {
 #ifdef kAUDIO_ENABLE_WIND
-	if(gAgent.getRegion())
+	if(gAgent.getRegion() && gAudiop)
 	{
         // Scale down the contribution of weather-simulation wind to the
         // ambient wind noise.  Wind velocity averages 3.5 m/s, with gusts to 7 m/s
         // whereas steady-state avatar walk velocity is only 3.2 m/s.
         // Without this the world feels desolate on first login when you are
         // standing still.
-        static LLCachedControl<F32> wind_level("AudioLevelWind", 0.5f);
+
+		static LLCachedControl<F32> wind_level("AudioLevelWind", 0.5f);
+		static LLCachedControl<bool> mute_audio("MuteAudio", false);
+        static LLCachedControl<bool> mute_ambient("MuteAmbient", false);
+		static LLCachedControl<F32> audio_level_master("AudioLevelMaster", 1.f);
+		static LLCachedControl<F32> audio_level_ambient("AudioLevelAmbient", 1.f);
+
         LLVector3 scaled_wind_vec = gWindVec * wind_level;
 
 		// Mix in the avatar's motion, subtract because when you walk north,
@@ -240,18 +228,18 @@ void audio_update_wind(bool force_update)
 		// don't use the setter setMaxWindGain() because we don't
 		// want to screw up the fade-in on startup by setting actual source gain
 		// outside the fade-in.
-		F32 master_volume  = gSavedSettings.getBOOL("MuteAudio") ? 0.f : gSavedSettings.getF32("AudioLevelMaster");
-		F32 ambient_volume = gSavedSettings.getBOOL("MuteAmbient") ? 0.f : gSavedSettings.getF32("AudioLevelAmbient");
+		F32 master_volume  = mute_audio ? 0.f : audio_level_master;
+		F32 ambient_volume = mute_ambient ? 0.f : audio_level_ambient;
 		F32 max_wind_volume = master_volume * ambient_volume;
 
 		const F32 WIND_SOUND_TRANSITION_TIME = 2.f;
-		// amount to change volume this frame
-		F32 volume_delta = (LLFrameTimer::getFrameDeltaTimeF32() / WIND_SOUND_TRANSITION_TIME) * max_wind_volume;
-		if (force_update) 
+
+		F32 volume_delta = 1.f;
+
+		if(fade)
 		{
-			// initialize wind volume (force_update) by using large volume_delta
-			// which is sufficient to completely turn off or turn on wind noise
-			volume_delta = 1.f;
+			// amount to change volume this frame
+			volume_delta = (LLFrameTimer::getFrameDeltaTimeF32() / WIND_SOUND_TRANSITION_TIME) * max_wind_volume;
 		}
 
 		static LLCachedControl<bool> MuteWind("MuteWind");

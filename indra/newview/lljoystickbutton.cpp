@@ -331,9 +331,6 @@ LLXMLNodePtr LLJoystickAgentTurn::getXML(bool save_children) const
 
 LLView* LLJoystickAgentTurn::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("button");
-	node->getAttributeString("name", name);
-
 	std::string	image_unselected;
 	if (node->hasAttribute("image_unselected")) node->getAttributeString("image_unselected",image_unselected);
 	
@@ -343,7 +340,7 @@ LLView* LLJoystickAgentTurn::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrl
 	EJoystickQuadrant quad = JQ_ORIGIN;
 	if (node->hasAttribute("quadrant")) quad = selectQuadrant(node);
 	
-	LLJoystickAgentTurn *button = new LLJoystickAgentTurn(name, 
+	LLJoystickAgentTurn *button = new LLJoystickAgentTurn("button", 
 		LLRect(),
 		image_unselected,
 		image_selected,
@@ -449,9 +446,6 @@ LLXMLNodePtr LLJoystickAgentSlide::getXML(bool save_children) const
 // static
 LLView* LLJoystickAgentSlide::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("button");
-	node->getAttributeString("name", name);
-
 	std::string	image_unselected;
 	if (node->hasAttribute("image_unselected")) node->getAttributeString("image_unselected",image_unselected);
 	
@@ -462,7 +456,7 @@ LLView* LLJoystickAgentSlide::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtr
 	EJoystickQuadrant quad = JQ_ORIGIN;
 	if (node->hasAttribute("quadrant")) quad = selectQuadrant(node);
 	
-	LLJoystickAgentSlide *button = new LLJoystickAgentSlide(name, 
+	LLJoystickAgentSlide *button = new LLJoystickAgentSlide("button", 
 		LLRect(),
 		image_unselected,
 		image_selected,

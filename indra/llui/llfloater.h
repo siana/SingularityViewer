@@ -40,7 +40,8 @@
 #include "llpanel.h"
 #include "lluuid.h"
 #include "lltabcontainer.h"
-#include "llnotifications.h"
+#include "llnotificationcontext.h"
+#include "llnotificationptr.h"
 #include <set>
 
 class LLDragHandle;
@@ -217,12 +218,7 @@ public:
 	virtual BOOL	canSaveAs() const { return FALSE; }
 
 	virtual void	saveAs() {}
-	virtual void	saveAsType(BOOL type=false) {}
 	
-	// <edit>
-	virtual LLUUID  getItemID() { return LLUUID::null; }
-	// </edit>
-
 	void			setSnapTarget(LLHandle<LLFloater> handle) { mSnappedTo = handle; }
 	void			clearSnapTarget() { mSnappedTo.markDead(); }
 	LLHandle<LLFloater>	getSnapTarget() const { return mSnappedTo; }
@@ -236,15 +232,12 @@ public:
 	// handle refocusing.
 	static void		closeFocusedFloater();
 
-	LLNotification::Params contextualNotification(const std::string& name) 
-	{ 
-	    return LLNotification::Params(name).context(mNotificationContext); 
-	}
+	LLNotificationPtr	addContextualNotification(const std::string& name, const LLSD& substitutions = LLSD());
 
-	static void		onClickClose(void *userdata);
-	static void		onClickMinimize(void *userdata);
-	static void		onClickTearOff(void *userdata);
-	static void		onClickEdit(void *userdata);
+	void		onClickClose();
+	void		onClickMinimize();
+	void		onClickTearOff();
+	void		onClickEdit();
 
 	static void		setFloaterHost(LLMultiFloater* hostp) {sHostp = hostp; }
 	static void		setEditModeEnabled(BOOL enable);
@@ -273,6 +266,8 @@ private:
 	void			updateButtons();
 	void			buildButtons();
 	BOOL			offerClickToButton(S32 x, S32 y, MASK mask, EFloaterButtons index);
+	void			addResizeCtrls();
+	void			layoutResizeCtrls();
 
 	LLRect			mExpandedRect;
 	LLDragHandle*	mDragHandle;
@@ -317,8 +312,10 @@ private:
 	static std::string	sButtonPressedImageNames[BUTTON_COUNT];
 	static std::string	sButtonNames[BUTTON_COUNT];
 	static std::string	sButtonToolTips[BUTTON_COUNT];
-	typedef void (*click_callback)(void *);
-	static click_callback sButtonCallbacks[BUTTON_COUNT];
+	
+	typedef void (LLFloater::*button_callback)();
+
+	static button_callback sButtonCallbacks[BUTTON_COUNT];
 
 	typedef std::map<LLHandle<LLFloater>, LLFloater*> handle_map_t;
 	typedef std::map<LLHandle<LLFloater>, LLFloater*>::iterator handle_map_iter_t;

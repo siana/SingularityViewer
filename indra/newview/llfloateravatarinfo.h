@@ -40,66 +40,24 @@
 #define LL_LLFLOATERAVATARINFO_H
 
 #include "llfloater.h"
-#include "llpreview.h"
-#include "lluuid.h"
-#include "llpanelavatar.h"
 #include "llinstancetracker.h"
 
-class LLAvatarName;
-class LLButton;
-class LLCheckBoxCtrl;
-class LLInventoryItem;
-class LLLineEditor;
-class LLMessageSystem;
-class LLScrollListCtrl;
-class LLTabContainer;
-class LLTextBox;
-class LLTextEditor;
-class LLTextureCtrl;
-class LLUICtrl;
-class LLViewerTexture;
-class LLViewerObject;
+class LLPanelAvatar;
 
 class LLFloaterAvatarInfo
-:	public LLPreview, public LLInstanceTracker<LLFloaterAvatarInfo,LLUUID>
+:	public LLFloater, public LLInstanceTracker<LLFloaterAvatarInfo,LLUUID>
 {
 public:
 	static	void*	createPanelAvatar(void*	data);
 
-	virtual	BOOL	postBuild();
-
-	LLFloaterAvatarInfo(const std::string& name, const LLRect &rect, const LLUUID &avatar_id );
+	LLFloaterAvatarInfo(const std::string& name, const LLUUID &avatar_id);
 	/*virtual*/ ~LLFloaterAvatarInfo();
-
-	/*virtual*/ void draw();
-
 	/*virtual*/ BOOL canClose();
-
-	/*virtual*/ void loadAsset();
-	/*virtual*/ EAssetStatus getAssetStatus();
-
-	static LLFloaterAvatarInfo* show(const LLUUID& avatar_id);
-		// Core method, doesn't do anything funny with online status or 
-		// tab selection.
-
-	static void showFromObject(const LLUUID &avatar_id, std::string tab_name = std::string());
-
-	static void showFromDirectory(const LLUUID &avatar_id);
-
-	static void showFromFriend(const LLUUID &agent_id, BOOL online);
-
-	static void showFromProfile(const LLUUID &avatar_id, LLRect rect);
-
-	static void showProfileCallback(S32 option, void *userdata);
-	void callbackLoadAvatarName(const LLUUID& agent_id, const LLAvatarName& av_name);
 	void resetGroupList();
 
 private:
 	LLUUID			mAvatarID;			// for which avatar is this window?
 	LLPanelAvatar*	mPanelAvatarp;
-	EOnlineStatus	mSuggestedOnlineStatus;
 };
-
-std::string getProfileURL(const std::string& agent_name);
 
 #endif

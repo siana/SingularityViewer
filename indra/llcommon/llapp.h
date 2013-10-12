@@ -37,13 +37,9 @@ template <typename Type> class LLAtomic32;
 typedef LLAtomic32<U32> LLAtomicU32;
 class LLErrorThread;
 class LLLiveFile;
-
-
 #if LL_LINUX
-	#include <signal.h>
-	//typedef struct siginfo siginfo_t; //Removed as per changes in glibc 2.16 - Drake Arconis
+#include <signal.h>
 #endif
-
 
 typedef void (*LLAppErrorHandler)();
 typedef void (*LLAppChildCallback)(int pid, bool exited, int status);
@@ -63,6 +59,10 @@ public:
 	LLAppChildCallback mCallback;
 };
 #endif
+
+namespace google_breakpad {
+	class ExceptionHandler; // See exception_handler.h
+}
 
 class LL_COMMON_API LLApp : public LLOptionInterface
 {
@@ -212,11 +212,43 @@ public:
 #endif
 	static int getPid();
 
-	//
-	// Error handling methods
-	//
+	/** @name Error handling methods */
+	//@{
+	/**
+	 * @brief Do our generic platform-specific error-handling setup --
+	 * signals on unix, structured exceptions on windows.
+	 * 
+	 * DO call this method if your app will either spawn children or be
+	 * spawned by a launcher.
+	 * Call just after app object construction.
+	 * (Otherwise your app will crash when getting signals,
+	 * and will not core dump.)
+	 *
+	 * DO NOT call this method if your application has specialized
+	 * error handling code.
+	 */
+	void setupErrorHandling();
+
 	void setErrorHandler(LLAppErrorHandler handler);
-	void setSyncErrorHandler(LLAppErrorHandler handler);
+	static void runErrorHandler(); // run shortly after we detect an error, ran in the relatively robust context of the LLErrorThread - preferred.
+	//@}
+	
+	// the maximum length of the minidump filename returned by getMiniDumpFilename()
+	static const U32 MAX_MINDUMP_PATH_LENGTH = 256;
+
+	// change the directory where Breakpad minidump files are written to
+	void setMiniDumpDir(const std::string &path);
+    void setDebugFileNames(const std::string &path);
+
+	// Return the Google Breakpad minidump filename after a crash.
+	char *getMiniDumpFilename() { return mMinidumpPath; }
+    std::string* getStaticDebugFile() { return &mStaticDebugFileName; }
+    std::string* getDynamicDebugFile() { return &mDynamicDebugFileName; }
+
+	// Write out a Google Breakpad minidump file.
+	void writeMiniDump();
+
+
 #if !LL_WINDOWS
 	//
 	// Child process handling (Unix only for now)
@@ -236,6 +268,7 @@ public:
 	pid_t fork(); 
 #endif
 
+
 public:
 	typedef std::map<std::string, std::string> string_map;
 	string_map mOptionMap;	// Contains all command-line options and arguments in a map
@@ -246,6 +279,9 @@ protected:
 	static EAppStatus sStatus; // Reflects current application status
 	static BOOL sErrorThreadRunning; // Set while the error thread is running
 	static BOOL sDisableCrashlogger; // Let the OS handle crashes for us.
+	std::wstring mCrashReportPipeStr;  //Name of pipe to use for crash reporting.
+
+    std::string mDumpPath;  //output path for google breakpad.  Dependency workaround.
 
 #if !LL_WINDOWS
 	static LLAtomicU32* sSigChildCount; // Number of SIGCHLDs received.
@@ -254,26 +290,25 @@ protected:
 	static LLAppChildCallback sDefaultChildCallback;
 #endif
 
-	/**
-	 * @ brief This method is called once as soon as logging is initialized.
-	 */
 	void startErrorThread();
+
 	/**
 	 * @brief This method is called at the end, just prior to deinitializing curl.
 	 */
 	void stopErrorThread();
 
 private:
-	void setupErrorHandling();		// Do platform-specific error-handling setup (signals, structured exceptions)
-	static void runErrorHandler(); // run shortly after we detect an error, ran in the relatively robust context of the LLErrorThread - preferred.
-	static void runSyncErrorHandler(); // run IMMEDIATELY when we get an error, ran in the context of the faulting thread.
+	// Contains the filename of the minidump file after a crash.
+	char mMinidumpPath[MAX_MINDUMP_PATH_LENGTH];
+    
+    std::string mStaticDebugFileName;
+    std::string mDynamicDebugFileName;
 
 	// *NOTE: On Windows, we need a routine to reset the structured
 	// exception handler when some evil driver has taken it over for
 	// their own purposes
 	typedef int(*signal_handler_func)(int signum);
 	static LLAppErrorHandler sErrorHandler;
-	static LLAppErrorHandler sSyncErrorHandler;
 
 	// Default application threads
 	LLErrorThread* mThreadErrorp;		// Waits for app to go to status ERROR, then runs the error callback
@@ -291,6 +326,7 @@ private:
 private:
 	// the static application instance if it was created.
 	static LLApp* sApplication;
+	google_breakpad::ExceptionHandler * mExceptionHandler;
 
 
 #if !LL_WINDOWS

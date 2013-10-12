@@ -46,11 +46,10 @@ public:
 	// Needed to make the floater visibility toggle the beacons.
 	/*virtual*/ void open();
 	/*virtual*/ void close(bool app_quitting);
+	void onClickUICheck(LLUICtrl *ctrl);
 
 private:
 	LLFloaterBeacons(const LLSD& seed);
-
-	static void onClickUICheck(LLUICtrl *ctrl, void* data);
 };
 
 #endif

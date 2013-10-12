@@ -73,9 +73,14 @@ public:
 	// selected.
 	static void showFindAll(const std::string& search_text);
 	static void showClassified(const LLUUID& classified_id);
+	static void showClassified(const std::string& search_text = "");
 	static void showEvents(S32 event_id);
+	static void showEvents(const std::string& search_text = "");
 	static void showLandForSale(const LLUUID& parcel_id);
-	static void showGroups();
+	static void showDestinations();
+	static void showGroups(const std::string& search_text = "");
+	static void showPeople(const std::string& search_text = "");
+	static void showPlaces(const std::string& search_text = "");
 	static void refreshGroup(const LLUUID& group_id);
 	static void hide(void*);
 
@@ -86,6 +91,7 @@ public:
 	void hideAllDetailPanels();
 
 private:
+	static void performQueryOn(const std::string& name, const std::string& search_text);
 	static void showPanel(const std::string& tabname);
 	/*virtual*/ void onClose(bool app_quitting);
 	void focusCurrentPanel();

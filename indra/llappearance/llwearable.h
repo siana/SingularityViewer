@@ -31,9 +31,11 @@
 #include "llextendedstatus.h"
 #include "llpermissions.h"
 #include "llsaleinfo.h"
+#include "llsortedvector.h"
 #include "llwearabletype.h"
 #include "lllocaltextureobject.h"
 
+class LLAPRFile;
 class LLMD5;
 class LLVisualParam;
 class LLTexGlobalColorInfo;
@@ -76,9 +78,6 @@ public:
 
 	virtual void	writeToAvatar(LLAvatarAppearance* avatarp);
 
-	BOOL				FileExportParams(FILE* file) const;
-	BOOL				FileExportTextures(FILE* file) const;
-	
 	enum EImportResult
 	{
 		FAILURE = 0,
@@ -136,7 +135,7 @@ protected:
 	typedef std::map<S32, F32> param_map_t;
 	param_map_t mSavedVisualParamMap; // last saved version of visual params
 
-	typedef std::map<S32, LLVisualParam *>    visual_param_index_map_t;
+	typedef LLSortedVector<S32, LLVisualParam *>    visual_param_index_map_t;
 	visual_param_index_map_t mVisualParamIndexMap;
 
 	te_map_t mTEMap;				// maps TE to LocalTextureObject

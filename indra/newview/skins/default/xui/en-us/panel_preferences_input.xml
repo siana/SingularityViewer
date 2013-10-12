@@ -17,5 +17,6 @@
 	<check_box bottom_delta="-18" follows="top" height="16" initial_value="false" label="Automatic Appearance Camera Movement" left="148" name="appearance_camera_movement" tool_tip="Use automatic camera positioning while in edit mode"/>
 	<check_box bottom_delta="-18" follows="top" height="16" initial_value="false" label="Unsit Avatar on Camera Reset" left="148" name="unsit_on_camera_reset" tool_tip="Stand up automatically when you press Esc and the camera switches to third person mode"/>
 	<check_box bottom_delta="-18" follows="top" height="16" label="Disable Camera Constraints" left="148" control_name="DisableCameraConstraints" name="DisableCameraConstraints" tool_tip="Prevent the camera from automatically zooming when you approach walls, objects, etc., too closely."/>
+	<check_box bottom_delta="-18" follows="top" height="16" label="Limit Select Distance" left="148" control_name="LimitSelectDistance" name="Limit Select Distance" tool_tip="Limit the distance at which an object can be selected."/>
 	<button bottom_delta="-30" follows="top" font="SansSerif" height="20" label="Joystick Setup" name="joystick_setup_button" width="155"/>
 </panel>

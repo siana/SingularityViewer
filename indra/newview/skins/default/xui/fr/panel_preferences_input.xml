@@ -3,7 +3,6 @@
 	<text name=" Mouselook Options:">Vue subjective:</text>
 	<text name=" Mouse Sensitivity:">Sensibilité de la souris:</text>
 	<check_box label="Inverser la souris" name="invert_mouse"/>
-	<text name=" Auto Fly Options:">Vol automatique:</text>
 	<check_box label="Voler/atterrir en appuyant sur les fl&#xEA;ches haut/bas" name="automatic_fly"/>
 	<check_box label="Permet de s'accroupir en bloquant la touche shift" name="crouch_toggle"/>
 	<text name=" Camera Options:">Options de la caméra:</text>
@@ -14,5 +13,6 @@
 	<check_box label="Lever l'avatar au reset de la caméra" name="unsit_on_camera_reset" tool_tip="L&#xE8;ve automatiquement l'avatar quand vous pressez ESC, ainsi la caméra permute en mode troisième personne"/>
 	<check_box label="Désactiver les contraintes de la caméra" name="DisableCameraConstraints" tool_tip=""/>
 	<check_box label="Montrer l'avatar en vue subjective" name="first_person_avatar_visible"/>
+	<check_box label="Limite la distance de sélection d'un objet" name="Limit Select Distance" tool_tip=""/>
 	<button label="Configuration du joystick" name="joystick_setup_button" width="175"/>
 </panel>

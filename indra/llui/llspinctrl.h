@@ -56,8 +56,7 @@ public:
 	LLSpinCtrl(const std::string& name, const LLRect& rect,
 		const std::string& label,
 		const LLFontGL* font,
-		void (*commit_callback)(LLUICtrl*, void*),
-		void* callback_userdata,
+		commit_callback_t commit_callback,
 		F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 		const std::string& control_name = std::string(),
 		S32 label_width = SPINCTRL_DEFAULT_LABEL_WIDTH );
@@ -93,8 +92,8 @@ public:
 	virtual F32     getIncrement()          { return mIncrement ; }
 
 	void			setLabel(const LLStringExplicit& label);
-	void			setLabelColor(const LLColor4& c)			{ mTextEnabledColor = c; }
-	void			setDisabledLabelColor(const LLColor4& c)	{ mTextDisabledColor = c; }
+	void			setLabelColor(const LLColor4& c)			{ mTextEnabledColor = c; updateLabelColor(); }
+	void			setDisabledLabelColor(const LLColor4& c)	{ mTextDisabledColor = c; updateLabelColor();}
 	void			setAllowEdit(BOOL allow_edit);
 
 	virtual void	onTabInto();
@@ -107,17 +106,15 @@ public:
 	virtual BOOL	handleScrollWheel(S32 x,S32 y,S32 clicks);
 	virtual BOOL	handleKeyHere(KEY key, MASK mask);
 
-	virtual void	draw();
+	void			onEditorCommit(const LLSD& data);
 
-	static void		onEditorCommit(LLUICtrl* caller, void* userdata);
-	static void		onEditorChangeFocus(LLUICtrl* caller, S32 direction, void *userdata);
-
-	static void		onUpBtn(void *userdata);
-	static void		onDownBtn(void *userdata);
+	void			onUpBtn(const LLSD& data);
+	void			onDownBtn(const LLSD& data);
 
 	virtual BOOL	setLabelArg( const std::string& key, const LLStringExplicit& text );
 
 private:
+	void			updateLabelColor();
 	void			updateEditor();
 	void			reportInvalidData();
 

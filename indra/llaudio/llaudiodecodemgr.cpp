@@ -685,6 +685,12 @@ void LLAudioDecodeMgr::Impl::processQueue(const F32 num_secs)
 				mCurrentDecodep = new LLVorbisDecodeState(uuid, d_path);
 				if (!mCurrentDecodep->initDecode())
 				{
+					LLAudioData *adp = gAudiop->getAudioData(uuid);
+					if(adp)
+					{
+						adp->setHasValidData(false);
+						adp->setHasCompletedDecode(true);
+					}
 					mCurrentDecodep = NULL;
 				}
 			}

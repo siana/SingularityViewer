@@ -34,8 +34,6 @@
 
 
 #include "llpanel.h"
-#include "lldroptarget.h"
-
 
 class LLPrefsAscentSys : public LLPanel
 {
@@ -49,15 +47,16 @@ public:
     void refreshValues();
 
 protected:
-    static void onCommitCheckBox(LLUICtrl* ctrl, void* user_data);
-    static void onCommitCmdLine(LLUICtrl* ctrl, void* user_data);
-    static void onCommitComboBox(LLUICtrl* ctrl, void* user_data);
-    static void onCommitTexturePicker(LLUICtrl* ctrl, void* user_data);
+	void onCommitCheckBox(LLUICtrl* ctrl, const LLSD& value);
+	void onCommitCmdLine(LLUICtrl* ctrl, const LLSD& value);
+	void onCommitComboBox(LLUICtrl* ctrl, const LLSD& value);
+	void onCommitTexturePicker(LLUICtrl* ctrl);
 
     //General -----------------------------------------------------------------------------
     BOOL mDoubleClickTeleport;
         BOOL mResetCameraAfterTP;
         BOOL mOffsetTPByUserHeight;
+    bool mClearBeaconAfterTeleport;
     bool mLiruFlyAfterTeleport;
     bool mLiruContinueFlying;
     BOOL mPreviewAnimInWorld;
@@ -67,14 +66,14 @@ protected:
     BOOL mAlwaysShowFly;
     BOOL mDisableMinZoom;
     BOOL mPowerUser;
-    BOOL mUseSystemFolder;
-        BOOL mUploadToSystem;
     BOOL mFetchInventoryOnLogin;
     BOOL mEnableLLWind;
     BOOL mEnableClouds;
         BOOL mEnableClassicClouds;
     BOOL mSpeedRez;
         U32 mSpeedRezInterval;
+	bool mUseWebProfiles;
+	bool mUseWebSearch;
 
     //Command Line ------------------------------------------------------------------------
     BOOL mCmdLine;
@@ -94,6 +93,7 @@ protected:
     BOOL mCmdMapToKeepPos;
     std::string mCmdLineTP2;
     std::string mCmdLineAway;
+	std::string mCmdLineURL;
 
     //Security ----------------------------------------------------------------------------
     BOOL mBroadcastViewerEffects;
@@ -104,13 +104,16 @@ protected:
 	BOOL mDetachBridge;
 	BOOL mRevokePermsOnStandUp;
     BOOL mDisableClickSit;
+	bool mDisableClickSitOtherOwner;
     BOOL mDisplayScriptJumps;
     F32 mNumScriptDiff;
+
 	//Build -------------------------------------------------------------------------------
 	F32 mAlpha;
 	LLColor4 mColor;
 	BOOL mFullBright;
 	F32 mGlow;
+	std::string mItem;
 	std::string mMaterial;
 	BOOL mNextCopy;
 	BOOL mNextMod;
@@ -123,9 +126,6 @@ protected:
 	F32 mXsize;
 	F32 mYsize;
 	F32 mZsize;
-private:
-	static LLPrefsAscentSys* sInst;
-	static void SinguBuildItemDrop(LLViewerInventoryItem* item);
 };
 
 #endif

@@ -3,10 +3,9 @@
  * @brief Declaration of the inventory bits that only used on the viewer.
  *
  * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2002-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -163,6 +162,11 @@ public:
 	// If this is a broken link, try to fix it and any other identical link.
 	BOOL regenerateLink();
 
+	//<singu>
+	// Change WT_UNKNOWN to the type retrieved from the asset.
+	void setWearableType(LLWearableType::EType type);
+	//</singu>
+
 public:
 	BOOL mIsComplete;
 	LLTransactionID mTransactionID;
@@ -211,7 +215,7 @@ public:
 	// Returns true if a fetch was issued.
 	bool fetch();
 
-	// used to help make cacheing more robust - for example, if
+	// used to help make caching more robust - for example, if
 	// someone is getting 4 packets but logs out after 3. the viewer
 	// may never know the cache is wrong.
 	enum { DESCENDENT_COUNT_UNKNOWN = -1 };
@@ -219,7 +223,7 @@ public:
 	void setDescendentCount(S32 descendents) { mDescendentCount = descendents; }
 
 	// file handling on the viewer. These are not meant for anything
-	// other than cacheing.
+	// other than caching.
 	bool exportFileLocal(LLFILE* fp) const;
 	bool importFileLocal(LLFILE* fp);
 	void determineFolderType();
@@ -227,6 +231,7 @@ public:
 
 private:
 	friend class LLInventoryModel;
+	void localizeName(); // intended to be called from the LLInventoryModel
 
 protected:
 	LLUUID mOwnerID;
@@ -327,6 +332,7 @@ extern LLInventoryCallbackManager gInventoryCallbacks;
 
 #define NOT_WEARABLE (LLWearableType::EType)0
 
+// *TODO: Find a home for these
 void create_inventory_item(const LLUUID& agent_id, const LLUUID& session_id,
 						   const LLUUID& parent, const LLTransactionID& transaction_id,
 						   const std::string& name,

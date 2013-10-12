@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater name="floater_asset_text_editor" title="Editor de Textos">
-	<text name="status_text">
-		Cargando...
-	</text>
-	<button name="upload_btn" label="[UPLOAD]"/>
-	<button name="save_btn" label="Grabar"/>
-	<simple_text_editor name="text_editor" />
-</floater>

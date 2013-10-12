@@ -113,7 +113,7 @@ public:
 	bool considerUpdateCurrency();
 		// return true if update needed
 	void currencyKey(S32);
-	static void onCurrencyKey(LLLineEditor* caller, void* data);	
+	void onCurrencyKey(LLLineEditor* caller);	
 
 	void prepare();
 	void updateUI();
@@ -337,13 +337,9 @@ void LLCurrencyUIManager::Impl::currencyKey(S32 value)
 	mCurrencyChanged = true;
 }
 
-// static
-void LLCurrencyUIManager::Impl::onCurrencyKey(
-		LLLineEditor* caller, void* data)
+void LLCurrencyUIManager::Impl::onCurrencyKey(LLLineEditor* caller)
 {
-	S32 value = atoi(caller->getText().c_str());
-	LLCurrencyUIManager::Impl* self = (LLCurrencyUIManager::Impl*)data;
-	self->currencyKey(value);
+	currencyKey(caller->getValue().asInteger());
 }
 
 void LLCurrencyUIManager::Impl::prepare()
@@ -352,8 +348,7 @@ void LLCurrencyUIManager::Impl::prepare()
 	if (lindenAmount)
 	{
 		lindenAmount->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
-		lindenAmount->setKeystrokeCallback(onCurrencyKey);
-		lindenAmount->setCallbackUserData(this);
+		lindenAmount->setKeystrokeCallback(boost::bind(&LLCurrencyUIManager::Impl::onCurrencyKey,this,_1));
 	}
 }
 

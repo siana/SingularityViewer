@@ -2,21 +2,19 @@
 <panel name="Adv_Settings">
 	<panel filename="panel_bg_tab.xml"/>
 	<slider label="Dist. Dibujo:" name="DrawDistance" tool_tip="Cambiar la distancia máxima de dibujo"/>
-	<slider label="Ancho Banda:" name="max_bandwidth" tool_tip="Definir el ancho de banda de tu conexión en kbps (kilobits por segundos)"/>
 	<slider label="Partículas:" name="MaxParticleCount" tool_tip="Cantidad de Partículas a Renderizar"/>
 	<slider label="Max Avs:" name="RenderAvatarMaxVisible" tool_tip="Cuantos avatares se renderizarán en forma completa. Disminuyendo este valor incrementará los FPS en lugares saturados. Requiere que Avatar Impostors esté activado. [Por Defecto 35]"/>
-	<slider label="Detalle Obj.:" name="Object Detail" tool_tip="Controla el nivel de detalle de los prims (multiplicar por el área de pantalla utilizado para calcular el nivel de detalle[0.5 to 2.0 es un valor  estable])"/>
-	<button name="EnvAdvancedSkyButton" label="" tool_tip="Cielo Avanzado"/>
+	<slider label="Detalle Obj.:" name="Object Detail" tool_tip="Controla el nivel de detalle de los prims (multiplicar por el área de pantalla utilizado para calcular el nivel de detalle [0.5 to 2.0 es un valor  estable])"/>
+	<button name="EnvAdvancedSkyButton" tool_tip="Cielo Avanzado"/>
 	<combo_box name="WLSkyPresetsCombo" tool_tip="WindLight preestablecidos para el cielo."/>
-	<button label="&lt;" name="WLprev"/>
-	<button label="&gt;" name="WLnext"/>
-	<button name="EnvAdvancedWaterButton" label="" tool_tip="Agua Avanzado"/>
+	<button name="WLprev"/>
+	<button name="WLnext"/>
+	<button name="EnvAdvancedWaterButton" tool_tip="Agua Avanzado"/>
 	<combo_box name="WLWaterPresetsCombo" tool_tip="WindLight preestablecido para el Agua."/>
-	<button label="&lt;" name="WWprev"/>
-	<button label="&gt;" name="WWnext"/>
-	<check_box label="Entorno de Región" control_name="UseEnvironmentFromRegion" name="use_estate_wl" tool_tip="Usar la configuración de entorno de la región/parcela cuando esté disponible."/>
-<!--		<check_box label="¿Siempre?" control_name="UseEnvironmentFromRegionAlways" name="Always" tool_tip="Usar siempre la configuración de la región/parcela, cuando exista, en forma automática."/> -->
+	<button name="WWprev"/>
+	<button name="WWnext"/>
+	<check_box label="Entorno de Región" name="use_estate_wl" tool_tip="Usar la configuración de entorno de la región/parcela cuando esté disponible."/>
 	<check_box label="¿Transición?" name="Crossfade" tool_tip="Si está desmarcado, los cambios del cielo en Windlight se aplicarán inmediatamente, sin transiciones."/>
-	<slider control_name="EnvTimeSlider" label="" name="EnvTimeSlider"/>
-	<button label="" name="expand" tool_tip="Ocultar el Panel de Configuraciones"/>
+	<slider name="EnvTimeSlider"/>
+	<button name="expand" tool_tip="Ocultar el Panel de Configuraciones"/>
 </panel>

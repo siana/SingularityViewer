@@ -3,9 +3,9 @@
 	<text name="groupdesc">
 		Elegir un Grupo:
 	</text>
+	<scroll_list name="group list">
+		<column name="name"/>
+	</scroll_list>	
 	<button label="OK" label_selected="OK" name="OK"/>
 	<button label="Cancelar" label_selected="Cancelar" name="Cancel"/>
-	<string name="none">
-		ninguno
-	</string>
 </floater>

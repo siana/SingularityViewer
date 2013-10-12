@@ -7,6 +7,9 @@
   <text name="text_box2">
 		kbps (kilobits por segundo)
 	</text>
+  <text name="text_box4">
+    kbps (kilobits por segundo)
+  </text>
 	<text name="cache_size_label_l">
 		Tamanho do Cachê de Disco:
 	</text>

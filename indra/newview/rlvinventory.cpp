@@ -20,7 +20,6 @@
 #include "llinventoryobserver.h"
 #include "llstartup.h"
 #include "llviewerfoldertype.h"
-#include "llviewermessage.h"
 #include "llviewerobject.h"
 #include "llvoavatarself.h"
 
@@ -243,7 +242,7 @@ bool RlvInventory::getPath(const uuid_vec_t& idItems, LLInventoryModel::cat_arra
 	return (folders.count() != 0);
 }
 
-// Checked: 2011-03-28 (RLVa-1.3.0g) | Modified: RLVa-1.3.0g
+// Checked: 2011-10-06 (RLVa-1.4.2a) | Modified: RLVa-1.4.2a
 const LLUUID& RlvInventory::getSharedRootID() const
 {
 	if ( (m_idRlvRoot.isNull()) && (gInventory.isInventoryUsable()) )
@@ -322,7 +321,7 @@ LLViewerInventoryCategory* RlvInventory::getSharedFolder(const std::string& strP
 	return pFolder;			// If strPath was empty or just a bunch of //// then: pFolder == pRlvRoot
 }
 
-// Checked: 2010-03-02 (RLVa-1.1.3a) | Modified: RLVa-0.2.0g
+// Checked: 2010-03-02 (RLVa-1.2.0a) | Modified: RLVa-0.2.0g
 std::string RlvInventory::getSharedPath(const LLViewerInventoryCategory* pFolder) const
 {
 	// Sanity check - no shared root or no folder => no path
@@ -380,27 +379,6 @@ S32 RlvInventory::getDirectDescendentsItemCount(const LLInventoryCategory* pFold
 	return cntType;
 }
 
-// Checked: 2012-11-28 (RLVa-1.4.8)
-bool RlvInventory::isGiveToRLVOffer(const LLOfferInfo& offerInfo)
-{
-	if ( (!RlvSettings::getForbidGiveToRLV()) && (RlvInventory::instance().getSharedRoot()) )
-	{
-		if (offerInfo.mFromObject)
-		{
-			return 
-				(IM_TASK_INVENTORY_OFFERED == offerInfo.mIM) && 
-				(LLAssetType::AT_CATEGORY == offerInfo.mType) && (offerInfo.mDesc.find(RLV_PUTINV_PREFIX) == 1);
-		}
-		else
-		{
-			return
-				(IM_INVENTORY_OFFERED == offerInfo.mIM) && 
-				(LLAssetType::AT_CATEGORY == offerInfo.mType) && (offerInfo.mDesc.find(RLV_PUTINV_PREFIX) == 0);
-		}
-	}
-	return false;
-}
-
 // ============================================================================
 // RlvRenameOnWearObserver member functions
 //
@@ -414,7 +392,7 @@ void RlvRenameOnWearObserver::done()
 	doOnIdleOneTime(boost::bind(&RlvRenameOnWearObserver::doneIdle, this));
 }
 
-// Checked: 2010-03-14 (RLVa-1.1.3a) | Added: RLVa-1.2.0a
+// Checked: 2010-03-14 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 void RlvRenameOnWearObserver::doneIdle()
 {
 	const LLViewerInventoryCategory* pRlvRoot = NULL;
@@ -599,7 +577,7 @@ void RlvGiveToRLVAgentOffer::done()
 	doOnIdleOneTime(boost::bind(&RlvGiveToRLVAgentOffer::doneIdle, this));
 }
 
-// Checked: 2010-04-18 (RLVa-1.1.3a) | Modified: RLVa-1.2.0e
+// Checked: 2010-04-18 (RLVa-1.2.0e) | Modified: RLVa-1.2.0e
 void RlvGiveToRLVAgentOffer::doneIdle()
 {
 	const LLViewerInventoryCategory* pRlvRoot = RlvInventory::instance().getSharedRoot();
@@ -680,7 +658,7 @@ const LLUUID& RlvWearableItemCollector::getFoldedParent(const LLUUID& idFolder) 
 	return (m_FoldingMap.end() == itFolder) ? idFolder : itFolder->second;
 }
 
-// Checked: 2010-09-25 (RLVa-1.1.3a) | Added: RLVa-1.2.1c
+// Checked: 2010-09-25 (RLVa-1.2.1c) | Added: RLVa-1.2.1c
 RlvForceWear::EWearAction RlvWearableItemCollector::getWearAction(const LLUUID& idFolder) const
 {
 	LLUUID idCurFolder(idFolder); std::map<LLUUID, RlvForceWear::EWearAction>::const_iterator itCurFolder;

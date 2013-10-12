@@ -480,4 +480,6 @@ partir de um esboço e usá-lo.
 	<button label="Cancelar" label_selected="Cancelar" name="Cancel"/>
 	<button label="OK" label_selected="OK" name="Ok"/>
 	<button label="Criar Vestimenta..." label_selected="Criar Vestimenta..." name="Make Outfit" left="117" width="125" />
+	<string name="No Outfit" value="Nenhum"/>
+	<string name="Changing outfits" value="Mudando de look"/>
 </floater>

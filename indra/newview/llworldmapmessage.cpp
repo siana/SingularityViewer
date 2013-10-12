@@ -170,8 +170,10 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 	{
 		U16 x_regions;
 		U16 y_regions;
+// <FS:CR> Aurora Sim
 		U16 x_size = 256;
 		U16 y_size = 256;
+// </FS:CR> Aurora Sim
 		std::string name;
 		U8 accesscode;
 		U32 region_flags;
@@ -186,6 +188,7 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 //		msg->getU8Fast(_PREHASH_Data, _PREHASH_WaterHeight, water_height, block);
 //		msg->getU8Fast(_PREHASH_Data, _PREHASH_Agents, agents, block);
 		msg->getUUIDFast(_PREHASH_Data, _PREHASH_MapImageID, image_id, block);
+// <FS:CR> Aurora Sim
 		if(msg->getNumberOfBlocksFast(_PREHASH_Size) > 0)
 		{
 			msg->getU16Fast(_PREHASH_Size, _PREHASH_SizeX, x_size, block);
@@ -196,6 +199,7 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 			x_size = 256;
 			y_size = 256;
 		}
+// </FS:CR> Aurora Sim
 
 		U32 x_world = (U32)(x_regions) * REGION_WIDTH_UNITS;
 		U32 y_world = (U32)(y_regions) * REGION_WIDTH_UNITS;
@@ -209,7 +213,10 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 			continue;
 
 		// Insert that region in the world map, if failure, flag it as a "null_sim"
-		if (!(LLWorldMap::getInstance()->insertRegion(x_world, y_world, x_size, y_size, agent_flags, name, image_id, (U32)accesscode, region_flags)))
+// <FS:CR> Aurora Sim
+		//if (!(LLWorldMap::getInstance()->insertRegion(x_world, y_world, name, image_id, (U32)accesscode, region_flags)))
+		if (!(LLWorldMap::getInstance()->insertRegion(x_world, y_world, x_size, y_size, name, image_id, (U32)accesscode, region_flags)))
+// </FS:CR> Aurora Sim
 		{
 			found_null_sim = true;
 		}
@@ -227,11 +234,12 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 			gFloaterWorldMap->trackLocation(pos_global);
 		}
 
+		U64 handle = to_region_handle(x_world, y_world);
 		// Handle the SLURL callback if any
 		url_callback_t callback = LLWorldMapMessage::getInstance()->mSLURLCallback;
 		if(callback != NULL)
 		{
-			U64 handle = to_region_handle(x_world, y_world);
+			
 			// Check if we reached the requested region
 			if ((LLStringUtil::compareInsensitive(LLWorldMapMessage::getInstance()->mSLURLRegionName, name)==0)
 				|| (LLWorldMapMessage::getInstance()->mSLURLRegionHandle == handle))
@@ -244,8 +252,7 @@ void LLWorldMapMessage::processMapBlockReply(LLMessageSystem* msg, void**)
 			}
 		}
 		if(	gAgent.mPendingLure &&
-			(U16)(gAgent.mPendingLure->mPosGlobal.mdV[0] / REGION_WIDTH_UNITS) == x_regions &&
-			(U16)(gAgent.mPendingLure->mPosGlobal.mdV[1] / REGION_WIDTH_UNITS) == y_regions )
+			gAgent.mPendingLure->mRegionHandle == handle)
 		{
 			gAgent.onFoundLureDestination();
 		}

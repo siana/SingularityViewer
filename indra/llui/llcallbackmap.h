@@ -30,24 +30,25 @@
  * $/LicenseInfo$
  */
 
-#ifndef LL_CALLBACK_MAP_H
-#define LL_CALLBACK_MAP_H
+#ifndef LLCALLBACKMAP_H
+#define LLCALLBACKMAP_H
 
 #include <map>
-#include "llstring.h"
+#include <string>
+#include <boost/function.hpp>
 
 class LLCallbackMap
 {
 public:
 	// callback definition.
-	typedef void* (*callback_t)(void* data);
+	typedef boost::function<void* (void* data)> callback_t;
 	
 	typedef std::map<std::string, LLCallbackMap> map_t;
 	typedef map_t::iterator map_iter_t;
 	typedef map_t::const_iterator map_const_iter_t;
 
 	LLCallbackMap() : mCallback(NULL), mData(NULL) { }
-	LLCallbackMap(callback_t callback, void* data) : mCallback(callback), mData(data) { }
+	LLCallbackMap(callback_t callback, void* data = NULL) : mCallback(callback), mData(data) { }
 
 	callback_t	mCallback;
 	void*		mData;

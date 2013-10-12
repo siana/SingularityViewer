@@ -79,50 +79,6 @@ extern "C" {
 
 const std::string LLAppViewerWin32::sWindowClass = "Second Life";
 
-LONG WINAPI viewer_windows_exception_handler(struct _EXCEPTION_POINTERS *exception_infop)
-{
-    // *NOTE:Mani - this code is stolen from LLApp, where its never actually used.
-	//OSMessageBox("Attach Debugger Now", "Error", OSMB_OK);
-    // Translate the signals/exceptions into cross-platform stuff
-	// Windows implementation
-    _tprintf( _T("Entering Windows Exception Handler...\n") );
-	llinfos << "Entering Windows Exception Handler..." << llendl;
-
-	// Make sure the user sees something to indicate that the app crashed.
-	LONG retval;
-
-	if (LLApp::isError())
-	{
-	    _tprintf( _T("Got another fatal signal while in the error handler, die now!\n") );
-		llwarns << "Got another fatal signal while in the error handler, die now!" << llendl;
-
-		retval = EXCEPTION_EXECUTE_HANDLER;
-		return retval;
-	}
-
-	// Generate a minidump if we can.
-	// Before we wake the error thread...
-	// Which will start the crash reporting.
-	LLWinDebug::generateCrashStacks(exception_infop);
-	
-	// Flag status to error, so thread_error starts its work
-	LLApp::setError();
-
-	// Block in the exception handler until the app has stopped
-	// This is pretty sketchy, but appears to work just fine
-	while (!LLApp::isStopped())
-	{
-		ms_sleep(10);
-	}
-
-	//
-	// At this point, we always want to exit the app.  There's no graceful
-	// recovery for an unhandled exception.
-	// 
-	// Just kill the process.
-	retval = EXCEPTION_EXECUTE_HANDLER;	
-	return retval;
-}
 
 // Create app mutex creates a unique global windows object. 
 // If the object can be created it returns true, otherwise
@@ -187,8 +143,6 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 	gIconResource = MAKEINTRESOURCE(IDI_LL_ICON);
 
 	LLAppViewerWin32* viewer_app_ptr = new LLAppViewerWin32(lpCmdLine);
-
-	LLWinDebug::initExceptionHandler(viewer_windows_exception_handler); 
 	
 	viewer_app_ptr->setErrorHandler(LLAppViewer::handleViewerCrash);
 
@@ -407,10 +361,25 @@ bool LLAppViewerWin32::init()
 	// (Don't send our data to Microsoft--at least until we are Logo approved and have a way
 	// of getting the data back from them.)
 	//
-	llinfos << "Turning off Windows error reporting." << llendl;
+	// llinfos << "Turning off Windows error reporting." << llendl;
 	disableWinErrorReporting();
 
-	return LLAppViewer::init();
+#ifndef LL_RELEASE_FOR_DOWNLOAD
+	LLWinDebug::instance().init();
+#endif
+
+#if LL_WINDOWS
+#if LL_SEND_CRASH_REPORTS
+
+	LLAppViewer* pApp = LLAppViewer::instance();
+	pApp->initCrashReporting();
+
+#endif
+#endif
+
+	bool success = LLAppViewer::init();
+
+    return success;
 }
 
 bool LLAppViewerWin32::cleanup()
@@ -424,12 +393,6 @@ bool LLAppViewerWin32::cleanup()
 
 bool LLAppViewerWin32::initLogging()
 {
-	// Remove the crash stack log from previous executions.
-	// Since we've started logging a new instance of the app, we can assume 
-	// *NOTE: This should happen before the we send a 'previous instance froze'
-	// crash report, but it must happen after we initialize the DirUtil.
-	LLWinDebug::clearCrashStacks();
-
 	return LLAppViewer::initLogging();
 }
 
@@ -488,7 +451,7 @@ bool LLAppViewerWin32::initHardwareTest()
 			if (OSBTN_NO== button)
 			{
 				LL_INFOS("AppInit") << "User quitting after failed DirectX 9 detection" << LL_ENDL;
-				LLWeb::loadURLExternal(DIRECTX_9_URL);
+				LLWeb::loadURLExternal(DIRECTX_9_URL, false);
 				return false;
 			}
 			gSavedSettings.setWarning("AboutDirectX9", FALSE);
@@ -552,39 +515,68 @@ bool LLAppViewerWin32::initParseCommandLine(LLCommandLineParser& clp)
 }
 
 bool LLAppViewerWin32::restoreErrorTrap()
-{
-	return LLWinDebug::checkExceptionHandler();
+{	
+	return true;
+	//return LLWinDebug::checkExceptionHandler();
 }
 
-void LLAppViewerWin32::handleSyncCrashTrace()
+void LLAppViewerWin32::initCrashReporting(bool reportFreeze)
 {
-	// do nothing
-}
-
-void LLAppViewerWin32::handleCrashReporting(bool reportFreeze)
-{
+	/* Singu Note: don't fork the crash logger on start
 	const char* logger_name = "win_crash_logger.exe";
 	std::string exe_path = gDirUtilp->getExecutableDir();
 	exe_path += gDirUtilp->getDirDelimiter();
 	exe_path += logger_name;
 
-	const char* arg_str = logger_name;
+    std::stringstream pid_str;
+    pid_str <<  LLApp::getPid();
+    std::string logdir = gDirUtilp->getExpandedFilename(LL_PATH_DUMP, "");
+    std::string appname = gDirUtilp->getExecutableFilename();
 
-	// *NOTE:Mani - win_crash_logger.exe no longer parses command line options.
-	if(reportFreeze)
+	S32 slen = logdir.length() -1;
+	S32 end = slen;
+	while (logdir.at(end) == '/' || logdir.at(end) == '\\') end--;
+	
+	if (slen !=end)
 	{
-		// Spawn crash logger.
-		// NEEDS to wait until completion, otherwise log files will get smashed.
-		_spawnl(_P_WAIT, exe_path.c_str(), arg_str, NULL);
+		logdir = logdir.substr(0,end+1);
 	}
-	else
+	std::string arg_str = "\"" + exe_path + "\" -dumpdir \"" + logdir + "\" -procname \"" + appname + "\" -pid " + pid_str.str(); 
+	llinfos << "spawning " << arg_str << llendl;
+	_spawnl(_P_NOWAIT, exe_path.c_str(), arg_str.c_str(), NULL);
+	*/
+	  
+/*	STARTUPINFO         siStartupInfo;
+	
+	std::string arg_str =  "-dumpdir \"" + logdir + "\" -procname \"" + appname + "\" -pid " + pid_str.str(); 
+
+    memset(&siStartupInfo, 0, sizeof(siStartupInfo));
+    memset(&mCrashReporterProcessInfo, 0, sizeof(mCrashReporterProcessInfo));
+
+    siStartupInfo.cb = sizeof(siStartupInfo);
+
+	std::wstring exe_wstr;
+	exe_wstr.assign(exe_path.begin(), exe_path.end());
+
+	std::wstring arg_wstr;
+	arg_wstr.assign(arg_str.begin(), arg_str.end());
+
+    if(CreateProcess(&exe_wstr[0],     
+                     &arg_wstr[0],                 // Application arguments
+                     0,
+                     0,
+                     FALSE,
+                     CREATE_DEFAULT_ERROR_MODE,
+                     0,
+                     0,                              // Working directory
+                     &siStartupInfo,
+                     &mCrashReporterProcessInfo) == FALSE)
+      // Could not start application -> call 'GetLastError()'
 	{
-		S32 cb = gCrashSettings.getS32(CRASH_BEHAVIOR_SETTING);
-		if(cb != CRASH_BEHAVIOR_NEVER_SEND)
-		{
-			_spawnl(_P_NOWAIT, exe_path.c_str(), arg_str, NULL);
-		}
-	}
+        //llinfos << "CreateProcess failed " << GetLastError() << llendl;
+        return;
+    }
+	*/
 }
 
 //virtual

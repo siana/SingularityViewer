@@ -41,7 +41,7 @@ namespace expression {
 
 
 //TODO: If we can find a better way to do this with boost::pheonix::bind lets do it
-namespace { // anonymous
+//namespace { // anonymous
 
 template <typename T>
 T min_glue(T a, T b)
@@ -91,7 +91,7 @@ struct lazy_bfunc_
 	}
 };
  
-} // end namespace anonymous
+//} // end namespace anonymous
  
 template <typename FPT, typename Iterator>
 struct grammar

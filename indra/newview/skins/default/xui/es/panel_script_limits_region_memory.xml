@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel label="Memoria de la Región" name="script_limits_region_memory_panel">
+	<text name="script_memory" >
+	   Memoria de Scripts en la Parcela
+	</text>
+	<text name="parcels_listed">
+		Parcelas listadas:
+	</text>
+	<text name="memory_used">	
+		Memoria utilizada
+	</text>
+
+	<text name="urls_used">
+		URLs utilizadas
+	</text>
+	<text name="loading_text">
+        Cargando...
+	</text>
+	<scroll_list name="scripts_list">
+		<column label="Objeto" name="name"/>
+		<column label="Tam." tool_tip="Tamaño en kilobytes" name="size"/>
+		<column label="URLs" name="urls"/>
+		<column label="Propietario" name="owner"/>
+		<column label="Parcela" name="parcel"/>
+		<column label="Ubicación" name="location"/>
+	</scroll_list>
+	<button label="Actualizar Lista" name="refresh_list_btn"/>
+	<button label="Ubicar" name="highlight_btn"/>
+	<button label="Retornar" name="return_btn"/>
+</panel>

@@ -82,6 +82,7 @@
 #include "lltool.h"
 #include "lltoolmgr.h"
 #include "llviewercamera.h"
+#include "llviewermediafocus.h"
 #include "llviewertexturelist.h"
 #include "llviewerobject.h"
 #include "llviewerobjectlist.h"
@@ -295,6 +296,7 @@ S32		LLPipeline::sCompiles = 0;
 BOOL	LLPipeline::sPickAvatar = TRUE;
 BOOL	LLPipeline::sDynamicLOD = TRUE;
 BOOL	LLPipeline::sShowHUDAttachments = TRUE;
+BOOL	LLPipeline::sRenderMOAPBeacons = FALSE;
 BOOL	LLPipeline::sRenderPhysicalBeacons = TRUE;
 BOOL	LLPipeline::sRenderScriptedBeacons = FALSE;
 BOOL	LLPipeline::sRenderScriptedTouchBeacons = TRUE;
@@ -954,7 +956,13 @@ void LLPipeline::releaseLUTBuffers()
 {
 	if (mLightFunc)
 	{
-		LLImageGL::deleteTextures(LLTexUnit::TT_TEXTURE, GL_R8, 0, 1, &mLightFunc);
+		U32 pix_format = GL_R16F;
+#if LL_DARWIN
+		// Need to work around limited precision with 10.6.8 and older drivers
+		//
+		pix_format = GL_R32F;
+#endif
+		LLImageGL::deleteTextures(LLTexUnit::TT_TEXTURE, pix_format, 0, 1, &mLightFunc);
 		mLightFunc = 0;
 	}
 }
@@ -1076,8 +1084,9 @@ void LLPipeline::createLUTBuffers()
 		{
 			U32 lightResX = gSavedSettings.getU32("RenderSpecularResX");
 			U32 lightResY = gSavedSettings.getU32("RenderSpecularResY");
-			U8* ls = new U8[lightResX*lightResY];
-			static const LLCachedControl<F32> specExp("RenderSpecularExponent");
+			//U8* ls = new U8[lightResX*lightResY];
+			F32* ls = new F32[lightResX*lightResY];
+			//static const LLCachedControl<F32> specExp("RenderSpecularExponent");
             // Calculate the (normalized) Blinn-Phong specular lookup texture.
 			for (U32 y = 0; y < lightResY; ++y)
 			{
@@ -1086,7 +1095,7 @@ void LLPipeline::createLUTBuffers()
 					ls[y*lightResX+x] = 0;
 					F32 sa = (F32) x/(lightResX-1);
 					F32 spec = (F32) y/(lightResY-1);
-					F32 n = spec * spec * specExp;
+					F32 n = spec * spec * 368;//specExp;
 					
 					// Nothing special here.  Just your typical blinn-phong term.
 					spec = powf(sa, n);
@@ -1101,6 +1110,7 @@ void LLPipeline::createLUTBuffers()
 					// Always sample at a 1.0/2.2 curve.
 					// This "Gamma corrects" our specular term, boosting our lower exponent reflections.
 					spec = powf(spec, 1.f/2.2f);
+					ls[y*lightResX+x] = spec;
 					
 					// Easy fix for our dynamic range problem: divide by 6 here, multiply by 6 in our shaders.
 					// This allows for our specular term to exceed a value of 1 in our shaders.
@@ -1108,15 +1118,24 @@ void LLPipeline::createLUTBuffers()
 					// Technically, we could just use an R16F texture, but driver support for R16F textures can be somewhat spotty at times.
 					// This works remarkably well for higher specular exponents, though banding can sometimes be seen on lower exponents.
 					// Combined with a bit of noise and trilinear filtering, the banding is hardly noticable.
-					ls[y*lightResX+x] = (U8)(llclamp(spec * (1.f / 6), 0.f, 1.f) * 255);
+					//ls[y*lightResX+x] = (U8)(llclamp(spec * (1.f / 6), 0.f, 1.f) * 255);
 				}
 			}
 			
-			LLImageGL::generateTextures(LLTexUnit::TT_TEXTURE, GL_R8, 1, &mLightFunc);
+			U32 pix_format = GL_R16F;
+#if LL_DARWIN
+			// Need to work around limited precision with 10.6.8 and older drivers
+			//
+			pix_format = GL_R32F;
+#endif
+			LLImageGL::generateTextures(LLTexUnit::TT_TEXTURE, pix_format, 1, &mLightFunc);
 			gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, mLightFunc);
-			LLImageGL::setManualImage(LLTexUnit::getInternalType(LLTexUnit::TT_TEXTURE), 0, GL_R8, lightResX, lightResY, GL_RED, GL_UNSIGNED_BYTE, ls, false);
+			LLImageGL::setManualImage(LLTexUnit::getInternalType(LLTexUnit::TT_TEXTURE), 0, pix_format, lightResX, lightResY, GL_RED, GL_FLOAT, ls, false);
+			//LLImageGL::setManualImage(LLTexUnit::getInternalType(LLTexUnit::TT_TEXTURE), 0, GL_UNSIGNED_BYTE, lightResX, lightResY, GL_RED, GL_UNSIGNED_BYTE, ls, false);
 			gGL.getTexUnit(0)->setTextureAddressMode(LLTexUnit::TAM_CLAMP);
 			gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_TRILINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			
 			delete [] ls;
 		}
@@ -1413,12 +1432,32 @@ U32 LLPipeline::getPoolTypeFromTE(const LLTextureEntry* te, LLViewerTexture* ima
 		return 0;
 	}
 		
-	bool alpha = te->getColor().mV[3] < 0.999f;
+	LLMaterial* mat = te->getMaterialParams().get();
+
+	bool color_alpha = te->getColor().mV[3] < 0.999f;
+	bool alpha = color_alpha;
 	if (imagep)
 	{
-		alpha = alpha || (imagep->getComponents() == 4 && ! imagep->mIsMediaTexture) || (imagep->getComponents() == 2);
+		alpha = alpha || (imagep->getComponents() == 4 && imagep->getType() != LLViewerTexture::MEDIA_TEXTURE) || (imagep->getComponents() == 2);
 	}
-
+	
+	if (alpha && mat)
+	{
+		switch (mat->getDiffuseAlphaMode())
+		{
+			case 1:
+				alpha = true; // Material's alpha mode is set to blend.  Toss it into the alpha draw pool.
+				break;
+			case 0: //alpha mode set to none, never go to alpha pool
+			case 3: //alpha mode set to emissive, never go to alpha pool
+				alpha = color_alpha;
+				break;
+			default: //alpha mode set to "mask", go to alpha pool if fullbright
+				alpha = color_alpha; // Material's alpha mode is set to none, mask, or emissive.  Toss it into the opaque material draw pool.
+				break;
+		}
+	}
+	
 	if (alpha)
 	{
 		return LLDrawPool::POOL_ALPHA;
@@ -2403,17 +2442,6 @@ BOOL LLPipeline::updateDrawableGeom(LLDrawable* drawablep, BOOL priority)
 	BOOL update_complete = drawablep->updateGeometry(priority);
 	if (update_complete && assertInitialized())
 	{
-		//Workaround for 'missing prims' until it's fixed upstream by LL.
-		//Sometimes clearing CLEAR_INVISIBLE and FORCE_INVISIBLE in LLPipeline::stateSort was too late. Do it here instead, before
-		//the rebuild state is picked up on and LLVolumeGeometryManager::rebuildGeom is called.
-		//If the FORCE_INVISIBLE isn't cleared before the rebuildGeom call, the geometry will NOT BE REBUILT!
-		if(drawablep->isState(LLDrawable::CLEAR_INVISIBLE))
-		{
-			// clear invisible flag here to avoid single frame glitch
-			drawablep->clearState(LLDrawable::FORCE_INVISIBLE|LLDrawable::CLEAR_INVISIBLE);
-			return false; //Defer to next mBuildQ1 iteration
-		}
-
 		drawablep->setState(LLDrawable::BUILT);
 		mGeometryChanges++;
 	}
@@ -2437,10 +2465,10 @@ void LLPipeline::updateGL()
 		}
 	}
 
-	/*{ //seed VBO Pools
+	{ //seed VBO Pools
 		LLFastTimer t(FTM_SEED_VBO_POOLS);
 		LLVertexBuffer::seedPools();
-	}*/
+	}
 }
 
 void LLPipeline::clearRebuildGroups()
@@ -3160,11 +3188,6 @@ void LLPipeline::stateSort(LLDrawable* drawablep, LLCamera& camera)
 		{
 			drawablep->setVisible(camera, NULL, FALSE);
 		}
-		else if (drawablep->isState(LLDrawable::CLEAR_INVISIBLE))
-		{
-			// clear invisible flag here to avoid single frame glitch
-			drawablep->clearState(LLDrawable::FORCE_INVISIBLE|LLDrawable::CLEAR_INVISIBLE);
-		}
 	}
 
 	if (LLViewerCamera::sCurCameraID == LLViewerCamera::CAMERA_WORLD)
@@ -3326,6 +3349,47 @@ void renderPhysicalBeacons(LLDrawable* drawablep)
 			}
 		}
 	}
+}
+
+void renderMOAPBeacons(LLDrawable* drawablep)
+{
+	LLViewerObject *vobj = drawablep->getVObj();
+
+	if(!vobj || vobj->isAvatar())
+		return;
+
+	BOOL beacon=FALSE;
+	U8 tecount=vobj->getNumTEs();
+	for(int x=0;x<tecount;x++)
+	{
+		if(vobj->getTE(x)->hasMedia())
+		{
+			beacon=TRUE;
+			break;
+		}
+	}
+	if(beacon==TRUE)
+	{
+		if (gPipeline.sRenderBeacons)
+		{
+			static const LLCachedControl<S32> DebugBeaconLineWidth("DebugBeaconLineWidth",1);
+			gObjectList.addDebugBeacon(vobj->getPositionAgent(), "", LLColor4(1.f, 1.f, 1.f, 0.5f), LLColor4(1.f, 1.f, 1.f, 0.5f), DebugBeaconLineWidth);
+		}
+
+		if (gPipeline.sRenderHighlight)
+		{
+			S32 face_id;
+			S32 count = drawablep->getNumFaces();
+			for (face_id = 0; face_id < count; face_id++)
+			{
+				LLFace * facep = drawablep->getFace(face_id);
+				if (facep)
+				{
+					gPipeline.mHighlightFaces.push_back(facep);
+			}
+		}
+	}
+}
 }
 
 void renderParticleBeacons(LLDrawable* drawablep)
@@ -3539,6 +3603,11 @@ void LLPipeline::postSort(LLCamera& camera)
 		{
 			// Only show the beacon on the root object.
 			forAllVisibleDrawables(renderPhysicalBeacons);
+		}
+
+		if(sRenderMOAPBeacons)
+		{
+			forAllVisibleDrawables(renderMOAPBeacons);
 		}
 
 		if (sRenderParticleBeacons)
@@ -4731,11 +4800,6 @@ void LLPipeline::rebuildPools()
 			iter1++;
 		}
 		max_count--;
-	}
-
-	if (isAgentAvatarValid())
-	{
-		gAgentAvatarp->rebuildHUD();
 	}
 }
 
@@ -5956,7 +6020,7 @@ void LLPipeline::setRenderDebugFeatureControl(U32 bit, bool value)
 	}
 	else
 	{
-		gPipeline.mRenderDebugFeatureMask &= !bit;
+		gPipeline.mRenderDebugFeatureMask &= ~bit;
 	}
 }
 
@@ -6010,6 +6074,24 @@ void LLPipeline::toggleRenderScriptedTouchBeacons(void*)
 BOOL LLPipeline::getRenderScriptedTouchBeacons(void*)
 {
 	return sRenderScriptedTouchBeacons;
+}
+
+// static
+void LLPipeline::setRenderMOAPBeacons(BOOL val)
+{
+	sRenderMOAPBeacons = val;
+}
+
+// static
+void LLPipeline::toggleRenderMOAPBeacons(void*)
+{
+	sRenderMOAPBeacons = !sRenderMOAPBeacons;
+}
+
+// static
+BOOL LLPipeline::getRenderMOAPBeacons(void*)
+{
+	return sRenderMOAPBeacons;
 }
 
 // static
@@ -6102,20 +6184,20 @@ BOOL LLPipeline::getRenderHighlights(void*)
 	return sRenderHighlight;
 }
 
-LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, const LLVector3& end,
+LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector4a& start, const LLVector4a& end,
 														BOOL pick_transparent,												
 														S32* face_hit,
-														LLVector3* intersection,         // return the intersection point
+														LLVector4a* intersection,         // return the intersection point
 														LLVector2* tex_coord,            // return the texture coordinates of the intersection point
-														LLVector3* normal,               // return the surface normal at the intersection point
-														LLVector3* bi_normal             // return the surface bi-normal at the intersection point
+														LLVector4a* normal,               // return the surface normal at the intersection point
+														LLVector4a* tangent             // return the surface tangent at the intersection point
 	)
 {
 	LLDrawable* drawable = NULL;
 
-	LLVector3 local_end = end;
+	LLVector4a local_end = end;
 
-	LLVector3 position;
+	LLVector4a position;
 
 	sPickAvatar = FALSE; //LLToolMgr::getInstance()->inBuildMode() ? FALSE : TRUE;
 	
@@ -6135,7 +6217,7 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 				LLSpatialPartition* part = region->getSpatialPartition(j);
 				if (part && hasRenderType(part->mDrawableType))
 				{
-					LLDrawable* hit = part->lineSegmentIntersect(start, local_end, pick_transparent, face_hit, &position, tex_coord, normal, bi_normal);
+					LLDrawable* hit = part->lineSegmentIntersect(start, local_end, pick_transparent, face_hit, &position, tex_coord, normal, tangent);
 					if (hit)
 					{
 						drawable = hit;
@@ -6150,8 +6232,8 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 	{
 		//save hit info in case we need to restore
 		//due to attachment override
-		LLVector3 local_normal;
-		LLVector3 local_binormal;
+		LLVector4a local_normal;
+		LLVector4a local_tangent;
 		LLVector2 local_texcoord;
 		S32 local_face_hit = -1;
 
@@ -6163,13 +6245,21 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 		{
 			local_texcoord = *tex_coord;
 		}
-		if (bi_normal)
+		if (tangent)
 		{
-			local_binormal = *bi_normal;
+			local_tangent = *tangent;
+		}
+		else
+		{
+			local_tangent.clear();
 		}
 		if (normal)
 		{
 			local_normal = *normal;
+		}
+		else
+		{
+			local_normal.clear();
 		}
 				
 		const F32 ATTACHMENT_OVERRIDE_DIST = 0.1f;
@@ -6184,12 +6274,15 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 			LLSpatialPartition* part = region->getSpatialPartition(LLViewerRegion::PARTITION_BRIDGE);
 			if (part && hasRenderType(part->mDrawableType))
 			{
-				LLDrawable* hit = part->lineSegmentIntersect(start, local_end, pick_transparent, face_hit, &position, tex_coord, normal, bi_normal);
+				LLDrawable* hit = part->lineSegmentIntersect(start, local_end, pick_transparent, face_hit, &position, tex_coord, normal, tangent);
 				if (hit)
 				{
+					LLVector4a delta;
+					delta.setSub(position, local_end);
+
 					if (!drawable || 
 						!drawable->getVObj()->isAttachment() ||
-						(position-local_end).magVec() > ATTACHMENT_OVERRIDE_DIST)
+						delta.getLength3().getF32() > ATTACHMENT_OVERRIDE_DIST)
 					{ //avatar overrides if previously hit drawable is not an attachment or 
 					  //attachment is far enough away from detected intersection
 						drawable = hit;
@@ -6207,9 +6300,9 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 						{
 							*tex_coord = local_texcoord;
 						}
-						if (bi_normal)
+						if (tangent)
 						{
-							*bi_normal = local_binormal;
+							*tangent = local_tangent;
 						}
 						if (normal)
 						{
@@ -6243,13 +6336,13 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInWorld(const LLVector3& start, 
 	return drawable ? drawable->getVObj().get() : NULL;
 }
 
-LLViewerObject* LLPipeline::lineSegmentIntersectInHUD(const LLVector3& start, const LLVector3& end,
+LLViewerObject* LLPipeline::lineSegmentIntersectInHUD(const LLVector4a& start, const LLVector4a& end,
 													  BOOL pick_transparent,													
 													  S32* face_hit,
-													  LLVector3* intersection,         // return the intersection point
+													  LLVector4a* intersection,         // return the intersection point
 													  LLVector2* tex_coord,            // return the texture coordinates of the intersection point
-													  LLVector3* normal,               // return the surface normal at the intersection point
-													  LLVector3* bi_normal             // return the surface bi-normal at the intersection point
+													  LLVector4a* normal,               // return the surface normal at the intersection point
+													  LLVector4a* tangent				// return the surface tangent at the intersection point
 	)
 {
 	LLDrawable* drawable = NULL;
@@ -6269,7 +6362,7 @@ LLViewerObject* LLPipeline::lineSegmentIntersectInHUD(const LLVector3& start, co
 		LLSpatialPartition* part = region->getSpatialPartition(LLViewerRegion::PARTITION_HUD);
 		if (part)
 		{
-			LLDrawable* hit = part->lineSegmentIntersect(start, end, pick_transparent, face_hit, intersection, tex_coord, normal, bi_normal);
+			LLDrawable* hit = part->lineSegmentIntersect(start, end, pick_transparent, face_hit, intersection, tex_coord, normal, tangent);
 			if (hit)
 			{
 				drawable = hit;
@@ -6732,7 +6825,7 @@ void LLPipeline::renderBloom(BOOL for_snapshot, F32 zoom_factor, int subfield, b
 
 			LLVector3 focus_point;
 
-			/*LLViewerObject* obj = LLViewerMediaFocus::getInstance()->getFocusedObject();
+			LLViewerObject* obj = LLViewerMediaFocus::getInstance()->getFocusedObject();
 			if (obj && obj->mDrawable && obj->isSelected())
 			{ //focus on selected media object
 				S32 face_idx = LLViewerMediaFocus::getInstance()->getFocusedFace();
@@ -6744,19 +6837,24 @@ void LLPipeline::renderBloom(BOOL for_snapshot, F32 zoom_factor, int subfield, b
 						focus_point = face->getPositionAgent();
 					}
 				}
-			}*/
+			}
 		
 			if (focus_point.isExactlyZero())
 			{
 				if (LLViewerJoystick::getInstance()->getOverrideCamera())
 				{ //focus on point under cursor
-					focus_point = gDebugRaycastIntersection;
+					focus_point.set(gDebugRaycastIntersection.getF32ptr());
 				}
 				else if (gAgentCamera.cameraMouselook())
 				{ //focus on point under mouselook crosshairs
+					LLVector4a result;
+					result.clear();
+
 					gViewerWindow->cursorIntersect(-1, -1, 512.f, NULL, -1, FALSE,
-												  NULL,
-												  &focus_point);
+													NULL,
+													&result);
+
+					focus_point.set(result.getF32ptr());
 				}
 				else if(gAgent.getRegion())
 				{
@@ -7458,12 +7556,9 @@ void LLPipeline::renderDeferredLighting()
 			mDeferredVB = new LLVertexBuffer(DEFERRED_VB_MASK, 0);
 			mDeferredVB->allocateBuffer(8, 0, true);
 		}
+
 		LLStrider<LLVector3> vert; 
 		mDeferredVB->getVertexStrider(vert);
-		LLStrider<LLVector2> tc0;
-		LLStrider<LLVector2> tc1;
-		mDeferredVB->getTexCoord0Strider(tc0);
-		mDeferredVB->getTexCoord1Strider(tc1);
 
 		vert[0].set(-1,1,0);
 		vert[1].set(-1,-3,0);
@@ -7504,8 +7599,23 @@ void LLPipeline::renderDeferredLighting()
 					{
 						glh::vec3f v;
 						v.set_value(sinf(6.284f/8*j), cosf(6.284f/8*j), -(F32) i);
+#if 0
+						// Singu note: the call to mult_matrix_vec can crash, because it attempts to divide by zero.
 						v.normalize();
 						inv_trans.mult_matrix_vec(v);
+#else
+						// However, because afterwards we normalize the vector anyway, there is an alternative
+						// way to calculate the same thing without the division (which happens to be faster, too).
+						glh::vec4f src(v, v.length());				// Make a copy of the source and extent it with its length.
+						glh::vec4f dst;
+						inv_trans.mult_matrix_vec(src, dst);		// Do a normal 4D multiplication.
+						dst.get_value(v[0], v[1], v[2], dst[3]);	// Copy the first 3 coordinates to v.
+						// At this point v is equal to what it used to be, except for a constant factor (v.length() * dst[3]),
+						// but that doesn't matter because the next step is normalizaton. The old computation would crash
+						// if v.length() is zero in the commented out v.normalize(), and in inv_trans.mult_matrix_vec(v)
+						// if dst[3] is zero (which some times happens). Now we will only crash if v.length() is zero
+						// and well in the next line (but this never happens).	--Aleric
+#endif
 						v.normalize();
 						offset[(i*8+j)*3+0] = v.v[0];
 						offset[(i*8+j)*3+1] = v.v[2];
@@ -7598,10 +7708,6 @@ void LLPipeline::renderDeferredLighting()
 		stop_glerror();
 		gGL.popMatrix();
 		stop_glerror();
-
-		//copy depth and stencil from deferred screen
-		//mScreen.copyContents(mDeferredScreen, 0, 0, mDeferredScreen.getWidth(), mDeferredScreen.getHeight(),
-		//					0, 0, mScreen.getWidth(), mScreen.getHeight(), GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT, GL_NEAREST);
 
 		mScreen.bindTarget();
 		// clear color buffer here - zeroing alpha (glow) is important or it will accumulate against sky
@@ -8632,7 +8738,7 @@ BOOL LLPipeline::getVisiblePointCloud(LLCamera& camera, LLVector3& min, LLVector
 	pp.push_back(LLVector3(max.mV[0], max.mV[1], max.mV[2]));
 
 	//add corners of camera frustum
-	for (U32 i = 0; i < 8; i++)
+	for (U32 i = 0; i < LLCamera::AGENT_FRUSTRUM_NUM; i++)
 	{
 		pp.push_back(camera.mAgentFrustum[i]);
 	}
@@ -8659,7 +8765,7 @@ BOOL LLPipeline::getVisiblePointCloud(LLCamera& camera, LLVector3& min, LLVector
 
 	for (U32 i = 0; i < 12; i++)
 	{ //for each line segment in bounding box
-		for (U32 j = 0; j < 6; j++) 
+		for (U32 j = 0; j < LLCamera::AGENT_PLANE_NO_USER_CLIP_NUM; j++) 
 		{ //for each plane in camera frustum
 			const LLPlane& cp = camera.getAgentPlane(j);
 			const LLVector3& v1 = pp[bs[i*2+0]];
@@ -8745,7 +8851,7 @@ BOOL LLPipeline::getVisiblePointCloud(LLCamera& camera, LLVector3& min, LLVector
 			}
 		}
 				
-		for (U32 j = 0; j < 6; ++j)
+		for (U32 j = 0; j < LLCamera::AGENT_PLANE_NO_USER_CLIP_NUM; ++j)
 		{
 			const LLPlane& cp = camera.getAgentPlane(j);
 			F32 dist = cp.dist(pp[i]);
@@ -9619,7 +9725,7 @@ void LLPipeline::generateImpostor(LLVOAvatar* avatar)
 		markVisible(avatar->mDrawable, *viewer_camera);
 		LLVOAvatar::sUseImpostors = FALSE;
 
-		LLVOAvatar::attachment_map_t::iterator iter;
+		/*LLVOAvatar::attachment_map_t::iterator iter;
 		for (iter = avatar->mAttachmentPoints.begin();
 			iter != avatar->mAttachmentPoints.end();
 			++iter)
@@ -9629,7 +9735,12 @@ void LLPipeline::generateImpostor(LLVOAvatar* avatar)
 				 attachment_iter != attachment->mAttachedObjects.end();
 				 ++attachment_iter)
 			{
-				if (LLViewerObject* attached_object = (*attachment_iter))
+				if (LLViewerObject* attached_object = (*attachment_iter))*/
+		std::vector<std::pair<LLViewerObject*,LLViewerJointAttachment*> >::iterator attachment_iter = avatar->mAttachedObjectsVector.begin();
+		std::vector<std::pair<LLViewerObject*,LLViewerJointAttachment*> >::iterator end = avatar->mAttachedObjectsVector.end();
+		for(;attachment_iter != end;++attachment_iter)
+		{{
+				if (LLViewerObject* attached_object = attachment_iter->first)
 				{
 					markVisible(attached_object->mDrawable->getSpatialBridge(), *viewer_camera);
 				}
@@ -9658,11 +9769,13 @@ void LLPipeline::generateImpostor(LLVOAvatar* avatar)
 		LLVector4a left;
 		left.load3(camera.getLeftAxis().mV);
 		left.mul(left);
+		llassert(left.dot3(left).getF32() > F_APPROXIMATELY_ZERO);
 		left.normalize3fast();
 
 		LLVector4a up;
 		up.load3(camera.getUpAxis().mV);
 		up.mul(up);
+		llassert(up.dot3(up).getF32() > F_APPROXIMATELY_ZERO);
 		up.normalize3fast();
 
 		tdim.mV[0] = fabsf(half_height.dot3(left).getF32());

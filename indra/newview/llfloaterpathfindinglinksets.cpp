@@ -43,7 +43,7 @@
 #include "llpathfindinglinkset.h"
 #include "llpathfindinglinksetlist.h"
 #include "llpathfindingmanager.h"
-#include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "llsd.h"
 #include "lltextbox.h"
 #include "llui.h"
@@ -114,26 +114,26 @@ BOOL LLFloaterPathfindingLinksets::postBuild()
 {
 	mBeaconColor = LLUI::sColorsGroup->getColor("PathfindingLinksetBeaconColor");
 
-	mFilterByName = getChild<LLLineEditor>("filter_by_name");
+	mFilterByName = findChild<LLLineEditor>("filter_by_name");
 	llassert(mFilterByName != NULL);
 	mFilterByName->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onApplyAllFilters, this));
 	mFilterByName->setSelectAllonFocusReceived(true);
 	mFilterByName->setCommitOnFocusLost(true);
 
-	mFilterByDescription = getChild<LLLineEditor>("filter_by_description");
+	mFilterByDescription = findChild<LLLineEditor>("filter_by_description");
 	llassert(mFilterByDescription != NULL);
 	mFilterByDescription->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onApplyAllFilters, this));
 	mFilterByDescription->setSelectAllonFocusReceived(true);
 	mFilterByDescription->setCommitOnFocusLost(true);
 
-	mFilterByLinksetUse = getChild<LLComboBox>("filter_by_linkset_use");
+	mFilterByLinksetUse = findChild<LLComboBox>("filter_by_linkset_use");
 	llassert(mFilterByLinksetUse != NULL);
 	mFilterByLinksetUse->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onApplyAllFilters, this));
 
 	childSetAction("apply_filters", boost::bind(&LLFloaterPathfindingLinksets::onApplyAllFilters, this));
 	childSetAction("clear_filters", boost::bind(&LLFloaterPathfindingLinksets::onClearFiltersClicked, this));
 
-	mEditLinksetUse = getChild<LLComboBox>("edit_linkset_use");
+	mEditLinksetUse = findChild<LLComboBox>("edit_linkset_use");
 	llassert(mEditLinksetUse != NULL);
 	mEditLinksetUse->clearRows();
 
@@ -160,54 +160,54 @@ BOOL LLFloaterPathfindingLinksets::postBuild()
 
 	mEditLinksetUse->selectFirstItem();
 
-	mLabelWalkabilityCoefficients = getChild<LLTextBox>("walkability_coefficients_label");
+	mLabelWalkabilityCoefficients = findChild<LLTextBox>("walkability_coefficients_label");
 	llassert(mLabelWalkabilityCoefficients != NULL);
 
-	mLabelEditA = getChild<LLTextBox>("edit_a_label");
+	mLabelEditA = findChild<LLTextBox>("edit_a_label");
 	llassert(mLabelEditA != NULL);
 
-	mLabelSuggestedUseA = getChild<LLTextBox>("suggested_use_a_label");
+	mLabelSuggestedUseA = findChild<LLTextBox>("suggested_use_a_label");
 	llassert(mLabelSuggestedUseA != NULL);
 
-	mEditA = getChild<LLLineEditor>("edit_a_value");
+	mEditA = findChild<LLLineEditor>("edit_a_value");
 	llassert(mEditA != NULL);
 	mEditA->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
 	mEditA->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onWalkabilityCoefficientEntered, this, _1, mPreviousValueA));
 
-	mLabelEditB = getChild<LLTextBox>("edit_b_label");
+	mLabelEditB = findChild<LLTextBox>("edit_b_label");
 	llassert(mLabelEditB != NULL);
 
-	mLabelSuggestedUseB = getChild<LLTextBox>("suggested_use_b_label");
+	mLabelSuggestedUseB = findChild<LLTextBox>("suggested_use_b_label");
 	llassert(mLabelSuggestedUseB != NULL);
 
-	mEditB = getChild<LLLineEditor>("edit_b_value");
+	mEditB = findChild<LLLineEditor>("edit_b_value");
 	llassert(mEditB != NULL);
 	mEditB->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
 	mEditB->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onWalkabilityCoefficientEntered, this, _1, mPreviousValueB));
 
-	mLabelEditC = getChild<LLTextBox>("edit_c_label");
+	mLabelEditC = findChild<LLTextBox>("edit_c_label");
 	llassert(mLabelEditC != NULL);
 
-	mLabelSuggestedUseC = getChild<LLTextBox>("suggested_use_c_label");
+	mLabelSuggestedUseC = findChild<LLTextBox>("suggested_use_c_label");
 	llassert(mLabelSuggestedUseC != NULL);
 
-	mEditC = getChild<LLLineEditor>("edit_c_value");
+	mEditC = findChild<LLLineEditor>("edit_c_value");
 	llassert(mEditC != NULL);
 	mEditC->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
 	mEditC->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onWalkabilityCoefficientEntered, this, _1, mPreviousValueC));
 
-	mLabelEditD = getChild<LLTextBox>("edit_d_label");
+	mLabelEditD = findChild<LLTextBox>("edit_d_label");
 	llassert(mLabelEditD != NULL);
 
-	mLabelSuggestedUseD = getChild<LLTextBox>("suggested_use_d_label");
+	mLabelSuggestedUseD = findChild<LLTextBox>("suggested_use_d_label");
 	llassert(mLabelSuggestedUseD != NULL);
 
-	mEditD = getChild<LLLineEditor>("edit_d_value");
+	mEditD = findChild<LLLineEditor>("edit_d_value");
 	llassert(mEditD != NULL);
 	mEditD->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
 	mEditD->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onWalkabilityCoefficientEntered, this, _1, mPreviousValueD));
 
-	mApplyEditsButton = getChild<LLButton>("apply_edit_values");
+	mApplyEditsButton = findChild<LLButton>("apply_edit_values");
 	llassert(mApplyEditsButton != NULL);
 	mApplyEditsButton->setCommitCallback(boost::bind(&LLFloaterPathfindingLinksets::onApplyChangesClicked, this));
 

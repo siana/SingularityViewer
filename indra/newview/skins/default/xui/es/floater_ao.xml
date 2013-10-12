@@ -1,28 +1,20 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="geminifloater" title="Animation Overrider">
-	<view_border name="ao_notecard"/>
-	<view_border name="ao_notecard_vis"/>
-	<text name="Give inventory" tool_tip="Arrastra aquí una nota de configuración de ZHAO. Las animaciones tienen que estar en la misma carpeta que la nota de configuración">
-		Arrastra aquí la nota del ZHAO II
-	</text>
-	<view_border name="ao_notecard_disp"/>
-	<text name="ao_nc_text" tool_tip="">
-		Utilizando: ITEM
-	</text>
+	<drop_target name="ao_notecard" tool_tip="Suelta aquí una nota de configuración de ZHAO. Las animaciones tienen que estar en la misma carpeta que la nota de configuración."/>
 	<button name="opencard" label="Ver Notecard"/>
 	<button name="reloadcard" label="Recargar"/>
-	<check_box control_name="AOEnabled" label="Activar animations override" name="AOEnabled"/>
-	<check_box control_name="AOSitsEnabled" label="Activar sits override" name="AOSitsEnabled"/>
+	<check_box label="Activar Animaciones" name="AOEnabled"/>
+	<check_box label="Activar Sentado" name="AOSitsEnabled"/>
 	<text name="buttons_desc">
 		De Pie:
 	</text>
 	<combo_box name="stands" label=""/>
-	<button name="prevstand" tool_tip="Vista Previa de Pie" label="&lt;&lt;"/>
+	<button name="prevstand" tool_tip="Anterior Animación de Pie" label="&lt;&lt;"/>
 	<button name="nextstand" tool_tip="Siguiente Animación de Pie" label="&gt;&gt;"/>
-	<check_box control_name="AOStandRandomize" label="Orden de Reprodución al azar" name="AOStandRandomize"/>
-	<check_box control_name="AONoStandsInMouselook" label="Desactiva De Pie en Vista Subjetiva" name="AONoStandsInMouselook"/>
-	<check_box control_name="EnableAORemote" label="Mostrar AO En Barra de Herram." name="ao_remote_checkbox"/>
-	<spinner control_name="AOStandInterval" name="standtime" label="Tiempo de Ejecución:" label_width="120" tool_tip="Tiempo de ejecuón de la animación, en segundos" />
+	<check_box label="Orden de Reprodución al azar" name="AOStandRandomize"/>
+	<check_box label="Desactiva De Pie en Vista Subjetiva" name="AONoStandsInMouselook"/>
+	<check_box label="Mostrar AO en Barra de Herram." name="ao_remote_checkbox"/>
+	<spinner name="standtime" label="Tiempo de Ejecución:" label_width="120" tool_tip="Tiempo de ejecución de la animación, en segundos" />
 	<button name="newcard" label="Nueva Plantilla de Nota" />
 	<button label="Más &gt;&gt;" name="more_btn" tool_tip="Opciones Avanzadas" />
 	<button label="&lt;&lt; Menos" name="less_btn" tool_tip="Opciones Avanzadas" />
@@ -31,67 +23,67 @@
 			<text name="textdefaultwalk">
 				Caminar:
 			</text>
-			<combo_box name="walks" label="" control_name="AODefaultWalk" />
+			<combo_box name="walks"/>
 			<text name="textdefaultrun">
 				Correr:
 			</text>
-			<combo_box name="runs" label="" control_name="AODefaultRun" />
+			<combo_box name="runs"/>
 			<text name="textdefaultjump">
 				Saltar:
 			</text>
-			<combo_box name="jumps" label="" control_name="AODefaultJump" />
+			<combo_box name="jumps"/>
 			<text name="textdefaultsit">
 				Sentado:
 			</text>
-			<combo_box name="sits" label="" control_name="AODefaultSit" />
+			<combo_box name="sits"/>
 			<text name="textdefaultgsit">
 				Sentado en el Suelo:
 			</text>
-			<combo_box name="gsits" label="" control_name="AODefaultGroundSit" />
+			<combo_box name="gsits"/>
 			<text name="textdefaultcrouch">
 				Agachado:
 			</text>
-			<combo_box name="crouchs" label="" control_name="AODefaultCrouch" />
+			<combo_box name="crouchs"/>
 			<text name="textdefaultcrouchwalk">
 				Caminar Agachado:
 			</text>
-			<combo_box name="cwalks" label="" control_name="AODefaultCrouchWalk" />
+			<combo_box name="cwalks"/>
 			<text name="textdefaultfall">
 				Caer:
 			</text>
-			<combo_box name="falls" label="" control_name="AODefaultFall" />
+			<combo_box name="falls"/>
 			<text name="textdefaulthover">
 				Flotar:
 			</text>
-			<combo_box name="hovers" label="" control_name="AODefaultHover" />
+			<combo_box name="hovers"/>
 			<text name="textdefaultfly">
 				Volar:
 			</text>
-			<combo_box name="flys" label="" control_name="AODefaultFly" />
+			<combo_box name="flys"/>
 			<text name="textdefaultflyslow">
 				Vuelo Lento:
 			</text>
-			<combo_box name="flyslows" label="" control_name="AODefaultFlySlow" />
+			<combo_box name="flyslows"/>
 			<text name="textdefaultflyup">
 				Volar Subiendo:
 			</text>
-			<combo_box name="flyups" label="" control_name="AODefaultFlyUp" />
+			<combo_box name="flyups"/>
 			<text name="textdefaultflydown">
 				Volar Bajando:
 			</text>
-			<combo_box name="flydowns" label="" control_name="AODefaultFlyDown" />
+			<combo_box name="flydowns"/>
 			<text name="textdefaultland">
 				Aterrizar:
 			</text>
-			<combo_box name="lands" label="" control_name="AODefaultLand" />
+			<combo_box name="lands"/>
 			<text name="textdefaultstandup">
 				Ponerse de Pie:
 			</text>
-			<combo_box name="standups" label="" control_name="AODefaultStandUp" />
+			<combo_box name="standups"/>
 			<text name="textdefaultprejump">
 				Antes de Saltar:
 			</text>
-			<combo_box name="prejumps" label="" control_name="AODefaultPreJump" />
+			<combo_box name="prejumps"/>
 		</panel>
 	</tab_container>
 </floater>

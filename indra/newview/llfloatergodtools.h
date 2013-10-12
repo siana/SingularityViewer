@@ -52,7 +52,7 @@ class LLTextBox;
 class LLMessageSystem;
 
 class LLFloaterGodTools
-: public LLFloater, public LLSingleton<LLFloaterGodTools>
+	: public LLFloater, public LLSingleton<LLFloaterGodTools>
 {
 public:
 
@@ -94,8 +94,6 @@ public:
 	// Send possibly changed values to simulator.
 	void sendGodUpdateRegionInfo();
 
-	static void onTabChanged(LLUICtrl* ctrl, const LLSD& param);
-
 public:
 	
 	LLFloaterGodTools();
@@ -128,7 +126,7 @@ class LLPanelRegionTools
 : public LLPanel
 {
 public:
-	LLPanelRegionTools(const std::string& name);
+	LLPanelRegionTools();
 	/*virtual*/ ~LLPanelRegionTools();
 
 	BOOL postBuild();
@@ -136,7 +134,7 @@ public:
 	/*virtual*/ void refresh();
 
 	static void onSaveState(void* userdata);
-	static void onChangeSimName(LLLineEditor* caller, void* userdata);
+	void onChangeSimName();
 	
 	void onChangeAnything();
 	void onChangePrelude();
@@ -190,7 +188,7 @@ class LLPanelGridTools
 : public LLPanel
 {
 public:
-	LLPanelGridTools(const std::string& name);
+	LLPanelGridTools();
 	virtual ~LLPanelGridTools();
 
 	BOOL postBuild();
@@ -217,7 +215,7 @@ class LLPanelObjectTools
 : public LLPanel
 {
 public:
-	LLPanelObjectTools(const std::string& name);
+	LLPanelObjectTools();
 	/*virtual*/ ~LLPanelObjectTools();
 
 	BOOL postBuild();
@@ -258,7 +256,7 @@ protected:
 class LLPanelRequestTools : public LLPanel
 {
 public:
-	LLPanelRequestTools(const std::string& name);
+	LLPanelRequestTools();
 	/*virtual*/ ~LLPanelRequestTools();
 
 	BOOL postBuild();

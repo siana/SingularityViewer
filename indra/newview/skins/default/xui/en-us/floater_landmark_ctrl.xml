@@ -8,7 +8,7 @@
 	     height="24" initial_value="true" label="Show Folders" left="175"
 	     mouse_opaque="true" name="show_folders_check" radio_style="false"
 	     width="201" />
-	<search_editor bottom="-36" enabled="true" follows="left|top" height="16" left="20"
+	<filter_editor bottom="-36" enabled="true" follows="left|top" height="16" left="20"
 	     mouse_opaque="true" name="inventory search editor" width="231" />
 	<inventory_panel allow_multi_select="false" border="true" bottom="-256" enabled="true"
 	     follows="left|top|right|bottom" height="216" left="20" mouse_opaque="true"

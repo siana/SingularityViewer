@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="MediaControls">
+	<string name="control_background_image_name">square_btn_32x128.tga</string>
+	<string name="skip_step">0.2</string>
+	<string name="min_width">300</string>
+	<string name="min_height">75</string>
+	<string name="zoom_near_padding">1.0</string>
+	<string name="zoom_medium_padding">1.1</string>
+	<string name="zoom_far_padding">1.5</string>
+	<string name="top_world_view_avoid_zone">50</string>
+
+	<layout_stack name="progress_indicator_area">
+		<layout_panel name="left_bookend_bottom"/>
+		<layout_panel name="media_progress_indicator">
+			<progress_bar name="media_progress_bar" tool_tip="Cargando Media"/>
+		</layout_panel>
+		<layout_panel name="right_bookend_bottom"/>
+	</layout_stack>
+	<layout_stack name="media_controls">
+		<!-- outer layout_panels center the inner one -->
+		<layout_panel name="left_bookend"/>
+		<layout_panel name="back">
+			<button name="back_btn" label="" tool_tip="Navegar hacia atrás"/>
+		</layout_panel>
+		<layout_panel name="fwd" >
+			<button name="fwd_btn" label="" tool_tip="Navegar hacia adelante"/>
+		</layout_panel>
+		<layout_panel name="home">
+			<button name="home_btn" label="" tool_tip="Página de Inicio"/>
+		</layout_panel>
+		<layout_panel name="media_stop">
+			<button name="media_stop_btn" label="" tool_tip="Detener reproducción del media"/>
+		</layout_panel>
+		<layout_panel name="reload">
+			<button name="reload_btn" label="" tool_tip="Recargar"/>
+		</layout_panel>
+		<layout_panel name="stop">
+			<button name="stop_btn" label="" tool_tip = "Detener carga"/>
+		</layout_panel>
+		<layout_panel name="play">
+			<button name="play_btn" label="" tool_tip = "Reproducir media"/>
+		</layout_panel>
+		<layout_panel name="pause">
+			<button name="pause_btn" label="" tool_tip = "Pausar media"/>
+		</layout_panel>
+		<!-- media URL entry  -->
+		<layout_panel name="media_address">
+			<line_editor name="media_address_url" tool_tip="URL del Media"/>
+			<layout_stack name="media_address_url_icons">
+				<layout_panel user_resize="false" width="16" mouse_opaque="false" auto_resize="false">
+					<icon name="media_whitelist_flag" tool_tip="Lista Blanca Habilitada"/>
+				</layout_panel>
+				<layout_panel user_resize="false" width="16" mouse_opaque="false" auto_resize="false">
+					<icon name="media_secure_lock_flag" tool_tip="Navegación segura"/>
+				</layout_panel>
+			</layout_stack>
+		</layout_panel>
+		<layout_panel name="media_play_position">
+			<slider_bar name="media_play_slider" tool_tip="Progreso reproducción Película"/>
+		</layout_panel>
+		<layout_panel name="skip_back">
+			<button name="skip_back_btn" label="" tool_tip="Retroceder"/>
+		</layout_panel>
+		<layout_panel name="skip_forward" >
+			<button name="skip_forward_btn" label="" tool_tip="Avanzar"/>
+		</layout_panel>
+		<layout_panel name="media_volume">
+			<!-- Note: this is not quite right either...the mute button is not the -->
+			<!-- same as the others because it cannot have the "image_overlay" be  -->
+			<!-- two different images.  -->
+			<!-- Note also: the button and the slider must overlap! -->
+			<button name="media_mute_button" label="" tool_tip="Silenciar este Media"/>
+			<slider name="volume_slider" tool_tip="Volumen de Media"/>
+		</layout_panel>
+		<layout_panel name="zoom_frame">
+			<button name="zoom_frame_btn" label="" tool_tip="Zoom en el media"/>
+		</layout_panel>
+		<layout_panel name="close">
+			<button name="close_btn" label="" tool_tip ="Alejar Zoom"/>
+		</layout_panel>
+		<layout_panel name="new_window">
+			<button name="new_window_btn" label="" tool_tip = "Abrir URL en el navegador"/>
+		</layout_panel>
+		<!-- bookend panel -->
+		<layout_panel name="right_bookend"/>
+		
+	</layout_stack>
+	<panel name="media_region"/>
+</panel>

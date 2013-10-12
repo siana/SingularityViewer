@@ -33,7 +33,6 @@
 
 #include "llviewerprecompiledheaders.h"
 #include "lfsimfeaturehandler.h"
-#include "llalertdialog.h"
 #include "llcheckboxctrl.h"
 #include "llfloaterperms.h"
 #include "llnotificationsutil.h"

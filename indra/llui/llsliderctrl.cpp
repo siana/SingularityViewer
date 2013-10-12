@@ -60,11 +60,10 @@ LLSliderCtrl::LLSliderCtrl(const std::string& name, const LLRect& rect,
 						   BOOL show_text,
 						   BOOL can_edit_text,
 						   BOOL volume,
-						   void (*commit_callback)(LLUICtrl*, void*),
-						   void* callback_user_data,
+						   commit_callback_t commit_callback,
 						   F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 						   const std::string& control_which)
-	: LLUICtrl(name, rect, TRUE, commit_callback, callback_user_data ),
+	: LLUICtrl(name, rect, TRUE, commit_callback ),
 	  mFont(font),
 	  mShowText( show_text ),
 	  mCanEditText( can_edit_text ),
@@ -104,7 +103,7 @@ LLSliderCtrl::LLSliderCtrl(const std::string& name, const LLRect& rect,
 	LLRect slider_rect( slider_left, top, slider_right, bottom );
 	mSlider = new LLSlider(std::string("slider"),
 						   slider_rect, 
-						   LLSliderCtrl::onSliderCommit, this, 
+						   boost::bind(&LLSliderCtrl::onSliderCommit,_1,_2), 
 						   initial_value, min_value, max_value, increment, volume,
 						   control_which );
 	addChild( mSlider );
@@ -117,7 +116,9 @@ LLSliderCtrl::LLSliderCtrl(const std::string& name, const LLRect& rect,
 			mEditor = new LLLineEditor( std::string("SliderCtrl Editor"), text_rect,
 										LLStringUtil::null, font,
 										MAX_STRING_LENGTH,
-										&LLSliderCtrl::onEditorCommit, NULL, NULL, this,
+										&LLSliderCtrl::onEditorCommit,
+										NULL,
+										NULL,
 										&LLLineEditor::prevalidateFloat );
 			mEditor->setFollowsLeft();
 			mEditor->setFollowsBottom();
@@ -209,10 +210,11 @@ void LLSliderCtrl::updateText()
 }
 
 // static
-void LLSliderCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
+void LLSliderCtrl::onEditorCommit( LLUICtrl* ctrl, const LLSD& userdata )
 {
-	LLSliderCtrl* self = (LLSliderCtrl*) userdata;
-	llassert( caller == self->mEditor );
+	LLSliderCtrl* self = dynamic_cast<LLSliderCtrl*>(ctrl->getParent());
+	if (!self)
+		return;
 
 	BOOL success = FALSE;
 	F32 val = self->mValue;
@@ -225,9 +227,8 @@ void LLSliderCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
 		val = (F32) atof( text.c_str() );
 		if( self->mSlider->getMinValue() <= val && val <= self->mSlider->getMaxValue() )
 		{
-			self->setValue( val );
-			if( (!self->mValidateCallback	|| self->mValidateCallback( self, self->mCallbackUserData )) &&
-				(!self->mValidateSignal		|| (*(self->mValidateSignal))( self, val )))
+			self->setValue( val );  // set the value temporarily so that the callback can retrieve it.
+			if( !self->mValidateSignal || (*(self->mValidateSignal))( self, val ) )
 			{
 				success = TRUE;
 			}
@@ -250,18 +251,18 @@ void LLSliderCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
 }
 
 // static
-void LLSliderCtrl::onSliderCommit( LLUICtrl* caller, void *userdata )
+void LLSliderCtrl::onSliderCommit( LLUICtrl* ctrl, const LLSD& userdata )
 {
-	LLSliderCtrl* self = (LLSliderCtrl*) userdata;
-	llassert( caller == self->mSlider );
+	LLSliderCtrl* self = dynamic_cast<LLSliderCtrl*>(ctrl->getParent());
+	if (!self)
+		return;
 
 	BOOL success = FALSE;
 	F32 saved_val = self->mValue;
 	F32 new_val = self->mSlider->getValueF32();
 
 	self->mValue = new_val;  // set the value temporarily so that the callback can retrieve it.
-	if( (!self->mValidateCallback	|| self->mValidateCallback( self, self->mCallbackUserData )) &&
-		(!self->mValidateSignal		|| (*(self->mValidateSignal))( self, new_val )))
+	if( !self->mValidateSignal || (*(self->mValidateSignal))( self, new_val ) )
 	{
 		success = TRUE;
 	}
@@ -400,9 +401,6 @@ LLXMLNodePtr LLSliderCtrl::getXML(bool save_children) const
 
 LLView* LLSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("slider");
-	node->getAttributeString("name", name);
-
 	std::string label;
 	node->getAttributeString("label", label);
 
@@ -472,14 +470,12 @@ LLView* LLSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 		}
 	}
 
-	LLUICtrlCallback callback = NULL;
-
 	if (label.empty())
 	{
 		label.assign(node->getTextContents());
 	}
 
-	LLSliderCtrl* slider = new LLSliderCtrl(name,
+	LLSliderCtrl* slider = new LLSliderCtrl("slider",
 							rect,
 							label,
 							font,
@@ -488,7 +484,6 @@ LLView* LLSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 							show_text,
 							can_edit_text,
 							volume,
-							callback,
 							NULL,
 							initial_value, 
 							min_value, 

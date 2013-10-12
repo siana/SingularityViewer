@@ -3,10 +3,9 @@
  * @brief LLFloaterWorldMap class definition
  *
  * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2003-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -43,14 +42,13 @@
 #include "llhudtext.h"
 #include "llmapimagetype.h"
 #include "lltracker.h"
+#include "llslurl.h"
 
-class LLEventInfo;
 class LLFriendObserver;
 class LLInventoryModel;
 class LLInventoryObserver;
 class LLItemInfo;
 class LLTabContainer;
-class LLWorldMapView;
 
 class LLFloaterWorldMap : public LLFloater
 {
@@ -63,10 +61,10 @@ public:
 
 	/*virtual*/ void onClose(bool app_quitting);
 
-	static void show(void*, BOOL center_on_target );
+	static void show(bool center_on_target);
 	static void reloadIcons(void*);
-	static void toggle(void*);
-	static void hide(void*); 
+	static void toggle();
+	static void hide();
 
 	/*virtual*/ void reshape( S32 width, S32 height, BOOL called_from_parent = TRUE );
 	/*virtual*/ BOOL handleHover(S32 x, S32 y, MASK mask);
@@ -113,17 +111,21 @@ public:
 	void			teleport();
 	void			onChangeMaturity();
 
+
+	//Slapp instigated avatar tracking
+	void			avatarTrackFromSlapp( const LLUUID& id );
+
 protected:	
 	void			onGoHome();
 
-	static void		onLandmarkComboPrearrange( LLUICtrl* ctrl, void* data );
+	void			onLandmarkComboPrearrange();
 	void			onLandmarkComboCommit();
 
-	static void		onAvatarComboPrearrange( LLUICtrl* ctrl, void* data );
+	void			onAvatarComboPrearrange();
 	void		    onAvatarComboCommit();
 
-	static void		onComboTextEntry( LLLineEditor* ctrl, void* data );
-	static void		onSearchTextEntry( LLLineEditor* ctrl, void* data );
+	void			onComboTextEntry( );
+	void			onSearchTextEntry( );
 
 	void			onClearBtn();
 	void			onClickTeleportBtn();
@@ -191,7 +193,7 @@ private:
 	LLTracker::ETrackingStatus mTrackedStatus;
 	std::string				mTrackedSimName;
 	std::string				mTrackedAvatarName;
-	std::string				mSLURL;
+	LLSLURL				mSLURL;
 
 	LLCtrlListInterface *	mListFriendCombo;
 	LLCtrlListInterface *	mListLandmarkCombo;

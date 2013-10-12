@@ -64,7 +64,10 @@ class LLURLRequest : public AICurlEasyRequestStateMachine {
 	 * @param action One of the ERequestAction enumerations.
 	 * @param url The url of the request. It should already be encoded.
 	 */
-	LLURLRequest(ERequestAction action, std::string const& url, Injector* body, LLHTTPClient::ResponderPtr responder, AIHTTPHeaders& headers, bool keepalive, bool is_auth, bool no_compression);
+	LLURLRequest(ERequestAction action, std::string const& url, Injector* body,
+				 LLHTTPClient::ResponderPtr responder, AIHTTPHeaders& headers,
+				 AIPerService::Approvement* approved,
+				 bool keepalive, bool is_auth, bool no_compression);
 
 	/**
 	 * @brief Cached value of responder->getName() as passed to the constructor.

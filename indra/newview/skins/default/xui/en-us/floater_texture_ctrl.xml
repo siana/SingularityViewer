@@ -65,7 +65,7 @@
 
   	<tab_container border="false" bottom_delta="20" width="410" height="300" left="175" mouse_opaque="false" name="actions_tab_container" tab_position="top" follows="left|top|right|bottom">
     <panel border="false" bottom_delta="0" follows="right|top" height="300" label="Inventory" left="0" mouse_opaque="false" name="server_tab" width="410">
-        <search_editor bottom_delta="-20" enabled="true" follows="left|top|right" height="16"
+      <filter_editor bottom_delta="-20" enabled="true" follows="left|top|right" height="16"
 	         label="Type here to search" left="0" mouse_opaque="true"
 	         name="inventory search editor" width="271" />
         <inventory_panel allow_multi_select="false" border="true" bottom="-270" enabled="true"

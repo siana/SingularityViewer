@@ -2,9 +2,17 @@
 <pie_menu name="Object Pie">
 	<menu_item_call label="Abrir" name="Open"/>
 	<menu_item_call label="Crear" name="Create"/>
-	<menu_item_call label="Tocar" name="Object Touch"/>
-	<menu_item_call label="Sentarse" name="Object Sit"/>
-	<menu_item_call label="Recoger" name="Pie Object Take"/>
+	<menu_item_call label="Tocar" name="Object Touch">
+		<on_click function="Object.Touch" />
+		<on_enable function="Object.EnableTouch" userdata="Tocar" name="EnableTouch"/>
+	</menu_item_call>
+	<menu_item_call label="Sentarse" name="Object Sit">
+		<on_click function="Object.SitOrStand"/>
+		<on_enable function="Object.EnableSitOrStand" userdata="Sentarse,Pararse" name="EnableSitOrStand"/>
+	</menu_item_call>
+	<menu_item_call label="Recoger" name="Pie Object Take">
+		<on_enable function="Tools.EnableBuyOrTake" userdata="Comprar,Recoger" name="EnableBuyOrTake"/>
+	</menu_item_call>
 	<menu_item_call label="Pagar..." name="Pay..."/>
 	<pie_menu label="Más &gt;" name="More &gt;">
 		<menu_item_call label="Borrar" name="Delete"/>
@@ -15,20 +23,34 @@
 		<menu_item_call label="Regresar..." name="Return..."/>
 		<pie_menu label="Más &gt;" name="Rate Menu">
 			<pie_menu label="Herramientas &gt;" name="Rate Menu">
+				<menu_item_call label="Destruir" name="Destroy"/>
 				<menu_item_call label="Explotar" name="Explode"/>
 				<menu_item_call label="Medir" name="Measure"/>
 				<menu_item_call label="Información" name="Data"/>
-				<menu_item_call label="Contar Scripts" name="ScriptCount"/>
-				<menu_item_call label="Reiniciar Scripts" name="Reset Scripts"/>
 				<menu_item_call label="Exportar" name="Export"/>
+				<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
+				<menu_item_call label="Guardar DAE..." name="Save DAE..."/>
+				<menu_item_call label="Recargar" name="Reload Textures"/>
 			</pie_menu>
-			<menu_item_call label="Recargar" name="Reload Textures"/>
 			<menu_item_call label="Silenciar" name="Object Mute"/>
 			<menu_item_call label="Examinar" name="Object Inspect"/>
-			<menu_item_call label="Derenderizar" name="Derender"/>
+			<menu_item_call label="Desdibujar" name="Derender"/>
 			<menu_item_call label="Denunciar..." name="Report Abuse..."/>
+			<pie_menu label="Pathfinding &gt;" name="PF Menu">
+				<menu_item_call label="Mostrar e/Conj.Enlaces" name="show_in_linksets"/>
+              <menu_item_call label="Mostrar en Personajes" name="show_in_characters"/>
+			</pie_menu>
+			<pie_menu label="Scripts &gt;" name="ScriptsMenu">
+				<menu_item_call label="Compilar Mono" name="CompileMono"/>
+				<menu_item_call label="Compilar LSL" name="CompileLSL"/>
+              <menu_item_call label="Reiniciar" name="Reset Scripts"/>
+              <menu_item_call label="Ejecutar" name="Object Set Scripts to Running"/>
+              <menu_item_call label="Detener" name="Object Set Scripts to Not Running"/>
+              <menu_item_call label="Borrar" name="Remove Scripts From Selection"/>
+				<menu_item_call label="Contar Scripts" name="ScriptCount"/>
+			</pie_menu>
 		</pie_menu>
-		<menu_item_call label="Comprar..." name="Buy..."/>
-	</pie_menu>
+		<menu_item_call label="Comprar..." name="Buy..."/>		
+	</pie_menu>		
 	<menu_item_call label="Editar..." name="Edit..."/>
 </pie_menu>

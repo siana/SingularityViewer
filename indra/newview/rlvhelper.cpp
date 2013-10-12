@@ -162,7 +162,7 @@ void RlvCommand::initLookupTable()
 				"detach", "attach", "addattach", "remattach", "addoutfit", "remoutfit", "sharedwear", "sharedunwear", 
 				"unsharedwear",	"unsharedunwear", "emote", "sendchat", "recvchat", "recvchatfrom", "recvemote", "recvemotefrom",
 				"redirchat", "rediremote", "chatwhisper", "chatnormal", "chatshout", "sendchannel", "sendim", "sendimto",
-				"recvim", "recvimfrom", "permissive", "notify", "showinv", "showminimap", "showworldmap", "showloc",
+				"recvim", "recvimfrom", "startim", "startimto", "permissive", "notify", "showinv", "showminimap", "showworldmap", "showloc",
 				"shownames", "showhovertext", "showhovertexthud", "showhovertextworld", "showhovertextall", "tplm", "tploc", "tplure",
 				"viewnote", "viewscript", "viewtexture", "acceptpermission", "accepttp", "allowidle", "edit", "editobj", "rez", "fartouch",
 				"interact", "touchthis", "touchattach", "touchattachself", "touchattachother", "touchhud", "touchworld", "touchall", 
@@ -186,7 +186,7 @@ void RlvCommand::initLookupTable()
 // RlvCommandOption structures
 //
 
-// Checked: 2010-09-28 (RLVa-1.1.3a) | Added: RLVa-1.2.1c
+// Checked: 2010-09-28 (RLVa-1.2.1c) | Added: RLVa-1.2.1c
 RlvCommandOptionGeneric::RlvCommandOptionGeneric(const std::string& strOption)
 {
 	LLWearableType::EType wtType(LLWearableType::WT_INVALID); LLUUID idOption; ERlvAttachGroupType eAttachGroup(RLV_ATTACHGROUP_INVALID);
@@ -456,7 +456,7 @@ std::string RlvObject::getStatusString(const std::string& strMatch) const
 // RlvForceWear
 //
 
-// Checked: 2010-04-05 (RLVa-1.1.3b) | Modified: RLVa-1.2.0d
+// Checked: 2010-04-05 (RLVa-1.2.0d) | Modified: RLVa-1.2.0d
 bool RlvForceWear::isWearingItem(const LLInventoryItem* pItem)
 {
 	if (pItem)
@@ -479,7 +479,7 @@ bool RlvForceWear::isWearingItem(const LLInventoryItem* pItem)
 	return false;
 }
 
-// Checked: 2010-03-21 (RLVa-1.1.3a) | Modified: RLVa-1.2.0a
+// Checked: 2010-03-21 (RLVa-1.2.0a) | Modified: RLVa-1.2.0a
 void RlvForceWear::forceFolder(const LLViewerInventoryCategory* pFolder, EWearAction eAction, EWearFlags eFlags)
 {
 	// [See LLWearableBridge::wearOnAvatar(): don't wear anything until initial wearables are loaded, can destroy clothing items]
@@ -679,7 +679,7 @@ void RlvForceWear::forceDetach(const LLViewerJointAttachment* pAttachPt)
 	}
 }
 
-// Checked: 2010-03-19 (RLVa-1.1.3b) | Modified: RLVa-1.2.0a
+// Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
 bool RlvForceWear::isForceRemovable(const LLViewerWearable* pWearable, bool fCheckComposite /*=true*/, const LLUUID& idExcept /*=LLUUID::null*/)
 {
 	// Wearable can be removed by an RLV command if:
@@ -739,7 +739,7 @@ void RlvForceWear::forceRemove(const LLViewerWearable* pWearable)
 	}
 }
 
-// Checked: 2010-03-19 (RLVa-1.1.3a) | Added: RLVa-1.2.0a
+// Checked: 2010-03-19 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 void RlvForceWear::forceRemove(LLWearableType::EType wtType)
 {
 	for (U32 idxWearable = 0, cntWearable = gAgentWearables.getWearableCount(wtType); idxWearable < cntWearable; idxWearable++)
@@ -883,7 +883,7 @@ void RlvForceWear::addWearable(const LLViewerInventoryItem* pItem, EWearAction e
 	}
 }
 
-// Checked: 2010-08-30 (RLVa-1.1.3b) | Modified: RLVa-1.2.1c
+// Checked: 2010-08-30 (RLVa-1.2.1c) | Modified: RLVa-1.2.1c
 void RlvForceWear::remWearable(const LLViewerWearable* pWearable)
 {
 	// Remove it from 'm_addWearables' if it's queued for wearing
@@ -903,7 +903,7 @@ void RlvForceWear::remWearable(const LLViewerWearable* pWearable)
 		m_remWearables.push_back(pWearable);
 }
 
-// Checked: 2010-09-18 (RLVa-1.2.1a) | Modified: RLVa-1.2.1a
+// Checked: 2010-09-18 (RLVa-1.2.1)
 void RlvForceWear::done()
 {
 	// Sanity check - don't go through all the motions below only to find out there's nothing to actually do
@@ -1009,7 +1009,7 @@ void RlvForceWear::done()
 // RlvBehaviourNotifyHandler
 //
 
-// Checked: 2010-09-26 (RLVa-1.1.3a) | Modified: RLVa-1.1.3a
+// Checked: 2010-03-03 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 RlvBehaviourNotifyHandler::RlvBehaviourNotifyHandler()
 {
 	// NOTE: the reason we use rlv_command_signal_t instead of the better-suited rlv_behaviour_signal_t is because

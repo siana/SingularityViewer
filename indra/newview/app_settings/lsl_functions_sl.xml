@@ -1020,5 +1020,24 @@
    <map/>
    <key>llResetAnimationOverride</key>
    <map/>
+<!-- 13.05.20.276191 new function -->
+   <key>llJson2List</key>
+   <map/>
+   <key>llList2Json</key>
+   <map/>
+   <key>llJsonGetValue</key>
+   <map/>
+   <key>llJsonSetValue</key>
+   <map/>
+   <key>llJsonValueType</key>
+   <map/>
+<!-- 13.06.18.277494 new function -->
+   <key>llReturnObjectsByID</key>
+   <map/>
+   <key>llReturnObjectsByOwner</key>
+   <map/>
+<!-- 13.06.21.277682 new function -->
+   <key>llXorBase64</key>
+   <map/>
   </map>
 </llsd>

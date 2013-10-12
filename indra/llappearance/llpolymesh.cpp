@@ -1302,6 +1302,57 @@ BOOL LLPolyMesh::saveOBJ(LLFILE *fp)
 	return TRUE;
 }
 
+// Finds binormal based on three vertices with texture coordinates.
+// Fills in dummy values if the triangle has degenerate texture coordinates.
+void calc_binormal_from_triangle(LLVector4a& binormal,
+
+	const LLVector4a& pos0,
+	const LLVector2& tex0,
+	const LLVector4a& pos1,
+	const LLVector2& tex1,
+	const LLVector4a& pos2,
+	const LLVector2& tex2)
+{
+	LLVector4a rx0( pos0[VX], tex0.mV[VX], tex0.mV[VY] );
+	LLVector4a rx1( pos1[VX], tex1.mV[VX], tex1.mV[VY] );
+	LLVector4a rx2( pos2[VX], tex2.mV[VX], tex2.mV[VY] );
+	
+	LLVector4a ry0( pos0[VY], tex0.mV[VX], tex0.mV[VY] );
+	LLVector4a ry1( pos1[VY], tex1.mV[VX], tex1.mV[VY] );
+	LLVector4a ry2( pos2[VY], tex2.mV[VX], tex2.mV[VY] );
+
+	LLVector4a rz0( pos0[VZ], tex0.mV[VX], tex0.mV[VY] );
+	LLVector4a rz1( pos1[VZ], tex1.mV[VX], tex1.mV[VY] );
+	LLVector4a rz2( pos2[VZ], tex2.mV[VX], tex2.mV[VY] );
+	
+	LLVector4a lhs, rhs;
+
+	LLVector4a r0; 
+	lhs.setSub(rx0, rx1); rhs.setSub(rx0, rx2);
+	r0.setCross3(lhs, rhs);
+		
+	LLVector4a r1;
+	lhs.setSub(ry0, ry1); rhs.setSub(ry0, ry2);
+	r1.setCross3(lhs, rhs);
+
+	LLVector4a r2;
+	lhs.setSub(rz0, rz1); rhs.setSub(rz0, rz2);
+	r2.setCross3(lhs, rhs);
+
+	if( r0[VX] && r1[VX] && r2[VX] )
+	{
+		binormal.set(
+				-r0[VZ] / r0[VX],
+				-r1[VZ] / r1[VX],
+				-r2[VZ] / r2[VX]);
+		// binormal.normVec();
+	}
+	else
+	{
+		binormal.set( 0, 1 , 0 );
+	}
+}
+
 //-----------------------------------------------------------------------------
 // LLPolyMesh::loadOBJ()
 //-----------------------------------------------------------------------------

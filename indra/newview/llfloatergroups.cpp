@@ -40,93 +40,68 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llfloatergroups.h"
-#include "llfloatergroupinvite.h"
 
-#include "message.h"
 #include "roles_constants.h"
 
 #include "hbfloatergrouptitles.h"
 #include "llagent.h"
 #include "llbutton.h"
-#include "llfloatergroupinfo.h"
-#include "llfloaterdirectory.h"
-#include "llfocusmgr.h"
-#include "llalertdialog.h"
-#include "llselectmgr.h"
+#include "llfloatergroupinvite.h"
+#include "llgroupactions.h"
+#include "llimview.h"
 #include "llscrolllistctrl.h"
-#include "llnotificationsutil.h"
+#include "llscrolllistitem.h"
 #include "lltextbox.h"
 #include "lluictrlfactory.h"
-#include "llviewerwindow.h"
-#include "llimview.h"
+#include "lltrans.h"
 
 #include "hippolimits.h"
 
 using namespace LLOldEvents;
 
-// static
-std::map<const LLUUID, LLFloaterGroupPicker*> LLFloaterGroupPicker::sInstances;
-
 // helper functions
-void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, const std::string& none_text, U64 powers_mask = GP_ALL_POWERS);
+void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, U64 powers_mask = GP_ALL_POWERS);
 
 ///----------------------------------------------------------------------------
 /// Class LLFloaterGroupPicker
 ///----------------------------------------------------------------------------
 
 // static
-LLFloaterGroupPicker* LLFloaterGroupPicker::findInstance(const LLSD& seed)
+LLFloaterGroupPicker* LLFloaterGroupPicker::showInstance(const LLSD& seed)
 {
-	instance_map_t::iterator found_it = sInstances.find(seed.asUUID());
-	if (found_it != sInstances.end())
-	{
-		return found_it->second;
-	}
-	return NULL;
-}
-
-// static
-LLFloaterGroupPicker* LLFloaterGroupPicker::createInstance(const LLSD &seed)
-{
-	LLFloaterGroupPicker* pickerp = new LLFloaterGroupPicker(seed);
-	LLUICtrlFactory::getInstance()->buildFloater(pickerp, "floater_choose_group.xml");
+	LLFloaterGroupPicker* pickerp = getInstance(seed);
+	if (pickerp) pickerp->open();
+	else pickerp = new LLFloaterGroupPicker(seed);
 	return pickerp;
 }
 
-LLFloaterGroupPicker::LLFloaterGroupPicker(const LLSD& seed) : 
-	mSelectCallback(NULL),
-	mCallbackUserdata(NULL),
-	mPowersMask(GP_ALL_POWERS)
+LLFloaterGroupPicker::LLFloaterGroupPicker(const LLSD& seed)
+: 	LLFloater(), LLInstanceTracker<LLFloaterGroupPicker, LLUUID>(seed.asUUID()),
+	mPowersMask(GP_ALL_POWERS),
+	mID(seed.asUUID())
 {
-	mID = seed.asUUID();
-	sInstances.insert(std::make_pair(mID, this));
+	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_choose_group.xml");
 }
 
 LLFloaterGroupPicker::~LLFloaterGroupPicker()
 {
-	sInstances.erase(mID);
-}
-
-void LLFloaterGroupPicker::setSelectCallback(void (*callback)(LLUUID, void*), 
-									void* userdata)
-{
-	mSelectCallback = callback;
-	mCallbackUserdata = userdata;
 }
 
 void LLFloaterGroupPicker::setPowersMask(U64 powers_mask)
 {
 	mPowersMask = powers_mask;
-	postBuild();
+	init_group_list(getChild<LLScrollListCtrl>("group list"), gAgent.getGroupID(), mPowersMask);
 }
 
 
 BOOL LLFloaterGroupPicker::postBuild()
 {
-
-	const std::string none_text = getString("none");
-	LLScrollListCtrl* group_list = getChild<LLScrollListCtrl>("group list");
-	init_group_list(group_list, gAgent.getGroupID(), none_text, mPowersMask);
+	LLScrollListCtrl* list_ctrl = getChild<LLScrollListCtrl>("group list");
+	if (list_ctrl)
+	{
+		init_group_list(list_ctrl, gAgent.getGroupID(), mPowersMask);
+		list_ctrl->setDoubleClickCallback(onBtnOK, this);
+	}
 
 	childSetAction("OK", onBtnOK, this);
 
@@ -134,12 +109,24 @@ BOOL LLFloaterGroupPicker::postBuild()
 
 	setDefaultBtn("OK");
 
-	group_list->setDoubleClickCallback(boost::bind(&LLFloaterGroupPicker::onBtnOK,this));
-
-	childEnable("OK");
+	getChildView("OK")->setEnabled(TRUE);
 
 	return TRUE;
 }
+
+void LLFloaterGroupPicker::removeNoneOption()
+{
+	// Remove group "none" from list. Group "none" is added in init_group_list().
+	// Some UI elements use group "none", we need to manually delete it here.
+	// Group "none" ID is LLUUID:null.
+	LLCtrlListInterface* group_list = getChild<LLScrollListCtrl>("group list")->getListInterface();
+	if(group_list)
+	{
+		group_list->selectByValue(LLUUID::null);
+		group_list->operateOnSelection(LLCtrlListInterface::OP_DELETE);
+	}
+}
+
 
 void LLFloaterGroupPicker::onBtnOK(void* userdata)
 {
@@ -162,10 +149,7 @@ void LLFloaterGroupPicker::ok()
 	{
 		group_id = group_list->getCurrentID();
 	}
-	if(mSelectCallback)
-	{
-		mSelectCallback(group_id, mCallbackUserdata);
-	}
+	mGroupSelectSignal(group_id);
 
 	close();
 }
@@ -201,41 +185,42 @@ LLPanelGroups::~LLPanelGroups()
 // clear the group list, and get a fresh set of info.
 void LLPanelGroups::reset()
 {
-	childSetTextArg("groupcount", "[COUNT]", llformat("%d",gAgent.mGroups.count()));
-	childSetTextArg("groupcount", "[MAX]", llformat("%d", gHippoLimits->getMaxAgentGroups()));
-	
-	const std::string none_text = getString("none");
-	init_group_list(getChild<LLScrollListCtrl>("group list"), gAgent.getGroupID(), none_text);
+	getChild<LLUICtrl>("groupcount")->setTextArg("[COUNT]", llformat("%d",gAgent.mGroups.count()));
+	getChild<LLUICtrl>("groupcount")->setTextArg("[MAX]", llformat("%d", gHippoLimits->getMaxAgentGroups()));
+
+	init_group_list(getChild<LLScrollListCtrl>("group list"), gAgent.getGroupID());
 	enableButtons();
 }
 
 BOOL LLPanelGroups::postBuild()
 {
-	childSetTextArg("groupcount", "[COUNT]", llformat("%d",gAgent.mGroups.count()));
-	childSetTextArg("groupcount", "[MAX]", llformat("%d", gHippoLimits->getMaxAgentGroups()));
+	getChild<LLUICtrl>("groupcount")->setTextArg("[COUNT]", llformat("%d",gAgent.mGroups.count()));
+	getChild<LLUICtrl>("groupcount")->setTextArg("[MAX]", llformat("%d",gHippoLimits->getMaxAgentGroups()));
 
-	const std::string none_text = getString("none");
-	LLScrollListCtrl *group_list = getChild<LLScrollListCtrl>("group list");
-	init_group_list(group_list, gAgent.getGroupID(), none_text);
-	group_list->setCommitCallback(boost::bind(&LLPanelGroups::onGroupList,this));
-	group_list->setSortChangedCallback(boost::bind(&LLPanelGroups::onGroupSortChanged,this)); //Force 'none' to always be first entry.
-	group_list->setDoubleClickCallback(boost::bind(&LLPanelGroups::onBtnIM,this));
+	LLScrollListCtrl *list = getChild<LLScrollListCtrl>("group list");
+	if (list)
+	{
+		init_group_list(list, gAgent.getGroupID());
+		list->setCommitCallback(boost::bind(&LLPanelGroups::onGroupList, this));
+		list->setSortChangedCallback(boost::bind(&LLPanelGroups::onGroupSortChanged,this)); //Force 'none' to always be first entry.
+		list->setDoubleClickCallback(boost::bind(LLGroupActions::startIM, boost::bind(&LLScrollListCtrl::getCurrentID, list)));
+	}
 
-	childSetAction("Activate", onBtnActivate, this);
+	getChild<LLUICtrl>("Activate")->setCommitCallback(boost::bind(LLGroupActions::activate, boost::bind(&LLScrollListCtrl::getCurrentID, list)));
 
-	childSetAction("Info", onBtnInfo, this);
+	getChild<LLUICtrl>("Info")->setCommitCallback(boost::bind(LLGroupActions::show, boost::bind(&LLScrollListCtrl::getCurrentID, list)));
 
-	childSetAction("IM", onBtnIM, this);
+	getChild<LLUICtrl>("IM")->setCommitCallback(boost::bind(LLGroupActions::startIM, boost::bind(&LLScrollListCtrl::getCurrentID, list)));
 
-	childSetAction("Leave", onBtnLeave, this);
+	getChild<LLUICtrl>("Leave")->setCommitCallback(boost::bind(LLGroupActions::leave, boost::bind(&LLScrollListCtrl::getCurrentID, list)));
 
-	childSetAction("Create", onBtnCreate, this);
+	getChild<LLUICtrl>("Create")->setCommitCallback(boost::bind(LLGroupActions::createGroup));
 
-	childSetAction("Search...", onBtnSearch, this);
-	
+	getChild<LLUICtrl>("Search...")->setCommitCallback(boost::bind(LLGroupActions::search));
+
 	childSetAction("Invite...", onBtnInvite, this);
 
-	childSetAction("Titles...", onBtnTitles, this);
+	getChild<LLUICtrl>("Titles...")->setCommitCallback(boost::bind(HBFloaterGroupTitles::toggle));
 
 	setDefaultBtn("IM");
 
@@ -255,48 +240,28 @@ void LLPanelGroups::enableButtons()
 
 	if(group_id != gAgent.getGroupID())
 	{
-		childEnable("Activate");
+		getChildView("Activate")->setEnabled(TRUE);
 	}
 	else
 	{
-		childDisable("Activate");
+		getChildView("Activate")->setEnabled(FALSE);
 	}
 	if (group_id.notNull())
 	{
-		childEnable("Info");
-		childEnable("IM");
-		childEnable("Leave");
+		getChildView("Info")->setEnabled(TRUE);
+		getChildView("IM")->setEnabled(TRUE);
+		getChildView("Leave")->setEnabled(TRUE);
 	}
 	else
 	{
-		childDisable("Info");
-		childDisable("IM");
-		childDisable("Leave");
+		getChildView("Info")->setEnabled(FALSE);
+		getChildView("IM")->setEnabled(FALSE);
+		getChildView("Leave")->setEnabled(FALSE);
 	}
-	if(gAgent.mGroups.count() < gHippoLimits->getMaxAgentGroups())
-	{
-		childEnable("Create");
-	}
-	else
-	{
-		childDisable("Create");
-	}
-	if (group_id.notNull() && gAgent.hasPowerInGroup(group_id, GP_MEMBER_INVITE))
-	{
-		LLPanelGroups::childEnable("Invite...");
-	}
-	else
-	{
-		LLPanelGroups::childDisable("Invite...");
-	}
+	getChildView("Create")->setEnabled(gAgent.mGroups.count() < gHippoLimits->getMaxAgentGroups());
+	getChildView("Invite...")->setEnabled(group_id.notNull() && gAgent.hasPowerInGroup(group_id, GP_MEMBER_INVITE));
 }
 
-
-void LLPanelGroups::onBtnCreate(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->create();
-}
 
 void LLPanelGroups::onBtnInvite(void* userdata)
 {
@@ -304,174 +269,15 @@ void LLPanelGroups::onBtnInvite(void* userdata)
 	if(self) self->invite();
 }
 
-void LLPanelGroups::onBtnActivate(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->activate();
-}
-
-void LLPanelGroups::onBtnInfo(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->info();
-}
-
-void LLPanelGroups::onBtnIM(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->startIM();
-}
-
-void LLPanelGroups::onBtnLeave(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->leave();
-}
-
-void LLPanelGroups::onBtnSearch(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->search();
-}
-
-void LLPanelGroups::onBtnTitles(void* userdata)
-{
-	LLPanelGroups* self = (LLPanelGroups*)userdata;
-	if(self) self->titles();
-}
-
-void LLPanelGroups::create()
-{
-	llinfos << "LLPanelGroups::create" << llendl;
-	LLFloaterGroupInfo::showCreateGroup(NULL);
-}
-
-void LLPanelGroups::activate()
-{
-	llinfos << "LLPanelGroups::activate" << llendl;
-	LLCtrlListInterface *group_list = childGetListInterface("group list");
-	LLUUID group_id;
-	if (group_list)
-	{
-		group_id = group_list->getCurrentID();
-	}
-	LLMessageSystem* msg = gMessageSystem;
-	msg->newMessageFast(_PREHASH_ActivateGroup);
-	msg->nextBlockFast(_PREHASH_AgentData);
-	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-	msg->addUUIDFast(_PREHASH_GroupID, group_id);
-	gAgent.sendReliableMessage();
-}
-
-void LLPanelGroups::info()
-{
-	llinfos << "LLPanelGroups::info" << llendl;
-	LLCtrlListInterface *group_list = childGetListInterface("group list");
-	LLUUID group_id;
-	if (group_list && (group_id = group_list->getCurrentID()).notNull())
-	{
-		LLFloaterGroupInfo::showFromUUID(group_id);
-	}
-}
-
-void LLPanelGroups::startIM()
-{
-	//llinfos << "LLPanelFriends::onClickIM()" << llendl;
-	LLCtrlListInterface *group_list = childGetListInterface("group list");
-	LLUUID group_id;
-
-	if (group_list && (group_id = group_list->getCurrentID()).notNull())
-	{
-		LLGroupData group_data;
-		if (gAgent.getGroupData(group_id, group_data))
-		{
-			static LLCachedControl<bool> tear_off("OtherChatsTornOff");
-			if (!tear_off)
-				gIMMgr->setFloaterOpen(TRUE);
-			gIMMgr->addSession(
-				group_data.mName,
-				IM_SESSION_GROUP_START,
-				group_id);
-			make_ui_sound("UISndStartIM");
-		}
-		else
-		{
-			// this should never happen, as starting a group IM session
-			// relies on you belonging to the group and hence having the group data
-			make_ui_sound("UISndInvalidOp");
-		}
-	}
-}
-
-void LLPanelGroups::leave()
-{
-	llinfos << "LLPanelGroups::leave" << llendl;
-	LLCtrlListInterface *group_list = childGetListInterface("group list");
-	LLUUID group_id;
-	if (group_list && (group_id = group_list->getCurrentID()).notNull())
-	{
-		S32 count = gAgent.mGroups.count();
-		S32 i;
-		for(i = 0; i < count; ++i)
-		{
-			if(gAgent.mGroups.get(i).mID == group_id)
-				break;
-		}
-		if(i < count)
-		{
-			LLSD args;
-			args["GROUP"] = gAgent.mGroups.get(i).mName;
-			LLSD payload;
-			payload["group_id"] = group_id;
-			LLNotificationsUtil::add("GroupLeaveConfirmMember", args, payload, callbackLeaveGroup);
-		}
-	}
-}
-
-void LLPanelGroups::search()
-{
-	LLFloaterDirectory::showGroups();
-}
-
 void LLPanelGroups::invite()
 {
 	LLCtrlListInterface *group_list = childGetListInterface("group list");
 	LLUUID group_id;
-
-	//if (group_list && (group_id = group_list->getCurrentID()).notNull())
-	
 	if (group_list)
 	{
 		group_id = group_list->getCurrentID();
 	}
-
-		LLFloaterGroupInvite::showForGroup(group_id);
-}
-
-void LLPanelGroups::titles()
-{
-	HBFloaterGroupTitles::toggle();
-}
-
-
-// static
-bool LLPanelGroups::callbackLeaveGroup(const LLSD& notification, const LLSD& response)
-{
-	S32 option = LLNotification::getSelectedOption(notification, response);
-	LLUUID group_id = notification["payload"]["group_id"].asUUID();
-	if(option == 0)
-	{
-		LLMessageSystem* msg = gMessageSystem;
-		msg->newMessageFast(_PREHASH_LeaveGroupRequest);
-		msg->nextBlockFast(_PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->nextBlockFast(_PREHASH_GroupData);
-		msg->addUUIDFast(_PREHASH_GroupID, group_id);
-		gAgent.sendReliableMessage();
-	}
-	return false;
+	LLFloaterGroupInvite::showForGroup(group_id);
 }
 
 void LLPanelGroups::onGroupSortChanged()
@@ -495,7 +301,7 @@ void LLPanelGroups::onGroupList()
 	if(!item)
 		return;
 
-	const LLUUID group_id =  item->getValue().asUUID();
+	const LLUUID group_id = item->getValue().asUUID();
 	if(group_id.isNull())
 		return;
 
@@ -521,13 +327,13 @@ void LLPanelGroups::onGroupList()
 		update_group_floaters(group_id);
 }
 
-LLSD create_group_element(const LLGroupData *group_datap, const LLUUID &active_group, const std::string& none_text, const U64 &powers_mask)
+LLSD create_group_element(const LLGroupData *group_datap, const LLUUID &active_group, const U64 &powers_mask)
 {
 	if(group_datap && !((powers_mask == GP_ALL_POWERS) || ((group_datap->mPowers & powers_mask) != 0)))
 		return LLSD();
 	const LLUUID &id = group_datap ? group_datap->mID : LLUUID::null;
 	const bool enabled = !!group_datap;
-	
+
 	std::string style = (group_datap && group_datap->mListInProfile) ? "BOLD" : "NORMAL";
 	if(active_group == id)
 	{
@@ -537,7 +343,7 @@ LLSD create_group_element(const LLGroupData *group_datap, const LLUUID &active_g
 	element["id"] = id;
 	LLSD& name_column = element["columns"][0];
 	name_column["column"] = "name";
-	name_column["value"] = group_datap ? group_datap->mName : none_text;
+	name_column["value"] = group_datap ? group_datap->mName : LLTrans::getString("GroupsNone");
 	name_column["font"] = "SANSSERIF";
 	name_column["font-style"] = style;
 
@@ -562,7 +368,7 @@ LLSD create_group_element(const LLGroupData *group_datap, const LLUUID &active_g
 	return element;
 }
 
-void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, const std::string& none_text, U64 powers_mask)
+void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, U64 powers_mask)
 {
 	S32 count = gAgent.mGroups.count();
 	LLUUID id;
@@ -577,13 +383,13 @@ void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, const s
 
 	for(S32 i = 0; i < count; ++i)
 	{
-		LLSD element = create_group_element(&gAgent.mGroups.get(i), highlight_id, none_text, powers_mask);
+		LLSD element = create_group_element(&gAgent.mGroups.get(i), highlight_id, powers_mask);
 		if(element.size())
 			group_list->addElement(element, ADD_SORTED);
 	}
 
 	// add "none" to list at top
-	group_list->addElement(create_group_element(NULL, highlight_id, none_text, powers_mask), ADD_TOP);
+	group_list->addElement(create_group_element(NULL, highlight_id, powers_mask), ADD_TOP);
 
 	if(selected_id.notNull())
 		group_list->selectByValue(selected_id);

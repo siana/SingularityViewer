@@ -495,10 +495,6 @@ bool RlvExtGetSet::findDebugSetting(std::string& strSetting, S16& flags)
 {
 	LLStringUtil::toLower(strSetting);	// Convenience for non-RLV calls
 
-	// HACK-RLVa: bad code but it's just a temporary measure to provide a smooth changeover from the old to the new rebranded settings
-	if ( (strSetting.length() >= 14) && (0 == strSetting.find("restrainedlife")) )
-		strSetting = "restrainedlove" + strSetting.substr(14);
-
 	std::string strTemp;
 	for (std::map<std::string, S16>::const_iterator itSetting = m_DbgAllowed.begin(); itSetting != m_DbgAllowed.end(); ++itSetting)
 	{

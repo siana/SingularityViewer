@@ -2569,6 +2569,19 @@ std::string LLXMLNode::escapeXML(const std::string& xml)
 	return out;
 }
 
+// Replace '--' with '- -', see http://en.wikipedia.org/wiki/XML#Comments
+// static
+std::string LLXMLNode::commentEscape(std::string const& comment)
+{
+	std::string result = comment;
+	std::string::size_type off = std::string::npos;
+	while ((off = result.rfind("--", off)) != std::string::npos)
+	{
+		result.replace(off, 2, "- -");
+	}
+	return result;
+}
+
 void LLXMLNode::setStringValue(U32 length, const std::string *strings)
 {
 	if (length == 0) return;

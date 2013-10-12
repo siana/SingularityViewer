@@ -107,8 +107,14 @@
     <menu_item_call enabled="true" label="Copy UUID" mouse_opaque="true" name="CopyUUID">
       <on_click function="Avatar.CopyUUID" />
     </menu_item_call>
+    <menu_item_call label="Save OBJ..." mouse_opaque="true" name="Save OBJ...">
+      <on_click function="Avatar.SaveAsOBJ" />
+    </menu_item_call>
   </pie_menu>
-  <menu_item_separator />
+	<menu_item_call enabled="true" label="Stand Up" name="Stand Up Self">
+		<on_click function="Self.SitOrStand"/>
+		<on_enable function="Self.EnableSitOrStand" userdata="Sit Down,Stand Up"/>
+	</menu_item_call>
 	<menu_item_call enabled="true" label="Gestures..." name="Gestures...">
 		<on_click function="ShowFloater" userdata="gestures" />
 	</menu_item_call>

@@ -35,6 +35,7 @@
 #include "lldbstrings.h"
 #include "lleconomy.h"
 #include "llgl.h"
+#include "llmediaentry.h"
 #include "llrender.h"
 #include "llnotifications.h"
 #include "llpermissions.h"
@@ -839,6 +840,7 @@ void LLSelectMgr::addAsFamily(std::vector<LLViewerObject*>& objects, BOOL add_to
 			if (objectp->getNumTEs() > 0)
 			{
 				nodep->selectAllTEs(TRUE);
+				objectp->setAllTESelected(true);
 			}
 			else
 			{
@@ -896,10 +898,12 @@ void LLSelectMgr::addAsIndividual(LLViewerObject *objectp, S32 face, BOOL undoab
 	else if (face == SELECT_ALL_TES)
 	{
 		nodep->selectAllTEs(TRUE);
+		objectp->setAllTESelected(true);
 	}
 	else if (0 <= face && face < SELECT_MAX_TES)
 	{
 		nodep->selectTE(face, TRUE);
+		objectp->setTESelected(face, true);
 	}
 	else
 	{
@@ -1123,6 +1127,7 @@ LLObjectSelectionHandle LLSelectMgr::selectHighlightedObjects()
 
 		// flag this object as selected
 		objectp->setSelected(TRUE);
+		objectp->setAllTESelected(true);
 
 		mSelectedObjects->mSelectType = getSelectTypeForObject(objectp);
 
@@ -1350,6 +1355,7 @@ void LLSelectMgr::remove(LLViewerObject *objectp, S32 te, BOOL undoable)
 		if (nodep->isTESelected(te))
 		{
 			nodep->selectTE(te, FALSE);
+			objectp->setTESelected(te, false);
 		}
 		else
 		{
@@ -1895,47 +1901,79 @@ void LLSelectMgr::selectionSetFullbright(U8 fullbright)
 	getSelection()->applyToObjects(&sendfunc);
 }
 
-void LLSelectMgr::selectionSetMediaTypeAndURL(U8 media_type, const std::string& media_url)
-{
-	U8 media_flags = LLTextureEntry::MF_NONE;
-	if (media_type == LLViewerObject::MEDIA_SET)
-	{
-		media_flags = LLTextureEntry::MF_HAS_MEDIA;
-	}
-	
+// This function expects media_data to be a map containing relevant
+// media data name/value pairs (e.g. home_url, etc.)
+void LLSelectMgr::selectionSetMedia(U8 media_type, const LLSD &media_data)
+{	
 	struct f : public LLSelectedTEFunctor
 	{
 		U8 mMediaFlags;
-		f(const U8& t) : mMediaFlags(t) {}
+		const LLSD &mMediaData;
+		f(const U8& t, const LLSD& d) : mMediaFlags(t), mMediaData(d) {}
 		bool apply(LLViewerObject* object, S32 te)
 		{
 			if (object->permModify())
 			{
-				// update viewer side color in anticipation of update from simulator
-				object->setTEMediaFlags(te, mMediaFlags);
+				// If we are adding media, then check the current state of the
+				// media data on this face.  
+				//  - If it does not have media, AND we are NOT setting the HOME URL, then do NOT add media to this
+				// face.
+				//  - If it does not have media, and we ARE setting the HOME URL, add media to this face.
+				//  - If it does already have media, add/update media to/on this face
+				// If we are removing media, just do it (ignore the passed-in LLSD).
+				if (mMediaFlags & LLTextureEntry::MF_HAS_MEDIA)
+				{
+					llassert(mMediaData.isMap());
+					const LLTextureEntry *texture_entry = object->getTE(te);
+					if (!mMediaData.isMap() ||
+						(NULL != texture_entry) && !texture_entry->hasMedia() && !mMediaData.has(LLMediaEntry::HOME_URL_KEY))
+					{
+						// skip adding/updating media
+					}
+					else {
+						// Add/update media
+						object->setTEMediaFlags(te, mMediaFlags);
+						LLVOVolume *vo = dynamic_cast<LLVOVolume*>(object);
+						llassert(NULL != vo);
+						if (NULL != vo) 
+						{
+							vo->syncMediaData(te, mMediaData, true/*merge*/, true/*ignore_agent*/);
+						}
+					}
+				}
+				else
+				{
+					// delete media (or just set the flags)
+					object->setTEMediaFlags(te, mMediaFlags);
+				}
 			}
 			return true;
 		}
-	} setfunc(media_flags);
+	} setfunc(media_type, media_data);
 	getSelection()->applyToTEs(&setfunc);
-
-	struct g : public LLSelectedObjectFunctor
+	
+	struct f2 : public LLSelectedObjectFunctor
 	{
-		U8 media_type;
-		const std::string& media_url ;
-		g(U8 a, const std::string& b) : media_type(a), media_url(b) {}
 		virtual bool apply(LLViewerObject* object)
 		{
 			if (object->permModify())
 			{
 				object->sendTEUpdate();
-				object->setMediaType(media_type);
-				object->setMediaURL(media_url);
+				LLVOVolume *vo = dynamic_cast<LLVOVolume*>(object);
+				llassert(NULL != vo);
+				// It's okay to skip this object if hasMedia() is false...
+				// the sendTEUpdate() above would remove all media data if it were
+				// there.
+                if (NULL != vo && vo->hasMedia())
+                {
+                    // Send updated media data FOR THE ENTIRE OBJECT
+                    vo->sendMediaDataUpdate();
+                }
 			}
 			return true;
 		}
-	} sendfunc(media_type, media_url);
-	getSelection()->applyToObjects(&sendfunc);
+	} func2;
+	mSelectedObjects->applyToObjects( &func2 );
 }
 
 void LLSelectMgr::selectionSetGlow(F32 glow)
@@ -3259,6 +3297,7 @@ void LLSelectMgr::selectDelete()
 		return;
 	}
 // [/RLVa:KB]
+
 	S32 deleteable_count = 0;
 
 	BOOL locked_but_deleteable_object = FALSE;
@@ -4036,7 +4075,6 @@ void LLSelectMgr::deselectUnused()
 	}
 }
 
-
 void LLSelectMgr::convertTransient()
 {
 	LLObjectSelection::iterator node_it;
@@ -4047,23 +4085,23 @@ void LLSelectMgr::convertTransient()
 	}
 }
 
-
 void LLSelectMgr::deselectAllIfTooFar()
 {
 // [RLVa:KB] - Checked: 2010-11-29 (RLVa-1.3.0c) | Modified: RLVa-1.3.0c
 	if ( (!mSelectedObjects->isEmpty()) && ((gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) || (gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ))) )
 	{
-		struct NotTransientOrEditable : public LLSelectedNodeFunctor
+		struct NotTransientOrFocusedMediaOrEditable : public LLSelectedNodeFunctor
 		{
 			bool apply(LLSelectNode* pNode)
 			{
 				const LLViewerObject* pObj = pNode->getObject();
-				return (!pNode->isTransient()) && (pObj) && (!gRlvHandler.canEdit(pObj));
- 			}
- 		} f;
- 		if (mSelectedObjects->getFirstRootNode(&f, TRUE))
- 			deselectAll();
- 	}
+				return (!pNode->isTransient()) && (pObj) && (!gRlvHandler.canEdit(pObj)) &&
+					(pObj->getID() != LLViewerMediaFocus::getInstance()->getFocusedObjectID());
+			}
+		} f;
+		if (mSelectedObjects->getFirstRootNode(&f, TRUE))
+			deselectAll();
+	}
 // [/RLVa:KB]
 
 	if (mSelectedObjects->isEmpty() || mSelectedObjects->mSelectType == SELECT_TYPE_HUD)
@@ -4090,18 +4128,18 @@ void LLSelectMgr::deselectAllIfTooFar()
 	}
 
 	LLVector3d selectionCenter = getSelectionCenterGlobal();
-
 //	if (gSavedSettings.getBOOL("LimitSelectDistance")
-// [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g) | Modified: RLVa-0.2.0f
+// [RLVa:KB] - Checked: 2010-04-11 (RLVa-1.2.0e) | Modified: RLVa-0.2.0f
 	BOOL fRlvFartouch = gRlvHandler.hasBehaviour(RLV_BHVR_FARTOUCH) && gFloaterTools->getVisible();
 	if ( (gSavedSettings.getBOOL("LimitSelectDistance") || (fRlvFartouch) )
 // [/RLVa:KB]
 		&& (!mSelectedObjects->getPrimaryObject() || !mSelectedObjects->getPrimaryObject()->isAvatar())
+		&& (mSelectedObjects->getPrimaryObject() != LLViewerMediaFocus::getInstance()->getFocusedObject())
 		&& !mSelectedObjects->isAttachment()
 		&& !selectionCenter.isExactlyZero())
 	{
 //		F32 deselect_dist = gSavedSettings.getF32("MaxSelectDistance");
-// [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g) | Modified: RLVa-0.2.0f
+// [RLVa:KB] - Checked: 2010-04-11 (RLVa-1.2.0e) | Modified: RLVa-0.2.0f
 		F32 deselect_dist = (!fRlvFartouch) ? gSavedSettings.getF32("MaxSelectDistance") : 1.5f;
 // [/RLVa:KB]
 		F32 deselect_dist_sq = deselect_dist * deselect_dist;
@@ -4122,6 +4160,7 @@ void LLSelectMgr::deselectAllIfTooFar()
 		}
 	}
 }
+
 
 void LLSelectMgr::selectionSetObjectName(const std::string& name)
 {
@@ -4299,6 +4338,7 @@ void LLSelectMgr::sendDelink()
 		}
 	} sendfunc;
 	getSelection()->applyToObjects(&sendfunc);
+
 
 	// Delink needs to send individuals so you can unlink a single object from
 	// a linked set.
@@ -4740,7 +4780,7 @@ void LLSelectMgr::packPermissions(LLSelectNode* node, void *user_data)
 	gMessageSystem->addU32Fast(_PREHASH_ObjectLocalID, node->getObject()->getLocalID());
 
 	gMessageSystem->addU8Fast(_PREHASH_Field,	data->mField);
-	gMessageSystem->addBOOLFast(_PREHASH_Set,		data->mSet);
+	gMessageSystem->addU8Fast(_PREHASH_Set,		data->mSet ? PERM_SET_TRUE : PERM_SET_FALSE);
 	gMessageSystem->addU32Fast(_PREHASH_Mask,		data->mMask);
 }
 
@@ -5013,6 +5053,7 @@ void LLSelectMgr::processObjectProperties(LLMessageSystem* msg, void** user_data
 			}
 		}
 
+
 		// Iterate through nodes at end, since it can be on both the regular AND hover list
 		struct f : public LLSelectedNodeFunctor
 		{
@@ -5025,7 +5066,11 @@ void LLSelectMgr::processObjectProperties(LLMessageSystem* msg, void** user_data
 		} func(id);
 		LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstNode(&func);
 
-		if (node)
+		if (!node)
+		{
+			llwarns << "Couldn't find object " << id << " selected." << llendl;
+		}
+		else
 		{
 			if (node->mInventorySerial != inv_serial)
 			{
@@ -5144,10 +5189,9 @@ void LLSelectMgr::processObjectPropertiesFamily(LLMessageSystem* msg, void** use
 	msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Description, desc);
 
 	// the reporter widget askes the server for info about picked objects
-	if (request_flags & (COMPLAINT_REPORT_REQUEST | BUG_REPORT_REQUEST))
+	if (request_flags & COMPLAINT_REPORT_REQUEST)
 	{
-		EReportType report_type = (COMPLAINT_REPORT_REQUEST & request_flags) ? COMPLAINT_REPORT : BUG_REPORT;
-		LLFloaterReporter *reporterp = LLFloaterReporter::getReporter(report_type);
+		LLFloaterReporter *reporterp = LLFloaterReporter::getInstance();
 		if (reporterp)
 		{
 			std::string fullname;
@@ -5537,13 +5581,18 @@ void LLSelectMgr::renderSilhouettes(BOOL for_hud)
 	}
 	if (mSelectedObjects->getNumNodes())
 	{
-		LLUUID inspect_item_id = LLFloaterInspect::getSelectedUUID();
+		LLUUID inspect_item_id= LLUUID::null;
+		LLFloaterInspect* inspect_instance = LLFloaterInspect::instanceExists() ? LLFloaterInspect::getInstance() : NULL;
+		if(inspect_instance && inspect_instance->getVisible())
+		{
+			inspect_item_id = inspect_instance->getSelectedUUID();
+		}
 
-		LLUUID focus_item_id = LLViewerMediaFocus::getInstance()->getSelectedUUID();
+		LLUUID focus_item_id = LLViewerMediaFocus::getInstance()->getFocusedObjectID();
 		// <edit>
 		//for (S32 pass = 0; pass < 2; pass++)
-		//{
 		// </edit>
+		{
 			for (LLObjectSelection::iterator iter = mSelectedObjects->begin();
 				 iter != mSelectedObjects->end(); iter++)
 			{
@@ -5579,9 +5628,7 @@ void LLSelectMgr::renderSilhouettes(BOOL for_hud)
 					node->renderOneSilhouette(sSilhouetteChildColor);
 				}
 			}
-		// <edit>
-		//}
-		// </edit>
+		}
 	}
 
 	if (mHighlightedObjects->getNumNodes())
@@ -6238,7 +6285,6 @@ void LLSelectNode::renderOneSilhouette(const LLColor4 &color)
 
 // Update everyone who cares about the selection list
 void dialog_refresh_all()
-
 {
 	// This is the easiest place to fire the update signal, as it will
 	// make cleaning up the functions below easier.  Also, sometimes entities
@@ -6267,7 +6313,12 @@ void dialog_refresh_all()
 	}
 
 	LLFloaterProperties::dirtyAll();
-	LLFloaterInspect::dirty();
+
+	LLFloaterInspect* inspect_instance = LLFloaterInspect::instanceExists() ? LLFloaterInspect::getInstance() : NULL;
+	if(inspect_instance)
+	{
+		inspect_instance->dirty();
+	}
 }
 
 S32 get_family_count(LLViewerObject *parent)

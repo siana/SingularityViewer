@@ -339,11 +339,10 @@ BOOL	LLPanelObject::postBuild()
 	if (mCtrlSculptTexture)
 	{
 		mCtrlSculptTexture->setDefaultImageAssetID(LLUUID(SCULPT_DEFAULT_TEXTURE));
-		mCtrlSculptTexture->setCommitCallback( LLPanelObject::onCommitSculpt );
-		mCtrlSculptTexture->setOnCancelCallback( LLPanelObject::onCancelSculpt );
-		mCtrlSculptTexture->setOnSelectCallback( LLPanelObject::onSelectSculpt );
-		mCtrlSculptTexture->setDropCallback(LLPanelObject::onDropSculpt);
-		mCtrlSculptTexture->setCallbackUserData( this );
+		mCtrlSculptTexture->setCommitCallback( boost::bind(&LLPanelObject::onCommitSculpt, this, _2 ));
+		mCtrlSculptTexture->setOnCancelCallback( boost::bind(&LLPanelObject::onCancelSculpt, this, _2 ));
+		mCtrlSculptTexture->setOnSelectCallback( boost::bind(&LLPanelObject::onSelectSculpt, this, _2 ));
+		mCtrlSculptTexture->setDropCallback( boost::bind(&LLPanelObject::onDropSculpt, this, _2 ));
 		// Don't allow (no copy) or (no transfer) textures to be selected during immediate mode
 		mCtrlSculptTexture->setImmediateFilterPermMask(PERM_COPY | PERM_TRANSFER);
 		// Allow any texture to be used during non-immediate mode.
@@ -553,6 +552,7 @@ void LLPanelObject::getState( )
 	mBtnCopySize->setEnabled( enable_scale );
 	mBtnPasteSize->setEnabled( enable_scale );
 	mBtnPasteSizeClip->setEnabled( enable_scale );
+	mCtrlPosZ->setMaxValue(gHippoLimits->getMaxHeight());
 	mCtrlScaleX->setMaxValue(gHippoLimits->getMaxPrimScale());
 	mCtrlScaleY->setMaxValue(gHippoLimits->getMaxPrimScale());
 	mCtrlScaleZ->setMaxValue(gHippoLimits->getMaxPrimScale());
@@ -2361,60 +2361,49 @@ void LLPanelObject::onCommitPhantom( LLUICtrl* ctrl, void* userdata )
 	self->sendIsPhantom();
 }
 
-// static
-void LLPanelObject::onSelectSculpt(LLUICtrl* ctrl, void* userdata)
+void LLPanelObject::onSelectSculpt(const LLSD& data)
 {
-	LLPanelObject* self = (LLPanelObject*) userdata;
-
-    LLTextureCtrl* mTextureCtrl = self->getChild<LLTextureCtrl>("sculpt texture control");
+    LLTextureCtrl* mTextureCtrl = getChild<LLTextureCtrl>("sculpt texture control");
 
 	if (mTextureCtrl)
 	{
-		self->mSculptTextureRevert = mTextureCtrl->getImageAssetID();
+		mSculptTextureRevert = mTextureCtrl->getImageAssetID();
 	}
 	
-	self->sendSculpt();
+	sendSculpt();
 }
 
 
-void LLPanelObject::onCommitSculpt( LLUICtrl* ctrl, void* userdata )
+void LLPanelObject::onCommitSculpt( const LLSD& data )
 {
-	LLPanelObject* self = (LLPanelObject*) userdata;
-
-	self->sendSculpt();
+	sendSculpt();
 }
 
-// static
-BOOL LLPanelObject::onDropSculpt(LLUICtrl*, LLInventoryItem* item, void* userdata)
+BOOL LLPanelObject::onDropSculpt(LLInventoryItem* item)
 {
-	LLPanelObject* self = (LLPanelObject*) userdata;
-
-    LLTextureCtrl* mTextureCtrl = self->getChild<LLTextureCtrl>("sculpt texture control");
+    LLTextureCtrl* mTextureCtrl = getChild<LLTextureCtrl>("sculpt texture control");
 
 	if (mTextureCtrl)
 	{
 		LLUUID asset = item->getAssetUUID();
 
 		mTextureCtrl->setImageAssetID(asset);
-		self->mSculptTextureRevert = asset;
+		mSculptTextureRevert = asset;
 	}
 
 	return TRUE;
 }
 
 
-// static
-void LLPanelObject::onCancelSculpt(LLUICtrl* ctrl, void* userdata)
+void LLPanelObject::onCancelSculpt(const LLSD& data)
 {
-	LLPanelObject* self = (LLPanelObject*) userdata;
-
-	LLTextureCtrl* mTextureCtrl = self->getChild<LLTextureCtrl>("sculpt texture control");
+	LLTextureCtrl* mTextureCtrl = getChild<LLTextureCtrl>("sculpt texture control");
 	if(!mTextureCtrl)
 		return;
 	
-	mTextureCtrl->setImageAssetID(self->mSculptTextureRevert);
+	mTextureCtrl->setImageAssetID(mSculptTextureRevert);
 	
-	self->sendSculpt();
+	sendSculpt();
 }
 
 // static
@@ -2453,7 +2442,7 @@ void LLPanelObject::onCopyPos(void* user_data)
 	stringVec.append(shortfloat(newpos.mV[VZ]));
 	stringVec.append(">");
 
-	gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(stringVec));
+	gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(stringVec));
 }
 
 void LLPanelObject::onCopySize(void* user_data)
@@ -2470,7 +2459,7 @@ void LLPanelObject::onCopySize(void* user_data)
 	stringVec.append(shortfloat(newpos.mV[VZ]));
 	stringVec.append(">");
 
-	gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(stringVec));
+	gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(stringVec));
 }
 
 void LLPanelObject::onCopyRot(void* user_data)
@@ -2487,7 +2476,20 @@ void LLPanelObject::onCopyRot(void* user_data)
 	stringVec.append(shortfloat(newpos.mV[VZ]));
 	stringVec.append(">");
 
-	gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(stringVec));
+	gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(stringVec));
+}
+
+namespace
+{
+	bool texturePermsCheck(const LLUUID& id)
+	{
+		return (id.notNull() && !gInventory.isObjectDescendentOf(id, gInventory.getLibraryRootFolderID())
+			&& id != LLUUID(gSavedSettings.getString("DefaultObjectTexture"))
+			&& id != LLUUID(gSavedSettings.getString("UIImgWhiteUUID"))
+			&& id != LLUUID(gSavedSettings.getString("UIImgInvisibleUUID"))
+			&& id != LLUUID(std::string("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903")) // alpha
+			&& LLPanelObject::findItemID(id).isNull());
+	}
 }
 
 void LLPanelObject::onCopyParams(void* user_data)
@@ -2500,36 +2502,19 @@ void LLPanelObject::onCopyParams(void* user_data)
 
 	LLViewerObject* objp = self->mObject;
 
-	mClipboardFlexiParams = (LLFlexibleObjectData*)objp->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
-	mClipboardLightParams = (LLLightParams*)objp->getParameterEntry(LLNetworkData::PARAMS_LIGHT);
-	mClipboardSculptParams = (LLSculptParams*)objp->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+	mClipboardFlexiParams = objp->getParameterEntryInUse(LLNetworkData::PARAMS_FLEXIBLE) ? static_cast<LLFlexibleObjectData*>(objp->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE)) : NULL;
+	mClipboardLightParams = objp->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT) ? static_cast<LLLightParams*>(objp->getParameterEntry(LLNetworkData::PARAMS_LIGHT)) : NULL;
+	mClipboardSculptParams = objp->getParameterEntryInUse(LLNetworkData::PARAMS_SCULPT) ? static_cast<LLSculptParams*>(objp->getParameterEntry(LLNetworkData::PARAMS_SCULPT)) : NULL;
 	if (mClipboardSculptParams)
 	{
-		LLUUID id = mClipboardSculptParams->getSculptTexture();
-
-		// Texture perms check
-		if (!(id.isNull() || gInventory.isObjectDescendentOf(id, gInventory.getLibraryRootFolderID())
-			 || id == LLUUID(gSavedSettings.getString("UIImgWhiteUUID"))
-			 || id == LLUUID(gSavedSettings.getString("UIImgInvisibleUUID"))
-			 || id == LLUUID(std::string("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"))) // alpha
-			&& findItemID(id).isNull())
-		{
-			mClipboardSculptParams->setSculptTexture(LLUUID(SCULPT_DEFAULT_TEXTURE));
-		}
+		const LLUUID id = mClipboardSculptParams->getSculptTexture();
+		if (id != LLUUID(SCULPT_DEFAULT_TEXTURE) && !texturePermsCheck(id))
+			mClipboardSculptParams = NULL;
 	}
-	mClipboardLightImageParams = (LLLightImageParams*)objp->getParameterEntry(LLNetworkData::PARAMS_LIGHT_IMAGE);
-	if (mClipboardLightImageParams)
+	mClipboardLightImageParams = objp->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT_IMAGE) ? static_cast<LLLightImageParams*>(objp->getParameterEntry(LLNetworkData::PARAMS_LIGHT_IMAGE)) : NULL;
+	if (mClipboardLightImageParams && texturePermsCheck(mClipboardLightImageParams->getLightTexture()))
 	{
-		LLUUID id = mClipboardLightImageParams->getLightTexture();
-
-		// Texture perms check
-		if (!(id.isNull() || gInventory.isObjectDescendentOf(id, gInventory.getLibraryRootFolderID())
-			 || id == LLUUID(gSavedSettings.getString("UIImgWhiteUUID"))
-			 || id == LLUUID(gSavedSettings.getString("UIImgInvisibleUUID"))
-			 || id == LLUUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903"))) // alpha
-		{
-			mClipboardLightImageParams->setLightTexture(findItemID(id));
-		}
+		mClipboardLightImageParams = NULL;
 	}
 }
 
@@ -2542,16 +2527,27 @@ void LLPanelObject::onPasteParams(void* user_data)
 
 	LLViewerObject* objp = self->mObject;
 
-	objp->updateVolume(mClipboardVolumeParams);
-
 	if (mClipboardFlexiParams)
 		objp->setParameterEntry(LLNetworkData::PARAMS_FLEXIBLE, *mClipboardFlexiParams, true);
+	else
+		objp->setParameterEntryInUse(LLNetworkData::PARAMS_FLEXIBLE, false, true);
+
 	if (mClipboardLightParams)
 		objp->setParameterEntry(LLNetworkData::PARAMS_LIGHT, *mClipboardLightParams, true);
+	else
+		objp->setParameterEntryInUse(LLNetworkData::PARAMS_LIGHT, false, true);
+
 	if (mClipboardSculptParams)
 		objp->setParameterEntry(LLNetworkData::PARAMS_SCULPT, *mClipboardSculptParams, true);
+	else
+		objp->setParameterEntryInUse(LLNetworkData::PARAMS_SCULPT, false, true);
+
 	if (mClipboardLightImageParams)
 		objp->setParameterEntry(LLNetworkData::PARAMS_LIGHT_IMAGE, *mClipboardLightImageParams, true);
+	else
+		objp->setParameterEntryInUse(LLNetworkData::PARAMS_LIGHT_IMAGE, false, true);
+
+	objp->updateVolume(mClipboardVolumeParams);
 }
 
 void LLPanelObject::onLinkObj(void* user_data)
@@ -2572,10 +2568,10 @@ void LLPanelObject::onPastePos(void* user_data)
 	
 	LLPanelObject* self = (LLPanelObject*) user_data;
 	LLCalc* calcp = LLCalc::getInstance();
-	float region_width = LLWorld::getInstance()->getRegionWidthInMeters();
+	float region_width = gAgent.getRegion()->getWidth();
 	mClipboardPos.mV[VX] = llclamp( mClipboardPos.mV[VX], -3.5f, region_width);
 	mClipboardPos.mV[VY] = llclamp( mClipboardPos.mV[VY], -3.5f, region_width);
-	mClipboardPos.mV[VZ] = llclamp( mClipboardPos.mV[VZ], -3.5f, 4096.f);
+	mClipboardPos.mV[VZ] = llclamp( mClipboardPos.mV[VZ], -3.5f, gHippoLimits->getMaxHeight());
 	
 	self->mCtrlPosX->set( mClipboardPos.mV[VX] );
 	self->mCtrlPosY->set( mClipboardPos.mV[VY] );
@@ -2652,9 +2648,12 @@ void LLPanelObject::onPastePosClip(void* user_data)
 	std::string stringVec = wstring_to_utf8str(temp_string); 
 	if(!getvectorfromclip(stringVec, &mClipboardPos)) return;
 	
-	mClipboardPos.mV[VX] = llclamp(mClipboardPos.mV[VX], -3.5f, 256.f);
-	mClipboardPos.mV[VY] = llclamp(mClipboardPos.mV[VY], -3.5f, 256.f);
-	mClipboardPos.mV[VZ] = llclamp(mClipboardPos.mV[VZ], -3.5f, 4096.f);
+	const LLViewerRegion* region(self->mObject ? self->mObject->getRegion() : NULL);
+	if (!region) return;
+	F32 region_width = region->getWidth();
+	mClipboardPos.mV[VX] = llclamp(mClipboardPos.mV[VX], -3.5f, region_width);
+	mClipboardPos.mV[VY] = llclamp(mClipboardPos.mV[VY], -3.5f, region_width);
+	mClipboardPos.mV[VZ] = llclamp(mClipboardPos.mV[VZ], -3.5f, gHippoLimits->getMaxHeight());
 	
 	self->mCtrlPosX->set( mClipboardPos.mV[VX] );
 	self->mCtrlPosY->set( mClipboardPos.mV[VY] );

@@ -29,9 +29,13 @@
 
 #ifdef AI_UNUSED
 #include "llagent.h"
+#endif // AI_UNUSED
 #include "llavataractions.h"
+#ifdef AI_UNUSED
 #include "llfloaterreg.h"
+#endif // AI_UNUSED
 #include "llcommandhandler.h"
+#ifdef AI_UNUSED
 #include "llnotificationsutil.h"
 #include "llpanelpicks.h"
 #include "lltabcontainer.h"
@@ -48,6 +52,7 @@ static const std::string PANEL_PICKS = "panel_picks";
 std::string getProfileURL(const std::string& agent_name)
 {
 	std::string url = gSavedSettings.getString("WebProfileURL");
+	llassert(!url.empty());
 	LLSD subs;
 	subs["AGENT_NAME"] = agent_name;
 	url = LLWeb::expandURLSubstitutions(url,subs);
@@ -55,7 +60,6 @@ std::string getProfileURL(const std::string& agent_name)
 	return url;
 }
 
-#ifdef AI_UNUSED
 class LLProfileHandler : public LLCommandHandler
 {
 public:
@@ -101,7 +105,9 @@ public:
 
 		if (verb == "inspect")
 		{
-			LLFloaterReg::showInstance("inspect_avatar", LLSD().with("avatar_id", avatar_id));
+			LLAvatarActions::showProfile(avatar_id);
+			//Singu TODO: inspect?
+			//LLFloaterReg::showInstance("inspect_avatar", LLSD().with("avatar_id", avatar_id));
 			return true;
 		}
 
@@ -113,11 +119,13 @@ public:
 
 		if (verb == "pay")
 		{
+			/*
 			if (!LLUI::sSettingGroups["config"]->getBOOL("EnableAvatarPay"))
 			{
 				LLNotificationsUtil::add("NoAvatarPay", LLSD(), LLSD(), std::string("SwitchToStandardSkinAndQuit"));
 				return true;
 			}
+			*/
 
 			LLAvatarActions::pay(avatar_id);
 			return true;
@@ -159,6 +167,7 @@ public:
 LLAgentHandler gAgentHandler;
 
 
+#ifdef AI_UNUSED
 //-- LLPanelProfile::ChildStack begins ----------------------------------------
 LLPanelProfile::ChildStack::ChildStack()
 :	mParent(NULL)

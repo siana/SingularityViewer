@@ -57,8 +57,7 @@ S32 LLMultiSlider::mNameCounter = 0;
 LLMultiSlider::LLMultiSlider( 
 	const std::string& name,
 	const LLRect& rect,
-	void (*on_commit_callback)(LLUICtrl* ctrl, void* userdata),
-	void* callback_userdata,
+	commit_callback_t commit_callback,
 	F32 initial_value,
 	F32 min_value,
 	F32 max_value,
@@ -69,8 +68,7 @@ LLMultiSlider::LLMultiSlider(
 	BOOL use_triangle,
 	const std::string& control_name)
 	:
-	LLUICtrl( name, rect, TRUE,	on_commit_callback, callback_userdata, 
-		FOLLOWS_LEFT | FOLLOWS_TOP),
+	LLUICtrl( name, rect, TRUE,	commit_callback, FOLLOWS_LEFT | FOLLOWS_TOP),
 
 	mInitialValue( initial_value ),
 	mMinValue( min_value ),
@@ -626,9 +624,6 @@ LLXMLNodePtr LLMultiSlider::getXML(bool save_children) const
 //static
 LLView* LLMultiSlider::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("multi_slider_bar");
-	node->getAttributeString("name", name);
-
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
@@ -656,9 +651,8 @@ LLView* LLMultiSlider::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactor
 	BOOL use_triangle = FALSE;
 	node->getAttributeBOOL("use_triangle", use_triangle);
 
-	LLMultiSlider* multiSlider = new LLMultiSlider(name,
+	LLMultiSlider* multiSlider = new LLMultiSlider("multi_slider_bar",
 							rect,
-							NULL,
 							NULL,
 							initial_value,
 							min_value,

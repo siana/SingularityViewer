@@ -56,25 +56,25 @@ LLDebugVarMessageBox::LLDebugVarMessageBox(const std::string& title, EDebugVarTy
 	switch(var_type)
 	{
 	case VAR_TYPE_F32:
-	  mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,130,190,110), title, NULL, 70, 130, TRUE, TRUE, FALSE, NULL, NULL, *((F32*)var), -100.f, 100.f, 0.1f, LLStringUtil::null);
+	  mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,130,190,110), title, NULL, 70, 130, TRUE, TRUE, FALSE, NULL, *((F32*)var), -100.f, 100.f, 0.1f, LLStringUtil::null);
 		mSlider1->setPrecision(3);
 		addChild(mSlider1);
 		mSlider2 = NULL;
 		mSlider3 = NULL;
 		break;
 	case VAR_TYPE_S32:
-		mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,100,190,80), title, NULL, 70, 130, TRUE, TRUE, FALSE, NULL, NULL, (F32)*((S32*)var), -255.f, 255.f, 1.f, LLStringUtil::null);
+		mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,100,190,80), title, NULL, 70, 130, TRUE, TRUE, FALSE, NULL, (F32)*((S32*)var), -255.f, 255.f, 1.f, LLStringUtil::null);
 		mSlider1->setPrecision(0);
 		addChild(mSlider1);
 		mSlider2 = NULL;
 		mSlider3 = NULL;
 		break;
 	case VAR_TYPE_VEC3:
-		mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,130,190,110), std::string("x: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, NULL, ((LLVector3*)var)->mV[VX], -100.f, 100.f, 0.1f, LLStringUtil::null);
+		mSlider1 = new LLSliderCtrl(std::string("slider 1"), LLRect(20,130,190,110), std::string("x: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, ((LLVector3*)var)->mV[VX], -100.f, 100.f, 0.1f, LLStringUtil::null);
 		mSlider1->setPrecision(3);
-		mSlider2 = new LLSliderCtrl(std::string("slider 2"), LLRect(20,100,190,80), std::string("y: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, NULL, ((LLVector3*)var)->mV[VY], -100.f, 100.f, 0.1f, LLStringUtil::null);
+		mSlider2 = new LLSliderCtrl(std::string("slider 2"), LLRect(20,100,190,80), std::string("y: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, ((LLVector3*)var)->mV[VY], -100.f, 100.f, 0.1f, LLStringUtil::null);
 		mSlider2->setPrecision(3);
-		mSlider3 = new LLSliderCtrl(std::string("slider 3"), LLRect(20,70,190,50), std::string("z: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, NULL, ((LLVector3*)var)->mV[VZ], -100.f, 100.f, 0.1f, LLStringUtil::null);
+		mSlider3 = new LLSliderCtrl(std::string("slider 3"), LLRect(20,70,190,50), std::string("z: "), NULL, 70, 130, TRUE, TRUE, FALSE, NULL, ((LLVector3*)var)->mV[VZ], -100.f, 100.f, 0.1f, LLStringUtil::null);
 		mSlider3->setPrecision(3);
 		addChild(mSlider1);
 		addChild(mSlider2);
@@ -85,7 +85,7 @@ LLDebugVarMessageBox::LLDebugVarMessageBox(const std::string& title, EDebugVarTy
 		break;
 	}
 
-	mAnimateButton = new LLButton(std::string("Animate"), LLRect(20, 45, 180, 25), LLStringUtil::null, onAnimateClicked, this);
+	mAnimateButton = new LLButton(std::string("Animate"), LLRect(20, 45, 180, 25), LLStringUtil::null, boost::bind(&LLDebugVarMessageBox::onAnimateClicked, this));
 	addChild(mAnimateButton);
 
 	mText = new LLTextBox(std::string("value"), LLRect(20,20,190,0));
@@ -113,7 +113,6 @@ void LLDebugVarMessageBox::show(const std::string& title, F32 *var, F32 max_valu
 		box->mSlider1->setValue(*var);
 	}
 	box->mSlider1->setCommitCallback(boost::bind(&LLDebugVarMessageBox::slider_changed,_1,box));
-	box->mSlider1->setCallbackUserData(box);
 #endif
 }
 
@@ -200,11 +199,10 @@ void LLDebugVarMessageBox::slider_changed(LLUICtrl* ctrl, void* user_data)
 	}
 }
 
-void LLDebugVarMessageBox::onAnimateClicked(void* user_data)
+void LLDebugVarMessageBox::onAnimateClicked()
 {
-	LLDebugVarMessageBox* msg_boxp = (LLDebugVarMessageBox*)user_data;
-	msg_boxp->mAnimate = !msg_boxp->mAnimate;
-	msg_boxp->mAnimateButton->setToggleState(msg_boxp->mAnimate);
+	mAnimate = !mAnimate;
+	mAnimateButton->setToggleState(mAnimate);
 }
 
 void LLDebugVarMessageBox::onClose(bool app_quitting)

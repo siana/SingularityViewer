@@ -62,15 +62,6 @@ quels membres ces pouvoirs sont assign&#xE9;s.
 	     name="roles_tab_container" tab_position="top" width="406">
 		<panel border="true" bottom="0" height="164" label="Membres" left="1"
 		     name="members_sub_tab" select="true" tool_tip="Membres" width="406">
-			<line_editor bevel_style="in" border_style="line"
-			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
-			     height="16" is_unicode="false" left="4" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
-			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
-			     label="Chercher" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Tout Voir" left_delta="65" name="show_all_button"
-			     width="80" />
 			<name_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-121"
 			     column_padding="0" draw_border="true" draw_heading="true"
 			     heading_font="SansSerifSmall"
@@ -88,19 +79,9 @@ quels membres ces pouvoirs sont assign&#xE9;s.
 			Vous pouvez ajouter ou supprimer les r&#xF4;les assign&#xE9;s aux membres.
 Pour s&#xE9;lectionner plusieurs membres, cliquez sur leurs noms en maintenant la touche Ctrl enfonc&#xE9;e.
 			</string>
-			<icon image_name="inv_folder_plain_closed.tga" name="power_folder_icon" width="16" height="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
 		</panel>
 		<panel border="true" bottom="0" height="164" label="R&#xF4;les"
 		     left="1" name="roles_sub_tab" width="398">
-			<line_editor bevel_style="in" border_style="line"
-			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
-			     height="16" is_unicode="false" left="4" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
-			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
-			     label="Chercher" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Tout Voir" left_delta="65" name="show_all_button"
-			     width="80" />
 			<scroll_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-120"
 			     column_padding="0" draw_border="true" draw_heading="true" enabled="true"
 			     follows="left|top"
@@ -120,24 +101,9 @@ Pour s&#xE9;lectionner plusieurs membres, cliquez sur leurs noms en maintenant l
 			<string name="cant_delete_role">
 				Les &apos;Everyone&apos; t &apos;Owners&apos; sont des r&#xF4;les sp&#xE9;ciaux qui ne peuvent &#xEA;tre supprim&#xE9;s.
 			</string>
-			<icon height="16" image_name="inv_folder_plain_closed.tga" name="power_folder_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
-			<icon height="16" image_name="checkbox_enabled_true.tga" name="power_all_have_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
-			<icon height="16" image_name="checkbox_enabled_false.tga" name="power_partial_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
 		</panel>
 		<panel border="true" bottom="0"
 		     height="164" label="Pouvoirs" left="1" name="actions_sub_tab" width="398">
-			<line_editor bevel_style="in" border_style="line"
-			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
-			     height="16" is_unicode="false" left="6" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
-			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
-			     label="Chercher" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Tout Voir" left_delta="65" name="show_all_button"
-			     width="80" />
 			<scroll_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-134"
 			     column_padding="0" draw_border="true" draw_heading="false"
 			     draw_stripes="false"
@@ -151,8 +117,7 @@ Pour s&#xE9;lectionner plusieurs membres, cliquez sur leurs noms en maintenant l
 			<string name="help_text">
 				Permet aux membres de ce r&#xF4;le des actions sp&#xE9;cifiques. Les possibilit&#xE9;s sont vari&#xE9;es.
 			</string>
-			<icon image_name="inv_folder_plain_closed.tga" name="power_folder_icon" width="16" height="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
-		</panel>
+			</panel>
 	</tab_container>
 	<panel border="false" bottom_delta="-235" height="215" left="7" name="members_footer"
 	     select="true" visible="true" width="406">

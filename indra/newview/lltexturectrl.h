@@ -4,10 +4,9 @@
  * @brief LLTextureCtrl class header file including related functions
  *
  * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2002-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -48,7 +47,8 @@ class LLViewBorder;
 class LLViewerFetchedTexture;
 
 // used for setting drag & drop callbacks.
-typedef BOOL (*drag_n_drop_callback)(LLUICtrl*, LLInventoryItem*, void*);
+typedef boost::function<BOOL (LLUICtrl*, LLInventoryItem*)> drag_n_drop_callback;
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // LLTextureCtrl
@@ -132,6 +132,8 @@ public:
 
 	void			setImmediateFilterPermMask(PermissionMask mask)
 					{ mImmediateFilterPermMask = mask; }
+	void			setDnDFilterPermMask(PermissionMask mask)
+						{ mDnDFilterPermMask = mask; }
 	void			setNonImmediateFilterPermMask(PermissionMask mask)
 					{ mNonImmediateFilterPermMask = mask; }
 	PermissionMask	getImmediateFilterPermMask() { return mImmediateFilterPermMask; }
@@ -152,9 +154,9 @@ public:
 	// necessariliy any other change.
 	void setDropCallback(drag_n_drop_callback cb)	{ mDropCallback = cb; }
 
-	void setOnCancelCallback(LLUICtrlCallback cb)	{ mOnCancelCallback = cb; }
+	void setOnCancelCallback(commit_callback_t cb)	{ mOnCancelCallback = cb; }
 	
-	void setOnSelectCallback(LLUICtrlCallback cb)	{ mOnSelectCallback = cb; }
+	void setOnSelectCallback(commit_callback_t cb)	{ mOnSelectCallback = cb; }
 
 	void setShowLoadingPlaceholder(BOOL showLoadingPlaceholder);
 
@@ -168,8 +170,8 @@ private:
 private:
 	drag_n_drop_callback	 mDragCallback;
 	drag_n_drop_callback	 mDropCallback;
-	LLUICtrlCallback		 mOnCancelCallback;
-	LLUICtrlCallback		 mOnSelectCallback;
+	commit_callback_t		 mOnCancelCallback;
+	commit_callback_t		 mOnSelectCallback;
 	LLPointer<LLViewerFetchedTexture> mTexturep;
 	LLColor4				 mBorderColor;
 	LLUUID					 mImageItemID;
@@ -185,6 +187,7 @@ private:
 	BOOL					 mAllowInvisibleTexture; // If true, the user can select "Invisible" as an option
 	LLCoordGL				 mLastFloaterLeftTop;
 	PermissionMask			 mImmediateFilterPermMask;
+	PermissionMask				mDnDFilterPermMask;
 	PermissionMask			 mNonImmediateFilterPermMask;
 	BOOL					 mCanApplyImmediately;
 	BOOL					 mNeedsRawImageData;

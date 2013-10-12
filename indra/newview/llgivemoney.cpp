@@ -54,23 +54,10 @@
 
 #include "hippogridmanager.h"
 
+#include <boost/lexical_cast.hpp>
 ///----------------------------------------------------------------------------
 /// Local function declarations, constants, enums, and typedefs
 ///----------------------------------------------------------------------------
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Class LLGiveMoneyInfo
-//
-// A small class used to track callback information
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-struct LLGiveMoneyInfo
-{
-	LLFloaterPay* mFloater;
-	S32 mAmount;
-	LLGiveMoneyInfo(LLFloaterPay* floater, S32 amount) :
-		mFloater(floater), mAmount(amount){}
-};
 
 ///----------------------------------------------------------------------------
 /// Class LLFloaterPay
@@ -88,13 +75,19 @@ LLFloaterPay::LLFloaterPay(const std::string& name,
 	LLFloater(name, std::string("FloaterPayRectB"), LLStringUtil::null, RESIZE_NO,
 				DEFAULT_MIN_WIDTH, DEFAULT_MIN_HEIGHT, DRAG_ON_TOP,
 				MINIMIZE_NO, CLOSE_YES),
-	mCallbackData(),
 	mCallback(callback),
 	mObjectNameText(NULL),
 	mTargetUUID(uuid),
 	mTargetIsObject(target_is_object),
-	mTargetIsGroup(FALSE)
+	mTargetIsGroup(FALSE),
+	mDefaultValue(0)
 {
+	mQuickPayInfo[0] = PAY_BUTTON_DEFAULT_0;
+	mQuickPayInfo[1] = PAY_BUTTON_DEFAULT_1;
+	mQuickPayInfo[2] = PAY_BUTTON_DEFAULT_2;
+	mQuickPayInfo[3] = PAY_BUTTON_DEFAULT_3;
+	BOOST_STATIC_ASSERT(MAX_PAY_BUTTONS == 4);
+
 	if (target_is_object)
 	{
 		LLUICtrlFactory::getInstance()->buildFloater(this,"floater_pay_object.xml");
@@ -105,55 +98,14 @@ LLFloaterPay::LLFloaterPay(const std::string& name,
 		LLUICtrlFactory::getInstance()->buildFloater(this,"floater_pay.xml");
 	}
 
-	
-	S32 i =0;
+	for(U32 i = 0; i < MAX_PAY_BUTTONS; ++i)
+	{
+		mQuickPayButton[i] = getChild<LLButton>("fastpay " + boost::lexical_cast<std::string>(mQuickPayInfo[i]));
+		mQuickPayButton[i]->setClickedCallback(boost::bind(&LLFloaterPay::onGive,this,boost::ref(mQuickPayInfo[i])));
+		mQuickPayButton[i]->setVisible(FALSE);
+		mQuickPayButton[i]->setLabelArg("[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
+	}
 
-	LLGiveMoneyInfo* info = new LLGiveMoneyInfo(this, PAY_BUTTON_DEFAULT_0);
-	mCallbackData.push_back(info);
-
-	childSetAction("fastpay 1",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 1", FALSE);
-	childSetLabelArg("fastpay 1", "[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
-
-
-	mQuickPayButton[i] = getChild<LLButton>("fastpay 1");
-	mQuickPayInfo[i] = info;
-	++i;
-
-	info = new LLGiveMoneyInfo(this, PAY_BUTTON_DEFAULT_1);
-	mCallbackData.push_back(info);
-
-	childSetAction("fastpay 5",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 5", FALSE);
-	childSetLabelArg("fastpay 5", "[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
-
-	mQuickPayButton[i] = getChild<LLButton>("fastpay 5");
-	mQuickPayInfo[i] = info;
-	++i;
-
-	info = new LLGiveMoneyInfo(this, PAY_BUTTON_DEFAULT_2);
-	mCallbackData.push_back(info);
-
-	childSetAction("fastpay 10",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 10", FALSE);
-	childSetLabelArg("fastpay 10", "[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
-
-	mQuickPayButton[i] = getChild<LLButton>("fastpay 10");
-	mQuickPayInfo[i] = info;
-	++i;
-
-	info = new LLGiveMoneyInfo(this, PAY_BUTTON_DEFAULT_3);
-	mCallbackData.push_back(info);
-
-	childSetAction("fastpay 20",&LLFloaterPay::onGive,info);
-	childSetVisible("fastpay 20", FALSE);
-	childSetLabelArg("fastpay 20", "[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
-
-	mQuickPayButton[i] = getChild<LLButton>("fastpay 20");
-	mQuickPayInfo[i] = info;
-	++i;
-
-	
     childSetVisible("amount text", FALSE);	
 
 	std::string last_amount;
@@ -162,21 +114,20 @@ LLFloaterPay::LLFloaterPay(const std::string& name,
 		last_amount = llformat("%d", sLastAmount);
 	}
 
-    childSetVisible("amount", FALSE);
-	
-	childSetKeystrokeCallback("amount", &LLFloaterPay::onKeystroke, this);
-	childSetText("amount", last_amount);
-	childSetPrevalidate("amount", LLLineEditor::prevalidateNonNegativeS32);
+	LLLineEditor* amount = getChild<LLLineEditor>("amount");
+	amount->setVisible(false);
+	amount->setKeystrokeCallback(boost::bind(&LLFloaterPay::onKeystroke, this, _1));
+	amount->setText(last_amount);
+	amount->setPrevalidate(&LLLineEditor::prevalidateNonNegativeS32);
 
-	info = new LLGiveMoneyInfo(this, 0);
-	mCallbackData.push_back(info);
 
-	childSetAction("pay btn",&LLFloaterPay::onGive,info);
-	setDefaultBtn("pay btn");
-	childSetVisible("pay btn", FALSE);
-	childSetEnabled("pay btn", (sLastAmount > 0));
+	LLButton* pay_btn = getChild<LLButton>("pay btn");
+	pay_btn->setClickedCallback(boost::bind(&LLFloaterPay::onGive,this,boost::ref(mDefaultValue)));
+	setDefaultBtn(pay_btn);
+	pay_btn->setVisible(false);
+	pay_btn->setEnabled(sLastAmount > 0);
 
-	childSetAction("cancel btn",&LLFloaterPay::onCancel,this);
+	getChild<LLButton>("cancel btn")->setClickedCallback(boost::bind(&LLFloaterPay::onCancel,this));
 
 	center();
 	open();		/*Flawfinder: ignore*/
@@ -185,7 +136,8 @@ LLFloaterPay::LLFloaterPay(const std::string& name,
 // Destroys the object
 LLFloaterPay::~LLFloaterPay()
 {
-	std::for_each(mCallbackData.begin(), mCallbackData.end(), DeletePointer());
+	// In case this floater is currently waiting for a reply.
+	gMessageSystem->setHandlerFuncFast(_PREHASH_PayPriceReply, 0, 0);
 }
 
 // static
@@ -250,7 +202,7 @@ void LLFloaterPay::processPayPriceReply(LLMessageSystem* msg, void **userdata)
 				self->mQuickPayButton[i]->setLabelSelected(button_str);
 				self->mQuickPayButton[i]->setLabelUnselected(button_str);
 				self->mQuickPayButton[i]->setVisible(TRUE);
-				self->mQuickPayInfo[i]->mAmount = pay_button;
+				self->mQuickPayInfo[i] = pay_button;
 				self->childSetVisible("fastpay text",TRUE);
 
 				if ( pay_button > max_pay_amount )
@@ -397,51 +349,34 @@ void LLFloaterPay::onCacheOwnerName(const LLUUID& owner_id,
 									const std::string& full_name,
 									bool is_group)
 {
-	if (is_group)
+	if (LLView* view = findChild<LLView>("payee_group"))
 	{
-		childSetVisible("payee_group",true);
-		childSetVisible("payee_resident",false);
+		view->setVisible(is_group);
 	}
-	else
+	if (LLView* view = findChild<LLView>("payee_resident"))
 	{
-		childSetVisible("payee_group",false);
-		childSetVisible("payee_resident",true);
+		view->setVisible(!is_group);
 	}
-	
+
 	childSetTextArg("payee_name", "[NAME]", full_name);
 }
 
-// static
-void LLFloaterPay::onCancel(void* data)
+void LLFloaterPay::onCancel()
 {
-	LLFloaterPay* self = reinterpret_cast<LLFloaterPay*>(data);
-	if(self)
-	{
-		self->close();
-	}
+	close();
 }
 
-// static
-void LLFloaterPay::onKeystroke(LLLineEditor*, void* data)
+void LLFloaterPay::onKeystroke(LLLineEditor* caller)
 {
-	LLFloaterPay* self = reinterpret_cast<LLFloaterPay*>(data);
-	if(self)
-	{
-		// enable the Pay button when amount is non-empty and positive, disable otherwise
-		std::string amtstr = self->childGetText("amount");
-		self->childSetEnabled("pay btn", !amtstr.empty() && atoi(amtstr.c_str()) > 0);
-	}
+	// enable the Pay button when amount is non-empty and positive, disable otherwise
+	std::string amtstr = caller->getValue().asString();
+	childSetEnabled("pay btn", !amtstr.empty() && atoi(amtstr.c_str()) > 0);
 }
 
-// static
-void LLFloaterPay::onGive(void* data)
+void LLFloaterPay::onGive(const S32& amount)
 {
-	LLGiveMoneyInfo* info = reinterpret_cast<LLGiveMoneyInfo*>(data);
-	if(info && info->mFloater)
-	{
-		info->mFloater->give(info->mAmount);
-		info->mFloater->close();
-	}
+	give(amount);
+	close();
 }
 
 void LLFloaterPay::give(S32 amount)

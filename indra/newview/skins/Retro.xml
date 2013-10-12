@@ -1,0 +1,14 @@
+<llsd>
+    <map>
+    <key>skin_name</key>
+        <string>Retro</string>
+    <key>author_name</key>
+        <string>Thraxis Epsilon</string>
+    <key>additional_author_names</key>
+        <string>Linden Lab</string>
+    <key>skin_info</key>
+        <string>The Dazzle skin tweaked to look more Classic-like.</string>
+    <key>folder_name</key>
+        <string>Retro</string>
+    </map>
+</llsd>

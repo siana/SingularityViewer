@@ -34,7 +34,10 @@
 #define LL_LLFLOATER_NOTIFICATIONS_CONSOLE_H
 
 #include "llfloater.h"
-#include "llnotifications.h"
+#include "lllayoutstack.h"
+//#include "llnotificationsutil.h"
+
+class LLNotification;
 
 class LLFloaterNotificationConsole : 
 	public LLFloater, 
@@ -54,7 +57,7 @@ public:
 	void updateResizeLimits();
 
 private:
-	static void onClickAdd(void* user_data);
+	void onClickAdd();
 };
 
 
@@ -72,7 +75,6 @@ public:
 	void onClose(bool app_quitting) { setVisible(FALSE); }
 
 private:
-	static void onCommitResponse(LLUICtrl* ctrl, void* data) { ((LLFloaterNotification*)data)->respond(); }
 	LLNotification* mNote;
 };
 #endif

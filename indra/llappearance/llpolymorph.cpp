@@ -77,9 +77,11 @@ LLPolyMorphData::LLPolyMorphData(const LLPolyMorphData &rhs) :
 {
 	const S32 numVertices = mNumIndices;
 
-	mCoords = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
-	mNormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
-	mBinormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
+	U32 size = sizeof(LLVector4a)*numVertices;
+
+	mCoords = static_cast<LLVector4a*>( ll_aligned_malloc_16(size) );
+	mNormals = static_cast<LLVector4a*>( ll_aligned_malloc_16(size) );
+	mBinormals = static_cast<LLVector4a*>( ll_aligned_malloc_16(size) );
 	mTexCoords = new LLVector2[numVertices];
 	mVertexIndices = new U32[numVertices];
 	
@@ -125,9 +127,13 @@ BOOL LLPolyMorphData::loadBinary(LLFILE *fp, LLPolyMeshSharedData *mesh)
 	//-------------------------------------------------------------------------
 	// allocate vertices
 	//-------------------------------------------------------------------------
-	mCoords = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
-	mNormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
-	mBinormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(numVertices * sizeof(LLVector4a)));
+	
+	U32 size = sizeof(LLVector4a)*numVertices;
+	
+	mCoords = static_cast<LLVector4a*>(ll_aligned_malloc_16(size));
+	mNormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(size));
+	mBinormals = static_cast<LLVector4a*>(ll_aligned_malloc_16(size));
+	
 	mTexCoords = new LLVector2[numVertices];
 	// Actually, we are allocating more space than we need for the skiplist
 	mVertexIndices = new U32[numVertices];
@@ -889,17 +895,29 @@ void LLPolyMorphTarget::apply( ESex avatar_sex )
 			norm.mul(delta_weight*maskWeight*NORMAL_SOFTEN_FACTOR);
 			scaled_normals[vert_index_mesh].add(norm);
 			norm = scaled_normals[vert_index_mesh];
+
+			// guard against degenerate input data before we create NaNs below!
+			//
 			norm.normalize3fast();
 			normals[vert_index_mesh] = norm;
 
 			// calculate new binormals
 			LLVector4a binorm = mMorphData->mBinormals[vert_index_morph];
+
+			// guard against degenerate input data before we create NaNs below!
+			//
+			if (!binorm.isFinite3() || (binorm.dot3(binorm).getF32() <= F_APPROXIMATELY_ZERO))
+			{
+				binorm.set(1,0,0,1);
+			}
+
 			binorm.mul(delta_weight*maskWeight*NORMAL_SOFTEN_FACTOR);
 			scaled_binormals[vert_index_mesh].add(binorm);
 			LLVector4a tangent;
 			tangent.setCross3(scaled_binormals[vert_index_mesh], norm);
 			LLVector4a& normalized_binormal = binormals[vert_index_mesh];
-			normalized_binormal.setCross3(norm, tangent); 
+
+			normalized_binormal.setCross3(norm, tangent); 			
 			normalized_binormal.normalize3fast();
 			
 			tex_coords[vert_index_mesh] += mMorphData->mTexCoords[vert_index_morph] * delta_weight * maskWeight;

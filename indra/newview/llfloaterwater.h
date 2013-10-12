@@ -39,15 +39,16 @@
 
 #include "llfloater.h"
 
-#include <vector>
 #include "llwlparamset.h"
 #include "llwlparammanager.h" // for LLWLParamKey
 
-struct WaterColorControl;
-struct WaterloatControl;
-
 class LLComboBox;
 
+struct WaterVector2Control;
+struct WaterVector3Control;
+struct WaterColorControl;
+struct WaterFloatControl;
+struct WaterExpFloatControl;
 
 /// Menuing system for all of windlight's functionality
 class LLFloaterWater : public LLFloater
@@ -67,53 +68,54 @@ public:
 	static void onClickHelp(void* data);
 	void initHelpBtn(const std::string& name, const std::string& xml_alert);
 
-	static bool newPromptCallback(const LLSD& notification, const LLSD& response);
+	//-- WL stuff begins ------------------------------------------------------
 
-	/// general purpose callbacks for dealing with color controllers
-	static void onColorControlRMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlGMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlBMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlAMoved(LLUICtrl* ctrl, void* userData);
-	static void onColorControlIMoved(LLUICtrl* ctrl, void* userData);
+	bool newPromptCallback(const LLSD& notification, const LLSD& response);
 
-	static void onVector3ControlXMoved(LLUICtrl* ctrl, void* userData);
-	static void onVector3ControlYMoved(LLUICtrl* ctrl, void* userData);
-	static void onVector3ControlZMoved(LLUICtrl* ctrl, void* userData);
+	// general purpose callbacks for dealing with color controllers
+	void onColorControlRMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
+	void onColorControlGMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
+	void onColorControlBMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
+	void onColorControlAMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
+	void onColorControlIMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
 
-	static void onVector2ControlXMoved(LLUICtrl* ctrl, void* userData);
-	static void onVector2ControlYMoved(LLUICtrl* ctrl, void* userData);
+	void onVector3ControlXMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl);
+	void onVector3ControlYMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl);
+	void onVector3ControlZMoved(LLUICtrl* ctrl, WaterVector3Control* vector_ctrl);
 
-	static void onFloatControlMoved(LLUICtrl* ctrl, void* userData);
+	void onVector2ControlXMoved(LLUICtrl* ctrl, WaterVector2Control* vector_ctrl);
+	void onVector2ControlYMoved(LLUICtrl* ctrl, WaterVector2Control* vector_ctrl);
 
-	static void onExpFloatControlMoved(LLUICtrl* ctrl, void* userData);
+	void onFloatControlMoved(LLUICtrl* ctrl, WaterFloatControl* floatControl);
 
-	static void onWaterFogColorMoved(LLUICtrl* ctrl, void* userData);
+	void onExpFloatControlMoved(LLUICtrl* ctrl, WaterExpFloatControl* expFloatControl);
 
-	static void onBoolToggle(LLUICtrl* ctrl, void* userData);
+	void onWaterFogColorMoved(LLUICtrl* ctrl, WaterColorControl* color_ctrl);
 
-	/// handle if they choose a new normal map
-	static void onNormalMapPicked(LLUICtrl* ctrl, void* userData);
+	void onNormalMapPicked(LLUICtrl* ctrl); /// handle if they choose a new normal map
+
+	//-- WL stuff ends --------------------------------------------------------
 
 	/// when user hits the load preset button
-	static void onNewPreset(void* userData);
+	void onNewPreset();
 
 	/// when user hits the save preset button
-	static void onSavePreset(LLUICtrl* ctrl, void* userData);
+	void onSavePreset(LLUICtrl* ctrl);
 	
 	/// prompts a user when overwriting a preset notecard
-	static bool saveNotecardCallback(const LLSD& notification, const LLSD& response);
+	bool saveNotecardCallback(const LLSD& notification, const LLSD& response);
 
 	/// prompts a user when overwriting a preset
-	static bool saveAlertCallback(const LLSD& notification, const LLSD& response);
+	bool saveAlertCallback(const LLSD& notification, const LLSD& response);
 
 	/// when user hits the save preset button
-	static void onDeletePreset(void* userData);
+	void onDeletePreset();
 
 	/// prompts a user when overwriting a preset
-	static bool deleteAlertCallback(const LLSD& notification, const LLSD& response);
+	bool deleteAlertCallback(const LLSD& notification, const LLSD& response);
 
 	/// what to do when you change the preset name
-	static void onChangePresetName(LLUICtrl* ctrl, void* userData);
+	void onChangePresetName(LLUICtrl* ctrl);
 
 	//// menu management
 
@@ -135,8 +137,8 @@ private:
 
 	static std::set<std::string> sDefaultPresets;
 
-	static void onClickNext(void* user_data);
-	static void onClickPrev(void* user_data);
+	void onClickNext();
+	void onClickPrev();
 
 	void populateWaterPresetsList();
 

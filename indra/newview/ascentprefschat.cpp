@@ -46,75 +46,60 @@
 
 #include "llstartup.h"
 
-LLDropTarget* mObjectDropTarget;
-LLPrefsAscentChat* LLPrefsAscentChat::sInst;
 
 LLPrefsAscentChat::LLPrefsAscentChat()
 {
     LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_ascent_chat.xml");
 
-    childSetCommitCallback("SpellBase", onSpellBaseComboBoxCommit, this);
-    childSetAction("EmSpell_EditCustom", onSpellEditCustom, this);
-    childSetAction("EmSpell_GetMore", onSpellGetMore, this);
-    childSetAction("EmSpell_Add", onSpellAdd, this);
-    childSetAction("EmSpell_Remove", onSpellRemove, this);
+	getChild<LLUICtrl>("SpellBase")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onSpellBaseComboBoxCommit, this, _2));
+	getChild<LLUICtrl>("EmSpell_EditCustom")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onSpellEditCustom, this));
+	getChild<LLUICtrl>("EmSpell_GetMore")->setCommitCallback(boost::bind(&lggHunSpell_Wrapper::getMoreButton, glggHunSpell, this));
+	getChild<LLUICtrl>("EmSpell_Add")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onSpellAdd, this));
+	getChild<LLUICtrl>("EmSpell_Remove")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onSpellRemove, this));
 
-    childSetCommitCallback("time_format_combobox", onCommitTimeDate, this);
-    childSetCommitCallback("date_format_combobox", onCommitTimeDate, this);
+	getChild<LLUICtrl>("time_format_combobox")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitTimeDate, this, _1));
+	getChild<LLUICtrl>("date_format_combobox")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitTimeDate, this, _1));
 
-    childSetCommitCallback("AscentInstantMessageResponseAnyone", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageResponseFriends", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageResponseMuted", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageShowOnTyping", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageShowResponded", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageResponseRepeat", onCommitAutoResponse, this);
-    childSetCommitCallback("AscentInstantMessageResponseItem", onCommitAutoResponse, this);
-
-	if(sInst)delete sInst; sInst = this;
-	LLView* target_view = getChild<LLView>("im_give_drop_target_rect");
-	if (target_view)
+	bool started = (LLStartUp::getStartupState() == STATE_STARTED);
+	if (!started) // Disable autoresponse when not logged in
 	{
-		const std::string drop="drop target";
-		if (mObjectDropTarget)	delete mObjectDropTarget;
-		mObjectDropTarget = new LLDropTarget(drop, target_view->getRect(), SinguIMResponseItemDrop);//, mAvatarID);
-		addChild(mObjectDropTarget);
+		LLView* autoresponse = getChildView("Autoresponse");
+		autoresponse->setAllChildrenEnabled(false);
+		autoresponse->setToolTip(LLTrans::getString("NotLoggedIn"));
 	}
 
-	bool started = LLStartUp::getStartupState() == STATE_STARTED;
-	if (started)
-	{
-		LLUUID itemid = (LLUUID)gSavedPerAccountSettings.getString("AscentInstantMessageResponseItemData");
-		LLViewerInventoryItem* item = gInventory.getItem(itemid);
-
-		if (item)
-		{
-			LLStringUtil::format_map_t args;
-			args["[ITEM]"] = item->getName();
-			childSetValue("im_give_disp_rect_txt", LLTrans::getString("CurrentlySetTo", args));
-		}
-		else if (itemid.isNull())
-			childSetValue("im_give_disp_rect_txt", LLTrans::getString("CurrentlyNotSet"));
-		else
-			childSetValue("im_give_disp_rect_txt", LLTrans::getString("CurrentlySetToAnItemNotOnThisAccount"));
-	}
-	else	childSetValue("im_give_disp_rect_txt", LLTrans::getString("NotLoggedIn"));
-
-    childSetCommitCallback("im_response", onCommitAutoResponse, this);
+	// Saved per account settings aren't detected by control_name, therefore autoresponse controls get their values here and have them saved during apply.
+	childSetValue("AscentInstantMessageResponseRepeat",  gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseRepeat"));
+	childSetValue("AutoresponseAnyone",                  gSavedPerAccountSettings.getBOOL("AutoresponseAnyone"));
+	childSetValue("AutoresponseAnyoneFriendsOnly",       gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneFriendsOnly"));
+	childSetValue("AutoresponseAnyoneItem",              gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneItem"));
+	childSetValue("AutoresponseAnyoneMessage",           gSavedPerAccountSettings.getString("AutoresponseAnyoneMessage"));
+	childSetValue("AutoresponseAnyoneShow",              gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneShow"));
+	childSetValue("AutoresponseNonFriends",              gSavedPerAccountSettings.getBOOL("AutoresponseNonFriends"));
+	childSetValue("AutoresponseNonFriendsItem",          gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsItem"));
+	childSetValue("AutoresponseNonFriendsMessage",       gSavedPerAccountSettings.getString("AutoresponseNonFriendsMessage"));
+	childSetValue("AutoresponseNonFriendsShow",          gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsShow"));
+	childSetValue("AutoresponseMuted",                   gSavedPerAccountSettings.getBOOL("AutoresponseMuted"));
+	childSetValue("AutoresponseMutedItem",               gSavedPerAccountSettings.getBOOL("AutoresponseMutedItem"));
+	childSetValue("AutoresponseMutedMessage",            gSavedPerAccountSettings.getString("AutoresponseMutedMessage"));
+	childSetValue("BusyModeResponse",                    gSavedPerAccountSettings.getString("BusyModeResponse"));
+	childSetValue("BusyModeResponseItem",                gSavedPerAccountSettings.getBOOL("BusyModeResponseItem"));
+	childSetValue("BusyModeResponseShow",                gSavedPerAccountSettings.getBOOL("BusyModeResponseShow"));
 
 	childSetEnabled("reset_antispam", started);
-	childSetCommitCallback("reset_antispam", onCommitResetAS, this);
-	childSetCommitCallback("enable_as", onCommitEnableAS, this);
-	childSetCommitCallback("antispam_checkbox", onCommitDialogBlock, this);
-	childSetCommitCallback("Group Invites", onCommitDialogBlock, this);
+	getChild<LLUICtrl>("reset_antispam")->setCommitCallback(boost::bind(NACLAntiSpamRegistry::purgeAllQueues));
+	getChild<LLUICtrl>("enable_as")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitEnableAS, this, _2));
+	getChild<LLUICtrl>("antispam_checkbox")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitDialogBlock, this, _1, _2));
+	getChild<LLUICtrl>("Group Invites")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitDialogBlock, this, _1, _2));
 
-    childSetCommitCallback("KeywordsOn", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsList", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsSound", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsInChat", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsInIM", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsChangeColor", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsColor", onCommitKeywords, this);
-    childSetCommitCallback("KeywordsPlaySound", onCommitKeywords, this);
+	getChild<LLUICtrl>("KeywordsOn")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsList")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsSound")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsInChat")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsInIM")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsChangeColor")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsColor")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
+	getChild<LLUICtrl>("KeywordsPlaySound")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
 
     refreshValues();
     refresh();
@@ -122,77 +107,45 @@ LLPrefsAscentChat::LLPrefsAscentChat()
 
 LLPrefsAscentChat::~LLPrefsAscentChat()
 {
-	sInst=NULL;
-	delete mObjectDropTarget; mObjectDropTarget=NULL;
 }
 
-//static
-void LLPrefsAscentChat::onSpellAdd(void* data)
+void LLPrefsAscentChat::onSpellAdd()
 {
-    LLPrefsAscentChat* self = (LLPrefsAscentChat*)data;
-
-    if(self)
-    {
-        glggHunSpell->addButton(self->childGetValue("EmSpell_Avail").asString());
-    }
-
-    self->refresh();
+	glggHunSpell->addButton(childGetValue("EmSpell_Avail").asString());
+	refresh();
 }
 
-//static
-void LLPrefsAscentChat::onSpellRemove(void* data)
+void LLPrefsAscentChat::onSpellRemove()
 {
-    LLPrefsAscentChat* self = (LLPrefsAscentChat*)data;
-
-    if(self)
-    {
-        glggHunSpell->removeButton(self->childGetValue("EmSpell_Installed").asString());
-    }
-
-    self->refresh();
+	glggHunSpell->removeButton(childGetValue("EmSpell_Installed").asString());
+	refresh();
 }
 
-//static
-void LLPrefsAscentChat::onSpellGetMore(void* data)
+void LLPrefsAscentChat::onSpellEditCustom()
 {
-    glggHunSpell->getMoreButton(data);
+	glggHunSpell->editCustomButton();
 }
 
-//static
-void LLPrefsAscentChat::onSpellEditCustom(void* data)
+void LLPrefsAscentChat::onSpellBaseComboBoxCommit(const LLSD& value)
 {
-    glggHunSpell->editCustomButton();
+	glggHunSpell->newDictSelection(value.asString());
 }
 
-//static
-void LLPrefsAscentChat::onSpellBaseComboBoxCommit(LLUICtrl* ctrl, void* userdata)
+void LLPrefsAscentChat::onCommitTimeDate(LLUICtrl* ctrl)
 {
-    LLComboBox* box = (LLComboBox*)ctrl;
-
-    if (box)
-    {
-        glggHunSpell->newDictSelection(box->getValue().asString());
-    }
-}
-
-//static
-void LLPrefsAscentChat::onCommitTimeDate(LLUICtrl* ctrl, void* userdata)
-{
-    LLPrefsAscentChat* self = (LLPrefsAscentChat*)userdata;
-
-    LLComboBox* combo = (LLComboBox*)ctrl;
+	LLComboBox* combo = static_cast<LLComboBox*>(ctrl);
     if (ctrl->getName() == "time_format_combobox")
     {
-        self->tempTimeFormat = combo->getCurrentIndex();
+		tempTimeFormat = combo->getCurrentIndex();
     }
     else if (ctrl->getName() == "date_format_combobox")
     {
-        self->tempDateFormat = combo->getCurrentIndex();
+		tempDateFormat = combo->getCurrentIndex();
     }
 
     std::string short_date, long_date, short_time, long_time, timestamp;
 
-    if (self->tempTimeFormat == 0)
+	if (tempTimeFormat == 0)
     {
         short_time = "%H:%M";
         long_time  = "%H:%M:%S";
@@ -205,13 +158,13 @@ void LLPrefsAscentChat::onCommitTimeDate(LLUICtrl* ctrl, void* userdata)
         timestamp  = " %I:%M %p";
     }
 
-    if (self->tempDateFormat == 0)
+	if (tempDateFormat == 0)
     {
         short_date = "%Y-%m-%d";
         long_date  = "%A %d %B %Y";
         timestamp  = "%a %d %b %Y" + timestamp;
     }
-    else if (self->tempDateFormat == 1)
+	else if (tempDateFormat == 1)
     {
         short_date = "%d/%m/%Y";
         long_date  = "%A %d %B %Y";
@@ -231,94 +184,61 @@ void LLPrefsAscentChat::onCommitTimeDate(LLUICtrl* ctrl, void* userdata)
     gSavedSettings.setString("TimestampFormat", timestamp);
 }
 
-//static
-void LLPrefsAscentChat::onCommitAutoResponse(LLUICtrl* ctrl, void* user_data)
+void LLPrefsAscentChat::onCommitEnableAS(const LLSD& value)
 {
-    LLPrefsAscentChat* self = (LLPrefsAscentChat*)user_data;
-
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseAnyone",  self->childGetValue("AscentInstantMessageResponseAnyone"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseFriends", self->childGetValue("AscentInstantMessageResponseFriends"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseMuted",   self->childGetValue("AscentInstantMessageResponseMuted"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageShowOnTyping",    self->childGetValue("AscentInstantMessageShowOnTyping"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageShowResponded",   self->childGetValue("AscentInstantMessageShowResponded"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseRepeat",  self->childGetValue("AscentInstantMessageResponseRepeat"));
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseItem",    self->childGetValue("AscentInstantMessageResponseItem"));
-    gSavedPerAccountSettings.setString("AscentInstantMessageResponse",      self->childGetValue("im_response"));
+	bool enabled = value.asBoolean();
+	childSetEnabled("spammsg_checkbox",          enabled);
+	childSetEnabled("antispamtime",              enabled);
+	childSetEnabled("antispamamount",            enabled);
+	childSetEnabled("antispamsoundmulti",        enabled);
+	childSetEnabled("antispamsoundpreloadmulti", enabled);
+	childSetEnabled("antispamnewlines",          enabled);
+	childSetEnabled("Notify On Spam",            enabled);
 }
 
-//static
-void LLPrefsAscentChat::SinguIMResponseItemDrop(LLViewerInventoryItem* item)
+void LLPrefsAscentChat::onCommitDialogBlock(LLUICtrl* ctrl, const LLSD& value)
 {
-	gSavedPerAccountSettings.setString("AscentInstantMessageResponseItemData", item->getUUID().asString());
-	LLStringUtil::format_map_t args;
-	args["[ITEM]"] = item->getName();
-	sInst->childSetValue("im_give_disp_rect_txt", LLTrans::getString("CurrentlySetTo", args));
-}
-
-//static
-void LLPrefsAscentChat::onCommitResetAS(LLUICtrl*, void*)
-{
-	NACLAntiSpamRegistry::purgeAllQueues();
-}
-
-//static
-void LLPrefsAscentChat::onCommitEnableAS(LLUICtrl* ctrl, void* user_data)
-{
-	LLPrefsAscentChat* self = (LLPrefsAscentChat*)user_data;
-	bool enabled = ctrl->getValue().asBoolean();
-	self->childSetEnabled("spammsg_checkbox",          enabled);
-	self->childSetEnabled("antispamtime",              enabled);
-	self->childSetEnabled("antispamamount",            enabled);
-	self->childSetEnabled("antispamsoundmulti",        enabled);
-	self->childSetEnabled("antispamsoundpreloadmulti", enabled);
-	self->childSetEnabled("antispamnewlines",          enabled);
-	self->childSetEnabled("Notify On Spam",            enabled);
-}
-
-//static
-void LLPrefsAscentChat::onCommitDialogBlock(LLUICtrl* ctrl, void* user_data)
-{
-	LLPrefsAscentChat* self = (LLPrefsAscentChat*)user_data;
-	self->childSetEnabled("Group Fee Invites", !self->childGetValue("antispam_checkbox").asBoolean() && !self->childGetValue("Group Invites").asBoolean());
-	bool enabled = ctrl->getValue().asBoolean();
+	childSetEnabled("Group Fee Invites", !childGetValue("antispam_checkbox").asBoolean() && !childGetValue("Group Invites").asBoolean());
+	bool enabled = value.asBoolean();
 	if (ctrl->getName() == "antispam_checkbox")
 	{
-		self->childSetEnabled("Block All Dialogs From", !enabled);
-		self->childSetEnabled("Alerts",                 !enabled);
-		self->childSetEnabled("Friendship Offers",      !enabled);
-		self->childSetEnabled("Group Invites",          !enabled);
-		self->childSetEnabled("Group Notices",          !enabled);
-		self->childSetEnabled("Item Offers",            !enabled);
-		self->childSetEnabled("Scripts",                !enabled);
-		self->childSetEnabled("Teleport Offers",        !enabled);
+		childSetEnabled("Block All Dialogs From", !enabled);
+		childSetEnabled("Alerts",                 !enabled);
+		childSetEnabled("Friendship Offers",      !enabled);
+		childSetEnabled("Group Invites",          !enabled);
+		childSetEnabled("Group Notices",          !enabled);
+		childSetEnabled("Item Offers",            !enabled);
+		childSetEnabled("Scripts",                !enabled);
+		childSetEnabled("Teleport Offers",        !enabled);
+		childSetEnabled("Teleport Requests",      !enabled);
+		childSetEnabled("Except those from:",     !enabled);
+		childSetEnabled("My objects",             !enabled);
+		childSetEnabled("My friends",             !enabled);
 	}
 }
 
-//static
-void LLPrefsAscentChat::onCommitKeywords(LLUICtrl* ctrl, void* user_data)
+void LLPrefsAscentChat::onCommitKeywords(LLUICtrl* ctrl)
 {
-    LLPrefsAscentChat* self = (LLPrefsAscentChat*)user_data;
-
     if (ctrl->getName() == "KeywordsOn")
     {
-        bool enabled = self->childGetValue("KeywordsOn").asBoolean();
-        self->childSetEnabled("KeywordsList",        enabled);
-        self->childSetEnabled("KeywordsInChat",      enabled);
-        self->childSetEnabled("KeywordsInIM",        enabled);
-        self->childSetEnabled("KeywordsChangeColor", enabled);
-        self->childSetEnabled("KeywordsColor",       enabled);
-        self->childSetEnabled("KeywordsPlaySound",   enabled);
-        self->childSetEnabled("KeywordsSound",       enabled);
+		bool enabled = childGetValue("KeywordsOn").asBoolean();
+		childSetEnabled("KeywordsList",        enabled);
+		childSetEnabled("KeywordsInChat",      enabled);
+		childSetEnabled("KeywordsInIM",        enabled);
+		childSetEnabled("KeywordsChangeColor", enabled);
+		childSetEnabled("KeywordsColor",       enabled);
+		childSetEnabled("KeywordsPlaySound",   enabled);
+		childSetEnabled("KeywordsSound",       enabled);
     }
 
-    gSavedPerAccountSettings.setBOOL("KeywordsOn",          self->childGetValue("KeywordsOn"));
-    gSavedPerAccountSettings.setString("KeywordsList",      self->childGetValue("KeywordsList"));
-    gSavedPerAccountSettings.setBOOL("KeywordsInChat",      self->childGetValue("KeywordsInChat"));
-    gSavedPerAccountSettings.setBOOL("KeywordsInIM",        self->childGetValue("KeywordsInIM"));
-    gSavedPerAccountSettings.setBOOL("KeywordsChangeColor", self->childGetValue("KeywordsChangeColor"));
-    gSavedPerAccountSettings.setColor4("KeywordsColor",     self->childGetValue("KeywordsColor"));
-    gSavedPerAccountSettings.setBOOL("KeywordsPlaySound",   self->childGetValue("KeywordsPlaySound"));
-    gSavedPerAccountSettings.setString("KeywordsSound",     self->childGetValue("KeywordsSound"));
+	gSavedPerAccountSettings.setBOOL("KeywordsOn",          childGetValue("KeywordsOn"));
+	gSavedPerAccountSettings.setString("KeywordsList",      childGetValue("KeywordsList"));
+	gSavedPerAccountSettings.setBOOL("KeywordsInChat",      childGetValue("KeywordsInChat"));
+	gSavedPerAccountSettings.setBOOL("KeywordsInIM",        childGetValue("KeywordsInIM"));
+	gSavedPerAccountSettings.setBOOL("KeywordsChangeColor", childGetValue("KeywordsChangeColor"));
+	gSavedPerAccountSettings.setColor4("KeywordsColor",     childGetValue("KeywordsColor"));
+	gSavedPerAccountSettings.setBOOL("KeywordsPlaySound",   childGetValue("KeywordsPlaySound"));
+	gSavedPerAccountSettings.setString("KeywordsSound",     childGetValue("KeywordsSound"));
 }
 
 // Store current settings for cancel
@@ -327,8 +247,10 @@ void LLPrefsAscentChat::refreshValues()
     //Chat/IM -----------------------------------------------------------------------------
     mIMAnnounceIncoming             = gSavedSettings.getBOOL("AscentInstantMessageAnnounceIncoming");
     mHideTypingNotification         = gSavedSettings.getBOOL("AscentHideTypingNotification");
+    mInstantMessagesFriendsOnly     = gSavedSettings.getBOOL("InstantMessagesFriendsOnly");
     mShowGroupNameInChatIM          = gSavedSettings.getBOOL("OptionShowGroupNameInChatIM");
     mShowDisplayNameChanges         = gSavedSettings.getBOOL("ShowDisplayNameChanges");
+    mUseTypingBubbles               = gSavedSettings.getBOOL("UseTypingBubbles");
     mPlayTypingSound                = gSavedSettings.getBOOL("PlayTypingSound");
     mHideNotificationsInChat        = gSavedSettings.getBOOL("HideNotificationsInChat");
     mEnableMUPose                   = gSavedSettings.getBOOL("AscentAllowMUpose");
@@ -364,24 +286,41 @@ void LLPrefsAscentChat::refreshValues()
     tempTimeFormat = mTimeFormat;
     tempDateFormat = mDateFormat;
 
-    mIMResponseAnyone               = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseAnyone");
-    mIMResponseFriends              = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseFriends");
-    mIMResponseMuted                = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseMuted");
-    mIMShowOnTyping                 = gSavedPerAccountSettings.getBOOL("AscentInstantMessageShowOnTyping");
-    mIMShowResponded                = gSavedPerAccountSettings.getBOOL("AscentInstantMessageShowResponded");
-    mIMResponseRepeat               = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseRepeat");
-    mIMResponseItem                 = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseItem");
-    mIMResponseText                 = gSavedPerAccountSettings.getString("AscentInstantMessageResponse");
-
 	//Chat UI -----------------------------------------------------------------------------
 	mWoLfVerticalIMTabs             = gSavedSettings.getBOOL("WoLfVerticalIMTabs");
 	mOtherChatsTornOff              = gSavedSettings.getBOOL("OtherChatsTornOff");
+	mIMAnnounceStealFocus           = gSavedSettings.getBOOL("PhoenixIMAnnounceStealFocus");
 	mShowLocalChatFloaterBar        = gSavedSettings.getBOOL("ShowLocalChatFloaterBar");
 	mHorizButt                      = gSavedSettings.getBOOL("ContactsUseHorizontalButtons");
 	mOneLineIMButt                  = gSavedSettings.getBOOL("UseConciseIMButtons");
 	mOneLineGroupButt               = gSavedSettings.getBOOL("UseConciseGroupChatButtons");
 	mOneLineConfButt                = gSavedSettings.getBOOL("UseConciseConferenceButtons");
 	mOnlyComm                       = gSavedSettings.getBOOL("CommunicateSpecificShortcut");
+	mItalicizeActions               = gSavedSettings.getBOOL("LiruItalicizeActions");
+	mLegacySpeakerNames             = gSavedSettings.getBOOL("LiruLegacySpeakerNames");
+
+	//Autoresponse ------------------------------------------------------------------------
+	mIMResponseAnyoneItemID     = gSavedPerAccountSettings.getString("AutoresponseAnyoneItemID");
+	mIMResponseNonFriendsItemID = gSavedPerAccountSettings.getString("AutoresponseNonFriendsItemID");
+	mIMResponseMutedItemID      = gSavedPerAccountSettings.getString("AutoresponseMutedItemID");
+	mIMResponseBusyItemID       = gSavedPerAccountSettings.getString("BusyModeResponseItemID");
+
+	gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseRepeat", childGetValue("AscentInstantMessageResponseRepeat"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyone",                 childGetValue("AutoresponseAnyone"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneFriendsOnly",      childGetValue("AutoresponseAnyoneFriendsOnly"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneItem",             childGetValue("AutoresponseAnyoneItem"));
+	gSavedPerAccountSettings.setString("AutoresponseAnyoneMessage",        childGetValue("AutoresponseAnyoneMessage"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneShow",             childGetValue("AutoresponseAnyoneShow"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriends",             childGetValue("AutoresponseNonFriends"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsItem",         childGetValue("AutoresponseNonFriendsItem"));
+	gSavedPerAccountSettings.setString("AutoresponseNonFriendsMessage",    childGetValue("AutoresponseNonFriendsMessage"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsShow",         childGetValue("AutoresponseNonFriendsShow"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseMuted",                  childGetValue("AutoresponseMuted"));
+	gSavedPerAccountSettings.setBOOL("AutoresponseMutedItem",              childGetValue("AutoresponseMutedItem"));
+	gSavedPerAccountSettings.setString("AutoresponseMutedMessage",         childGetValue("AutoresponseMutedMessage"));
+	gSavedPerAccountSettings.setString("BusyModeResponse",                 childGetValue("BusyModeResponse"));
+	gSavedPerAccountSettings.setBOOL("BusyModeResponseItem",               childGetValue("BusyModeResponseItem"));
+	gSavedPerAccountSettings.setBOOL("BusyModeResponseShow",               childGetValue("BusyModeResponseShow"));
 
     //Spam --------------------------------------------------------------------------------
 	mEnableAS                       = gSavedSettings.getBOOL("AntiSpamEnabled");
@@ -395,8 +334,11 @@ void LLPrefsAscentChat::refreshValues()
 	mBlockGroupFeeInviteSpam        = gSavedSettings.getBOOL("AntiSpamGroupFeeInvites");
     mBlockGroupNoticeSpam           = gSavedSettings.getBOOL("AntiSpamGroupNotices");
     mBlockItemOfferSpam             = gSavedSettings.getBOOL("AntiSpamItemOffers");
+	mBlockNotFriendSpam        = gSavedSettings.getBOOL("AntiSpamNotFriend");
+	mBlockNotMineSpam          = gSavedSettings.getBOOL("AntiSpamNotMine");
     mBlockScriptSpam                = gSavedSettings.getBOOL("AntiSpamScripts");
     mBlockTeleportSpam              = gSavedSettings.getBOOL("AntiSpamTeleports");
+	mBlockTeleportRequestSpam       = gSavedSettings.getBOOL("AntiSpamTeleportRequests");
     mNotifyOnSpam                   = gSavedSettings.getBOOL("AntiSpamNotify");
     mSoundMulti                     = gSavedSettings.getU32("_NACL_AntiSpamSoundMulti");
     mNewLines                       = gSavedSettings.getU32("_NACL_AntiSpamNewlines");
@@ -432,19 +374,6 @@ void LLPrefsAscentChat::refresh()
     {
         combo->setCurrentByIndex(mDateFormat);
     }
-
-    childSetValue("AscentInstantMessageResponseAnyone",  mIMResponseAnyone);
-    childSetValue("AscentInstantMessageResponseFriends", mIMResponseFriends);
-    childSetValue("AscentInstantMessageResponseMuted",   mIMResponseMuted);
-    childSetValue("AscentInstantMessageShowOnTyping",    mIMShowOnTyping);
-    childSetValue("AscentInstantMessageShowResponded",   mIMShowResponded);
-    childSetValue("AscentInstantMessageResponseRepeat",  mIMResponseRepeat);
-    childSetValue("AscentInstantMessageResponseItem",    mIMResponseItem);
-
-    LLWString auto_response = utf8str_to_wstring( gSavedPerAccountSettings.getString("AscentInstantMessageResponse") );
-    LLWStringUtil::replaceChar(auto_response, '^', '\n');
-    LLWStringUtil::replaceChar(auto_response, '%', ' ');
-    childSetText("im_response", wstring_to_utf8str(auto_response));
 
     //Antispam ------------------------------------------------------------------------
 	// sensitivity tuners
@@ -543,8 +472,10 @@ void LLPrefsAscentChat::cancel()
     //Chat/IM -----------------------------------------------------------------------------
     gSavedSettings.setBOOL("AscentInstantMessageAnnounceIncoming", mIMAnnounceIncoming);
     gSavedSettings.setBOOL("AscentHideTypingNotification",         mHideTypingNotification);
+    gSavedSettings.setBOOL("InstantMessagesFriendsOnly",           mInstantMessagesFriendsOnly);
     gSavedSettings.setBOOL("OptionShowGroupNameInChatIM",          mShowGroupNameInChatIM);
     gSavedSettings.setBOOL("ShowDisplayNameChanges",               mShowDisplayNameChanges);
+    gSavedSettings.setBOOL("UseTypingBubbles",                     mUseTypingBubbles);
     gSavedSettings.setBOOL("PlayTypingSound",                      mPlayTypingSound);
     gSavedSettings.setBOOL("HideNotificationsInChat",              mHideNotificationsInChat);
     gSavedSettings.setBOOL("AscentAllowMUpose",                    mEnableMUPose);
@@ -593,24 +524,24 @@ void LLPrefsAscentChat::cancel()
     gSavedSettings.setString("LongTimeFormat",  long_time);
     gSavedSettings.setString("TimestampFormat", timestamp);
 
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseAnyone",  mIMResponseAnyone);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseFriends", mIMResponseFriends);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseMuted",   mIMResponseMuted);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageShowOnTyping",    mIMShowOnTyping);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageShowResponded",   mIMShowResponded);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseRepeat",  mIMResponseRepeat);
-    gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseItem",    mIMResponseItem);
-    gSavedPerAccountSettings.setString("AscentInstantMessageResponse",      mIMResponseText);
-
 	//Chat UI -----------------------------------------------------------------------------
 	gSavedSettings.setBOOL("WoLfVerticalIMTabs",                   mWoLfVerticalIMTabs);
 	gSavedSettings.setBOOL("OtherChatsTornOff",                    mOtherChatsTornOff);
+	gSavedSettings.setBOOL("PhoenixIMAnnounceStealFocus",          mIMAnnounceStealFocus);
 	gSavedSettings.setBOOL("ShowLocalChatFloaterBar",              mShowLocalChatFloaterBar);
 	gSavedSettings.setBOOL("ContactsUseHorizontalButtons",         mHorizButt);
 	gSavedSettings.setBOOL("UseConciseIMButtons",                  mOneLineIMButt);
 	gSavedSettings.setBOOL("UseConciseGroupChatButtons",           mOneLineGroupButt);
 	gSavedSettings.setBOOL("UseConciseConferenceButtons",          mOneLineConfButt);
 	gSavedSettings.setBOOL("CommunicateSpecificShortcut",          mOnlyComm);
+	gSavedSettings.setBOOL("LiruItalicizeActions",                 mItalicizeActions);
+	gSavedSettings.setBOOL("LiruLegacySpeakerNames",               mLegacySpeakerNames);
+
+	//Autoresponse ------------------------------------------------------------------------
+	gSavedPerAccountSettings.setString("AutoresponseAnyoneItemID",      mIMResponseAnyoneItemID);
+	gSavedPerAccountSettings.setString("AutoresponseNonFriendsItemID",  mIMResponseNonFriendsItemID);
+	gSavedPerAccountSettings.setString("AutoresponseMutedItemID",       mIMResponseMutedItemID);
+	gSavedPerAccountSettings.setString("BusyModeResponseItemID",        mIMResponseBusyItemID);
 
     //Spam --------------------------------------------------------------------------------
 	gSavedSettings.setBOOL("AntiSpamEnabled",                mEnableAS);
@@ -624,13 +555,16 @@ void LLPrefsAscentChat::cancel()
 	gSavedSettings.setBOOL("AntiSpamGroupInvites",           mBlockGroupInviteSpam);
 	gSavedSettings.setBOOL("AntiSpamGroupFeeInvites",		 mBlockGroupFeeInviteSpam);
 	gSavedSettings.setBOOL("AntiSpamItemOffers",             mBlockItemOfferSpam);
+	gSavedSettings.setBOOL("AntiSpamNotFriend",              mBlockNotFriendSpam);
+	gSavedSettings.setBOOL("AntiSpamNotMine",                mBlockNotMineSpam);
 	gSavedSettings.setBOOL("AntiSpamScripts",                mBlockScriptSpam);
 	gSavedSettings.setBOOL("AntiSpamTeleports",              mBlockTeleportSpam);
+	gSavedSettings.setBOOL("AntiSpamTeleportRequests",       mBlockTeleportRequestSpam);
 	gSavedSettings.setBOOL("AntiSpamNotify",                 mNotifyOnSpam);
     gSavedSettings.setU32("_NACL_AntiSpamSoundMulti",        mSoundMulti);
     gSavedSettings.setU32("_NACL_AntiSpamNewlines",          mNewLines);
     gSavedSettings.setU32("_NACL_AntiSpamSoundPreloadMulti", mPreloadMulti);
-	gSavedSettings.setBOOL("EnableGestureSounds",           mEnableGestureSounds);
+	gSavedSettings.setBOOL("EnableGestureSounds",            mEnableGestureSounds);
 
     //Text Options ------------------------------------------------------------------------
     gSavedSettings.setBOOL("SpellDisplay",                  mSpellDisplay);
@@ -647,8 +581,6 @@ void LLPrefsAscentChat::cancel()
 // Update local copy so cancel has no effect
 void LLPrefsAscentChat::apply()
 {
-    gSavedPerAccountSettings.setString("AscentInstantMessageResponse", childGetValue("im_response"));
-
     refreshValues();
     refresh();
 }

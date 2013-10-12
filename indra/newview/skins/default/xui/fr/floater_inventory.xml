@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="Inventory" title="Inventaire">
-	<search_editor label="Saisir votre recherche ici" name="inventory search editor"/>
+  <filter_editor label="Saisir votre recherche ici" name="inventory search editor"/>
   <button name="collapse_btn" tool_tip="Collapse All" />
    <button name="Inventory.ExpandAll" tool_tip="Expand All"/>
    <button name="Inventory.ResetAll" tool_tip="Réinitialisation de l'inventaire : Nettoye les filtres et réduit l'inventaire"/>

@@ -44,31 +44,36 @@
 
 const S32 RESIZE_BORDER_WIDTH = 3;
 
-LLResizeHandle::LLResizeHandle( const std::string& name, const LLRect& rect, S32 min_width, S32 min_height, ECorner corner )
-	:
-	LLView( name, rect, FALSE ),
+LLResizeHandle::Params::Params()
+:	corner("corner"),
+	min_width("min_width"),
+	min_height("min_height")
+{
+	name = "resize_handle";
+}
+
+LLResizeHandle::LLResizeHandle(const LLResizeHandle::Params& p)
+:	LLView(p),
 	mDragLastScreenX( 0 ),
 	mDragLastScreenY( 0 ),
 	mLastMouseScreenX( 0 ),
 	mLastMouseScreenY( 0 ),
 	mImage( NULL ),
-	mMinWidth( min_width ),
-	mMinHeight( min_height ),
-	mCorner( corner )
+	mMinWidth( p.min_width ),
+	mMinHeight( p.min_height ),
+	mCorner( p.corner )
 {
-	setSaveToXML(false);
-
 	if( RIGHT_BOTTOM == mCorner)
 	{
 		mImage = LLUI::getUIImage("UIImgResizeBottomRightUUID");
 	}
 
-	switch( mCorner )
+	switch( p.corner )
 	{
-	case LEFT_TOP:		setFollows( FOLLOWS_LEFT | FOLLOWS_TOP );		break;
-	case LEFT_BOTTOM:	setFollows( FOLLOWS_LEFT | FOLLOWS_BOTTOM );	break;
-	case RIGHT_TOP:		setFollows( FOLLOWS_RIGHT | FOLLOWS_TOP );		break;
-	case RIGHT_BOTTOM:	setFollows( FOLLOWS_RIGHT | FOLLOWS_BOTTOM );	break;
+		case LEFT_TOP:		setFollows( FOLLOWS_LEFT | FOLLOWS_TOP );		break;
+		case LEFT_BOTTOM:	setFollows( FOLLOWS_LEFT | FOLLOWS_BOTTOM );	break;
+		case RIGHT_TOP:		setFollows( FOLLOWS_RIGHT | FOLLOWS_TOP );		break;
+		case RIGHT_BOTTOM:	setFollows( FOLLOWS_RIGHT | FOLLOWS_BOTTOM );	break;
 	}
 
 	// decorator object, don't serialize
@@ -205,8 +210,7 @@ BOOL LLResizeHandle::handleHover(S32 x, S32 y, MASK mask)
 			LLView* snap_view = NULL;
 			LLView* test_view = NULL;
 
-			//static LLCachedControl<S32> snap_margin (*LLUI::sConfigGroup,"SnapMargin", 0);
-			S32 snap_margin = LLUI::sConfigGroup->getS32("SnapMargin");
+			static LLUICachedControl<S32> snap_margin ("SnapMargin", 0);
 			// now do snapping
 			switch(mCorner)
 			{
@@ -255,23 +259,65 @@ BOOL LLResizeHandle::handleHover(S32 x, S32 y, MASK mask)
 			
 			// update last valid mouse cursor position based on resized view's actual size
 			LLRect new_rect = resizing_view->getRect();
+			S32 actual_delta_x = 0;
+			S32 actual_delta_y = 0;
 			switch(mCorner)
 			{
 			case LEFT_TOP:
-				mDragLastScreenX += new_rect.mLeft - orig_rect.mLeft;
-				mDragLastScreenY += new_rect.mTop - orig_rect.mTop;
+				actual_delta_x = new_rect.mLeft - orig_rect.mLeft;
+				actual_delta_y = new_rect.mTop - orig_rect.mTop;
+				if (actual_delta_x != delta_x
+					|| actual_delta_y != delta_y)
+				{
+					new_rect.mRight = orig_rect.mRight;
+					new_rect.mBottom = orig_rect.mBottom;
+					resizing_view->setShape(new_rect, true);
+				}
+
+				mDragLastScreenX += actual_delta_x;
+				mDragLastScreenY += actual_delta_y;
 				break;
 			case LEFT_BOTTOM:
-				mDragLastScreenX += new_rect.mLeft - orig_rect.mLeft;
-				mDragLastScreenY += new_rect.mBottom- orig_rect.mBottom;
+				actual_delta_x = new_rect.mLeft - orig_rect.mLeft;
+				actual_delta_y = new_rect.mBottom - orig_rect.mBottom;
+				if (actual_delta_x != delta_x
+					|| actual_delta_y != delta_y)
+				{
+					new_rect.mRight = orig_rect.mRight;
+					new_rect.mTop = orig_rect.mTop;
+					resizing_view->setShape(new_rect, true);
+				}
+
+				mDragLastScreenX += actual_delta_x;
+				mDragLastScreenY += actual_delta_y;
 				break;
 			case RIGHT_TOP:
-				mDragLastScreenX += new_rect.mRight - orig_rect.mRight;
-				mDragLastScreenY += new_rect.mTop - orig_rect.mTop;
+				actual_delta_x = new_rect.mRight - orig_rect.mRight;
+				actual_delta_y = new_rect.mTop - orig_rect.mTop;
+				if (actual_delta_x != delta_x
+					|| actual_delta_y != delta_y)
+				{
+					new_rect.mLeft = orig_rect.mLeft;
+					new_rect.mBottom = orig_rect.mBottom;
+					resizing_view->setShape(new_rect, true);
+				}
+
+				mDragLastScreenX += actual_delta_x;
+				mDragLastScreenY += actual_delta_y;
 				break;
 			case RIGHT_BOTTOM:
-				mDragLastScreenX += new_rect.mRight - orig_rect.mRight;
-				mDragLastScreenY += new_rect.mBottom- orig_rect.mBottom;
+				actual_delta_x = new_rect.mRight - orig_rect.mRight;
+				actual_delta_y = new_rect.mBottom - orig_rect.mBottom;
+				if (actual_delta_x != delta_x
+					|| actual_delta_y != delta_y)
+				{
+					new_rect.mLeft = orig_rect.mLeft;
+					new_rect.mTop = orig_rect.mTop;
+					resizing_view->setShape(new_rect, true);
+				}
+
+				mDragLastScreenX += actual_delta_x;
+				mDragLastScreenY += actual_delta_y;
 				break;
 			default:
 				break;

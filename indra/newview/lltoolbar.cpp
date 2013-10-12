@@ -35,41 +35,30 @@
 
 #include "lltoolbar.h"
 
-#include "imageids.h"
-#include "llfontgl.h"
-#include "llrect.h"
-#include "llparcel.h"
+#include "llbutton.h"
+#include "llflyoutbutton.h"
+#include "llscrolllistitem.h"
+#include "llui.h"
 
 #include "llagent.h"
 #include "llagentcamera.h"
 #include "llagentwearables.h"
-#include "llbutton.h"
-#include "llfocusmgr.h"
-#include "llviewercontrol.h"
-#include "llmenucommands.h"
-#include "llimview.h"
-#include "lluiconstants.h"
-#include "llvoavatarself.h"
-#include "lltooldraganddrop.h"
-#include "llfloaterchatterbox.h"
-#include "llfloaterfriends.h"
-#include "llfloaterinventory.h"
-#include "llfloatersnapshot.h"
-#include "llfloateravatarlist.h"
-#include "lltoolmgr.h"
-#include "llui.h"
-#include "llviewermenu.h"
 #include "llfirstuse.h"
 #include "llviewerparcelmgr.h"
-#include "lluictrlfactory.h"
-#include "llviewerwindow.h"
-#include "lltoolgrab.h"
-#include "llcombobox.h"
+#include "llfloateravatarlist.h"
 #include "llfloaterchat.h"
-#include "llfloatermute.h"
-#include "llimpanel.h"
-#include "llscrolllistctrl.h"
+#include "llfloaterchatterbox.h"
 #include "llfloatercustomize.h"
+#include "llfloaterfriends.h"
+#include "llfloaterinventory.h"
+#include "llfloatermute.h"
+#include "llfloatersnapshot.h"
+#include "llimpanel.h"
+#include "llimview.h"
+#include "llmenucommands.h"
+#include "lltoolmgr.h"
+#include "lltoolgrab.h"
+#include "llvoavatarself.h"
 
 // [RLVa:KB]
 #include "rlvhandler.h"
@@ -78,16 +67,16 @@
 #if LL_DARWIN
 
 	#include "llresizehandle.h"
+	#include "llviewerwindow.h"
 
 	// This class draws like an LLResizeHandle but has no interactivity.
 	// It's just there to provide a cue to the user that the lower right corner of the window functions as a resize handle.
 	class LLFakeResizeHandle : public LLResizeHandle
 	{
 	public:
-		LLFakeResizeHandle(const std::string& name, const LLRect& rect, S32 min_width, S32 min_height, ECorner corner = RIGHT_BOTTOM )
-		: LLResizeHandle(name, rect, min_width, min_height, corner )
-		{
-			
+		LLFakeResizeHandle(const LLResizeHandle::Params& p)
+			: LLResizeHandle(p)
+		{	
 		}
 
 		virtual BOOL	handleHover(S32 x, S32 y, MASK mask)   { return FALSE; };
@@ -115,7 +104,7 @@ F32	LLToolBar::sInventoryAutoOpenTime = 1.f;
 //
 
 LLToolBar::LLToolBar()
-:	LLPanel()
+:	LLLayoutPanel()
 #if LL_DARWIN
 	, mResizeHandle(NULL)
 #endif // LL_DARWIN
@@ -183,9 +172,13 @@ BOOL LLToolBar::postBuild()
 #if LL_DARWIN
 	if(mResizeHandle == NULL)
 	{
-		LLRect rect(0, 0, RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT);
-		mResizeHandle = new LLFakeResizeHandle(std::string(""), rect, RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT);
-		this->addChildInBack(mResizeHandle);
+		LLResizeHandle::Params p;
+		p.rect(LLRect(0, 0, RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT));
+		p.name(std::string(""));
+		p.min_width(RESIZE_HANDLE_WIDTH);
+		p.min_height(RESIZE_HANDLE_HEIGHT);
+		p.corner(LLResizeHandle::RIGHT_BOTTOM);
+		mResizeHandle = new LLFakeResizeHandle(p);		this->addChildInBack(mResizeHandle);
 		LLLayoutStack* toolbar_stack = getChild<LLLayoutStack>("toolbar_stack");
 		toolbar_stack->reshape(toolbar_stack->getRect().getWidth() - RESIZE_HANDLE_WIDTH, toolbar_stack->getRect().getHeight());
 	}
@@ -301,18 +294,22 @@ void LLToolBar::refresh()
 		return;
 
 	static LLCachedControl<bool> show("ShowToolBar", true);
-	static LLCachedControl<bool> ascent_fly_always_enabled("AscentFlyAlwaysEnabled", true);
 	static LLCachedControl<bool> ascent_build_always_enabled("AscentBuildAlwaysEnabled", true);
 	BOOL mouselook = gAgentCamera.cameraMouselook();
 	setVisible(show && !mouselook);
 
 	BOOL sitting = FALSE;
-	if (gAgentAvatarp)
+	static LLCachedControl<bool> continue_flying_on_unsit("LiruContinueFlyingOnUnsit");
+	if (continue_flying_on_unsit)
+	{
+		sitting = false;
+	}
+	else if (gAgentAvatarp)
 	{
 		sitting = gAgentAvatarp->isSitting();
 	}
 
-	mFlyBtn->setEnabled((gAgent.canFly() || gAgent.getFlying() || ascent_fly_always_enabled) && !sitting );
+	mFlyBtn->setEnabled((gAgent.canFly() || gAgent.getFlying()) && !sitting );
 	mBuildBtn->setEnabled((LLViewerParcelMgr::getInstance()->allowAgentBuild() || ascent_build_always_enabled));
 
 	// Check to see if we're in build mode
@@ -335,7 +332,7 @@ void LLToolBar::refresh()
 		mBuildBtn->setEnabled(!(gRlvHandler.hasBehaviour(RLV_BHVR_REZ) && gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)));
 
 		mMapBtn->setEnabled(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWWORLDMAP));
-		mRadarBtn->setEnabled(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWMINIMAP));
+		mRadarBtn->setEnabled(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWMINIMAP) && !gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
 		mInventoryBtn->setEnabled(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWINV));
 	}
 // [/RLVa:KB]
@@ -392,8 +389,26 @@ void LLToolBar::updateCommunicateList()
 		LLFloaterIMPanel* im_floaterp = (LLFloaterIMPanel*)floater_handle_it->get();
 		if (im_floaterp)
 		{
-			std::string floater_title = im_floaterp->getNumUnreadMessages() > 0 ? "*" : "";
+			static LLCachedControl<bool> show_counts("ShowUnreadIMsCounts", true);
+			S32 count = im_floaterp->getNumUnreadMessages();
+			std::string floater_title;
+			if (count > 0) floater_title = "*";
 			floater_title.append(im_floaterp->getShortTitle());
+			if (show_counts && count > 0)
+			{
+				floater_title += " - ";
+				if (count > 1)
+				{
+					LLStringUtil::format_map_t args;
+					args["COUNT"] = llformat("%d", count);
+					floater_title += getString("IMs", args);
+				}
+				else
+				{
+					floater_title += getString("IM");
+				}
+			}
+
 			itemp = communicate_button->add(floater_title, im_floaterp->getSessionID(), ADD_TOP);
 			if (im_floaterp  == frontmost_floater)
 			{

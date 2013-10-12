@@ -68,21 +68,21 @@ BOOL LLPanelDirEvents::postBuild()
 {
 	LLPanelDirBrowser::postBuild();
 
-	childSetCommitCallback("date_mode", onDateModeCallback, this);
+	getChild<LLUICtrl>("date_mode")->setCommitCallback(boost::bind(&LLPanelDirEvents::onDateModeCallback,this));
 
-	childSetAction("<<", onBackBtn, this);
-	childSetAction(">>", onForwardBtn, this);
+	getChild<LLButton>("<<")->setClickedCallback(boost::bind(&LLPanelDirEvents::onBackBtn,this));
+	getChild<LLButton>(">>")->setClickedCallback(boost::bind(&LLPanelDirEvents::onForwardBtn,this));
 
-	childSetAction("Today", onClickToday, this);
+	getChild<LLButton>("Today")->setClickedCallback(boost::bind(&LLPanelDirEvents::onClickToday,this));
 
-	childSetAction("Search", LLPanelDirBrowser::onClickSearchCore, this);
+	getChild<LLButton>("Search")->setClickedCallback(boost::bind(&LLPanelDirEvents::onClickSearchCore,this));
 	setDefaultBtn("Search");
 
-	childSetAction("Delete", onClickDelete, this);
+	getChild<LLButton>("Delete")->setClickedCallback(boost::bind(&LLPanelDirEvents::onClickDelete,this));
 	childDisable("Delete");
 	childHide("Delete");
 
-	onDateModeCallback(NULL, this);
+	onDateModeCallback();
 
 	mCurrentSortColumn = "time";
 
@@ -215,7 +215,7 @@ void LLPanelDirEvents::performQueryOrDelete(U32 event_id)
 	U32 cat_id = childGetValue("category combo").asInteger();
 
 	params << cat_id << "|";
-	params << childGetValue("event_search_text").asString();
+	params << childGetValue("name").asString();
 
 	// send the message
 	if (0 == event_id)
@@ -246,63 +246,48 @@ void LLPanelDirEvents::performQueryOrDelete(U32 event_id)
 	}
 }
 
-// static
-void LLPanelDirEvents::onDateModeCallback(LLUICtrl* ctrl, void *data)
+void LLPanelDirEvents::onDateModeCallback()
 {
-	LLPanelDirEvents* self = (LLPanelDirEvents*)data;
-	if (self->childGetValue("date_mode").asString() == "date")
+	if (childGetValue("date_mode").asString() == "date")
 	{
-		self->childEnable("Today");
-		self->childEnable(">>");
-		self->childEnable("<<");
+		childEnable("Today");
+		childEnable(">>");
+		childEnable("<<");
 	}
 	else
 	{
-		self->childDisable("Today");
-		self->childDisable(">>");
-		self->childDisable("<<");
+		childDisable("Today");
+		childDisable(">>");
+		childDisable("<<");
 	}
 }
 
-// static
-void LLPanelDirEvents::onClickToday(void *userdata)
+void LLPanelDirEvents::onClickToday()
 {
-	LLPanelDirEvents *self = (LLPanelDirEvents *)userdata;
-	self->resetSearchStart();
-	self->setDay(0);
-	self->performQuery();
+	resetSearchStart();
+	setDay(0);
+	performQuery();
 }
 
-
-// static
-void LLPanelDirEvents::onBackBtn(void* data)
+void LLPanelDirEvents::onBackBtn()
 {
-	LLPanelDirEvents* self = (LLPanelDirEvents*)data;
-	self->resetSearchStart();
-	self->setDay(self->mDay - 1);
-	self->performQuery();
+	resetSearchStart();
+	setDay(mDay - 1);
+	performQuery();
 }
 
-
-// static
-void LLPanelDirEvents::onForwardBtn(void* data)
+void LLPanelDirEvents::onForwardBtn()
 {
-	LLPanelDirEvents* self = (LLPanelDirEvents*)data;
-	self->resetSearchStart();
-	self->setDay(self->mDay + 1);
-	self->performQuery();
+	resetSearchStart();
+	setDay(mDay + 1);
+	performQuery();
 }
 
-
-// static
-void LLPanelDirEvents::onClickDelete(void *userdata)
+void LLPanelDirEvents::onClickDelete()
 {
-	LLPanelDirEvents *self = (LLPanelDirEvents *)userdata;
-	if (!self) return;
-
 	U32 event_id;
-	event_id = self->getSelectedEventID();
+	event_id = getSelectedEventID();
 	if (!event_id) return;
 
-	self->performQueryOrDelete(event_id);
+	performQueryOrDelete(event_id);
 }

@@ -40,97 +40,124 @@
 #include "llfloaterworldmap.h"
 #include "lluictrlfactory.h"
 #include "llurldispatcher.h"
-#include "llurlsimstring.h"
 #include "llviewborder.h"
 #include "llviewercontrol.h"
 #include "llviewermedia.h"
+#include "llviewertexture.h"
 #include "llviewerwindow.h"
-#include "llnotificationsutil.h"
 #include "llweb.h"
 #include "llrender.h"
 #include "llpluginclassmedia.h"
+#include "llslurl.h"
+#include "lluictrlfactory.h"	// LLRegisterWidget
+#include "llkeyboard.h"
+#include "llviewermenu.h"
 
 // linden library includes
 #include "llfocusmgr.h"
+#include "llsdutil.h"
+#include "lltextbox.h"
+#include "llbutton.h"
+#include "llcheckboxctrl.h"
+#include "llnotifications.h"
+#include "lllineeditor.h"
 
 extern BOOL gRestoreGL;
 
-// Setting the mozilla buffer width to 2048 exactly doesn't work, since it pads its rowbytes a bit, pushing the texture width over 2048.
-// 2000 should give enough headroom for any amount of padding it cares to add.
-const S32 MAX_DIMENSION = 2000;
-const S32 MAX_TEXTURE_DIMENSION = 2048;
-
 static LLRegisterWidget<LLMediaCtrl> r("web_browser");
 
-LLMediaCtrl::LLMediaCtrl( const std::string& name, const LLRect& rect ) :
-	LLUICtrl( name, rect, FALSE, NULL, NULL),
+LLMediaCtrl::Params::Params()
+:	start_url("start_url"),
+	border_visible("border_visible", false),
+	decouple_texture_size("decouple_texture_size", false),
+	texture_width("texture_width", 1024),
+	texture_height("texture_height", 1024),
+	caret_color("caret_color"),
+	initial_mime_type("initial_mime_type"),
+	error_page_url("error_page_url"),
+	media_id("media_id"),
+	trusted_content("trusted_content", false),
+	focus_on_click("focus_on_click", true)
+{
+}
+
+LLMediaCtrl::LLMediaCtrl( const Params& p) :
+	LLPanel( p.name, p.rect, FALSE),
 	LLInstanceTracker<LLMediaCtrl, LLUUID>(LLUUID::generateNewID()),
 	mTextureDepthBytes( 4 ),
-	mWebBrowserImage( 0 ),
 	mBorder(NULL),
 	mFrequentUpdates( true ),
 	mForceUpdate( false ),
-	mOpenLinksInExternalBrowser( false ),
-	mOpenLinksInInternalBrowser( false ),
-	mTrusted( false ),
 	mHomePageUrl( "" ),
-	mIgnoreUIScale( true ),
 	mAlwaysRefresh( false ),
-	mExternalUrl( "" ),
 	mMediaSource( 0 ),
-	mTakeFocusOnClick( true ),
+	mTakeFocusOnClick( p.focus_on_click ),
 	mCurrentNavUrl( "about:blank" ),
-	mLastSetCursor( UI_CURSOR_ARROW ),
 	mStretchToFill( true ),
 	mMaintainAspectRatio ( true ),
 	mDecoupleTextureSize ( false ),
 	mTextureWidth ( 1024 ),
 	mTextureHeight ( 1024 ),
-	mHideLoading (false)
+	mClearCache(false),
+	mHomePageMimeType(p.initial_mime_type),
+	mErrorPageURL(p.error_page_url),
+	mTrusted(p.trusted_content),
+	mHoverTextChanged(false),
+	mContextMenu()
 {
+	{
+		LLColor4 color = p.caret_color().get();
+		setCaretColor( (unsigned int)color.mV[0], (unsigned int)color.mV[1], (unsigned int)color.mV[2] );
+	}
+
+	setHomePageUrl(p.start_url, p.initial_mime_type);
+	
+	setBorderVisible(p.border_visible);
+	
+	setDecoupleTextureSize(p.decouple_texture_size);
+	
+	setTextureSize(p.texture_width, p.texture_height);
+
 	if(!getDecoupleTextureSize())
 	{
-		S32 screen_width = mIgnoreUIScale ? 
-			llround((F32)getRect().getWidth() * LLUI::getScaleFactor().mV[VX]) : getRect().getWidth();
-		S32 screen_height = mIgnoreUIScale ? 
-			llround((F32)getRect().getHeight() * LLUI::getScaleFactor().mV[VY]) : getRect().getHeight();
-	
+		S32 screen_width = llround((F32)getRect().getWidth() * LLUI::getScaleFactor().mV[VX]);
+		S32 screen_height = llround((F32)getRect().getHeight() * LLUI::getScaleFactor().mV[VY]);
+			
 		setTextureSize(screen_width, screen_height);
 	}
+	
+	mMediaTextureID = getKey();
+	
 	// We don't need to create the media source up front anymore unless we have a non-empty home URL to navigate to.
-	if(!mHomePageUrl.empty())
+	/*if(!mHomePageUrl.empty())
 	{
 		navigateHome();
-	}
+	}*/
 		
 
-	LLRect border_rect( 0, getRect().getHeight() + 2, getRect().getWidth() + 2, 0 );
-	mBorder = new LLViewBorder( std::string("web control border"), border_rect, LLViewBorder::BEVEL_IN );
-	addChild( mBorder );
+	//LLRect border_rect( 0, getRect().getHeight() + 2, getRect().getWidth() + 2, 0 );
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// note: this is now a singleton and destruction happens via initClass() now
 LLMediaCtrl::~LLMediaCtrl()
 {
-
 	if (mMediaSource)
 	{
 		mMediaSource->remObserver( this );
 		mMediaSource = NULL;
 	}
-
-	mWebBrowserImage = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 void LLMediaCtrl::setBorderVisible( BOOL border_visible )
 {
-	if ( mBorder )
+	if(border_visible && !mBorder)
 	{
-		mBorder->setVisible( border_visible );
-	};
+		mBorder = new LLViewBorder( std::string("web control border"), getLocalRect(), LLViewBorder::BEVEL_IN );
+		addChild( mBorder );
+	}
+	if(mBorder)
+		mBorder->setVisible(border_visible);
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -140,39 +167,24 @@ void LLMediaCtrl::setTakeFocusOnClick( bool take_focus )
 	mTakeFocusOnClick = take_focus;
 }
 
-
-////////////////////////////////////////////////////////////////////////////////
-// set flag that forces the embedded browser to open links in the external system browser
-void LLMediaCtrl::setOpenInExternalBrowser( bool valIn )
-{
-	mOpenLinksInExternalBrowser = valIn;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-// set flag that forces the embedded browser to open links in the internal browser floater
-void LLMediaCtrl::setOpenInInternalBrowser( bool valIn )
-{
-	mOpenLinksInInternalBrowser = valIn;
-};
-
-////////////////////////////////////////////////////////////////////////////////
-void LLMediaCtrl::setTrusted( bool valIn )
-{
-	mTrusted = valIn;
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 //
 BOOL LLMediaCtrl::handleHover( S32 x, S32 y, MASK mask )
 {
-	if (LLUICtrl::handleHover(x, y, mask)) return TRUE;
+	if (LLPanel::handleHover(x, y, mask)) return TRUE;
 	convertInputCoords(x, y);
 
 	if (mMediaSource)
 	{
 		mMediaSource->mouseMove(x, y, mask);
-
-		gViewerWindow->setCursor(mLastSetCursor);
+		gViewerWindow->setCursor(mMediaSource->getLastSetCursor());
+	}
+	
+	// TODO: Is this the right way to handle hover text changes driven by the plugin?
+	if(mHoverTextChanged)
+	{
+		mHoverTextChanged = false;
+		//handleToolTip(x, y, mask);
 	}
 
 	return TRUE;
@@ -182,9 +194,36 @@ BOOL LLMediaCtrl::handleHover( S32 x, S32 y, MASK mask )
 //
 BOOL LLMediaCtrl::handleScrollWheel( S32 x, S32 y, S32 clicks )
 {
-	if (LLUICtrl::handleScrollWheel(x, y, clicks)) return TRUE;
+	if (LLPanel::handleScrollWheel(x, y, clicks)) return TRUE;
 	if (mMediaSource && mMediaSource->hasMedia())
-		mMediaSource->getMediaPlugin()->scrollEvent(0, clicks, MASK_NONE);
+		mMediaSource->getMediaPlugin()->scrollEvent(0, clicks, gKeyboard->currentMask(TRUE));
+
+	return TRUE;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//	virtual 
+BOOL LLMediaCtrl::handleToolTip(S32 x, S32 y, std::string& msg, LLRect* sticky_rect_screen)
+{
+	std::string hover_text;
+	
+	if (mMediaSource && mMediaSource->hasMedia())
+		hover_text = mMediaSource->getMediaPlugin()->getHoverText();
+	
+	if(hover_text.empty())
+	{
+		return FALSE;
+	}
+	else
+	{
+		msg = hover_text;
+
+		S32 screen_x, screen_y;
+
+		localPointToScreen(x, y, &screen_x, &screen_y);
+		LLRect sticky_rect_screen;
+		sticky_rect_screen.setCenterAndSize(screen_x, screen_y, 20, 20);
+	}
 
 	return TRUE;
 }
@@ -193,20 +232,12 @@ BOOL LLMediaCtrl::handleScrollWheel( S32 x, S32 y, S32 clicks )
 //
 BOOL LLMediaCtrl::handleMouseUp( S32 x, S32 y, MASK mask )
 {
-	if (LLUICtrl::handleMouseUp(x, y, mask)) return TRUE;
+	if (LLPanel::handleMouseUp(x, y, mask)) return TRUE;
 	convertInputCoords(x, y);
 
 	if (mMediaSource)
 	{
 		mMediaSource->mouseUp(x, y, mask);
-
-		/*// *HACK: LLMediaImplLLMozLib automatically takes focus on mouseup,
-		// in addition to the onFocusReceived() call below.  Undo this. JC
-		if (!mTakeFocusOnClick)
-		{
-			mMediaSource->focus(false);
-			gViewerWindow->focusClient();
-		}*/
 	}
 	
 	gFocusMgr.setMouseCapture( NULL );
@@ -218,7 +249,7 @@ BOOL LLMediaCtrl::handleMouseUp( S32 x, S32 y, MASK mask )
 //
 BOOL LLMediaCtrl::handleMouseDown( S32 x, S32 y, MASK mask )
 {
-	if (LLUICtrl::handleMouseDown(x, y, mask)) return TRUE;
+	if (LLPanel::handleMouseDown(x, y, mask)) return TRUE;
 	convertInputCoords(x, y);
 
 	if (mMediaSource)
@@ -238,7 +269,7 @@ BOOL LLMediaCtrl::handleMouseDown( S32 x, S32 y, MASK mask )
 //
 BOOL LLMediaCtrl::handleRightMouseUp( S32 x, S32 y, MASK mask )
 {
-	/*if (LLPanel::handleRightMouseUp(x, y, mask)) return TRUE;
+	if (LLPanel::handleRightMouseUp(x, y, mask)) return TRUE;
 	convertInputCoords(x, y);
 
 	if (mMediaSource)
@@ -255,7 +286,7 @@ BOOL LLMediaCtrl::handleRightMouseUp( S32 x, S32 y, MASK mask )
 	}
 	
 	gFocusMgr.setMouseCapture( NULL );
-	*/
+
 	return TRUE;
 }
 
@@ -263,7 +294,7 @@ BOOL LLMediaCtrl::handleRightMouseUp( S32 x, S32 y, MASK mask )
 //
 BOOL LLMediaCtrl::handleRightMouseDown( S32 x, S32 y, MASK mask )
 {
-	if (LLUICtrl::handleRightMouseDown(x, y, mask)) return TRUE;
+	if (LLPanel::handleRightMouseDown(x, y, mask)) return TRUE;
 
 	S32 media_x = x, media_y = y;
 	convertInputCoords(media_x, media_y);
@@ -278,6 +309,14 @@ BOOL LLMediaCtrl::handleRightMouseDown( S32 x, S32 y, MASK mask )
 		setFocus( TRUE );
 	}
 
+	LLMenuGL* menu = (LLMenuGL*)mContextMenu.get();
+	if (menu)
+	{
+		menu->buildDrawLabels();
+		menu->updateParent(LLMenuGL::sMenuContainer);
+		LLMenuGL::showPopup(this,menu, x, y);
+	}
+
 	return TRUE;
 }
 
@@ -285,7 +324,7 @@ BOOL LLMediaCtrl::handleRightMouseDown( S32 x, S32 y, MASK mask )
 //
 BOOL LLMediaCtrl::handleDoubleClick( S32 x, S32 y, MASK mask )
 {
-	if (LLUICtrl::handleDoubleClick(x, y, mask)) return TRUE;
+	if (LLPanel::handleDoubleClick(x, y, mask)) return TRUE;
 	convertInputCoords(x, y);
 
 	if (mMediaSource)
@@ -313,7 +352,7 @@ void LLMediaCtrl::onFocusReceived()
 		LLEditMenuHandler::gEditMenuHandler = mMediaSource;
 	}
 	
-	LLUICtrl::onFocusReceived();
+	LLPanel::onFocusReceived();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -333,15 +372,20 @@ void LLMediaCtrl::onFocusLost()
 
 	gViewerWindow->focusClient();
 
-	LLUICtrl::onFocusLost();
+	LLPanel::onFocusLost();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-
 BOOL LLMediaCtrl::postBuild ()
 {
-	//setVisibleCallback(boost::bind(&LLMediaCtrl::onVisibilityChange, this, _2));
+	LLMenuGL* menu = LLUICtrlFactory::getInstance()->buildMenu("menu_media_ctrl.xml",LLMenuGL::sMenuContainer);
+	if(menu)
+	{
+		mContextMenu = menu->getHandle();
+	}
+
+	setVisibleCallback(boost::bind(&LLMediaCtrl::onVisibilityChange, this, _2));
 	return true;
 }
 
@@ -350,43 +394,20 @@ void LLMediaCtrl::onOpenWebInspector()
 	if (mMediaSource && mMediaSource->hasMedia())
 		mMediaSource->getMediaPlugin()->showWebInspector( true );
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 BOOL LLMediaCtrl::handleKeyHere( KEY key, MASK mask )
 {
 	BOOL result = FALSE;
 	
-	// FIXME: THIS IS SO WRONG.
-	// Menu keys should be handled by the menu system and not passed to UI elements, but this is how LLTextEditor and LLLineEditor do it...
-	
 	if (mMediaSource)
 	{
-		if( MASK_CONTROL & mask )
-		{
-			if( 'C' == key )
-			{
-				mMediaSource->copy();
-				result = TRUE;
-			}
-			else
-			if( 'V' == key )
-			{
-				mMediaSource->paste();
-				result = TRUE;
-			}
-			else
-			if( 'X' == key )
-			{
-				mMediaSource->cut();
-				result = TRUE;
-			}
-		}
-		
-		if(!result)
-		{
-			result = mMediaSource->handleKeyHere(key, mask);
-		}
+		result = mMediaSource->handleKeyHere(key, mask);
 	}
+	
+	if ( ! result )
+		result = LLPanel::handleKeyHere(key, mask);
 		
 	return result;
 }
@@ -400,14 +421,10 @@ void LLMediaCtrl::handleVisibilityChange ( BOOL new_visibility )
 	{
 		mMediaSource->setVisible( new_visibility );
 	}
-	LLUICtrl::handleVisibilityChange( new_visibility );
-	//Hack due to not being derived from LLPanel yet
-	LLMediaCtrl::onVisibilityChange(LLSD(new_visibility));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-
 BOOL LLMediaCtrl::handleUnicodeCharHere(llwchar uni_char)
 {
 	BOOL result = FALSE;
@@ -419,6 +436,9 @@ BOOL LLMediaCtrl::handleUnicodeCharHere(llwchar uni_char)
 		if (mMediaSource)
 			result = mMediaSource->handleUnicodeCharHere(uni_char);
 	}
+
+	if ( ! result )
+		result = LLPanel::handleUnicodeCharHere(uni_char);
 
 	return result;
 }
@@ -444,8 +464,8 @@ void LLMediaCtrl::reshape( S32 width, S32 height, BOOL called_from_parent )
 {
 	if(!getDecoupleTextureSize())
 	{
-		S32 screen_width = mIgnoreUIScale ? llround((F32)width * LLUI::getScaleFactor().mV[VX]) : width;
-		S32 screen_height = mIgnoreUIScale ? llround((F32)height * LLUI::getScaleFactor().mV[VY]) : height;
+		S32 screen_width = llround((F32)width * LLUI::getScaleFactor().mV[VX]);
+		S32 screen_height = llround((F32)height * LLUI::getScaleFactor().mV[VY]);
 
 		// when floater is minimized, these sizes are negative
 		if ( screen_height > 0 && screen_width > 0 )
@@ -499,6 +519,21 @@ bool LLMediaCtrl::canNavigateForward()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+void LLMediaCtrl::clearCache()
+{
+	if(mMediaSource)
+	{
+		mMediaSource->clearCache();
+	}
+	else
+	{
+		mClearCache = true;
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
 void LLMediaCtrl::set404RedirectUrl( std::string redirect_url )
 {
 	if(mMediaSource && mMediaSource->hasMedia())
@@ -541,31 +576,18 @@ void LLMediaCtrl::navigateTo( std::string url_in, std::string mime_type)
 void LLMediaCtrl::navigateToLocalPage( const std::string& subdir, const std::string& filename_in )
 {
 	std::string language = LLUI::getLanguage();
-	std::string delim = gDirUtilp->getDirDelimiter();
-	std::string filename;
-
-	filename += subdir;
-	filename += delim;
-	filename += filename_in;
+	std::string filename(gDirUtilp->add(subdir, filename_in));
 
 	std::string expanded_filename = gDirUtilp->findSkinnedFilename("html", language, filename);
 
-	if (! gDirUtilp->fileExists(expanded_filename))
+	if (expanded_filename.empty() && language != "en-us")
 	{
-		if (language != "en-us")
-		{
-			expanded_filename = gDirUtilp->findSkinnedFilename("html", "en-us", filename);
-			if (! gDirUtilp->fileExists(expanded_filename))
-			{
-				llwarns << "File " << subdir << delim << filename_in << "not found" << llendl;
-				return;
-			}
-		}
-		else
-		{
-			llwarns << "File " << subdir << delim << filename_in << "not found" << llendl;
-			return;
-		}
+		expanded_filename = gDirUtilp->findSkinnedFilename("html", "en-us", filename);
+	}
+	if(expanded_filename.empty())
+	{
+		llwarns << "File " << filename << "not found" << llendl;
+		return;
 	}
 	if (ensureMediaSourceExists())
 	{
@@ -589,13 +611,32 @@ void LLMediaCtrl::navigateHome()
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-void LLMediaCtrl::setHomePageUrl( const std::string urlIn )
+void LLMediaCtrl::setHomePageUrl( const std::string& urlIn, const std::string& mime_type )
 {
 	mHomePageUrl = urlIn;
 	if (mMediaSource)
 	{
-		mMediaSource->setHomeURL(mHomePageUrl);
+		mMediaSource->setHomeURL(mHomePageUrl, mime_type);
 	}
+}
+
+void LLMediaCtrl::setTarget(const std::string& target)
+{
+	mTarget = target;
+	if (mMediaSource)
+	{
+		mMediaSource->setTarget(mTarget);
+	}
+}
+
+void LLMediaCtrl::setErrorPageURL(const std::string& url)
+{
+	mErrorPageURL = url;
+}
+
+const std::string& LLMediaCtrl::getErrorPageURL()
+{
+	return mErrorPageURL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -616,7 +657,6 @@ void LLMediaCtrl::setTextureSize(S32 width, S32 height)
 	if(mMediaSource)
 	{
 		mMediaSource->setSize(mTextureWidth, mTextureHeight);
-		mWebBrowserImage->resize( mTextureWidth, mTextureHeight );
 		mForceUpdate = true;
 	}
 }
@@ -634,14 +674,24 @@ bool LLMediaCtrl::ensureMediaSourceExists()
 {	
 	if(mMediaSource.isNull())
 	{
-		mMediaSource = LLViewerMedia::newMediaImpl(mHomePageUrl, LLUUID::null, mTextureWidth, mTextureWidth, false, false, "text/html");
+		// If we don't already have a media source, try to create one.
+		mMediaSource = LLViewerMedia::newMediaImpl(mMediaTextureID, mTextureWidth, mTextureHeight);
 		if ( mMediaSource )
 		{
-			// create a new texture (based on LLDynamic texture) that will be used to display the output
-			mWebBrowserImage = new LLWebBrowserTexture( mTextureWidth, mTextureWidth, this, mMediaSource );
-			mMediaSource->setHomeURL(mHomePageUrl);
+			mMediaSource->setUsedInUI(true);
+			mMediaSource->setHomeURL(mHomePageUrl, mHomePageMimeType);
+			mMediaSource->setTarget(mTarget);
 			mMediaSource->setVisible( getVisible() );
 			mMediaSource->addObserver( this );
+			mMediaSource->setBackgroundColor( getBackgroundColor() );
+			mMediaSource->setTrustedBrowser(mTrusted);
+			mMediaSource->setPageZoomFactor( LLUI::getScaleFactor().mV[ VX ] );
+
+			if(mClearCache)
+			{
+				mMediaSource->clearCache();
+				mClearCache = false;
+			}
 		}
 		else
 		{
@@ -658,7 +708,6 @@ bool LLMediaCtrl::ensureMediaSourceExists()
 void LLMediaCtrl::unloadMediaSource()
 {
 	mMediaSource = NULL;
-	mWebBrowserImage = NULL; //release the dynamic texture too.
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -672,15 +721,12 @@ LLPluginClassMedia* LLMediaCtrl::getMediaPlugin()
 //
 void LLMediaCtrl::draw()
 {
-	if ( ! mWebBrowserImage || mWebBrowserImage->getNeedsUpdate())
-		return;
-
 	if ( gRestoreGL == 1 )
 	{
 		LLRect r = getRect();
 		reshape( r.getWidth(), r.getHeight(), FALSE );
 		return;
-	};
+	}
 
 	// NOTE: optimization needed here - probably only need to do this once
 	// unless tearoffs change the parent which they probably do.
@@ -701,7 +747,7 @@ void LLMediaCtrl::draw()
 	bool draw_media = false;
 	
 	LLPluginClassMedia* media_plugin = NULL;
-	LLWebBrowserTexture* media_texture =  mWebBrowserImage;
+	LLViewerMediaTexture* media_texture = NULL;
 	
 	if(mMediaSource && mMediaSource->hasMedia())
 	{
@@ -709,26 +755,22 @@ void LLMediaCtrl::draw()
 
 		if(media_plugin && (media_plugin->textureValid()))
 		{
-			media_texture = mWebBrowserImage;
+			media_texture = LLViewerTextureManager::findMediaTexture(mMediaTextureID);
 			if(media_texture)
 			{
 				draw_media = true;
 			}
 		}
 	}
+	
+	bool background_visible = isBackgroundVisible();
+	bool background_opaque = isBackgroundOpaque();
+	
 	if(draw_media)
 	{
-		gGL.pushMatrix();
+		gGL.pushUIMatrix();
 		{
-			if (mIgnoreUIScale)
-			{
-				gGL.loadIdentity();
-				// font system stores true screen origin, need to scale this by UI scale factor
-				// to get render origin for this view (with unit scale)
-				gGL.translatef(floorf(LLFontGL::sCurOrigin.mX * LLUI::getScaleFactor().mV[VX]), 
-							floorf(LLFontGL::sCurOrigin.mY * LLUI::getScaleFactor().mV[VY]), 
-							LLFontGL::sCurDepth);
-			}
+			mMediaSource->setPageZoomFactor( LLUI::getScaleFactor().mV[ VX ] );
 
 			// scale texture to fit the space using texture coords
 			gGL.getTexUnit(0)->bind(media_texture);
@@ -776,13 +818,13 @@ void LLMediaCtrl::draw()
 			x_offset = (r.getWidth() - width) / 2;
 			y_offset = (r.getHeight() - height) / 2;		
 
-			if (mIgnoreUIScale)
+			/*if (mIgnoreUIScale)
 			{
 				x_offset = llround((F32)x_offset * LLUI::getScaleFactor().mV[VX]);
 				y_offset = llround((F32)y_offset * LLUI::getScaleFactor().mV[VY]);
 				width = llround((F32)width * LLUI::getScaleFactor().mV[VX]);
 				height = llround((F32)height * LLUI::getScaleFactor().mV[VY]);
-			}
+			}*/
 
 			// draw the browser
 			gGL.setSceneBlendType(LLRender::BT_REPLACE);
@@ -820,14 +862,25 @@ void LLMediaCtrl::draw()
 			gGL.end();
 			gGL.setSceneBlendType(LLRender::BT_ALPHA);
 		}
-		gGL.popMatrix();
+		gGL.popUIMatrix();
+	
 	}
+	else
+	{
+		// Setting these will make LLPanel::draw draw the opaque background color.
+		setBackgroundVisible(true);
+		setBackgroundOpaque(true);
+	}
+	
 	// highlight if keyboard focus here. (TODO: this needs some work)
 	if ( mBorder && mBorder->getVisible() )
 		mBorder->setKeyboardFocusHighlight( gFocusMgr.childHasKeyboardFocus( this ) );
 
-	
-	LLUICtrl::draw();
+	LLPanel::draw();
+
+	// Restore the previous values
+	setBackgroundVisible(background_visible);
+	setBackgroundOpaque(background_opaque);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -841,29 +894,15 @@ void LLMediaCtrl::convertInputCoords(S32& x, S32& y)
 		coords_opengl = mMediaSource->getMediaPlugin()->getTextureCoordsOpenGL();
 	}
 	
-	x = mIgnoreUIScale ? llround((F32)x * LLUI::getScaleFactor().mV[VX]) : x;
+	x = llround((F32)x * LLUI::getScaleFactor().mV[VX]);
 	if ( ! coords_opengl )
 	{
-		y = mIgnoreUIScale ? llround((F32)(y) * LLUI::getScaleFactor().mV[VY]) : y;
+		y = llround((F32)(y) * LLUI::getScaleFactor().mV[VY]);
 	}
 	else
 	{
-		y = mIgnoreUIScale ? llround((F32)(getRect().getHeight() - y) * LLUI::getScaleFactor().mV[VY]) : getRect().getHeight() - y;
+		y = llround((F32)(getRect().getHeight() - y) * LLUI::getScaleFactor().mV[VY]);
 	};
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// static 
-bool LLMediaCtrl::onClickLinkExternalTarget(const LLSD& notification, const LLSD& response )
-{
-	S32 option = LLNotification::getSelectedOption(notification, response);
-	if ( 0 == option )
-	{
-		// open in external browser because we don't support 
-		// creation of our own secondary browser windows
-		LLWeb::loadURLExternal( notification["payload"]["external_url"].asString() );
-	}
-	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -895,28 +934,14 @@ void LLMediaCtrl::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event)
 		
 		case MEDIA_EVENT_CURSOR_CHANGED:
 		{
-			LL_INFOS("Media") <<  "Media event:  MEDIA_EVENT_CURSOR_CHANGED, new cursor is " << self->getCursorName() << LL_ENDL;
-
-			std::string cursor = self->getCursorName();
-			
-			if(cursor == "arrow")
-				mLastSetCursor = UI_CURSOR_ARROW;
-			else if(cursor == "ibeam")
-				mLastSetCursor = UI_CURSOR_IBEAM;
-			else if(cursor == "splith")
-				mLastSetCursor = UI_CURSOR_SIZEWE;
-			else if(cursor == "splitv")
-				mLastSetCursor = UI_CURSOR_SIZENS;
-			else if(cursor == "hand")
-				mLastSetCursor = UI_CURSOR_HAND;
-			else // for anything else, default to the arrow
-				mLastSetCursor = UI_CURSOR_ARROW;
-		};
+			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_CURSOR_CHANGED, new cursor is " << self->getCursorName() << LL_ENDL;
+		}
 		break;
 		
 		case MEDIA_EVENT_NAVIGATE_BEGIN:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_NAVIGATE_BEGIN, url is " << self->getNavigateURI() << LL_ENDL;
+			hideNotification();
 		};
 		break;
 		
@@ -951,20 +976,39 @@ void LLMediaCtrl::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event)
 		case MEDIA_EVENT_NAVIGATE_ERROR_PAGE:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_NAVIGATE_ERROR_PAGE" << LL_ENDL;
+			if ( mErrorPageURL.length() > 0 )
+			{
+				navigateTo(mErrorPageURL, "text/html");
+			};
 		};
 		break;
 
 		case MEDIA_EVENT_CLICK_LINK_HREF:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_CLICK_LINK_HREF, target is \"" << self->getClickTarget() << "\", uri is " << self->getClickURL() << LL_ENDL;
-			onClickLinkHref(self);
+			// retrieve the event parameters
+			std::string url = self->getClickURL();
+			std::string target = self->getClickTarget();
+			std::string uuid = self->getClickUUID();
+
+			LLNotification::Params notify_params("PopupAttempt");
+			notify_params.payload = LLSD().with("target", target).with("url", url).with("uuid", uuid).with("media_id", mMediaTextureID);
+			notify_params.functor(boost::bind(&LLMediaCtrl::onPopup, this, _1, _2));
+
+			if (mTrusted)
+			{
+				LLNotifications::instance().forceResponse(notify_params, 0);
+			}
+			else
+			{
+				LLNotifications::instance().add(notify_params);
+			}
+			break;
 		};
-		break;
 		
 		case MEDIA_EVENT_CLICK_LINK_NOFOLLOW:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_CLICK_LINK_NOFOLLOW, uri is " << self->getClickURL() << LL_ENDL;
-			onClickLinkNoFollow(self);
 		};
 		break;
 
@@ -989,30 +1033,42 @@ void LLMediaCtrl::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event)
 		case MEDIA_EVENT_CLOSE_REQUEST:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_CLOSE_REQUEST" << LL_ENDL;
-		};
+		}
 		break;
 		
 		case MEDIA_EVENT_PICK_FILE_REQUEST:
 		{
 			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_PICK_FILE_REQUEST" << LL_ENDL;
-		};
+		}
 		break;
 		
 		case MEDIA_EVENT_GEOMETRY_CHANGE:
 		{
-			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_GEOMETRY_CHANGE" << LL_ENDL;
-		};
+			LL_DEBUGS("Media") << "Media event:  MEDIA_EVENT_GEOMETRY_CHANGE, uuid is " << self->getClickUUID() << LL_ENDL;
+		}
 		break;
 
 		case MEDIA_EVENT_AUTH_REQUEST:
 		{
-			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_AUTH_REQUEST" << LL_ENDL;
+			LLNotification::Params auth_request_params("AuthRequest");
+
+			// pass in host name and realm for site (may be zero length but will always exist)
+			LLSD args;
+			LLURL raw_url( self->getAuthURL().c_str() );
+			args["HOST_NAME"] = raw_url.getAuthority();
+			args["REALM"] = self->getAuthRealm();
+			auth_request_params.substitutions = args;
+
+			auth_request_params.payload = LLSD().with("media_id", mMediaTextureID);
+			auth_request_params.functor(boost::bind(&LLViewerMedia::onAuthSubmit, _1, _2));
+			LLNotifications::instance().add(auth_request_params);
 		};
 		break;
-			
+
 		case MEDIA_EVENT_LINK_HOVERED:
 		{
-			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_LINK_HOVERED" << LL_ENDL;
+			LL_DEBUGS("Media") <<  "Media event:  MEDIA_EVENT_LINK_HOVERED, hover text is: " << self->getHoverText() << LL_ENDL;
+			mHoverTextChanged = true;
 		};
 		break;
 
@@ -1034,65 +1090,28 @@ void LLMediaCtrl::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event)
 
 ////////////////////////////////////////////////////////////////////////////////
 // 
-void LLMediaCtrl::onClickLinkHref( LLPluginClassMedia* self )
+std::string LLMediaCtrl::getCurrentNavUrl()
 {
-	// retrieve the event parameters
-	std::string target = self->getClickTarget();
-	std::string url = self->getClickURL();
-	
-	// if there is a value for the target
-	if ( !target.empty() )
-	{
-		if ( target == "_external" )		
-		{
-			mExternalUrl = url;
-			LLSD payload;
-			payload["external_url"] = mExternalUrl;
-			LLNotifications::instance().add( "WebLaunchExternalTarget", LLSD(), payload, onClickLinkExternalTarget);
-			return;
-		}
-	}
-
-	const std::string protocol1( "http://" );
-	const std::string protocol2( "https://" );
-	if( mOpenLinksInExternalBrowser )
-	{
-		if ( !url.empty() )
-		{
-			if ( LLStringUtil::compareInsensitive( url.substr( 0, protocol1.length() ), protocol1 ) == 0 ||
-				 LLStringUtil::compareInsensitive( url.substr( 0, protocol2.length() ), protocol2 ) == 0 )
-			{
-				LLWeb::loadURLExternal( url );
-			}
-		}
-	}
-	else
-	if( mOpenLinksInInternalBrowser )
-	{
-		if ( !url.empty() )
-		{
-			if ( LLStringUtil::compareInsensitive( url.substr( 0, protocol1.length() ), protocol1 ) == 0 ||
-				 LLStringUtil::compareInsensitive( url.substr( 0, protocol2.length() ), protocol2 ) == 0 )
-			{
-				// If we spawn a new LLFloaterHTML, assume we want it to
-				// follow this LLMediaCtrl's trust for whether or
-				// not to open secondlife:///app/ links. JC.
-//				const bool open_links_externally = false;
-//				LLFloaterHtml::getInstance()->show( 
-//					event_in.mStringPayload, 
-//						"Second Life Browser",
-//							open_links_externally,
-//								mTrusted);
-			}
-		}
-	}
+	return mCurrentNavUrl;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 
-void LLMediaCtrl::onClickLinkNoFollow( LLPluginClassMedia* self )
+bool LLMediaCtrl::onPopup(const LLSD& notification, const LLSD& response)
 {
-	std::string url = self->getClickURL();
+	if (response["open"])
+	{
+		LLWeb::loadURL(notification["payload"]["url"], notification["payload"]["target"], notification["payload"]["uuid"]);
+	}
+	else
+	{
+		// Make sure the opening instance knows its window open request was denied, so it can clean things up.
+		LLViewerMedia::proxyWindowClosed(notification["payload"]["uuid"]);
+	}
+	return FALSE;
+}
+
+void LLMediaCtrl::showNotification(LLNotificationPtr notify)
+{
+/*	std::string url = self->getClickURL();
 	if (LLURLDispatcher::isSLURLCommand(url)
 		&& !mTrusted)
 	{
@@ -1101,241 +1120,24 @@ void LLMediaCtrl::onClickLinkNoFollow( LLPluginClassMedia* self )
 		return;
 	}
 
-	LLURLDispatcher::dispatch(url, this, mTrusted);
+	LLURLDispatcher::dispatch(url, this, mTrusted);*/
+	LLNotifications::instance().add(notify);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-LLWebBrowserTexture::LLWebBrowserTexture( S32 width, S32 height, LLMediaCtrl* browserCtrl, viewer_media_t media_source ) :
-	LLViewerDynamicTexture( 512, 512, 4, ORDER_FIRST, TRUE ),
-	mNeedsUpdate( true ),
-	mNeedsResize( false ),
-	mTextureCoordsOpenGL( true ),
-	mWebBrowserCtrl( browserCtrl ),
-	mMediaSource(media_source)
-{
-	mElapsedTime.start();
 
-	resize( width, height );
+void LLMediaCtrl::hideNotification()
+{
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-LLWebBrowserTexture::~LLWebBrowserTexture()
+void LLMediaCtrl::setTrustedContent(bool trusted)
 {
-	mElapsedTime.stop();
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-BOOL LLWebBrowserTexture::needsRender()
-{
-	bool texture_dirty = false;
-	
-	if ( mWebBrowserCtrl->getFrequentUpdates() || 
-		mWebBrowserCtrl->getAlwaysRefresh() ||
-		mWebBrowserCtrl->getForceUpdate() )
+	mTrusted = trusted;
+	if (mMediaSource)
 	{
-		// All of these force an update
-		return TRUE;
+		mMediaSource->setTrustedBrowser(trusted);
 	}
-	
-	// If the texture needs updating, render needs to be called.
-	if (mMediaSource && mMediaSource->hasMedia())
-	{
-		LLPluginClassMedia* media = mMediaSource->getMediaPlugin();
-
-		if(media->textureValid() && media->getDirty())
-		{
-			texture_dirty = true;
-		}
-	}
-
-
-	return texture_dirty;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-//
-BOOL LLWebBrowserTexture::render()
-{	
-	if(updateBrowserTexture())
-	{
-		// updateBrowserTexture already verified that the media plugin is there and the texture is valid.
-		LLPluginClassMedia* media_plugin = mMediaSource->getMediaPlugin();
-		LLRect dirty_rect;
-		
-		if(mNeedsUpdate)
-		{
-			// If we need an update, use the whole rect instead of the dirty rect.
-			dirty_rect.mLeft = 0;
-			dirty_rect.mBottom = 0;
-			dirty_rect.mRight = media_plugin->getWidth();
-			dirty_rect.mTop = media_plugin->getHeight();
-		}
-		else
-		{
-			mNeedsUpdate = media_plugin->getDirty(&dirty_rect);
-		}
-		
-		if ( mNeedsUpdate )
-		{			
-			mNeedsUpdate = false;
-			mWebBrowserCtrl->setForceUpdate(false);
-
-			// Constrain the dirty rect to be inside the texture
-			S32 x_pos = llmax(dirty_rect.mLeft, 0);
-			S32 y_pos = llmax(dirty_rect.mBottom, 0);
-			S32 width = llmin(dirty_rect.mRight, getWidth()) - x_pos;
-			S32 height = llmin(dirty_rect.mTop, getHeight()) - y_pos;
-			
-			if(width > 0 && height > 0)
-			{
-				U8* data = media_plugin->getBitsData();
-
-				// Offset the pixels pointer to match x_pos and y_pos
-				data += ( x_pos * media_plugin->getTextureDepth() * media_plugin->getBitsWidth() );
-				data += ( y_pos * media_plugin->getTextureDepth() );
-				
-				setSubImage(
-						data, 
-						media_plugin->getBitsWidth(), 
-						media_plugin->getBitsHeight(),
-						x_pos, 
-						y_pos, 
-						width, 
-						height,
-						TRUE);	// force a fast update (i.e. don't call analyzeAlpha, etc.)
-			}
-		
-			media_plugin->resetDirty();
-
-			return TRUE;
-		};
-	};
-	
-	return FALSE;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-S32 LLWebBrowserTexture::getMediaWidth()
-{
-	return mMediaWidth;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-S32 LLWebBrowserTexture::getMediaHeight()
-{
-	return mMediaHeight;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-void LLWebBrowserTexture::setNeedsUpdate()
-{
-	mNeedsUpdate = true;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-bool LLWebBrowserTexture::getNeedsUpdate()
-{
-	return mNeedsUpdate;
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-bool LLWebBrowserTexture::getTextureCoordsOpenGL()
-{
-	return mTextureCoordsOpenGL;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-void LLWebBrowserTexture::resize( S32 new_width, S32 new_height )
-{
-	F32 scale_ratio = 1.f;
-	if (new_width > MAX_DIMENSION)
-	{
-		scale_ratio = (F32)MAX_DIMENSION / (F32)new_width;
-	}
-	if (new_height > MAX_DIMENSION)
-	{
-		scale_ratio = llmin(scale_ratio, (F32)MAX_DIMENSION / (F32)new_height);
-	}
-
-	mMediaWidth = llround(scale_ratio * (F32)new_width);
-	mMediaHeight = llround(scale_ratio * (F32)new_height);
-	
-	adjustSize();
-}
-
-bool LLWebBrowserTexture::adjustSize()
-{
-	if (mMediaSource && mMediaSource->hasMedia())
-	{
-		int natural_width = mMediaSource->getMediaPlugin()->getNaturalWidth();
-		int natural_height = mMediaSource->getMediaPlugin()->getNaturalHeight();
-		
-		if(natural_width != 0)
-		{
-			// If the media has a "natural size", use it.
-			mMediaWidth = natural_width;
-			mMediaHeight = natural_height;
-		}
-
-		mMediaSource->setSize(mMediaWidth, mMediaHeight);
-		mNeedsResize = false;
-
-		return true;
-	}
-	else
-	{
-		// The media isn't fully initialized yet, delay the resize until later.
-		mNeedsResize = true;
-	}
-	
-	return false;
-}
-
-bool LLWebBrowserTexture::updateBrowserTexture()
-{
-	if (!adjustSize())
-		return false;
-		
-	LLPluginClassMedia* media = mMediaSource->getMediaPlugin();
-	
-	if(!media->textureValid())
-		return false;
-	
-	if(mMediaSource->mNeedsNewTexture
-		|| media->getTextureWidth() != getFullWidth()
-		|| media->getTextureHeight() != getFullHeight() )
-	{
-		//releaseGLTexture();
-		
-		mFullWidth = media->getTextureWidth();
-		mFullHeight = media->getTextureHeight();
-		mTextureCoordsOpenGL = media->getTextureCoordsOpenGL();
-
-		const LLColor4U fill_color(0,0,0,255);
-		// will create mWidth * mHeight sized texture, using the texture params specified by the media.
-		generateGLTexture(
-				media->getTextureFormatInternal(), 
-				media->getTextureFormatPrimary(), 
-				media->getTextureFormatType(), 
-				media->getTextureFormatSwapBytes(),
-				&fill_color); //Initialize the texture to black.
-
-
-		mMediaSource->mNeedsNewTexture = false;
-	}
-	
-	return true;
-}
 // virtual
 LLXMLNodePtr LLMediaCtrl::getXML(bool save_children) const
 {
@@ -1348,48 +1150,50 @@ LLXMLNodePtr LLMediaCtrl::getXML(bool save_children) const
 
 LLView* LLMediaCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("web_browser");
-	node->getAttributeString("name", name);
-
-	std::string start_url("");
-	node->getAttributeString("start_url", start_url );
-
-	BOOL border_visible = true;
-	node->getAttributeBOOL("border_visible", border_visible);
-
+	LLMediaCtrl::Params p;
+	
+	BOOL bval;
+	LLColor4 color;
+	S32 ival;
 	LLRect rect;
+
+	std::string sval("web_browser");
+	node->getAttributeString("name", sval);
+	p.name = sval;
 	createRect(node, rect, parent, LLRect());
+	p.rect = rect;
 
-	LLMediaCtrl* web_browser = new LLMediaCtrl( name, rect );
+	if(node->getAttributeString("start_url", sval ))
+		p.start_url = sval;
+	if(node->getAttributeString("error_page_url", sval ))
+		p.error_page_url = sval;
+	if(node->getAttributeString("media_id", sval ))
+		p.media_id = sval;
+	if(node->getAttributeString("initial_mime_type", sval ))
+		p.initial_mime_type = sval;
+	if(node->getAttributeBOOL("border_visible", bval))
+		p.border_visible = bval;
+	if(node->getAttributeBOOL("focus_on_click", bval))
+		p.focus_on_click = bval;
+	if(node->getAttributeBOOL("decouple_texture_size", bval))
+		p.decouple_texture_size = bval;
+	if(node->getAttributeBOOL("trusted_content", bval))
+		p.trusted_content = bval;
+	if(node->getAttributeS32("texture_width", ival))
+		p.texture_width = ival;
+	if(node->getAttributeBOOL("texture_height", ival))
+		p.texture_height = ival;
+	if(LLUICtrlFactory::getAttributeColor(node, "caret_color", color))
+		p.caret_color = color;
 
-	if(node->hasAttribute("caret_color"))
-	{
-		LLColor4 color;
-		LLUICtrlFactory::getAttributeColor(node, "caret_color", color);
-		LLColor4U colorU = LLColor4U(color);
-		web_browser->setCaretColor( colorU.mV[0], colorU.mV[1], colorU.mV[2] );
-	}
-
-	BOOL ignore_ui_scale = web_browser->getIgnoreUIScale();
-	node->getAttributeBOOL("ignore_ui_scale", ignore_ui_scale);
-	web_browser->setIgnoreUIScale((bool)ignore_ui_scale);
+	LLMediaCtrl* web_browser = LLUICtrlFactory::create<LLMediaCtrl>(p,parent);
 
 	web_browser->initFromXML(node, parent);
 
-	web_browser->setHomePageUrl( start_url );
-
-	web_browser->setBorderVisible( border_visible );
-
-	if(! start_url.empty())
+	if(!p.start_url.getValue().empty())
 	{
 		web_browser->navigateHome();
 	}
 
 	return web_browser;
 }
-
-std::string LLMediaCtrl::getCurrentNavUrl()
-{
-	return mCurrentNavUrl;
-}
-

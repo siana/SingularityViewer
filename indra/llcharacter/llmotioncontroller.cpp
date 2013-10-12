@@ -83,13 +83,7 @@ LLMotionRegistry::~LLMotionRegistry()
 BOOL LLMotionRegistry::registerMotion( const LLUUID& id, LLMotionConstructor constructor )
 {
 	//	llinfos << "Registering motion: " << name << llendl;
-	if (!is_in_map(mMotionTable, id))
-	{
-		mMotionTable[id] = constructor;
-		return TRUE;
-	}
-	
-	return FALSE;
+	return mMotionTable.insert(std::make_pair(id,constructor)).second;
 }
 
 //-----------------------------------------------------------------------------

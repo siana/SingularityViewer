@@ -102,12 +102,12 @@ void LLInventoryCompletionObserver::changed(U32 mask)
 {
 	// scan through the incomplete items and move or erase them as
 	// appropriate.
-	if(!mIncomplete.empty())
+	if (!mIncomplete.empty())
 	{
-		for(uuid_vec_t::iterator it = mIncomplete.begin(); it < mIncomplete.end(); )
+		for (uuid_vec_t::iterator it = mIncomplete.begin(); it < mIncomplete.end(); )
 		{
-			LLViewerInventoryItem* item = gInventory.getItem(*it);
-			if(!item)
+			const LLViewerInventoryItem* item = gInventory.getItem(*it);
+			if (!item)
 			{
 				it = mIncomplete.erase(it);
 				continue;
@@ -120,7 +120,7 @@ void LLInventoryCompletionObserver::changed(U32 mask)
 			}
 			++it;
 		}
-		if(mIncomplete.empty())
+		if (mIncomplete.empty())
 		{
 			done();
 		}
@@ -129,7 +129,7 @@ void LLInventoryCompletionObserver::changed(U32 mask)
 
 void LLInventoryCompletionObserver::watchItem(const LLUUID& id)
 {
-	if(id.notNull())
+	if (id.notNull())
 	{
 		mIncomplete.push_back(id);
 	}
@@ -158,6 +158,7 @@ void LLInventoryFetchItemsObserver::changed(U32 mask)
 	// appropriate.
 	if (!mIncomplete.empty())
 	{
+
 		// Have we exceeded max wait time?
 		bool timeout_expired = mFetchingPeriod.hasExpired();
 
@@ -201,6 +202,7 @@ void LLInventoryFetchItemsObserver::changed(U32 mask)
 void fetch_items_from_llsd(const LLSD& items_llsd)
 {
 	if (!items_llsd.size() || gDisconnected) return;
+
 	LLSD body;
 	body[0]["cap_name"] = "FetchInventory2";
 	body[1]["cap_name"] = "FetchLib2";
@@ -244,7 +246,7 @@ void fetch_items_from_llsd(const LLSD& items_llsd)
 		for (S32 j=0; j<body[i]["items"].size(); j++)
 		{
 			LLSD item_entry = body[i]["items"][j];
-			if(start_new_message)
+			if (start_new_message)
 			{
 				start_new_message = FALSE;
 				msg->newMessageFast(_PREHASH_FetchInventory);
@@ -255,13 +257,13 @@ void fetch_items_from_llsd(const LLSD& items_llsd)
 			msg->nextBlockFast(_PREHASH_InventoryData);
 			msg->addUUIDFast(_PREHASH_OwnerID, item_entry["owner_id"].asUUID());
 			msg->addUUIDFast(_PREHASH_ItemID, item_entry["item_id"].asUUID());
-			if(msg->isSendFull(NULL))
+			if (msg->isSendFull(NULL))
 			{
 				start_new_message = TRUE;
 				gAgent.sendReliableMessage();
 			}
 		}
-		if(!start_new_message)
+		if (!start_new_message)
 		{
 			gAgent.sendReliableMessage();
 		}
@@ -335,8 +337,8 @@ void LLInventoryFetchDescendentsObserver::changed(U32 mask)
 {
 	for (uuid_vec_t::iterator it = mIncomplete.begin(); it < mIncomplete.end();)
 	{
-		LLViewerInventoryCategory* cat = gInventory.getCategory(*it);
-		if(!cat)
+		const LLViewerInventoryCategory* cat = gInventory.getCategory(*it);
+		if (!cat)
 		{
 			it = mIncomplete.erase(it);
 			continue;
@@ -465,7 +467,7 @@ void LLInventoryFetchComboObserver::startFetch()
 
 void LLInventoryExistenceObserver::watchItem(const LLUUID& id)
 {
-	if(id.notNull())
+	if (id.notNull())
 	{
 		mMIA.push_back(id);
 	}
@@ -475,12 +477,12 @@ void LLInventoryExistenceObserver::changed(U32 mask)
 {
 	// scan through the incomplete items and move or erase them as
 	// appropriate.
-	if(!mMIA.empty())
+	if (!mMIA.empty())
 	{
-		for(uuid_vec_t::iterator it = mMIA.begin(); it < mMIA.end(); )
+		for (uuid_vec_t::iterator it = mMIA.begin(); it < mMIA.end(); )
 		{
 			LLViewerInventoryItem* item = gInventory.getItem(*it);
-			if(!item)
+			if (!item)
 			{
 				++it;
 				continue;
@@ -488,7 +490,7 @@ void LLInventoryExistenceObserver::changed(U32 mask)
 			mExist.push_back(*it);
 			it = mMIA.erase(it);
 		}
-		if(mMIA.empty())
+		if (mMIA.empty())
 		{
 			done();
 		}
@@ -589,7 +591,7 @@ void LLInventoryAddedObserver::changed(U32 mask)
 
 	LLPointer<LLViewerInventoryItem> titem = new LLViewerInventoryItem;
 	S32 num_blocks = msg->getNumberOfBlocksFast(_PREHASH_InventoryData);
-	for(S32 i = 0; i < num_blocks; ++i)
+	for (S32 i = 0; i < num_blocks; ++i)
 	{
 		titem->unpackMessage(msg, _PREHASH_InventoryData, i);
 		if (!(titem->getUUID().isNull()))
@@ -639,18 +641,18 @@ LLInventoryTransactionObserver::LLInventoryTransactionObserver(const LLTransacti
 
 void LLInventoryTransactionObserver::changed(U32 mask)
 {
-	if(mask & LLInventoryObserver::ADD)
+	if (mask & LLInventoryObserver::ADD)
 	{
 		// This could be it - see if we are processing a bulk update
 		LLMessageSystem* msg = gMessageSystem;
-		if(msg->getMessageName()
+		if (msg->getMessageName()
 		   && (0 == strcmp(msg->getMessageName(), "BulkUpdateInventory")))
 		{
 			// we have a match for the message - now check the
 			// transaction id.
 			LLUUID id;
 			msg->getUUIDFast(_PREHASH_AgentData, _PREHASH_TransactionID, id);
-			if(id == mTransactionID)
+			if (id == mTransactionID)
 			{
 				// woo hoo, we found it
 				uuid_vec_t folders;
@@ -658,19 +660,19 @@ void LLInventoryTransactionObserver::changed(U32 mask)
 				S32 count;
 				count = msg->getNumberOfBlocksFast(_PREHASH_FolderData);
 				S32 i;
-				for(i = 0; i < count; ++i)
+				for (i = 0; i < count; ++i)
 				{
 					msg->getUUIDFast(_PREHASH_FolderData, _PREHASH_FolderID, id, i);
-					if(id.notNull())
+					if (id.notNull())
 					{
 						folders.push_back(id);
 					}
 				}
 				count = msg->getNumberOfBlocksFast(_PREHASH_ItemData);
-				for(i = 0; i < count; ++i)
+				for (i = 0; i < count; ++i)
 				{
 					msg->getUUIDFast(_PREHASH_ItemData, _PREHASH_ItemID, id, i);
-					if(id.notNull())
+					if (id.notNull())
 					{
 						items.push_back(id);
 					}

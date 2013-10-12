@@ -58,6 +58,7 @@ public:
 		GESTURE 		= 64,
 		REBUILD 		= 128, 	// Item UI changed (e.g. item type different)
 		SORT 			= 256, 	// Folder needs to be resorted.
+		DESCRIPTION		= 0x10000,	// Singu extension to keep track of description changes.
 		ALL 			= 0xffffffff
 	};
 	LLInventoryObserver();

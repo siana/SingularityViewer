@@ -210,7 +210,7 @@ LLWindowMacOSX::LLWindowMacOSX(LLWindowCallbacks* callbacks,
 							   const std::string& title, const std::string& name, S32 x, S32 y, S32 width,
 							   S32 height, U32 flags,
 							   BOOL fullscreen, BOOL clearBg,
-							   BOOL disable_vsync, BOOL use_gl,
+							   BOOL disable_vsync,
 							   BOOL ignore_pixel_depth,
 							   U32 fsaa_samples)
 	: LLWindow(NULL, fullscreen, flags)
@@ -1256,7 +1256,7 @@ BOOL LLWindowMacOSX::setPosition(const LLCoordScreen position)
 	return TRUE;
 }
 
-BOOL LLWindowMacOSX::setSize(const LLCoordScreen size)
+BOOL LLWindowMacOSX::setSizeImpl(const LLCoordScreen size)
 {
 	if(mWindow)
 	{
@@ -1264,6 +1264,31 @@ BOOL LLWindowMacOSX::setSize(const LLCoordScreen size)
 	}
 
 	return TRUE;
+}
+
+BOOL LLWindowMacOSX::setSizeImpl(const LLCoordWindow size)
+{
+	Rect client_rect;
+	if (mWindow)
+	{
+		OSStatus err = GetWindowBounds(mWindow, kWindowContentRgn, &client_rect);
+		if (err == noErr)
+		{
+			client_rect.right = client_rect.left + size.mX;
+			client_rect.bottom = client_rect.top + size.mY;
+			err = SetWindowBounds(mWindow, kWindowContentRgn, &client_rect);
+		}
+		if (err == noErr)
+		{
+			return TRUE;
+		}
+		else
+		{
+			llinfos << "Error setting size" << err << llendl;
+			return FALSE;
+		}
+	}
+	return FALSE;
 }
 
 void LLWindowMacOSX::swapBuffers()
@@ -2546,6 +2571,9 @@ OSStatus LLWindowMacOSX::eventHandler (EventHandlerCallRef myHandler, EventRef e
 			{
 				// This is where we would constrain move/resize to a particular screen
 
+				const S32 MIN_WIDTH  = mMinWindowWidth;
+				const S32 MIN_HEIGHT = mMinWindowHeight;
+
 				Rect currentBounds;
 				Rect previousBounds;
 
@@ -2570,14 +2598,14 @@ OSStatus LLWindowMacOSX::eventHandler (EventHandlerCallRef myHandler, EventRef e
 					mPreviousWindowRect = previousBounds;
 				}
 
-				if ((currentBounds.right - currentBounds.left) < MIN_WINDOW_WIDTH)
+				if ((currentBounds.right - currentBounds.left) < MIN_WIDTH)
 				{
-					currentBounds.right = currentBounds.left + MIN_WINDOW_WIDTH;
+					currentBounds.right = currentBounds.left + MIN_WIDTH;
 				}
 
-				if ((currentBounds.bottom - currentBounds.top) < MIN_WINDOW_HEIGHT)
+				if ((currentBounds.bottom - currentBounds.top) < MIN_HEIGHT)
 				{
-					currentBounds.bottom = currentBounds.top + MIN_WINDOW_HEIGHT;
+					currentBounds.bottom = currentBounds.top + MIN_HEIGHT;
 				}
 
 				SetEventParameter(event, kEventParamCurrentBounds, typeQDRectangle, sizeof(Rect), &currentBounds);

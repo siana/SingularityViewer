@@ -37,13 +37,11 @@
 #pragma warning (disable : 4263)
 #pragma warning (disable : 4264)
 #endif
-#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include "dae.h"
 #include "dae/daeErrorHandler.h"
 #include "dom/domConstants.h"
 #include "dom/domMesh.h"
-#pragma GCC diagnostic pop
 #if LL_MSVC
 #pragma warning (pop)
 #endif
@@ -265,13 +263,13 @@ LLModel::EModelStatus load_face_from_dom_triangles(std::vector<LLVolumeFace>& fa
 			LLVolumeFace& new_face = *face_list.rbegin();
 			if (!norm_source)
 			{
-				ll_aligned_free_16(new_face.mNormals);
+				//l_aligned_free_16(new_face.mNormals);
 				new_face.mNormals = NULL;
 			}
 
 			if (!tc_source)
 			{
-				ll_aligned_free_16(new_face.mTexCoords);
+				//ll_aligned_free_16(new_face.mTexCoords);
 				new_face.mTexCoords = NULL;
 			}
 
@@ -296,13 +294,13 @@ LLModel::EModelStatus load_face_from_dom_triangles(std::vector<LLVolumeFace>& fa
 		LLVolumeFace& new_face = *face_list.rbegin();
 		if (!norm_source)
 		{
-			ll_aligned_free_16(new_face.mNormals);
+			//ll_aligned_free_16(new_face.mNormals);
 			new_face.mNormals = NULL;
 		}
 
 		if (!tc_source)
 		{
-			ll_aligned_free_16(new_face.mTexCoords);
+			//ll_aligned_free_16(new_face.mTexCoords);
 			new_face.mTexCoords = NULL;
 		}
 	}
@@ -484,13 +482,13 @@ LLModel::EModelStatus load_face_from_dom_polylist(std::vector<LLVolumeFace>& fac
 				LLVolumeFace& new_face = *face_list.rbegin();
 				if (!norm_source)
 				{
-					ll_aligned_free_16(new_face.mNormals);
+					//ll_aligned_free_16(new_face.mNormals);
 					new_face.mNormals = NULL;
 				}
 
 				if (!tc_source)
 				{
-					ll_aligned_free_16(new_face.mTexCoords);
+					//ll_aligned_free_16(new_face.mTexCoords);
 					new_face.mTexCoords = NULL;
 				}
 
@@ -518,13 +516,13 @@ LLModel::EModelStatus load_face_from_dom_polylist(std::vector<LLVolumeFace>& fac
 		LLVolumeFace& new_face = *face_list.rbegin();
 		if (!norm_source)
 		{
-			ll_aligned_free_16(new_face.mNormals);
+			//ll_aligned_free_16(new_face.mNormals);
 			new_face.mNormals = NULL;
 		}
 
 		if (!tc_source)
 		{
-			ll_aligned_free_16(new_face.mTexCoords);
+			//ll_aligned_free_16(new_face.mTexCoords);
 			new_face.mTexCoords = NULL;
 		}
 	}
@@ -632,25 +630,41 @@ LLModel::EModelStatus load_face_from_dom_polygons(std::vector<LLVolumeFace>& fac
 			if (v)
 			{
 				U32 v_idx = idx[j*stride+v_offset]*3;
+				v_idx = llclamp(v_idx, (U32) 0, (U32) v->getCount());
 				vert.getPosition().set(v->get(v_idx),
 								v->get(v_idx+1),
 								v->get(v_idx+2));
 			}
 			
-			if (n)
+			//bounds check n and t lookups because some FBX to DAE converters
+			//use negative indices and empty arrays to indicate data does not exist
+			//for a particular channel
+			if (n && n->getCount() > 0)
 			{
 				U32 n_idx = idx[j*stride+n_offset]*3;
+				n_idx = llclamp(n_idx, (U32) 0, (U32) n->getCount());
 				vert.getNormal().set(n->get(n_idx),
 								n->get(n_idx+1),
 								n->get(n_idx+2));
 			}
+			else
+			{
+				vert.getNormal().clear();
+			}
 
-			if (t)
+			
+			if (t && t->getCount() > 0)
 			{
 				U32 t_idx = idx[j*stride+t_offset]*2;
+				t_idx = llclamp(t_idx, (U32) 0, (U32) t->getCount());
 				vert.mTexCoord.setVec(t->get(t_idx),
 								t->get(t_idx+1));								
 			}
+			else
+			{
+				vert.mTexCoord.clear();
+			}
+
 						
 			verts.push_back(vert);
 		}
@@ -718,13 +732,13 @@ LLModel::EModelStatus load_face_from_dom_polygons(std::vector<LLVolumeFace>& fac
 		LLVolumeFace& new_face = *face_list.rbegin();
 		if (!n)
 		{
-			ll_aligned_free_16(new_face.mNormals);
+			//ll_aligned_free_16(new_face.mNormals);
 			new_face.mNormals = NULL;
 		}
 
 		if (!t)
 		{
-			ll_aligned_free_16(new_face.mTexCoords);
+			//ll_aligned_free_16(new_face.mTexCoords);
 			new_face.mTexCoords = NULL;
 		}
 	}
@@ -998,6 +1012,43 @@ void LLModel::getNormalizedScaleTranslation(LLVector3& scale_out, LLVector3& tra
 	translation_out = mNormalizedTranslation;
 }
 
+LLVector3 LLModel::getTransformedCenter(const LLMatrix4& mat)
+{
+	LLVector3 ret;
+
+	if (!mVolumeFaces.empty())
+	{
+		LLMatrix4a m;
+		m.loadu(mat);
+
+		LLVector4a minv,maxv;
+
+		LLVector4a t;
+		m.affineTransform(mVolumeFaces[0].mPositions[0], t);
+		minv = maxv = t;
+
+		for (S32 i = 0; i < (S32)mVolumeFaces.size(); ++i)
+		{
+			LLVolumeFace& face = mVolumeFaces[i];
+
+			for (U32 j = 0; j < (U32)face.mNumVertices; ++j)
+			{
+				m.affineTransform(face.mPositions[j],t);
+				update_min_max(minv, maxv, t);
+			}
+		}
+
+		minv.add(maxv);
+		minv.mul(0.5f);
+
+		ret.set(minv.getF32ptr());
+	}
+
+	return ret;
+}
+
+
+
 void LLModel::setNumVolumeFaces(S32 count)
 {
 	mVolumeFaces.resize(count);
@@ -1024,7 +1075,7 @@ void LLModel::setVolumeFaceData(
 	}
 	else
 	{
-		ll_aligned_free_16(face.mNormals);
+		//ll_aligned_free_16(face.mNormals);
 		face.mNormals = NULL;
 	}
 
@@ -1035,7 +1086,7 @@ void LLModel::setVolumeFaceData(
 	}
 	else
 	{
-		ll_aligned_free_16(face.mTexCoords);
+		//ll_aligned_free_16(face.mTexCoords);
 		face.mTexCoords = NULL;
 	}
 
@@ -1234,7 +1285,7 @@ void LLModel::generateNormals(F32 angle_cutoff)
 		}
 		else
 		{
-			ll_aligned_free_16(new_face.mTexCoords);
+			//ll_aligned_free_16(new_face.mTexCoords);
 			new_face.mTexCoords = NULL;
 		}
 

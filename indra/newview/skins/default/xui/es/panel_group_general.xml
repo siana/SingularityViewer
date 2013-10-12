@@ -18,13 +18,12 @@ Coloca el cursor sobre las opciones para más información.
 	<text name="prepend_founded_by">
 		Creado por
 	</text>
-	<text name="founder_name">
-		(esperando)
-	</text>
+	<name_box name="founder_name" initial_value="Cargando..."/>
 	<text name="group_key_text">
 		ID del Grupo:
 	</text>
 	<name_editor name="group_key"/>
+	<button name="copy_uri" label="Copiar URI"/>
 	<text name="group_charter_label">
 		Carta del Grupo
 	</text>
@@ -33,7 +32,7 @@ Coloca el cursor sobre las opciones para más información.
 		Carta del Grupo
 	</text_editor>
 	<button label="Entrar ([CURRENCY]0)" label_selected="Entrar ([CURRENCY]0)" name="join_button"/>
-	<button label="Ver en Detalle" label_selected="Ver en Detalle" name="info_button"/>
+	<button label="Ver Detalles" label_selected="Ver Detalles" name="info_button"/>
 	<text name="text_owners_and_visible_members">
 		Propietarios y Miembros Visibles
 	</text>
@@ -58,10 +57,10 @@ Coloca el cursor sobre las opciones para más información.
 		</text>
 		<combo_box name="group_mature_check"  tool_tip="Establece si la información de tu grupo es de Contenido Mature">
 			<combo_item name="select_mature" value="Select">
-				-	 Seleccionar Calificación -
+				- Seleccionar Calificación -
 			</combo_item>
 			<combo_item name="mature">
-				Contenido Mature
+				Contenido Moderado
 			</combo_item>
 			<combo_item name="pg">
 				Contenido PG

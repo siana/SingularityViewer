@@ -7,11 +7,13 @@ include(00-Common)
 include(LLCommon)
 include(APR)
 include(Linking)
+include(GoogleBreakpad)
 
 include_directories(
     ${EXPAT_INCLUDE_DIRS}
     ${LLCOMMON_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
+    ${BREAKPAD_INCLUDE_DIRECTORIES}
     )
 
 set(llcommon_SOURCE_FILES
@@ -76,6 +78,7 @@ set(llcommon_SOURCE_FILES
     llrun.cpp
     llscopedvolatileaprpool.h
     llsd.cpp
+    llsdparam.cpp
     llsdserialize.cpp
     llsdserialize_xml.cpp
     llsdutil.cpp
@@ -115,6 +118,7 @@ set(llcommon_HEADER_FILES
     linden_common.h
     linked_lists.h
     llaccountingcost.h
+    llalignedarray.h
     llagentconstants.h
     llallocator.h
     llallocator_heap_profile.h
@@ -204,10 +208,11 @@ set(llcommon_HEADER_FILES
     llqueuedthread.h
     llrand.h
     llrefcount.h
-    llrefcount.h
+    llregistry.h
     llrun.h
     llsafehandle.h
     llsd.h
+    llsdparam.h
     llsdserialize.h
     llsdserialize_xml.h
     llsdutil.h
@@ -234,7 +239,7 @@ set(llcommon_HEADER_FILES
     lltypeinfolookup.h
     lluri.h
     lluuid.h
-    lluuidhashmap.h
+    sguuidhash.h
     llversionviewer.h.in
     llworkerthread.h
     metaclass.h
@@ -263,11 +268,13 @@ add_library (llcommon SHARED ${llcommon_SOURCE_FILES})
 add_dependencies(llcommon prepare)
 target_link_libraries(
     llcommon
+    ${BREAKPAD_EXCEPTION_HANDLER_LIBRARIES}
     ${APRUTIL_LIBRARIES}
     ${APR_LIBRARIES}
     ${EXPAT_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${WINDOWS_LIBRARIES}
+    ${Boost_CONTEXT_LIBRARY}
     ${Boost_REGEX_LIBRARY}
     ${CORESERVICES_LIBRARY}
     )

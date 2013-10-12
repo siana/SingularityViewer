@@ -43,20 +43,25 @@ static LLRegisterWidget<LLUICtrl> r("ui_ctrl");
 
 LLUICtrl::LLUICtrl() :
 	mViewModel(LLViewModelPtr(new LLViewModel)),
+	mMakeVisibleControlVariable(NULL),
+	mMakeInvisibleControlVariable(NULL),
 	mCommitSignal(NULL),
 	mValidateSignal(NULL),
-	mCommitCallback(NULL),
-	mValidateCallback(NULL),
-	mCallbackUserData(NULL),
+	mMouseEnterSignal(NULL),
+	mMouseLeaveSignal(NULL),
+	mMouseDownSignal(NULL),
+	mMouseUpSignal(NULL),
+	mRightMouseDownSignal(NULL),
+	mRightMouseUpSignal(NULL),
+	mDoubleClickSignal(NULL),
 	mTentative(FALSE),
 	mTabStop(TRUE),
 	mIsChrome(FALSE)
 {
 }
 
-LLUICtrl::LLUICtrl(const std::string& name, const LLRect& rect, BOOL mouse_opaque,
-	void (*on_commit_callback)(LLUICtrl*, void*),
-	void* callback_userdata,
+LLUICtrl::LLUICtrl(const std::string& name, const LLRect rect, BOOL mouse_opaque,
+	commit_callback_t commit_callback,
 	U32 reshape)
 :	// can't make this automatically follow top and left, breaks lots
 	// of buttons in the UI. JC 7/20/2002
@@ -64,13 +69,19 @@ LLUICtrl::LLUICtrl(const std::string& name, const LLRect& rect, BOOL mouse_opaqu
 	mCommitSignal(NULL),
 	mValidateSignal(NULL),
 	mViewModel(LLViewModelPtr(new LLViewModel)),
-	mCommitCallback( on_commit_callback),
-	mValidateCallback( NULL ),
-	mCallbackUserData( callback_userdata ),
+	mMouseEnterSignal(NULL),
+	mMouseLeaveSignal(NULL),
+	mMouseDownSignal(NULL),
+	mMouseUpSignal(NULL),
+	mRightMouseDownSignal(NULL),
+	mRightMouseUpSignal(NULL),
+	mDoubleClickSignal(NULL),
 	mTentative( FALSE ),
 	mTabStop( TRUE ),
 	mIsChrome(FALSE)
 {
+	if(commit_callback)
+		setCommitCallback(commit_callback);
 }
 
 LLUICtrl::~LLUICtrl()
@@ -85,14 +96,90 @@ LLUICtrl::~LLUICtrl()
 
 	delete mCommitSignal;
 	delete mValidateSignal;
+	delete mMouseEnterSignal;
+	delete mMouseLeaveSignal;
+	delete mMouseDownSignal;
+	delete mMouseUpSignal;
+	delete mRightMouseDownSignal;
+	delete mRightMouseUpSignal;
+	delete mDoubleClickSignal;
+}
+
+
+// virtual
+void LLUICtrl::onMouseEnter(S32 x, S32 y, MASK mask)
+{
+	if (mMouseEnterSignal)
+	{
+		(*mMouseEnterSignal)(this, getValue());
+	}
+}
+
+// virtual
+void LLUICtrl::onMouseLeave(S32 x, S32 y, MASK mask)
+{
+	if(mMouseLeaveSignal)
+	{
+		(*mMouseLeaveSignal)(this, getValue());
+	}
+}
+
+//virtual 
+BOOL LLUICtrl::handleMouseDown(S32 x, S32 y, MASK mask)
+{
+	BOOL handled  = LLView::handleMouseDown(x,y,mask);
+	if (mMouseDownSignal)
+	{
+		(*mMouseDownSignal)(this,x,y,mask);
+	}
+	return handled;
+}
+
+//virtual
+BOOL LLUICtrl::handleMouseUp(S32 x, S32 y, MASK mask)
+{
+	BOOL handled  = LLView::handleMouseUp(x,y,mask);
+	if (mMouseUpSignal)
+	{
+		(*mMouseUpSignal)(this,x,y,mask);
+	}
+	return handled;
+}
+
+//virtual
+BOOL LLUICtrl::handleRightMouseDown(S32 x, S32 y, MASK mask)
+{
+	BOOL handled  = LLView::handleRightMouseDown(x,y,mask);
+	if (mRightMouseDownSignal)
+	{
+		(*mRightMouseDownSignal)(this,x,y,mask);
+	}
+	return handled;
+}
+
+//virtual
+BOOL LLUICtrl::handleRightMouseUp(S32 x, S32 y, MASK mask)
+{
+	BOOL handled  = LLView::handleRightMouseUp(x,y,mask);
+	if(mRightMouseUpSignal)
+	{
+		(*mRightMouseUpSignal)(this,x,y,mask);
+	}
+	return handled;
+}
+
+BOOL LLUICtrl::handleDoubleClick(S32 x, S32 y, MASK mask)
+{
+	BOOL handled = LLView::handleDoubleClick(x, y, mask);
+	if (mDoubleClickSignal)
+	{
+		(*mDoubleClickSignal)(this, x, y, mask);
+	}
+	return handled;
 }
 
 void LLUICtrl::onCommit()
 {
-	if( mCommitCallback )
-	{
-		mCommitCallback( this, mCallbackUserData );
-	}
 	if (mCommitSignal)
 		(*mCommitSignal)(this, getValue());
 }
@@ -130,6 +217,56 @@ LLViewModel* LLUICtrl::getViewModel() const
 {
 	return mViewModel;
 }
+
+void LLUICtrl::setMakeVisibleControlVariable(LLControlVariable* control)
+{
+	if (mMakeVisibleControlVariable)
+	{
+		mMakeVisibleControlConnection.disconnect(); // disconnect current signal
+		mMakeVisibleControlVariable = NULL;
+	}
+	if (control)
+	{
+		mMakeVisibleControlVariable = control;
+		mMakeVisibleControlConnection = mMakeVisibleControlVariable->getSignal()->connect(boost::bind(&controlListener, _2, getHandle(), std::string("visible")));
+		setVisible(mMakeVisibleControlVariable->getValue().asBoolean());
+	}
+}
+
+void LLUICtrl::setMakeInvisibleControlVariable(LLControlVariable* control)
+{
+	if (mMakeInvisibleControlVariable)
+	{
+		mMakeInvisibleControlConnection.disconnect(); // disconnect current signal
+		mMakeInvisibleControlVariable = NULL;
+	}
+	if (control)
+	{
+		mMakeInvisibleControlVariable = control;
+		mMakeInvisibleControlConnection = mMakeInvisibleControlVariable->getSignal()->connect(boost::bind(&controlListener, _2, getHandle(), std::string("invisible")));
+		setVisible(!(mMakeInvisibleControlVariable->getValue().asBoolean()));
+	}
+}
+// static
+bool LLUICtrl::controlListener(const LLSD& newvalue, LLHandle<LLUICtrl> handle, std::string type)
+{
+	LLUICtrl* ctrl = handle.get();
+	if (ctrl)
+	{
+		if (type == "visible")
+		{
+			ctrl->setVisible(newvalue.asBoolean());
+			return true;
+		}
+		else if (type == "invisible")
+		{
+			ctrl->setVisible(!newvalue.asBoolean());
+			return true;
+		}
+	}
+	return false;
+}
+
 // virtual
 BOOL LLUICtrl::setTextArg( const std::string& key, const LLStringExplicit& text ) 
 { 
@@ -461,12 +598,76 @@ BOOL LLUICtrl::handleToolTip(S32 x, S32 y, std::string& msg, LLRect* sticky_rect
 
 void LLUICtrl::initFromXML(LLXMLNodePtr node, LLView* parent)
 {
+	std::string name;
+	if(node->getAttributeString("name", name))
+		setName(name);
+
 	BOOL has_tab_stop = hasTabStop();
 	node->getAttributeBOOL("tab_stop", has_tab_stop);
 
 	setTabStop(has_tab_stop);
 
+	std::string str = node->getName()->mString;
+	std::string attrib_str;
+	LLXMLNodePtr child_node;
+
+	//Since so many other callback 'types' piggyback off of the commitcallback registrar as well as use the same callback signature
+	//we can assemble a nice little static list to iterate down instead of copy-pasting mostly similar code for each instance.
+	//Validate/enable callbacks differ, as it uses its own registry/callback signature. This could be worked around with a template, but keeping
+	//all the code local to this scope is more beneficial.
+	typedef boost::signals2::connection (LLUICtrl::*commit_fn)( const commit_signal_t::slot_type& cb );
+	static std::pair<std::string,commit_fn> sCallbackRegistryMap[3] = 
+	{
+		std::pair<std::string,commit_fn>(".commit_callback",&LLUICtrl::setCommitCallback),
+		std::pair<std::string,commit_fn>(".mouseenter_callback",&LLUICtrl::setMouseEnterCallback),
+		std::pair<std::string,commit_fn>(".mouseleave_callback",&LLUICtrl::setMouseLeaveCallback)
+	};
+	for(S32 i= 0; i < sizeof(sCallbackRegistryMap)/sizeof(sCallbackRegistryMap[0]);++i)
+	{
+		if(node->getChild((str+sCallbackRegistryMap[i].first).c_str(),child_node,false))
+		{
+			if(child_node->getAttributeString("function",attrib_str))
+			{
+				commit_callback_t* func = (CommitCallbackRegistry::getValue(attrib_str));
+				if (func)
+				{
+					if(child_node->getAttributeString("parameter",attrib_str))
+						(this->*sCallbackRegistryMap[i].second)(boost::bind((*func), this, LLSD(attrib_str)));
+					else
+						(this->*sCallbackRegistryMap[i].second)(commit_signal_t::slot_type(*func));
+				}
+			}
+		}
+	}
+
+	if(node->getChild((str+".validate_callback").c_str(),child_node,false))
+	{
+		if(child_node->getAttributeString("function",attrib_str))
+		{
+			enable_callback_t* func = (EnableCallbackRegistry::getValue(attrib_str));
+			if (func)
+			{
+				if(child_node->getAttributeString("parameter",attrib_str))
+					setValidateCallback(boost::bind((*func), this, LLSD(attrib_str)));
+				else
+					setValidateCallback(enable_signal_t::slot_type(*func));
+			}
+		}
+	}
 	LLView::initFromXML(node, parent);
+	
+	if(node->getAttributeString("visibility_control",attrib_str) || node->getAttributeString("visiblity_control",attrib_str))
+	{
+		LLControlVariable* control = findControl(attrib_str);
+		if (control)
+			setMakeVisibleControlVariable(control);
+	}
+	if(node->getAttributeString("invisibility_control",attrib_str) || node->getAttributeString("invisiblity_control",attrib_str))
+	{
+		LLControlVariable* control = findControl(attrib_str);
+		if (control)
+			setMakeInvisibleControlVariable(control);
+	}
 }
 
 LLXMLNodePtr LLUICtrl::getXML(bool save_children) const
@@ -554,4 +755,46 @@ boost::signals2::connection LLUICtrl::setValidateCallback( const enable_signal_t
 { 
 	if (!mValidateSignal) mValidateSignal = new enable_signal_t();
 	return mValidateSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setMouseEnterCallback( const commit_signal_t::slot_type& cb ) 
+{ 
+	if (!mMouseEnterSignal) mMouseEnterSignal = new commit_signal_t();
+	return mMouseEnterSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setMouseLeaveCallback( const commit_signal_t::slot_type& cb ) 
+{ 
+	if (!mMouseLeaveSignal) mMouseLeaveSignal = new commit_signal_t();
+	return mMouseLeaveSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setMouseDownCallback( const mouse_signal_t::slot_type& cb ) 
+{ 
+	if (!mMouseDownSignal) mMouseDownSignal = new mouse_signal_t();
+	return mMouseDownSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setMouseUpCallback( const mouse_signal_t::slot_type& cb ) 
+{ 
+	if (!mMouseUpSignal) mMouseUpSignal = new mouse_signal_t();
+	return mMouseUpSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setRightMouseDownCallback( const mouse_signal_t::slot_type& cb ) 
+{ 
+	if (!mRightMouseDownSignal) mRightMouseDownSignal = new mouse_signal_t();
+	return mRightMouseDownSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setRightMouseUpCallback( const mouse_signal_t::slot_type& cb ) 
+{ 
+	if (!mRightMouseUpSignal) mRightMouseUpSignal = new mouse_signal_t();
+	return mRightMouseUpSignal->connect(cb); 
+}
+
+boost::signals2::connection LLUICtrl::setDoubleClickCallback( const mouse_signal_t::slot_type& cb ) 
+{ 
+	if (!mDoubleClickSignal) mDoubleClickSignal = new mouse_signal_t();
+	return mDoubleClickSignal->connect(cb); 
 }

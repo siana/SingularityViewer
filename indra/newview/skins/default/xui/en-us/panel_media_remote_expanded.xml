@@ -3,7 +3,7 @@
      follows="right|bottom" height="185" left="0" name="media_remote"
      use_bounding_rect="true" width="220">
 	<panel bottom="0" filename="panel_bg_tab.xml" height="187" left="0" width="220" />
-	<panel border="false" bottom="22" filename="panel_audio.xml" height="160"
+	<panel border="false" bottom="22" filename="panel_audio.xml" height="165"
 	     label="Audio &amp; Video" name="Volume Panel" width="220" />
 	<panel bottom_delta="-10" filename="panel_media_controls.xml" left="0" />
         	<string name="play_label">
@@ -30,4 +30,7 @@
 	<string name="media_play_tooltip">
 		Display Web content at this location.
 	</string>
+	<string name="Title">Title</string>
+	<string name="Artist">Artist</string>
+	<string name="Now_playing">Now playing</string>
 </panel>

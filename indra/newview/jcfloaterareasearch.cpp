@@ -33,185 +33,137 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#include "lluuid.h"
-#include "lluictrlfactory.h"
+#include "jcfloaterareasearch.h"
+
+#include "llfiltereditor.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
+#include "lluictrlfactory.h"
 
 #include "llagent.h"
 #include "lltracker.h"
 #include "llviewerobjectlist.h"
-#include "llviewercontrol.h"
-#include "jcfloaterareasearch.h"
-
-JCFloaterAreaSearch* JCFloaterAreaSearch::sInstance = NULL;
-LLViewerRegion* JCFloaterAreaSearch::sLastRegion = NULL;
-S32 JCFloaterAreaSearch::sRequested = 0;
-std::map<LLUUID, AObjectDetails> JCFloaterAreaSearch::sObjectDetails;
-std::string JCFloaterAreaSearch::sSearchedName;
-std::string JCFloaterAreaSearch::sSearchedDesc;
-std::string JCFloaterAreaSearch::sSearchedOwner;
-std::string JCFloaterAreaSearch::sSearchedGroup;
 
 const std::string request_string = "JCFloaterAreaSearch::Requested_\xF8\xA7\xB5";
 const F32 min_refresh_interval = 0.25f;	// Minimum interval between list refreshes in seconds.
 
-JCFloaterAreaSearch::JCFloaterAreaSearch() :
-LLFloater(),
-mCounterText(0),
-mResultList(0)
+JCFloaterAreaSearch::JCFloaterAreaSearch(const LLSD& data) :
+	LLFloater(),
+	mCounterText(0),
+	mResultList(0),
+	mLastRegion(0),
+	mStopped(false)
 {
-	llassert_always(sInstance == NULL);
-	sInstance = this;
 	mLastUpdateTimer.reset();
+	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_area_search.xml");
 }
 
 JCFloaterAreaSearch::~JCFloaterAreaSearch()
 {
-	sInstance = NULL;
 }
 
 void JCFloaterAreaSearch::close(bool app)
 {
-	if (app)
+	if (app || mStopped)
 	{
 		LLFloater::close(app);
 	}
 	else
 	{
-		if (sInstance)
-		{
-			sInstance->setVisible(FALSE);
-		}
+		setVisible(FALSE);
 	}
 }
 
 BOOL JCFloaterAreaSearch::postBuild()
 {
 	mResultList = getChild<LLScrollListCtrl>("result_list");
-	mResultList->setDoubleClickCallback(onDoubleClick,this);
+	mResultList->setDoubleClickCallback(boost::bind(&JCFloaterAreaSearch::onDoubleClick,this));
 	mResultList->sortByColumn("Name", TRUE);
 
 	mCounterText = getChild<LLTextBox>("counter");
 
-	childSetAction("Refresh", search, this);
-	childSetAction("Stop", cancel, this);
+	getChild<LLButton>("Refresh")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::onRefresh,this));
+	getChild<LLButton>("Stop")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::onStop,this));
 
-	childSetKeystrokeCallback("Name query chunk", onCommitLine, 0);
-	childSetKeystrokeCallback("Description query chunk", onCommitLine, 0);
-	childSetKeystrokeCallback("Owner query chunk", onCommitLine, 0);
-	childSetKeystrokeCallback("Group query chunk", onCommitLine, 0);
+	getChild<LLFilterEditor>("Name query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_NAME));
+	getChild<LLFilterEditor>("Description query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_DESC));
+	getChild<LLFilterEditor>("Owner query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_OWNER));
+	getChild<LLFilterEditor>("Group query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_GROUP));
 
 	return TRUE;
 }
 
-// static
-void JCFloaterAreaSearch::checkRegion()
+void JCFloaterAreaSearch::onOpen()
 {
-	// Check if we changed region, and if we did, clear the object details cache.
-	LLViewerRegion* region = gAgent.getRegion();
-	if (region != sLastRegion)
-	{
-		sLastRegion = region;
-		sRequested = 0;
-		sObjectDetails.clear();
-		if (sInstance)
-		{
-			sInstance->mResultList->deleteAllItems();
-			sInstance->mCounterText->setText(std::string("Listed/Pending/Total"));
-		}
-	}
-}
-
-// static
-void JCFloaterAreaSearch::toggle()
-{
-	if (sInstance)
-	{
-		if (sInstance->getVisible())
-		{
-			sInstance->setVisible(FALSE);
-		}
-		else
-		{
-			checkRegion();
-			sInstance->setVisible(TRUE);
-		}
-	}
-	else
-	{
-		sInstance = new JCFloaterAreaSearch();
-		LLUICtrlFactory::getInstance()->buildFloater(sInstance, "floater_area_search.xml");
-	}
-}
-
-// static
-void JCFloaterAreaSearch::onDoubleClick(void *userdata)
-{
-	JCFloaterAreaSearch *self = (JCFloaterAreaSearch*)userdata;
-	LLScrollListItem *item = self->mResultList->getFirstSelected();
-	if (!item) return;
-	LLUUID object_id = item->getUUID();
-	LLViewerObject* objectp = gObjectList.findObject(object_id);
-	if (objectp)
-	{
-		LLTracker::trackLocation(objectp->getPositionGlobal(), sObjectDetails[object_id].name, "", LLTracker::LOCATION_ITEM);
-	}
-}
-
-// static
-void JCFloaterAreaSearch::cancel(void* data)
-{
-	checkRegion();
-	if (sInstance)
-	{
-		sInstance->close(TRUE);
-	}
-	sSearchedName = "";
-	sSearchedDesc = "";
-	sSearchedOwner = "";
-	sSearchedGroup = "";
-}
-
-// static
-void JCFloaterAreaSearch::search(void* data)
-{
-	//llinfos << "Clicked search" << llendl;
 	checkRegion();
 	results();
 }
 
-// static
-void JCFloaterAreaSearch::onCommitLine(LLLineEditor* line, void* user_data)
+void JCFloaterAreaSearch::checkRegion(bool force_clear)
 {
-	std::string name = line->getName();
-	std::string text = line->getText();
-	LLStringUtil::toLower(text);
-	line->setText(text);
-	if (name == "Name query chunk") sSearchedName = text;
-	else if (name == "Description query chunk") sSearchedDesc = text;
-	else if (name == "Owner query chunk") sSearchedOwner = text;
-	else if (name == "Group query chunk") sSearchedGroup = text;
-	//llinfos << "loaded " << name << " with "<< text << llendl;
-
-	if (text.length() > 3)
+	// Check if we changed region, and if we did, clear the object details cache.
+	LLViewerRegion* region = gAgent.getRegion();
+	if (force_clear || region != mLastRegion)
 	{
-		checkRegion();
-		results();
+		mLastRegion = region;
+		mPendingObjects.clear();
+		mCachedObjects.clear();
+		mResultList->deleteAllItems();
+		mCounterText->setText(std::string("Listed/Pending/Total"));
 	}
 }
 
-// static
-void JCFloaterAreaSearch::requestIfNeeded(LLViewerObject *objectp)
+void JCFloaterAreaSearch::onDoubleClick()
 {
-	LLUUID object_id = objectp->getID();
-	if (sObjectDetails.count(object_id) == 0)
+	LLScrollListItem *item = mResultList->getFirstSelected();
+	if (!item) return;
+	LLUUID object_id = item->getUUID();
+	std::map<LLUUID,ObjectData>::iterator it = mCachedObjects.find(object_id);
+	if(it != mCachedObjects.end())
 	{
+		LLViewerObject* objectp = gObjectList.findObject(object_id);
+		if (objectp)
+		{
+			LLTracker::trackLocation(objectp->getPositionGlobal(), it->second.name, "", LLTracker::LOCATION_ITEM);
+		}
+	}
+}
+
+void JCFloaterAreaSearch::onStop()
+{
+	mStopped = true;
+	mPendingObjects.clear();
+	mCounterText->setText(std::string("Stopped"));
+}
+
+void JCFloaterAreaSearch::onRefresh()
+{
+	//llinfos << "Clicked search" << llendl;
+	mStopped = false;
+	checkRegion(true);
+	results();
+}
+
+void JCFloaterAreaSearch::onCommitLine(LLUICtrl* caller, const LLSD& value, OBJECT_COLUMN_ORDER type)
+{
+	std::string text = value.asString();
+	LLStringUtil::toLower(text);
+	caller->setValue(text);
+ 	mFilterStrings[type] = text;
+	//llinfos << "loaded " << name << " with "<< text << llendl;
+	checkRegion();
+	results();
+}
+
+bool JCFloaterAreaSearch::requestIfNeeded(LLUUID object_id)
+{
+	if (!mCachedObjects.count(object_id) && !mPendingObjects.count(object_id))
+	{
+		if(mStopped)
+			return true;
+
 		//llinfos << "not in list" << llendl;
-		AObjectDetails* details = &sObjectDetails[object_id];
-		details->name = request_string;
-		details->desc = request_string;
-		details->owner_id = LLUUID::null;
-		details->group_id = LLUUID::null;
+		mPendingObjects.insert(object_id);
 
 		LLMessageSystem* msg = gMessageSystem;
 		msg->newMessageFast(_PREHASH_RequestObjectPropertiesFamily);
@@ -223,20 +175,20 @@ void JCFloaterAreaSearch::requestIfNeeded(LLViewerObject *objectp)
 		msg->addUUIDFast(_PREHASH_ObjectID, object_id);
 		gAgent.sendReliableMessage();
 		//llinfos << "Sent data request for object " << object_id << llendl;
-		sRequested++;
+		return true;
 	}
+	return false;
 }
 
-// static
 void JCFloaterAreaSearch::results()
 {
-	if (!sInstance) return;
-	if (!(sInstance->getVisible())) return;
-	if (sRequested > 0 && sInstance->mLastUpdateTimer.getElapsedTimeF32() < min_refresh_interval) return;
+	if (!getVisible()) return;
+
+	if (mPendingObjects.size() > 0 && mLastUpdateTimer.getElapsedTimeF32() < min_refresh_interval) return;
 	//llinfos << "results()" << llendl;
-	uuid_vec_t selected = sInstance->mResultList->getSelectedIDs();
-	S32 scrollpos = sInstance->mResultList->getScrollPos();
-	sInstance->mResultList->deleteAllItems();
+	uuid_vec_t selected = mResultList->getSelectedIDs();
+	S32 scrollpos = mResultList->getScrollPos();
+	mResultList->deleteAllItems();
 	S32 i;
 	S32 total = gObjectList.getNumObjects();
 
@@ -250,23 +202,18 @@ void JCFloaterAreaSearch::results()
 				!objectp->flagTemporary() && !objectp->flagTemporaryOnRez())
 			{
 				LLUUID object_id = objectp->getID();
-				if (sObjectDetails.count(object_id) == 0)
+				if(!requestIfNeeded(object_id))
 				{
-					//llinfos << "not all entries are \"\"" << llendl;
-					requestIfNeeded(objectp);
-				}
-				else
-				{
-					//llinfos << "all entries are \"\" or we have data" << llendl;
-					AObjectDetails* details = &sObjectDetails[object_id];
-					std::string object_name = details->name;
-					std::string object_desc = details->desc;
-					std::string object_owner;
-					std::string object_group;
-					gCacheName->getFullName(details->owner_id, object_owner);
-					gCacheName->getGroupName(details->group_id, object_group);
-					if (object_name != request_string)
+					std::map<LLUUID,ObjectData>::iterator it = mCachedObjects.find(object_id);
+					if(it != mCachedObjects.end())
 					{
+						//llinfos << "all entries are \"\" or we have data" << llendl;
+						std::string object_name = it->second.name;
+						std::string object_desc = it->second.desc;
+						std::string object_owner;
+						std::string object_group;
+						gCacheName->getFullName(it->second.owner_id, object_owner);
+						gCacheName->getGroupName(it->second.group_id, object_group);
 						//llinfos << "both names are loaded or aren't needed" << llendl;
 						std::string onU = object_owner;
 						std::string cnU = object_group;
@@ -274,62 +221,67 @@ void JCFloaterAreaSearch::results()
 						LLStringUtil::toLower(object_desc);
 						LLStringUtil::toLower(object_owner);
 						LLStringUtil::toLower(object_group);
-						if ((sSearchedName == "" || object_name.find(sSearchedName) != -1) &&
-							(sSearchedDesc == "" || object_desc.find(sSearchedDesc) != -1) &&
-							(sSearchedOwner == "" || object_owner.find(sSearchedOwner) != -1) &&
-							(sSearchedGroup == "" || object_group.find(sSearchedGroup) != -1))
+						if ((mFilterStrings[LIST_OBJECT_NAME].empty() || object_name.find(mFilterStrings[LIST_OBJECT_NAME]) != -1) &&
+							(mFilterStrings[LIST_OBJECT_DESC].empty() || object_desc.find(mFilterStrings[LIST_OBJECT_DESC]) != -1) &&
+							(mFilterStrings[LIST_OBJECT_OWNER].empty() || object_owner.find(mFilterStrings[LIST_OBJECT_OWNER]) != -1) &&
+							(mFilterStrings[LIST_OBJECT_GROUP].empty() || object_group.find(mFilterStrings[LIST_OBJECT_GROUP]) != -1))
 						{
 							//llinfos << "pass" << llendl;
 							LLSD element;
 							element["id"] = object_id;
 							element["columns"][LIST_OBJECT_NAME]["column"] = "Name";
 							element["columns"][LIST_OBJECT_NAME]["type"] = "text";
-							element["columns"][LIST_OBJECT_NAME]["value"] = details->name;	//item->getName();//ai->second//"avatar_icon";
+							element["columns"][LIST_OBJECT_NAME]["value"] = it->second.name;
 							element["columns"][LIST_OBJECT_DESC]["column"] = "Description";
 							element["columns"][LIST_OBJECT_DESC]["type"] = "text";
-							element["columns"][LIST_OBJECT_DESC]["value"] = details->desc;	//ai->second;
+							element["columns"][LIST_OBJECT_DESC]["value"] = it->second.desc;
 							element["columns"][LIST_OBJECT_OWNER]["column"] = "Owner";
 							element["columns"][LIST_OBJECT_OWNER]["type"] = "text";
-							element["columns"][LIST_OBJECT_OWNER]["value"] = onU;			//ai->first;
+							element["columns"][LIST_OBJECT_OWNER]["value"] = onU;
 							element["columns"][LIST_OBJECT_GROUP]["column"] = "Group";
 							element["columns"][LIST_OBJECT_GROUP]["type"] = "text";
 							element["columns"][LIST_OBJECT_GROUP]["value"] = cnU;			//ai->second;
-							sInstance->mResultList->addElement(element, ADD_BOTTOM);
+							mResultList->addElement(element, ADD_BOTTOM);
 						}
+						
 					}
 				}
 			}
 		}
 	}
 
-	sInstance->mResultList->updateSort();
-	sInstance->mResultList->selectMultiple(selected);
-	sInstance->mResultList->setScrollPos(scrollpos);
-	sInstance->mCounterText->setText(llformat("%d listed/%d pending/%d total", sInstance->mResultList->getItemCount(), sRequested, sObjectDetails.size()));
-	sInstance->mLastUpdateTimer.reset();
+	mResultList->updateSort();
+	mResultList->selectMultiple(selected);
+	mResultList->setScrollPos(scrollpos);
+	mCounterText->setText(llformat("%d listed/%d pending/%d total", mResultList->getItemCount(), mPendingObjects.size(), mPendingObjects.size()+mCachedObjects.size()));
+	mLastUpdateTimer.reset();
 }
 
 // static
 void JCFloaterAreaSearch::processObjectPropertiesFamily(LLMessageSystem* msg, void** user_data)
 {
-	checkRegion();
+	JCFloaterAreaSearch* floater = findInstance();
+	if(!floater)
+		return;
+	floater->checkRegion();
 
 	LLUUID object_id;
 	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_ObjectID, object_id);
 
-	bool exists = (sObjectDetails.count(object_id) != 0);
-	AObjectDetails* details = &sObjectDetails[object_id];
-	if (!exists || details->name == request_string)
-	{
-		// We cache unknown objects (to avoid having to request them later)
-		// and requested objects.
-		if (exists && sRequested > 0) sRequested--;
-		msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_OwnerID, details->owner_id);
-		msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_GroupID, details->group_id);
-		msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Name, details->name);
-		msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Description, details->desc);
-		gCacheName->get(details->owner_id, false, boost::bind(&JCFloaterAreaSearch::results));
-		gCacheName->get(details->group_id, true, boost::bind(&JCFloaterAreaSearch::results));
-		//llinfos << "Got info for " << (exists ? "requested" : "unknown") << " object " << object_id << llendl;
-	}
+	std::set<LLUUID>::iterator it = floater->mPendingObjects.find(object_id);
+	if(it != floater->mPendingObjects.end())
+		floater->mPendingObjects.erase(it);
+	//else if(floater->mCachedObjects.count(object_id)) //Let entries update.
+	//	return;
+
+	ObjectData* data = &floater->mCachedObjects[object_id];
+	// We cache unknown objects (to avoid having to request them later)
+	// and requested objects.
+	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_OwnerID, data->owner_id);
+	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_GroupID, data->group_id);
+	msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Name, data->name);
+	msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Description, data->desc);
+	gCacheName->get(data->owner_id, false, boost::bind(&JCFloaterAreaSearch::results,floater));
+	gCacheName->get(data->group_id, true, boost::bind(&JCFloaterAreaSearch::results,floater));
+	//llinfos << "Got info for " << (exists ? "requested" : "unknown") << " object " << object_id << llendl;
 }

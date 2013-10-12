@@ -55,9 +55,9 @@ BOOL LLPanelDirGroups::postBuild()
 {
 	LLPanelDirBrowser::postBuild();
 
-	childSetKeystrokeCallback("name", &LLPanelDirBrowser::onKeystrokeName, this);
+	getChild<LLLineEditor>("name")->setKeystrokeCallback(boost::bind(&LLPanelDirBrowser::onKeystrokeName,this,_1));
 
-	childSetAction("Search", &LLPanelDirBrowser::onClickSearchCore, this);
+	getChild<LLButton>("Search")->setClickedCallback(boost::bind(&LLPanelDirBrowser::onClickSearchCore,this));
 	childDisable("Search");
 	setDefaultBtn( "Search" );
 

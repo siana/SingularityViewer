@@ -60,8 +60,6 @@ public:
 	static void onClickMap(void*);
 	static void onClickLandmark(void*);
 
-	static void onGrantList(void* data);
-
 protected:
 	LLFloaterLandHoldings();
 	virtual ~LLFloaterLandHoldings();

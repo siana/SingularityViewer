@@ -78,7 +78,7 @@ private:
 	static void onClickRefreshNotices(void* data);
 
 	void processNotices(LLMessageSystem* msg);
-	static void onSelectNotice(LLUICtrl* ctrl, void* data);
+	void onSelectNotice();
 
 	enum ENoticeView
 	{

@@ -25,6 +25,15 @@
 	     name="Task Remove" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="delete" />
 	</menu_item_call>
+	<menu_item_call label="Reset" name="Task Reset">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="reset_script" />
+	</menu_item_call>
+	<menu_item_call label="Set Not Running" name="Task Set Not Running">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="stop_script" />
+	</menu_item_call>
+	<menu_item_call label="Set Running" name="Task Set Running" width="128">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="start_script" />
+	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Empty Trash" left="0" mouse_opaque="true"
 	     name="Empty Trash" width="128">
 		<on_click filter="" function="Inventory.EmptyTrash" userdata="rename" />
@@ -32,6 +41,9 @@
 	<menu_item_call bottom_delta="-18" height="18" label="Empty Lost And Found" left="0"
 	     mouse_opaque="true" name="Empty Lost And Found" width="128">
 		<on_click filter="" function="Inventory.EmptyLostAndFound" userdata="rename" />
+	</menu_item_call>
+	<menu_item_call label="Open in New Window" name="Open Folder In New Window">
+		<on_click function="Inventory.DoToSelected" userdata="open_in_new_window"/>
 	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="New Folder" left="0" mouse_opaque="true"
 	     name="New Folder" width="128">
@@ -177,10 +189,6 @@
 	     mouse_opaque="true" name="Copy Asset UUID" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="copy_uuid" />
 	</menu_item_call>
-	<menu_item_call bottom_delta="-18" height="18" label="Reupload..." left="0" mouse_opaque="true"
-	 name="Reupload..." width="128">
-		<on_click filter="" function="Inventory.DoToSelected" userdata="reupload" />
-	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Acquire Asset ID" left="0" mouse_opaque="true"
 	 name="Acquire Asset ID" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="acquire_asset_id" />
@@ -219,6 +227,9 @@
 	     name="Delete" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="delete" />
 	</menu_item_call>
+    <menu_item_call label="Delete System Folder" mouse_opaque="true" name="Delete System Folder">
+        <on_click function="Inventory.DoToSelected" userdata="delete_system_folder" />
+    </menu_item_call>
 	<menu_item_separator name="Folder Wearables Separator" />
   <menu_item_call bottom_delta="-18" height="18" label="Wear Items" left="0"
 	     mouse_opaque="true" name="Wear Items" width="128">
@@ -232,6 +243,7 @@
 	     mouse_opaque="true" name="Replace Outfit" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="replaceoutfit" />
 	</menu_item_call>
+  <menu_item_separator name="Replace Remove Separator"/>
   <menu_item_call bottom_delta="-18" height="18" label="Remove From Outfit" left="0"
 	     mouse_opaque="true" name="Remove From Outfit" width="128">
     <on_click filter="" function="Inventory.DoToSelected" userdata="removefromoutfit" />
@@ -252,6 +264,9 @@
 	     mouse_opaque="true" name="Teleport To Landmark" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="about" />
 	</menu_item_call>
+	<menu_item_call label="Show On Map" name="Show On Map">
+		<on_click function="Inventory.DoToSelected" userdata="show_on_map"/>
+	</menu_item_call>
 	<menu_item_separator name="Animation Separator" />
 	<menu_item_call bottom_delta="-18" height="18" label="Play in World" left="0"
 	     mouse_opaque="true" name="Animation Play" width="128">
@@ -262,6 +277,9 @@
 		<on_click filter="" function="Inventory.DoToSelected" userdata="playlocal" />
 	</menu_item_call>
 	<menu_item_separator name="Send Instant Message Separator" />
+	<menu_item_call label="Web Profile" name="Web Profile">
+		<on_click function="Inventory.DoToSelected" userdata="web_profile"/>
+	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Send Instant Message" left="0"
 	     mouse_opaque="true" name="Send Instant Message" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="begin_im" />
@@ -269,6 +287,9 @@
 	<menu_item_call bottom_delta="-18" height="18" label="Offer Teleport..." left="0"
 	     mouse_opaque="true" name="Offer Teleport..." width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="lure" />
+	</menu_item_call>
+	<menu_item_call label="Request Teleport..." name="Request Teleport...">
+		<on_click filter="" function="Inventory.DoToSelected" userdata="request_lure" />
 	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="Start Conference Chat" left="0"
 	     mouse_opaque="true" name="Conference Chat" width="128">
@@ -282,6 +303,10 @@
 	<menu_item_call bottom_delta="-18" height="18" label="Deactivate" left="0" mouse_opaque="true"
 	     name="Deactivate" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="deactivate" />
+	</menu_item_call>
+	<menu_item_separator name="Texture Separator"/>
+	<menu_item_call label="Save As" name="Save As">
+		<on_click function="Inventory.DoToSelected" userdata="save_as"/>
 	</menu_item_call>
 	<menu_item_separator name="Wearable And Object Separator" />
 	<menu_item_call bottom_delta="-18" height="18" label="Wear" left="0" mouse_opaque="true"

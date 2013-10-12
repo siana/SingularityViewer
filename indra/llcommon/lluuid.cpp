@@ -171,27 +171,12 @@ void LLUUID::toString(std::string& out) const
 		(U8)(mData[15]));
 }
 
-// *TODO: deprecate
-void LLUUID::toString(char *out) const
-{
-	std::string buffer;
-	toString(buffer);
-	strcpy(out,buffer.c_str()); /* Flawfinder: ignore */
-}
-
 void LLUUID::toCompressedString(std::string& out) const
 {
 	char bytes[UUID_BYTES+1];
 	memcpy(bytes, mData, UUID_BYTES);		/* Flawfinder: ignore */
 	bytes[UUID_BYTES] = '\0';
 	out.assign(bytes, UUID_BYTES);
-}
-
-// *TODO: deprecate
-void LLUUID::toCompressedString(char *out) const
-{
-	memcpy(out, mData, UUID_BYTES);		/* Flawfinder: ignore */
-	out[UUID_BYTES] = '\0';
 }
 
 std::string LLUUID::getString() const
@@ -422,14 +407,9 @@ std::ostream& operator<<(std::ostream& s, const LLUUID &uuid)
 
 std::istream& operator>>(std::istream &s, LLUUID &uuid)
 {
-	U32 i;
-	char uuid_str[UUID_STR_LENGTH];		/* Flawfinder: ignore */
-	for (i = 0; i < UUID_STR_LENGTH-1; i++)
-	{
-		s >> uuid_str[i];
-	}
-	uuid_str[i] = '\0';
-	uuid.set(std::string(uuid_str));
+	std::string uuid_str;
+	s >> uuid_str;
+	uuid.set(uuid_str);
 	return s;
 }
 

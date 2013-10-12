@@ -32,40 +32,10 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#if LL_MSVC
-#pragma warning (disable : 4018)
-#pragma warning (push)
-#pragma warning (disable : 4068)
-#pragma warning (disable : 4263)
-#pragma warning (disable : 4264)
-#endif
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Woverloaded-virtual"
 #include "dae.h"
-//#include "dom.h"
-#include "dom/domAsset.h"
-#include "dom/domBind_material.h"
 #include "dom/domCOLLADA.h"
 #include "dom/domConstants.h"
-#include "dom/domController.h"
-#include "dom/domEffect.h"
-#include "dom/domGeometry.h"
-#include "dom/domInstance_geometry.h"
-#include "dom/domInstance_material.h"
-#include "dom/domInstance_node.h"
-#include "dom/domInstance_effect.h"
-#include "dom/domMaterial.h"
-#include "dom/domMatrix.h"
-#include "dom/domNode.h"
 #include "dom/domProfile_COMMON.h"
-#include "dom/domRotate.h"
-#include "dom/domScale.h"
-#include "dom/domTranslate.h"
-#include "dom/domVisual_scene.h"
-#pragma GCC diagnostic pop
-#if LL_MSVC
-#pragma warning (pop)
-#endif
 
 #include "llfloatermodelpreview.h"
 
@@ -110,6 +80,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "hippogridmanager.h"
+#include "hippolimits.h"
 
 const S32 SLM_SUPPORTED_VERSION = 3;
 
@@ -270,7 +241,7 @@ bool ll_is_degenerate(const LLVector4a& a, const LLVector4a& b, const LLVector4a
 
 bool validate_face(const LLVolumeFace& face)
 {
-	for (U32 i = 0; i < face.mNumIndices; ++i)
+	for (S32 i = 0; i < face.mNumIndices; ++i)
 	{
 		if (face.mIndices[i] >= face.mNumVertices)
 		{
@@ -953,7 +924,7 @@ void LLFloaterModelPreview::onPhysicsStageExecute(LLUICtrl* ctrl, void* data)
 
 		if (sInstance->mModelPreview)
 		{
-			for (S32 i = 0; i < sInstance->mModelPreview->mModel[LLModel::LOD_PHYSICS].size(); ++i)
+			for (U32 i = 0; i < sInstance->mModelPreview->mModel[LLModel::LOD_PHYSICS].size(); ++i)
 			{
 				LLModel* mdl = sInstance->mModelPreview->mModel[LLModel::LOD_PHYSICS][i];
 				DecompRequest* request = new DecompRequest(stage, mdl);
@@ -1503,7 +1474,7 @@ bool LLModelLoader::doLoadModel()
 	//1. Basic validity check on controller 
 	U32 controllerCount = (int) db->getElementCount(NULL, "controller");
 	bool result = false;
-	for (int i = 0; i < controllerCount; ++i)
+	for (U32 i = 0; i < controllerCount; ++i)
 	{
 		domController* pController = NULL;
 		db->getElement((daeElement**) &pController, i , NULL, "controller");
@@ -2110,7 +2081,7 @@ bool LLModelLoader::loadFromSLM(const std::string& filename)
 
 	for (S32 lod = 0; lod < LLModel::NUM_LODS; ++lod)
 	{
-		for (U32 i = 0; i < mesh.size(); ++i)
+		for (int i = 0; i < mesh.size(); ++i)
 		{
 			std::stringstream str(mesh[i].asString());
 			LLPointer<LLModel> loaded_model = new LLModel(volume_params, (F32) lod);
@@ -2145,7 +2116,7 @@ bool LLModelLoader::loadFromSLM(const std::string& filename)
 
 	LLSD& instance = data["instance"];
 
-	for (U32 i = 0; i < instance.size(); ++i)
+	for (int i = 0; i < instance.size(); ++i)
 	{
 		//deserialize instance list
 		instance_list.push_back(LLModelInstance(instance[i]));
@@ -2875,7 +2846,7 @@ void LLModelLoader::processElement(daeElement* element, bool& badElement)
 std::map<std::string, LLImportMaterial> LLModelLoader::getMaterials(LLModel* model, domInstance_geometry* instance_geo)
 {
 	std::map<std::string, LLImportMaterial> materials;
-	for (int i = 0; i < model->mMaterialList.size(); i++)
+	for (U32 i = 0; i < model->mMaterialList.size(); i++)
 	{
 		LLImportMaterial import_material;
 
@@ -2887,7 +2858,7 @@ std::map<std::string, LLImportMaterial> LLModelLoader::getMaterials(LLModel* mod
 		if (technique)
 		{
 			daeTArray< daeSmartRef<domInstance_material> > inst_materials = technique->getChildrenByType<domInstance_material>();
-			for (int j = 0; j < inst_materials.getCount(); j++)
+			for (U32 j = 0; j < inst_materials.getCount(); j++)
 			{
 				std::string symbol(inst_materials[j]->getSymbol());
 
@@ -2941,7 +2912,7 @@ LLImportMaterial LLModelLoader::profileToMaterial(domProfile_COMMON* material)
 		if (texture)
 		{
 			domCommon_newparam_type_Array newparams = material->getNewparam_array();
-			for (S32 i = 0; i < newparams.getCount(); i++)
+			for (U32 i = 0; i < newparams.getCount(); i++)
 			{
 				domFx_surface_common* surface = newparams[i]->getSurface();
 				if (surface)
@@ -3333,7 +3304,7 @@ void LLModelPreview::rebuildUploadData()
 				base_model->mMetric = metric;
 			}
 
-			S32 idx = 0;
+			U32 idx = 0;
 			for (idx = 0; idx < mBaseModel.size(); ++idx)
 			{  //find reference instance for this model
 				if (mBaseModel[idx] == base_model)
@@ -3361,6 +3332,8 @@ void LLModelPreview::rebuildUploadData()
 		}
 	}
 
+
+	const F32 DEFAULT_MAX_PRIM_SCALE(gHippoLimits->getMaxPrimScale());
 	F32 max_import_scale = (DEFAULT_MAX_PRIM_SCALE-0.1f)/max_scale;
 
 	F32 max_axis = llmax(mPreviewScale.mV[0], mPreviewScale.mV[1]);
@@ -3368,7 +3341,8 @@ void LLModelPreview::rebuildUploadData()
 	max_axis *= 2.f;
 
 	//clamp scale so that total imported model bounding box is smaller than 240m on a side
-	max_import_scale = llmin(max_import_scale, 240.f/max_axis);
+	if (gHippoGridManager->getConnectedGrid()->isSecondLife()) // on SecondLife only
+		max_import_scale = llmin(max_import_scale, 240.f/max_axis);
 
 	scale_spinner->setMaxValue(max_import_scale);
 
@@ -3653,7 +3627,7 @@ void LLModelPreview::loadModelCallback(S32 lod)
 						list_iter->mModel = list_iter->mLOD[lod];
 
 						//add current model to current LoD's model list (LLModel::mLocalID makes a good vector index)
-						S32 idx = list_iter->mModel->mLocalID;
+						U32 idx = list_iter->mModel->mLocalID;
 
 						if (mModel[lod].size() <= idx)
 						{	//stretch model list to fit model at given index
@@ -5125,7 +5099,7 @@ BOOL LLModelPreview::render()
 
 					if (textures)
 					{
-						int materialCnt = instance.mModel->mMaterialList.size();
+						U32 materialCnt = instance.mModel->mMaterialList.size();
 						if (i < materialCnt)
 						{
 							const std::string& binding = instance.mModel->mMaterialList[i];
@@ -5335,7 +5309,7 @@ BOOL LLModelPreview::render()
 									LLStrider<U16> idx;
 									buffer->getIndexStrider(idx, 0);
 
-									for (U32 i = 0; i < buffer->getNumIndices(); i += 3)
+									for (S32 i = 0; i < buffer->getNumIndices(); i += 3)
 									{
 										LLVector4a v1; v1.setMul(pos[*idx++], scale);
 										LLVector4a v2; v2.setMul(pos[*idx++], scale);
@@ -5419,7 +5393,7 @@ BOOL LLModelPreview::render()
 								}
 							}
 
-							for (U32 j = 0; j < buffer->getNumVerts(); ++j)
+							for (S32 j = 0; j < buffer->getNumVerts(); ++j)
 							{
 								LLMatrix4 final_mat;
 								final_mat.mMatrix[0][0] = final_mat.mMatrix[1][1] = final_mat.mMatrix[2][2] = final_mat.mMatrix[3][3] = 0.f;

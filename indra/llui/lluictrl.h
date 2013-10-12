@@ -40,6 +40,7 @@
 #include <boost/function.hpp>
 #include <boost/signals2.hpp>
 
+#include "llinitparam.h"
 #include "llviewmodel.h"		// *TODO move dependency to .cpp file
 
 class LLUICtrl
@@ -48,15 +49,13 @@ class LLUICtrl
 public:
 	typedef boost::function<void (LLUICtrl* ctrl, const LLSD& param)> commit_callback_t;
 	typedef boost::signals2::signal<void (LLUICtrl* ctrl, const LLSD& param)> commit_signal_t;
+	typedef boost::signals2::signal<void (LLUICtrl* ctrl, S32 x, S32 y, MASK mask)> mouse_signal_t;
+	typedef boost::function<bool (LLUICtrl* ctrl, const LLSD& param)> enable_callback_t;
 	typedef boost::signals2::signal<bool (LLUICtrl* ctrl, const LLSD& param), boost_boolean_combiner> enable_signal_t;
 
-	typedef void (*LLUICtrlCallback)(LLUICtrl* ctrl, void* userdata);
-	typedef BOOL (*LLUICtrlValidate)(LLUICtrl* ctrl, void* userdata);
-
 	LLUICtrl();
-	LLUICtrl( const std::string& name, const LLRect& rect, BOOL mouse_opaque,
-		LLUICtrlCallback callback,
-		void* callback_userdata,
+	LLUICtrl( const std::string& name, const LLRect rect = LLRect(), BOOL mouse_opaque = TRUE,
+		commit_callback_t commit_callback = NULL,
 		U32 reshape=FOLLOWS_NONE);
 	/*virtual*/ ~LLUICtrl();
 
@@ -69,6 +68,13 @@ public:
 	/*virtual*/ LLXMLNodePtr getXML(bool save_children = true) const;
 	/*virtual*/ BOOL	setLabelArg( const std::string& key, const LLStringExplicit& text );
 	/*virtual*/ BOOL	isCtrl() const;
+	/*virtual*/ void	onMouseEnter(S32 x, S32 y, MASK mask);
+	/*virtual*/ void	onMouseLeave(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL 	handleMouseDown(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL 	handleMouseUp(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL	handleRightMouseDown(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL	handleRightMouseUp(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL	handleDoubleClick(S32 x, S32 y, MASK mask);
 
 	// From LLFocusableElement
 	/*virtual*/ void	setFocus( BOOL b );
@@ -80,6 +86,8 @@ public:
 	virtual class LLCtrlSelectionInterface* getSelectionInterface();
 	virtual class LLCtrlListInterface* getListInterface();
 	virtual class LLCtrlScrollInterface* getScrollInterface();
+	void setMakeVisibleControlVariable(LLControlVariable* control);
+	void setMakeInvisibleControlVariable(LLControlVariable* control);
 
 	virtual void	setTentative(BOOL b);
 	virtual BOOL	getTentative() const;
@@ -116,6 +124,7 @@ public:
 	BOOL	focusLastItem(BOOL prefer_text_fields = FALSE);
 
 	// Non Virtuals
+	LLHandle<LLUICtrl> getHandle() const { return getDerivedHandle<LLUICtrl>(); }
 	BOOL			getIsChrome() const;
 	
 	void			setTabStop( BOOL b );
@@ -126,14 +135,17 @@ public:
 	//Start using these!
 	boost::signals2::connection setCommitCallback( const commit_signal_t::slot_type& cb );
 	boost::signals2::connection setValidateCallback( const enable_signal_t::slot_type& cb );
-
-	// *TODO: Deprecate; for backwards compatability only:
-	//Keeping userdata around with legacy setCommitCallback because it's used ALL OVER THE PLACE.
-	void*			getCallbackUserData() const								{ return mCallbackUserData; }
-	void			setCallbackUserData( void* data )						{ mCallbackUserData = data; }
 	
-	void			setCommitCallback( void (*cb)(LLUICtrl*, void*) )		{ mCommitCallback = cb; }
-	void			setValidateBeforeCommit( BOOL(*cb)(LLUICtrl*, void*) )	{ mValidateCallback = cb; }
+	boost::signals2::connection setMouseEnterCallback( const commit_signal_t::slot_type& cb );
+	boost::signals2::connection setMouseLeaveCallback( const commit_signal_t::slot_type& cb );
+	
+	boost::signals2::connection setMouseDownCallback( const mouse_signal_t::slot_type& cb );
+	boost::signals2::connection setMouseUpCallback( const mouse_signal_t::slot_type& cb );
+	boost::signals2::connection setRightMouseDownCallback( const mouse_signal_t::slot_type& cb );
+	boost::signals2::connection setRightMouseUpCallback( const mouse_signal_t::slot_type& cb );
+	
+	boost::signals2::connection setDoubleClickCallback( const mouse_signal_t::slot_type& cb );
+
 	// *TODO: Deprecate; for backwards compatability only:
 	boost::signals2::connection setCommitCallback( boost::function<void (LLUICtrl*,void*)> cb, void* data);	
 	boost::signals2::connection setValidateBeforeCommit( boost::function<bool (const LLSD& data)> cb );
@@ -150,17 +162,36 @@ public:
 		}
 	};
 
+	template <typename F, typename DERIVED> class CallbackRegistry : public LLRegistrySingleton<std::string, F, DERIVED >
+	{};	
+
+	class CommitCallbackRegistry : public CallbackRegistry<commit_callback_t, CommitCallbackRegistry>{};
+	// the enable callback registry is also used for visiblity callbacks
+	class EnableCallbackRegistry : public CallbackRegistry<enable_callback_t, EnableCallbackRegistry>{};
+		
 protected:
+
+	static bool controlListener(const LLSD& newvalue, LLHandle<LLUICtrl> handle, std::string type);
 
 	commit_signal_t*		mCommitSignal;
 	enable_signal_t*		mValidateSignal;
+
+	commit_signal_t*		mMouseEnterSignal;
+	commit_signal_t*		mMouseLeaveSignal;
+	
+	mouse_signal_t*		mMouseDownSignal;
+	mouse_signal_t*		mMouseUpSignal;
+	mouse_signal_t*		mRightMouseDownSignal;
+	mouse_signal_t*		mRightMouseUpSignal;
+
+	mouse_signal_t*		mDoubleClickSignal;
 	
     LLViewModelPtr  mViewModel;
-	void			(*mCommitCallback)( LLUICtrl* ctrl, void* userdata );
-	BOOL			(*mValidateCallback)( LLUICtrl* ctrl, void* userdata );
 
-	void*			mCallbackUserData;
-
+	LLControlVariable* mMakeVisibleControlVariable;
+	boost::signals2::connection mMakeVisibleControlConnection;
+	LLControlVariable* mMakeInvisibleControlVariable;
+	boost::signals2::connection mMakeInvisibleControlConnection;
 private:
 
 	BOOL			mTabStop;

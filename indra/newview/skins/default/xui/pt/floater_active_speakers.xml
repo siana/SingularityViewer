@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="active_speakers" title="Falantes Ativos">
-	<panel name="active_speakers_panel">
-		<scroll_list name="speakers_list">
-			<column label="Nome" name="speaker_name"/>
-		</scroll_list>
-		<panel name="volume_container">
-			<button label="" name="mute_btn" tool_tip="Emudecer a voz para este residente"/>
-		</panel>
-	</panel>
+  <layout_stack name="active_speakers_stack">
+    <layout_panel name="active_speakers_panel">
+      <scroll_list name="speakers_list">
+        <column label="Nome" name="speaker_name"/>
+      </scroll_list>
+      <button label="" name="mute_btn" tool_tip="Emudecer a voz para este residente"/>
+    </layout_panel>
+  </layout_stack>
 </floater>

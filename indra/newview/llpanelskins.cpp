@@ -48,24 +48,20 @@
 #include "llsdserialize.h"
 
 
-LLPanelSkins* LLPanelSkins::sInstance;
 LLPanelSkins::LLPanelSkins()
 {
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_skins.xml");
-	if(sInstance)delete sInstance;
-	sInstance = this;
 }
 
 LLPanelSkins::~LLPanelSkins()
 {
-	sInstance = NULL;
 }
 
 BOOL LLPanelSkins::postBuild()
 {
 	mSkin = gSavedSettings.getString("SkinCurrent");
 	oldSkin=mSkin;
-	getChild<LLComboBox>("custom_skin_combo")->setCommitCallback(onComboBoxCommit);
+	getChild<LLComboBox>("custom_skin_combo")->setCommitCallback(boost::bind(&LLPanelSkins::onComboBoxCommit, this, _2));
 	refresh();
 	return TRUE;
 }
@@ -159,27 +155,21 @@ void LLPanelSkins::cancel()
 	gSavedSettings.setString("SkinCurrent", oldSkin);
 }
 
-//static
-void LLPanelSkins::onComboBoxCommit(LLUICtrl* ctrl, void* userdata)
+void LLPanelSkins::onComboBoxCommit(const LLSD& value)
 {
-	LLComboBox* box = (LLComboBox*)ctrl;
-	if(box)
+	const std::string skinName = value.asString();
+	for(int i = 0; i < (int)datas.size(); ++i)
 	{
-		std::string skinName = box->getValue().asString();
-		for(int i =0;i<(int)sInstance->datas.size();i++)
+		const LLSD tdata = datas[i];
+		if (tdata["skin_name"].asString() == skinName)
 		{
-			LLSD tdata=sInstance->datas[i];
-			std::string tempName = tdata["skin_name"].asString();
-			if(tempName==skinName)
-			{
-				std::string newFolder(tdata["folder_name"].asString());
-				gSavedSettings.setString("SkinCurrent",newFolder);
-				sInstance->mSkin=newFolder;
+			std::string newFolder(tdata["folder_name"].asString());
+			gSavedSettings.setString("SkinCurrent", newFolder);
+			mSkin = newFolder;
 
-				if(sInstance)sInstance->refresh();
-				return;
-			}
+			refresh();
+			return;
 		}
-	}	
+	}
 }
 

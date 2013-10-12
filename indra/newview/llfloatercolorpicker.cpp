@@ -76,8 +76,6 @@ const F32 CONTEXT_FADE_TIME = 0.08f;
 //
 //////////////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////////////
-// default ctor
 LLFloaterColorPicker::LLFloaterColorPicker (LLColorSwatchCtrl* swatch, BOOL show_apply_immediate )
 	: LLFloater (std::string("Color Picker Floater")),
 	  mComponents			( 3 ),
@@ -113,6 +111,10 @@ LLFloaterColorPicker::LLFloaterColorPicker (LLColorSwatchCtrl* swatch, BOOL show
 	  mCanApplyImmediately	( show_apply_immediate ),
 	  mContextConeOpacity	( 0.f )
 {
+	// build the majority of the gui using the factory builder
+	LLUICtrlFactory::getInstance()->buildFloater ( this, "floater_color_picker.xml" );
+	setVisible ( FALSE );
+
 	// create user interface for this picker
 	createUI ();
 
@@ -133,10 +135,6 @@ LLFloaterColorPicker::~LLFloaterColorPicker()
 //
 void LLFloaterColorPicker::createUI ()
 {
-	// build the majority of the gui using the factory builder
-	LLUICtrlFactory::getInstance()->buildFloater ( this, "floater_color_picker.xml" );
-	setVisible ( FALSE );
-
 	// create RGB type area (not really RGB but it's got R,G & B in it.,..
 
 	LLPointer<LLImageRaw> raw = new LLImageRaw ( mRGBViewerImageWidth, mRGBViewerImageHeight, mComponents );
@@ -183,7 +181,6 @@ void LLFloaterColorPicker::showUI ()
 	open();		/*Flawfinder: ignore*/
 	setVisible ( TRUE );
 	setFocus ( TRUE );
-
 
 	// HACK: if system color picker is required - close the SL one we made and use default system dialog
 	if ( gSavedSettings.getBOOL ( "UseDefaultColorPicker" ) )
@@ -237,7 +234,7 @@ BOOL LLFloaterColorPicker::postBuild()
 	childSetCommitCallback("hspin", onTextCommit, (void*)this );
 	childSetCommitCallback("sspin", onTextCommit, (void*)this );
 	childSetCommitCallback("lspin", onTextCommit, (void*)this );
-	childSetCommitCallback("hexval", onHexCommit, (void*)this );
+	getChild<LLUICtrl>("hexval")->setCommitCallback(boost::bind(&LLFloaterColorPicker::onHexCommit, this, _2) );
 
 	LLToolPipette::getInstance()->setToolSelectCallback(boost::bind(&LLFloaterColorPicker::onColorSelect, this, _1));
 
@@ -248,9 +245,6 @@ BOOL LLFloaterColorPicker::postBuild()
 //
 void LLFloaterColorPicker::initUI ( F32 rValIn, F32 gValIn, F32 bValIn )
 {
-	// start catching lose-focus events from entry widgets
-	enableTextCallbacks ( TRUE );
-
 	// under some circumstances, we get rogue values that can be calmed by clamping...
 	rValIn = llclamp ( rValIn, 0.0f, 1.0f );
 	gValIn = llclamp ( gValIn, 0.0f, 1.0f );
@@ -360,12 +354,8 @@ void LLFloaterColorPicker::setCurRgb ( F32 curRIn, F32 curGIn, F32 curBIn )
 	// update corresponding HSL values and
 	LLColor3(curRIn, curGIn, curBIn).calcHSL(&curH, &curS, &curL);
 
-	// color changed so update text fields (fixes SL-16968)
-    // HACK: turn off the call back wilst we update the text or we recurse ourselves into oblivion
-    // CP: this was required when I first wrote the code but this may not be necessary anymore - leaving it there just in case
-    enableTextCallbacks( FALSE );
+	// color changed so update text fields
     updateTextEntry();
-    enableTextCallbacks( TRUE );
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -497,7 +487,7 @@ void LLFloaterColorPicker::draw()
 	mSwatch->localRectToOtherView(mSwatch->getLocalRect(), &swatch_rect, this);
 	// draw context cone connecting color picker with color swatch in parent floater
 	LLRect local_rect = getLocalRect();
-	if (gFocusMgr.childHasKeyboardFocus(this) && mSwatch->isInVisibleChain() && mContextConeOpacity > 0.001f)
+	if (hasFocus() && mSwatch->isInVisibleChain() && mContextConeOpacity > 0.001f)
 	{
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		LLGLEnable(GL_CULL_FACE);
@@ -716,76 +706,35 @@ std::string RGBToHex(int rNum, int gNum, int bNum)
 }
 
 //Called when a hex value is entered into the Hex field  - Convert and set values.
-void LLFloaterColorPicker::onHexCommit ( LLUICtrl* ctrl, void* data )
+void LLFloaterColorPicker::onHexCommit(const LLSD& value)
 {
-	if ( data )
-	{
-		LLFloaterColorPicker* self = ( LLFloaterColorPicker* )data;
-		if ( self )
-		{
-			char* pStop;
-			int num = strtol(ctrl->getValue().asString().c_str(), &pStop, 16);
-			int r = (num & 0xFF0000) >> 16;
-			int g = (num & 0xFF00) >> 8;
-			int b = num & 0xFF;
-			self->setCurRgb (r / 255.0f, g / 255.0f, b / 255.0f);
+	char* pStop;
+	int num = strtol(value.asString().c_str(), &pStop, 16);
+	int r = (num & 0xFF0000) >> 16;
+	int g = (num & 0xFF00) >> 8;
+	int b = num & 0xFF;
+	setCurRgb (r / 255.0f, g / 255.0f, b / 255.0f);
 
-			// HACK: turn off the call back wilst we update the text or we recurse ourselves into oblivion
-			self->enableTextCallbacks ( FALSE );
-			self->updateTextEntry ();
-			self->enableTextCallbacks ( TRUE );
-			if (self->mApplyImmediateCheck->get())
-			{
-				LLColorSwatchCtrl::onColorChanged ( self->getSwatch (), LLColorSwatchCtrl::COLOR_CHANGE );
-			}
-		}
+	updateTextEntry();
+	if (mApplyImmediateCheck->get())
+	{
+		LLColorSwatchCtrl::onColorChanged(getSwatch(), LLColorSwatchCtrl::COLOR_CHANGE);
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // update text entry values for RGB/HSL (can't be done in ::draw () since this overwrites input
-void
-LLFloaterColorPicker::
-updateTextEntry ()
+void LLFloaterColorPicker::updateTextEntry ()
 {
 	// set values in spinners
-	childSetValue("rspin", ( getCurR () * 255.0f ) );
-	childSetValue("gspin", ( getCurG () * 255.0f ) );
-	childSetValue("bspin", ( getCurB () * 255.0f ) );
-	childSetValue("hspin", ( getCurH () * 360.0f ) );
-	childSetValue("sspin", ( getCurS () * 100.0f ) );
-	childSetValue("lspin", ( getCurL () * 100.0f ) );
-	childSetValue("hexval", RGBToHex(getCurR() * 255, getCurG() * 255, getCurB() * 255));
+	getChild<LLUICtrl>("rspin")->setValue(( getCurR () * 255.0f ) );
+	getChild<LLUICtrl>("gspin")->setValue(( getCurG () * 255.0f ) );
+	getChild<LLUICtrl>("bspin")->setValue(( getCurB () * 255.0f ) );
+	getChild<LLUICtrl>("hspin")->setValue(( getCurH () * 360.0f ) );
+	getChild<LLUICtrl>("sspin")->setValue(( getCurS () * 100.0f ) );
+	getChild<LLUICtrl>("lspin")->setValue(( getCurL () * 100.0f ) );
+	getChild<LLUICtrl>("hexval")->setValue(RGBToHex(getCurR() * 255, getCurG() * 255, getCurB() * 255));
 }
-
-//////////////////////////////////////////////////////////////////////////////
-// turns on or off text entry commit call backs
-void
-LLFloaterColorPicker::
-enableTextCallbacks ( BOOL stateIn )
-{
-	if ( stateIn )
-	{
-		childSetCommitCallback("rspin", onTextCommit, (void*)this );
-		childSetCommitCallback("gspin", onTextCommit, (void*)this );
-		childSetCommitCallback("bspin", onTextCommit, (void*)this );
-		childSetCommitCallback("hspin", onTextCommit, (void*)this );
-		childSetCommitCallback("sspin", onTextCommit, (void*)this );
-		childSetCommitCallback("lspin", onTextCommit, (void*)this );
-		childSetCommitCallback("hexval", onHexCommit, (void*)this );
-	}
-	else
-	{
-		childSetCommitCallback("rspin", 0, (void*)this );
-		childSetCommitCallback("gspin", 0, (void*)this );
-		childSetCommitCallback("bspin", 0, (void*)this );
-		childSetCommitCallback("hspin", 0, (void*)this );
-		childSetCommitCallback("sspin", 0, (void*)this );
-		childSetCommitCallback("lspin", 0, (void*)this );
-		childSetCommitCallback("hexval", 0, (void*)this );
-	}
-}
-
 
 //////////////////////////////////////////////////////////////////////////////
 //
@@ -818,10 +767,7 @@ void LLFloaterColorPicker::onTextEntryChanged ( LLUICtrl* ctrl )
 		// update current RGB (and implicitly HSL)
 		setCurRgb ( rVal, gVal, bVal );
 
-		// HACK: turn off the call back wilst we update the text or we recurse ourselves into oblivion
-		enableTextCallbacks ( FALSE );
 		updateTextEntry ();
-		enableTextCallbacks ( TRUE );
 	}
 	else
 	// value in HSL boxes changed
@@ -844,10 +790,7 @@ void LLFloaterColorPicker::onTextEntryChanged ( LLUICtrl* ctrl )
 		// update current HSL (and implicitly RGB)
 		setCurHsl ( hVal, sVal, lVal );
 
-		// HACK: turn off the call back wilst we update the text or we recurse ourselves into oblivion
-		enableTextCallbacks ( FALSE );
 		updateTextEntry ();
-		enableTextCallbacks ( TRUE );
 	}
 
 	if (mApplyImmediateCheck->get())
@@ -980,10 +923,7 @@ BOOL LLFloaterColorPicker::handleMouseDown ( S32 x, S32 y, MASK mask )
 				LLColorSwatchCtrl::onColorChanged ( getSwatch (), LLColorSwatchCtrl::COLOR_CHANGE );
 			}
 
-			// HACK: turn off the call back wilst we update the text or we recurse ourselves into oblivion
-			enableTextCallbacks ( FALSE );
 			updateTextEntry ();
-			enableTextCallbacks ( TRUE );
 		}
 
 		return TRUE;
@@ -1151,9 +1091,6 @@ void LLFloaterColorPicker::cancelSelection ()
 {
 	// restore the previous color selection
 	setCurRgb ( getOrigR (), getOrigG (), getOrigB () );
-
-	// 	we're going away and when we do and the entry widgets lose focus, they do bad things so turn them off
-	enableTextCallbacks ( FALSE );
 
 	// update in world item with original color via current swatch
 	LLColorSwatchCtrl::onColorChanged( getSwatch(), LLColorSwatchCtrl::COLOR_CANCEL );

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Sistema" name="ascsys">
 	<tab_container label="Sistema Singularity" name="Ascent System">
-		<!-- =================================== -->
+		<!-- =========================== -->
 		<panel label="General" name="User Interface">
-			<check_box label="Habilitar Teleport con doble click" tool_tip="Haciendo doble click en un objeto o persona te transportará hacia su ubicación." name="double_click_teleport_check"/>
+			<check_box label="Habilitar Teleporte con doble click" tool_tip="Haciendo doble click en un objeto o persona te transportará hacia su ubicación." name="double_click_teleport_check"/>
 			<check_box label="Reiniciar la Cámara luego de Teleportar" tool_tip="Centra la cámara detrás tuyo luego de un teleport." name="center_after_teleport_check"/>
 			<check_box label="Desplazar destino TP a mitad de la altura del agente" tool_tip="Intenta apuntar el TP de modo que tus pies se apoyen en la tierra del punto al que estás apuntando." name="offset_teleport_check"/>
-			<check_box name="fly_after_tp" label="Siempre volar después de un Teleport" tool_tip="Evita la caída desde grandes alturas haciendo que el avatar automáticamente vuele después de un Teleport."/>
+			<check_box name="clear_beacon_after_tp" label="Borrar baliza roja de destino despues de teleportarte"/>			
+			<check_box name="fly_after_tp" label="Siempre volar después de un Teleporte" tool_tip="Evita la caída desde grandes alturas haciendo que el avatar automáticamente vuele después de un Teleporte."/>
 			<check_box name="continue_flying" label="Continuar volando al levantarse" tool_tip="Mantiene tu estado de vuelo previo a haberte sentado, entonces continuas o no volando al levantarte. Útil para pájaros, hadas o aquellos que deseen hacer un salto drámatico desde la silla."/>			
 			<check_box label="Vista Previa de Animaciones en el avatar en vez del maniquí antes de usar" tool_tip="La ventana de subida de Animaciones ejecutará las animaciones en tu avatar cuando ejecutes la vista previa." name="preview_anim_in_world_check"/>
 			<check_box label="Guardar los Scripts en el inventario como Mono en vez de LSL2" tool_tip="Los Scripts serán compilados automáticamente en Mono al guardarlos - Normalmente es sólo posible cuando están dentro de un objeto." name="save_scripts_as_mono_check"/>
@@ -16,9 +17,7 @@
 			<check_box label="Deshabilitar la Distancia Mínima de la Cámara" tool_tip="Permite a la cámara acercarse a los objetos." name="disable_camera_zoom_check"/>
 			<check_box label="Habilitar la funcionalidad Super Usuario" tool_tip="Agrega funciones consideradas demasiado peligrosas para un uso normal. Estas características pueden causar estragos, o hacer daño si son mal utilizadas - Principalmente para ti o tus pertenencias. Si estás seguro, activa la casilla de verificación a continuación." name="power_user_check"/>
 			<check_box label="Confirmar funcionalidad Super Usuario" tool_tip="Confirmar la activación de Super Usuario. Activalo bajo tu propio riesgo, y utiliza cualquier característica habilitada en forma responsable. Los desarrolladores de Singularity no reemplazarán nada que hayas arruinado. Te recomendamos hacer una copia de seguridad de todo aquello que será víctima de dichos poderes. A diferencia del resto de los items a marcar, debes hacer click en Aplicar o en OK después de activar esta función." name="power_user_confirm_check"/>
-			<check_box label="Activar Sistema Ascent de Inventario (Requiere Reinicio)" tool_tip="Crea una nueva carpeta en el inventario para almacenar archivos de configuración y assets no permanentes." name="system_folder_check"/>
-			<check_box label="Colocar las Subidas Temporales en la carpeta de asset del sistema." tool_tip="Coloca las subidas temporales en la carpeta de Assets, la cual está separada de las subidas actuales, haciendo que sean más fáciles de encontrar." name="temp_in_system_check"/>
-			<check_box label="Descargar automáticamente el inventario en segundo plano al de iniciar sesión" tool_tip="El inventario será precargado cuando inicies sesión, de esta manera no tienes que esperar que cargue cuando hagas una búsqueda por primera vez." name="fetch_inventory_on_login_check"/>
+			<check_box label="Descargar automáticamente el inventario en segundo plano al iniciar sesión" tool_tip="El inventario será precargado cuando inicies sesión, de esta manera no tienes que esperar que cargue cuando hagas una búsqueda por primera vez." name="fetch_inventory_on_login_check"/>
 			<check_box label="Activar Efectos del Viento" name="enable_wind"/>
 			<check_box label="Activar Nubes" name="enable_clouds"/>
 			<check_box label="Activar Nubes Clásicas" name="enable_classic_clouds"/>
@@ -27,59 +26,77 @@
 			<text name="speed_rez_seconds">
 				segundos
 			</text>
+            <check_box name="use_web_profiles" label="Usar perfiles web por defecto" tool_tip="Muestra los perfiles como una página web en vez de usar los paneles de estilo V1. Puede no estar disponible en determinados Grids"/>
+      <check_box name="use_web_search" label="Usar búsqueda basada en web en vez de la búsqueda del visor V1" tool_tip="Puede no estar disponible en determinados Grids"/>				
 		</panel>
-		<!-- ====================================== -->
+		<!-- =========================== -->
 		<panel label="Línea de Comandos" name="Command Line">
 			<check_box label="Activar uso de la barra de chat como línea de comandos" name="chat_cmd_toggle"/>
 			<text name="cmd_line_text_2">
 				Teleportar en el sim (uso: cmd x y z)
 			</text>
+			<line_editor name="AscentCmdLinePos"/>
 			<text name="cmd_line_text_3">
 				Teleportar a la superficie (uso: cmd)
 			</text>
+			<line_editor name="AscentCmdLineGround"/>
 			<text name="cmd_line_text_4">
 				Teleportar a la altura (uso: cmd z)
 			</text>
+			<line_editor name="AscentCmdLineHeight"/>
 			<text name="cmd_line_text_5">
 				Teleportar a Base (uso: cmd)
 			</text>
+			<line_editor name="AscentCmdLineTeleportHome"/>
 			<text name="cmd_line_text_6">
 				Rezear una Plataforma (uso: cmd 0 - 30)
 			</text>
+			<line_editor name="AscentCmdLineRezPlatform"/>
 			<slider name="AscentPlatformSize" label="Ancho Predet.:" tool_tip="Tamaño que tendrá la plataforma"/>
 			<text name="cmd_line_text_8">
 				Calc. expresiones (uso: cmd 2 + 2)
 			</text>
+			<line_editor name="AscentCmdLineCalc"/>
 			<text name="cmd_line_text_15">
 				Limpiar historial de chat (uso: cmd)
 			</text>
 			<line_editor tool_tip="Limpia el Historial de chat para evitar el lag por efecto de los spammers de chat." name="AscentCmdLineClearChat"/>
+			<text name="cmd_line_text_16">
+				Abrir url/slurl (uso: cmd slurl)
+			</text>
+			<line_editor name="SinguCmdLineURL"/>
 			<!-- Column Split -->
 			<text name="cmd_line_text_9">
 				Cambiar Distancia de Dibujo (uso: cmd metros)
 			</text>
+			<line_editor name="AscentCmdLineDrawDistance"/>
 			<text name="cmd_line_text_10">
 				Teleportar a posición de la cámara (uso: cmd)
 			</text>
+			<line_editor name="AscentCmdTeleportToCam"/>
 			<text name="cmd_line_text_11">
 				Nombre de avatar de su UUID (uso: cmd key)
 			</text>
+			<line_editor name="AscentCmdLineKeyToName"/>
 			<text name="cmd_line_text_12">
 				Ofrecer Teleport a otro Avatar (uso: cmd key)
 			</text>
+			<line_editor name="AscentCmdLineOfferTp"/>
 			<text name="cmd_line_text_7">
 				Teleportar a Sim x (uso: cmd Nombre del Sim)
 			</text>
+			<line_editor name="AscentCmdLineMapTo"/>
 			<check_box label="Usar misma posición entre Sims" name="map_to_keep_pos"/>
 			<text name="cmd_line_text_13">
 				Teleportar hasta avatar (uso: cmd nombre)
 			</text>
 			<line_editor tool_tip="La sintaxis de este comando permite nombres parciales y no es sensible a mayúsculas/minúsculas. Para obtener mejores resultados, úsalo con el radar abierto." name="AscentCmdLineTP2"/>
 			<text name="cmd_line_text_14">
-				Cambiar falso estado Aussente (uso: cmd)
+				Cambiar falso estado Ausente (uso: cmd)
 			</text>
+			<line_editor name="SinguCmdLineAway"/>
 		</panel>
-		<!-- ===================================== -->
+		<!-- =========================== -->
 		<panel label="Seguridad" name="Security">
 			<check_box label="Transmitir efectos del Visor (No incluye rayos)" name="broadcast_viewer_effects"/>
 			<check_box label="Desactivar Apuntar a... y Rayos" tool_tip="No apunta hacia ni muestra tus rayos de edición cuando seleccionas un objeto." name="disable_point_at_and_beams_check"/>
@@ -89,10 +106,12 @@
 			<check_box label="Captura silenciosa a Disco" tool_tip="Anula el sonido de la cámara y el alerta a los demás cuando realizas una captura al disco de tu PC" name="quiet_snapshots_check"/>
 			<check_box label="Al pararse, revoca el permiso de los objetos en los cuales estuvo sentado tu avatar" tool_tip="Los objetos retienen, generalmente, el permiso para tomar control y ejecutar animaciones hasta que se reinician u otro usuario le cede permisos. Activando esta opción te aseguras que los permisos serán revocados inmediatamente." name="revoke_perms_on_stand_up_check"/>
 			<check_box label="Desactivar click del ratón para sentarse en los objetos" tool_tip="Algunas herramientas de griefer se basan en forzarte o engañarte para que hagas click en un objeto el cual te hará sentar, dándole automáticamente al objeto permisos para ejecutar una animación entre de otras cosas. Esta opción desactivará la función llSitTarget - Esto significa que deberás seleccionar la opción 'Sentarse' en las bolas de animación o muebles." name="disable_click_sit_check"/>
+			<check_box left_delta="280" label="Que no son de tu propiedad" tool_tip="Deshabilita sentarse con un click en objetos que no son de tu propiedad (Si se usa con control de grupo, sólo una opción es necesaria)" name="disable_click_sit_own_check"/>
 			<check_box label="Mostrar cambios del Total de Scripts en Ejecución:" name="totalscriptjumps" tool_tip="Muestra los cambios en la cuenta total de scritps en tu región, dependiendo del umbral que selecciones a la derecha."/>
 			<spinner left_delta="350" name="ScriptJumpCount" tool_tip="Umbral para el mensaje de salto de scripts [Predeterminado: 100]"/>
+			<check_box label="Soporte API Restrained Love (RLVa)" name="RestrainedLove" tool_tip="Permite a los scripts tomar control del visor, si tienes vestido un objeto compatible con RLVa."/>			
 		</panel>
-		<!-- ======================================== -->
+		<!-- =========================== -->
 		<panel label="Construcción" name="Building">
 			<text name="text_box6">
 				Punto de Pivote
@@ -138,11 +157,11 @@
 			</text>
 			<check_box label="Permiso de Copia" tool_tip="El próximo propietario puede realizar copias de las creaciones" name="next_owner_copy"/>
 			<check_box label="Permiso de Modific." tool_tip="El próximo propietario puede editar y modificar las creaciones" name="next_owner_modify"/>
-			<check_box label="Permiso de Transf." tool_tip="Next owner can give(or sell) creations" name="next_owner_transfer" control_name="NextOwnerTransfer"/>			
-			<check_box label="Fantasma" name="EmPhantomToggle"/>
-			<check_box label="Físico" name="EmPhysicalToggle"/>
-			<check_box label="Temporal" name="EmTemporaryToggle"/>	
-			<texture_picker label="     Textura" name="texture control" tool_tip="Pulsa para seleccionar una textura"/>			
+			<check_box label="Permiso de Transf." tool_tip="Next owner can give(or sell) creations" name="next_owner_transfer"/>
+			<check_box label="Inmaterial" name="EmPhantomToggle"/>
+			<check_box label="Material" name="EmPhysicalToggle"/>
+			<check_box label="Temporal" name="EmTemporaryToggle"/>
+			<texture_picker label="     Textura" name="texture control" tool_tip="Pulsa para seleccionar una textura"/>
 			<color_swatch label="      Color" name="colorswatch" tool_tip="Pulsa para abrir el selector de color"/>
 			<spinner label="Alfa" name="alpha" />
 			<spinner label="Brillo" name="glow"/>
@@ -150,7 +169,7 @@
 			<text name="shine" follows="top">
 				Brillar
 			</text>
-			<combo_box name="combobox shininess" tool_tip="Fijar la intensidad de brillo para el objeto">
+			<combo_box name="combobox shininess" tool_tip="Fijar la intensidad de brillo para el objeto" width="80">
 				<combo_item name="None">
 					Ninguno
 				</combo_item>
@@ -165,15 +184,9 @@
 				</combo_item>
 			</combo_box>
 			<check_box name="EmeraldBuildPrefsEmbedItem" label="Colocar un item dentro del nuevo objeto"/>
-			<text name="Give inventory">
-				Soltar aquí item de Invent.
-			</text>
-			<text name="build_item_add_disp_rect_txt">
-				Fijado Actualmente:
-ITEM
-			</text>
+			<drop_target name="build_item_add_disp_rect"/>
 			<check_box label="Activar resaltado de prims seleccionados" name="EmBuildPrefsRenderHighlight_toggle" />
-			<check_box label="Mostrar Ejes en la posición del Prim Base" tool_tip="El comportamiento por defecto es mostrar el eje en el centro del conjunto de prims. Si está activado, el eje se muestra en la prim raíz del conjunto de enlaces." name="EmBuildPrefsActualRoot_toggle"/>			
+			<check_box label="Mostrar Ejes en la posición del Prim Base" tool_tip="El comportamiento por defecto es mostrar el eje en el centro del conjunto de prims. Si está activado, el eje se muestra en la prim raíz del conjunto de enlaces." name="EmBuildPrefsActualRoot_toggle"/>
 		</panel>
 	</tab_container>
 </panel>

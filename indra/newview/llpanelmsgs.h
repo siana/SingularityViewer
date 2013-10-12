@@ -3,10 +3,9 @@
  * @brief Message popup preferences panel
  *
  * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2003-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -35,29 +34,26 @@
 
 #include "llpanel.h"
 
-class LLScrollListCtrl;
-
 class LLPanelMsgs : public LLPanel
 {
 public:
 	LLPanelMsgs();
 	/*virtual*/ ~LLPanelMsgs();
 
-	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void draw();
-
 	void apply();
 	void cancel();
+	/*virtual*/ void draw();
+	/*virtual*/ BOOL postBuild();
 
-	static void onClickEnablePopup(void* user_data);
-	static void onClickResetDialogs(void* user_data);
-	static void onClickSkipDialogs(void* user_data);
-	static void onClickSkipFirstTime(void* user_data);
-
-	void buildLists();
-
+	void onClickEnablePopup();
+	void onClickDisablePopup();
 	void resetAllIgnored();
 	void setAllIgnored();
+	void onClickResetDialogs();
+	void onClickSkipDialogs();
+	void onClickSkipFirstTime();
+
+	void buildPopupLists();
 };
 
 #endif // LL_PANEL_MSGS

@@ -45,7 +45,8 @@ class LLMute
 {
 public:
 	// Legacy mutes are BY_NAME and have null UUID.
-	enum EType { BY_NAME = 0, AGENT = 1, OBJECT = 2, GROUP = 3, COUNT = 4 };
+	// EXTERNAL mutes are only processed through an external system (e.g. Voice) and not stored.
+	enum EType { BY_NAME = 0, AGENT = 1, OBJECT = 2, GROUP = 3, EXTERNAL = 4, COUNT = 5 };
 	
 	// Bits in the mute flags.  For backwards compatibility (since any mute list entries that were created before the flags existed
 	// will have a flags field of 0), some of the flags are "inverted".
@@ -128,12 +129,7 @@ public:
 	// call this method on logout to save everything.
 	void cache(const LLUUID& agent_id);
 
-	void setSavedResidentVolume(const LLUUID& id, F32 volume);
-	F32 getSavedResidentVolume(const LLUUID& id);
-
 private:
-	void loadUserVolumes();
-	
 	BOOL loadFromFile(const std::string& filename);
 	BOOL saveToFile(const std::string& filename);
 
@@ -183,12 +179,8 @@ private:
 	observer_set_t mObservers;
 
 	BOOL mIsLoaded;
-	BOOL mUserVolumesLoaded;
 
 	friend class LLDispatchEmptyMuteList;
-
-	typedef std::map<LLUUID, F32> user_volume_map_t; 
-	user_volume_map_t mUserVolumeSettings;
 
 	std::set<std::string> mGodLastNames;
 	std::set<std::string> mGodFullNames;

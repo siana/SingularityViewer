@@ -60,14 +60,12 @@ LLMultiSliderCtrl::LLMultiSliderCtrl(const std::string& name, const LLRect& rect
 						   S32 text_left,
 						   BOOL show_text,
 						   BOOL can_edit_text,
-						   void (*commit_callback)(LLUICtrl*, void*),
-						   void* callback_user_data,
 						   F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 						   S32 max_sliders, BOOL allow_overlap,
 						   BOOL draw_track,
 						   BOOL use_triangle,
 						   const std::string& control_which)
-	: LLUICtrl(name, rect, TRUE, commit_callback, callback_user_data ),
+	: LLUICtrl(name, rect, TRUE ),
 	  mFont(font),
 	  mShowText( show_text ),
 	  mCanEditText( can_edit_text ),
@@ -107,7 +105,7 @@ LLMultiSliderCtrl::LLMultiSliderCtrl(const std::string& name, const LLRect& rect
 	mMultiSlider = new LLMultiSlider( 
 		std::string("multi_slider"),
 		slider_rect, 
-		LLMultiSliderCtrl::onSliderCommit, this, 
+		boost::bind(&LLMultiSliderCtrl::onSliderCommit,this,_2), 
 		initial_value, min_value, max_value, increment,
 		max_sliders, allow_overlap, draw_track,
 		use_triangle,
@@ -123,8 +121,10 @@ LLMultiSliderCtrl::LLMultiSliderCtrl(const std::string& name, const LLRect& rect
 			mEditor = new LLLineEditor( std::string("MultiSliderCtrl Editor"), text_rect,
 				LLStringUtil::null, font,
 				MAX_STRING_LENGTH,
-				&LLMultiSliderCtrl::onEditorCommit, NULL, NULL, this,
-				&LLLineEditor::prevalidateFloat );
+				boost::bind(&LLMultiSliderCtrl::onEditorCommit,this,_2),
+				NULL,
+				NULL,
+				boost::bind(&LLLineEditor::prevalidateFloat, _1) );
 			mEditor->setFollowsLeft();
 			mEditor->setFollowsBottom();
 			mEditor->setFocusReceivedCallback( boost::bind(&LLMultiSliderCtrl::onFocusReceived, this) );
@@ -278,26 +278,21 @@ void LLMultiSliderCtrl::updateText()
 	}
 }
 
-// static
-void LLMultiSliderCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
+void LLMultiSliderCtrl::onEditorCommit(const LLSD& value)
 {
-	LLMultiSliderCtrl* self = (LLMultiSliderCtrl*) userdata;
-	llassert( caller == self->mEditor );
-
 	BOOL success = FALSE;
-	F32 val = self->mCurValue;
-	F32 saved_val = self->mCurValue;
+	F32 val = mCurValue;
+	F32 saved_val = mCurValue;
 
-	std::string text = self->mEditor->getText();
+	std::string text = value.asString();
 	if( LLLineEditor::postvalidateFloat( text ) )
 	{
 		LLLocale locale(LLLocale::USER_LOCALE);
 		val = (F32) atof( text.c_str() );
-		if( self->mMultiSlider->getMinValue() <= val && val <= self->mMultiSlider->getMaxValue() )
+		if( mMultiSlider->getMinValue() <= val && val <= mMultiSlider->getMaxValue() )
 		{
-			self->setCurSliderValue( val );
-			if(	(!self->mValidateCallback	|| self->mValidateCallback( self, self->mCallbackUserData )) &&
-				(!self->mValidateSignal		|| (*(self->mValidateSignal))(self, val)))
+			setCurSliderValue( val );  // set the value temporarily so that the callback can retrieve it.
+			if( !mValidateSignal || (*(mValidateSignal))( this, val ) )
 			{
 				success = TRUE;
 			}
@@ -306,49 +301,44 @@ void LLMultiSliderCtrl::onEditorCommit( LLUICtrl* caller, void *userdata )
 
 	if( success )
 	{
-		self->onCommit();
+		onCommit();
 	}
 	else
 	{
-		if( self->getCurSliderValue() != saved_val )
+		if( getCurSliderValue() != saved_val )
 		{
-			self->setCurSliderValue( saved_val );
+			setCurSliderValue( saved_val );
 		}
-		self->reportInvalidData();		
+		reportInvalidData();		
 	}
-	self->updateText();
+	updateText();
 }
 
-// static
-void LLMultiSliderCtrl::onSliderCommit( LLUICtrl* caller, void *userdata )
+void LLMultiSliderCtrl::onSliderCommit(const LLSD& value)
 {
-	LLMultiSliderCtrl* self = (LLMultiSliderCtrl*) userdata;
-	//llassert( caller == self->mSlider );
-
 	BOOL success = FALSE;
-	F32 saved_val = self->mCurValue;
-	F32 new_val = self->mMultiSlider->getCurSliderValue();
+	F32 saved_val = mCurValue;
+	F32 new_val = mMultiSlider->getCurSliderValue();
 
-	self->mCurValue = new_val;  // set the value temporarily so that the callback can retrieve it.
-	if(	(!self->mValidateCallback	||	self->mValidateCallback( self, self->mCallbackUserData )) &&
-		(!self->mValidateSignal		|| (*(self->mValidateSignal))(self, new_val )))
+	mCurValue = new_val;  // set the value temporarily so that the callback can retrieve it.
+	if( !mValidateSignal || (*(mValidateSignal))( this, new_val ) )
 	{
 			success = TRUE;
 	}
 
 	if( success )
 	{
-		self->onCommit();
+		onCommit();
 	}
 	else
 	{
-		if( self->mCurValue != saved_val )
+		if( mCurValue != saved_val )
 		{
-			self->setCurSliderValue( saved_val );
+			setCurSliderValue( saved_val );
 		}
-		self->reportInvalidData();		
+		reportInvalidData();		
 	}
-	self->updateText();
+	updateText();
 }
 
 void LLMultiSliderCtrl::setEnabled(BOOL b)
@@ -480,9 +470,6 @@ LLXMLNodePtr LLMultiSliderCtrl::getXML(bool save_children) const
 
 LLView* LLMultiSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("multi_slider");
-	node->getAttributeString("name", name);
-
 	std::string label;
 	node->getAttributeString("label", label);
 
@@ -561,14 +548,12 @@ LLView* LLMultiSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFa
 		}
 	}
 
-	LLUICtrlCallback callback = NULL;
-
 	if (label.empty())
 	{
 		label.assign(node->getTextContents());
 	}
 
-	LLMultiSliderCtrl* slider = new LLMultiSliderCtrl(name,
+	LLMultiSliderCtrl* slider = new LLMultiSliderCtrl("multi_slider",
 							rect,
 							label,
 							font,
@@ -576,8 +561,6 @@ LLView* LLMultiSliderCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFa
 							rect.getWidth() - text_left,
 							show_text,
 							can_edit_text,
-							callback,
-							NULL,
 							initial_value,
 							min_value, 
 							max_value,

@@ -26,7 +26,6 @@
  */
 
 #include "llviewerprecompiledheaders.h"
-#include "llhttpclient.h"
 #include "llfloaterscriptlimits.h"
 
 // library includes
@@ -39,7 +38,9 @@
 #include "llfloateravatarpicker.h"
 #include "llfloaterland.h"
 #include "llregionhandle.h"
+#include "llscrolllistcolumn.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "llparcel.h"
 #include "lltabcontainer.h"
 #include "lltracker.h"
@@ -207,7 +208,7 @@ void fetchScriptLimitsRegionInfoResponder::result(const LLSD& content)
 	}
 	else
 	{
-		LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+		LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 		if(!instance)
 		{
 			llwarns << "Failed to get llfloaterscriptlimits instance" << llendl;
@@ -223,7 +224,7 @@ void fetchScriptLimitsRegionInfoResponder::result(const LLSD& content)
 
 void fetchScriptLimitsRegionInfoResponder::error(U32 status, const std::string& reason)
 {
-	llwarns << "Error from responder " << reason << llendl;
+	llwarns << "fetchScriptLimitsRegionInfoResponder error [status:" << status << "]: " << reason << llendl;
 }
 
 void fetchScriptLimitsRegionSummaryResponder::result(const LLSD& content_ref)
@@ -281,7 +282,7 @@ void fetchScriptLimitsRegionSummaryResponder::result(const LLSD& content_ref)
 
 #endif
 
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 	if(!instance)
 	{
 		llwarns << "Failed to get llfloaterscriptlimits instance" << llendl;
@@ -310,7 +311,7 @@ void fetchScriptLimitsRegionSummaryResponder::result(const LLSD& content_ref)
 
 void fetchScriptLimitsRegionSummaryResponder::error(U32 status, const std::string& reason)
 {
-	llwarns << "Error from responder " << reason << llendl;
+	llwarns << "fetchScriptLimitsRegionSummaryResponder error [status:" << status << "]: " << reason << llendl;
 }
 
 void fetchScriptLimitsRegionDetailsResponder::result(const LLSD& content_ref)
@@ -389,7 +390,7 @@ result (map)
 
 #endif
 
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 
 	if(!instance)
 	{
@@ -419,7 +420,7 @@ result (map)
 
 void fetchScriptLimitsRegionDetailsResponder::error(U32 status, const std::string& reason)
 {
-	llwarns << "Error from responder " << reason << llendl;
+	llwarns << "fetchScriptLimitsRegionDetailsResponder error [status:" << status << "]: " << reason << llendl;
 }
 
 void fetchScriptLimitsAttachmentInfoResponder::result(const LLSD& content_ref)
@@ -477,7 +478,7 @@ void fetchScriptLimitsAttachmentInfoResponder::result(const LLSD& content_ref)
 
 #endif
 
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 
 	if(!instance)
 	{
@@ -515,7 +516,7 @@ void fetchScriptLimitsAttachmentInfoResponder::result(const LLSD& content_ref)
 
 void fetchScriptLimitsAttachmentInfoResponder::error(U32 status, const std::string& reason)
 {
-	llwarns << "Error from responder " << reason << llendl;
+	llwarns << "fetchScriptLimitsAttachmentInfoResponder error [status:" << status << "]: " << reason << llendl;
 }
 
 ///----------------------------------------------------------------------------
@@ -603,14 +604,7 @@ void LLPanelScriptLimitsRegionMemory::onNameCache(
 	}
 
 	std::string name;
-	if (LLAvatarNameCache::useDisplayNames())
-	{
-		name = LLCacheName::buildUsername(full_name);
-	}
-	else
-	{
-		name = full_name;
-	}
+	LLAvatarNameCache::getPNSName(id, name);
 
 	std::vector<LLSD>::iterator id_itor;
 	for (id_itor = mObjectListItems.begin(); id_itor != mObjectListItems.end(); ++id_itor)
@@ -967,7 +961,7 @@ void LLPanelScriptLimitsRegionMemory::clearList()
 // static
 void LLPanelScriptLimitsRegionMemory::onClickRefresh(void* userdata)
 {
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 	if(instance)
 	{
 		LLTabContainer* tab = instance->getChild<LLTabContainer>("scriptlimits_panels");
@@ -1022,7 +1016,7 @@ void LLPanelScriptLimitsRegionMemory::showBeacon()
 // static
 void LLPanelScriptLimitsRegionMemory::onClickHighlight(void* userdata)
 {
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 	if(instance)
 	{
 		LLTabContainer* tab = instance->getChild<LLTabContainer>("scriptlimits_panels");
@@ -1127,7 +1121,7 @@ void LLPanelScriptLimitsRegionMemory::returnObjects()
 // static
 void LLPanelScriptLimitsRegionMemory::onClickReturn(void* userdata)
 {
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 	if(instance)
 	{
 		LLTabContainer* tab = instance->getChild<LLTabContainer>("scriptlimits_panels");
@@ -1325,7 +1319,7 @@ void LLPanelScriptLimitsAttachment::setAttachmentSummary(LLSD content)
 // static
 void LLPanelScriptLimitsAttachment::onClickRefresh(void* userdata)
 {
-	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::getInstance();
+	LLFloaterScriptLimits* instance = LLFloaterScriptLimits::findInstance();
 	if(instance)
 	{
 		LLTabContainer* tab = instance->getChild<LLTabContainer>("scriptlimits_panels");

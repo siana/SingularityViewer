@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="Nearby Media" title="Media Cercano">
+    <panel name="nearby_media"/>
+</floater>

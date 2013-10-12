@@ -7,36 +7,6 @@
 [PAYMENTINFO]
 [AGEVERIFICATION]
 			</string>
-			<string name="AcctTypeResident">
-				Résident
-			</string>
-			<string name="AcctTypeTrial">
-				Essai
-			</string>
-			<string name="AcctTypeCharterMember">
-				Membre originaire
-			</string>
-			<string name="AcctTypeEmployee">
-				Employé(e) de Linden Lab
-			</string>
-			<string name="PaymentInfoUsed">
-				Infos de paiement utilisées
-			</string>
-			<string name="PaymentInfoOnFile">
-				Infos de paiement enregistrées
-			</string>
-			<string name="NoPaymentInfoOnFile">
-				Aucune info de paiement
-			</string>
-			<string name="AgeVerified">
-				Âge vérifié
-			</string>
-			<string name="NotAgeVerified">
-				Âge non vérifié
-			</string>
-			<text name="Name:">
-				Nom:
-			</text>
 			<text name="online_yes" width="151">
 				Actuellement connecté(e)
 			</text>
@@ -181,12 +151,7 @@ vous avez écrit.
 			</text>
 			<text_editor bottom_delta="-260" height="240" name="notes edit" width="430"/>
 
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom_delta="-26" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="10"
-			     mouse_opaque="true" name="key_label" v_pad="0" width="95">
-				Clef-Key :
-			</text>
+			<button name="copy_key" label="Copy Clef-Key :"/>
 			<name_editor bevel_style="in" bg_readonly_color="0, 0, 0, 0" border_style="line"
 			     border_thickness="1" bottom_delta="1" enabled="false" follows="left|top"
 			     font="SansSerifSmall" height="18" is_unicode="false" left_delta="95"

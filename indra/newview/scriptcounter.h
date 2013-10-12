@@ -28,51 +28,31 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef SCRIPTCOUNTER_H
+#define SCRIPTCOUNTER_H
 
-
-#include "llagent.h"
 #include "llvoinventorylistener.h"
 
 class ScriptCounter : public LLVOInventoryListener
 {
 public:
-	ScriptCounter();
+	ScriptCounter(bool do_delete, LLViewerObject* object);
 	~ScriptCounter();
 
-private:
-	static ScriptCounter* sInstance;
-	static void init();
-	static LLSD* getprim(LLUUID id);
-	static void completechk();
-public:
-	static void processObjectPropertiesFamily(LLMessageSystem* msg, void** user_data);
-	static void processObjectProperties(LLMessageSystem* msg, void** user_data);
-	void inventoryChanged(LLViewerObject* obj,
-								 LLInventoryObject::object_list_t* inv,
-								 S32 serial_num,
-								 void* data);
-
-	static ScriptCounter* getInstance(){ init(); return sInstance; }
-
-	static void serialize(LLDynamicArray<LLViewerObject*> objects);
-	static void serializeSelection(bool delScript);
-	static void finalize(LLSD data);
-	static void showResult(std::string output);
+	/*virtual*/ void inventoryChanged(LLViewerObject* obj, LLInventoryObject::object_list_t* inv, S32, void*);
+	void requestInventories();
 
 private:
-	static void subserialize(LLViewerObject* linkset);
+	void requestInventoriesFor(LLViewerObject* object);
+	void requestInventoryFor(LLViewerObject* object);
 
-	enum ExportState { IDLE, COUNTING };
-
-	static U32 status;
-	static U32 invqueries;
-	static U32 scriptcount;
-	static LLUUID reqObjectID;
-	static std::set<std::string> objIDS;
-	static LLDynamicArray<LLUUID> delUUIDS;
-	static int objectCount;
-	static LLViewerObject* foo;
-	static bool doDelete;
-	static std::stringstream sstr;
-	static int countingDone;
+	bool doDelete;
+	LLViewerObject* foo;
+	int inventories;
+	int objectCount;
+	bool requesting;
+	int scriptcount;
 };
+
+#endif //SCRIPTCOUNTER_H
+

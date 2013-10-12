@@ -2,7 +2,7 @@
 <panel border="true" name="friends">
 	<string name="Multiple">Multiple friends...</string>
 	<scroll_list bottom="70" can_resize="true" column_padding="0" draw_heading="true" follows="left|top|bottom|right" left="5" multi_select="true"
-	    name="friend_list" right="-5" search_column="1" tool_tip="Hold shift or control while clicking to select multiple friends" top="-40">
+	    name="friend_list" right="-5" search_column="1" tool_tip="Hold shift or control while clicking to select multiple friends" top="-40" menu_file="menu_avs_list.xml">
 		<column image="ff_online_status_button.tga" name="icon_online_status" tool_tip="Online status" width="20"/>
 		<column dynamicwidth="true" label="Name" name="friend_name" tool_tip="Name"/>
 		<column image="ff_visible_online_button.tga" name="icon_visible_online" tool_tip="Friend can see when you're online" width="20"/>
@@ -18,7 +18,7 @@
 		<combo_item type="string" length="20" enabled="true" name="All" value="All">All</combo_item>
 	</combo_box-->
 	<!--text bottom_delta="-40" follows="left|top" font="SansSerifSmall" height="16" name="Contact Search:" width="110">Contact Search:</text-->
-	<search_editor bottom_delta="-100" enabled="true" follows="left|top" font="SansSerif" height="18" name="buddy_search_lineedit" label="Contact Search" tool_tip="The friend name you want to search for" width="160"/>
+  <filter_editor bottom_delta="-100" enabled="true" follows="left|top" font="SansSerif" height="18" name="buddy_search_lineedit" label="Contact Search" tool_tip="The friend name you want to search for" width="160"/>
 	<button bottom_delta="0" follows="top|right" height="22" label="0" left="-25" name="expand_collapse_btn" tool_tip="Expand/Collapse extra info" width="22"/>
 	<!--button bottom_delta="-25" follows="top|right" height="22" label="Set Contact" name="assign_btn" tool_tip="Assign a friend to a Contact Group" width="80"/-->
 	<text bottom="38" left="12" follows="left|bottom" height="32" name="friends" width="95">Online:</text>

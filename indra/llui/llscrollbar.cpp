@@ -51,13 +51,11 @@ LLScrollbar::LLScrollbar(
 		const std::string& name, LLRect rect,
 		LLScrollbar::ORIENTATION orientation,
 		S32 doc_size, S32 doc_pos, S32 page_size,
-		void (*change_callback)( S32 new_pos, LLScrollbar* self, void* userdata ),
-		void* callback_user_data,
+		callback_t change_callback,
 		S32 step_size)
-:		LLUICtrl( name, rect, TRUE, NULL, NULL ),
+:		LLUICtrl( name, rect ),
 
 		mChangeCallback( change_callback ),
-		mCallbackUserData( callback_user_data ),
 		mOrientation( orientation ),
 		mDocSize( doc_size ),
 		mDocPos( doc_pos ),
@@ -115,7 +113,7 @@ LLScrollbar::LLScrollbar(
 
 	LLButton* line_up_btn = new LLButton(std::string("Line Up"), line_up_rect,
 										 line_up_img, line_up_selected_img, LLStringUtil::null,
-										 &LLScrollbar::onLineUpBtnPressed, this, LLFontGL::getFontSansSerif() );
+										 boost::bind(&LLScrollbar::onLineUpBtnPressed, this, _2), LLFontGL::getFontSansSerif() );
 	if( LLScrollbar::VERTICAL == mOrientation )
 	{
 		line_up_btn->setFollowsRight();
@@ -127,7 +125,7 @@ LLScrollbar::LLScrollbar(
 		line_up_btn->setFollowsLeft();
 		line_up_btn->setFollowsBottom();
 	}
-	line_up_btn->setHeldDownCallback( boost::bind(&LLScrollbar::onLineUpBtnPressed, (void*)this) );
+	line_up_btn->setHeldDownCallback( boost::bind(&LLScrollbar::onLineUpBtnPressed, this, _2) );
 	line_up_btn->setTabStop(FALSE);
 	line_up_btn->setScaleImage(TRUE);
 
@@ -135,10 +133,10 @@ LLScrollbar::LLScrollbar(
 
 	LLButton* line_down_btn = new LLButton(std::string("Line Down"), line_down_rect,
 										   line_down_img, line_down_selected_img, LLStringUtil::null,
-										   &LLScrollbar::onLineDownBtnPressed, this, LLFontGL::getFontSansSerif() );
+										   boost::bind(&LLScrollbar::onLineDownBtnPressed, this, _2), LLFontGL::getFontSansSerif() );
 	line_down_btn->setFollowsRight();
 	line_down_btn->setFollowsBottom();
-	line_down_btn->setHeldDownCallback( boost::bind(&LLScrollbar::onLineDownBtnPressed, this) );
+	line_down_btn->setHeldDownCallback( boost::bind(&LLScrollbar::onLineDownBtnPressed, this, _2) );
 	line_down_btn->setTabStop(FALSE);
 	line_down_btn->setScaleImage(TRUE);
 	addChild(line_down_btn);
@@ -170,7 +168,7 @@ bool LLScrollbar::setDocPos(S32 pos, BOOL update_thumb)
 
 		if( mChangeCallback )
 		{
-			mChangeCallback( mDocPos, this, mCallbackUserData );
+			mChangeCallback( mDocPos, this );
 		}
 
 		if( update_thumb )
@@ -629,19 +627,12 @@ void LLScrollbar::pageDown(S32 overlap)
 	}
 }
 
-// static
-void LLScrollbar::onLineUpBtnPressed( void* userdata )
+void LLScrollbar::onLineUpBtnPressed( const LLSD& data )
 {
-	LLScrollbar* self = (LLScrollbar*) userdata;
-
-	self->changeLine( - self->mStepSize, TRUE );
+	changeLine( -mStepSize, TRUE );
 }
 
-// static
-void LLScrollbar::onLineDownBtnPressed( void* userdata )
+void LLScrollbar::onLineDownBtnPressed( const LLSD& data )
 {
-	LLScrollbar* self = (LLScrollbar*) userdata;
-	self->changeLine( self->mStepSize, TRUE );
+	changeLine( mStepSize, TRUE );
 }
-
-

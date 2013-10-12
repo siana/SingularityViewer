@@ -54,6 +54,17 @@ public:
 	static void		onClickNewScript(		void* userdata);
 	static void		onClickPermissions(		void* userdata);
 
+    // Key suffix for "tentative" fields
+    static const char* TENTATIVE_SUFFIX;
+
+    // These aren't fields in LLMediaEntry, so we have to define them ourselves for checkbox control
+    static const char* PERMS_OWNER_INTERACT_KEY;
+    static const char* PERMS_OWNER_CONTROL_KEY;
+    static const char* PERMS_GROUP_INTERACT_KEY;
+    static const char* PERMS_GROUP_CONTROL_KEY;
+    static const char* PERMS_ANYONE_INTERACT_KEY;
+    static const char* PERMS_ANYONE_CONTROL_KEY;
+
 protected:
 	void			getState(LLViewerObject *object);
 

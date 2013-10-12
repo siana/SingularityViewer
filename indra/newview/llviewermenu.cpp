@@ -3,10 +3,9 @@
  * @brief Builds menus out of items.
  *
  * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2009, Linden Research, Inc.
- * 
  * Second Life Viewer Source Code
+ * Copyright (c) 2002-2009, Linden Research, Inc.
+ *
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -34,43 +33,19 @@
 
 #include "llviewermenu.h" 
 
-// system library includes
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
 // linden library includes
-#include "llaudioengine.h"
-#include "indra_constants.h"
-#include "llassetstorage.h"
-
+#include "llanimationstates.h" // For ANIM_AGENT_AWAY
+#include "llavatarnamecache.h"	// IDEVO
+#include "llinventorypanel.h"
 #include "llnotifications.h"
 #include "llnotificationsutil.h"
-#include "llchat.h"
 #include "llfeaturemanager.h"
-#include "llfocusmgr.h"
-#include "llfontgl.h"
-#include "llinstantmessage.h"
-#include "llpermissionsflags.h"
-#include "llrect.h"
 #include "llsecondlifeurls.h"
-#include "lltransactiontypes.h"
-#include "llui.h"
-#include "llview.h"
-#include "llxfermanager.h"
-#include "message.h"
-#include "raytrace.h"
-#include "llsdserialize.h"
-#include "llsdutil.h"
 // <edit>
-#include "lllocalinventory.h"
 #include "llfloaterexploreanimations.h"
 #include "llfloaterexploresounds.h"
 #include "llfloaterblacklist.h"
 // </edit>
-#include "lltimer.h"
-#include "llvfile.h"
-#include "llvolumemgr.h"
 #include "statemachine/aifilepicker.h"
 
 // newview includes
@@ -79,30 +54,16 @@
 #include "llappearancemgr.h"
 #include "llagentwearables.h"
 #include "jcfloaterareasearch.h"
+#include "lfsimfeaturehandler.h"
 
 #include "llagentpilot.h"
-#include "llbox.h"
-#include "llcallingcard.h"
-#include "llclipboard.h"
 #include "llcompilequeue.h"
 #include "llconsole.h"
-#include "llcontrol.h"
-#include "llviewercontrol.h"
 #include "lldebugview.h"
-#include "lldir.h"
-#include "lldrawable.h"
-#include "lldrawpoolalpha.h"
-#include "lldrawpooltree.h"
 #include "llenvmanager.h"
-#include "llface.h"
 #include "llfirstuse.h"
-#include "llfloater.h"
-
 #include "llfloaterabout.h"
-#include "llfloaterbuycurrency.h"
 #include "llfloateractivespeakers.h"
-#include "llfloateranimpreview.h"
-#include "llfloateravatarinfo.h"
 #include "llfloateravatarlist.h"
 #include "llfloateravatartextures.h"
 #include "llfloaterbeacons.h"
@@ -112,24 +73,16 @@
 #include "llfloaterbuycontents.h"
 #include "llfloaterbuycurrency.h"
 #include "llfloaterbuyland.h"
-#include "llfloatercamera.h"
 #include "llfloaterchat.h"
 #include "llfloatercustomize.h"
 #include "llfloaterdaycycle.h"
 #include "llfloaterdirectory.h"
 #include "llfloatereditui.h"
 #include "llfloaterchatterbox.h"
-#include "llfloaterfriends.h"
 #include "llfloaterfonttest.h"
 #include "llfloatergesture.h"
 #include "llfloatergodtools.h"
-#include "llfloatergroupinfo.h"
-#include "llfloatergroupinvite.h"
-#include "llfloatergroups.h"
-
 #include "llfloaterhtmlcurrency.h"
-#include "llfloatermediabrowser.h"			// gViewerHtmlHelp
-#include "llfloaterhtmlsimple.h"
 #include "llfloaterhud.h"
 #include "llfloaterinspect.h"
 #include "llfloaterinventory.h"
@@ -137,13 +90,11 @@
 #include "llfloaterland.h"
 #include "llfloaterlandholdings.h"
 #include "llfloatermap.h"
-
 #include "llfloatermute.h"
 #include "llfloateropenobject.h"
 #include "llfloateroutbox.h"
 #include "llfloaterpathfindingcharacters.h"
 #include "llfloaterpathfindinglinksets.h"
-#include "llfloaterpermissionsmgr.h"
 #include "llfloaterperms.h"
 #include "llfloaterpostprocess.h"
 #include "llfloaterpreference.h"
@@ -156,121 +107,90 @@
 
 #include "llfloaterenvsettings.h"
 #include "llfloaterstats.h"
-#include "llfloaterteleport.h"
 #include "llfloaterteleporthistory.h"
 #include "llfloatertest.h"
 #include "llfloatertools.h"
+#include "llfloatervoiceeffect.h"
 #include "llfloaterwater.h"
+#include "llfloaterwebcontent.h"
 #include "llfloaterwindlight.h"
 #include "llfloaterworldmap.h"
 #include "llfloatermemleak.h"
 #include "llframestats.h"
-#include "llframestatview.h"
-#include "llfasttimerview.h"
 #include "llgivemoney.h"
+#include "llavataractions.h"
 #include "llgroupmgr.h"
 #include "llhoverview.h"
 #include "llhudeffecttrail.h"
 #include "llhudmanager.h"
-#include "llimage.h"
-#include "llimagebmp.h"
-#include "llimagej2c.h"
-#include "llimagetga.h"
+#include "llimview.h"
+#include "llinventorybridge.h"
 #include "llinventorydefines.h"
 #include "llinventoryfunctions.h"
-#include "llinventorypanel.h"
-#include "llinventorybridge.h"
-#include "llkeyboard.h"
 #include "llmakeoutfitdialog.h"
-#include "llmenucommands.h"
-#include "llmenugl.h"
 #include "llmimetypes.h"
-#include "llmorphview.h"
+#include "llmenucommands.h"
 #include "llmenuoptionpathfindingrebakenavmesh.h"
 #include "llmoveview.h"
 #include "llmutelist.h"
 #include "llnotify.h"
 #include "llpanellogin.h"
-#include "llpanelobject.h"
-
 #include "llparcel.h"
-
-#include "llpolymesh.h"
-#include "llprimitive.h"
-#include "llresmgr.h"
+#include "llregioninfomodel.h"
 #include "llselectmgr.h"
-#include "llsky.h"
 #include "llstatusbar.h"
-#include "llstatview.h"
-#include "llstring.h"
-#include "llsurfacepatch.h"
-#include "llimview.h"
 #include "lltextureview.h"
-#include "lltool.h"
 #include "lltoolbar.h"
 #include "lltoolcomp.h"
-#include "lltoolfocus.h"
-#include "lltoolgrab.h"
 #include "lltoolmgr.h"
 #include "lltoolpie.h"
-#include "lltoolplacer.h"
 #include "lltoolselectland.h"
 #include "lluictrlfactory.h"
-#include "lluploaddialog.h"
 #include "lluserauth.h"
-#include "lluuid.h"
 #include "llvelocitybar.h"
 #include "llviewercamera.h"
 #include "llviewergenericmessage.h"
-#include "llviewergesture.h"
 #include "llviewertexturelist.h"	// gTextureList
-#include "llviewerinventory.h"
 #include "llviewermenufile.h"	// init_menu_file()
 #include "llviewermessage.h"
 #include "llviewernetwork.h"
 #include "llviewerobjectlist.h"
 #include "llviewerparcelmgr.h"
-#include "llviewerparceloverlay.h"
-#include "llviewerregion.h"
 #include "llviewerstats.h"
-#include "llviewerwindow.h"
 #include "llvoavatarself.h"
-#include "llvolume.h"
-#include "llweb.h"
 #include "llworld.h"
 #include "llworldmap.h"
-#include "object_flags.h"
 #include "pipeline.h"
-#include "llappviewer.h"
-#include "roles_constants.h"
 #include "llviewerjoystick.h"
+#include "llwaterparammanager.h"
 #include "llwlanimator.h"
 #include "llwlparammanager.h"
-#include "llwaterparammanager.h"
+#include "llfloatercamera.h"
 #include "llfloaternotificationsconsole.h"
-
-#include "lltexlayer.h"
 
 // <edit>
 #include "llfloatermessagelog.h"
 #include "shfloatermediaticker.h"
 #include "llpacketring.h"
+#include "aihttpview.h"
 // </edit>
 
 #include "scriptcounter.h"
 #include "llfloaterdisplayname.h"
-#include "llavatarnamecache.h"
 #include "floaterao.h"
 #include "slfloatermediafilter.h"
 #include "llviewerobjectbackup.h"
 #include "llagentui.h"
+#include "lltoolgrab.h"
 #include "llpathfindingmanager.h"
+#include <boost/lexical_cast.hpp>
 
 #include "lltexturecache.h"
 #include "llvovolume.h"
-#include <map>
 
 #include "hippogridmanager.h"
+
+void toggle_search_floater();
 
 using namespace LLOldEvents;
 using namespace LLAvatarAppearanceDefines;
@@ -303,15 +223,21 @@ void handle_test_load_url(void*);
 
 //
 // Evil hackish imported globals
-//
+
+class AIHTTPView;
+
+void add_wave_listeners();
+void add_dae_listeners();
+void add_radar_listeners();
 //extern BOOL	gHideSelectedObjects;
 //extern BOOL gAllowSelectAvatar;
+//extern BOOL gDebugAvatarRotation;
 extern BOOL gDebugClicks;
 extern BOOL gDebugWindowProc;
 extern BOOL gDebugTextEditorTips;
-extern BOOL gDebugAvatarRotation;
 extern BOOL gShowOverlayTitle;
 extern BOOL gOcclusionCull;
+extern AIHTTPView* gHttpView;
 //
 // Globals
 //
@@ -347,7 +273,6 @@ LLPieMenu* gDetachPieMenu = NULL;
 LLPieMenu* gDetachScreenPieMenu = NULL;
 LLPieMenu* gDetachBodyPartPieMenus[8];
 
-LLMenuItemCallGL* gFakeAway = NULL;
 LLMenuItemCallGL* gAFKMenu = NULL;
 LLMenuItemCallGL* gBusyMenu = NULL;
 
@@ -355,7 +280,6 @@ typedef LLMemberListener<LLView> view_listener_t;
 
 //
 // Local prototypes
-//
 
 // File Menu
 void handle_compress_image(void*);
@@ -373,8 +297,6 @@ void handle_region_dump_settings(void*);
 void handle_region_dump_temp_asset_data(void*);
 void handle_region_clear_temp_asset_data(void*);
 
-
-
 // Object pie menu
 BOOL sitting_on_selection();
 
@@ -390,8 +312,6 @@ bool confirm_take(const LLSD& notification, const LLSD& response, LLObjectSelect
 void handle_buy_object(LLSaleInfo sale_info);
 void handle_buy_contents(LLSaleInfo sale_info);
 
-bool for_sale_selection(LLSelectNode* nodep);
-
 // Land pie menu
 void near_sit_down_point(BOOL success, void *);
 
@@ -404,8 +324,7 @@ void handle_talk_to(void *userdata);
 void handle_agent_stop_moving(void*);
 void print_packets_lost(void*);
 void drop_packet(void*);
-void velocity_interpolate( void* data );
-void toggle_wind_audio(void);
+void velocity_interpolate( void* );
 void handle_rebake_textures(void*);
 BOOL check_admin_override(void*);
 void handle_admin_override_toggle(void*);
@@ -418,6 +337,7 @@ void toggle_show_xui_names(void *);
 BOOL check_show_xui_names(void *);
 
 // Debug UI
+
 void handle_web_search_demo(void*);
 void handle_web_browser_test(void*);
 void handle_buy_currency_test(void*);
@@ -446,7 +366,6 @@ void handle_singleton_toggle(void *)
 
 // <edit>
 void handle_fake_away_status(void*);
-void handle_area_search(void*);
 
 // <dogmode> for pose stand
 LLUUID current_pose = LLUUID::null;
@@ -492,26 +411,15 @@ BOOL handle_check_pose(void* userdata) {
 }
 
 
-void handle_force_ground_sit(void*);
-void handle_phantom_avatar(void*);
-void handle_hide_typing_notification(void*);
 void handle_close_all_notifications(void*);
 void handle_open_message_log(void*);
-void handle_edit_ao(void*);
-void handle_sounds_explorer(void*);
-void handle_blacklist(void*);
 // </edit>
 
-BOOL is_inventory_visible( void* user_data );
 void handle_reset_view();
 
-void disabled_duplicate(void*);
 void handle_duplicate_in_place(void*);
-void handle_repeat_duplicate(void*);
 
-void handle_export(void*);
-// void handle_deed_object_to_group(void*);
-// BOOL enable_deed_object_to_group(void*);
+
 void handle_object_owner_self(void*);
 void handle_object_owner_permissive(void*);
 void handle_object_lock(void*);
@@ -526,7 +434,6 @@ void handle_force_parcel_owner_to_me(void*);
 void handle_force_parcel_to_content(void*);
 void handle_claim_public_land(void*);
 
-void handle_god_request_havok(void *);
 void handle_god_request_avatar_geometry(void *);	// Hack for easy testing of new avatar geometry
 void reload_personal_settings_overrides(void *);
 void reload_vertex_shader(void *);
@@ -540,13 +447,6 @@ void force_error_infinite_loop(void *);
 void force_error_software_exception(void *);
 void force_error_driver_crash(void *);
 
-void handle_stopall(void*);
-//void handle_hinge(void*);
-//void handle_ptop(void*);
-//void handle_lptop(void*);
-//void handle_wheel(void*);
-//void handle_dehinge(void*);
-BOOL enable_dehinge(void*);
 void handle_force_delete(void*);
 void print_object_info(void*);
 void print_agent_nvpairs(void*);
@@ -585,7 +485,6 @@ void handle_test_male(void *);
 void handle_test_female(void *);
 void handle_toggle_pg(void*);
 void handle_dump_attachments(void *);
-void handle_show_overlay_title(void*);
 void handle_dump_avatar_local_textures(void*);
 void handle_meshes_and_morphs(void*);
 void handle_mesh_save_llm(void* data);
@@ -607,16 +506,14 @@ BOOL enable_selection_you_own_all(void*);
 BOOL enable_selection_you_own_one(void*);
 BOOL enable_save_into_inventory(void*);
 BOOL enable_save_into_task_inventory(void*);
-BOOL enable_not_thirdperson(void*);
-// BOOL enable_export_selected(void *);
-BOOL enable_have_card(void*);
-BOOL enable_detach(void*);
-BOOL enable_region_owner(void*);
+
+BOOL enable_detach(const LLSD& = LLSD());
+BOOL is_god_customer_service(void*);
 void menu_toggle_attached_lights(void* user_data);
 void menu_toggle_attached_particles(void* user_data);
 
-BOOL enable_dump_archetype_xm(void*);
 void handle_dump_archetype_xml(void *);
+void handle_dump_archetype_xml_continued(LLVOAvatar* avatar, AIFilePicker* filepicker);
 
 void region_change();
 void parse_simulator_features();
@@ -673,6 +570,7 @@ void pre_init_menus()
 	LLMenuItemGL::sHighlightForeground	= gColors.getColor( "MenuItemHighlightFgColor" );
 }
 
+
 void initialize_menus();
 
 //-----------------------------------------------------------------------------
@@ -691,13 +589,13 @@ void set_underclothes_menu_options()
 {
 	if (gMenuHolder && gAgent.isTeen())
 	{
-		gMenuHolder->getChild<LLView>("Self Underpants", TRUE)->setVisible(FALSE);
-		gMenuHolder->getChild<LLView>("Self Undershirt", TRUE)->setVisible(FALSE);
+		gMenuHolder->getChild<LLView>("Self Underpants")->setVisible(FALSE);
+		gMenuHolder->getChild<LLView>("Self Undershirt")->setVisible(FALSE);
 	}
 	if (gMenuBarView && gAgent.isTeen())
 	{
-		gMenuBarView->getChild<LLView>("Menu Underpants", TRUE)->setVisible(FALSE);
-		gMenuBarView->getChild<LLView>("Menu Undershirt", TRUE)->setVisible(FALSE);
+		gMenuBarView->getChild<LLView>("Menu Underpants")->setVisible(FALSE);
+		gMenuBarView->getChild<LLView>("Menu Undershirt")->setVisible(FALSE);
 	}
 }
 
@@ -807,37 +705,6 @@ void init_menus()
 	gAttachSubMenu = gMenuBarView->getChildMenuByName("Attach Object", TRUE);
 	gDetachSubMenu = gMenuBarView->getChildMenuByName("Detach Object", TRUE);
 
-	// TomY TODO convert these two
-	LLMenuGL*menu;
-
-	menu = new LLMenuGL("Singularity");
-	menu->setCanTearOff(TRUE);
-	menu->addChild(new LLMenuItemCallGL(	"Close All Dialogs", 
-										&handle_close_all_notifications, NULL, NULL, 'D', MASK_CONTROL | MASK_ALT | MASK_SHIFT));
-	menu->addSeparator();
-	menu->addChild(new LLMenuItemCallGL(  "Fake Away Status", &handle_fake_away_status, NULL));
-	menu->addChild(new LLMenuItemCallGL(  "Force Ground Sit", &handle_force_ground_sit, NULL));
-	menu->addChild(new LLMenuItemCallGL(  "Phantom Avatar", &handle_phantom_avatar, NULL, NULL, 'P', MASK_CONTROL | MASK_ALT));
-	menu->addSeparator();
-	menu->addChild(new LLMenuItemCallGL( "Animation Override...",
-									&handle_edit_ao, NULL));
-	menu->addChild(new LLMenuItemCheckGL( "Nimble",
-										&menu_toggle_control,
-										NULL,
-										&menu_check_control,
-										(void*)"Nimble"));
-	menu->addSeparator();
-	menu->addChild(new LLMenuItemCallGL(	"Object Area Search", &handle_area_search, NULL));
-
-	menu->addChild(new LLMenuItemCallGL(	"Sound Explorer",
-											&handle_sounds_explorer, NULL));
-	menu->addChild(new LLMenuItemCallGL(	"Asset Blacklist",
-											&handle_blacklist, NULL));
-	menu->addChild(new LLMenuItemCheckGL(  "Streaming Audio Display", 
-											&handle_ticker_toggle, &handle_ticker_enabled, &handle_singleton_check<SHFloaterMediaTicker>, NULL ));
-	
-	
-	
 	// <dogmode>
 	// Add in the pose stand -------------------------------------------
 	/*LLMenuGL* sub = new LLMenuGL("Pose Stand...");
@@ -851,12 +718,9 @@ void init_menus()
 	sub->addChild(new LLMenuItemCallGL(  "Legs Half Arms Out", &handle_pose_stand_lhao, NULL));
 	sub->addChild(new LLMenuItemCallGL(  "Stop Pose Stand", &handle_pose_stand_stop, NULL));
 	// </dogmode> ------------------------------------------------------*/
-	
-	menu->addChild(new LLMenuItemCheckGL("Pose Stand",&handle_toggle_pose, NULL, &handle_check_pose, NULL));
 
-	//these should always be last in a sub menu
-	menu->createJumpKeys();
-	gMenuBarView->addChild( menu );
+	// TomY TODO convert these two
+	LLMenuGL*menu;
 
 	menu = new LLMenuGL(CLIENT_MENU_NAME);
 	menu->setCanTearOff(TRUE);
@@ -880,7 +744,7 @@ void init_menus()
 	show_debug_menus();
 
 	gLoginMenuBarView = (LLMenuBarGL*)LLUICtrlFactory::getInstance()->buildMenu("menu_login.xml", gMenuHolder);
-	
+
 	menu = new LLMenuGL(CLIENT_MENU_NAME);
 	menu->setCanTearOff(FALSE);
 	menu->addChild(new LLMenuItemCallGL("Debug Settings...", handle_singleton_toggle<LLFloaterSettingsDebug>, NULL, NULL));
@@ -895,7 +759,6 @@ void init_menus()
 	/*gLoginMenuBarView->setRect(LLRect(menuBarRect.mLeft, menuBarRect.mTop,
 									  gViewerWindow->getRootView()->getRect().getWidth() - menuBarRect.mLeft,
 									  menuBarRect.mBottom));*/
-	
 	gLoginMenuBarView->setBackgroundColor( color );
 
 	gMenuHolder->addChild(gLoginMenuBarView);
@@ -906,7 +769,7 @@ void init_menus()
 	ins->setVisible(false);
 	ins = gMenuBarView->getChildView("insert_tools", true, false);
 	ins->setVisible(false);
-	/* Singu Note: When the advanced and/or admin menu is made xml, this should be uncommented.
+	/* Singu Note: When the advanced and/or admin menus are made xml, these should be uncommented.
 	ins = gMenuBarView->getChildView("insert_advanced", true, false);
 	ins->setVisible(false);
 	ins = gMenuBarView->getChildView("insert_admin", true, false);
@@ -963,6 +826,13 @@ void init_client_menu(LLMenuGL* menu)
 									   	'6', MASK_CONTROL|MASK_SHIFT ) );
 		}
 
+		sub->addChild(new LLMenuItemCheckGL("HTTP Console", 
+										&AIHTTPView::toggle_visibility,
+										NULL,
+										&get_visibility,
+										(void*)gHttpView,
+									   	'7', MASK_CONTROL|MASK_SHIFT ) );
+
 		sub->addChild(new LLMenuItemCheckGL("Region Debug Console", handle_singleton_toggle<LLFloaterRegionDebugConsole>, NULL, handle_singleton_check<LLFloaterRegionDebugConsole>,NULL,'`', MASK_CONTROL|MASK_SHIFT));
 
 		sub->addChild(new LLMenuItemCheckGL("Fast Timers", 
@@ -996,7 +866,7 @@ void init_client_menu(LLMenuGL* menu)
 	/*menu->addChild(new LLMenuItemCallGL("Reload settings/colors", 
 					&handle_reload_settings, NULL, NULL));*/
 	menu->addChild(new LLMenuItemCallGL("Reload personal setting overrides", 
-		&reload_personal_settings_overrides, NULL, NULL, KEY_F2, MASK_CONTROL|MASK_SHIFT));
+		&reload_personal_settings_overrides));
 
 	sub_menu = new LLMenuGL("HUD Info");
 	{
@@ -1159,7 +1029,7 @@ void init_client_menu(LLMenuGL* menu)
 		sub = new LLMenuGL("Media");
 		sub->setCanTearOff(TRUE);
 		sub->addChild(new LLMenuItemCallGL("Reload MIME types", &LLMIMETypes::reload));
-		sub->addChild(new LLMenuItemCallGL("Web Browser Test", &handle_web_browser_test));
+		sub->addChild(new LLMenuItemCallGL("Web Browser Test", &handle_web_browser_test, NULL, NULL, KEY_F1));
 		menu->addChild( sub );
 		sub->createJumpKeys();
 	}
@@ -1334,6 +1204,7 @@ void init_debug_ui_menu(LLMenuGL* menu)
 	menu->addChild(new LLMenuItemCheckGL("Show Render Info", menu_toggle_control, NULL, menu_check_control, (void*)"DebugShowRenderInfo"));
 	menu->addChild(new LLMenuItemCheckGL("Show Matrices", menu_toggle_control, NULL, menu_check_control, (void*)"DebugShowRenderMatrices"));
 	menu->addChild(new LLMenuItemCheckGL("Show Color Under Cursor", menu_toggle_control, NULL, menu_check_control, (void*)"DebugShowColor"));
+	menu->addChild(new LLMenuItemCheckGL("Show FPS", menu_toggle_control, NULL, menu_check_control, (void*)"SLBShowFPS"));
 	
 	menu->createJumpKeys();
 }
@@ -1351,7 +1222,6 @@ void init_debug_xui_menu(LLMenuGL* menu)
 	// </edit>
 	menu->addChild(new LLMenuItemCheckGL("Show XUI Names", toggle_show_xui_names, NULL, check_show_xui_names, NULL));
 
-	//menu->addChild(new LLMenuItemCallGL("Buy Currency...", handle_buy_currency));
 	menu->createJumpKeys();
 }
 
@@ -1429,38 +1299,43 @@ void init_debug_rendering_menu(LLMenuGL* menu)
 	sub_menu = new LLMenuGL("Features");
 	sub_menu->setCanTearOff(TRUE);
 	menu->addChild(sub_menu);
+#ifdef LL_LINUX
+	#define MODIFIER MASK_SHIFT
+#else
+	#define MODIFIER MASK_ALT
+#endif
 	sub_menu->addChild(new LLMenuItemCheckGL("UI",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_UI, KEY_F1, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_UI, KEY_F1, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL("Selected",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_SELECTED, KEY_F2, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_SELECTED, KEY_F2, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL("Highlighted",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_HIGHLIGHTED, KEY_F3, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_HIGHLIGHTED, KEY_F3, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL("Dynamic Textures",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_DYNAMIC_TEXTURES, KEY_F4, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_DYNAMIC_TEXTURES, KEY_F4, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL( "Foot Shadows", 
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FOOT_SHADOWS, KEY_F5, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FOOT_SHADOWS, KEY_F5, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL("Fog",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FOG, KEY_F6, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FOG, KEY_F6, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL("Test FRInfo",
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FR_INFO, KEY_F8, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FR_INFO, KEY_F8, MODIFIER|MASK_CONTROL));
 	sub_menu->addChild(new LLMenuItemCheckGL( "Flexible Objects", 
 											&LLPipeline::toggleRenderDebugFeature, NULL,
 											&LLPipeline::toggleRenderDebugFeatureControl,
-											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FLEXIBLE, KEY_F9, MASK_ALT|MASK_CONTROL));
+											(void*)LLPipeline::RENDER_DEBUG_FEATURE_FLEXIBLE, KEY_F9, MODIFIER|MASK_CONTROL));
 	sub_menu->createJumpKeys();
 
 	/////////////////////////////
@@ -1500,7 +1375,7 @@ void init_debug_rendering_menu(LLMenuGL* menu)
 													(void*)LLPipeline::RENDER_DEBUG_TEXTURE_PRIORITY));
 	sub_menu->addChild(new LLMenuItemCheckGL("Avatar Rendering Cost",	&LLPipeline::toggleRenderDebug, NULL,
 													&LLPipeline::toggleRenderDebugControl,
-													(void*)LLPipeline::RENDER_DEBUG_SHAME));
+													(void*)LLPipeline::RENDER_DEBUG_SHAME, 'C', MASK_CONTROL|MASK_ALT|MASK_SHIFT));
 	sub_menu->addChild(new LLMenuItemCheckGL("Texture Area (sqrt(A))",&LLPipeline::toggleRenderDebug, NULL,
 													&LLPipeline::toggleRenderDebugControl,
 													(void*)LLPipeline::RENDER_DEBUG_TEXTURE_AREA));
@@ -1545,7 +1420,7 @@ void init_debug_rendering_menu(LLMenuGL* menu)
 													(void*)LLPipeline::RENDER_DEBUG_WIND_VECTORS));
 	sub_menu->addChild(new LLMenuItemCheckGL("Complexity",	&LLPipeline::toggleRenderDebug, NULL,
 													&LLPipeline::toggleRenderDebugControl,
-													(void*)LLPipeline::RENDER_DEBUG_RENDER_COMPLEXITY));												;
+													(void*)LLPipeline::RENDER_DEBUG_RENDER_COMPLEXITY));
 
 	sub_menu = new LLMenuGL("Render Tests");
 	sub_menu->setCanTearOff(TRUE);
@@ -1601,6 +1476,9 @@ void init_debug_rendering_menu(LLMenuGL* menu)
 	
 	menu->addChild(new LLMenuItemCallGL("Rebuild Vertex Buffers", reset_vertex_buffers, NULL, NULL, 'V', MASK_CONTROL | MASK_SHIFT));
 
+	item = new LLMenuItemCheckGL("Animate Trees", menu_toggle_control, NULL, menu_check_control, (void*)"RenderAnimateTrees");
+	menu->addChild(item);
+	
 	item = new LLMenuItemCheckGL("Animate Textures", menu_toggle_control, NULL, menu_check_control, (void*)"AnimateTextures");
 	menu->addChild(item);
 	
@@ -1645,12 +1523,11 @@ void init_debug_avatar_menu(LLMenuGL* menu)
 	sub_menu->setCanTearOff(TRUE);
 	sub_menu->addChild(new LLMenuItemCheckGL("Go Away/AFK When Idle", menu_toggle_control, NULL, menu_check_control, (void*)"AllowIdleAFK"));
 
-	sub_menu->addChild(new LLMenuItemCallGL("Appearance To XML", 
-		&handle_dump_archetype_xml,&enable_dump_archetype_xm));
+	sub_menu->addChild(new LLMenuItemCallGL("Appearance To XML", &handle_dump_archetype_xml));
 
 	// HACK for easy testing of avatar geometry
 	sub_menu->addChild(new LLMenuItemCallGL( "Toggle Character Geometry", 
-		&handle_god_request_avatar_geometry, &enable_god_customer_service, NULL));
+		&handle_god_request_avatar_geometry, &is_god_customer_service, NULL));
 
 	sub_menu->addChild(new LLMenuItemCallGL("Test Male", 
 		handle_test_male));
@@ -1696,15 +1573,11 @@ void init_debug_avatar_menu(LLMenuGL* menu)
 									   (void*)LLPipeline::RENDER_DEBUG_ATTACHMENT_BYTES));
 	menu->addChild(new LLMenuItemToggleGL( "Debug Rotation", &LLVOAvatar::sDebugAvatarRotation));
 	menu->addChild(new LLMenuItemCallGL("Dump Attachments", handle_dump_attachments));
-	menu->addChild(new LLMenuItemCallGL("Rebake Textures", handle_rebake_textures, NULL, NULL, 'R', MASK_ALT | MASK_CONTROL ));
-// <edit>
-//#ifndef LL_RELEASE_FOR_DOWNLOAD
-// </edit>
+	menu->addChild(new LLMenuItemCallGL("Rebake Textures", handle_rebake_textures));
+#ifndef LL_RELEASE_FOR_DOWNLOAD
 	menu->addChild(new LLMenuItemCallGL("Debug Avatar Textures", handle_debug_avatar_textures, NULL, NULL, 'A', MASK_SHIFT|MASK_CONTROL|MASK_ALT));
 	menu->addChild(new LLMenuItemCallGL("Dump Local Textures", handle_dump_avatar_local_textures, NULL, NULL, 'M', MASK_SHIFT|MASK_ALT ));	
-// <edit>
-//#endif
-// </edit>
+#endif
 
 	gMeshesAndMorphsMenu = new LLMenuGL("Meshes and Morphs");
 	menu->addChild(gMeshesAndMorphsMenu);
@@ -1771,7 +1644,7 @@ void init_server_menu(LLMenuGL* menu)
 		menu->addChild(sub);
 
 		sub->addChild(new LLMenuItemCallGL( "Take Copy",
-										  &force_take_copy, &enable_god_customer_service, NULL,
+										  &force_take_copy, &is_god_customer_service, NULL,
 										  'O', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
 #ifdef _CORY_TESTING
 		sub->addChild(new LLMenuItemCallGL( "Export Copy",
@@ -1784,17 +1657,17 @@ void init_server_menu(LLMenuGL* menu)
 		//sub->addChild(new LLMenuItemCallGL( "Force Ownership/Permissive", 
 		//			&handle_object_owner_self_and_permissive, NULL, NULL, 'K', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
 		sub->addChild(new LLMenuItemCallGL( "Force Owner To Me", 
-					&handle_object_owner_self, &enable_god_customer_service));
+					&handle_object_owner_self, &is_god_customer_service));
 		sub->addChild(new LLMenuItemCallGL( "Force Owner Permissive", 
-					&handle_object_owner_permissive, &enable_god_customer_service));
+					&handle_object_owner_permissive, &is_god_customer_service));
 		//sub->addChild(new LLMenuItemCallGL( "Force Totally Permissive", 
 		//			&handle_object_permissive));
 		sub->addChild(new LLMenuItemCallGL( "Delete", 
-					&handle_force_delete, &enable_god_customer_service, NULL, KEY_DELETE, MASK_SHIFT | MASK_ALT | MASK_CONTROL));
+					&handle_force_delete, &is_god_customer_service, NULL, KEY_DELETE, MASK_SHIFT | MASK_ALT | MASK_CONTROL));
 		sub->addChild(new LLMenuItemCallGL( "Lock", 
-					&handle_object_lock, &enable_god_customer_service, NULL, 'L', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
+					&handle_object_lock, &is_god_customer_service, NULL, 'L', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
 		sub->addChild(new LLMenuItemCallGL( "Get Asset IDs", 
-					&handle_object_asset_ids, &enable_god_customer_service, NULL, 'I', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
+					&handle_object_asset_ids, &is_god_customer_service, NULL, 'I', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
 		sub->createJumpKeys();
 	}
 	{
@@ -1803,14 +1676,13 @@ void init_server_menu(LLMenuGL* menu)
 
 		sub->addChild(new LLMenuItemCallGL("Owner To Me",
 										 &handle_force_parcel_owner_to_me,
-										 &enable_god_customer_service, NULL));
+										 &is_god_customer_service, NULL));
 		sub->addChild(new LLMenuItemCallGL("Set to Linden Content",
 										 &handle_force_parcel_to_content,
-										 &enable_god_customer_service, NULL,
-										 'C', MASK_SHIFT | MASK_ALT | MASK_CONTROL));
+										 &is_god_customer_service, NULL));
 		sub->addSeparator();
 		sub->addChild(new LLMenuItemCallGL("Claim Public Land",
-										 &handle_claim_public_land, &enable_god_customer_service));
+										 &handle_claim_public_land, &is_god_customer_service));
 
 		sub->createJumpKeys();
 	}
@@ -1819,7 +1691,7 @@ void init_server_menu(LLMenuGL* menu)
 		menu->addChild(sub);
 		sub->addChild(new LLMenuItemCallGL("Dump Temp Asset Data",
 			&handle_region_dump_temp_asset_data,
-			&enable_god_customer_service, NULL));
+			&is_god_customer_service, NULL));
 		sub->createJumpKeys();
 	}	
 	menu->addChild(new LLMenuItemCallGL( "God Tools...", 
@@ -1834,14 +1706,8 @@ void init_server_menu(LLMenuGL* menu)
 	menu->addSeparator();
 
 	menu->addChild(new LLMenuItemCallGL("Save Region State", 
-		&LLPanelRegionTools::onSaveState, &enable_god_customer_service, NULL));
+		&LLPanelRegionTools::onSaveState, &is_god_customer_service, NULL));
 
-//	menu->addChild(new LLMenuItemCallGL("Force Join Group", handle_force_join_group));
-//
-//	menu->addSeparator();
-//
-//	menu->addChild(new LLMenuItemCallGL( "OverlayTitle",
-//		&handle_show_overlay_title, &enable_god_customer_service, NULL));
 	menu->createJumpKeys();
 }
 
@@ -1912,96 +1778,75 @@ class LLObjectTouch : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		if (!object) return true;
-
-		LLPickInfo pick = LLToolPie::getInstance()->getPick();
-
-// [RLVa:KB] - Checked: 2010-04-11 (RLVa-1.2.0e) | Modified: RLVa-1.1.0l | OK
-		// NOTE: fallback code since we really shouldn't be getting an active selection if we can't touch this
-		if ( (rlv_handler_t::isEnabled()) && (!gRlvHandler.canTouch(object, pick.mObjectOffset)) )
-		{
-			RLV_ASSERT(false);
-			return true;
-		}
-// [/RLVa:KB]
-
-		LLMessageSystem	*msg = gMessageSystem;
-
-		msg->newMessageFast(_PREHASH_ObjectGrab);
-		msg->nextBlockFast( _PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->nextBlockFast( _PREHASH_ObjectData);
-		msg->addU32Fast(    _PREHASH_LocalID, object->mLocalID);
-		msg->addVector3Fast(_PREHASH_GrabOffset, LLVector3::zero );
-		msg->nextBlock("SurfaceInfo");
-		msg->addVector3("UVCoord", LLVector3(pick.mUVCoords));
-		msg->addVector3("STCoord", LLVector3(pick.mSTCoords));
-		msg->addS32Fast(_PREHASH_FaceIndex, pick.mObjectFace);
-		msg->addVector3("Position", pick.mIntersection);
-		msg->addVector3("Normal", pick.mNormal);
-		msg->addVector3("Binormal", pick.mBinormal);
-		msg->sendMessage( object->getRegion()->getHost());
-
-		// *NOTE: Hope the packets arrive safely and in order or else
-		// there will be some problems.
-		// *TODO: Just fix this bad assumption.
-		msg->newMessageFast(_PREHASH_ObjectDeGrab);
-		msg->nextBlockFast(_PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->nextBlockFast(_PREHASH_ObjectData);
-		msg->addU32Fast(_PREHASH_LocalID, object->mLocalID);
-		msg->nextBlock("SurfaceInfo");
-		msg->addVector3("UVCoord", LLVector3(pick.mUVCoords));
-		msg->addVector3("STCoord", LLVector3(pick.mSTCoords));
-		msg->addS32Fast(_PREHASH_FaceIndex, pick.mObjectFace);
-		msg->addVector3("Position", pick.mIntersection);
-		msg->addVector3("Normal", pick.mNormal);
-		msg->addVector3("Binormal", pick.mBinormal);
-		msg->sendMessage(object->getRegion()->getHost());
-
+		handle_object_touch();
 		return true;
 	}
 };
 
+void handle_object_touch()
+{
+	LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+	if (!object) return;
+
+	LLPickInfo pick = LLToolPie::getInstance()->getPick();
+
+// [RLVa:KB] - Checked: 2010-04-11 (RLVa-1.2.0e) | Modified: RLVa-1.1.0l
+		// NOTE: fallback code since we really shouldn't be getting an active selection if we can't touch this
+		if ( (rlv_handler_t::isEnabled()) && (!gRlvHandler.canTouch(object, pick.mObjectOffset)) )
+		{
+			RLV_ASSERT(false);
+			return;
+		}
+// [/RLVa:KB]
+
+	// *NOTE: Hope the packets arrive safely and in order or else
+	// there will be some problems.
+	// *TODO: Just fix this bad assumption.
+	send_ObjectGrab_message(object, pick, LLVector3::zero);
+	send_ObjectDeGrab_message(object, pick);
+}
+
+
+bool enable_object_touch(const LLSD& userdata)
+{
+	LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+
+	bool new_value = obj && obj->flagHandleTouch();
+// [RLVa:KB] - Checked: 2010-11-12 (RLVa-1.2.1g) | Added: RLVa-1.2.1g
+	if ( (rlv_handler_t::isEnabled()) && (new_value) )
+	{
+		// RELEASE-RLVa: [RLVa-1.2.1] Make sure this stays in sync with handle_object_touch()
+		new_value = gRlvHandler.canTouch(obj, LLToolPie::getInstance()->getPick().mObjectOffset);
+	}
+// [/RLVa:KB]
+
+	std::string touch_text;
+
+	// Update label based on the node touch name if available.
+	LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
+	if (node && node->mValid && !node->mTouchName.empty())
+	{
+		touch_text = node->mTouchName;
+	}
+	else
+	{
+		touch_text = userdata["data"].asString();
+	}
+
+	gMenuHolder->childSetText("Object Touch", touch_text);
+	gMenuHolder->childSetText("Attachment Object Touch", touch_text);
+	return new_value;
+};
 
 // One object must have touch sensor
 class LLObjectEnableTouch : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		bool new_value = obj && obj->flagHandleTouch();
-// [RLVa:KB] - Version: 1.23.4 | Checked: 2010-01-01 (RLVa-1.1.0l) | Modified: RLVa-1.1.0l
-		if ( (new_value) && (rlv_handler_t::isEnabled()) && (!gRlvHandler.canTouch(obj, LLToolPie::getInstance()->getPick().mObjectOffset)) )
-		{
-			new_value = false;
-		}
-// [/RLVa:KB]
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-
-		// Update label based on the node touch name if available.
-		LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
-
-		std::string touch_text;
-		if (node && node->mValid && !node->mTouchName.empty())
-		{
-			touch_text =  node->mTouchName;
-		}
-		else
-		{
-			touch_text = userdata["data"].asString();
-		}
-
-		gMenuHolder->childSetText("Object Touch", touch_text);
-		gMenuHolder->childSetText("Attachment Object Touch", touch_text);
-
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_object_touch(userdata));
 		return true;
 	}
 };
-
 
 //void label_touch(std::string& label, void*)
 //{
@@ -2016,55 +1861,46 @@ class LLObjectEnableTouch : public view_listener_t
 //	}
 //}
 
-bool handle_object_open()
+void handle_object_open()
 {
-	LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-	if(!obj) return true;
-
-	LLFloaterOpenObject::show();
-	return true;
+// [RLVa:KB] - Checked: 2010-04-11 (RLVa-1.2.0e) | Added: RLVa-1.2.0e
+	if (enable_object_open())
+		LLFloaterOpenObject::show();
+// [/RLVa:KB]
+//	LLFloaterOpenObject::show();
 }
 
 class LLObjectOpen : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2011-09-16 (RLVa-1.1.4b) | Modified: RLVa-1.1.4b
-		// TODO-RLVa: shouldn't we be checking for fartouch here as well?
-		const LLViewerObject* pObj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		if ( (rlv_handler_t::isEnabled()) && (!gRlvHandler.canEdit(pObj)) ) 
-		{
-			return true;
-		}
-// [/RLVa:KB]
-
-		return handle_object_open();
+		handle_object_open();
+		return true;
 	}
 };
+
+bool enable_object_open()
+{
+	// Look for contents in root object, which is all the LLFloaterOpenObject
+	// understands.
+	LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+	if (!obj) return false;
+
+	LLViewerObject* root = obj->getRootEdit();
+	if (!root) return false;
+
+	return root->allowOpen();
+}
 
 class LLObjectEnableOpen : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		// Look for contents in root object, which is all the LLFloaterOpenObject
-		// understands.
-		LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		bool new_value = (obj != NULL);
-		if (new_value)
-		{
-			LLViewerObject* root = obj->getRootEdit();
-			if (!root) new_value = false;
-			else new_value = root->allowOpen();
-		}
 
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_object_open());
 		return true;
 	}
 };
-
-
-
-
 
 class LLViewJoystickFlycam : public view_listener_t
 {
@@ -2079,8 +1915,8 @@ class LLViewCheckJoystickFlycam : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_val = LLViewerJoystick::getInstance()->getOverrideCamera();
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_val);
+		bool new_value = LLViewerJoystick::getInstance()->getOverrideCamera();
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
 		return true;
 	}
 };
@@ -2136,78 +1972,104 @@ class LLObjectBuild : public view_listener_t
 	}
 };
 
+
+void handle_object_edit()
+{
+	LLViewerParcelMgr::getInstance()->deselectLand();
+
+// Singu TODO: Find out if this RLVa patch is still needed, it has been removed from upstream.
+// [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g) | Modified: RLVa-0.2.0f
+	if (rlv_handler_t::isEnabled())
+	{
+		bool fRlvCanEdit = (!gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ));
+		if (!fRlvCanEdit)
+		{
+			LLObjectSelectionHandle hSel = LLSelectMgr::getInstance()->getSelection();
+			RlvSelectIsEditable f;
+			if ((hSel.notNull()) && ((hSel->getFirstRootNode(&f, TRUE)) != NULL))
+				return;	// Can't edit any object under @edit=n
+		}
+		else if ( (gRlvHandler.hasBehaviour(RLV_BHVR_FARTOUCH)) &&
+		          (SELECT_TYPE_WORLD == LLSelectMgr::getInstance()->getSelection()->getSelectType()) &&
+				  (dist_vec_squared(gAgent.getPositionAgent(), LLToolPie::getInstance()->getPick().mIntersection) > 1.5f * 1.5f) )
+		{
+			// TODO-RLVa: this code is rather redundant since we'll never get an active selection to show a pie menu for
+			return;	// Can't edit in-world objects farther than 1.5m away under @fartouch=n
+		}
+	}
+// [/RLVa:KB]
+
+	if (gAgentCamera.getFocusOnAvatar() && !LLToolMgr::getInstance()->inEdit())
+	{
+		LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection();
+
+		if (selection->getSelectType() == SELECT_TYPE_HUD || !gSavedSettings.getBOOL("EditCameraMovement"))
+		{
+			// always freeze camera in space, even if camera doesn't move
+			// so, for example, follow cam scripts can't affect you when in build mode
+			gAgentCamera.setFocusGlobal(gAgentCamera.calcFocusPositionTargetGlobal(), LLUUID::null);
+			gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
+		}
+		else
+		{
+			gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
+			LLViewerObject* selected_objectp = selection->getFirstRootObject();
+			if (selected_objectp)
+			{
+			  // zoom in on object center instead of where we clicked, as we need to see the manipulator handles
+			  gAgentCamera.setFocusGlobal(selected_objectp->getPositionGlobal(), selected_objectp->getID());
+			  gAgentCamera.cameraZoomIn(0.666f);
+			  gAgentCamera.cameraOrbitOver( 30.f * DEG_TO_RAD );
+			  gViewerWindow->moveCursorToCenter();
+			}
+		}
+	}
+
+	gFloaterTools->open();
+
+	LLToolMgr::getInstance()->setCurrentToolset(gBasicToolset);
+	gFloaterTools->setEditTool( LLToolCompTranslate::getInstance() );
+
+	LLViewerJoystick::getInstance()->moveObjects(true);
+	LLViewerJoystick::getInstance()->setNeedsReset(true);
+
+	// Could be first use
+	LLFirstUse::useBuild();
+	return;
+}
+
 class LLObjectEdit : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerParcelMgr::getInstance()->deselectLand();
-
-// [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g) | Modified: RLVa-0.2.0f
-		if (rlv_handler_t::isEnabled())
-		{
-			bool fRlvCanEdit = (!gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ));
-			if (!fRlvCanEdit)
-			{
-				LLObjectSelectionHandle hSel = LLSelectMgr::getInstance()->getSelection();
-				RlvSelectIsEditable f;
-				if ((hSel.notNull()) && ((hSel->getFirstRootNode(&f, TRUE)) != NULL))
-					return true;	// Can't edit any object under @edit=n
-			}
-			else if ( (gRlvHandler.hasBehaviour(RLV_BHVR_FARTOUCH)) &&
-			          (SELECT_TYPE_WORLD == LLSelectMgr::getInstance()->getSelection()->getSelectType()) &&
-					  (dist_vec_squared(gAgent.getPositionAgent(), LLToolPie::getInstance()->getPick().mIntersection) > 1.5f * 1.5f) )
-			{
-				// TODO-RLVa: this code is rather redundant since we'll never get an active selection to show a pie menu for
-				return true;	// Can't edit in-world objects farther than 1.5m away under @fartouch=n
-			}
-		}
-// [/RLVa:KB]
-
-		if (gAgentCamera.getFocusOnAvatar() && !LLToolMgr::getInstance()->inEdit())
-		{
-			LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection();
-
-			if (selection->getSelectType() == SELECT_TYPE_HUD || !gSavedSettings.getBOOL("EditCameraMovement"))
-			{
-				// always freeze camera in space, even if camera doesn't move
-				// so, for example, follow cam scripts can't affect you when in build mode
-				gAgentCamera.setFocusGlobal(gAgentCamera.calcFocusPositionTargetGlobal(), LLUUID::null);
-				gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-			}
-			else
-			{
-				gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-				LLViewerObject* selected_objectp = selection->getFirstRootObject();
-				if (selected_objectp)
-				{
-				// zoom in on object center instead of where we clicked, as we need to see the manipulator handles
-					gAgentCamera.setFocusGlobal(selected_objectp->getPositionGlobal(), selected_objectp->getID());
-				gAgentCamera.cameraZoomIn(0.666f);
-				gAgentCamera.cameraOrbitOver( 30.f * DEG_TO_RAD );
-				gViewerWindow->moveCursorToCenter();
-			}
-		}
-		}
-
-		gFloaterTools->open();		/* Flawfinder: ignore */
-	
-		LLToolMgr::getInstance()->setCurrentToolset(gBasicToolset);
-		gFloaterTools->setEditTool( LLToolCompTranslate::getInstance() );
-
-		LLViewerJoystick::getInstance()->moveObjects(true);
-		LLViewerJoystick::getInstance()->setNeedsReset(true);
-
-		// Could be first use
-		LLFirstUse::useBuild();
+		handle_object_edit();
 		return true;
 	}
 };
+
+// [SL:KB] - Patch: Inventory-AttachmentEdit - Checked: 2010-08-25 (Catznip-2.2.0a) | Added: Catznip-2.1.2a
+void handle_attachment_edit(const LLUUID& idItem)
+{
+	const LLInventoryItem* pItem = gInventory.getItem(idItem);
+	if ( (!isAgentAvatarValid()) || (!pItem) )
+		return;
+
+	LLViewerObject* pAttachObj = gAgentAvatarp->getWornAttachment(pItem->getLinkedUUID());
+	if (!pAttachObj)
+		return;
+
+	LLSelectMgr::getInstance()->deselectAll();
+	LLSelectMgr::getInstance()->selectObjectAndFamily(pAttachObj);
+
+	handle_object_edit();
+}
+// [/SL:KB]
 
 class LLObjectInspect : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLFloaterInspect::show();
+		LLFloaterInspect::showInstance();
 		return true;
 	}
 };
@@ -2215,8 +2077,8 @@ class LLObjectInspect : public view_listener_t
 // <dogmode> Derenderizer. Originally by Phox.
 class LLObjectDerender : public view_listener_t
 {
-    bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-    {
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
 		LLViewerObject* slct = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
 		if(!slct)return true;
 
@@ -2224,18 +2086,17 @@ class LLObjectDerender : public view_listener_t
 		LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection();
 		LLUUID root_key;
 		//delivers null in linked parts if used as getFirstRootNode()
-		LLSelectNode* node = selection->getFirstRootNode(NULL,TRUE);  
-				
+		LLSelectNode* node = selection->getFirstRootNode(NULL,TRUE);
+
 		/*this works for derendering entire object if child is selected
-		
-		LLSelectNode* node = selection->getFirstNode(); 
+
+		LLSelectNode* node = selection->getFirstNode();
 		//Delivers node even when linked parts, but only first node
-		
+
 		LLViewerObject* obj = node->getObject();
 		LLViewerObject* parent = (LLViewerObject*)obj->getParent();*/
-		
-		
-		if(node) 
+
+		if(node)
 		{
 			root_key = node->getObject()->getID();
 			llinfos << "Derender node has key " << root_key << llendl;
@@ -2244,21 +2105,23 @@ class LLObjectDerender : public view_listener_t
 		{
 			llinfos << "Derender node is null " << llendl;
 		}
-		
+
 		LLViewerRegion* cur_region = gAgent.getRegion();
 		std::string entry_name;
-		if(slct->isAvatar()){
+		if (slct->isAvatar())
+		{
 			LLNameValue* firstname = slct->getNVPair("FirstName");
 			LLNameValue* lastname =  slct->getNVPair("LastName");
 			entry_name = llformat("Derendered: (AV) %s %s",firstname->getString(),lastname->getString());
 		}
-		else{
-			if(root_key.isNull())
+		else
+		{
+			if (root_key.isNull())
 			{
 				return true;
 			}
 			id = root_key;
-			if(!node->mName.empty())
+			if (!node->mName.empty())
 			{
 				if(cur_region)
 					entry_name = llformat("Derendered: %s in region %s",node->mName.c_str(),cur_region->getName().c_str());
@@ -2268,25 +2131,21 @@ class LLObjectDerender : public view_listener_t
 			else
 			{
 				if(cur_region)
-					entry_name = llformat("Derendered: (unkown object) in region %s",cur_region->getName().c_str());
+					entry_name = llformat("Derendered: (unknown object) in region %s",cur_region->getName().c_str());
 				else
-					entry_name = "Derendered: (unkown object)";
+					entry_name = "Derendered: (unknown object)";
 
 			}
 		}
 
-
-			
-
-		LLSD indata;
-		indata["entry_type"] = 6; //AT_TEXTURE
-		indata["entry_name"] = entry_name;
-		indata["entry_agent"] = gAgent.getID();
-
-		
 		// ...don't kill the avatar
-		if (!(id == gAgentID))
+		if (id != gAgentID)
 		{
+			LLSD indata;
+			indata["entry_type"] = 6; //AT_TEXTURE
+			indata["entry_name"] = entry_name;
+			indata["entry_agent"] = gAgentID;
+
 			LLFloaterBlacklist::addEntry(id,indata);
 			LLSelectMgr::getInstance()->deselectAll();
 			LLViewerObject *objectp = gObjectList.findObject(id);
@@ -2341,6 +2200,38 @@ public:
 private:
 	std::set< LLViewerFetchedTexture*> mTextures;
 };
+
+void reload_objects(LLTextureReloader& texture_list, LLViewerObject::const_child_list_t& object_list, bool recurse)
+{
+	for(LLViewerObject::const_child_list_t::const_iterator it = object_list.begin(); it!=object_list.end(); ++it)
+	{
+		if(it->isNull())
+			continue;
+
+		LLViewerObject* object = it->get();
+		object->markForUpdate(TRUE);
+
+		if(object->isSculpted() && !object->isMesh())
+		{
+			LLSculptParams *sculpt_params = (LLSculptParams *)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+			if(sculpt_params)
+			{
+				texture_list.addTexture(LLViewerTextureManager::getFetchedTexture(sculpt_params->getSculptTexture()));
+			}
+		}
+	
+		for (U8 i = 0; i < object->getNumTEs(); i++)
+		{
+			texture_list.addTexture(object->getTEImage(i));
+		}
+
+		if(recurse)
+		{
+			reload_objects(texture_list,object->getChildren(), true);
+		}
+	}
+}
+
 class LLAvatarReloadTextures : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -2364,11 +2255,12 @@ class LLAvatarReloadTextures : public view_listener_t
 						}
 					}
 				}
-				else 
+				else
 				{
 					texture_list.addTexture(avatar->getTEImage((ETextureIndex)i));
 				}
 			}
+			reload_objects(texture_list,avatar->getChildren(),true);
 		}
 		return true;
 	}
@@ -2377,30 +2269,17 @@ class LLObjectReloadTextures : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLTextureReloader texture_list;
-		for (LLObjectSelection::valid_iterator iter = LLSelectMgr::getInstance()->getSelection()->valid_begin();
-		 iter != LLSelectMgr::getInstance()->getSelection()->valid_end(); iter++)
-		{
-			LLViewerObject* object = (*iter)->getObject();
-			object->markForUpdate(TRUE);
+		LLViewerObject::vobj_list_t object_list;
 
-			if(object->isSculpted() && !object->isMesh())
-			{
-				LLSculptParams *sculpt_params = (LLSculptParams *)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
-				if(sculpt_params)
-				{
-					texture_list.addTexture(LLViewerTextureManager::getFetchedTexture(sculpt_params->getSculptTexture()));
-				}
-			}
-			
-			for (U8 i = 0; i < object->getNumTEs(); i++)
-			{
-				if((*iter)->isTESelected(i))
-				{
-					texture_list.addTexture(object->getTEImage(i));
-				}
-			}
+		for (LLObjectSelection::iterator iter = LLSelectMgr::getInstance()->getSelection()->begin();
+		 iter != LLSelectMgr::getInstance()->getSelection()->end(); iter++)
+		{
+			object_list.push_back((*iter)->getObject());
 		}
+
+		LLTextureReloader reloader;
+		reload_objects(reloader,object_list,false);
+
 		return true;
 	}
 };
@@ -2489,39 +2368,80 @@ BOOL enable_object_build(void*)
 	return can_build;
 }
 
+bool enable_object_edit()
+{
+	// *HACK:  The new "prelude" Help Islands have a build sandbox area,
+	// so users need the Edit and Create pie menu options when they are
+	// there.  Eventually this needs to be replaced with code that only
+	// lets you edit objects if you have permission to do so (edit perms,
+	// group edit, god).  See also lltoolbar.cpp.  JC
+	bool enable = false;
+	if (gAgent.inPrelude())
+	{
+		enable = LLViewerParcelMgr::getInstance()->allowAgentBuild()
+			|| LLSelectMgr::getInstance()->getSelection()->isAttachment();
+	}
+	// Singu Note: The following check is wasteful, bypass it
+	// The following RLVa patch has been modified from its original version. It been formatted to run in the time allotted.
+	//else if (LLSelectMgr::getInstance()->selectGetAllValidAndObjectsFound())
+// [RLVa:KB] - Checked: 2010-11-29 (RLVa-1.3.0c) | Modified after RLVa-1.3.0c on 2013-05-18
+	else if (!rlv_handler_t::isEnabled() || (!gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_EDITOBJ)))
+	{
+		enable = true;
+	}
+	else // Restrictions disallow edit, check for an exception for the selection
+	{
+		LLObjectSelectionHandle hSel = LLSelectMgr::getInstance()->getSelection();
+		RlvSelectIsEditable f;
+		enable = (hSel.notNull()) && ((hSel->getFirstRootNode(&f, TRUE)) == NULL);
+// [/RLVa:KB]
+	}
+
+	return enable;
+}
+
 class LLEnableEdit : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		// *HACK:  The new "prelude" Help Islands have a build sandbox area,
-		// so users need the Edit and Create pie menu options when they are
-		// there.  Eventually this needs to be replaced with code that only 
-		// lets you edit objects if you have permission to do so (edit perms,
-		// group edit, god).  See also lltoolbar.cpp.  JC
-		bool enable = true;
-		if (gAgent.inPrelude())
-		{
-			enable = LLViewerParcelMgr::getInstance()->allowAgentBuild()
-				|| LLSelectMgr::getInstance()->getSelection()->isAttachment();
-		}
-// [RLVa:KB] - Checked: 2009-07-05 (RLVa-1.0.0b)
-		// TODO-RLV: include fartouch here?
-		if ( (rlv_handler_t::isEnabled()) && (enable) )
-		{
-			// We have no way of knowing whether we're being called for "Create" or for "Edit", but we can
-			// make an educated guess based on the currently active selection which puts us halfway there.
-			BOOL fActiveSelection = LLSelectMgr::getInstance()->getSelection()->getObjectCount();
-
-			if ( (gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (gRlvHandler.hasBehaviour(RLV_BHVR_REZ)) )
-				enable = false;	// Edit and rez restricted, disable them both
-			else if ( (gRlvHandler.hasBehaviour(RLV_BHVR_EDIT)) && (fActiveSelection) )
-				enable = false; // Edit restricted and there's an active selection => disable Edit and Create
-			else if ( (gRlvHandler.hasBehaviour(RLV_BHVR_REZ)) && (!fActiveSelection) )
-				enable = false; // Rez restricted and there's no active selection => disable Create
-		}
-// [/RLVa:KB]
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_object_edit());
 		return true;
+	}
+};
+
+
+bool enable_object_select_in_pathfinding_linksets()
+{
+	return LLPathfindingManager::getInstance()->isPathfindingEnabledForCurrentRegion() && LLSelectMgr::getInstance()->selectGetEditableLinksets();
+}
+
+class LLObjectEnablePFLinksetsSelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		return enable_object_select_in_pathfinding_linksets();
+	}
+};
+
+class LLObjectPFCharactersSelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLFloaterPathfindingCharacters::openCharactersWithSelectedObjects();
+		return true;
+	}
+};
+
+bool enable_object_select_in_pathfinding_characters()
+{
+	return LLPathfindingManager::getInstance()->isPathfindingEnabledForCurrentRegion() &&  LLSelectMgr::getInstance()->selectGetViewableCharacters();
+}
+
+class LLObjectEnablePFCharactersSelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		return enable_object_select_in_pathfinding_characters();
 	}
 };
 
@@ -2541,13 +2461,13 @@ class LLSelfEnableRemoveAllAttachments : public view_listener_t
 		bool new_value = false;
 		if (isAgentAvatarValid())
 		{
-			for (LLVOAvatar::attachment_map_t::iterator iter = gAgentAvatarp->mAttachmentPoints.begin(); 
+			for (LLVOAvatar::attachment_map_t::iterator iter = gAgentAvatarp->mAttachmentPoints.begin();
 				 iter != gAgentAvatarp->mAttachmentPoints.end(); )
 			{
 				LLVOAvatar::attachment_map_t::iterator curiter = iter++;
 				LLViewerJointAttachment* attachment = curiter->second;
 //				if (attachment->getNumObjects() > 0)
-// [RLVa:KB] - Checked: 2010-03-04 (RLVa-1.2.0a) | Added: RLVa-1.2.0a | OK
+// [RLVa:KB] - Checked: 2010-03-04 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 				if ( (attachment->getNumObjects() > 0) && ((!rlv_handler_t::isEnabled()) || (gRlvAttachmentLocks.canDetach(attachment))) )
 // [/RLVa:KB]
 				{
@@ -2580,9 +2500,6 @@ BOOL enable_has_attachments(void*)
 //---------------------------------------------------------------------------
 // Avatar pie menu
 //---------------------------------------------------------------------------
-//---------------------------------------------------------------------------
-// Avatar pie menu
-//---------------------------------------------------------------------------
 //void handle_follow(void *userdata)
 //{
 //	// follow a given avatar by ID
@@ -2593,28 +2510,36 @@ BOOL enable_has_attachments(void*)
 //	}
 //}
 
+bool enable_object_mute()
+{
+	LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+	if (!object) return false;
+
+	LLVOAvatar* avatar = find_avatar_from_object(object);
+	if (avatar)
+	{
+		// It's an avatar
+		bool is_linden =
+			LLMuteList::getInstance()->isLinden(avatar->getID());
+		bool is_self = avatar->isSelf();
+//		return !is_linden && !is_self;
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.1b) | Added: RLVa-1.2.1b
+		return !is_linden && !is_self && !gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES);
+// [/RLVa:KB]
+	}
+	else
+	{
+		// Just a regular object
+		return LLSelectMgr::getInstance()->getSelection()->contains( object, SELECT_ALL_TES ) &&
+			   !LLMuteList::getInstance()->isMuted(object->getID());
+	}
+}
+
 class LLObjectEnableMute : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		bool new_value = (object != NULL);
-		if (new_value)
-		{
-			LLVOAvatar* avatar = find_avatar_from_object(object); 
-			if (avatar)
-			{
-				// It's an avatar
-				LLNameValue *lastname = avatar->getNVPair("LastName");
-				BOOL is_linden = lastname && !LLStringUtil::compareStrings(lastname->getString(), "Linden");
-				BOOL is_self = avatar->isSelf();
-				new_value = !is_linden && !is_self;
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | OK
-				new_value &= (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
-// [/RLVa:KB]
-			}
-		}
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_object_mute());
 		return true;
 	}
 };
@@ -2632,11 +2557,9 @@ class LLObjectMute : public view_listener_t
 		LLVOAvatar* avatar = find_avatar_from_object(object); 
 		if (avatar)
 		{
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | Added: RLVa-1.0.0e | OK
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.1b) | Added: RLVa-1.0.0e
 			if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-			{
-				return true;	// Fallback code [see LLObjectEnableMute::handleEvent()]
-			}
+				return true;
 // [/RLVa:KB]
 			id = avatar->getID();
 
@@ -2699,7 +2622,7 @@ class LLObjectCopyUUID : public view_listener_t
 		LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
 		if(object)
 		{
-			gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(object->getID().asString()));
+			gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(object->getID().asString()));
 		}
 		return true;
 	}
@@ -2840,7 +2763,7 @@ class LLKillEmAll : public view_listener_t
 			*/
 			LLSelectMgr::getInstance()->selectionUpdateTemporary(1);//set temp to TRUE
 			LLVector3 pos = objpos->getPosition();//get the x and the y
-			pos.mV[VZ] = 340282346638528859811704183484516925440.0f;//create the z
+			pos.mV[VZ] = FLT_MAX;//create the z
 			objpos->setPositionParent(pos);//set the x y z
 			LLSelectMgr::getInstance()->sendMultipleUpdate(UPD_POSITION);//send the data
 		}
@@ -2870,20 +2793,20 @@ class LLObjectMeasure : public view_listener_t
 			startMeasurePoint = position;
 			startpoint_set = true;
 
-			chat.mText = llformat("Start point set");
-			LLFloaterChat::addChat(chat);
+			chat.mText = LLTrans::getString("StartPointSet");
 		}
 		else
 		{
-			chat.mText = llformat("End point set");
+			chat.mText = LLTrans::getString("EndPointSet");
 			LLFloaterChat::addChat(chat);
 
-			F32 fdist = dist_vec(startMeasurePoint, position);
+			LLStringUtil::format_map_t args;
+			args["[DIST]"] = boost::lexical_cast<std::string>(dist_vec(startMeasurePoint, position));
 
-			chat.mText = llformat("Distance: %fm", fdist);
-			LLFloaterChat::addChat(chat);
+			chat.mText = LLTrans::getString("MeasuredDistance", args);
 			startpoint_set = false;
 		}
+		LLFloaterChat::addChat(chat);
 		return true;
 	}
 };
@@ -2894,41 +2817,6 @@ class LLObjectPFLinksetsSelected : public view_listener_t
 	{
 		LLFloaterPathfindingLinksets::openLinksetsWithSelectedObjects();
 		return true;
-	}
-};
-
-bool enable_object_select_in_pathfinding_linksets()
-{
-	return LLPathfindingManager::getInstance()->isPathfindingEnabledForCurrentRegion() && LLSelectMgr::getInstance()->selectGetEditableLinksets();
-}
-
-class LLObjectEnablePFLinksetsSelected : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		return enable_object_select_in_pathfinding_linksets();
-	}
-};
-
-class LLObjectPFCharactersSelected : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		LLFloaterPathfindingCharacters::openCharactersWithSelectedObjects();
-		return true;
-	}
-};
-
-bool enable_object_select_in_pathfinding_characters()
-{
-	return LLPathfindingManager::getInstance()->isPathfindingEnabledForCurrentRegion() &&  LLSelectMgr::getInstance()->selectGetViewableCharacters();
-}
-
-class LLObjectEnablePFCharactersSelected : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		return enable_object_select_in_pathfinding_characters();
 	}
 };
 
@@ -2949,15 +2837,6 @@ class LLAvatarAnims : public view_listener_t
 
 bool handle_go_to()
 {
-// [RLVa:KB] - Checked: 2009-10-10 (RLVa-1.0.5a) | Modified: RLVa-1.0.5a
-/*
-	if ( (rlv_handler_t::isEnabled()) && (gAgent.forwardGrabbed()) && (gRlvHandler.hasLockedAttachment(RLV_LOCK_REMOVE)) )
-	{
-		return true;
-	}
-*/
-// [/RLVa:KB]
-
 	// try simulator autopilot
 	std::vector<std::string> strings;
 	std::string val;
@@ -2995,6 +2874,19 @@ class LLGoToObject : public view_listener_t
 	}
 };
 
+class LLAvatarReportAbuse : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
+		if(avatar)
+		{
+			LLFloaterReporter::showFromObject(avatar->getID());
+		}
+		return true;
+	}
+};
+
 //---------------------------------------------------------------------------
 // Object backup
 //---------------------------------------------------------------------------
@@ -3003,33 +2895,18 @@ class LLObjectEnableExport : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		bool new_value = (object != NULL);
-		if (new_value)
+		ExportPolicy export_policy = LFSimFeatureHandler::instance().exportPolicy();
+		bool can_export_any = false;
+		LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection();
+		for (LLObjectSelection::iterator node = selection->begin(); node != selection->end(); ++node)
 		{
-			struct ff : public LLSelectedNodeFunctor
+			if ((*node)->mPermissions->allowExportBy(gAgent.getID(), export_policy))
 			{
-				ff(const LLSD& data) : LLSelectedNodeFunctor(), userdata(data)
-				{
-				}
-				const LLSD& userdata;
-				virtual bool apply(LLSelectNode* node)
-				{
-					// Note: the actual permission checking algorithm depends on the grid TOS and must be
-					// performed for each prim and texture. This is done later in llviewerobjectbackup.cpp.
-					// This means that even if the item is enabled in the menu, the export may fail should
-					// the permissions not be met for each exported asset. The permissions check below
-					// therefore only corresponds to the minimal permissions requirement common to all grids.
-					LLPermissions *item_permissions = node->mPermissions;
-					return (gAgent.getID() == item_permissions->getOwner() &&
-							(gAgent.getID() == item_permissions->getCreator() ||
-							 (item_permissions->getMaskOwner() & PERM_ITEM_UNRESTRICTED) == PERM_ITEM_UNRESTRICTED));
-				}
-			};
-			ff * the_ff = new ff(userdata);
-			new_value = LLSelectMgr::getInstance()->getSelection()->applyToNodes(the_ff, false);
+				can_export_any = true;
+				break;
+			}
 		}
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(can_export_any);
 		return true;
 	}
 };
@@ -3038,11 +2915,7 @@ class LLObjectExport : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		if (object)
-		{
-			LLObjectBackup::getInstance()->exportObject();
-		}
+		LLObjectBackup::getInstance()->exportObject();
 		return true;
 	}
 };
@@ -3084,11 +2957,11 @@ bool callback_freeze(const LLSD& notification, const LLSD& response)
 
 	if (0 == option || 1 == option)
 	{
-		U32 flags = 0x0;
+		U32 flags = KICK_FLAGS_FREEZE;
 		if (1 == option)
 		{
 			// unfreeze
-			flags |= 0x1;
+			flags |= KICK_FLAGS_UNFREEZE;
 		}
 
 		LLMessageSystem* msg = gMessageSystem;
@@ -3109,11 +2982,68 @@ bool callback_freeze(const LLSD& notification, const LLSD& response)
 	return false;
 }
 
+
+void handle_avatar_freeze(const LLSD& avatar_id)
+{
+		// Use avatar_id if available, otherwise default to right-click avatar
+		LLVOAvatar* avatar = NULL;
+		if (avatar_id.asUUID().notNull())
+		{
+			avatar = find_avatar_from_object(avatar_id.asUUID());
+		}
+		else
+		{
+			avatar = find_avatar_from_object(
+				LLSelectMgr::getInstance()->getSelection()->getPrimaryObject());
+		}
+
+		if( avatar )
+		{
+			std::string fullname = avatar->getFullname();
+			LLSD payload;
+			payload["avatar_id"] = avatar->getID();
+
+			if (!fullname.empty())
+			{
+				LLSD args;
+//				args["AVATAR_NAME"] = fullname;
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e
+				args["AVATAR_NAME"] = (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) ? fullname : RlvStrings::getAnonym(fullname);
+// [/RLVa:KB]
+				LLNotificationsUtil::add("FreezeAvatarFullname",
+							args,
+							payload,
+							callback_freeze);
+			}
+			else
+			{
+				LLNotificationsUtil::add("FreezeAvatar",
+							LLSD(),
+							payload,
+							callback_freeze);
+			}
+		}
+}
+
+class LLAvatarFreeze : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_avatar_freeze(LLUUID::null);
+		return true;
+	}
+};
+
 class LLScriptCount : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		ScriptCounter::serializeSelection(false);
+		if (LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
+		{
+			ScriptCounter* sc = new ScriptCounter(false, object);
+			sc->requestInventories();
+			// sc will destroy itself
+		}
 		return true;
 	}
 };
@@ -3122,7 +3052,12 @@ class LLScriptDelete : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		ScriptCounter::serializeSelection(true);
+		if (LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
+		{
+			ScriptCounter* sc = new ScriptCounter(true, object);
+			sc->requestInventories();
+			// sc will destroy itself
+		}
 		return true;
 	}
 };
@@ -3164,61 +3099,11 @@ class LLObjectEnableScriptDelete : public view_listener_t
 	}
 };
 
-class LLAvatarFreeze : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-		if( avatar )
-		{
-			std::string fullname = avatar->getFullname();
-			LLSD payload;
-			payload["avatar_id"] = avatar->getID();
-
-			if (!fullname.empty())
-			{
-				LLSD args;
-//				args["AVATAR_NAME"] = fullname;
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e | OK
-				args["AVATAR_NAME"] = (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) ? fullname : RlvStrings::getAnonym(fullname);
-// [/RLVa:KB]
-				LLNotificationsUtil::add("FreezeAvatarFullname",
-							args,
-							payload,
-							callback_freeze);
-			}
-			else
-			{
-				LLNotificationsUtil::add("FreezeAvatar",
-							LLSD(),
-							payload,
-							callback_freeze);
-			}
-		}
-		return true;
-	}
-};
-
 class LLAvatarVisibleDebug : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		//bool new_value = gAgent.isGodlike();
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
-		// TODO-RLVa: can you actually use this to cheat anything?
-		bool new_value = gAgent.isGodlike() && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
-// [/RLVa:KB]
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-		return true;
-	}
-};
-
-class LLAvatarEnableDebug : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		//bool new_value = gAgent.isGodlike();
-		//gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(gAgent.isGodlike());
 		return true;
 	}
 };
@@ -3227,19 +3112,9 @@ class LLAvatarDebug : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		//LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
 		if (isAgentAvatarValid())
 		{
 			gAgentAvatarp->dumpLocalTextures();
-			// <edit> hell no don't tell them about that
-			/*			
-			llinfos << "Dumping temporary asset data to simulator logs for avatar " << avatar->getID() << llendl;
-			std::vector<std::string> strings;
-			strings.push_back(avatar->getID().asString());
-			LLUUID invoice;
-			send_generic_message("dumptempassetdata", strings, invoice);
-			*/
-			// </edit>
 			LLFloaterAvatarTextures::show( gAgentAvatarp->getID() );
 		}
 		return true;
@@ -3300,11 +3175,20 @@ bool callback_eject(const LLSD& notification, const LLSD& response)
 	return false;
 }
 
-class LLAvatarEject : public view_listener_t
+void handle_avatar_eject(const LLSD& avatar_id)
 {
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
+		// Use avatar_id if available, otherwise default to right-click avatar
+		LLVOAvatar* avatar = NULL;
+		if (avatar_id.asUUID().notNull())
+		{
+			avatar = find_avatar_from_object(avatar_id.asUUID());
+		}
+		else
+		{
+			avatar = find_avatar_from_object(
+				LLSelectMgr::getInstance()->getSelection()->getPrimaryObject());
+		}
+
 		if( avatar )
 		{
 			LLSD payload;
@@ -3321,7 +3205,7 @@ class LLAvatarEject : public view_listener_t
 				{
     				LLSD args;
 //					args["AVATAR_NAME"] = fullname;
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e
 					args["AVATAR_NAME"] = (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) ? fullname : RlvStrings::getAnonym(fullname);
 // [/RLVa:KB]
     				LLNotificationsUtil::add("EjectAvatarFullname",
@@ -3344,7 +3228,7 @@ class LLAvatarEject : public view_listener_t
 				{
     				LLSD args;
 //					args["AVATAR_NAME"] = fullname;
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.0e
 					args["AVATAR_NAME"] = (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) ? fullname : RlvStrings::getAnonym(fullname);
 // [/RLVa:KB]
     				LLNotificationsUtil::add("EjectAvatarFullnameNoBan",
@@ -3361,6 +3245,13 @@ class LLAvatarEject : public view_listener_t
 				}
 			}
 		}
+}
+
+class LLAvatarEject : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_avatar_eject(LLUUID::null);
 		return true;
 	}
 };
@@ -3373,10 +3264,7 @@ class LLAvatarCopyUUID : public view_listener_t
 		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
 		if(!avatar) return true;
 		
-		LLUUID uuid = avatar->getID();
-		char buffer[UUID_STR_LENGTH];		/*Flawfinder: ignore*/
-		uuid.toString(buffer);
-		gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(buffer));
+		gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(avatar->getID().asString()));
 		return true;
 	}
 };
@@ -3388,37 +3276,50 @@ class LLAvatarClientUUID : public view_listener_t
 		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
 		if(!avatar) return true;
 		const LLUUID clientID = SHClientTagMgr::instance().getClientID(avatar);
-		gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(clientID.asString()));
+		gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(clientID.asString()));
 		return true;
 	}
 };
+
+bool enable_freeze_eject(const LLSD& avatar_id)
+{
+	// Use avatar_id if available, otherwise default to right-click avatar
+	LLVOAvatar* avatar = NULL;
+	if (avatar_id.asUUID().notNull())
+	{
+		avatar = find_avatar_from_object(avatar_id.asUUID());
+	}
+	else
+	{
+		avatar = find_avatar_from_object(
+			LLSelectMgr::getInstance()->getSelection()->getPrimaryObject());
+	}
+	if (!avatar) return false;
+
+	// Gods can always freeze
+	if (gAgent.isGodlike()) return true;
+
+	// Estate owners / managers can freeze
+	// Parcel owners can also freeze
+	const LLVector3& pos = avatar->getPositionRegion();
+	const LLVector3d& pos_global = avatar->getPositionGlobal();
+	LLParcel* parcel = LLViewerParcelMgr::getInstance()->selectParcelAt(pos_global)->getParcel();
+	LLViewerRegion* region = avatar->getRegion();
+	if (!region) return false;
+
+	bool new_value = region->isOwnedSelf(pos);
+	if (!new_value || region->isOwnedGroup(pos))
+	{
+		new_value = LLViewerParcelMgr::getInstance()->isParcelOwnedByAgent(parcel,GP_LAND_ADMIN);
+	}
+	return new_value;
+}
 
 class LLAvatarEnableFreezeEject : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-		bool new_value = (avatar != NULL);
-
-		if (new_value)
-		{
-			const LLVector3& pos = avatar->getPositionRegion();
-			const LLVector3d& pos_global = avatar->getPositionGlobal();
-			LLParcel* parcel = LLViewerParcelMgr::getInstance()->selectParcelAt(pos_global)->getParcel();
-			LLViewerRegion* region = avatar->getRegion();
-			new_value = (region != NULL);
-						
-			if (new_value)
-			{
-				new_value = region->isOwnedSelf(pos);
-				if (!new_value || region->isOwnedGroup(pos))
-				{
-					new_value = LLViewerParcelMgr::getInstance()->isParcelOwnedByAgent(parcel,GP_LAND_ADMIN);
-				}
-			}
-		}
-
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_freeze_eject(LLUUID::null));
 		return true;
 	}
 };
@@ -3475,16 +3376,6 @@ class LLAvatarGiveCard : public view_listener_t
 	}
 };
 
-
-
-void login_done(S32 which, void *user)
-{
-	llinfos << "Login done " << which << llendl;
-
-	LLPanelLogin::close();
-}
-
-
 bool callback_leave_group(const LLSD& notification, const LLSD& response)
 {
 	S32 option = LLNotification::getSelectedOption(notification, response);
@@ -3528,7 +3419,7 @@ void append_aggregate(std::string& string, const LLAggregatePermissions& ag_perm
 bool enable_buy_object()
 {
     // In order to buy, there must only be 1 purchaseable object in
-    // the selection manger.
+    // the selection manager.
 	if(LLSelectMgr::getInstance()->getSelection()->getRootObjectCount() != 1) return false;
     LLViewerObject* obj = NULL;
     LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
@@ -3589,10 +3480,10 @@ void handle_buy_object(LLSaleInfo sale_info)
 	}
 
 	S32 price = sale_info.getSalePrice();
-	
+
 	if (price > 0 && price > gStatusBar->getBalance())
 	{
-		LLFloaterBuyCurrency::buyCurrency("This object costs", price);
+		LLFloaterBuyCurrency::buyCurrency(LLTrans::getString("this_object_costs"), price);
 		return;
 	}
 
@@ -3644,11 +3535,7 @@ void handle_show_notifications_console(void *)
 
 void handle_dump_group_info(void *)
 {
-	llinfos << "group   " << gAgent.getGroupName() << llendl;
-	llinfos << "ID      " << gAgent.getGroupID() << llendl;
-	llinfos << "powers " << gAgent.mGroupPowers << llendl;
-	llinfos << "title   " << gAgent.getGroupTitle() << llendl;
-	//llinfos << "insig   " << gAgent.mGroupInsigniaID << llendl;
+	gAgent.dumpGroupInfo();
 }
 
 void handle_dump_capabilities_info(void *)
@@ -3682,20 +3569,11 @@ class LLSelfSitOrStand : public view_listener_t
 	{
 		if (gAgentAvatarp && gAgentAvatarp->isSitting())
 		{
-// [RLVa:KB] - Alternate: Snowglobe-1.3.X | Checked: 2009-12-29 (RLVa-1.1.0k) | Added: RLVa-1.1.0k | OK
-			if (gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT))
-				return true;
-// [/RLVa:KB]
-			gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
+			gAgent.standUp();
 		}
 		else
 		{
-// [RLVa:KB] - Alternate: Snowglobe-1.3.X | Checked: 2009-12-29 (RLVa-1.1.0k) | Added: RLVa-1.1.0k | OK
-			if (gRlvHandler.hasBehaviour(RLV_BHVR_SIT))
-				return true;
-// [/RLVa:KB]
-
-			gAgent.setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
+			gAgent.sitDown();
 
 			// Might be first sit
 			LLFirstUse::useSit();
@@ -3704,13 +3582,26 @@ class LLSelfSitOrStand : public view_listener_t
 	}
 };
 
+bool enable_standup_self()
+{
+// [RLVa:KB] - Checked: 2010-04-01 (RLVa-1.2.0c) | Modified: RLVa-1.0.0g
+	return isAgentAvatarValid() && gAgentAvatarp->isSitting() && !gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT);
+// [/RLVa:KB]
+//	return isAgentAvatarValid() && gAgentAvatarp->isSitting();
+}
+
+bool enable_sitdown_self()
+{
+// [RLVa:KB] - Checked: 2010-08-28 (RLVa-1.2.1a) | Added: RLVa-1.2.1a
+	return isAgentAvatarValid() && !gAgentAvatarp->isSitting() /*&& !gAgent.getFlying()*/ && !gRlvHandler.hasBehaviour(RLV_BHVR_SIT);
+// [/RLVa:KB]
+//    return isAgentAvatarValid() && !gAgentAvatarp->isSitting() && !gAgent.getFlying();
+}
+
 class LLSelfEnableSitOrStand : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_value = gAgentAvatarp && !gAgent.getFlying();
-//		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-
 		std::string label;
 		std::string sit_text;
 		std::string stand_text;
@@ -3721,27 +3612,18 @@ class LLSelfEnableSitOrStand : public view_listener_t
 			sit_text = param.substr(0, offset);
 			stand_text = param.substr(offset+1);
 		}
-		
-		if (gAgentAvatarp && gAgentAvatarp->isSitting())
-		{
-// [RLVa:KB] - Alternate: Snowglobe-1.3.X | Checked: 2009-12-29 (RLVa-1.1.0k) | Added: RLVa-1.1.0k | OK
-			new_value &= (!gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT));
-// [/RLVa:KB]
+
+		bool new_value = true;
+		if (enable_standup_self())
 			label = stand_text;
-		}
-		else
-		{
-// [RLVa:KB] - Alternate: Snowglobe-1.3.X | Checked: 2009-12-29 (RLVa-1.1.0k) | Added: RLVa-1.1.0k | OK
-			new_value &= (!gRlvHandler.hasBehaviour(RLV_BHVR_SIT));
-// [/RLVa:KB]
+		else if (enable_sitdown_self())
 			label = sit_text;
-		}
-		
-// [RLVa:KB] - Alternate: Snowglobe-1.3.X | Checked: 2009-12-29 (RLVa-1.1.0k) | Added: RLVa-1.1.0k | OK
+		else
+			new_value = false;
+
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-// [/RLVa:KB]
-		gMenuHolder->childSetText("Self Sit", label);
-		gMenuHolder->childSetText("Self Sit Attachment", label);
+		gMenuHolder->childSetText("Stand Up", label);
+		gMenuHolder->childSetText("Stand Up Self", label);
 
 		return true;
 	}
@@ -3774,14 +3656,13 @@ void set_god_level(U8 god_level)
 {
 	U8 old_god_level = gAgent.getGodLevel();
 	gAgent.setGodLevel( god_level );
-	gIMMgr->refresh();
 	LLViewerParcelMgr::getInstance()->notifyObservers();
 
 	// Some classifieds change visibility on god mode
 	LLFloaterDirectory::requestClassifieds();
 
 	// God mode changes region visibility
-	LLWorldMap::getInstance()->reset();
+	LLWorldMap::getInstance()->reloadItems(true);
 
 	// inventory in items may change in god mode
 	gObjectList.dirtyAllObjectInventory();
@@ -3803,7 +3684,6 @@ void set_god_level(U8 god_level)
 		args["LEVEL"] = llformat("%d",(S32)old_god_level);
 		LLNotificationsUtil::add("LeavingGodMode", args);
 	}
-
 
 	// changing god-level can affect which menus we see
 	show_debug_menus();
@@ -3847,21 +3727,6 @@ void handle_open_message_log(void*)
 	LLFloaterMessageLog::show();
 }
 
-void handle_edit_ao(void*)
-{
-	LLFloaterAO::show(NULL);
-}
-
-void handle_sounds_explorer(void*)
-{
-	LLFloaterExploreSounds::toggle();
-}
-
-void handle_blacklist(void*)
-{
-	LLFloaterBlacklist::show();
-}
-
 void handle_close_all_notifications(void*)
 {
 	LLView::child_list_t child_list(*(gNotifyBoxView->getChildList()));
@@ -3873,59 +3738,11 @@ void handle_close_all_notifications(void*)
 	}
 }
 
-void handle_area_search(void*)
-{
-	JCFloaterAreaSearch::toggle();
-}
-
 void handle_fake_away_status(void*)
 {
-	if (!gSavedSettings.controlExists("FakeAway")) gSavedSettings.declareBOOL("FakeAway", FALSE, "", NO_PERSIST);
-
-	if (gSavedSettings.getBOOL("FakeAway") == TRUE)
-	{
-		gSavedSettings.declareBOOL("FakeAway", FALSE, "", NO_PERSIST);
-		gSavedSettings.setBOOL("FakeAway", FALSE);
-		gAgent.sendAnimationRequest(ANIM_AGENT_AWAY, ANIM_REQUEST_STOP);
-	}
-	else
-	{
-		gSavedSettings.declareBOOL("FakeAway", TRUE, "", NO_PERSIST);
-		gSavedSettings.setBOOL("FakeAway", TRUE);
-		gAgent.sendAnimationRequest(ANIM_AGENT_AWAY, ANIM_REQUEST_START);
-	}
-}
-
-void handle_force_ground_sit(void*)
-{
-	if (gAgentAvatarp)
-	{
-		if(!gAgentAvatarp->isSitting())
-		{
-			gAgent.setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
-		} 
-		else 
-		{
-			gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
-		}
-	}
-}
-
-void handle_phantom_avatar(void*)
-{
-	BOOL ph = LLAgent::getPhantom();
-
-	if (ph)
-		gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
-	else
-		gAgent.setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
-	
-	LLAgent::togglePhantom();
-	ph = LLAgent::getPhantom();
-	LLChat chat;
-	chat.mSourceType = CHAT_SOURCE_SYSTEM;
-	chat.mText = llformat("%s%s","Phantom ",(ph ? "On" : "Off"));
-	LLFloaterChat::addChat(chat);
+	bool fake_away = gSavedSettings.getBOOL("FakeAway");
+	gAgent.sendAnimationRequest(ANIM_AGENT_AWAY, fake_away ? ANIM_REQUEST_STOP : ANIM_REQUEST_START);
+	gSavedSettings.setBOOL("FakeAway", !fake_away);
 }
 
 // </edit>
@@ -3965,38 +3782,16 @@ bool LLHaveCallingcard::operator()(LLInventoryCategory* cat,
 }
 */
 
-BOOL is_agent_friend(const LLUUID& agent_id)
-{
-	return (LLAvatarTracker::instance().getBuddyInfo(agent_id) != NULL);
-}
-
 BOOL is_agent_mappable(const LLUUID& agent_id)
 {
-	return (is_agent_friend(agent_id) &&
-		LLAvatarTracker::instance().getBuddyInfo(agent_id)->isOnline() &&
-		LLAvatarTracker::instance().getBuddyInfo(agent_id)->isRightGrantedFrom(LLRelationship::GRANT_MAP_LOCATION)
+	const LLRelationship* buddy_info = LLAvatarTracker::instance().getBuddyInfo(agent_id);
+
+	return (buddy_info &&
+		buddy_info->isOnline() &&
+		buddy_info->isRightGrantedFrom(LLRelationship::GRANT_MAP_LOCATION)
 		);
 }
 
-// Enable a menu item when you have someone's card.
-/*
-BOOL enable_have_card(void *userdata)
-{
-	LLUUID* avatar_id = (LLUUID *)userdata;
-	if (gAgent.isGodlike())
-	{
-		return TRUE;
-	}
-	else if(avatar_id)
-	{
-		return is_agent_friend(*avatar_id);
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-*/
 
 // Enable a menu item when you don't have someone's card.
 class LLAvatarEnableAddFriend : public view_listener_t
@@ -4004,12 +3799,10 @@ class LLAvatarEnableAddFriend : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		LLVOAvatar* avatar = find_avatar_from_object(LLSelectMgr::getInstance()->getSelection()->getPrimaryObject());
-		bool new_value = avatar && !is_agent_friend(avatar->getID());
-
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | OK
-		new_value &= (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
+//		bool new_value = avatar && !LLAvatarActions::isFriend(avatar->getID());
+// [RLVa:KB] - Checked: 2010-04-20 (RLVa-1.2.0f) | Modified: RLVa-1.2.0f
+		bool new_value = avatar && !LLAvatarActions::isFriend(avatar->getID()) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
 // [/RLVa:KB]
-
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
 		return true;
 	}
@@ -4020,16 +3813,17 @@ void request_friendship(const LLUUID& dest_id)
 	LLViewerObject* dest = gObjectList.findObject(dest_id);
 	if(dest && dest->isAvatar())
 	{
-		std::string fullname;
+		std::string full_name;
 		LLNameValue* nvfirst = dest->getNVPair("FirstName");
 		LLNameValue* nvlast = dest->getNVPair("LastName");
 		if(nvfirst && nvlast)
 		{
-			fullname = std::string(nvfirst->getString()) + " " + nvlast->getString();
+			full_name = LLCacheName::buildFullName(
+				nvfirst->getString(), nvlast->getString());
 		}
-		if (!fullname.empty())
+		if (!full_name.empty())
 		{
-			LLPanelFriends::requestFriendshipDialog(dest_id, fullname);
+			LLAvatarActions::requestFriendshipDialog(dest_id, full_name);
 		}
 		else
 		{
@@ -4062,49 +3856,67 @@ class LLEditEnableChangeDisplayname : public view_listener_t
        }
 };
 
-// only works on pie menu
-bool handle_sit_or_stand()
+bool is_object_sittable()
 {
-	LLPickInfo pick = LLToolPie::getInstance()->getPick();
-	LLViewerObject *object = pick.getObject();;
-	// <edit>
-	//if (!object || pick.mPickType == LLPickInfo::PICK_FLORA)
-	if (!object)
-	// </edit>
+// [RLVa:KB] - Checked: 2010-03-06 (RLVa-1.2.0c) | Added: RLVa-1.1.0j
+	// RELEASE-RLVa: [SL-2.2.0] Make sure we're examining the same object that handle_sit_or_stand() will request a sit for
+	if (rlv_handler_t::isEnabled())
 	{
-		return true;
-	}
-
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Modified: RLVa-1.1.0j | OK
-	// Block if we can't sit on the selected object (also handles sitting and prevented from standing up)
-	if ( (rlv_handler_t::isEnabled()) && (!gRlvHandler.canSit(object, pick.mObjectOffset)) )
-	{
-		return true;
+		const LLPickInfo& pick = LLToolPie::getInstance()->getPick();
+		if ( (pick.mObjectID.notNull()) && (!gRlvHandler.canSit(pick.getObject(), pick.mObjectOffset)) )
+			return false;
 	}
 // [/RLVa:KB]
 
+	LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+
+	if (object && object->getPCode() == LL_PCODE_VOLUME)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+// only works on pie menu
+void handle_object_sit_or_stand()
+{
+	LLPickInfo pick = LLToolPie::getInstance()->getPick();
+	LLViewerObject *object = pick.getObject();;
+	if (!object || pick.mPickType == LLPickInfo::PICK_FLORA)
+	{
+		return;
+	}
+
 	if (sitting_on_selection())
 	{
-		gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
-		return true;
+		gAgent.standUp();
+		return;
 	}
 
 	// get object selection offset 
 
-	if (object && object->getPCode() == LL_PCODE_VOLUME)
+//	if (object && object->getPCode() == LL_PCODE_VOLUME)
+// [RLVa:KB] - Checked: 2010-03-06 (RLVa-1.2.0c) | Modified: RLVa-1.2.0c
+	if ( (object && object->getPCode() == LL_PCODE_VOLUME) &&
+		 ((!rlv_handler_t::isEnabled()) || (gRlvHandler.canSit(object, pick.mObjectOffset))) )
+// [/RLVa:KB]
 	{
-// [RLVa:KB] - Checked: 2010-08-29 (RLVa-1.1.3b) | Added: RLVa-1.2.1c | OK
-		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_STANDTP)) && (gAgentAvatarp) )
+// [RLVa:KB] - Checked: 2010-08-29 (RLVa-1.2.1c) | Added: RLVa-1.2.1c
+		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_STANDTP)) && (isAgentAvatarValid()) )
 		{
 			if (gAgentAvatarp->isSitting())
 			{
-				if (gRlvHandler.canStand())
-					gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
-				return true;
+				gAgent.standUp();
+				return;
 			}
 			gRlvHandler.setSitSource(gAgent.getPositionGlobal());
 		}
 // [/RLVa:KB]
+
 		gMessageSystem->newMessageFast(_PREHASH_AgentRequestSit);
 		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
 		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
@@ -4115,14 +3927,14 @@ bool handle_sit_or_stand()
 
 		object->getRegion()->sendReliableMessage();
 	}
-	return true;
 }
 
 class LLObjectSitOrStand : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		return handle_sit_or_stand();
+		handle_object_sit_or_stand();
+		return true;
 	}
 };
 
@@ -4130,6 +3942,7 @@ void near_sit_down_point(BOOL success, void *)
 {
 	if (success)
 	{
+		if (!gSavedSettings.getBOOL("LiruContinueFlyingOnUnsit"))
 		gAgent.setFlying(FALSE);
 		gAgent.setControlFlags(AGENT_CONTROL_SIT_ON_GROUND);
 
@@ -4142,20 +3955,18 @@ class LLLandSit : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.2.1f | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.2.1f
 		if ( (rlv_handler_t::isEnabled()) && ((!gRlvHandler.canStand()) || (gRlvHandler.hasBehaviour(RLV_BHVR_SIT))) )
-		{
 			return true;
-		}
 // [/RLVa:KB]
 
-		gAgent.setControlFlags(AGENT_CONTROL_STAND_UP);
+		gAgent.standUp();
 		LLViewerParcelMgr::getInstance()->deselectLand();
 
 		LLVector3d posGlobal = LLToolPie::getInstance()->getPick().mPosGlobal;
 		
 		LLQuaternion target_rot;
-		if (gAgentAvatarp)
+		if (isAgentAvatarValid())
 		{
 			target_rot = gAgentAvatarp->getRotation();
 		}
@@ -4192,7 +4003,12 @@ class LLWorldEnableFly : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		BOOL sitting = FALSE;
-		if (gAgentAvatarp)
+		static LLCachedControl<bool> continue_flying_on_unsit("LiruContinueFlyingOnUnsit");
+		if (continue_flying_on_unsit)
+		{
+			sitting = false;
+		}
+		else if (gAgentAvatarp)
 		{
 			sitting = gAgentAvatarp->isSitting();
 		}
@@ -4259,32 +4075,6 @@ void velocity_interpolate( void* data )
 	}
 }
 
-
-void toggle_wind_audio(void)
-{
-	if (gAudiop)
-	{
-		gAudiop->enableWind(!(gAudiop->isWindEnabled()));
-	}
-}
-
-
-// Callback for enablement
-BOOL is_inventory_visible( void* user_data )
-{
-	LLInventoryView* iv = reinterpret_cast<LLInventoryView*>(user_data);
-	if( iv )
-	{
-		return iv->getVisible();
-	}
-	return FALSE;
-}
-
-void handle_show_newest_map(void*)
-{
-	LLFloaterWorldMap::show(NULL, FALSE);
-}
-
 //-------------------------------------------------------------------
 // Help menu functions
 //-------------------------------------------------------------------
@@ -4292,7 +4082,7 @@ void handle_show_newest_map(void*)
 //
 // Major mode switching
 //
-void reset_view_final( BOOL proceed);
+void reset_view_final( BOOL proceed );
 
 void handle_reset_view()
 {
@@ -4317,11 +4107,16 @@ class LLViewResetView : public view_listener_t
 };
 
 // Note: extra parameters allow this function to be called from dialog.
-void reset_view_final( BOOL proceed) 
+void reset_view_final( BOOL proceed )
 {
 	if( !proceed )
 	{
 		return;
+	}
+
+	if (!gViewerWindow->getLeftMouseDown() && gAgentCamera.cameraThirdPerson() && gSavedSettings.getBOOL("ResetViewTurnsAvatar") && !gSavedSettings.getBOOL("FreezeTime"))
+	{
+		gAgentCamera.setFocusOnAvatar(TRUE, ANIMATE);
 	}
 
 	gAgentCamera.switchCameraPreset(CAMERA_PRESET_REAR_VIEW);
@@ -4415,26 +4210,12 @@ class LLEditEnableDuplicate : public view_listener_t
 	}
 };
 
-
-void disabled_duplicate(void*)
-{
-	if (LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
-	{
-		LLNotificationsUtil::add("CopyFailed");
-	}
-}
-
 void handle_duplicate_in_place(void*)
 {
 	llinfos << "handle_duplicate_in_place" << llendl;
 
 	LLVector3 offset(0.f, 0.f, 0.f);
 	LLSelectMgr::getInstance()->selectDuplicate(offset, TRUE);
-}
-
-void handle_repeat_duplicate(void*)
-{
-	LLSelectMgr::getInstance()->repeatDuplicate();
 }
 
 /* dead code 30-apr-2008
@@ -4588,43 +4369,6 @@ void handle_claim_public_land(void*)
 	gAgent.sendReliableMessage();
 }
 
-void handle_god_request_havok(void *)
-{
-	if (gAgent.isGodlike())
-	{
-		LLSelectMgr::getInstance()->sendGodlikeRequest("havok", "infoverbose");
-	}
-}
-
-//void handle_god_request_foo(void *)
-//{
-//	if (gAgent.isGodlike())
-//	{
-//		LLSelectMgr::getInstance()->sendGodlikeRequest(GOD_WANTS_FOO);
-//	}
-//}
-
-//void handle_god_request_terrain_save(void *)
-//{
-//	if (gAgent.isGodlike())
-//	{
-//		LLSelectMgr::getInstance()->sendGodlikeRequest("terrain", "save");
-//	}
-//}
-
-//void handle_god_request_terrain_load(void *)
-//{
-//	if (gAgent.isGodlike())
-//	{
-//		LLSelectMgr::getInstance()->sendGodlikeRequest("terrain", "load");
-//	}
-//}
-
-BOOL enable_dump_archetype_xm(void*)
-{
-	return gSavedSettings.getBOOL("DebugAvatarAppearanceMessage");
-}
-
 void handle_dump_archetype_xml(void *)
 {
 	std::string emptyname;
@@ -4634,23 +4378,32 @@ void handle_dump_archetype_xml(void *)
 	{
 		avatar = gAgentAvatarp;
 	}
-	avatar->dumpArchetypeXML(emptyname);
+
+	std::string file_name = avatar->getFullname() + (avatar->isSelf() ? "_s" : "_o") + "?000.xml";
+	std::string default_path = gDirUtilp->getExpandedFilename(LL_PATH_LOGS, "");
+
+	AIFilePicker* filepicker = AIFilePicker::create();
+	filepicker->open(file_name, FFSAVE_XML, default_path, "archetype");
+	filepicker->run(boost::bind(&handle_dump_archetype_xml_continued, avatar, filepicker));
 };
+
+void handle_dump_archetype_xml_continued(LLVOAvatar* avatar, AIFilePicker* filepicker)
+{
+	if (!filepicker->hasFilename())
+	{
+		llwarns << "No file" << llendl;
+		return;
+	}
+	avatar->dumpArchetypeXML_cont(filepicker->getFilename(), false);
+}
 
 // HACK for easily testing new avatar geometry
 void handle_god_request_avatar_geometry(void *)
 {
 	if (gAgent.isGodlike())
 	{
-		LLSelectMgr::getInstance()->sendGodlikeRequest("avatar toggle", NULL);
+		LLSelectMgr::getInstance()->sendGodlikeRequest("avatar toggle", "");
 	}
-}
-
-
-void handle_show_overlay_title(void*)
-{
-	gShowOverlayTitle = !gShowOverlayTitle;
-	gSavedSettings.setBOOL("ShowOverlayTitle", gShowOverlayTitle);
 }
 
 static bool get_derezzable_objects(
@@ -4725,12 +4478,9 @@ static bool get_derezzable_objects(
 			break;
 
 		default:
-			// <edit>
-			//if((node->mPermissions->allowTransferTo(gAgent.getID())
-			//	&& object->permCopy())
-			//   || gAgent.isGodlike())
-			if(1)
-			// </edit>
+			if((node->mPermissions->allowTransferTo(gAgent.getID())
+				&& object->permCopy())
+			   || gAgent.isGodlike())
 			{
 				can_derez_current = TRUE;
 			}
@@ -4835,12 +4585,12 @@ static void derez_objects(
 				// <edit>
 				if(!gSavedSettings.getBOOL("DisablePointAtAndBeam"))
 				{
-					// </edit>
+				// </edit>
 					// VEFFECT: DerezObject
 					LLHUDEffectSpiral* effectp = (LLHUDEffectSpiral*)LLHUDManager::getInstance()->createViewerEffect(LLHUDObject::LL_HUD_EFFECT_POINT, TRUE);
 					effectp->setPositionGlobal(object->getPositionGlobal());
 					effectp->setColor(LLColor4U(gAgent.getEffectColor()));
-					// <edit>
+				// <edit>
 				}
 				// </edit>
 			}
@@ -4880,6 +4630,7 @@ class LLToolsTakeCopy : public view_listener_t
 void handle_take_copy()
 {
 	if (LLSelectMgr::getInstance()->getSelection()->isEmpty()) return;
+
 // [RLVa:KB] - Checked: 2010-03-07 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
 	if ( (rlv_handler_t::isEnabled()) && (!gRlvHandler.canStand()) )
 	{
@@ -4900,10 +4651,12 @@ class LLObjectReturn : public view_listener_t
 {
 public:
 	LLObjectReturn() : mFirstRegion(NULL) {}
+
+private:
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		if (LLSelectMgr::getInstance()->getSelection()->isEmpty()) return true;
-// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.2.0e) | Modified: RLVa-1.0.0b | OK
+// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.4.0a) | Modified: RLVa-1.0.0b
 		if ( (rlv_handler_t::isEnabled()) && (!rlvCanDeleteOrReturn()) ) return true;
 // [/RLVa:KB]
 
@@ -4989,13 +4742,13 @@ void handle_take()
 	// we want to use the folder this was derezzed from if it's
 	// available. Otherwise, derez to the normal place.
 //	if(LLSelectMgr::getInstance()->getSelection()->isEmpty())
-// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.2.0e) | Modified: RLVa-1.0.0b | OK
+// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.2.0e) | Modified: RLVa-1.0.0b
 	if ( (LLSelectMgr::getInstance()->getSelection()->isEmpty()) || ((rlv_handler_t::isEnabled()) && (!rlvCanDeleteOrReturn())) )
 // [/RLVa:KB]
 	{
 		return;
 	}
-	
+
 	BOOL you_own_everything = TRUE;
 	BOOL locked_but_takeable_object = FALSE;
 	LLUUID category_id;
@@ -5067,6 +4820,9 @@ void handle_take()
 
 	LLNotification::Params params("ConfirmObjectTakeLock");
 	params.payload(payload)
+	// MAINT-290
+	// Reason: Showing the confirmation dialog resets object selection,	thus there is nothing to derez.
+	// Fix: pass selection to the confirm_take, so that selection doesn't "die" after confirmation dialog is opened
 		.functor(boost::bind(&confirm_take, _1, _2, LLSelectMgr::instance().getSelection()));
 
 	if(locked_but_takeable_object ||
@@ -5075,7 +4831,6 @@ void handle_take()
 		if(locked_but_takeable_object && you_own_everything)
 		{
 			params.name("ConfirmObjectTakeLock");
-
 		}
 		else if(!locked_but_takeable_object && !you_own_everything)
 		{
@@ -5110,7 +4865,7 @@ bool confirm_take(const LLSD& notification, const LLSD& response, LLObjectSelect
 BOOL enable_take()
 {
 //	if (sitting_on_selection())
-// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.2.0e) | Modified: RLVa-1.0.0b | OK
+// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.2.0e) | Modified: RLVa-1.0.0b
 	if ( (sitting_on_selection()) || ((rlv_handler_t::isEnabled()) && (!rlvCanDeleteOrReturn())) )
 // [/RLVa:KB]
 	{
@@ -5150,33 +4905,38 @@ BOOL enable_take()
 	return FALSE;
 }
 
+
+void handle_buy_or_take()
+{
+	if (LLSelectMgr::getInstance()->getSelection()->isEmpty())
+	{
+		return;
+	}
+
+	if (is_selection_buy_not_take())
+	{
+		S32 total_price = selection_price();
+
+		if (total_price <= gStatusBar->getBalance() || total_price == 0)
+		{
+			handle_buy();
+		}
+		else
+		{
+			LLFloaterBuyCurrency::buyCurrency( LLTrans::getString( "BuyingCosts" ), total_price );
+		}
+	}
+	else
+	{
+		handle_take();
+	}
+}
+
 class LLToolsBuyOrTake : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		if (LLSelectMgr::getInstance()->getSelection()->isEmpty())
-		{
-			return true;
-		}
-
-		if (is_selection_buy_not_take())
-		{
-			S32 total_price = selection_price();
-
-			if (total_price <= gStatusBar->getBalance() || total_price == 0)
-			{
-			handle_buy();
-			}
-			else
-			{
-				LLFloaterBuyCurrency::buyCurrency(
-					"Buying this costs", total_price);
-			}
-		}
-		else
-		{
-			handle_take();
-		}
+		handle_buy_or_take();
 		return true;
 	}
 };
@@ -5304,11 +5064,6 @@ void show_buy_currency(const char* extra)
 	LLNotificationsUtil::add("PromptGoToCurrencyPage", args, LLSD(), callback_show_buy_currency);
 }
 
-void handle_buy_currency(void*)
-{
-//	LLFloaterBuyCurrency::buyCurrency();
-}
-
 void handle_buy()
 {
 	if (LLSelectMgr::getInstance()->getSelection()->isEmpty()) return;
@@ -5380,10 +5135,7 @@ class LLToolsSaveToInventory : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		// <edit>
-		//if(enable_save_into_inventory(NULL))
-		if(1)
-		// </edit>
+		if(enable_save_into_inventory(NULL))
 		{
 			derez_objects(DRD_SAVE_INTO_AGENT_INVENTORY, LLUUID::null);
 		}
@@ -5447,7 +5199,6 @@ class LLToolsEnablePathfindingRebakeRegion : public view_listener_t
 			LLMenuOptionPathfindingRebakeNavmesh *rebakeInstance = LLMenuOptionPathfindingRebakeNavmesh::getInstance();
 			returnValue = (rebakeInstance->canRebakeRegion() &&
 				(rebakeInstance->getMode() == LLMenuOptionPathfindingRebakeNavmesh::kRebakeNavMesh_Available));
-			
 		}
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(returnValue);
 		return returnValue;
@@ -5657,7 +5408,6 @@ class LLToolsReleaseKeys : public view_listener_t
 // [/RLVa:KB]
 
 		gAgent.forceReleaseControls();
-
 		return true;
 	}
 };
@@ -5666,45 +5416,14 @@ class LLToolsEnableReleaseKeys : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.0f) | Modified: RLVa-1.0.5a | OK
-		gMenuHolder->findControl(userdata["control"].asString())->setValue( 
-			gAgent.anyControlGrabbed() && ((!rlv_handler_t::isEnabled()) || (!gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE))) );
+// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.0f) | Modified: RLVa-1.0.5a
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(gAgent.anyControlGrabbed() &&
+			( (!rlv_handler_t::isEnabled()) || (!gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE)) ));
 // [/RLVa:KB]
-		//gMenuHolder->findControl(userdata["control"].asString())->setValue( gAgent.anyControlGrabbed() );
+//		gMenuHolder->findControl(userdata["control"].asString())->setValue(gAgent.anyControlGrabbed());
 		return true;
 	}
 };
-
-//void handle_hinge(void*)
-//{
-//	LLSelectMgr::getInstance()->sendHinge(1);
-//}
-
-//void handle_ptop(void*)
-//{
-//	LLSelectMgr::getInstance()->sendHinge(2);
-//}
-
-//void handle_lptop(void*)
-//{
-//	LLSelectMgr::getInstance()->sendHinge(3);
-//}
-
-//void handle_wheel(void*)
-//{
-//	LLSelectMgr::getInstance()->sendHinge(4);
-//}
-
-//void handle_dehinge(void*)
-//{
-//	LLSelectMgr::getInstance()->sendDehinge();
-//}
-
-//BOOL enable_dehinge(void*)
-//{
-//	LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getFirstEditableObject();
-//	return obj && !obj->isAttachment();
-//}
 
 
 class LLEditEnableCut : public view_listener_t
@@ -5862,7 +5581,7 @@ class LLEditSearch : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		LLFloaterDirectory::toggleFind(NULL);
+		toggle_search_floater();
 		return true;
 	}
 };
@@ -6098,7 +5817,7 @@ void show_debug_menus()
 	if ( gMenuBarView )
 	{
 		BOOL debug = gSavedSettings.getBOOL("UseDebugMenus");
-		
+
 		if(debug)
 		{
 			LLFirstUse::useDebugMenus();
@@ -6116,7 +5835,7 @@ void show_debug_menus()
 		//gMenuBarView->setItemVisible(std::string(AVI_TOOLS),	visible);
 
 		gMenuBarView->needsArrange(); // clean-up positioning 
-	};
+	}
 }
 
 void toggle_debug_menus(void*)
@@ -6164,6 +5883,7 @@ void toggle_debug_menus(void*)
 
 // 	gExportDialog = LLUploadDialog::modalUploadDialog("Exporting selected objects...");
 // }
+//
 
 BOOL menu_check_build_tool( void* user_data )
 {
@@ -6260,18 +5980,7 @@ class LLWorldFakeAway : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		if (!gSavedSettings.controlExists("FakeAway")) gSavedSettings.declareBOOL("FakeAway", FALSE, "", NO_PERSIST);
-
-		if (gSavedSettings.getBOOL("FakeAway") == TRUE)
-		{
-			gSavedSettings.setBOOL("FakeAway", FALSE);
-			gAgent.sendAnimationRequest(ANIM_AGENT_AWAY, ANIM_REQUEST_STOP);
-		}
-		else
-		{
-			gSavedSettings.setBOOL("FakeAway", TRUE);
-			gAgent.sendAnimationRequest(ANIM_AGENT_AWAY, ANIM_REQUEST_START);
-		}
+		handle_fake_away_status(NULL);
 		return true;
 	}
 };
@@ -6319,16 +6028,13 @@ class LLWorldSetBusy : public view_listener_t
 	}
 };
 
-
 class LLWorldCreateLandmark : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Added: RLVa-1.0.0a | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.4.5) | Added: RLVa-1.0.0
 		if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC))
-		{
 			return true;
-		}
 // [/RLVa:KB]
 
 		LLViewerRegion* agent_region = gAgent.getRegion();
@@ -6353,7 +6059,7 @@ class LLWorldCreateLandmark : public view_listener_t
 		LLUUID folder_id;
 		folder_id = gInventory.findCategoryUUIDForType(LLFolderType::FT_LANDMARK);
 		std::string pos_string;
-		LLAgentUI::buildLocationString(pos_string);
+		LLAgentUI::buildLocationString(pos_string, gSavedSettings.getBOOL("LiruLegacyLandmarks") ? LLAgentUI::LOCATION_FORMAT_NO_MATURITY : LLAgentUI::LOCATION_FORMAT_LANDMARK);
 		
 		create_inventory_item(gAgent.getID(), gAgent.getSessionID(),
 							  folder_id, LLTransactionID::tnull,
@@ -6370,63 +6076,45 @@ class LLToolsLookAtSelection : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		const F32 PADDING_FACTOR = 2.f;
-		BOOL zoom = (userdata.asString() == "zoom");
-		if (!LLSelectMgr::getInstance()->getSelection()->isEmpty())
-		{
-			gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
-
-			LLBBox selection_bbox = LLSelectMgr::getInstance()->getBBoxOfSelection();
-			F32 angle_of_view = llmax(0.1f, LLViewerCamera::getInstance()->getAspect() > 1.f ? LLViewerCamera::getInstance()->getView() * LLViewerCamera::getInstance()->getAspect() : LLViewerCamera::getInstance()->getView());
-			F32 distance = selection_bbox.getExtentLocal().magVec() * PADDING_FACTOR / atan(angle_of_view);
-
-			LLVector3 obj_to_cam = LLViewerCamera::getInstance()->getOrigin() - selection_bbox.getCenterAgent();
-			obj_to_cam.normVec();
-
-			LLUUID object_id;
-			if (LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
-			{
-				object_id = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject()->mID;
-			}
-			if (zoom)
-			{
-				// Make sure we are not increasing the distance between the camera and object
-				LLVector3d orig_distance = gAgentCamera.getCameraPositionGlobal() - LLSelectMgr::getInstance()->getSelectionCenterGlobal();
-				distance = llmin(distance, (F32) orig_distance.length());
-				
-				gAgentCamera.setCameraPosAndFocusGlobal(LLSelectMgr::getInstance()->getSelectionCenterGlobal() + LLVector3d(obj_to_cam * distance), 
-												LLSelectMgr::getInstance()->getSelectionCenterGlobal(), 
-												object_id );
-			}
-			else
-			{
-				gAgentCamera.setFocusGlobal( LLSelectMgr::getInstance()->getSelectionCenterGlobal(), object_id );
-			}
-		}
+		handle_look_at_selection(userdata);
 		return true;
 	}
 };
 
-void callback_invite_to_group(LLUUID group_id, void *user_data)
+void handle_look_at_selection(const LLSD& param)
 {
-	std::vector<LLUUID> agent_ids;
-	agent_ids.push_back(*(LLUUID *)user_data);
-	
-	LLFloaterGroupInvite::showForGroup(group_id, &agent_ids);
-}
-
-void invite_to_group(const LLUUID& dest_id)
-{
-	LLViewerObject* dest = gObjectList.findObject(dest_id);
-	if(dest && dest->isAvatar())
+	const F32 PADDING_FACTOR = 2.f;
+	BOOL zoom = (param.asString() == "zoom");
+	if (!LLSelectMgr::getInstance()->getSelection()->isEmpty())
 	{
-		LLFloaterGroupPicker* widget;
-		widget = LLFloaterGroupPicker::showInstance(LLSD(gAgent.getID()));
-		if (widget)
+		gAgentCamera.setFocusOnAvatar(FALSE, ANIMATE);
+
+		LLBBox selection_bbox = LLSelectMgr::getInstance()->getBBoxOfSelection();
+		F32 angle_of_view = llmax(0.1f, LLViewerCamera::getInstance()->getAspect() > 1.f ? LLViewerCamera::getInstance()->getView() * LLViewerCamera::getInstance()->getAspect() : LLViewerCamera::getInstance()->getView());
+		F32 distance = selection_bbox.getExtentLocal().magVec() * PADDING_FACTOR / atan(angle_of_view);
+
+		LLVector3 obj_to_cam = LLViewerCamera::getInstance()->getOrigin() - selection_bbox.getCenterAgent();
+		obj_to_cam.normVec();
+
+		LLUUID object_id;
+		if (LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
 		{
-			widget->center();
-			widget->setPowersMask(GP_MEMBER_INVITE);
-			widget->setSelectCallback(callback_invite_to_group, (void *)&dest_id);
+			object_id = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject()->mID;
+		}
+		if (zoom)
+		{
+			// Make sure we are not increasing the distance between the camera and object
+			LLVector3d orig_distance = gAgentCamera.getCameraPositionGlobal() - LLSelectMgr::getInstance()->getSelectionCenterGlobal();
+			distance = llmin(distance, (F32) orig_distance.length());
+
+			gAgentCamera.setCameraPosAndFocusGlobal(LLSelectMgr::getInstance()->getSelectionCenterGlobal() + LLVector3d(obj_to_cam * distance), 
+										LLSelectMgr::getInstance()->getSelectionCenterGlobal(), 
+										object_id );
+
+		}
+		else
+		{
+			gAgentCamera.setFocusGlobal( LLSelectMgr::getInstance()->getSelectionCenterGlobal(), object_id );
 		}
 	}
 }
@@ -6435,17 +6123,13 @@ class LLAvatarInviteToGroup : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | OK
-		if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-		{
-			return true;
-		}
-// [/RLVa:KB]
-
 		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-		if(avatar)
+//		if(avatar)
+// [RLVa:KB] - Checked: 2010-06-04 (RLVa-1.2.0d) | Added: RLVa-1.2.0d
+		if ( (avatar) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) )
+// [/RLVa:KB]
 		{
-			invite_to_group(avatar->getID());
+			LLAvatarActions::inviteToGroup(avatar->getID());
 		}
 		return true;
 	}
@@ -6455,15 +6139,11 @@ class LLAvatarAddFriend : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | OK
-		if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-		{
-			return true;	// Fallback code [see LLAvatarEnableAddFriend::handleEvent()]
-		}
-// [/RLVa:KB]
-
 		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-		if(avatar && !is_agent_friend(avatar->getID()))
+//		if(avatar && !LLAvatarActions::isFriend(avatar->getID()))
+// [RLVa:KB] - Checked: 2010-04-20 (RLVa-1.2.0f) | Modified: RLVa-1.2.0f
+		if ( (avatar && !LLAvatarActions::isFriend(avatar->getID())) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) )
+// [/RLVa:KB]
 		{
 			request_friendship(avatar->getID());
 		}
@@ -6471,7 +6151,7 @@ class LLAvatarAddFriend : public view_listener_t
 	}
 };
 
-bool complete_give_money(const LLSD& notification, const LLSD& response, LLObjectSelectionHandle handle)
+bool complete_give_money(const LLSD& notification, const LLSD& response, LLObjectSelectionHandle selection)
 {
 	S32 option = LLNotification::getSelectedOption(notification, response);
 	if (option == 0)
@@ -6479,7 +6159,7 @@ bool complete_give_money(const LLSD& notification, const LLSD& response, LLObjec
 		gAgent.clearBusy();
 	}
 
-	LLViewerObject* objectp = handle->getPrimaryObject();
+	LLViewerObject* objectp = selection->getPrimaryObject();
 
 	// Show avatar's name if paying attachment
 	if (objectp && objectp->isAttachment())
@@ -6494,7 +6174,7 @@ bool complete_give_money(const LLSD& notification, const LLSD& response, LLObjec
 	{
 		if (objectp->isAvatar())
 		{
-			const BOOL is_group = FALSE;
+			const bool is_group = false;
 			LLFloaterPay::payDirectly(&give_money,
 									  objectp->getID(),
 									  is_group);
@@ -6507,7 +6187,7 @@ bool complete_give_money(const LLSD& notification, const LLSD& response, LLObjec
 	return false;
 }
 
-bool handle_give_money_dialog()
+void handle_give_money_dialog()
 {
 	LLNotification::Params params("BusyModePay");
 	params.functor(boost::bind(complete_give_money, _1, _2, LLSelectMgr::getInstance()->getSelection()));
@@ -6521,63 +6201,93 @@ bool handle_give_money_dialog()
 	{
 		LLNotifications::instance().forceResponse(params, 1);
 	}
-	return true;
 }
 
 class LLPayObject : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		return handle_give_money_dialog();
-	}
-};
-
-class LLEnablePayObject : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		LLVOAvatar* avatar = find_avatar_from_object(LLSelectMgr::getInstance()->getSelection()->getPrimaryObject());
-		bool new_value = (avatar != NULL);
-		if (!new_value)
-		{
-			LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-			if( object )
-			{
-				LLViewerObject *parent = (LLViewerObject *)object->getParent();
-				if((object->flagTakesMoney()) || (parent && parent->flagTakesMoney()))
-				{
-					new_value = true;
-				}
-			}
-		}
-
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
-		// Don't enable "Pay..." on the avatar pie menu under @shownames=n 
-		new_value &= (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) || (avatar == NULL);
-// [/RLVa:KB]
-
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		handle_give_money_dialog();
 		return true;
 	}
 };
+
+bool enable_pay_avatar()
+{
+	LLViewerObject* obj = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+	LLVOAvatar* avatar = find_avatar_from_object(obj);
+//	return (avatar != NULL);
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.1b) | Added: RLVa-1.2.1b
+	return (avatar != NULL) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
+// [/RLVa:KB]
+}
+
+bool enable_pay_object()
+{
+	LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
+	if( object )
+	{
+		LLViewerObject *parent = (LLViewerObject *)object->getParent();
+		if((object->flagTakesMoney()) || (parent && parent->flagTakesMoney()))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool enable_object_stand_up()
+{
+	// 'Object Stand Up' menu item is enabled when agent is sitting on selection
+//	return sitting_on_selection();
+// [RLVa:KB] - Checked: 2010-07-24 (RLVa-1.2.0g) | Added: RLVa-1.2.0g
+	return sitting_on_selection() && ( (!rlv_handler_t::isEnabled()) || (gRlvHandler.canStand()) );
+// [/RLVa:KB]
+}
+
+bool enable_object_sit(/*LLUICtrl* ctrl*/)
+{
+	// 'Object Sit' menu item is enabled when agent is not sitting on selection
+	bool sitting_on_sel = sitting_on_selection();
+	/*
+	if (!sitting_on_sel)
+	{
+		std::string item_name = ctrl->getName();
+
+		// init default labels
+		init_default_item_label(item_name);
+
+		// Update label
+		LLSelectNode* node = LLSelectMgr::getInstance()->getSelection()->getFirstRootNode();
+		if (node && node->mValid && !node->mSitName.empty())
+		{
+			gMenuHolder->childSetText(item_name, node->mSitName);
+		}
+		else
+		{
+			gMenuHolder->childSetText(item_name, get_default_item_label(item_name));
+		}
+	}
+	*/
+
+// [RLVa:KB] - Checked: 2010-04-01 (RLVa-1.2.0c) | Modified: RLVa-1.2.0c
+		// RELEASE-RLVA: [SL-2.2.0] Make this match what happens in handle_object_sit_or_stand()
+		if (rlv_handler_t::isEnabled())
+		{
+			const LLPickInfo& pick = LLToolPie::getInstance()->getPick();
+			if (pick.mObjectID.notNull())
+				sitting_on_sel = !gRlvHandler.canSit(pick.getObject(), pick.mObjectOffset);
+		}
+// [/RLVa:KB]
+
+	return !sitting_on_sel && is_object_sittable();
+}
 
 class LLObjectEnableSitOrStand : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_value = false;
-		LLViewerObject* dest_object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-
-		if(dest_object)
-		{
-			if(dest_object->getPCode() == LL_PCODE_VOLUME)
-			{
-				new_value = true;
-			}
-		}
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Added: RLVa-1.1.0j
-//		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-// [/RLVa:KB]
+		bool new_value;
 
 		// Update label
 		std::string label;
@@ -6590,12 +6300,11 @@ class LLObjectEnableSitOrStand : public view_listener_t
 			sit_text = param.substr(0, offset);
 			stand_text = param.substr(offset+1);
 		}
+
 		if (sitting_on_selection())
 		{
 			label = stand_text;
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Added: RLVa-1.1.0j
-			new_value &= !gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT);
-// [/RLVa:KB]
+			new_value = enable_object_stand_up();
 		}
 		else
 		{
@@ -6608,23 +6317,20 @@ class LLObjectEnableSitOrStand : public view_listener_t
 			{
 				label = sit_text;
 			}
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Added: RLVa-1.1.0j
-			if ( (rlv_handler_t::isEnabled()) && (new_value) )
-			{
-				// RELEASE-RLVa: [2009-12-22] make sure we examine the same object that handle_sit_or_stand() will request a sit for
-				const LLPickInfo& pick = LLToolPie::getInstance()->getPick();
-				if (pick.mObjectID.notNull())
-				{
-					new_value = gRlvHandler.canSit(pick.getObject(), pick.mObjectOffset);
-				}
-			}
-// [/RLVa:KB]
+			new_value = enable_object_sit();
 		}
 		gMenuHolder->childSetText("Object Sit", label);
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Added: RLVa-1.1.0j
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-// [/RLVa:KB]
 
+		return true;
+	}
+};
+
+class LLEnablePayObject : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_pay_avatar() || enable_pay_object());
 		return true;
 	}
 };
@@ -6644,6 +6350,7 @@ void dump_inventory(void*)
 	gInventory.dumpInventory();
 }
 
+
 void handle_dump_followcam(void*)
 {
 	LLFollowCamMgr::dump();
@@ -6659,6 +6366,68 @@ void handle_viewer_disable_message_log(void*)
 	gMessageSystem->stopLogging();
 }
 
+struct MenuFloaterDict : public LLSingleton<MenuFloaterDict>
+{
+	typedef std::map<const std::string, std::pair<boost::function<void ()>, boost::function<bool ()> > > menu_floater_map_t;
+	menu_floater_map_t mEntries;
+	MenuFloaterDict()
+	{
+		registerFloater("about",		boost::bind(&LLFloaterAbout::show,(void*)NULL));
+		//registerFloater("about region", boost::bind(&LLFloaterRegionInfo::showInstance,LLSD()));
+		registerFloater("buy currency", boost::bind(&LLFloaterBuyCurrency::buyCurrency));
+		registerFloater("displayname",	boost::bind(&LLFloaterDisplayName::show));
+		//registerFloater("friends",		boost::bind(&LLFloaterMyFriends::toggleInstance,0),			boost::bind(&LLFloaterMyFriends::instanceVisible,0));
+		registerFloater("gestures",		boost::bind(&LLFloaterGesture::toggleVisibility),			boost::bind(&LLFloaterGesture::instanceVisible));
+		registerFloater("grid options",	boost::bind(&LLFloaterBuildOptions::show,(void*)NULL));
+		registerFloater("help tutorial",boost::bind(&LLFloaterHUD::showHUD));
+		registerFloater("im",			boost::bind(&LLFloaterChatterBox::toggleInstance,LLSD()),	boost::bind(&LLFloaterMyFriends::instanceVisible,0));
+		//registerFloater("lag meter",	boost::bind(&LLFloaterLagMeter::showInstance,LLSD()));
+		registerFloater("my land",		boost::bind(&LLFloaterLandHoldings::show,(void*)NULL));
+		registerFloater("preferences",	boost::bind(&LLFloaterPreference::show,(void*)NULL));
+		registerFloater("script errors",boost::bind(&LLFloaterScriptDebug::show,LLUUID::null));
+		//registerFloater("script info",	boost::bind(&LLFloaterScriptLimits::showInstance,LLSD()));
+		// Phoenix: Wolfspirit: Enabled Show Floater out of viewer menu
+		registerFloater("toolbar",		boost::bind(&LLToolBar::toggle,(void*)NULL),				boost::bind(&LLToolBar::visible,(void*)NULL));
+		registerFloater("world map",	boost::bind(&LLFloaterWorldMap::toggle));
+		registerFloater("sound_explorer",	boost::bind(&LLFloaterExploreSounds::toggle),			boost::bind(&LLFloaterExploreSounds::visible));
+		registerFloater("asset_blacklist",	boost::bind(&LLFloaterBlacklist::toggle),				boost::bind(&LLFloaterBlacklist::visible));
+
+		registerFloater<LLFloaterLand>				("about land");
+		registerFloater<LLFloaterRegionInfo>		("about region");
+		registerFloater<LLFloaterActiveSpeakers>	("active speakers");
+		registerFloater<JCFloaterAreaSearch>		("areasearch");
+		registerFloater<LLFloaterBeacons>			("beacons");
+		registerFloater<LLFloaterCamera>			("camera controls");
+		registerFloater<LLFloaterChat>				("chat history");
+		registerFloater<LLFloaterChatterBox>		("communicate");
+		registerFloater<LLFloaterMyFriends>			("friends",0);
+		registerFloater<LLFloaterLagMeter>			("lag meter");
+		registerFloater<SLFloaterMediaFilter>		("media filter");
+		registerFloater<LLFloaterMap>				("mini map");
+		registerFloater<LLFloaterMove>				("movement controls");
+		registerFloater<LLFloaterMute>				("mute list");
+		registerFloater<LLFloaterOutbox>			("outbox");
+		registerFloater<LLFloaterPerms>				("perm prefs");
+		registerFloater<LLFloaterScriptLimits>		("script info");
+		registerFloater<LLFloaterStats>				("stat bar");
+		registerFloater<LLFloaterTeleportHistory>	("teleport history");
+		registerFloater<LLFloaterVoiceEffect>		("voice effect");
+		registerFloater<LLFloaterPathfindingCharacters>	("pathfinding_characters");
+		registerFloater<LLFloaterPathfindingLinksets>	("pathfinding_linksets");
+
+	}
+	void registerFloater(const std::string& name, boost::function<void ()> show, boost::function<bool ()> visible = NULL)
+	{
+		mEntries.insert( std::make_pair( name, std::make_pair( show, visible ) ) );
+	}
+	template <typename T>
+	void registerFloater(const std::string& name, const LLSD& key = LLSD())
+	{
+		registerFloater(name, boost::bind(&T::toggleInstance,key), boost::bind(&T::instanceVisible,key));
+	}
+
+};
+
 // TomY TODO: Move!
 class LLShowFloater : public view_listener_t
 {
@@ -6666,9 +6435,10 @@ class LLShowFloater : public view_listener_t
 	{
 		std::string floater_name = userdata.asString();
 		if (floater_name.empty()) return false;
-		if (floater_name == "gestures")
+		MenuFloaterDict::menu_floater_map_t::iterator it = MenuFloaterDict::instance().mEntries.find(floater_name);
+		if(it != MenuFloaterDict::instance().mEntries.end() && it->second.first != NULL)
 		{
-			LLFloaterGesture::toggleVisibility();
+			it->second.first();
 		}
 		else if (floater_name == "appearance")
 		{
@@ -6681,74 +6451,9 @@ class LLShowFloater : public view_listener_t
 		{
 			new LLMakeOutfitDialog(false);
 		}
-		// Phoenix: Wolfspirit: Enabled Show Floater out of viewer menu
-		else if (floater_name == "displayname")
-		{
-			LLFloaterDisplayName::show();
-		}
-		else if (floater_name == "friends")
-		{
-			LLFloaterMyFriends::toggleInstance(0);
-		}
-		else if (floater_name == "preferences")
-		{
-			LLFloaterPreference::show(NULL);
-		}
-		else if (floater_name == "toolbar")
-		{
-			LLToolBar::toggle(NULL);
-		}
-		else if (floater_name == "chat history")
-		{
-			LLFloaterChat::toggleInstance(LLSD());
-		}
-		else if (floater_name == "teleport history")
-		{
-			LLFloaterTeleportHistory::toggleInstance();
-		}
-		else if (floater_name == "im")
-		{
-			LLFloaterChatterBox::toggleInstance(LLSD());
-		}
 		else if (floater_name == "inventory")
 		{
 			LLInventoryView::toggleVisibility(NULL);
-		}
-		else if (floater_name == "mute list")
-		{
-			LLFloaterMute::toggleInstance();
-		}
-		else if (floater_name == "media filter")
-		{
-			SLFloaterMediaFilter::toggleInstance();
-		}
-		else if (floater_name == "camera controls")
-		{
-			LLFloaterCamera::toggleInstance();
-		}
-		else if (floater_name == "movement controls")
-		{
-			LLFloaterMove::toggleInstance();
-		}
-		else if (floater_name == "world map")
-		{
-			LLFloaterWorldMap::toggle(NULL);
-		}
-		else if (floater_name == "mini map")
-		{
-			LLFloaterMap::toggleInstance();
-		}
-		else if (floater_name == "stat bar")
-		{
-			LLFloaterStats::toggleInstance();
-		}
-		else if (floater_name == "my land")
-		{
-			LLFloaterLandHoldings::show(NULL);
-		}
-		else if (floater_name == "about land")
-		{
-			LLFloaterLand::showInstance();
 		}
 		else if (floater_name == "buy land")
 		{
@@ -6762,38 +6467,16 @@ class LLShowFloater : public view_listener_t
 			{
 				LLViewerParcelMgr::getInstance()->selectParcelAt(gAgent.getPositionGlobal());
 			}
-			
 			LLViewerParcelMgr::getInstance()->startBuyLand();
 		}
-		else if (floater_name == "about region")
-		{
-			LLFloaterRegionInfo::showInstance();
-		}
-		else if (floater_name == "areasearch")
-		{
-			JCFloaterAreaSearch::toggle();
-		}
-		else if (floater_name == "grid options")
-		{
-			LLFloaterBuildOptions::show(NULL);
-		}
-		else if (floater_name == "script errors")
-		{
-			LLFloaterScriptDebug::show(LLUUID::null);
-		}
-		else if (floater_name == "script info")
-		{
-			LLFloaterScriptLimits::showInstance();
-		}
-		else if (floater_name == "help f1")
+
+		//Singu TODO: Re-implement f1 help.
+		/*else if (floater_name == "help f1")
 		{
 			llinfos << "Spawning HTML help window" << llendl;
 			gViewerHtmlHelp.show();
-		}
-		else if (floater_name == "help tutorial")
-		{
-			LLFloaterHUD::showHUD();
-		}
+		}*/
+
 		else if (floater_name == "complaint reporter")
 		{
 			// Prevent menu from appearing in screen shot.
@@ -6806,48 +6489,6 @@ class LLShowFloater : public view_listener_t
 			{
 				LLFloaterBump::show(NULL);
 			}
-		}
-		else if (floater_name == "lag meter")
-		{
-			LLFloaterLagMeter::showInstance();
-		}
-		else if (floater_name == "bug reporter")
-		{
-			// Prevent menu from appearing in screen shot.
-			gMenuHolder->hideMenus();
-			LLFloaterReporter::showFromMenu(BUG_REPORT);
-		}
-		else if (floater_name == "buy currency")
-		{
-			LLFloaterBuyCurrency::buyCurrency();
-		}
-		else if (floater_name == "about")
-		{
-			LLFloaterAbout::show(NULL);
-		}
-		else if (floater_name == "active speakers")
-		{
-			LLFloaterActiveSpeakers::toggleInstance(LLSD());
-		}
-		else if (floater_name == "beacons")
-		{
-			LLFloaterBeacons::toggleInstance(LLSD());
-		}
-		else if (floater_name == "perm prefs")
-		{
-			LLFloaterPerms::toggleInstance(LLSD());
-		}
-		else if (floater_name == "outbox")
-		{
-			LLFloaterOutbox::toggleInstance(LLSD());
-		}
-		else if (floater_name == "pathfinding_linksets")
-		{
-			LLFloaterPathfindingLinksets::toggleInstance(LLSD());
-		}
-		else if (floater_name == "pathfinding_characters")
-		{
-			LLFloaterPathfindingCharacters::toggleInstance(LLSD());
 		}
 		else // Simple codeless floater
 		{
@@ -6868,85 +6509,21 @@ class LLFloaterVisible : public view_listener_t
 		std::string control_name = userdata["control"].asString();
 		std::string floater_name = userdata["data"].asString();
 		bool new_value = false;
-		if (floater_name == "friends")
+		MenuFloaterDict::menu_floater_map_t::iterator it = MenuFloaterDict::instance().mEntries.find(floater_name);
+		if(it != MenuFloaterDict::instance().mEntries.end() && it->second.second != NULL)
 		{
-			new_value = LLFloaterMyFriends::instanceVisible(0);
-		}
-		else if (floater_name == "communicate")
-		{
-			new_value = LLFloaterChatterBox::instanceVisible();
-		}
-		else if (floater_name == "toolbar")
-		{
-			new_value = LLToolBar::visible(NULL);
-		}
-		else if (floater_name == "chat history")
-		{
-			new_value = LLFloaterChat::instanceVisible();
-		}
-		else if (floater_name == "teleport history")
-		{
-			new_value = LLFloaterTeleportHistory::instanceVisible();
-		}
-		else if (floater_name == "im")
-		{
-			new_value = LLFloaterMyFriends::instanceVisible(0);
-		}
-		else if (floater_name == "mute list")
-		{
-			new_value = LLFloaterMute::instanceVisible();
-		}
-		else if (floater_name == "media filter")
-		{
-			new_value = SLFloaterMediaFilter::instanceVisible();
-		}
-		else if (floater_name == "camera controls")
-		{
-			new_value = LLFloaterCamera::instanceVisible();
-		}
-		else if (floater_name == "movement controls")
-		{
-			new_value = LLFloaterMove::instanceVisible();
-		}
-		else if (floater_name == "stat bar")
-		{
-			new_value = LLFloaterStats::instanceVisible();
-		}
-		else if (floater_name == "active speakers")
-		{
-			new_value = LLFloaterActiveSpeakers::instanceVisible(LLSD());
-		}
-		else if (floater_name == "beacons")
-		{
-			new_value = LLFloaterBeacons::instanceVisible(LLSD());
+			new_value = it->second.second();
 		}
 		else if (floater_name == "inventory")
 		{
 			LLInventoryView* iv = LLInventoryView::getActiveInventory(); 
 			new_value = (NULL != iv && TRUE == iv->getVisible());
 		}
-		else if (floater_name == "areasearch")
-		{
-			JCFloaterAreaSearch* instn = JCFloaterAreaSearch::getInstance();
-			if (!instn) new_value = false;
-			else new_value = instn->getVisible();
-		}
-		else if (floater_name == "outbox")
-		{
-			new_value = LLFloaterOutbox::instanceVisible(LLSD());
-		}
-		else if (floater_name == "pathfinding_linksets")
-		{
-			new_value = LLFloaterPathfindingLinksets::instanceVisible(LLSD());
-		}
-		else if (floater_name == "pathfinding_characters")
-		{
-			new_value = LLFloaterPathfindingCharacters::instanceVisible(LLSD());
-		}
 		gMenuHolder->findControl(control_name)->setValue(new_value);
 		return true;
 	}
 };
+
 
 bool callback_show_url(const LLSD& notification, const LLSD& response)
 {
@@ -7049,7 +6626,7 @@ class LLShowAgentProfile : public view_listener_t
 		if ( (avatar) && ((!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) || (gAgent.getID() == agent_id)) )
 // [/RLVa:KB]
 		{
-			LLFloaterAvatarInfo::show( avatar->getID() );
+			LLAvatarActions::showProfile(avatar->getID());
 		}
 		return true;
 	}
@@ -7063,6 +6640,7 @@ class LLShowAgentGroups : public view_listener_t
 		return true;
 	}
 };
+
 class LLLandEdit : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -7121,7 +6699,6 @@ BOOL enable_buy_land(void*)
 }
 
 
-
 class LLObjectAttachToAvatar : public view_listener_t
 {
 public:
@@ -7140,7 +6717,7 @@ private:
 			if (index > 0)
 				attachment_point = get_if_there(gAgentAvatarp->mAttachmentPoints, index, (LLViewerJointAttachment*)NULL);
 
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.2.1f | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.2.1f
 			// RELEASE-RLVa: [SL-2.2.0] If 'index != 0' then the object will be "add attached" [see LLSelectMgr::sendAttach()]
 			if ( (rlv_handler_t::isEnabled()) &&
 				 ( ((!index) && (gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_ANY))) ||		    // Can't wear on default
@@ -7296,7 +6873,7 @@ class LLAttachmentDrop : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0e) | Modified: RLVa-1.0.5 | OK
+// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0e) | Modified: RLVa-1.0.5
 		if (rlv_handler_t::isEnabled())
 		{
 			if (gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE))
@@ -7337,7 +6914,7 @@ void handle_detach_from_avatar(void* user_data)
 {
 	uuid_vec_t ids_to_remove;
 	const LLViewerJointAttachment *attachment = (LLViewerJointAttachment*)user_data;
-	
+
 //	if (attachment->getNumObjects() > 0)
 // [RLVa:KB] - Checked: 2010-03-04 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 	if ( (attachment->getNumObjects() > 0) && ((!rlv_handler_t::isEnabled()) || (gRlvAttachmentLocks.canDetach(attachment))) )
@@ -7409,7 +6986,6 @@ void detach_label(std::string& label, void* user_data)
 	}
 }
 
-
 class LLAttachmentDetach : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -7446,7 +7022,7 @@ class LLAttachmentDetach : public view_listener_t
 			return true;
 		}
 
-// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0a) | Modified: RLVa-1.0.5 | OK
+// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0a) | Modified: RLVa-1.0.5
 		// NOTE: copy/paste of the code in enable_detach()
 		if ( (rlv_handler_t::isEnabled()) && (gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE)) )
 		{
@@ -7500,18 +7076,18 @@ class LLAttachmentEnableDrop : public view_listener_t
 		// item is in your inventory
 
 		LLViewerObject*              object         = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-		LLViewerJointAttachment*     attachment_pt  = NULL;
+		LLViewerJointAttachment*     attachment     = NULL;
 		LLInventoryItem*             item           = NULL;
 
-		if ( object )
+		if (object)
 		{
     		S32 attachmentID  = ATTACHMENT_ID_FROM_STATE(object->getState());
-			attachment_pt = get_if_there(gAgentAvatarp->mAttachmentPoints, attachmentID, (LLViewerJointAttachment*)NULL);
+			attachment = get_if_there(gAgentAvatarp->mAttachmentPoints, attachmentID, (LLViewerJointAttachment*)NULL);
 
-			if ( attachment_pt )
+			if (attachment)
 			{
-				for (LLViewerJointAttachment::attachedobjs_vec_t::iterator attachment_iter = attachment_pt->mAttachedObjects.begin();
-					 attachment_iter != attachment_pt->mAttachedObjects.end();
+				for (LLViewerJointAttachment::attachedobjs_vec_t::iterator attachment_iter = attachment->mAttachedObjects.begin();
+					 attachment_iter != attachment->mAttachedObjects.end();
 					 ++attachment_iter)
 				{
 					// make sure item is in your inventory (it could be a delayed attach message being sent from the sim)
@@ -7532,9 +7108,9 @@ class LLAttachmentEnableDrop : public view_listener_t
 		}
 
 		//now check to make sure that the item is actually in the inventory before we enable dropping it
-//		bool new_value = enable_detach(NULL) && can_build && item;
-// [RLVa:KB] - Checked: 2009-07-05 (RLVa-1.0.0b)
-		bool new_value = enable_detach(NULL) && can_build && item && (!gRlvHandler.hasBehaviour(RLV_BHVR_REZ));
+//		bool new_value = enable_detach() && can_build && item;
+// [RLVa:KB] - Checked: 2010-03-24 (RLVa-1.0.0b) | Modified: RLVa-1.0.0b
+		bool new_value = enable_detach() && can_build && item && (!gRlvHandler.hasBehaviour(RLV_BHVR_REZ));
 // [/RLVa:KB]
 
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
@@ -7542,11 +7118,14 @@ class LLAttachmentEnableDrop : public view_listener_t
 	}
 };
 
-BOOL enable_detach(void*)
+BOOL enable_detach(const LLSD&)
 {
 	LLViewerObject* object = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-	if (!object) return FALSE;
-	if (!object->isAttachment()) return FALSE;
+	if (!object ||
+		!object->isAttachment())
+	{
+		return FALSE;
+	}
 
 	// Find the avatar who owns this attachment
 	LLViewerObject* avatar = object;
@@ -7555,7 +7134,7 @@ BOOL enable_detach(void*)
 		// ...if it's you, good to detach
 		if (avatar->getID() == gAgent.getID())
 		{
-// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0a) | Modified: RLVa-1.0.5 | OK
+// [RLVa:KB] - Checked: 2010-03-15 (RLVa-1.2.0a) | Modified: RLVa-1.0.5
 			// NOTE: this code is reused as-is in LLAttachmentDetach::handleEvent() and LLAttachmentDrop::handleEvent()
 			//       so any changes here should be reflected there as well
 
@@ -7582,7 +7161,7 @@ class LLAttachmentEnableDetach : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_value = enable_detach(NULL);
+		bool new_value = enable_detach();
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
 		return true;
 	}
@@ -7596,6 +7175,7 @@ BOOL object_selected_and_point_valid(void *user_data)
 	{
 		if (!isAgentAvatarValid())
 			return FALSE;
+
 		// RELEASE-RLVa: look at the caller graph for this function on every new release
 		//	-> 1.22.11 and 1.23.4
 		//		- object_is_wearable() => dead code [user_data == NULL => default attach point => OK!]
@@ -7612,7 +7192,6 @@ BOOL object_selected_and_point_valid(void *user_data)
 	}
 // [/RLVa:KB]
 
-	//LLViewerJointAttachment *attachment = (LLViewerJointAttachment *)user_data;
 	LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection();
 	for (LLObjectSelection::root_iterator iter = selection->root_begin();
 		 iter != selection->root_end(); iter++)
@@ -7640,6 +7219,8 @@ BOOL object_selected_and_point_valid(void *user_data)
 }
 
 
+// [RLVa:KB] - Checked: 2010-03-16 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
+/*
 BOOL object_is_wearable()
 {
 	if (!object_selected_and_point_valid(NULL))
@@ -7662,6 +7243,8 @@ BOOL object_is_wearable()
 	}
 	return FALSE;
 }
+*/
+// [/RLVa:KB]
 
 
 // Also for seeing if object can be attached.  See above.
@@ -7694,28 +7277,12 @@ class LLAvatarSendIM : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | OK
-		if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-		{
-			return true;
-		}
+//		if(avatar)
+// [RLVa:KB] - Checked: 2010-06-04 (RLVa-1.2.0d) | Added: RLVa-1.2.0d
+		if ((avatar) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)))
 // [/RLVa:KB]
-		if(avatar)
 		{
-			std::string name("IM");
-			LLNameValue *first = avatar->getNVPair("FirstName");
-			LLNameValue *last = avatar->getNVPair("LastName");
-			if (first && last)
-			{
-				name.assign( first->getString() );
-				name.append(" ");
-				name.append( last->getString() );
-			}
-
-			gIMMgr->setFloaterOpen(TRUE);
-			//EInstantMessage type = have_agent_callingcard(gLastHitObjectID)
-			//	? IM_SESSION_ADD : IM_SESSION_CARDLESS_START;
-			gIMMgr->addSession(LLCacheName::cleanFullName(name),IM_NOTHING_SPECIAL,avatar->getID());
+			LLAvatarActions::startIM(avatar->getID());
 		}
 		return true;
 	}
@@ -7747,7 +7314,7 @@ namespace
 	};
 }
 
-void queue_actions(LLFloaterScriptQueue* q, const std::string& noscriptmsg, const std::string& nomodmsg)
+void queue_actions(LLFloaterScriptQueue* q, const std::string& msg)
 {
 	QueueObjects func(q);
 	LLSelectMgr *mgr = LLSelectMgr::getInstance();
@@ -7757,10 +7324,12 @@ void queue_actions(LLFloaterScriptQueue* q, const std::string& noscriptmsg, cons
 	{
 		if ( !func.scripted )
 		{
+			std::string noscriptmsg = std::string("Cannot") + msg + "SelectObjectsNoScripts";
 			LLNotifications::instance().add(noscriptmsg);
 		}
 		else if ( !func.modifiable )
 		{
+			std::string nomodmsg = std::string("Cannot") + msg + "SelectObjectsNoPermission";
 			LLNotifications::instance().add(nomodmsg);
 		}
 		else
@@ -7777,43 +7346,11 @@ void queue_actions(LLFloaterScriptQueue* q, const std::string& noscriptmsg, cons
 	}
 }
 
-void handle_compile_queue(std::string to_lang)
-{
-	LLFloaterCompileQueue* queue;
-	if (to_lang == "mono")
-	{
-		queue = LLFloaterCompileQueue::create(TRUE);
-	}
-	else
-	{
-		queue = LLFloaterCompileQueue::create(FALSE);
-	}
-	queue_actions(queue, "CannotRecompileSelectObjectsNoScripts", "CannotRecompileSelectObjectsNoPermission");
-}
-
-void handle_reset_selection(void)
-{
-	LLFloaterResetQueue* queue = LLFloaterResetQueue::create();
-	queue_actions(queue, "CannotResetSelectObjectsNoScripts", "CannotResetSelectObjectsNoPermission");
-}
-
-void handle_set_run_selection(void)
-{
-	LLFloaterRunQueue* queue = LLFloaterRunQueue::create();
-	queue_actions(queue, "CannotSetRunningSelectObjectsNoScripts", "CannotSerRunningSelectObjectsNoPermission");
-}
-
-void handle_set_not_run_selection(void)
-{
-	LLFloaterNotRunQueue* queue = LLFloaterNotRunQueue::create();
-	queue_actions(queue, "CannotSetRunningNotSelectObjectsNoScripts", "CannotSerRunningNotSelectObjectsNoPermission");
-}
-
 class LLToolsSelectedScriptAction : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.0f) | Modified: RLVa-1.0.5a | OK
+// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.0f) | Modified: RLVa-1.0.5a
 		// We'll allow resetting the scripts of objects on a non-attachable attach point since they wouldn't be able to circumvent anything
 		if ( (rlv_handler_t::isEnabled()) && (gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE)) )
 		{
@@ -7825,25 +7362,40 @@ class LLToolsSelectedScriptAction : public view_listener_t
 // [/RLVa:KB]
 
 		std::string action = userdata.asString();
+		LLFloaterScriptQueue* queue = NULL;
+		std::string msg;
 		if (action == "compile mono")
 		{
-			handle_compile_queue("mono");
+			queue = LLFloaterCompileQueue::create(true);
+			msg = "Recompile";
 		}
 		if (action == "compile lsl")
 		{
-			handle_compile_queue("lsl");
+			queue = LLFloaterCompileQueue::create(false);
+			msg = "Recompile";
 		}
 		else if (action == "reset")
 		{
-			handle_reset_selection();
+			queue = LLFloaterResetQueue::create();
+			msg = "Reset";
 		}
 		else if (action == "start")
 		{
-			handle_set_run_selection();
+			queue = LLFloaterRunQueue::create();
+			msg = "SetRunning";
 		}
 		else if (action == "stop")
 		{
-			handle_set_not_run_selection();
+			queue = LLFloaterNotRunQueue::create();
+			msg = "SetRunningNot";
+		}
+		if (queue)
+		{
+			queue_actions(queue, msg);
+		}
+		else
+		{
+			llwarns << "Failed to generate LLFloaterScriptQueue with action: " << action << llendl;
 		}
 		return true;
 	}
@@ -7925,7 +7477,7 @@ void handle_dump_image_list(void*)
 
 void handle_test_male(void*)
 {
-// [RLVa:KB] - Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a | OK
+// [RLVa:KB] - Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
 	// TODO-RLVa: [RLVa-1.2.1] Is there any reason to still block this?
  	if ( (rlv_handler_t::isEnabled()) && 
 		 ((gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_ANY)) || (gRlvWearableLocks.hasLockedWearableType(RLV_LOCK_ANY))) )
@@ -7940,7 +7492,7 @@ void handle_test_male(void*)
 
 void handle_test_female(void*)
 {
-// [RLVa:KB] - Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a | OK
+// [RLVa:KB] - Checked: 2010-03-19 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
 	// TODO-RLVa: [RLVa-1.2.1] Is there any reason to still block this?
  	if ( (rlv_handler_t::isEnabled()) && 
 		 ((gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_ANY)) || (gRlvWearableLocks.hasLockedWearableType(RLV_LOCK_ANY))) )
@@ -7959,20 +7511,15 @@ void handle_toggle_pg(void*)
 
 	LLFloaterWorldMap::reloadIcons(NULL);
 
-	llinfos << "PG status set to " << (S32)gAgent.isTeen() << llendl;
+	llinfos << "PG status set to " << gAgent.isTeen() << llendl;
 }
 
 void handle_dump_attachments(void*)
 {
-	LLVOAvatar* avatar = gAgentAvatarp;
-	if( !avatar )
-	{
-		llinfos << "NO AVATAR" << llendl;
-		return;
-	}
+	if(!isAgentAvatarValid()) return;
 
-	for (LLVOAvatar::attachment_map_t::iterator iter = avatar->mAttachmentPoints.begin(); 
-		 iter != avatar->mAttachmentPoints.end(); )
+	for (LLVOAvatar::attachment_map_t::iterator iter = gAgentAvatarp->mAttachmentPoints.begin();
+		 iter != gAgentAvatarp->mAttachmentPoints.end(); )
 	{
 		LLVOAvatar::attachment_map_t::iterator curiter = iter++;
 		LLViewerJointAttachment* attachment = curiter->second;
@@ -8031,7 +7578,7 @@ void menu_toggle_control( void* user_data )
 }
 
 
-// these are used in the gl menus to set control values.
+// these are used in the gl menus to set control values, generically.
 class LLToggleControl : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -8111,7 +7658,7 @@ BOOL enable_more_than_one_selected(void* )
 
 static bool is_editable_selected()
 {
-// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.5a | OK
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.0.5a
 	// RELEASE-RLVa: [SL-2.2.0] Check that this still isn't called by anything but script actions in the Build menu
 	if ( (rlv_handler_t::isEnabled()) && (gRlvAttachmentLocks.hasLockedAttachmentPoint(RLV_LOCK_REMOVE)) )
 	{
@@ -8346,28 +7893,6 @@ class LLToolsEnableSaveToObjectInventory : public view_listener_t
 	}
 };
 
-BOOL enable_not_thirdperson(void*)
-{
-	return !gAgentCamera.cameraThirdPerson();
-}
-
-
-// BOOL enable_export_selected(void *)
-// {
-// 	if (LLSelectMgr::getInstance()->getSelection()->isEmpty())
-// 	{
-// 		return FALSE;
-// 	}
-// 	if (!gExporterRequestID.isNull())
-// 	{
-// 		return FALSE;
-// 	}
-// 	if (!LLUploadDialog::modalUploadIsFinished())
-// 	{
-// 		return FALSE;
-// 	}
-// 	return TRUE;
-// }
 
 class LLViewEnableMouselook : public view_listener_t
 {
@@ -8423,20 +7948,14 @@ class LLWorldEnableTeleportHome : public view_listener_t
 		LLViewerRegion* regionp = gAgent.getRegion();
 		bool agent_on_prelude = (regionp && regionp->isPrelude());
 		bool enable_teleport_home = gAgent.isGodlike() || !agent_on_prelude;
-// [RLVa:KB] - Checked: 2009-12-22 (RLVa-1.1.0k) | Added: RLVa-1.1.0j
-		enable_teleport_home &= !gRlvHandler.hasBehaviour(RLV_BHVR_TPLM);
+// [RLVa:KB] - Checked: 2010-09-28 (RLVa-1.2.1f) | Modified: RLVa-1.2.1f
+		enable_teleport_home &=
+			(!rlv_handler_t::isEnabled()) || ((!gRlvHandler.hasBehaviour(RLV_BHVR_TPLM)) && (!gRlvHandler.hasBehaviour(RLV_BHVR_TPLOC)));
 // [/RLVa:KB]
 		gMenuHolder->findControl(userdata["control"].asString())->setValue(enable_teleport_home);
 		return true;
 	}
 };
-
-BOOL enable_region_owner(void*)
-{
-	if(gAgent.getRegion() && gAgent.getRegion()->getOwner() == gAgent.getID())
-		return TRUE;
-	return enable_god_customer_service(NULL);
-}
 
 BOOL enable_god_full(void*)
 {
@@ -8448,26 +7967,20 @@ BOOL enable_god_liaison(void*)
 	return gAgent.getGodLevel() >= GOD_LIAISON;
 }
 
-BOOL enable_god_customer_service(void*)
+BOOL is_god_customer_service(void*)
 {
 	return gAgent.getGodLevel() >= GOD_CUSTOMER_SERVICE;
 }
 
 BOOL enable_god_basic(void*)
 {
-// [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.0.0a)
-	// RELEASE-RLVa: check that this function isn't used for anything other than to enable/disable showing the "God Tools..." floater
-	return (gAgent.getGodLevel() > GOD_NOT) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC));
-// [/RLVa:KB]
-	//return gAgent.getGodLevel() > GOD_NOT;
+	return gAgent.getGodLevel() > GOD_NOT;
 }
+
 
 void toggle_show_xui_names(void *)
 {
-	BOOL showXUINames = gSavedSettings.getBOOL("ShowXUINames");
-	
-	showXUINames = !showXUINames;
-	gSavedSettings.setBOOL("ShowXUINames", showXUINames);
+	gSavedSettings.setBOOL("ShowXUINames", !gSavedSettings.getBOOL("ShowXUINames"));
 }
 
 BOOL check_show_xui_names(void *)
@@ -8590,10 +8103,23 @@ void slow_mo_animations(void*)
 
 void handle_dump_avatar_local_textures(void*)
 {
-	if( isAgentAvatarValid() )
+	if (!isAgentAvatarValid()) return;
+	gAgentAvatarp->dumpLocalTextures();
+}
+
+void handle_debug_avatar_textures(void*)
+{
+	if (LLViewerObject* objectp = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject())
 	{
-		gAgentAvatarp->dumpLocalTextures();
+		LLFloaterAvatarTextures::show(objectp->getID());
 	}
+	// <edit>
+	else
+	{
+		// default to own avatar
+		LLFloaterAvatarTextures::show(gAgent.getID());
+	}
+	// </edit>
 }
 
 void init_meshes_and_morphs_menu()
@@ -8992,22 +8518,6 @@ static void handle_morph_load_obj_continued(void* data, AIFilePicker* filepicker
 	morph_data->setMorphFromMesh(&mesh);
 }
 
-void handle_debug_avatar_textures(void*)
-{
-	LLViewerObject* objectp = LLSelectMgr::getInstance()->getSelection()->getPrimaryObject();
-	if (objectp)
-	{
-		LLFloaterAvatarTextures::show(objectp->getID());
-	}
-	// <edit?
-	// default to own avatar
-	else
-	{
-		LLFloaterAvatarTextures::show(gAgent.getID());
-	}
-	// </edit>
-}
-
 // Returns a pointer to the avatar give the UUID of the avatar OR of an attachment the avatar is wearing.
 // Returns NULL on failure.
 LLVOAvatar* find_avatar_from_object( LLViewerObject* object )
@@ -9022,8 +8532,7 @@ LLVOAvatar* find_avatar_from_object( LLViewerObject* object )
 			}
 			while( object && !object->isAvatar() );
 		}
-		else
-		if( !object->isAvatar() )
+		else if( !object->isAvatar() )
 		{
 			object = NULL;
 		}
@@ -9043,7 +8552,7 @@ LLVOAvatar* find_avatar_from_object( const LLUUID& object_id )
 
 void handle_disconnect_viewer(void *)
 {
-	LLAppViewer::instance()->forceDisconnect("Testing viewer disconnect");
+	LLAppViewer::instance()->forceDisconnect(LLTrans::getString("TestingDisconnect"));
 }
 
 void force_error_breakpoint(void *)
@@ -9111,20 +8620,29 @@ void handle_test_load_url(void*)
 // LLViewerMenuHolderGL
 //
 
-LLViewerMenuHolderGL::LLViewerMenuHolderGL() : LLMenuHolderGL()
-{
-}
+LLViewerMenuHolderGL::LLViewerMenuHolderGL()
+: LLMenuHolderGL()
+{}
 
 BOOL LLViewerMenuHolderGL::hideMenus()
 {
-	BOOL handled = LLMenuHolderGL::hideMenus();
+	BOOL handled = FALSE;
+
+	if (LLMenuHolderGL::hideMenus())
+	{
+		LLToolPie::instance().blockClickToWalk();
+		handled = TRUE;
+	}
 
 	// drop pie menu selection
 	mParcelSelection = NULL;
 	mObjectSelection = NULL;
 
-	gMenuBarView->clearHoverItem();
-	gMenuBarView->resetMenuTrigger();
+	if (gMenuBarView)
+	{
+		gMenuBarView->clearHoverItem();
+		gMenuBarView->resetMenuTrigger();
+	}
 
 	return handled;
 }
@@ -9199,7 +8717,7 @@ static void handle_load_from_xml_continued(AIFilePicker* filepicker)
 
 void handle_web_browser_test(void*)
 {
-	LLFloaterMediaBrowser::showInstance("http://secondlife.com/app/search/slurls.html");
+	LLWeb::loadURL("http://secondlife.com/app/search/slurls.html");
 }
 
 void handle_buy_currency_test(void*)
@@ -9210,25 +8728,7 @@ void handle_buy_currency_test(void*)
 	LLStringUtil::format_map_t replace;
 	replace["[AGENT_ID]"] = gAgent.getID().asString();
 	replace["[SESSION_ID]"] = gAgent.getSecureSessionID().asString();
-
-	// *TODO: Replace with call to LLUI::getLanguage() after windows-setup
-	// branch merges in. JC
-	std::string language = "en-us";
-	language = gSavedSettings.getString("Language");
-	if (language.empty() || language == "default")
-	{
-		language = gSavedSettings.getString("InstallLanguage");
-	}
-	if (language.empty() || language == "default")
-	{
-		language = gSavedSettings.getString("SystemLanguage");
-	}
-	if (language.empty() || language == "default")
-	{
-		language = "en-us";
-	}
-
-	replace["[LANGUAGE]"] = language;
+	replace["[LANGUAGE]"] = LLUI::getLanguage();
 	LLStringUtil::format(url, replace);
 
 	llinfos << "buy currency url " << url << llendl;
@@ -9341,7 +8841,7 @@ class LLViewShowHUDAttachments : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.1a) | Modified: RLVa-1.0.0c | OK
+// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.1a) | Modified: RLVa-1.0.0c
 		if ( (rlv_handler_t::isEnabled()) && (gRlvAttachmentLocks.hasLockedHUD()) && (LLPipeline::sShowHUDAttachments) )
 			return true;
 // [/RLVa:KB]
@@ -9369,13 +8869,15 @@ class LLEditEnableTakeOff : public view_listener_t
 		std::string control_name = userdata["control"].asString();
 		std::string clothing = userdata["data"].asString();
 		LLWearableType::EType type = LLWearableType::typeNameToType(clothing);
-		if (type >= LLWearableType::WT_SHAPE && type < LLWearableType::WT_COUNT)
-// [RLVa:KB] - Checked: 2009-07-07 (RLVa-1.1.3b) | Modified: RLVa-1.1.3b | OK
-			if ( !(rlv_handler_t::isEnabled()) || (gRlvWearableLocks.canRemove(type)) )
+//		if (type >= LLWearableType::WT_SHAPE && type < LLWearableType::WT_COUNT)
+// [RLVa:KB] - Checked: 2010-03-20 (RLVa-1.2.0c) | Modified: RLVa-1.2.0a
+		// NOTE: see below - enable if there is at least one wearable on this type that can be removed
+		if ( (type >= LLWearableType::WT_SHAPE && type < LLWearableType::WT_COUNT) &&
+			 ((!rlv_handler_t::isEnabled()) || (gRlvWearableLocks.canRemove(type))) )
 // [/RLVa:KB]
-			
-				new_value = LLAgentWearables::selfHasWearable(type);
-
+		{
+			new_value = LLAgentWearables::selfHasWearable(type);
+		}
 		gMenuHolder->findControl(control_name)->setValue(new_value);
 		return false;
 	}
@@ -9412,6 +8914,7 @@ class LLEditTakeOff : public view_listener_t
 						return true;	// No wearable found that can be removed
 				}
 // [/RLVa:KB]
+
 				LLUUID item_id = gAgentWearables.getWearableItemID(type,wearable_index);
 				LLAppearanceMgr::instance().removeItemFromAvatar(item_id);
 			}
@@ -9463,7 +8966,7 @@ class LLWorldEnvSettings : public view_listener_t
 {	
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-// [RLVa:KB] - Checked: 2010-03-18 (RLVa-1.2.0a) | Modified: RLVa-1.0.0g | OK
+// [RLVa:KB] - Checked: 2010-03-18 (RLVa-1.2.0a) | Modified: RLVa-1.0.0g
 		if (gRlvHandler.hasBehaviour(RLV_BHVR_SETENV))
 			return true;
 // [/RLVa:KB]
@@ -9474,18 +8977,18 @@ class LLWorldEnvSettings : public view_listener_t
 		{
 			// if not there or is hidden, show it
 			if(	!LLFloaterEnvSettings::isOpen() || 
-				!LLFloaterEnvSettings::instance()->getVisible()) {
-				LLFloaterEnvSettings::show();
-				
-			// otherwise, close it button acts like a toggle
-			} 
-			else 
+				!LLFloaterEnvSettings::instance()->getVisible())
 			{
+				LLFloaterEnvSettings::show();
+			}
+			else
+			{
+				// otherwise, close it button acts like a toggle
 				LLFloaterEnvSettings::instance()->close();
 			}
 			return true;
 		}
-		
+
 		if (tod == "sunrise")
 		{
 			LLEnvManagerNew::instance().setUseSkyPreset("Sunrise", gSavedSettings.getBOOL("PhoenixInterpolateSky"));
@@ -9513,7 +9016,7 @@ class LLWorldEnvSettings : public view_listener_t
 
 /// Water Menu callbacks
 class LLWorldWaterSettings : public view_listener_t
-{	
+{
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 // [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g)
@@ -9565,6 +9068,482 @@ class LLWorldDayCycle : public view_listener_t
 	}
 };
 
+
+class SinguCloseAllDialogs : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_close_all_notifications(NULL);
+		return true;
+	}
+};
+
+class SinguAnimationOverride : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLFloaterAO::show(NULL);
+
+		return true;
+	}
+};
+
+class SinguNimble : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gSavedSettings.setBOOL("Nimble", !gSavedSettings.getBOOL("Nimble"));
+
+		return true;
+	}
+};
+
+class SinguCheckNimble : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(gSavedSettings.getBOOL("Nimble"));
+
+		return true;
+	}
+};
+
+class SinguAssetBlacklist : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLFloaterBlacklist::toggle();
+
+		return true;
+	}
+};
+
+class SinguStreamingAudioDisplay : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_ticker_toggle(NULL);
+
+		return true;
+	}
+};
+
+class SinguCheckStreamingAudioDisplay : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(handle_singleton_check<SHFloaterMediaTicker>(NULL));
+
+		return true;
+	}
+};
+
+class SinguEnableStreamingAudioDisplay : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		return handle_ticker_enabled(NULL);
+	}
+};
+
+class SinguPoseStand : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_toggle_pose(NULL);
+
+		return true;
+	}
+};
+
+class SinguCheckPoseStand : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(handle_check_pose(NULL));
+		return true;
+	}
+};
+
+class SinguRebake : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_rebake_textures(NULL);
+		return true;
+	}
+};
+
+class SinguDebugConsole : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		handle_singleton_toggle<LLFloaterRegionDebugConsole>(NULL);
+		return true;
+	}
+};
+
+class SinguCheckDebugConsole : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(handle_singleton_check<LLFloaterRegionDebugConsole>(NULL));
+		return true;
+	}
+};
+
+class SinguVisibleDebugConsole : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		if (LLViewerRegion* region = gAgent.getRegion())
+		{
+			if (LLView* item = gMenuBarView->getChildView("Region Debug Console", true, false))
+				item->setVisible(!(region->getCapability("SimConsoleAsync").empty() || region->getCapability("SimConsole").empty()));
+		}
+		return true;
+	}
+};
+
+class VisibleNotSecondLife : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(!gHippoGridManager->getConnectedGrid()->isSecondLife());
+		return true;
+	}
+};
+
+LLScrollListCtrl* get_focused_list()
+{
+	LLScrollListCtrl* list = dynamic_cast<LLScrollListCtrl*>(gFocusMgr.getKeyboardFocus());
+	llassert(list); // This listener only applies to lists
+	return list;
+}
+
+S32 get_focused_list_num_selected()
+{
+	if (LLScrollListCtrl* list = get_focused_list())
+		return list->getNumSelected();
+	return 0;
+}
+
+const LLUUID get_focused_list_id_selected()
+{
+	if (LLScrollListCtrl* list = get_focused_list())
+		return list->getStringUUIDSelectedItem();
+	return LLUUID::null;
+}
+
+const uuid_vec_t get_focused_list_ids_selected()
+{
+	if (LLScrollListCtrl* list = get_focused_list())
+		return list->getSelectedIDs();
+	return uuid_vec_t();
+}
+
+class ListEnableAnySelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(get_focused_list_num_selected());
+		return true;
+	}
+};
+
+class ListEnableMultipleSelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(get_focused_list_num_selected() > 1);
+		return true;
+	}
+};
+
+class ListEnableSingleSelected : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(get_focused_list_num_selected() == 1);
+		return true;
+	}
+};
+
+class ListEnableCall : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLScrollListCtrl* list = get_focused_list();
+		if (!list) return false;
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(LLAvatarActions::canCall());
+		return true;
+	}
+};
+
+class ListEnableIsFriend : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(LLAvatarActions::isFriend(get_focused_list_id_selected()));
+		return true;
+	}
+};
+
+class ListEnableIsNotFriend : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(!LLAvatarActions::isFriend(get_focused_list_id_selected()));
+		return true;
+	}
+};
+
+class ListEnableMute : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		bool can_block = true;
+		for (uuid_vec_t::const_iterator it = ids.begin(); can_block && it != ids.end(); ++it)
+			can_block = LLAvatarActions::canBlock(*it);
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(can_block);
+		return true;
+	}
+};
+
+class ListEnableOfferTeleport : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(LLAvatarActions::canOfferTeleport(get_focused_list_ids_selected()));
+		return true;
+	}
+};
+
+class ListVisibleWebProfile : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(get_focused_list_num_selected() && !(gSavedSettings.getBOOL("UseWebProfiles") || gSavedSettings.getString("WebProfileURL").empty()));
+		return true;
+	}
+};
+
+class ListCopyUUIDs : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::copyUUIDs(get_focused_list_ids_selected());
+		return true;
+	}
+};
+
+class ListInviteToGroup : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::inviteToGroup(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListOfferTeleport : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::offerTeleport(get_focused_list_ids_selected());
+		return true;
+	}
+};
+
+class ListPay : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::pay(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListRemoveFriend : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::removeFriendDialog(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListRequestFriendship : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::requestFriendshipDialog(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListRequestTeleport : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::teleportRequest(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListShowProfile : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::showProfiles(get_focused_list_ids_selected());
+		return true;
+	}
+};
+
+class ListShowWebProfile : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::showProfiles(get_focused_list_ids_selected(), true);
+		return true;
+	}
+};
+
+class ListStartAdhocCall : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::startAdhocCall(get_focused_list_ids_selected());
+		return true;
+	}
+};
+
+class ListStartCall : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::startCall(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+class ListStartConference : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::startConference(get_focused_list_ids_selected());
+		return true;
+	}
+};
+
+class ListStartIM : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLAvatarActions::startIM(get_focused_list_id_selected());
+		return true;
+	}
+};
+
+/* Singu TODO: Figure out why this wouldn't work
+class ListAbuseReport : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLFloaterReporter::showFromObject(get_focused_list_id_selected());
+		return true;
+	}
+};
+*/
+
+// Create the args for administrative notifications used in lists, tossing the selected names into it.
+LLSD create_args(const uuid_vec_t& ids, const std::string& token)
+{
+	std::string names;
+	LLAvatarActions::buildResidentsString(ids, names);
+	LLSD args;
+	args[token] = names;
+	return args;
+}
+
+void parcel_mod_notice_callback(const uuid_vec_t& ids, S32 choice, boost::function<void (const LLUUID&, bool)> cb)
+{
+	if (ids.empty() || (choice != 1 && choice != 0)) return; // choice must be 1 or 0 to take action
+
+	for (uuid_vec_t::const_iterator it = ids.begin(); it != ids.end(); ++it)
+		cb(*it, choice);
+}
+
+void send_eject(const LLUUID& avatar_id, bool ban);
+class ListEject : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		LLNotificationsUtil::add("EjectAvatarFullname", create_args(ids, "AVATAR_NAME"), LLSD(), boost::bind(parcel_mod_notice_callback, ids, boost::bind(LLNotificationsUtil::getSelectedOption, _1, _2), send_eject));
+		return true;
+	}
+};
+
+void send_freeze(const LLUUID& avatar_id, bool freeze);
+class ListFreeze : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		LLNotificationsUtil::add("FreezeAvatarFullname", create_args(ids, "AVATAR_NAME"), LLSD(), boost::bind(parcel_mod_notice_callback, ids, boost::bind(LLNotificationsUtil::getSelectedOption, _1, _2), send_freeze));
+		return true;
+	}
+};
+
+void estate_bulk_eject(const uuid_vec_t& ids, bool ban, S32 zero)
+{
+	if (ids.empty() || zero != 0) return;
+	std::vector<std::string> strings(2, gAgentID.asString()); // [0] = our agent id
+	for (uuid_vec_t::const_iterator it = ids.begin(); it != ids.end(); ++it)
+	{
+		LLUUID id(*it);
+		if (id.isNull()) continue;
+		strings[1] = id.asString(); // [1] = target agent id
+
+		LLRegionInfoModel::sendEstateOwnerMessage(gMessageSystem, "teleporthomeuser", LLFloaterRegionInfo::getLastInvoice(), strings);
+		if (ban)
+			LLPanelEstateInfo::sendEstateAccessDelta(ESTATE_ACCESS_BANNED_AGENT_ADD | ESTATE_ACCESS_ALLOWED_AGENT_REMOVE | ESTATE_ACCESS_NO_REPLY, id);
+	}
+}
+
+class ListEstateBan : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		LLNotificationsUtil::add("EstateBanUser", create_args(ids, "EVIL_USER"), LLSD(), boost::bind(estate_bulk_eject, ids, true, boost::bind(LLNotificationsUtil::getSelectedOption, _1, _2)));
+		return true;
+	}
+};
+
+class ListEstateEject : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		LLNotificationsUtil::add("EstateKickUser", create_args(ids, "EVIL_USER"), LLSD(), boost::bind(estate_bulk_eject, ids, false, boost::bind(LLNotificationsUtil::getSelectedOption, _1, _2)));
+		return true;
+	}
+};
+
+class ListToggleMute : public view_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		const uuid_vec_t& ids = get_focused_list_ids_selected();
+		for (uuid_vec_t::const_iterator it = ids.begin(); it != ids.end(); ++it)
+			LLAvatarActions::toggleBlock(*it);
+		return true;
+	}
+};
+
 void addMenu(view_listener_t *menu, const std::string& name)
 {
 	sMenus.push_back(menu);
@@ -9589,19 +9568,6 @@ void initialize_menus()
 	private:
 		F32 mVal;
 		bool mMult;
-	};
-	
-	class LLAvatarReportAbuse : public view_listener_t
-	{
-		bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-		{
-			LLVOAvatar* avatar = find_avatar_from_object( LLSelectMgr::getInstance()->getSelection()->getPrimaryObject() );
-			if(avatar)
-			{
-				LLFloaterReporter::showFromObject(avatar->getID());
-			}
-			return true;
-		}
 	};
 
 	// File menu
@@ -9710,7 +9676,6 @@ void initialize_menus()
 	addMenu(new LLToolsTakeCopy(), "Tools.TakeCopy");
 	addMenu(new LLToolsTakeCopy(), "Tools.TakeCopy");
 
-	addMenu(new LLScriptDelete(), "Tools.ScriptDelete");
 	// <edit>
 	addMenu(new LLToolsEnableAdminDelete(), "Tools.EnableAdminDelete");
 	addMenu(new LLToolsAdminDelete(), "Tools.AdminDelete");
@@ -9754,7 +9719,6 @@ void initialize_menus()
 	addMenu(new LLAvatarDebug(), "Avatar.Debug");
 
 	addMenu(new LLAvatarVisibleDebug(), "Avatar.VisibleDebug");
-	addMenu(new LLAvatarEnableDebug(), "Avatar.EnableDebug");
 	addMenu(new LLAvatarInviteToGroup(), "Avatar.InviteToGroup");
 	addMenu(new LLAvatarGiveCard(), "Avatar.GiveCard");
 	addMenu(new LLAvatarEject(), "Avatar.Eject");
@@ -9780,10 +9744,13 @@ void initialize_menus()
 	addMenu(new LLObjectMeasure(), "Object.Measure");
 	addMenu(new LLObjectData(), "Object.Data");
 	addMenu(new LLScriptCount(), "Object.ScriptCount");
+	addMenu(new LLObjectVisibleScriptCount(), "Object.VisibleScriptCount");
 	addMenu(new LLKillEmAll(), "Object.Destroy");
 	addMenu(new LLPowerfulWizard(), "Object.Explode");
 	addMenu(new LLCanIHasKillEmAll(), "Object.EnableDestroy");
 	addMenu(new LLOHGOD(), "Object.EnableExplode");
+	add_wave_listeners();
+	add_dae_listeners();
 	// </edit>
 	addMenu(new LLObjectMute(), "Object.Mute");
 	addMenu(new LLObjectBuy(), "Object.Buy");
@@ -9796,7 +9763,7 @@ void initialize_menus()
 	addMenu(new LLObjectExport(), "Object.Export");
 	addMenu(new LLObjectImport(), "Object.Import");
 	addMenu(new LLObjectImportUpload(), "Object.ImportUpload");
-	
+
 
 	addMenu(new LLObjectEnableOpen(), "Object.EnableOpen");
 	addMenu(new LLObjectEnableTouch(), "Object.EnableTouch");
@@ -9855,12 +9822,62 @@ void initialize_menus()
 	addMenu(new LLEditableSelected(), "EditableSelected");
 	addMenu(new LLEditableSelectedMono(), "EditableSelectedMono");
 
+	// Singularity menu
+	addMenu(new SinguCloseAllDialogs(), "CloseAllDialogs");
+	// ---- Fake away handled elsewhere
+	addMenu(new SinguAnimationOverride(), "AnimationOverride");
+	addMenu(new SinguNimble(), "Nimble");
+	addMenu(new SinguCheckNimble(), "CheckNimble");
+	addMenu(new SinguStreamingAudioDisplay(), "StreamingAudioDisplay");
+	addMenu(new SinguEnableStreamingAudioDisplay(), "EnableStreamingAudioDisplay");
+	addMenu(new SinguCheckStreamingAudioDisplay(), "CheckStreamingAudioDisplay");
+	addMenu(new SinguPoseStand(), "PoseStand");
+	addMenu(new SinguCheckPoseStand(), "CheckPoseStand");
+	addMenu(new SinguRebake(), "Rebake");
+	addMenu(new SinguDebugConsole(), "RegionDebugConsole");
+	addMenu(new SinguCheckDebugConsole(), "CheckRegionDebugConsole");
+	addMenu(new SinguVisibleDebugConsole(), "VisibleRegionDebugConsole");
+
 // [RLVa:KB] - Checked: 2010-01-18 (RLVa-1.1.0m) | Added: RLVa-1.1.0m | OK
 	if (rlv_handler_t::isEnabled())
 	{
 		addMenu(new RlvEnableIfNot(), "RLV.EnableIfNot");
 	}
 // [/RLVa:KB]
+
+	addMenu(new VisibleNotSecondLife(), "VisibleNotSecondLife");
+
+	// List-bound menus
+	addMenu(new ListEnableAnySelected(), "List.EnableAnySelected");
+	addMenu(new ListEnableMultipleSelected(), "List.EnableMultipleSelected");
+	addMenu(new ListEnableSingleSelected(), "List.EnableSingleSelected");
+	addMenu(new ListEnableCall(), "List.EnableCall");
+	addMenu(new ListEnableIsFriend(), "List.EnableIsFriend");
+	addMenu(new ListEnableIsNotFriend(), "List.EnableIsNotFriend");
+	addMenu(new ListEnableMute(), "List.EnableMute");
+	addMenu(new ListEnableOfferTeleport(), "List.EnableOfferTeleport");
+	addMenu(new ListVisibleWebProfile(), "List.VisibleWebProfile");
+	addMenu(new ListCopyUUIDs(), "List.CopyUUIDs");
+	addMenu(new ListInviteToGroup(), "List.InviteToGroup");
+	addMenu(new ListOfferTeleport(), "List.OfferTeleport");
+	addMenu(new ListPay(), "List.Pay");
+	addMenu(new ListRemoveFriend(), "List.RemoveFriend");
+	addMenu(new ListRequestFriendship(), "List.RequestFriendship");
+	addMenu(new ListRequestTeleport(), "List.RequestTeleport");
+	addMenu(new ListShowProfile(), "List.ShowProfile");
+	addMenu(new ListShowWebProfile(), "List.ShowWebProfile");
+	addMenu(new ListStartAdhocCall(), "List.StartAdhocCall");
+	addMenu(new ListStartCall(), "List.StartCall");
+	addMenu(new ListStartConference(), "List.StartConference");
+	addMenu(new ListStartIM(), "List.StartIM");
+	//addMenu(new ListAbuseReport(), "List.AbuseReport");
+	addMenu(new ListEject(), "List.ParcelEject");
+	addMenu(new ListFreeze(), "List.Freeze");
+	addMenu(new ListEstateBan(), "List.EstateBan");
+	addMenu(new ListEstateEject(), "List.EstateEject");
+	addMenu(new ListToggleMute(), "List.ToggleMute");
+
+	add_radar_listeners();
 
 	LLToolMgr::getInstance()->initMenu(sMenus);
 }

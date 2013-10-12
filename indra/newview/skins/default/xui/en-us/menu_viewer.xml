@@ -37,13 +37,23 @@
 		<on_click function="Object.ImportUpload" />
 		<on_enable function="Object.EnableImport" />
 	</menu_item_call>
+	<menu_item_call label="Change Local Textures" mouse_opaque="true" name="Change Local Textures">
+		<on_click function="File.LocalAssetBrowser"/>
+	</menu_item_call>
     <menu_item_separator enabled="true" label="-----------" mouse_opaque="true" name="separator" />
     <menu_item_call enabled="true" label="Set Default Permissions..." 
         mouse_opaque="true" name="perm prefs" >
         <on_click function="ShowFloater" userdata="perm prefs" />
     </menu_item_call>
+    <!--menu_item_check mouse_opaque="true" label="Show Voice Morpher" name="voice effect">
+        <on_click function="ShowFloater" userdata="voice effect"/>
+        <on_check function="FloaterVisible" userdata="voice effect"/>
+    </menu_item_check-->
 		<menu_item_separator bottom="-94" enabled="true" height="8" label="-----------" left="0"
 		     mouse_opaque="true" name="separator" width="243" />
+		<menu_item_call label="Minimize All Windows" mouse_opaque="true" name="Minimize All Windows">
+			<on_click function="File.MinimizeAllWindows"/>
+		</menu_item_call>
 		<menu_item_call bottom="-113" enabled="true" height="19" label="Close Window" left="0"
 		     mouse_opaque="true" name="Close Window" shortcut="control|W" width="243">
 			<on_click function="File.CloseWindow" userdata="" />
@@ -57,14 +67,9 @@
 		</menu_item_call>
 		<menu_item_separator bottom="-121" enabled="true" height="8" label="-----------" left="0"
 		     mouse_opaque="true" name="separator2" width="243" />
-		<menu_item_call bottom="-140" enabled="true" height="19" label="Save Preview As (TGA)..." left="0"
+		<menu_item_call bottom="-140" enabled="true" height="19" label="Save Preview As..." left="0"
 		     mouse_opaque="true" name="Save Preview As..." width="243">
 			<on_click function="File.SavePreview" userdata="" />
-			<on_enable function="File.EnableSaveAs" />
-		</menu_item_call>
-		<menu_item_call bottom="-140" enabled="true" height="19" label="Save Preview As (PNG)..." left="0"
-		     mouse_opaque="true" name="Save Preview AsPNG..." width="243">
-			<on_click function="File.SavePreviewPNG" userdata="" />
 			<on_enable function="File.EnableSaveAs" />
 		</menu_item_call>
 		<menu_item_separator bottom="-148" enabled="true" height="8" label="-----------" left="0"
@@ -299,6 +304,10 @@
 		     mouse_opaque="true" name="Reset View" shortcut="Esc" width="211">
 			<on_click function="View.ResetView" userdata="" />
 		</menu_item_call>
+		<menu_item_check label="Motion Resets Camera" name="Motion Resets Camera" shortcut="alt|shift|R">
+			<on_click function="ToggleControl" userdata="SinguMotionResetsCamera"/>
+			<on_check control="SinguMotionResetsCamera"/>
+		</menu_item_check>
 		<menu_item_call bottom="-86" enabled="false" height="19" label="Look at Last Chatter" left="0"
 		     mouse_opaque="true" name="Look at Last Chatter" shortcut="control|\"
 		     width="211">
@@ -730,7 +739,7 @@
 		<menu_item_separator bottom="-243" enabled="true" height="8" label="-----------" left="0"
 		     mouse_opaque="true" name="separator3" width="250" />
 		<menu_item_check bottom="" enabled="false" height="" label="Edit Linked Parts" left=""
-		     mouse_opaque="true" name="Edit Linked Parts" shortcut="" width="">
+		     mouse_opaque="true" name="Edit Linked Parts" shortcut="control|shift|E">
 			<on_click function="ToggleControl" userdata="EditLinkedParts" />
 			<on_click function="Tools.EditLinkedParts" userdata="" />
 			<on_check control="EditLinkedParts" />
@@ -856,6 +865,10 @@
       <on_click function="Tools.ScriptDelete" />
       <on_enable function="Tools.EnableScriptDelete" />
     </menu_item_call>
+    <menu_item_call mouse_opaque="true" label="Count Scripts in Selection" name="Count Scripts in Selection">
+      <on_click function="Object.ScriptCount" />
+      <on_enable function="Object.VisibleScriptCount" />
+    </menu_item_call>
       <menu create_jump_keys="true" label="Pathfinding" name="Pathfinding" opaque="true" tear_off="true">
         <menu_item_check label="Linksets..." name="pathfinding_linksets_menu_item">
           <on_click function="ShowFloater" userdata="pathfinding_linksets"/>
@@ -879,10 +892,10 @@
 	<menu bottom="219" create_jump_keys="true" drop_shadow="true" enabled="true"
 	     height="317" label="Help" left="227" mouse_opaque="false" name="Help"
 	     opaque="true" tear_off="true" width="166">
-		<menu_item_call bottom="-29" enabled="true" height="19" label="Second Life Help" left="0"
+		<!--menu_item_call bottom="-29" enabled="true" height="19" label="Second Life Help" left="0"
 		     mouse_opaque="true" name="Second Life Help" shortcut="F1" width="166">
 			<on_click function="ShowFloater" userdata="help f1" />
-		</menu_item_call>
+		</menu_item_call-->
 		<menu_item_call bottom="-48" enabled="true" height="19" label="Tutorial" left="0"
 		     mouse_opaque="true" name="Tutorial" width="166">
 			<on_click function="ShowFloater" userdata="help tutorial" />
@@ -971,6 +984,57 @@
 		<menu_item_call bottom="-313" enabled="true" height="19" label="About Singularity..." left="0"
 		     mouse_opaque="true" name="About Second Life..." width="166">
 			<on_click function="ShowFloater" userdata="about" />
+		</menu_item_call>
+	</menu>
+	<menu create_jump_keys="true" drop_shadow="true" enabled="true" label="Singularity" mouse_opaque="false" name="Singularity" opaque="true" tear_off="true">
+		<menu_item_call label="Close All Dialogs" mouse_opaque="true" name="Close All Dialogs" shortcut="control|alt|shift|D">
+			<on_click function="CloseAllDialogs"/>
+		</menu_item_call>
+		<menu_item_separator mouse_opaque="true" name="separators1"/>
+		<menu_item_call label="Fake Away Status" mouse_opaque="true" name="Fake Away Status">
+			<on_click function="World.FakeAway"/>
+		</menu_item_call>
+		<menu_item_call label="Force Ground Sit" mouse_opaque="true" name="Force Ground Sit">
+			<on_click function="World.SitOnGround"/>
+		</menu_item_call>
+		<menu_item_separator mouse_opaque="true" name="separators2"/>
+		<menu_item_call label="Animation Override..." mouse_opaque="true" name="Animation Override ...">
+			<on_click function="AnimationOverride"/>
+		</menu_item_call>
+		<menu_item_check label="Nimble" mouse_opaque="true" name="Nimble">
+			<on_click function="Nimble"/>
+			<on_check function="CheckNimble"/>
+		</menu_item_check>
+		<menu_item_separator mouse_opaque="true" name="separators3"/>
+		<menu_item_check label="Object Area Search" mouse_opaque="true" name="Object Area Search">
+			<on_click function="ShowFloater" userdata="areasearch"/>
+			<on_check function="FloaterVisible" userdata="areasearch"/>
+		</menu_item_check>
+		<menu_item_check label="Sound Explorer" mouse_opaque="true" name="Sound Explorer">
+			<on_click function="ShowFloater" userdata="sound_explorer"/>
+			<on_check function="FloaterVisible" userdata="sound_explorer"/>
+		</menu_item_check>
+		<menu_item_check label="Asset Blacklist" mouse_opaque="true" name="Asset Blacklist">
+			<on_click function="ShowFloater" userdata="asset_blacklist"/>
+			<on_check function="FloaterVisible" userdata="asset_blacklist"/>
+		</menu_item_check>
+		<menu_item_check label="Streaming Audio Display" mouse_opaque="true" name="Streaming Audio Display">
+			<on_click function="StreamingAudioDisplay"/>
+			<on_check function="CheckStreamingAudioDisplay"/>
+			<on_enable function="EnableStreamingAudioDisplay"/>
+		</menu_item_check>
+		<menu_item_check label="Pose Stand" mouse_opaque="true" name="Pose Stand">
+			<on_click function="PoseStand"/>
+			<on_check function="CheckPoseStand"/>
+		</menu_item_check>
+		<menu_item_check label="Region Debug Console" mouse_opaque="true" name="Region Debug Console">
+			<on_click function="RegionDebugConsole"/>
+			<on_check function="CheckRegionDebugConsole"/>
+			<on_visible function="VisibleRegionDebugConsole"/>
+		</menu_item_check>
+		<menu_item_separator mouse_opaque="true" name="separators3" />
+		<menu_item_call label="Rebake" mouse_opaque="true" name="Rebake" shortcut="control|alt|R">
+			<on_click function="Rebake"/>
 		</menu_item_call>
 	</menu>
 </menu_bar>

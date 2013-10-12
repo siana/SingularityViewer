@@ -202,7 +202,7 @@ char const* HelloWorld::state_str_impl(state_type run_state) const
 //   with that state.
 // multiplex_impl() may never reentrant (cause itself to be called).
 // multiplex_impl() should end by callling either one of:
-//   idle(current_state), yield*(), finish() [or abort()].
+//   idle(), yield*(), finish() [or abort()].
 // Leaving multiplex_impl() without calling any of those might result in an
 //   immediate reentry, which could lead to 100% CPU usage unless the state
 //   is changed with set_state().
@@ -212,7 +212,7 @@ char const* HelloWorld::state_str_impl(state_type run_state) const
 //   the call back passed to run() will be called.
 // Upon return from the call back, the state machine object might be destructed
 //   (see below).
-// If idle(current_state) was called, and the state was (still) current_state,
+// If idle() was called, and the state was (still) current_state,
 //   then multiplex_impl() will not be called again until the state is
 //   advanced, or cont() is called.
 //
@@ -245,10 +245,9 @@ char const* HelloWorld::state_str_impl(state_type run_state) const
 // following functions can be called:
 //
 // - set_state(new_state)		--> Force the state to new_state. This voids any previous call to set_state() or idle().
-// - idle(current_state)		--> If the current state is still current_state (if there was no call to advance_state()
-// 									since the last call to set_state(current_state)) then go idle (do nothing until
-// 									cont() or advance_state() is called). If the current state is not current_state,
-// 									then multiplex_impl shall be reentered immediately upon return.
+// - idle()						--> If there was no call to advance_state() since the last call to set_state(current_state))
+//                                  then go idle (do nothing until cont() or advance_state() is called). If the current
+//                                  state is not current_state,	then multiplex_impl shall be reentered immediately upon return.
 // - finish()					--> Disables any scheduled runs.
 // 								--> finish_impl		--> [optional] kill()
 // 								--> call back
@@ -614,6 +613,8 @@ void AIStateMachine::multiplex(event_type event)
 				// Continue in bs_multiplex.
 				// If the state is bs_multiplex we only need to run again when need_run was set again in the meantime or when this state machine isn't idle.
 				need_new_run = sub_state_r->need_run || !sub_state_r->idle;
+				// If this fails then the run state didn't change and neither idle() nor yield() was called.
+				llassert_always(!(need_new_run && !sub_state_r->skip_idle && !mYieldEngine && sub_state_r->run_state == run_state));
 			  }
 			  break;
 			case bs_abort:
@@ -786,10 +787,10 @@ AIStateMachine::state_type AIStateMachine::begin_loop(base_state_type base_state
   return sub_state_w->run_state;
 }
 
-void AIStateMachine::run(LLPointer<AIStateMachine> parent, state_type new_parent_state, bool abort_parent, bool on_abort_signal_parent, AIEngine* default_engine)
+void AIStateMachine::run(AIStateMachine* parent, state_type new_parent_state, bool abort_parent, bool on_abort_signal_parent, AIEngine* default_engine)
 {
   DoutEntering(dc::statemachine, "AIStateMachine::run(" <<
-	  (void*)parent.get() << ", " <<
+	  (void*)parent << ", " <<
 	  (parent ? parent->state_str_impl(new_parent_state) : "NA") <<
 	  ", abort_parent = " << (abort_parent ? "true" : "false") <<
 	  ", on_abort_signal_parent = " << (on_abort_signal_parent ? "true" : "false") <<
@@ -1007,6 +1008,15 @@ void AIStateMachine::advance_state(state_type new_state)
 	  Dout(dc::statemachine, "Ignored, because " << state_str_impl(sub_state_w->advance_state) << " >= " << state_str_impl(new_state) << ".");
 	  return;
 	}
+	// Ignore call to advance_state when the current state is greater than the requested state: the new state would be
+	// ignored in begin_loop(), as is already remarked there: an advanced state that is not honored is not a reason to run.
+	// This call might as well not have happened. Not returning here is a bug because that is effectively a cont(), while
+	// the state change is and should be being ignored: the statemachine would start running it's current state (again).
+	if (sub_state_w->run_state > new_state)
+	{
+	  Dout(dc::statemachine, "Ignored, because " << state_str_impl(sub_state_w->run_state) << " > " << state_str_impl(new_state) << " (current state).");
+	  return;
+	}
 	// Increment state.
 	sub_state_w->advance_state = new_state;
 	// Void last call to idle(), if any.
@@ -1018,6 +1028,16 @@ void AIStateMachine::advance_state(state_type new_state)
 #ifdef SHOW_ASSERT
 	// From this moment on.
 	mDebugAdvanceStatePending = true;
+	// If the new state is equal to the current state, then this should be considered to be a cont()
+	// because also equal states are ignored in begin_loop(). However, unlike a cont() we ignore a call
+	// to idle() when the statemachine is already running in this state (because that is a race condition
+	// and ignoring the idle() is the most logical thing to do then). Hence we treated this as a full
+	// fletched advance_state but need to tell the debug code that it's really also a cont().
+	if (sub_state_w->run_state == new_state)
+	{
+	  // From this moment.
+	  mDebugContPending = true;
+	}
 #endif
   }
   if (!mMultiplexMutex.isSelfLocked())

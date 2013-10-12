@@ -47,19 +47,9 @@
 static LLRegisterWidget<LLRadioGroup> r("radio_group");
 
 LLRadioGroup::LLRadioGroup(const std::string& name, const LLRect& rect,
-			   const std::string& control_name, LLUICtrlCallback callback,
-			   void* userdata, BOOL border) :
-	LLUICtrl(name, rect, TRUE, callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
-	mSelectedIndex(0)
-{
-	setControlName(control_name, NULL);
-	init(border);
-}
-
-LLRadioGroup::LLRadioGroup(const std::string& name, const LLRect& rect,
-			   S32 initial_index,  LLUICtrlCallback callback,
-			   void* userdata,   BOOL border) :
-	LLUICtrl(name, rect, TRUE, callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
+			   S32 initial_index, commit_callback_t commit_callback,
+			   BOOL border) :
+	LLUICtrl(name, rect, TRUE, commit_callback, FOLLOWS_LEFT | FOLLOWS_TOP),
 	mSelectedIndex(initial_index)
 {
 	init(border);
@@ -251,7 +241,7 @@ void LLRadioGroup::draw()
 LLRadioCtrl* LLRadioGroup::addRadioButton(const std::string& name, const std::string& label, const LLRect& rect, const LLFontGL* font )
 {
 	// Highlight will get fixed in draw method above
-	LLRadioCtrl* radio = new LLRadioCtrl(name, rect, label, font, onClickButton, this);
+	LLRadioCtrl* radio = new LLRadioCtrl(name, rect, label, font, boost::bind(&LLRadioGroup::onClickButton, this, _1));
 	addChild(radio);
 	mRadioButtons.push_back(radio);
 	return radio;
@@ -260,32 +250,30 @@ LLRadioCtrl* LLRadioGroup::addRadioButton(const std::string& name, const std::st
 // Handle one button being clicked.  All child buttons must have this
 // function as their callback function.
 
-// static
-void LLRadioGroup::onClickButton(LLUICtrl* ui_ctrl, void* userdata)
+void LLRadioGroup::onClickButton(LLUICtrl* ctrl)
 {
 	// llinfos << "LLRadioGroup::onClickButton" << llendl;
-
-	LLRadioCtrl* clickedRadio = (LLRadioCtrl*) ui_ctrl;
-	LLRadioGroup* self = (LLRadioGroup*) userdata;
-
-	S32 counter = 0;
-	for (button_list_t::iterator iter = self->mRadioButtons.begin();
-		 iter != self->mRadioButtons.end(); ++iter)
+	LLRadioCtrl* clicked_radio = dynamic_cast<LLRadioCtrl*>(ctrl);
+	if (!clicked_radio)
+	    return;
+	S32 index = 0;
+	for (button_list_t::iterator iter = mRadioButtons.begin();
+		 iter != mRadioButtons.end(); ++iter)
 	{
 		LLRadioCtrl* radio = *iter;
-		if (radio == clickedRadio)
+		if (radio == clicked_radio)
 		{
 			// llinfos << "clicked button " << counter << llendl;
-			self->setSelectedIndex(counter);
-			self->setControlValue(counter);
+			setSelectedIndex(index);
+			setControlValue(index);
 			
 			// BUG: Calls click callback even if button didn't actually change
-			self->onCommit();
+			onCommit();
 
 			return;
 		}
 
-		counter++;
+		index++;
 	}
 
 	llwarns << "LLRadioGroup::onClickButton - clicked button that isn't a child" << llendl;
@@ -364,9 +352,6 @@ LLXMLNodePtr LLRadioGroup::getXML(bool save_children) const
 // static
 LLView* LLRadioGroup::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("radio_group");
-	node->getAttributeString("name", name);
-
 	U32 initial_value = 0;
 	node->getAttributeU32("initial_value", initial_value);
 
@@ -376,10 +361,9 @@ LLView* LLRadioGroup::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
-	LLRadioGroup* radio_group = new LLRadioGroup(name, 
+	LLRadioGroup* radio_group = new LLRadioGroup("radio_group", 
 		rect,
 		initial_value,
-		NULL,
 		NULL,
 		draw_border);
 
@@ -421,10 +405,8 @@ LLView* LLRadioGroup::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 				LLRect item_rect;
 				createRect(child, item_rect, radio_group, rect);
 
-				std::string radioname("radio");
-				child->getAttributeString("name", radioname);
 				std::string item_label = child->getTextContents();
-				LLRadioCtrl* radio = radio_group->addRadioButton(radioname, item_label, item_rect, font);
+				LLRadioCtrl* radio = radio_group->addRadioButton("radio", item_label, item_rect, font);
 
 				radio->initFromXML(child, radio_group);
 			}

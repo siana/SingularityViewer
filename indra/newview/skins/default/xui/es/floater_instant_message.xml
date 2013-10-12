@@ -33,12 +33,19 @@
 	<string name="inventory_item_offered">
 		Ofrecido un Item de Inventario
 	</string>
-	<button label="Perfil" name="profile_callee_btn"/>
-	<button label="Teleportar" name="profile_tele_btn"/>
-	<button label="Historial" name="history_btn"/>
-	<check_box name="rp_mode">
-		Modo RP
-	</check_box>
+	<flyout_button label="Perfil" name="instant_message_flyout">
+		<flyout_button_item label="Solicitar Teleporte" name="request_teleport_item"/>
+		<flyout_button_item label="Invitar al Grupo" name="group_invite_item"/>
+	</flyout_button>
+	<string name="ding on" value="Timbre en Nuevos Mensajes (Encendido)"/>
+    <string name="ding off" value="Timbre en Nuevos Mensajes (Apagado)"/>
+	<string name="rp mode on" value="Modo RP (Encendido)"/>
+	<string name="rp mode off" value="Modo RP (Apagado)"/>
+	<string name="add friend" value="Añadir Contacto"/>
+	<string name="remove friend" value="Eliminar Contacto"/>
+	<button name="tp_btn" label="TP"/>
+	<button name="pay_btn" label="Pagar"/>
+	<button name="history_btn" label="Historial" width="60" />
 	<button label="Llamar" name="start_call_btn"/>
 	<button label="Colgar" name="end_call_btn"/>
 	<panel name="speaker_controls">

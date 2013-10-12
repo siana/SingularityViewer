@@ -3,10 +3,9 @@
  * @brief Message popup preferences panel
  *
  * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2003-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -34,46 +33,52 @@
 
 #include "llpanelmsgs.h"
 
-#include "llnotificationsutil.h"
-#include "llscrolllistctrl.h"
-#include "llviewerwindow.h"
-#include "llviewercontrol.h"
-#include "lluictrlfactory.h"
-#include "llfirstuse.h"
 #include "llnotificationtemplate.h"
+#include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
+#include "lluictrlfactory.h"
 
-//-----------------------------------------------------------------------------
-LLPanelMsgs::LLPanelMsgs() : 
-	LLPanel("Messages Panel")
+#include "llfirstuse.h"
+
+LLPanelMsgs::LLPanelMsgs()
 {
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_popups.xml");
 }
 
 
 LLPanelMsgs::~LLPanelMsgs()
-{ }
+{
+}
 
-//-----------------------------------------------------------------------------
-// postBuild()
-//-----------------------------------------------------------------------------
 BOOL LLPanelMsgs::postBuild()
 {
-	childSetAction("enable_popup", onClickEnablePopup, this);
-	childSetAction("reset_dialogs_btn", onClickResetDialogs, this);
-	childSetAction("skip_dialogs_btn", onClickSkipDialogs, this);
-	childSetAction("skip_frst_btn", onClickSkipFirstTime, this);
+	getChild<LLUICtrl>("enable_popup")->setCommitCallback(boost::bind(&LLPanelMsgs::onClickEnablePopup, this));
+	getChild<LLUICtrl>("disable_popup")->setCommitCallback(boost::bind(&LLPanelMsgs::onClickDisablePopup, this));
+	getChild<LLUICtrl>("reset_dialogs_btn")->setCommitCallback(boost::bind(&LLPanelMsgs::onClickResetDialogs, this));
+	getChild<LLUICtrl>("skip_dialogs_btn")->setCommitCallback(boost::bind(&LLPanelMsgs::onClickSkipDialogs, this));
+	getChild<LLUICtrl>("skip_frst_btn")->setCommitCallback(boost::bind(&LLPanelMsgs::onClickSkipFirstTime, this));
 
-	buildLists();
+	buildPopupLists();
 
-	childSetValue("accept_new_inventory", gSavedSettings.getBOOL("AutoAcceptNewInventory"));
+	childSetValue("accept_new_inventory", gSavedSettings.getBOOL("AutoAcceptAllNewInventory"));
 	childSetValue("show_new_inventory", gSavedSettings.getBOOL("ShowNewInventory"));
 	childSetValue("show_in_inventory", gSavedSettings.getBOOL("ShowInInventory"));
 
 	return TRUE;
 }
 
+void LLPanelMsgs::draw()
+{
+	BOOL has_first_selected = (getChildRef<LLScrollListCtrl>("disabled_popups").getFirstSelected()!=NULL);
+	childSetEnabled("enable_popup", has_first_selected);
 
-void LLPanelMsgs::buildLists() //void LLFloaterPreference::buildPopupLists() in v3
+	has_first_selected = (getChildRef<LLScrollListCtrl>("enabled_popups").getFirstSelected()!=NULL);
+	childSetEnabled("disable_popup", has_first_selected);
+
+	LLPanel::draw();
+}
+
+void LLPanelMsgs::buildPopupLists() //void LLFloaterPreference::buildPopupLists() in v3
 {
 	LLScrollListCtrl& disabled_popups =
 		getChildRef<LLScrollListCtrl>("disabled_popups");
@@ -103,7 +108,7 @@ void LLPanelMsgs::buildLists() //void LLFloaterPreference::buildPopupLists() in 
 		LLStringUtil::format(ignore_msg,notification->getSubstitutions());
 		row["columns"][0]["value"] = ignore_msg;
 		row["columns"][0]["font"] = "SANSSERIF_SMALL";
-		row["columns"][0]["width"] = 300;
+		row["columns"][0]["width"] = 500;
 
 		LLScrollListItem* item = NULL;
 
@@ -129,13 +134,11 @@ void LLPanelMsgs::buildLists() //void LLFloaterPreference::buildPopupLists() in 
 				row["columns"][1]["font"] = "SANSSERIF_SMALL";
 				row["columns"][1]["width"] = 160;
 			}
-			item = disabled_popups.addElement(row,
-							   ADD_SORTED);
+			item = disabled_popups.addElement(row, ADD_SORTED);
 		}
 		else
 		{
-			item = enabled_popups.addElement(row,
-							  ADD_SORTED);
+			item = enabled_popups.addElement(row, ADD_SORTED);
 		}
 
 		if (item)
@@ -145,32 +148,46 @@ void LLPanelMsgs::buildLists() //void LLFloaterPreference::buildPopupLists() in 
 	}
 }
 
-void LLPanelMsgs::draw()
-{
-	LLScrollListCtrl& disabled_popups = getChildRef<LLScrollListCtrl>("disabled_popups");
-
-	if (disabled_popups.getFirstSelected())
-	{
-		childEnable("enable_popup");
-	}
-	else
-	{
-		childDisable("enable_popup");
-	}
-
-	LLPanel::draw();
-}
-
 
 void LLPanelMsgs::apply()
 {
-	gSavedSettings.setBOOL("AutoAcceptNewInventory", childGetValue("accept_new_inventory"));
+	gSavedSettings.setBOOL("AutoAcceptAllNewInventory", childGetValue("accept_new_inventory"));
 	gSavedSettings.setBOOL("ShowNewInventory", childGetValue("show_new_inventory"));
 	gSavedSettings.setBOOL("ShowInInventory", childGetValue("show_in_inventory"));
 }
 
 void LLPanelMsgs::cancel()
 {
+}
+
+void LLPanelMsgs::onClickEnablePopup()
+{
+	LLScrollListCtrl& disabled_popups = getChildRef<LLScrollListCtrl>("disabled_popups");
+
+	std::vector<LLScrollListItem*> items = disabled_popups.getAllSelected();
+	std::vector<LLScrollListItem*>::iterator itor;
+	for (itor = items.begin(); itor != items.end(); ++itor)
+	{
+		LLNotificationTemplatePtr templatep = LLNotificationTemplates::instance().getTemplate(*(std::string*)((*itor)->getUserdata()));
+		gSavedSettings.setWarning(templatep->mName, TRUE);
+	}
+
+	buildPopupLists();
+}
+
+void LLPanelMsgs::onClickDisablePopup()
+{
+	LLScrollListCtrl& enabled_popups = getChildRef<LLScrollListCtrl>("enabled_popups");
+
+	std::vector<LLScrollListItem*> items = enabled_popups.getAllSelected();
+	std::vector<LLScrollListItem*>::iterator itor;
+	for (itor = items.begin(); itor != items.end(); ++itor)
+	{
+		LLNotificationTemplatePtr templatep = LLNotificationTemplates::instance().getTemplate(*(std::string*)((*itor)->getUserdata()));
+		gSavedSettings.setWarning(templatep->mName, false);
+	}
+
+	buildPopupLists();
 }
 
 void LLPanelMsgs::resetAllIgnored()
@@ -199,70 +216,22 @@ void LLPanelMsgs::setAllIgnored()
 	}
 }
 
-//static 
-void LLPanelMsgs::onClickEnablePopup(void* user_data)
+void LLPanelMsgs::onClickResetDialogs()
 {
-	LLPanelMsgs* panelp = (LLPanelMsgs*)user_data;
-
-	LLScrollListCtrl& disabled_popups = panelp->getChildRef<LLScrollListCtrl>("disabled_popups");
-
-	std::vector<LLScrollListItem*> items = disabled_popups.getAllSelected();
-	std::vector<LLScrollListItem*>::iterator itor;
-	for (itor = items.begin(); itor != items.end(); ++itor)
-	{
-		LLNotificationTemplatePtr templatep = LLNotificationTemplates::instance().getTemplate(*(std::string*)((*itor)->getUserdata()));
-		gSavedSettings.setWarning(templatep->mName, TRUE);
-	}
-
-	panelp->buildLists();
+	resetAllIgnored();
+	LLFirstUse::resetFirstUse();
+	buildPopupLists();
 }
 
-bool callback_reset_dialogs(const LLSD& notification, const LLSD& response, LLPanelMsgs* panelp)
+void LLPanelMsgs::onClickSkipDialogs()
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
-	if (0 == option)
-	{
-		if ( panelp )
-		{
-			panelp->resetAllIgnored();
-			LLFirstUse::resetFirstUse();
-			panelp->buildLists();
-		}
-	}
-	return false;
+	setAllIgnored();
+	LLFirstUse::disableFirstUse();
+	buildPopupLists();
 }
 
-// static
-void LLPanelMsgs::onClickResetDialogs(void* user_data)
-{
-	LLNotificationsUtil::add("ResetShowNextTimeDialogs", LLSD(), LLSD(), boost::bind(&callback_reset_dialogs, _1, _2, (LLPanelMsgs*)user_data));
-}
-
-bool callback_skip_dialogs(const LLSD& notification, const LLSD& response, LLPanelMsgs* panelp)
-{
-	S32 option = LLNotification::getSelectedOption(notification, response);
-	if (0 == option)
-	{
-		if ( panelp )
-		{
-			panelp->setAllIgnored();
-			LLFirstUse::disableFirstUse();
-			panelp->buildLists();
-		}
-	}
-	return false;
-}
-
-// static
-void LLPanelMsgs::onClickSkipDialogs(void* user_data)
-{
-	LLNotificationsUtil::add("SkipShowNextTimeDialogs", LLSD(), LLSD(), boost::bind(&callback_skip_dialogs, _1, _2, (LLPanelMsgs*)user_data));
-}
-
-// static
-void LLPanelMsgs::onClickSkipFirstTime(void* user_data)
+void LLPanelMsgs::onClickSkipFirstTime()
 {
 	LLFirstUse::disableFirstUse();
-	LLPanelMsgs* panelp = (LLPanelMsgs*)user_data;
-	if(panelp) panelp->buildLists();
+	buildPopupLists();
 }

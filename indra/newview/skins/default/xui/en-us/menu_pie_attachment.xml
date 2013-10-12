@@ -12,18 +12,48 @@
 		<on_enable function="Object.EnableTouch" userdata="Touch" name="EnableTouch"/>
 	</menu_item_call>
 	<menu_item_call enabled="true" label="Stand Up" name="Stand Up">
-		<on_click function="Self.StandUp" userdata="" />
-		<on_enable function="Self.EnableStandUp" />
+		<on_click function="Self.SitOrStand"/>
+		<on_enable function="Self.EnableSitOrStand" userdata="Sit Down,Stand Up"/>
 	</menu_item_call>
 	<menu_item_call enabled="false" label="Detach" mouse_opaque="true" name="Detach">
 		<on_click function="Attachment.Detach" />
 		<on_enable function="Attachment.EnableDetach" />
 	</menu_item_call>
 	<pie_menu label="Tools &gt;" name="Tools &gt;">
-		<menu_item_call enabled="false" hidden="false" label="S. Count" mouse_opaque="true" name="ScriptCount">
-			<on_click function="Object.ScriptCount" />
-			<on_visible function="Object.VisibleScriptCount" />
-		</menu_item_call>
+        <pie_menu label="Scripts &gt;" name="ScriptsMenu">
+          <menu_item_call mouse_opaque="true" label="Make Mono" name="CompileMono">
+            <on_click function="Tools.SelectedScriptAction" userdata="compile mono" />
+            <on_enable function="EditableSelectedMono" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Make LSL" name="CompileLSL">
+            <on_click function="Tools.SelectedScriptAction" userdata="compile lsl" />
+            <on_enable function="EditableSelected" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Reset" name="Reset Scripts">
+            <on_click function="Tools.SelectedScriptAction" userdata="reset" />
+            <on_enable function="EditableSelected" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Start" name="Object Set Scripts to Running">
+            <on_click function="Tools.SelectedScriptAction" userdata="start" />
+            <on_enable function="EditableSelected" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Stop" name="Object Set Scripts to Not Running">
+            <on_click function="Tools.SelectedScriptAction" userdata="stop" />
+            <on_enable function="EditableSelected" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Remove" name="Remove Scripts From Selection">
+            <on_click function="Tools.ScriptDelete" />
+            <on_enable function="Tools.EnableScriptDelete" />
+          </menu_item_call>
+          <menu_item_call mouse_opaque="true" label="Count" name="ScriptCount">
+            <on_click function="Object.ScriptCount" />
+            <on_visible function="Object.VisibleScriptCount" />
+          </menu_item_call>
+          <menu_item_call label="Script Info" mouse_opaque="true" name="Script Info">
+            <on_click function="ShowFloater" userdata="script info" />
+            <on_visible function="Self.VisibleScriptInfo" />
+          </menu_item_call>
+        </pie_menu>
 		<menu_item_call enabled="true" label="Inspect" mouse_opaque="true" name="Object Inspect">
 			<on_click function="Object.Inspect" />
 			<on_enable function="Object.EnableInspect"/>
@@ -37,6 +67,14 @@
 		</menu_item_call>
     <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
       <on_click function="Object.ReloadTextures" />
+    </menu_item_call>
+    <menu_item_call label="Save OBJ..." mouse_opaque="true" name="Save OBJ...">
+      <on_click function="Object.SaveAsOBJ" />
+      <on_enable function="Object.EnableExport" />
+    </menu_item_call>
+    <menu_item_call label="Save DAE..." mouse_opaque="true" name="Save DAE...">
+      <on_click function="Object.SaveAsDAE" />
+      <on_enable function="Object.EnableExport" />
     </menu_item_call>
 	</pie_menu>
 	<menu_item_call enabled="true" label="Appearance..." name="Appearance...">

@@ -81,6 +81,8 @@ public:
 	static void		setScale( F32 scale );
 	static void		translatePan( S32 delta_x, S32 delta_y );
 	static void		setPan( S32 x, S32 y, BOOL snap = TRUE );
+	// Return true if the current scale level is above the threshold for accessing region info
+	static bool		showRegionInfo();
 
 	LLVector3		globalPosToView(const LLVector3d& global_pos);
 	LLVector3d		viewPosToGlobal(S32 x,S32 y);

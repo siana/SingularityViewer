@@ -37,6 +37,7 @@
 #include "llviewercontrol.h"
 #include "llviewertexturelist.h"
 #include "math.h"	// log()
+#include "lfsimfeaturehandler.h"
 
 // Turn this on to output tile stats in the standard output
 #define DEBUG_TILES_STAT 0
@@ -187,7 +188,9 @@ LLPointer<LLViewerFetchedTexture> LLWorldMipmap::getObjectsTile(U32 grid_x, U32 
 LLPointer<LLViewerFetchedTexture> LLWorldMipmap::loadObjectsTile(U32 grid_x, U32 grid_y, S32 level)
 {
 	// Get the grid coordinates
-	std::string imageurl = gSavedSettings.getString("MapServerURL") + llformat("map-%d-%d-%d-objects.jpg", level, grid_x, grid_y);
+	std::string simOverrideMap = LFSimFeatureHandler::instance().mapServerURL();
+	std::string imageurl = (simOverrideMap.empty() ? gSavedSettings.getString("MapServerURL") : simOverrideMap) 
+		+ llformat("map-%d-%d-%d-objects.jpg", level, grid_x, grid_y);
 
 	// DO NOT COMMIT!! DEBUG ONLY!!!
 	// Use a local jpeg for every tile to test map speed without S3 access

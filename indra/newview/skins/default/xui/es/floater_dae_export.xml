@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="Collada Export" title="Exportar a Collada">
+	<string name="texture_progress">Exportar a Collada: Guardando texturas ([COUNT] remanentes)</string>
+	<text name="file name" >Archivo:</text>
+	<line_editor name="file name editor"/>
+	<button name="browse button" label="Examinar"/>
+	<button name="export button" label="Exportar"/>
+	<panel name="object info panel">
+		<text name="Object info">Información del Objecto</text>
+		<text name="Object Name">Nombre: [NAME]</text>
+		<text name="Exportable Prims">Prims Exportables: [COUNT]/[TOTAL]</text>
+		<text name="Exportable Textures">Texturas Exportables: [COUNT]/[TOTAL]</text>
+	</panel>
+	<panel name="options panel">
+		<text name="Options">Opciones</text>
+		<check_box name="texture export check" label="Exportar Texturas"/>
+		<combo_box name="texture type combo">
+			<combo_item name="tga" value="0">TGA</combo_item>
+			<combo_item name="png" value="1">PNG</combo_item>
+			<combo_item name="j2c" value="2">J2C</combo_item>
+			<combo_item name="bmp" value="3">BMP</combo_item>
+			<combo_item name="jpg" value="4">JPG</combo_item>
+			<combo_box.commit_callback function="ColladaExport.TextureTypeCombo"/>
+		</combo_box>
+		<check_box name="consolidate check" label="Consolidar caras" tool_tip="Exporta como una sola las caras que tengan la misma textura"/>
+		<check_box name="skip transparent check" label="Omitir Texturas transparentes"/>
+		<check_box name="texture params check" label="Aplicar Parámetros de texturas"/>
+	</panel>
+	<scroll_container name="textures container"/>
+</floater>

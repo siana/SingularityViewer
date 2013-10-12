@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="ao_controls">
+  <button label="AO Aus" label_selected="AO Ein" name="ao_btn" tool_tip="Hier Klicken um die Animationskontrolle ein/auszuschalten"/>
+  <button name="popup_btn" tool_tip="Hier klicken für weitere Optionen"/>
+</panel>

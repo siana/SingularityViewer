@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="panel_login">
+	<web_browser trusted_content="true" name="login_html"/>
+	<string name="real_url">http://secondlife.com/app/login/</string>
+	<string name="forgot_password_url">http://secondlife.com/account/request.php?lang=de</string>
+  <layout_stack name="element_stack">
+    <layout_panel name="name_panel">
+      <text name="name_label">Name oder Benutzername:</text>
+      
+      <check_box label="Speichere Name" name="remember_name_check"/>
+    </layout_panel>
+    <layout_panel name="password_panel">
+      <text name="password_text">Kennwort:</text>
+      
+      <check_box label="Kennwort speichern" name="remember_check"/>
+    </layout_panel>
+    <layout_panel name="grids_panel">
+      <text name="grids_combo_text">Grid:</text>
+      
+      <button name="grids_btn" label="Grid-Manager"/>
+    </layout_panel>
+    <layout_panel name="location_panel">
+      <text name="start_location_text">Startposition:</text>
+      <combo_box name="start_location_combo">
+        <combo_item name="MyHome">Mein Heimatort</combo_item>
+        <combo_item name="MyLastLocation">Mein letzter Standort</combo_item>
+        <combo_item name="Typeregionname">&lt;Region eingeben&gt;</combo_item>
+      </combo_box>
+    </layout_panel>
+    <layout_panel name="connect_panel">
+      <button label="Anmelden" label_selected="Anmelden" name="connect_btn"/>
+    </layout_panel>
+  </layout_stack>
+	
+
+	<text name="create_new_account_text">Konto erstellen</text>
+	<text name="forgot_password_text">Namen oder Kennwort vergessen?</text>
+	<text name="channel_text">[VERSION]</text>
+</panel>

@@ -1,25 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Communication" name="im">
-	<text name="text_box">
-		Mon statut en ligne:
-	</text>
+	<text name="text_box">Mon statut en ligne:</text>
 	<check_box label="Seuls mes ami(e)s et groupes voient quand je suis connecté(e)" name="online_visibility"/>
-	<text name="text_box2">
-		IM:
-	</text>
-	<string name="log_in_to_change">
-		Se connecter pour changer
-	</string>
+	<text name="text_box2">IM:</text>
+	<string name="log_in_to_change">Se connecter pour changer</string>
 	<check_box label="Envoyer les IM à mon adresse e-mail ([EMAIL])" name="send_im_to_email"/>
 	<check_box label="Afficher les IM dans la console du chat" name="include_im_in_chat_console"/>
 	<check_box label="Afficher l'heure dans les IM" name="show_timestamps_check"/>
 	<check_box label="Me prévenir quand des ami(e)s se connectent" name="friends_online_notify_checkbox"/>
-	<text name="text_box3">
-		Réponse si occupé(e):
-	</text>
-	<text name="text_box4">
-		Enregistrements:
-	</text>
+	<text name="text_box4">Enregistrements:</text>
 	<check_box label="Enregistrer les IM sur mon ordinateur" name="log_instant_messages"/>
 	<check_box label="Inclure les heures" name="log_instant_messages_timestamp"/>
 	<check_box label="Enregistrer le chat local sur mon ordinateur" name="log_chat"/>
@@ -27,7 +16,7 @@
 	<check_box label="Inclure les heures" name="log_chat_timestamp"/>
 	<check_box label="Inclure les IM reçus" name="log_chat_IM"/>
 	<check_box label="Inclure la date avec les heures" name="log_date_timestamp"/>
-	<check_box bottom="-365" label="Joindre la date dans le nom du fichier de log" left="148" name="logfile_name_datestamp" width="237"/>
+	<check_box label="Joindre la date dans le nom du fichier de log" left="148" name="logfile_name_datestamp" width="237"/>
 	<button label="Changer d'emplacement" label_selected="Changer d'emplacement" name="log_path_button" width="180"/>
-	<line_editor left="308" name="log_path_string" right="-20"/>
+	<line_editor left="308" name="log_path_string"/>
 </panel>

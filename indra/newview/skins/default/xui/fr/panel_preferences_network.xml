@@ -3,36 +3,31 @@
 	<text name="text_box">Bande passante max:</text>
 	<text name="text_box2">kbps (kilobits par seconde)</text>
 	<text name="text_box3">Bande passante de la texture:</text>
-	<slider left_delta="150" name="tex_bandwidth" width="140"/>
-	<text left_delta="146" name="text_box2">kbps (kilobits par seconde)</text>
+	<slider left_delta="145" name="tex_bandwidth" width="145"/>
+	<text left_delta="150" name="text_box4">kbps (kilobits par seconde)</text>
 	<text name="use_http_for">Utiliser HTTP pour:</text>
-	<check_box left_delta="100" label="Textures" name="http_textures"/>
 	<check_box label="Inventaire" name="http_inventory"/>
 	<text name="cache_size_label_l">Taille du cache:</text>
 	<text name="text_box5">Mo</text>
-	<button label="Vider la mémoire cache" label_selected="Vider le cache" name="clear_cache" width="150"/>
+	<button label="Vider le cache" name="clear_cache" width="130"/>
 	<text name="cache_location_label">Emplacement du cache:</text>
 	<button label="Modifier" label_selected="Modifier" name="set_cache"/>
 	<button label="Réinitialiser" label_selected="Réinitialiser" name="reset_cache"/>
-	<check_box label="Port de connexion personnalisé" name="connection_port_enabled"/>
-	<spinner label="Numéro de port:" label_width="95" name="connection_port" width="170"/>
-	<text name="socks5_auth_label">Proxy Http:</text>
+	<check_box label="Port de Connexion personnalisé" name="connection_port_enabled"/>
+	<spinner label="Num. du Port:" name="connection_port"/>
 	<radio_group name="socks5_http_proxy_type">
-		<radio_item name="None">aucun</radio_item>
+		<radio_item name="None">Aucun</radio_item>
 		<radio_item name="Socks">Socks</radio_item>
 		<radio_item name="Web">Web</radio_item>
 	</radio_group>
 	<check_box label="Activer SOCKS 5 Proxy" name="socks5_proxy_enabled"/>
-	<text name="socks5_host_label">H&#xF4;te Socks 5:</text>
-	<line_editor name="socks5_proxy_host" tool_tip=""/>
-	<spinner label="Numéro de port:" label_width="80" name="socks5_proxy_port"/>
+	<text name="socks5_host_label">H&#xF4;te Socks 5 :</text>
+	<spinner label="Num. du Port:" name="socks5_proxy_port"/>
 	<text name="socks5_auth_label2">Authentification:</text>
 	<radio_group name="socks5_auth">
-		<radio_item name="None" tool_tip="">aucune</radio_item>
-		<radio_item name="UserPass" tool_tip="">Nom/Mot de passe</radio_item>
+		<radio_item name="None">Aucune</radio_item>
+		<radio_item name="UserPass">Nom/Mot de passe</radio_item>
 	</radio_group>
 	<text name="socks5_username_label">Nom:</text>
-	<line_editor name="socks5_proxy_username"/>
 	<text name="socks5_password_label">Mot de Passe:</text>
-	<line_editor name="socks5_proxy_password"/>
 </panel>

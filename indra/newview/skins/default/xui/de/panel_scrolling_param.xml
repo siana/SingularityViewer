@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="LLScrollingPanelParam">
+	
+	
+	<text name="Loading...">Wird geladen...</text>
+	<text name="Loading...2">Wird geladen...</text>
+	
+	
+	<slider label="[DESC]" name="param slider"/>
+</panel>

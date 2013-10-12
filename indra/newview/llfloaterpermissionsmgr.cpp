@@ -81,7 +81,7 @@ LLFloaterPermissionsMgr::LLFloaterPermissionsMgr() :
 	LLRect scrollable_container_rect(0, y, getRect().getWidth(), 0);
 	LLRect permissions_rect(0, 0, getRect().getWidth() - HPAD - HPAD, 0);
 	mPermissions = new LLPermissionsView(permissions_rect);
-	mScroller = new LLScrollableContainerView(
+	mScroller = new LLScrollContainer(
 				std::string("permissions container"),
 				scrollable_container_rect,
 				mPermissions
@@ -107,15 +107,11 @@ LLPermissionsView::LLPermissionsView(const LLRect &rect) : LLView(std::string("p
 void LLPermissionsView::clearPermissionsData() 
 {
 	deleteAllChildren();
-	std::for_each(mPermData.begin(), mPermData.end(), DeletePairedPointer());
-	mPermData.clear();
 }
 
 void LLPermissionsView::addPermissionsData(const std::string& object_name, const LLUUID& object_id, U32 permissions_flags) 
 {
 	// grow to make room for new element
-	LLPermissionsData* perm_datap = new LLPermissionsData(object_id, permissions_flags);
-
 	reshape(getRect().getWidth(), getRect().getHeight() + LINE + VPAD + BTN_HEIGHT + VPAD);
 	S32 y = getRect().getHeight() - LINE - VPAD;
 	LLRect label_rect(HPAD, y + LINE, getRect().getWidth(), y);
@@ -126,39 +122,33 @@ void LLPermissionsView::addPermissionsData(const std::string& object_name, const
 	y -= LINE + VPAD;
 
 	LLRect btn_rect(HPAD, y + BTN_HEIGHT, 120, y);
-	LLButton* button = new LLButton(std::string("Revoke permissions"), btn_rect, LLStringUtil::null, revokePermissions, (void*)perm_datap);
+	LLButton* button = new LLButton(std::string("Revoke permissions"), btn_rect, LLStringUtil::null, boost::bind(&LLPermissionsView::revokePermissions, object_id, permissions_flags));
 	button->setFollows(FOLLOWS_LEFT | FOLLOWS_BOTTOM);
 	addChild(button);
 
-	btn_rect.set(HPAD + 120 + HPAD, y + BTN_HEIGHT, HPAD + 120 + HPAD + 120, y);
-	button = new LLButton(std::string("Find in world"), btn_rect, LLStringUtil::null, findObject, (void*)perm_datap);
+	/*btn_rect.set(HPAD + 120 + HPAD, y + BTN_HEIGHT, HPAD + 120 + HPAD + 120, y);
+	button = new LLButton(std::string("Find in world"), btn_rect, LLStringUtil::null, boost::bind(&LLPermissionsView::findObject, object_id, permissions_flags));
 	button->setFollows(FOLLOWS_LEFT | FOLLOWS_BOTTOM);
-	addChild(button);
-
-	mPermData.insert(std::make_pair(object_id, perm_datap));
+	addChild(button);*/
 }
 
-void LLPermissionsView::revokePermissions(void *userdata)
+void LLPermissionsView::revokePermissions(const LLUUID& object_id, U32 permission_flags)
 {
-	LLPermissionsData* perm_data = (LLPermissionsData*)userdata;
-	if (perm_data)
+	LLViewerObject* objectp = gObjectList.findObject(object_id);
+	if (objectp)
 	{
-		LLViewerObject* objectp = gObjectList.findObject(perm_data->mObjectID);
-		if (objectp)
-		{
-			LLMessageSystem* msg = gMessageSystem;
-			msg->newMessageFast(_PREHASH_RevokePermissions);
-			msg->nextBlockFast(_PREHASH_AgentData);
-			msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-			msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-			msg->nextBlockFast(_PREHASH_Data);
-			msg->addUUIDFast(_PREHASH_ObjectID, perm_data->mObjectID);
-			msg->addU32Fast(_PREHASH_ObjectPermissions, perm_data->mPermFlags);
-			msg->sendReliable(objectp->getRegion()->getHost());
-		}
+		LLMessageSystem* msg = gMessageSystem;
+		msg->newMessageFast(_PREHASH_RevokePermissions);
+		msg->nextBlockFast(_PREHASH_AgentData);
+		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		msg->nextBlockFast(_PREHASH_Data);
+		msg->addUUIDFast(_PREHASH_ObjectID, object_id);
+		msg->addU32Fast(_PREHASH_ObjectPermissions, permission_flags);
+		msg->sendReliable(objectp->getRegion()->getHost());
 	}
 }
 
-void LLPermissionsView::findObject(void *userdata)
+/*void LLPermissionsView::findObject(const LLUUID& object_id, U32 permission_flags)
 {
-}
+}*/

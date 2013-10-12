@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="Vent. Emergentes" name="popups" title="Ventanas Emergentes">
-	<text name="dont_show_label">
-		No Mostrar las siguientes Ventanas Emergentes:
-	</text>
-	<button label="Activar esta Ventana Emergente" name="enable_popup" width="210"/>
-	<button label="Activar todas las Ventanas Emergentes..." name="reset_dialogs_btn" tool_tip="Activa todas las ventanas emergentes y las notificaciones de primera vez." left="230" width="250"/>
-	<text name="show_label" >
-		Mostrar las siguientes Ventanas Emergentes:
-	</text>
-	<button label="Desactivar Avisos de Primera Vez..." name="skip_frst_btn" tool_tip="Desactiva todos los avisos de primera vez." width="215"/>
-	<button label="Desactivar todas las Ventanas Emergentes..." name="skip_dialogs_btn" tool_tip="Desactiva todas las ventanas emergentes y las notificaciones de primera vez." left="235" width="255"/>
-	<text name="text_box2">
-		Ofertas de Notas, texturas e Hitos:
-	</text>
-	<check_box label="Aceptar Automáticamente" name="accept_new_inventory"/>
-	<check_box label="Ver Automáticamente despues de aceptar" name="show_new_inventory"/>
+	<check_box label="Aceptar Automáticamente ofertas de Ítems" name="accept_new_inventory"/>
+	<check_box label="Ver Automáticamente al aceptar" name="show_new_inventory"/>
 	<check_box label="Mostrar automáticamente nuevos objetos aceptados en el inventario" name="show_in_inventory"/>
+	<text name="show_label" >
+		Mostrar Siempre:
+	</text>	
+	<button label="Activar todas..." name="reset_dialogs_btn" left="15"  tool_tip="Activa todas las ventanas emergentes y las notificaciones de primera vez."/>
+	<button label="" name="enable_popup"/>
+	<button label="Desactivar Avisos Primer Uso..." name="skip_frst_btn" tool_tip="Desactiva todos los avisos de primera vez." width="190"/>
+  <button label="" left_delta="195" name="disable_popup"/>	
+	<button label="Desactivar todas..." name="skip_dialogs_btn" tool_tip="Desactiva todas las ventanas emergentes y las notificaciones de primera vez." left="235" width="110"/>
+	<text name="dont_show_label">
+		Nunca Mostrar:
+	</text>
 </panel>

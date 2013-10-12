@@ -186,10 +186,9 @@ LLAudioChannelOpenAL::~LLAudioChannelOpenAL()
 
 void LLAudioChannelOpenAL::cleanup()
 {
+	LLAudioChannel::cleanup();
 	alSourceStop(mALSource);
 	alSourcei(mALSource, AL_BUFFER, AL_NONE);
-
-	mCurrentBufferp = NULL;
 }
 
 void LLAudioChannelOpenAL::play()
@@ -314,7 +313,7 @@ void LLAudioChannelOpenAL::update3DPosition()
 	alSourcef(mALSource, AL_GAIN, mCurrentSourcep->getGain() * getSecondaryGain());
 }
 
-LLAudioBufferOpenAL::LLAudioBufferOpenAL()
+LLAudioBufferOpenAL::LLAudioBufferOpenAL() : LLAudioBuffer()
 {
 	mALBuffer = AL_NONE;
 }

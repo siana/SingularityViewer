@@ -44,6 +44,8 @@ tag: vaa emerald local_asset_browser
 #include "lldrawable.h"
 #include "lleventtimer.h"
 
+class LLCheckBoxCtrl;
+class LLComboBox;
 
 /*=======================================*/
 /*  Global structs / enums / defines     */
@@ -252,7 +254,6 @@ private:
 	LLButton* mUploadBtn;
 
 	LLScrollListCtrl* mBitmapList;
-	LLScrollListCtrl* mUsedList;
 	LLTextureCtrl*    mTextureView;
 	LLCheckBoxCtrl*   mUpdateChkBox;
 

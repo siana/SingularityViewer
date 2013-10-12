@@ -45,9 +45,6 @@ public:
 	/*virtual*/ BOOL postBuild();
 
 	/*virtual*/ void performQuery();
-
-	static void onClickSearch(void *userdata);
-	static void onKeystrokeName(LLLineEditor* line, void* data);
 };
 
 #endif

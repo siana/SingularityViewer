@@ -46,20 +46,18 @@
 // statics
 std::set<LLNameBox*> LLNameBox::sInstances;
 
+static LLRegisterWidget<LLNameBox> r("name_box");
 
-LLNameBox::LLNameBox(const std::string& name, const LLRect& rect, const LLUUID& name_id, BOOL is_group, const LLFontGL* font, BOOL mouse_opaque)
-:	LLTextBox(name, rect, std::string("(retrieving)"), font, mouse_opaque),
-	mNameID(name_id)
+
+LLNameBox::LLNameBox(const std::string& name)
+:	LLTextBox(name, LLRect(), "" , NULL, TRUE)
 {
+	mNameID = LLUUID::null;
+	mLink = false;
+	//mParseHTML = mLink; // STORM-215
+	mInitialValue = "(retrieving)";
 	LLNameBox::sInstances.insert(this);
-	if(!name_id.isNull())
-	{
-		setNameID(name_id, is_group);
-	}
-	else
-	{
-		setText(LLStringUtil::null);
-	}
+	setText(LLStringUtil::null);
 }
 
 LLNameBox::~LLNameBox()
@@ -72,25 +70,30 @@ void LLNameBox::setNameID(const LLUUID& name_id, BOOL is_group)
 	mNameID = name_id;
 
 	std::string name;
+	BOOL got_name = FALSE;
 
 	if (!is_group)
 	{
-		gCacheName->getFullName(name_id, name);
+		got_name = gCacheName->getFullName(name_id, name);
 	}
 	else
 	{
-		gCacheName->getGroupName(name_id, name);
+		got_name = gCacheName->getGroupName(name_id, name);
 	}
 
-	setText(name);
+	// Got the name already? Set it.
+	// Otherwise it will be set later in refresh().
+	if (got_name)
+		setName(name, is_group);
+	else
+		setText(mInitialValue);
 }
 
 void LLNameBox::refresh(const LLUUID& id, const std::string& full_name, bool is_group)
-
 {
 	if (id == mNameID)
 	{
-		setText(full_name);
+		setName(full_name, is_group);
 	}
 }
 
@@ -105,3 +108,39 @@ void LLNameBox::refreshAll(const LLUUID& id, const std::string& full_name, bool 
 		box->refresh(id, full_name, is_group);
 	}
 }
+
+void LLNameBox::setName(const std::string& name, BOOL is_group)
+{
+	if (mLink)
+	{
+		std::string url;
+
+		if (is_group)
+			url = "[secondlife:///app/group/" + mNameID.asString() + "/about " + name + "]";
+		else
+			url = "[secondlife:///app/agent/" + mNameID.asString() + "/about " + name + "]";
+
+		setText(url);
+	}
+	else
+	{
+		setText(name);
+	}
+}
+
+// virtual
+void LLNameBox::initFromXML(LLXMLNodePtr node, LLView* parent)
+{
+	LLTextBox::initFromXML(node, parent);
+	node->getAttributeBOOL("link", mLink);
+	node->getAttributeString("initial_value", mInitialValue);
+}
+
+// static
+LLView* LLNameBox::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
+{
+	LLNameBox* name_box = new LLNameBox("name_box");
+	name_box->initFromXML(node,parent);
+	return name_box;
+}
+

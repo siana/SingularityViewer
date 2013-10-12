@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<panel border="false" height="100" label="Audio &amp; Video" name="Media panel" width="250">
+<panel border="false" height="120" label="Audio &amp; Video" name="Media panel" width="250">
 	<slider control_name="AudioLevelMaster" follows="top" height="15" increment="0.005" initial_val="0.5" label="Master" label_width="55" left="10" max_val="1" min_val="0" name="System Volume" show_text="false" volume="true" width="181"/>
 	<button bottom_delta="0" control_name="MuteAudio" follows="top" height="16" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" label="" right="-28" name="mute_audio" toggle="true" width="25"/>
 	<slider bottom_delta="-30" control_name="AudioLevelMusic" follows="top" height="15" increment="0.005" initial_val="0.5" label="Music" label_width="55" left="10" max_val="1" min_val="0" name="Music Volume" show_text="false" volume="true" width="181"/>
@@ -14,4 +14,5 @@
 	<button bottom_delta="0" control_name="MuteAmbient" follows="top" height="16" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" right="-28" label="" name="mute_wind" toggle="true" width="25"/>
 	<slider control_name="AudioLevelUI" follows="top" height="15" increment="0.005" initial_val="0.5" label="UI" label_width="55" left="10" max_val="1" min_val="0" name="UI Volume" show_text="false" volume="true" width="181"/>
 	<button bottom_delta="0" control_name="MuteUI" follows="top" height="16" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" right="-28" label="" name="mute_ui" toggle="true" width="25"/>
+	<button bottom_delta="-20" control_name="ShowNearbyMediaFloater" follows="top" height="18" left="10" label="Nearby Media" name="nearby_media" toggle="true" width="200"/>
 </panel>

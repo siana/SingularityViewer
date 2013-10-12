@@ -88,18 +88,18 @@ LLPreviewSound::LLPreviewSound(const std::string& name, const LLRect& rect, cons
 	
 	childSetCommitCallback("desc", LLPreview::onText, this);
 	childSetText("desc", item->getDescription());
-	childSetPrevalidate("desc", &LLLineEditor::prevalidatePrintableNotPipe);	
+	getChild<LLLineEditor>("desc")->setPrevalidate(&LLLineEditor::prevalidatePrintableNotPipe);
 	
 	// preload the sound
 	if(item && gAudiop)
 	{
-		gAudiop->preloadSound(item->getAssetUUID());
 		// <edit>
 		// that thing above doesn't actually start a sound transfer, so I will do it
-		//LLAudioSource *asp = new LLAudioSource(gAgent.getID(), gAgent.getID(), F32(1.0f), LLAudioEngine::AUDIO_TYPE_UI);
 		LLAudioSource *asp = gAgentAvatarp->getAudioSource(gAgent.getID());
-		LLAudioData *datap = gAudiop->getAudioData(item->getAssetUUID());
-		asp->addAudioData(datap, FALSE);
+		if(asp)
+		{
+			asp->preload(item->getAssetUUID());
+		}
 		// </edit>
 	}
 	
@@ -291,7 +291,7 @@ void LLPreviewSound::copyUUID( void *userdata )
 
 	if(item )
 	{
-		gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(item->getAssetUUID().asString()));
+		gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(item->getAssetUUID().asString()));
 	}
 }
 // </edit>

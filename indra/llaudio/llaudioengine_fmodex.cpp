@@ -70,12 +70,165 @@ bool attemptDelayLoad()
 }
 #endif
 
+static bool sVerboseDebugging = false;
+
 FMOD_RESULT F_CALLBACK windCallback(FMOD_DSP_STATE *dsp_state, float *inbuffer, float *outbuffer, unsigned int length, int inchannels, int outchannels);
 
 FMOD::ChannelGroup *LLAudioEngine_FMODEX::mChannelGroups[LLAudioEngine::AUDIO_TYPE_COUNT] = {0};
 
-LLAudioEngine_FMODEX::LLAudioEngine_FMODEX(bool enable_profiler)
+//This class is designed to keep track of all sound<->channel assocations.
+//Used to verify validity of sound and channel pointers, as well as catch cases were sounds
+//are released with active channels still attached.
+class CFMODSoundChecks
 {
+	typedef std::map<FMOD::Sound*,std::set<FMOD::Channel*> > active_sounds_t;
+	typedef std::set<FMOD::Sound*> dead_sounds_t;
+	typedef std::map<FMOD::Channel*,FMOD::Sound*> active_channels_t;
+	typedef std::map<FMOD::Channel*,FMOD::Sound*> dead_channels_t;
+
+	active_sounds_t mActiveSounds;
+	dead_sounds_t mDeadSounds;
+	active_channels_t mActiveChannels;
+	dead_channels_t mDeadChannels;
+public:
+	enum STATUS
+	{
+		ACTIVE,
+		DEAD,
+		UNKNOWN
+	};
+	STATUS getPtrStatus(LLAudioChannel* channel)
+	{
+		if(!channel)
+			return UNKNOWN;
+		return getPtrStatus(dynamic_cast<LLAudioChannelFMODEX*>(channel)->mChannelp);
+	}
+	STATUS getPtrStatus(LLAudioBuffer* sound)
+	{
+		if(!sound)
+			return UNKNOWN;
+		return getPtrStatus(dynamic_cast<LLAudioBufferFMODEX*>(sound)->mSoundp);
+	}
+	STATUS getPtrStatus(FMOD::Channel* channel)
+	{
+		if(!channel)
+			return UNKNOWN;
+		else if(mActiveChannels.find(channel) != mActiveChannels.end())
+			return ACTIVE;
+		else if(mDeadChannels.find(channel) != mDeadChannels.end())
+			return DEAD;
+		return UNKNOWN;
+	}
+	STATUS getPtrStatus(FMOD::Sound* sound)
+	{
+		if(!sound)
+			return UNKNOWN;
+		if(mActiveSounds.find(sound) != mActiveSounds.end())
+			return ACTIVE;
+		else if(mDeadSounds.find(sound) != mDeadSounds.end())
+			return DEAD;
+		return UNKNOWN;
+	}
+	void addNewSound(FMOD::Sound* sound)
+	{
+		assertActiveState(sound,true,false);
+
+		mDeadSounds.erase(sound);
+		mActiveSounds.insert(std::make_pair(sound,std::set<FMOD::Channel*>()));
+	}
+	void removeSound(FMOD::Sound* sound)
+	{
+		assertActiveState(sound,true);
+
+		active_sounds_t::const_iterator it = mActiveSounds.find(sound);
+		llassert(it != mActiveSounds.end());
+		if(it != mActiveSounds.end())
+		{
+			if(!it->second.empty())
+			{
+				LL_WARNS("AudioImpl")	<< "Removing sound " << sound << " with attached channels: \n";
+				for(std::set<FMOD::Channel*>::iterator it2 = it->second.begin(); it2 != it->second.end();++it2)
+				{
+					switch(getPtrStatus(*it2))
+					{
+					case ACTIVE:
+						LL_CONT << " Channel " << *it2 << " ACTIVE\n";
+						break;
+					case DEAD:
+						LL_CONT << " Channel " << *it2 << " DEAD\n";
+						break;
+					default:
+						LL_CONT << " Channel " << *it2 << " UNKNOWN\n";
+					}
+				}
+				LL_CONT << LL_ENDL;
+			}
+			llassert(it->second.empty());
+			mDeadSounds.insert(sound);
+			mActiveSounds.erase(sound);
+		}
+	}
+	void addNewChannelToSound(FMOD::Sound* sound,FMOD::Channel* channel)
+	{
+		assertActiveState(sound,true);
+		assertActiveState(channel,true,false);
+
+		mActiveSounds[sound].insert(channel);
+		mActiveChannels.insert(std::make_pair(channel,sound));
+	}
+	void removeChannel(FMOD::Channel* channel)
+	{
+		assertActiveState(channel,true);
+
+		active_channels_t::const_iterator it = mActiveChannels.find(channel);
+		llassert(it != mActiveChannels.end());
+		if(it != mActiveChannels.end())
+		{
+#ifdef SHOW_ASSERT
+			STATUS status = getPtrStatus(it->second);
+			llassert(status != DEAD);
+			llassert(status != UNKNOWN);
+#endif
+
+			active_sounds_t::iterator it2 = mActiveSounds.find(it->second);
+			llassert(it2 != mActiveSounds.end());
+			if(it2 != mActiveSounds.end())
+			{
+				it2->second.erase(channel);
+			}
+			mDeadChannels.insert(*it);
+			mActiveChannels.erase(channel);
+		}
+	}
+
+	template <typename T>
+	void assertActiveState(T ptr, bool try_log=false, bool active=true)
+	{
+#ifndef SHOW_ASSERT
+		if(try_log && sVerboseDebugging)
+#endif
+		{
+			CFMODSoundChecks::STATUS chan = getPtrStatus(ptr);
+			if(try_log && sVerboseDebugging)
+			{
+				if(active)
+				{
+					if(chan == CFMODSoundChecks::DEAD)
+						LL_WARNS("AudioImpl") << __FUNCTION__ << ": Using unexpectedly dead " << typeid(T*).name() << " " << ptr << LL_ENDL;
+					else if(chan == CFMODSoundChecks::UNKNOWN)
+						LL_WARNS("AudioImpl") << __FUNCTION__ << ": Using unexpectedly unknown " << typeid(T*).name() << " " << ptr << LL_ENDL;
+				}
+				else if(chan == CFMODSoundChecks::ACTIVE)
+						LL_WARNS("AudioImpl") << __FUNCTION__ << ": Using unexpectedly active " << typeid(T*).name() << " " << ptr << LL_ENDL;
+			}
+			llassert( active == (chan == CFMODSoundChecks::ACTIVE) );
+		}
+	}
+} gSoundCheck;
+
+LLAudioEngine_FMODEX::LLAudioEngine_FMODEX(bool enable_profiler, bool verbose_debugging)
+{
+	sVerboseDebugging = verbose_debugging;
 	mInited = false;
 	mWindGen = NULL;
 	mWindDSP = NULL;
@@ -93,7 +246,7 @@ inline bool Check_FMOD_Error(FMOD_RESULT result, const char *string)
 {
 	if(result == FMOD_OK)
 		return false;
-	llwarns << string << " Error: " << FMOD_ErrorString(result) << llendl;
+	LL_WARNS("AudioImpl") << string << " Error: " << FMOD_ErrorString(result) << LL_ENDL;
 	return true;
 }
 
@@ -101,11 +254,11 @@ void* F_STDCALL decode_alloc(unsigned int size, FMOD_MEMORY_TYPE type, const cha
 {
 	if(type & FMOD_MEMORY_STREAM_DECODE)
 	{
-		llinfos << "Decode buffer size: " << size << llendl;
+		LL_INFOS("AudioImpl") << "Decode buffer size: " << size << LL_ENDL;
 	}
 	else if(type & FMOD_MEMORY_STREAM_FILE)
 	{
-		llinfos << "Strean buffer size: " << size << llendl;
+		LL_INFOS("AudioImpl") << "Stream buffer size: " << size << LL_ENDL;
 	}
 	return new char[size];
 }
@@ -152,8 +305,8 @@ bool LLAudioEngine_FMODEX::init(const S32 num_channels, void* userdata)
 			<< ")!  You should be using FMOD Ex" << FMOD_VERSION << LL_ENDL;
 	}
 
-	result = mSystem->setSoftwareFormat(44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR);
-	Check_FMOD_Error(result,"FMOD::System::setSoftwareFormat");
+//	result = mSystem->setSoftwareFormat(44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR);
+//	Check_FMOD_Error(result,"FMOD::System::setSoftwareFormat");
 
 	// In this case, all sounds, PLUS wind and stream will be software.
 	result = mSystem->setSoftwareChannels(num_channels + 2);
@@ -344,7 +497,7 @@ void LLAudioEngine_FMODEX::allocateListener(void)
 	mListenerp = (LLListener *) new LLListener_FMODEX(mSystem);
 	if (!mListenerp)
 	{
-		llwarns << "Listener creation failed" << llendl;
+		LL_WARNS("AudioImpl") << "Listener creation failed" << LL_ENDL;
 	}
 }
 
@@ -353,13 +506,18 @@ void LLAudioEngine_FMODEX::shutdown()
 {
 	stopInternetStream();
 
-	llinfos << "About to LLAudioEngine::shutdown()" << llendl;
+	LL_INFOS("AudioImpl") << "About to LLAudioEngine::shutdown()" << LL_ENDL;
 	LLAudioEngine::shutdown();
 	
-	llinfos << "LLAudioEngine_FMODEX::shutdown() closing FMOD Ex" << llendl;
-	mSystem->close();
-	mSystem->release();
-	llinfos << "LLAudioEngine_FMODEX::shutdown() done closing FMOD Ex" << llendl;
+	LL_INFOS("AudioImpl") << "LLAudioEngine_FMODEX::shutdown() closing FMOD Ex" << LL_ENDL;
+	if ( mSystem ) // speculative fix for MAINT-2657
+	{
+		LL_INFOS("AudioImpl") << "LLAudioEngine_FMODEX::shutdown() Requesting FMOD Ex system closure" << LL_ENDL;
+		mSystem->close();
+		LL_INFOS("AudioImpl") << "LLAudioEngine_FMODEX::shutdown() Requesting FMOD Ex system release" << LL_ENDL;
+		mSystem->release();
+	}
+	LL_INFOS("AudioImpl") << "LLAudioEngine_FMODEX::shutdown() done closing FMOD Ex" << LL_ENDL;
 
 	delete mListenerp;
 	mListenerp = NULL;
@@ -490,6 +648,34 @@ LLAudioChannelFMODEX::LLAudioChannelFMODEX(FMOD::System *system) : LLAudioChanne
 
 LLAudioChannelFMODEX::~LLAudioChannelFMODEX()
 {
+	if(sVerboseDebugging)
+		LL_DEBUGS("AudioImpl") << "Destructing Audio Channel. mChannelp = " << mChannelp << LL_ENDL;
+
+	cleanup();
+}
+
+static FMOD_RESULT F_CALLBACK channel_callback(FMOD_CHANNEL *channel, FMOD_CHANNEL_CALLBACKTYPE type, void *commanddata1, void *commanddata2)
+{
+	if(type == FMOD_CHANNEL_CALLBACKTYPE_END)
+	{
+		FMOD::Channel* chan = reinterpret_cast<FMOD::Channel*>(channel);
+		LLAudioChannelFMODEX* audio_channel = NULL;
+		chan->getUserData((void**)&audio_channel);
+		if(audio_channel)
+		{
+			audio_channel->onRelease();
+		}
+	}
+	return FMOD_OK;
+}
+
+void LLAudioChannelFMODEX::onRelease()
+{
+	llassert(mChannelp);
+	if(sVerboseDebugging)
+		LL_DEBUGS("AudioImpl") << "Fmod signaled channel release for channel  " << mChannelp << LL_ENDL;
+	gSoundCheck.removeChannel(mChannelp);
+	mChannelp = NULL;	//Null out channel here so cleanup doesn't try to redundantly stop it.
 	cleanup();
 }
 
@@ -497,21 +683,17 @@ bool LLAudioChannelFMODEX::updateBuffer()
 {
 	if (LLAudioChannel::updateBuffer())
 	{
-		// Base class update returned true, which means that we need to actually
-		// set up the channel for a different buffer.
-
-		LLAudioBufferFMODEX *bufferp = (LLAudioBufferFMODEX *)mCurrentSourcep->getCurrentBuffer();
+		// Base class update returned true, which means the channel buffer was changed, and not is null.
 
 		// Grab the FMOD sample associated with the buffer
-		FMOD::Sound *soundp = bufferp->getSound();
+		FMOD::Sound *soundp = ((LLAudioBufferFMODEX*)mCurrentBufferp)->getSound();
 		if (!soundp)
 		{
 			// This is bad, there should ALWAYS be a sound associated with a legit
 			// buffer.
-			llerrs << "No FMOD sound!" << llendl;
+			LL_ERRS("AudioImpl") << "No FMOD sound!" << LL_ENDL;
 			return false;
 		}
-
 
 		// Actually play the sound.  Start it off paused so we can do all the necessary
 		// setup.
@@ -519,28 +701,28 @@ bool LLAudioChannelFMODEX::updateBuffer()
 		{
 			FMOD_RESULT result = getSystem()->playSound(FMOD_CHANNEL_FREE, soundp, true, &mChannelp);
 			Check_FMOD_Error(result, "FMOD::System::playSound");
-		}
+			if(result == FMOD_OK)
+			{
+				if(sVerboseDebugging)
+					LL_DEBUGS("AudioImpl") << "Created channel " << mChannelp << " for sound " << soundp << LL_ENDL;
 
-		//llinfos << "Setting up channel " << std::hex << mChannelID << std::dec << llendl;
+				gSoundCheck.addNewChannelToSound(soundp,mChannelp);
+				mChannelp->setCallback(&channel_callback);
+				mChannelp->setUserData(this);
+			}
+		}
 	}
 
 	// If we have a source for the channel, we need to update its gain.
-	if (mCurrentSourcep)
+	if (mCurrentSourcep && mChannelp)
 	{
-		// SJB: warnings can spam and hurt framerate, disabling
 		FMOD_RESULT result;
 
+		gSoundCheck.assertActiveState(this);
 		result = mChannelp->setVolume(getSecondaryGain() * mCurrentSourcep->getGain());
-		//Check_FMOD_Error(result, "FMOD::Channel::setVolume");
-
+		Check_FMOD_Error(result, "FMOD::Channel::setVolume");
 		result = mChannelp->setMode(mCurrentSourcep->isLoop() ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF);
-		/*if(Check_FMOD_Error(result, "FMOD::Channel::setMode"))
-		{
-			S32 index;
-			mChannelp->getIndex(&index);
- 			llwarns << "Channel " << index << "Source ID: " << mCurrentSourcep->getID()
- 					<< " at " << mCurrentSourcep->getPositionGlobal() << llendl;		
-		}*/
+		Check_FMOD_Error(result, "FMOD::Channel::setMode");
 	}
 
 	return true;
@@ -562,6 +744,8 @@ void LLAudioChannelFMODEX::update3DPosition()
 		// by the above if.
 		return;
 	}
+
+	gSoundCheck.assertActiveState(this);
 
 	if (mCurrentSourcep->isAmbient())
 	{
@@ -589,13 +773,15 @@ void LLAudioChannelFMODEX::updateLoop()
 		return;
 	}
 
+	gSoundCheck.assertActiveState(this);
+
 	//
 	// Hack:  We keep track of whether we looped or not by seeing when the
 	// sample position looks like it's going backwards.  Not reliable; may
 	// yield false negatives.
 	//
 	U32 cur_pos;
-	mChannelp->getPosition(&cur_pos,FMOD_TIMEUNIT_PCMBYTES);
+	Check_FMOD_Error(mChannelp->getPosition(&cur_pos,FMOD_TIMEUNIT_PCMBYTES),"FMOD::Channel::getPosition");
 
 	if (cur_pos < (U32)mLastSamplePos)
 	{
@@ -607,16 +793,22 @@ void LLAudioChannelFMODEX::updateLoop()
 
 void LLAudioChannelFMODEX::cleanup()
 {
+	LLAudioChannel::cleanup();
+
 	if (!mChannelp)
 	{
-		//llinfos << "Aborting cleanup with no channel handle." << llendl;
+		llassert(mCurrentBufferp == NULL);
+		//LL_INFOS("AudioImpl") << "Aborting cleanup with no channel handle." << LL_ENDL;
 		return;
 	}
 
-	//llinfos << "Cleaning up channel: " << mChannelID << llendl;
+	if(sVerboseDebugging)
+		LL_DEBUGS("AudioImpl") << "Stopping channel " << mChannelp << LL_ENDL;
+
+	gSoundCheck.removeChannel(mChannelp);
+	mChannelp->setCallback(NULL);
 	Check_FMOD_Error(mChannelp->stop(),"FMOD::Channel::stop");
 
-	mCurrentBufferp = NULL;
 	mChannelp = NULL;
 }
 
@@ -625,16 +817,21 @@ void LLAudioChannelFMODEX::play()
 {
 	if (!mChannelp)
 	{
-		llwarns << "Playing without a channel handle, aborting" << llendl;
+		LL_WARNS("AudioImpl") << "Playing without a channel handle, aborting" << LL_ENDL;
 		return;
 	}
 
-	Check_FMOD_Error(mChannelp->setPaused(false), "FMOD::Channel::pause");
+	gSoundCheck.assertActiveState(this,true);
+
+	Check_FMOD_Error(mChannelp->setPaused(false), "FMOD::Channel::setPaused");
+
+	if(sVerboseDebugging)
+		LL_DEBUGS("AudioImpl") << "Playing channel " << mChannelp << LL_ENDL;
 
 	getSource()->setPlayedOnce(true);
 
 	if(LLAudioEngine_FMODEX::mChannelGroups[getSource()->getType()])
-		mChannelp->setChannelGroup(LLAudioEngine_FMODEX::mChannelGroups[getSource()->getType()]);
+		Check_FMOD_Error(mChannelp->setChannelGroup(LLAudioEngine_FMODEX::mChannelGroups[getSource()->getType()]),"FMOD::Channel::setChannelGroup");
 }
 
 
@@ -647,8 +844,10 @@ void LLAudioChannelFMODEX::playSynced(LLAudioChannel *channelp)
 		return;
 	}
 
+	gSoundCheck.assertActiveState(this,true);
+
 	U32 cur_pos;
-	if(Check_FMOD_Error(mChannelp->getPosition(&cur_pos,FMOD_TIMEUNIT_PCMBYTES), "Unable to retrieve current position"))
+	if(Check_FMOD_Error(fmod_channelp->mChannelp->getPosition(&cur_pos,FMOD_TIMEUNIT_PCMBYTES), "Unable to retrieve current position"))
 		return;
 
 	cur_pos %= mCurrentBufferp->getLength();
@@ -668,9 +867,11 @@ bool LLAudioChannelFMODEX::isPlaying()
 		return false;
 	}
 
+	gSoundCheck.assertActiveState(this);
+
 	bool paused, playing;
-	mChannelp->getPaused(&paused);
-	mChannelp->isPlaying(&playing);
+	Check_FMOD_Error(mChannelp->getPaused(&paused),"FMOD::Channel::getPaused");
+	Check_FMOD_Error(mChannelp->isPlaying(&playing),"FMOD::Channel::isPlaying");
 	return !paused && playing;
 }
 
@@ -680,7 +881,7 @@ bool LLAudioChannelFMODEX::isPlaying()
 //
 
 
-LLAudioBufferFMODEX::LLAudioBufferFMODEX(FMOD::System *system) : mSystemp(system), mSoundp(NULL)
+LLAudioBufferFMODEX::LLAudioBufferFMODEX(FMOD::System *system) : LLAudioBuffer(), mSystemp(system), mSoundp(NULL)
 {
 }
 
@@ -689,7 +890,11 @@ LLAudioBufferFMODEX::~LLAudioBufferFMODEX()
 {
 	if(mSoundp)
 	{
-		mSoundp->release();
+		if(sVerboseDebugging)
+			LL_DEBUGS("AudioImpl") << "Release sound " << mSoundp << LL_ENDL;
+
+		gSoundCheck.removeSound(mSoundp);
+		Check_FMOD_Error(mSoundp->release(),"FMOD::Sound::Release");
 		mSoundp = NULL;
 	}
 }
@@ -713,8 +918,9 @@ bool LLAudioBufferFMODEX::loadWAV(const std::string& filename)
 	
 	if (mSoundp)
 	{
+		gSoundCheck.removeSound(mSoundp);
 		// If there's already something loaded in this buffer, clean it up.
-		mSoundp->release();
+		Check_FMOD_Error(mSoundp->release(),"FMOD::Sound::release");
 		mSoundp = NULL;
 	}
 
@@ -733,7 +939,7 @@ bool LLAudioBufferFMODEX::loadWAV(const std::string& filename)
 	if (result != FMOD_OK)
 	{
 		// We failed to load the file for some reason.
-		llwarns << "Could not load data '" << filename << "': " << FMOD_ErrorString(result) << llendl;
+		LL_WARNS("AudioImpl") << "Could not load data '" << filename << "': " << FMOD_ErrorString(result) << LL_ENDL;
 
 		//
 		// If we EVER want to load wav files provided by end users, we need
@@ -743,6 +949,8 @@ bool LLAudioBufferFMODEX::loadWAV(const std::string& filename)
 		LLFile::remove(filename);
 		return false;
 	}
+
+	gSoundCheck.addNewSound(mSoundp);
 
 	// Everything went well, return true
 	return true;
@@ -756,16 +964,19 @@ U32 LLAudioBufferFMODEX::getLength()
 		return 0;
 	}
 
+	gSoundCheck.assertActiveState(this);
 	U32 length;
-	mSoundp->getLength(&length, FMOD_TIMEUNIT_PCMBYTES);
+	Check_FMOD_Error(mSoundp->getLength(&length, FMOD_TIMEUNIT_PCMBYTES),"FMOD::Sound::getLength");
 	return length;
 }
 
 
 void LLAudioChannelFMODEX::set3DMode(bool use3d)
 {
+	gSoundCheck.assertActiveState(this);
+
 	FMOD_MODE current_mode;
-	if(mChannelp->getMode(&current_mode) != FMOD_OK)
+	if(Check_FMOD_Error(mChannelp->getMode(&current_mode),"FMOD::Channel::getMode"))
 		return;
 	FMOD_MODE new_mode = current_mode;	
 	new_mode &= ~(use3d ? FMOD_2D : FMOD_3D);
@@ -773,7 +984,7 @@ void LLAudioChannelFMODEX::set3DMode(bool use3d)
 
 	if(current_mode != new_mode)
 	{
-		mChannelp->setMode(new_mode);
+		Check_FMOD_Error(mChannelp->setMode(new_mode),"FMOD::Channel::setMode");
 	}
 }
 

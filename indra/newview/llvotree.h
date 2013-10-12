@@ -39,6 +39,7 @@
 
 class LLFace;
 class LLDrawPool;
+class LLSelectNode;
 class LLViewerFetchedTexture;
 
 class LLVOTree : public LLViewerObject
@@ -115,15 +116,17 @@ public:
 	U32 drawBranchPipeline(LLMatrix4& matrix, U16* indicesp, S32 trunk_LOD, S32 stop_level, U16 depth, U16 trunk_depth,  F32 scale, F32 twist, F32 droop,  F32 branches, F32 alpha);
  
 
-	 /*virtual*/ BOOL lineSegmentIntersect(const LLVector3& start, const LLVector3& end, 
+	 /*virtual*/ BOOL lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end, 
 										  S32 face = -1,                        // which face to check, -1 = ALL_SIDES
 										  BOOL pick_transparent = FALSE,
 										  S32* face_hit = NULL,                 // which face was hit
-										  LLVector3* intersection = NULL,       // return the intersection point
+										  LLVector4a* intersection = NULL,       // return the intersection point
 										  LLVector2* tex_coord = NULL,          // return the texture coordinates of the intersection point
-										  LLVector3* normal = NULL,             // return the surface normal at the intersection point
-										  LLVector3* bi_normal = NULL           // return the surface bi-normal at the intersection point
+										  LLVector4a* normal = NULL,             // return the surface normal at the intersection point
+										  LLVector4a* tangent = NULL           // return the surface tangent at the intersection point
 		);
+ 
+	void generateSilhouette(LLSelectNode* nodep, const LLVector3& view_point);
 
 	static S32 sMaxTreeSpecies;
 
@@ -162,6 +165,7 @@ public:
 	friend class LLDrawPoolTree;
 protected:
 	LLVector3		mTrunkBend;		// Accumulated wind (used for blowing trees)
+	LLVector3		mTrunkVel;		// 
 	LLVector3		mWind;
 
 	LLPointer<LLVertexBuffer> mReferenceBuffer; //reference geometry for generating tree mesh
@@ -201,6 +205,13 @@ protected:
 	static S32 sLODVertexCount[4];
 	static S32 sLODSlices[4];
 	static F32 sLODAngles[4];
+
+private:
+	void generateSilhouetteVertices(std::vector<LLVector3> &vertices,
+									std::vector<LLVector3> &normals,
+									const LLVector3& view_vec,
+									const LLMatrix4& mat,
+									const LLMatrix3& norm_mat);
 };
 
 #endif

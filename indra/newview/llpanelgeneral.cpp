@@ -39,7 +39,6 @@
 #include "llcolorswatch.h"
 #include "llcombobox.h"
 #include "lluictrlfactory.h"
-#include "llurlsimstring.h"
 #include "llviewercontrol.h"
 
 #include "llagent.h"
@@ -48,6 +47,7 @@
 #include "llavatarnamecache.h"
 #include "llvoavatar.h"
 #include "llcallingcard.h"
+#include "llnotifications.h"
 
 LLPanelGeneral::LLPanelGeneral()
 {
@@ -62,7 +62,13 @@ BOOL LLPanelGeneral::postBuild()
 	LLComboBox* namesystem_combobox = getChild<LLComboBox>("namesystem_combobox");
 	namesystem_combobox->setCurrentByIndex(gSavedSettings.getS32("PhoenixNameSystem"));
 
-	childSetValue("default_start_location", gSavedSettings.getBOOL("LoginLastLocation") ? "MyLastLocation" : "MyHome");
+	getChild<LLUICtrl>("show_resident_checkbox")->setValue(gSavedSettings.getBOOL("LiruShowLastNameResident"));
+
+	std::string login_location = gSavedSettings.getString("LoginLocation");
+	if(login_location != "last" && login_location != "home")
+		login_location = "last";
+
+	childSetValue("default_start_location", login_location);
 	childSetValue("show_location_checkbox", gSavedSettings.getBOOL("ShowStartLocation"));
 	childSetValue("show_all_title_checkbox", gSavedSettings.getBOOL("RenderHideGroupTitleAll"));
 	childSetValue("language_is_public", gSavedSettings.getBOOL("LanguageIsPublic"));
@@ -81,7 +87,7 @@ BOOL LLPanelGeneral::postBuild()
 	childSetValue("ui_auto_scale", gSavedSettings.getBOOL("UIAutoScale"));
 
 	LLComboBox* crash_behavior_combobox = getChild<LLComboBox>("crash_behavior_combobox");
-	crash_behavior_combobox->setCurrentByIndex(gCrashSettings.getS32(CRASH_BEHAVIOR_SETTING));
+	crash_behavior_combobox->setCurrentByIndex(gSavedSettings.getS32(CRASH_BEHAVIOR_SETTING));
 	
 	childSetValue("language_combobox", 	gSavedSettings.getString("Language"));
 
@@ -136,11 +142,13 @@ void LLPanelGeneral::apply()
 	LLComboBox* fade_out_combobox = getChild<LLComboBox>("fade_out_combobox");
 	gSavedSettings.setS32("RenderName", fade_out_combobox->getCurrentIndex());
 	
-	LLComboBox* namesystem_combobox = getChild<LLComboBox>("namesystem_combobox");
-	if(gSavedSettings.getS32("PhoenixNameSystem")!=namesystem_combobox->getCurrentIndex()){
-		gSavedSettings.setS32("PhoenixNameSystem", namesystem_combobox->getCurrentIndex());
+	S32 namesystem_combobox_index = getChild<LLComboBox>("namesystem_combobox")->getCurrentIndex();
+	BOOL show_resident = getChild<LLUICtrl>("show_resident_checkbox")->getValue();
+	if(gSavedSettings.getS32("PhoenixNameSystem")!=namesystem_combobox_index || gSavedSettings.getBOOL("LiruShowLastNameResident")!=show_resident){
+		gSavedSettings.setS32("PhoenixNameSystem", namesystem_combobox_index);
+		gSavedSettings.setBOOL("LiruShowLastNameResident", show_resident);
 		if(gAgent.getRegion()){
-			if(namesystem_combobox->getCurrentIndex()<=0 || namesystem_combobox->getCurrentIndex()>2) LLAvatarNameCache::setUseDisplayNames(false);
+			if(namesystem_combobox_index<=0 || namesystem_combobox_index>2) LLAvatarNameCache::setUseDisplayNames(false);
 			else LLAvatarNameCache::setUseDisplayNames(true);
 			LLVOAvatar::invalidateNameTags(); // Remove all clienttags to get them updated
 
@@ -148,7 +156,7 @@ void LLPanelGeneral::apply()
 		}
 	}
 
-	gSavedSettings.setBOOL("LoginLastLocation", childGetValue("default_start_location").asString() == "MyLastLocation");
+	gSavedSettings.setString("LoginLocation", childGetValue("default_start_location").asString());
 	gSavedSettings.setBOOL("ShowStartLocation", childGetValue("show_location_checkbox"));
 	gSavedSettings.setBOOL("RenderHideGroupTitleAll", childGetValue("show_all_title_checkbox"));
 	gSavedSettings.setBOOL("LanguageIsPublic", childGetValue("language_is_public"));
@@ -165,10 +173,8 @@ void LLPanelGeneral::apply()
 	gSavedSettings.setBOOL("UIAutoScale", childGetValue("ui_auto_scale"));
 	gSavedSettings.setString("Language", childGetValue("language_combobox"));
 
-	LLURLSimString::setString(childGetValue("location_combobox"));
-
 	LLComboBox* crash_behavior_combobox = getChild<LLComboBox>("crash_behavior_combobox");
-	gCrashSettings.setS32(CRASH_BEHAVIOR_SETTING, crash_behavior_combobox->getCurrentIndex());
+	gSavedSettings.setS32(CRASH_BEHAVIOR_SETTING, crash_behavior_combobox->getCurrentIndex());
 }
 
 void LLPanelGeneral::cancel()

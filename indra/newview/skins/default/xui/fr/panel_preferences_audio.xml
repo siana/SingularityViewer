@@ -1,17 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="Audio et vidéo" name="Media panel">
-	<text name="muting_text">Volume:</text>
-	<text name="audio_prefs_text"></text>
-	<text bottom="-187" name="streaming_prefs_text">
-		Médias et Audio :&#10;&#10;&#10;&#10;&#10;&#10;&#10;( Filtre de Sécurité des Médias )
-	</text>
-	<panel name="Volume Panel"/>
-	<check_box bottom="-200" height="32" label="Jouer la musique disponible &#10;
-(Gourmand en bande passante)" name="streaming_music"/>
-	<check_box bottom_delta="-32" height="32" label="Jouer le média disponible &#10;
-(Gourmand en bande passante)" name="streaming_video"/>
-	<check_box label="Demande la permission d'activer le média" name="streaming_video"/>
-	<check_box bottom_delta="-32" label="Lire automatiquement le média" name="auto_streaming_video"/>
+	<text name="streaming_prefs_text">Préférences de Stream:</text>
+	<text name="audio_prefs_text">Préférences Audio:</text>
+  <check_box label="Demande la permission d'activer les médias (active les filtres)" name="media_filter_enable"/>
+	<check_box label="Jouer la musique disponible (gourmand en bande passante)" name="streaming_music"/>
+	<check_box label="Jouer le média disponible  (gourmand en bande passante)" name="streaming_video"/>
+  <check_box label="Joue automatiquement le média sur un prim" name="auto_prim_streaming_video"/>
+	<check_box label="Joue automatiquement les médias sur la parcelle" name="auto_streaming_video"/>
 	<check_box label="Couper le son lorsque la fenêtre est minimisée" name="mute_when_minimized"/>
 	<slider label="Effet Doppler" label_width="115" name="Doppler Effect"/>
 	<slider label="Facteur d'atténuation" label_width="115" name="Rolloff Factor"/>

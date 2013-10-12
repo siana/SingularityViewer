@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="Popups" name="popups" title="Popups">
+  <check_box label="Automatically accept item offers" name="accept_new_inventory"/>
+  <check_box label="View previewable items after accepting" name="show_new_inventory"/>
+  <check_box label="Show newly accepted objects in inventory" name="show_in_inventory"/>
+  <text name="show_label">Immer anzeigen:</text>
+  
+  <button label="Enable all" name="reset_dialogs_btn" tool_tip="Alle optionalen Popups und „Das erste Mal“-Meldungen aktivieren."/>
+  
+  <button label="Disable first time popups..." name="skip_frst_btn" tool_tip="Disable all of the first time use notifications."/>
+  
+  <button label="Disable all" name="skip_dialogs_btn" tool_tip="Alle optionalen Popups und „Das erste Mal“-Meldungen deaktivieren."/>
+  <text name="dont_show_label">Niemals anzeigen:</text>
+  
+</panel>

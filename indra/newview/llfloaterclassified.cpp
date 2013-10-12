@@ -55,7 +55,7 @@ class LLClassifiedHandler : public LLCommandHandler
 {
 public:
 	// requires trusted browser to trigger
-	LLClassifiedHandler() : LLCommandHandler("classified", true) { }
+	LLClassifiedHandler() : LLCommandHandler("classified", UNTRUSTED_THROTTLE) { }
 	bool handle(const LLSD& tokens, const LLSD& query_map,
 				LLMediaCtrl* web)
 	{

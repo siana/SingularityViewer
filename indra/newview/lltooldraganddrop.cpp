@@ -1512,10 +1512,9 @@ EAcceptance LLToolDragAndDrop::willObjectAcceptInventory(LLViewerObject* obj, LL
 	if(!item || !obj) return ACCEPT_NO;
 	// HACK: downcast
 	LLViewerInventoryItem* vitem = (LLViewerInventoryItem*)item;
-	// <edit>
-	//if(!vitem->isFinished()) return ACCEPT_NO;
-	if(!vitem->isFinished() && !(gInventory.isObjectDescendentOf(vitem->getUUID(), gSystemFolderRoot))) return ACCEPT_NO;
-	// </edit>
+
+	if(!vitem->isFinished()) return ACCEPT_NO;
+
 	if (vitem->getIsLinkType()) return ACCEPT_NO; // No giving away links
 
 	// deny attempts to drop from an object onto itself. This is to
@@ -1619,6 +1618,7 @@ bool LLToolDragAndDrop::handleGiveDragAndDrop(LLUUID dest_agent, LLUUID session_
 	case DAD_BODYPART:
 	case DAD_ANIMATION:
 	case DAD_GESTURE:
+	case DAD_CALLINGCARD:
 	{
 		LLViewerInventoryItem* inv_item = (LLViewerInventoryItem*)cargo_data;
 		if(gInventory.getItem(inv_item->getUUID())
@@ -1663,7 +1663,6 @@ bool LLToolDragAndDrop::handleGiveDragAndDrop(LLUUID dest_agent, LLUUID session_
 		}
 		break;
 	}
-	case DAD_CALLINGCARD:
 	default:
 		*accept = ACCEPT_NO;
 		break;
@@ -1980,10 +1979,9 @@ EAcceptance LLToolDragAndDrop::dad3dApplyToObject(
 	LLViewerInventoryItem* item;
 	LLViewerInventoryCategory* cat;
 	locateInventory(item, cat);
-	// <edit>
-	//if(!item || !item->isFinished()) return ACCEPT_NO;
-	if( !item || (!item->isFinished() && !(gInventory.isObjectDescendentOf(item->getUUID(), gSystemFolderRoot))) ) return ACCEPT_NO;
-	// </edit>
+
+	if(!item || !item->isFinished()) return ACCEPT_NO;
+
 	EAcceptance rv = willObjectAcceptInventory(obj, item);
 	if((mask & MASK_CONTROL))
 	{

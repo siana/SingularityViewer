@@ -236,7 +236,7 @@ void ImportTracker::get_update(S32 newid, BOOL justCreated, BOOL createSelected)
 				msg->nextBlockFast(_PREHASH_ObjectData);
 				msg->addU32Fast(_PREHASH_ObjectLocalID, (U32)newid);
 				msg->addU8Fast(_PREHASH_Field,	PERM_NEXT_OWNER);
-				msg->addBOOLFast(_PREHASH_Set,		PERM_ITEM_UNRESTRICTED);
+				msg->addU8Fast(_PREHASH_Set, PERM_SET_TRUE);
 				U32 flags = 0;
 				if ( gSavedSettings.getBOOL("NextOwnerCopy") )
 				{
@@ -718,7 +718,7 @@ void ImportTracker::send_properties(LLSD& prim, int counter)
 			msg->nextBlockFast(_PREHASH_ObjectData);
 			msg->addU32Fast(_PREHASH_ObjectLocalID, prim["LocalID"].asInteger());
 			msg->addU8Fast(_PREHASH_Field,	PERM_NEXT_OWNER);
-			msg->addBOOLFast(_PREHASH_Set,		PERM_ITEM_UNRESTRICTED);
+			msg->addU8Fast(_PREHASH_Set,	PERM_SET_TRUE);
 			msg->addU32Fast(_PREHASH_Mask,		U32(atoi(prim["next_owner_mask"].asString().c_str())));
 			*//*msg->sendReliable(gAgent.getRegion()->getHost());
 
@@ -732,7 +732,7 @@ void ImportTracker::send_properties(LLSD& prim, int counter)
 			msg->nextBlockFast(_PREHASH_ObjectData);
 			msg->addU32Fast(_PREHASH_ObjectLocalID, prim["LocalID"].asInteger());
 			msg->addU8Fast(_PREHASH_Field,	PERM_GROUP);
-			msg->addBOOLFast(_PREHASH_Set,		PERM_ITEM_UNRESTRICTED);
+			msg->addU8Fast(_PREHASH_Set,	PERM_SET_TRUE);
 			msg->addU32Fast(_PREHASH_Mask,		U32(atoi(prim["group_mask"].asString().c_str())));
 			*//*msg->sendReliable(gAgent.getRegion()->getHost());
 
@@ -746,7 +746,7 @@ void ImportTracker::send_properties(LLSD& prim, int counter)
 			msg->nextBlockFast(_PREHASH_ObjectData);
 			msg->addU32Fast(_PREHASH_ObjectLocalID, prim["LocalID"].asInteger());
 			msg->addU8Fast(_PREHASH_Field,	PERM_EVERYONE);
-			msg->addBOOLFast(_PREHASH_Set,		PERM_ITEM_UNRESTRICTED);
+			msg->addU8Fast(_PREHASH_Set,	PERM_SET_TRUE);
 			msg->addU32Fast(_PREHASH_Mask,		U32(atoi(prim["everyone_mask"].asString().c_str())));
 			msg->sendReliable(gAgent.getRegion()->getHost());
 

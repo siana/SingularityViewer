@@ -30,42 +30,29 @@
  * $/LicenseInfo$
  */
 
-// Display of a "Top Pick" used both for the global top picks in the 
-// Find directory, and also for each individual user's picks in their
-// profile.
+// Display of each individual user's picks in their profile.
 
 #ifndef LL_LLPANELPICK_H
 #define LL_LLPANELPICK_H
 
 #include "llpanel.h"
-#include "v3dmath.h"
-#include "lluuid.h"
 #include "llavatarpropertiesprocessor.h"
 
-class LLButton;
-class LLCheckBoxCtrl;
-class LLIconCtrl;
 class LLLineEditor;
-class LLTextBox;
 class LLTextEditor;
 class LLTextureCtrl;
-class LLUICtrl;
-class LLMessageSystem;
 class AIFilePicker;
 
 class LLPanelPick : public LLPanel, public LLAvatarPropertiesObserver
 {
 public:
-    LLPanelPick(BOOL top_pick);
+    LLPanelPick();
     /*virtual*/ ~LLPanelPick();
 
 	void reset();
 
     /*virtual*/ BOOL postBuild();
-
     /*virtual*/ void draw();
-
-	/*virtual*/ void refresh();
 
 	/*virtual*/ void processProperties(void* data, EAvatarProcessorType type);
 
@@ -87,7 +74,7 @@ public:
 	// from the server next time it is drawn.
 	void markForServerRequest();
 
-	std::string getPickName();
+	const std::string& getPickName() const { return mNameEditor->getText(); }
 	const LLUUID& getPickID() const { return mPickID; }
 	const LLUUID& getPickCreatorID() const { return mCreatorID; }
 
@@ -95,26 +82,24 @@ public:
 	void sendPickInfoUpdate();
 
 protected:
-    static void onClickTeleport(void* data);
-    static void onClickMap(void* data);
-    //static void onClickLandmark(void* data);
-    static void onClickSet(void* data);
+	void onClickTeleport();
+	void onClickMap();
+	//void onClickLandmark();
+	void onClickSet();
 
-	static void onCommitAny(LLUICtrl* ctrl, void* data);
+	void onCommitAny();
 
-protected:
 	//Pick import and export - RK
-	BOOL mImporting;
+	bool mImporting;
 	std::string mLocationText;
 
-	BOOL mTopPick;
     LLUUID mPickID;
 	LLUUID mCreatorID;
 	LLUUID mParcelID;
 
 	// Data will be requested on first draw
-	BOOL mDataRequested;
-	BOOL mDataReceived;
+	bool mDataRequested;
+	bool mDataReceived;
 
 	std::string mSimName;
     LLVector3d mPosGlobal;
@@ -124,13 +109,9 @@ protected:
     LLTextEditor*	mDescEditor;
     LLLineEditor*	mLocationEditor;
 
-    LLButton*    mTeleportBtn;
-    LLButton*    mMapBtn;
-
-    LLTextBox*    mSortOrderText;
-    LLLineEditor* mSortOrderEditor;
-    LLCheckBoxCtrl* mEnabledCheck;
-    LLButton*    mSetBtn;
+	LLUICtrl* mTeleportBtn;
+	LLUICtrl* mSetBtn;
+	LLUICtrl* mOpenBtn;
 
     typedef std::list<LLPanelPick*> panel_list_t;
 	static panel_list_t sAllPanels;

@@ -40,7 +40,7 @@
 #include "llfloaterchat.h"
 #include "llfloaterfriends.h"
 #include "llfloatergroups.h"
-#include "llviewercontrol.h"
+#include "llvoicechannel.h"
 #include "llimview.h"
 #include "llimpanel.h"
 #include "llstring.h"
@@ -315,7 +315,7 @@ void LLFloaterChatterBox::addFloater(LLFloater* floaterp,
 //static 
 LLFloater* LLFloaterChatterBox::getCurrentVoiceFloater()
 {
-	if (!LLVoiceClient::voiceEnabled())
+	if (!LLVoiceClient::getInstance()->voiceEnabled())
 	{
 		return NULL;
 	}

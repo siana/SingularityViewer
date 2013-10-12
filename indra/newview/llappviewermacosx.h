@@ -51,8 +51,7 @@ public:
 
 protected:
 	virtual bool restoreErrorTrap();
-	virtual void handleCrashReporting(bool reportFreeze); 
-	virtual void handleSyncCrashTrace();
+	virtual void initCrashReporting(bool reportFreeze);
 
 	std::string generateSerialNumber();
 	virtual bool initParseCommandLine(LLCommandLineParser& clp);

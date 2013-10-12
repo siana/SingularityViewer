@@ -55,7 +55,7 @@
             <key>md5sum</key>
             <string>9552782ad333c819c91d31087750db64</string>
             <key>url</key>
-            <uri>https://bitbucket.org/Siana/singularityviewer/downloads/glod-1.0pre4-linux-x86_64-20120609.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/glod-1.0pre4-linux-x86_64-20120609.tar.bz2</uri>
           </map>
           <key>windows</key>
           <map>
@@ -181,30 +181,30 @@
           <key>darwin</key>
           <map>
             <key>md5sum</key>
-            <string>e859007376f28d699bfea420e44d02e3</string>
+            <string>b31c495d5e77daa09394b370fc228312</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.45.0-darwin-20110304.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.52.0-darwin-20130221.tar.bz2</uri>
           </map>
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>6e71c78873593aea2ec5c68dcfde0167</string>
+            <string>c11e7bd8c35401f240338ebea5390499</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.45.0-linux-20110604.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.52.0-linux-20130222.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
             <key>md5sum</key>
-            <string>ac6e5b52d5cf13443607c09d8c62b6c5</string>
+            <string>fab1924c7c83c2fb945957b0a9a211e5</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.48.0-linux-x86_64-20120719.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.52.0-linux64-20130531.tar.bz2</uri>
           </map>
           <key>windows</key>
           <map>
             <key>md5sum</key>
-            <string>ba3165f8e51c7a59f55c7464932fbfc1</string>
+            <string>eb13ff93db50d4b08648a5c78ba05310</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.45.0-windows-20120704.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/boost-1.52.0-windows-20130221.tar.bz2</uri>
           </map>
         </map>
       </map>
@@ -221,30 +221,30 @@
           <key>darwin</key>
           <map>
             <key>md5sum</key>
-            <string>d1af5f9ae7740566a184b9af40af36da</string>
+            <string>4e0030cf15d4697e971eb6643286de3b</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-darwin-20110420.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-darwin-20131006.tar.bz2</uri>
           </map>
           <key>linux</key>
           <map>
             <key>md5sum</key>
-            <string>c8c56c032bc39d174876ab25c72a05d8</string>
+            <string>8817faad001cea8f92546f30b5fcbbfa</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-linux-20110621.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-linux-20131007.tar.bz2</uri>
           </map>
           <key>linux64</key>
           <map>
             <key>md5sum</key>
-            <string>bab6e7fea2411dd375d76bb4ce9118a5</string>
+            <string>1d23d74f2f475945ec4d24f70a27561d</string>
             <key>url</key>
-            <uri>https://bitbucket.org/Siana/singularityviewer/downloads/colladadom-2.2-linux-x86_64-20120719.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-linux64-20131007.tar.bz2</uri>
           </map>
           <key>windows</key>
           <map>
             <key>md5sum</key>
-            <string>5c5d071338dcf9d504c2cc2eed8b025a</string>
+            <string>514742a082f922f1ad8d9bf08ea22bbc</string>
             <key>url</key>
-            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-windows-20110413.tar.bz2</uri>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/colladadom-2.2-windows-20131006.tar.bz2</uri>
           </map>
         </map>
       </map>
@@ -559,6 +559,42 @@
             <string>eeec9982df843043a18748276bbf39ce</string>
             <key>url</key>
             <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/glui-2.36-windows-20110214.tar.bz2</uri>
+          </map>
+        </map>
+      </map>
+      <key>google_breakpad</key>
+      <map>
+        <key>license</key>
+        <string>bsd</string>
+        <key>packages</key>
+        <map>
+          <key>darwin</key>
+          <map>
+            <key>md5sum</key>
+            <string>5a5c90d28fd9bdc4244c56fef4216998</string>
+            <key>url</key>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/google_breakpad-0.0.0-rev1099-darwin-20131002.tar.bz2</uri>
+          </map>
+          <key>linux</key>
+          <map>
+            <key>md5sum</key>
+            <string>03852edfa946bdc365b5fbd1a373b17f</string>
+            <key>url</key>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/google_breakpad-0.0.0-rev1099-linux-20131002.tar.bz2</uri>
+          </map>
+          <key>linux64</key>
+          <map>
+            <key>md5sum</key>
+            <string>e2e8d8068eceaad66758bb5f031d5246</string>
+            <key>url</key>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/google_breakpad-0.0.0-rev1099-linux64-20131002.tar.bz2</uri>
+          </map>
+          <key>windows</key>
+          <map>
+            <key>md5sum</key>
+            <string>37d1f91f486e357c9a74e6b4af91fe13</string>
+            <key>url</key>
+            <uri>https://bitbucket.org/SingularityViewer/libraries/downloads/google_breakpad-0.0.0-rev1099-windows-20131002.tar.bz2</uri>
           </map>
         </map>
       </map>

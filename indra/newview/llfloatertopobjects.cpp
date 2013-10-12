@@ -34,16 +34,17 @@
 
 #include "llfloatertopobjects.h"
 
+// library includes
 #include "message.h"
 #include "llfontgl.h"
 
 #include "llagent.h"
 #include "llbutton.h"
 #include "llfloatergodtools.h"
-#include "llfloateravatarinfo.h"
 #include "llnotificationsutil.h"
 #include "llparcel.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "lllineeditor.h"
 #include "lltextbox.h"
 #include "lltracker.h"
@@ -55,13 +56,13 @@
 #include "llagentcamera.h"
 #include "llviewerobjectlist.h"
 
-void cmdline_printchat(std::string message);
+#include "llavataractions.h"
 
-LLFloaterTopObjects* LLFloaterTopObjects::sInstance = NULL;
+//LLFloaterTopObjects* LLFloaterTopObjects::sInstance = NULL;
 
 // Globals
 // const U32 TIME_STR_LENGTH = 30;
-
+/*
 // static
 void LLFloaterTopObjects::show()
 {
@@ -72,91 +73,76 @@ void LLFloaterTopObjects::show()
 	}
 
 	sInstance = new LLFloaterTopObjects();
-	LLUICtrlFactory::getInstance()->buildFloater(sInstance, "floater_top_objects.xml");
 	sInstance->center();
 }
-
+*/
 LLFloaterTopObjects::LLFloaterTopObjects()
 :	LLFloater(std::string("top_objects")),
 	mInitialized(FALSE),
 	mtotalScore(0.f)
 {
-	sInstance = this;
+	mCommitCallbackRegistrar.add("TopObjects.ShowBeacon",		boost::bind(&LLFloaterTopObjects::onClickShowBeacon, this));
+	mCommitCallbackRegistrar.add("TopObjects.ReturnSelected",	boost::bind(&LLFloaterTopObjects::onReturnSelected, this));
+	mCommitCallbackRegistrar.add("TopObjects.ReturnAll",		boost::bind(&LLFloaterTopObjects::onReturnAll, this));
+	mCommitCallbackRegistrar.add("TopObjects.DisableSelected",	boost::bind(&LLFloaterTopObjects::onDisableSelected, this));
+	mCommitCallbackRegistrar.add("TopObjects.DisableAll",		boost::bind(&LLFloaterTopObjects::onDisableAll, this));
+	mCommitCallbackRegistrar.add("TopObjects.Refresh",			boost::bind(&LLFloaterTopObjects::onRefresh, this));
+	mCommitCallbackRegistrar.add("TopObjects.GetByObjectName",	boost::bind(&LLFloaterTopObjects::onGetByObjectName, this));
+	mCommitCallbackRegistrar.add("TopObjects.GetByOwnerName",	boost::bind(&LLFloaterTopObjects::onGetByOwnerName, this));
+	mCommitCallbackRegistrar.add("TopObjects.GetByParcelName",	boost::bind(&LLFloaterTopObjects::onGetByParcelName, this));
+	mCommitCallbackRegistrar.add("TopObjects.CommitObjectsList",boost::bind(&LLFloaterTopObjects::onCommitObjectsList, this));
+
+	mCommitCallbackRegistrar.add("TopObjects.TeleportToObject",	boost::bind(&LLFloaterTopObjects::onTeleportToObject, this));
+	mCommitCallbackRegistrar.add("TopObjects.Kick",				boost::bind(&LLFloaterTopObjects::onKick, this));
+	mCommitCallbackRegistrar.add("TopObjects.Profile",			boost::bind(&LLFloaterTopObjects::onProfile, this));
+
+	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_top_objects.xml");
 }
 
 LLFloaterTopObjects::~LLFloaterTopObjects()
 {
-	sInstance = NULL;
 }
 
 // virtual
 BOOL LLFloaterTopObjects::postBuild()
 {
-
 	LLScrollListCtrl *objects_list = getChild<LLScrollListCtrl>("objects_list");
-	if (objects_list)
-	{
-		objects_list->setCommitCallback(boost::bind(&LLFloaterTopObjects::onCommitObjectsList,_1,this));
-		objects_list->setDoubleClickCallback(boost::bind(&LLFloaterTopObjects::onDoubleClickObjectsList,this));
-		objects_list->setFocus(true);
-		objects_list->setCommitOnSelectionChange(TRUE);
-	}
+	getChild<LLUICtrl>("objects_list")->setFocus(TRUE);
+	objects_list->setDoubleClickCallback(onDoubleClickObjectsList, this);
+	objects_list->setCommitOnSelectionChange(TRUE);
 
-	childSetAction("show_beacon_btn", onClickShowBeacon, this);
 	setDefaultBtn("show_beacon_btn");
-
-	childSetAction("return_selected_btn", onReturnSelected, this);
-	childSetAction("return_all_btn", onReturnAll, this);
-	childSetAction("disable_selected_btn", onDisableSelected, this);
-	childSetAction("disable_all_btn", onDisableAll, this);
-	childSetAction("refresh_btn", onRefresh, this);	
-
-	childSetAction("lagwarning", onLagWarningBtn, this);	
-	childSetAction("profile", onProfileBtn, this);	
-	childSetAction("kick", onKickBtn, this);	
-	childSetAction("tpto", onTPBtn, this);	
-
-
-	childSetAction("filter_object_btn", onGetByObjectNameClicked, this);
-	childSetAction("filter_owner_btn", onGetByOwnerNameClicked, this);	
-
-
-	/*
-	LLLineEditor* line_editor = getChild<LLLineEditor>("owner_name_editor");
-	if (line_editor)
-	{
-		line_editor->setCommitOnFocusLost(FALSE);
-		line_editor->setCommitCallback(onGetByOwnerName);
-		line_editor->setCallbackUserData(this);
-	}
-
-	line_editor = getChild<LLLineEditor>("object_name_editor");
-	if (line_editor)
-	{
-		line_editor->setCommitOnFocusLost(FALSE);
-		line_editor->setCommitCallback(onGetByObjectName);
-		line_editor->setCallbackUserData(this);
-	}*/
 
 	mCurrentMode = STAT_REPORT_TOP_SCRIPTS;
 	mFlags = 0;
 	mFilter.clear();
+	center();
 
 	return TRUE;
 }
+// static
+void LLFloaterTopObjects::setMode(U32 mode)
+{
+	LLFloaterTopObjects* instance = instanceExists() ? getInstance() : NULL;
+	if(!instance) return;
+	instance->mCurrentMode = mode;
+}
 
+// static
 void LLFloaterTopObjects::handle_land_reply(LLMessageSystem* msg, void** data)
 {
+	LLFloaterTopObjects* instance = instanceExists() ? getInstance() : NULL;
+	if(!instance) return;
 	// Make sure dialog is on screen
-	show();
-	sInstance->handleReply(msg, data);
+	instance->open();
+	instance->handleReply(msg, data);
 
 	//HACK: for some reason sometimes top scripts originally comes back
 	//with no results even though they're there
-	if (!sInstance->mObjectListIDs.size() && !sInstance->mInitialized)
+	if (!instance->mObjectListIDs.size() && !instance->mInitialized)
 	{
-		sInstance->onRefresh(NULL);
-		sInstance->mInitialized = TRUE;
+		instance->onRefresh();
+		instance->mInitialized = TRUE;
 	}
 
 }
@@ -171,7 +157,7 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 	msg->getU32Fast(_PREHASH_RequestData, _PREHASH_ReportType, mCurrentMode);
 
 	LLScrollListCtrl *list = getChild<LLScrollListCtrl>("objects_list");
-	
+
 	S32 block_count = msg->getNumberOfBlocks("ReportData");
 	for (S32 block = 0; block < block_count; ++block)
 	{
@@ -182,9 +168,11 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 		F32 score;
 		std::string name_buf;
 		std::string owner_buf;
+		std::string parcel_buf("unknown");
 		F32 mono_score = 0.f;
 		bool have_extended_data = false;
 		S32 public_urls = 0;
+		F32 script_memory = 0.f;
 
 		msg->getU32Fast(_PREHASH_ReportData, _PREHASH_TaskLocalID, task_local_id, block);
 		msg->getUUIDFast(_PREHASH_ReportData, _PREHASH_TaskID, task_id, block);
@@ -194,53 +182,66 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 		msg->getF32Fast(_PREHASH_ReportData, _PREHASH_Score, score, block);
 		msg->getStringFast(_PREHASH_ReportData, _PREHASH_TaskName, name_buf, block);
 		msg->getStringFast(_PREHASH_ReportData, _PREHASH_OwnerName, owner_buf, block);
+
 		if(msg->has("DataExtended"))
 		{
 			have_extended_data = true;
 			msg->getU32("DataExtended", "TimeStamp", time_stamp, block);
 			msg->getF32("DataExtended", "MonoScore", mono_score, block);
-			msg->getS32(_PREHASH_ReportData,"PublicURLs",public_urls,block);
+			msg->getS32("DataExtended", "PublicURLs", public_urls, block);
+			if (msg->getSize("DataExtended", "ParcelName") > 0)
+			{
+				msg->getString("DataExtended", "ParcelName", parcel_buf, block);
+				msg->getF32("DataExtended", "Size", script_memory, block);
+			}
 		}
 
 		LLSD element;
 
 		element["id"] = task_id;
-		element["object_name"] = name_buf;
-		element["owner_name"] = owner_buf;
-		element["columns"][0]["column"] = "score";
-		element["columns"][0]["value"] = llformat("%0.3f", score);
-		element["columns"][0]["font"] = "SANSSERIF";
+
+		LLSD columns;
+		S32 column_num = 0;
+		columns[column_num]["column"] = "score";
+		columns[column_num]["value"] = llformat("%0.3f", score);
+		columns[column_num++]["font"] = "SANSSERIF";
 		
-		element["columns"][1]["column"] = "name";
-		element["columns"][1]["value"] = name_buf;
-		element["columns"][1]["font"] = "SANSSERIF";
-		if (name_buf == owner_buf) 
-		{
-			element["columns"][1]["color"] = LLColor4::red.getValue();
-		}
-		element["columns"][2]["column"] = "owner";
-		element["columns"][2]["value"] = owner_buf;
-		element["columns"][2]["font"] = "SANSSERIF";
-		element["columns"][3]["column"] = "location";
-		element["columns"][3]["value"] = llformat("<%0.1f,%0.1f,%0.1f>", location_x, location_y, location_z);
-		element["columns"][3]["font"] = "SANSSERIF";
-		element["columns"][4]["column"] = "time";
-		element["columns"][4]["value"] = formatted_time((time_t)time_stamp);
-		element["columns"][4]["font"] = "SANSSERIF";
+		columns[column_num]["column"] = "name";
+		columns[column_num]["value"] = name_buf;
+		columns[column_num++]["font"] = "SANSSERIF";
+
+		columns[column_num]["column"] = "owner";
+		columns[column_num]["value"] = owner_buf;
+		columns[column_num++]["font"] = "SANSSERIF";
+
+		columns[column_num]["column"] = "location";
+		columns[column_num]["value"] = llformat("<%0.1f,%0.1f,%0.1f>", location_x, location_y, location_z);
+		columns[column_num++]["font"] = "SANSSERIF";
+
+		columns[column_num]["column"] = "parcel";
+		columns[column_num]["value"] = parcel_buf;
+		columns[column_num++]["font"] = "SANSSERIF";
+
+		columns[column_num]["column"] = "time";
+		columns[column_num]["value"] = formatted_time((time_t)time_stamp);
+		columns[column_num++]["font"] = "SANSSERIF";
 
 		if (mCurrentMode == STAT_REPORT_TOP_SCRIPTS
 			&& have_extended_data)
 		{
-			element["columns"][5]["column"] = "mono_time";
-			element["columns"][5]["value"] = llformat("%0.3f", mono_score);
-			element["columns"][5]["font"] = "SANSSERIF";
+			columns[column_num]["column"] = "memory";
+			columns[column_num]["value"] = llformat("%0.0f", (script_memory / 1000.f));
+			columns[column_num++]["font"] = "SANSSERIF";
 
-			element["columns"][6]["column"] = "URLs";
-			element["columns"][6]["value"] = llformat("%d", public_urls);
-			element["columns"][6]["font"] = "SANSSERIF";
+			columns[column_num]["column"] = "URLs";
+			columns[column_num]["value"] = llformat("%d", public_urls);
+			columns[column_num++]["font"] = "SANSSERIF";
 		}
-		
+		element["columns"] = columns;
+		// Singu Note: We diverge slightly here to retain the legacy coloring of avatar names. when updating be sure that getColumn uses the same number as "name"
+		LLScrollListItem* item =
 		list->addElement(element);
+		if (name_buf == owner_buf) item->getColumn(1)->setColor(LLColor4::red);
 		
 		mObjectListData.append(element);
 		mObjectListIDs.push_back(task_id);
@@ -261,30 +262,27 @@ void LLFloaterTopObjects::handleReply(LLMessageSystem *msg, void** data)
 	{
 		setTitle(getString("top_scripts_title"));
 		list->setColumnLabel("score", getString("scripts_score_label"));
-		list->setColumnLabel("mono_time", getString("scripts_mono_time_label"));
 		
 		LLUIString format = getString("top_scripts_text");
 		format.setArg("[COUNT]", llformat("%d", total_count));
-		format.setArg("[TIME]", llformat("%0.1f", mtotalScore));
-		childSetValue("title_text", LLSD(format));
+		format.setArg("[TIME]", llformat("%0.3f", mtotalScore));
+		getChild<LLUICtrl>("title_text")->setValue(LLSD(format));
 	}
 	else
 	{
 		setTitle(getString("top_colliders_title"));
 		list->setColumnLabel("score", getString("colliders_score_label"));
-		list->setColumnLabel("mono_time", "");
+		list->setColumnLabel("URLs", "");
+		list->setColumnLabel("memory", "");
 		LLUIString format = getString("top_colliders_text");
 		format.setArg("[COUNT]", llformat("%d", total_count));
-		childSetValue("title_text", LLSD(format));
+		getChild<LLUICtrl>("title_text")->setValue(LLSD(format));
 	}
 }
 
-// static
-void LLFloaterTopObjects::onCommitObjectsList(LLUICtrl* ctrl, void* data)
+void LLFloaterTopObjects::onCommitObjectsList()
 {
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-
-	self->updateSelectionInfo();
+	updateSelectionInfo();
 }
 
 void LLFloaterTopObjects::updateSelectionInfo()
@@ -298,9 +296,15 @@ void LLFloaterTopObjects::updateSelectionInfo()
 
 	std::string object_id_string = object_id.asString();
 
-	childSetValue("id_editor", LLSD(object_id_string));
-	childSetValue("object_name_editor", list->getFirstSelected()->getColumn(1)->getValue().asString());
-	childSetValue("owner_name_editor", list->getFirstSelected()->getColumn(2)->getValue().asString());
+	getChild<LLUICtrl>("id_editor")->setValue(LLSD(object_id_string));
+	LLScrollListItem* sli = list->getFirstSelected();
+	llassert(sli);
+	if (sli)
+	{
+		getChild<LLUICtrl>("object_name_editor")->setValue(sli->getColumn(1)->getValue().asString());
+		getChild<LLUICtrl>("owner_name_editor")->setValue(sli->getColumn(2)->getValue().asString());
+		getChild<LLUICtrl>("parcel_name_editor")->setValue(sli->getColumn(4)->getValue().asString());
+	}
 }
 
 // static
@@ -308,36 +312,12 @@ void LLFloaterTopObjects::onDoubleClickObjectsList(void* data)
 {
 	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
 	self->showBeacon();
-	self->lookAtAvatar();
-}
-
-void LLFloaterTopObjects::lookAtAvatar()
-{
-	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
-	if (!list) return;
-	LLScrollListItem* first_selected = list->getFirstSelected();
-	if (!first_selected) return;
-	LLUUID taskid = first_selected->getUUID();
-
-    LLVOAvatar* voavatar = gObjectList.findAvatar(taskid);
-    if(voavatar)
-    {
-        gAgentCamera.setFocusOnAvatar(FALSE, FALSE);
-        gAgentCamera.changeCameraToThirdPerson();
-        gAgentCamera.setFocusGlobal(voavatar->getPositionGlobal(),taskid);
-        gAgentCamera.setCameraPosAndFocusGlobal(voavatar->getPositionGlobal() 
-                + LLVector3d(3.5,1.35,0.75) * voavatar->getRotation(), 
-                                                voavatar->getPositionGlobal(), 
-                                                taskid );
-    }
 }
 
 // static
-void LLFloaterTopObjects::onClickShowBeacon(void* data)
+void LLFloaterTopObjects::onClickShowBeacon()
 {
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-	if (!self) return;
-	self->showBeacon();
+	showBeacon();
 }
 
 void LLFloaterTopObjects::doToObjects(int action, bool all)
@@ -347,10 +327,10 @@ void LLFloaterTopObjects::doToObjects(int action, bool all)
 	LLViewerRegion* region = gAgent.getRegion();
 	if (!region) return;
 
-	LLCtrlListInterface *list = childGetListInterface("objects_list");
+	LLCtrlListInterface *list = getChild<LLUICtrl>("objects_list")->getListInterface();
 	if (!list || list->getItemCount() == 0) return;
 
-	std::vector<LLUUID>::iterator id_itor;
+	uuid_vec_t::iterator id_itor;
 
 	bool start_message = true;
 
@@ -401,195 +381,76 @@ void LLFloaterTopObjects::doToObjects(int action, bool all)
 bool LLFloaterTopObjects::callbackReturnAll(const LLSD& notification, const LLSD& response)
 {
 	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	LLFloaterTopObjects* instance = instanceExists() ? getInstance() : NULL;
+	if(!instance) return false;
 	if (option == 0)
 	{
-		sInstance->doToObjects(ACTION_RETURN, true);
+		instance->doToObjects(ACTION_RETURN, true);
 	}
 	return false;
 }
 
-void LLFloaterTopObjects::onReturnAll(void* data)
+void LLFloaterTopObjects::onReturnAll()
 {	
 	LLNotificationsUtil::add("ReturnAllTopObjects", LLSD(), LLSD(), &callbackReturnAll);
 }
 
 
-void LLFloaterTopObjects::onReturnSelected(void* data)
+void LLFloaterTopObjects::onReturnSelected()
 {
-	sInstance->doToObjects(ACTION_RETURN, false);
+	doToObjects(ACTION_RETURN, false);
 }
-
-void LLFloaterTopObjects::onLagWarningBtn(void* data)
-{
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-
-	self->onLagWarning(data);
-}
-
-void LLFloaterTopObjects::onLagWarning(void* data)
-{
-	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
-		if (!list) return;
-	LLScrollListItem* first_selected = list->getFirstSelected();
-	if (!first_selected) return;
-	LLUUID taskid = first_selected->getUUID();
-	
-	std::string name = first_selected->getColumn(1)->getValue().asString();
-	std::string score = first_selected->getColumn(0)->getValue().asString();
-
-	std::istringstream stm;
-	stm.str(score);
-	F32 f_score;
-	stm >> f_score;
-	F32 percentage = 100.f * (f_score / 22);
-
-	std::string message = llformat(
-		"Hello %s, you are receiving this automated message because you are wearing heavily scripted attachments/HUDs, "
-		"causing excessive script lag (%5.2f ms, that's ca. %5.2f%% of the region's resources.)\n\n"
-		"Please remove resizer scripts or attachments to reduce your script time, thank you.",
-		name.c_str(),
-		(F32)f_score,
-		(F32)percentage
-		);
-
-	std::string my_name;
-	gAgent.buildFullname(my_name);
-
-	cmdline_printchat(llformat("Script time warning sent to %s: (%5.2f ms)",
-		name.c_str(),(F32)f_score));
-
-	send_improved_im(LLUUID(taskid),
-				 my_name,
-				 message,
-				 IM_ONLINE,
-				 IM_NOTHING_SPECIAL,
-				 LLUUID::null,
-				 NO_TIMESTAMP,
-				 (U8*)EMPTY_BINARY_BUCKET,
-				 EMPTY_BINARY_BUCKET_SIZE);
-}
-
-void LLFloaterTopObjects::onProfileBtn(void* data)
-{
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-	self->onProfile(data);
-}
-
-void LLFloaterTopObjects::onProfile(void* data)
-{
-	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
-		if (!list) return;
-	LLScrollListItem* first_selected = list->getFirstSelected();
-	if (!first_selected) return;
-	LLUUID taskid = first_selected->getUUID();
-	LLFloaterAvatarInfo::showFromDirectory(taskid);
-}
-
-void LLFloaterTopObjects::onKickBtn(void* data)
-{
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-	self->onKick(data);
-}
-
-void LLFloaterTopObjects::onKick(void* data)
-{
-	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
-		if (!list) return;
-	LLScrollListItem* first_selected = list->getFirstSelected();
-	if (!first_selected) return;
-	LLUUID taskid = first_selected->getUUID();
-
-	LLMessageSystem* msg = gMessageSystem;
-	msg->newMessage("EstateOwnerMessage");
-	msg->nextBlockFast(_PREHASH_AgentData);
-	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-	msg->addUUIDFast(_PREHASH_TransactionID, LLUUID::null); //not used
-	msg->nextBlock("MethodData");
-	msg->addString("Method", "kickestate");
-	msg->addUUID("Invoice", LLUUID::null);
-	msg->nextBlock("ParamList");
-	msg->addString("Parameter", taskid.asString().c_str());
-	msg->sendReliable(gAgent.getRegionHost());
-}
-void LLFloaterTopObjects::onTPBtn(void* data)
-{
-	LLFloaterTopObjects* self = (LLFloaterTopObjects*)data;
-	self->onTP(data);
-}
-
-void LLFloaterTopObjects::onTP(void* data)
-{
-	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
-		if (!list) return;
-	LLScrollListItem* first_selected = list->getFirstSelected();
-	if (!first_selected) return;
-
-	std::string name = first_selected->getColumn(1)->getValue().asString();
-	std::string pos_string =  first_selected->getColumn(3)->getValue().asString();
-
-	F32 x, y, z;
-	S32 matched = sscanf(pos_string.c_str(), "<%g,%g,%g>", &x, &y, &z);
-	if (matched != 3) return;
-
-	LLVector3 pos_agent(x, y, z);
-	LLVector3d pos_global = gAgent.getPosGlobalFromAgent(pos_agent);
-
-	gAgent.teleportViaLocation( pos_global );
-}
-
 
 
 //static
 bool LLFloaterTopObjects::callbackDisableAll(const LLSD& notification, const LLSD& response)
 {
 	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	LLFloaterTopObjects* instance = instanceExists() ? getInstance() : NULL;
+	if(!instance) return false;
 	if (option == 0)
 	{
-		sInstance->doToObjects(ACTION_DISABLE, true);
+		instance->doToObjects(ACTION_DISABLE, true);
 	}
 	return false;
 }
 
-void LLFloaterTopObjects::onDisableAll(void* data)
+void LLFloaterTopObjects::onDisableAll()
 {
 	LLNotificationsUtil::add("DisableAllTopObjects", LLSD(), LLSD(), callbackDisableAll);
 }
 
-void LLFloaterTopObjects::onDisableSelected(void* data)
+void LLFloaterTopObjects::onDisableSelected()
 {
-	sInstance->doToObjects(ACTION_DISABLE, false);
+	doToObjects(ACTION_DISABLE, false);
 }
 
-//static
+
 void LLFloaterTopObjects::clearList()
 {
-	LLCtrlListInterface *list = sInstance->childGetListInterface("objects_list");
+	LLCtrlListInterface *list = childGetListInterface("objects_list");
 	
 	if (list) 
 	{
 		list->operateOnAll(LLCtrlListInterface::OP_DELETE);
 	}
 
-	sInstance->mObjectListData.clear();
-	sInstance->mObjectListIDs.clear();
-	sInstance->mtotalScore = 0.f;
+	mObjectListData.clear();
+	mObjectListIDs.clear();
+	mtotalScore = 0.f;
 }
 
-//static
-void LLFloaterTopObjects::onRefresh(void* data)
+
+void LLFloaterTopObjects::onRefresh()
 {
 	U32 mode = STAT_REPORT_TOP_SCRIPTS;
 	U32 flags = 0;
 	std::string filter = "";
 
-	if (sInstance)
-	{
-		mode = sInstance->mCurrentMode;
-		flags = sInstance->mFlags;
-		filter = sInstance->mFilter;
-		sInstance->clearList();
-	}
+	mode   = mCurrentMode;
+	flags  = mFlags;
+	filter = mFilter;
+	clearList();
 
 	LLMessageSystem *msg = gMessageSystem;
 	msg->newMessageFast(_PREHASH_LandStatRequest);
@@ -604,35 +465,35 @@ void LLFloaterTopObjects::onRefresh(void* data)
 
 	msg->sendReliable(gAgent.getRegionHost());
 
-	if (sInstance)
-	{
-		sInstance->mFilter.clear();
-		sInstance->mFlags = 0;
-	}
+	mFilter.clear();
+	mFlags = 0;
 }
 
-void LLFloaterTopObjects::onGetByObjectName(LLUICtrl* ctrl, void* data)
+void LLFloaterTopObjects::onGetByObjectName()
 {
-	if (sInstance)
-	{
-		sInstance->mFlags = STAT_FILTER_BY_OBJECT;
-		sInstance->mFilter = sInstance->childGetText("object_name_editor");
-		onRefresh(NULL);
-	}
+	mFlags  = STAT_FILTER_BY_OBJECT;
+	mFilter = getChild<LLUICtrl>("object_name_editor")->getValue().asString();
+	onRefresh();
 }
 
-void LLFloaterTopObjects::onGetByOwnerName(LLUICtrl* ctrl, void* data)
+void LLFloaterTopObjects::onGetByOwnerName()
 {
-	if (sInstance)
-	{
-		sInstance->mFlags = STAT_FILTER_BY_OWNER;
-		sInstance->mFilter = sInstance->childGetText("owner_name_editor");
-		onRefresh(NULL);
-	}
+	mFlags  = STAT_FILTER_BY_OWNER;
+	mFilter = getChild<LLUICtrl>("owner_name_editor")->getValue().asString();
+	onRefresh();
 }
+
+
+void LLFloaterTopObjects::onGetByParcelName()
+{
+	mFlags  = STAT_FILTER_BY_PARCEL_NAME;
+	mFilter = getChild<LLUICtrl>("parcel_name_editor")->getValue().asString();
+	onRefresh();
+}
+
 
 void LLFloaterTopObjects::showBeacon()
-{	
+{
 	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
 	if (!list) return;
 
@@ -650,4 +511,68 @@ void LLFloaterTopObjects::showBeacon()
 	LLVector3d pos_global = gAgent.getPosGlobalFromAgent(pos_agent);
 	std::string tooltip("");
 	LLTracker::trackLocation(pos_global, name, tooltip, LLTracker::LOCATION_ITEM);
+
+	const LLUUID& taskid = first_selected->getUUID();
+	if(LLVOAvatar* voavatar = gObjectList.findAvatar(taskid))
+	{
+		gAgentCamera.setFocusOnAvatar(FALSE, FALSE);
+		gAgentCamera.changeCameraToThirdPerson();
+		gAgentCamera.setFocusGlobal(voavatar->getPositionGlobal(),taskid);
+		gAgentCamera.setCameraPosAndFocusGlobal(voavatar->getPositionGlobal() + LLVector3d(3.5,1.35,0.75) * voavatar->getRotation(), voavatar->getPositionGlobal(), taskid);
+	}
+}
+
+void LLFloaterTopObjects::onTeleportToObject()
+{
+	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
+		if (!list) return;
+
+	LLScrollListItem* first_selected = list->getFirstSelected();
+	if (!first_selected) return;
+
+	std::string pos_string =  first_selected->getColumn(3)->getValue().asString();
+
+	F32 x, y, z;
+	S32 matched = sscanf(pos_string.c_str(), "<%g,%g,%g>", &x, &y, &z);
+	if (matched != 3) return;
+
+	LLVector3 pos_agent(x, y, z);
+	LLVector3d pos_global = gAgent.getPosGlobalFromAgent(pos_agent);
+
+	gAgent.teleportViaLocation( pos_global );
+}
+
+void LLFloaterTopObjects::onKick()
+{
+	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
+		if (!list) return;
+
+	LLScrollListItem* first_selected = list->getFirstSelected();
+	if (!first_selected) return;
+
+	const LLUUID& objectId = first_selected->getUUID();
+	LLMessageSystem* msg = gMessageSystem;
+	msg->newMessage("EstateOwnerMessage");
+	msg->nextBlockFast(_PREHASH_AgentData);
+	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+	msg->addUUIDFast(_PREHASH_TransactionID, LLUUID::null); //not used
+	msg->nextBlock("MethodData");
+	msg->addString("Method", "kickestate");
+	msg->addUUID("Invoice", LLUUID::null);
+	msg->nextBlock("ParamList");
+	msg->addString("Parameter", objectId.asString().c_str());
+	msg->sendReliable(gAgent.getRegionHost());
+}
+
+void LLFloaterTopObjects::onProfile()
+{
+	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("objects_list");
+		if (!list) return;
+
+	LLScrollListItem* first_selected = list->getFirstSelected();
+	if (!first_selected) return;
+
+	const LLUUID& objectId = first_selected->getUUID();
+	LLAvatarActions::showProfile(objectId);
 }

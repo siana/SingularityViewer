@@ -44,8 +44,7 @@ public:
 	LLMultiSlider( 
 		const std::string& name,
 		const LLRect& rect,
-		void (*on_commit_callback)(LLUICtrl* ctrl, void* userdata),
-		void* callback_userdata,
+		commit_callback_t commit_callback,
 		F32 initial_value,
 		F32 min_value,
 		F32 max_value,

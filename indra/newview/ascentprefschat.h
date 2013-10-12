@@ -34,8 +34,6 @@
 
 
 #include "llpanel.h"
-#include "lldroptarget.h"
-
 
 class LLPrefsAscentChat : public LLPanel
 {
@@ -49,23 +47,22 @@ public:
     void refreshValues();
 
 protected:
-    static void onSpellAdd(void* data);
-    static void onSpellRemove(void* data);
-    static void onSpellGetMore(void* data);
-    static void onSpellEditCustom(void* data);
-    static void onSpellBaseComboBoxCommit(LLUICtrl* ctrl, void* userdata);
-    static void onCommitTimeDate(LLUICtrl* ctrl, void *userdata);
-    static void onCommitAutoResponse(LLUICtrl* ctrl, void* user_data);
-	static void onCommitResetAS(LLUICtrl*,void*);
-	static void onCommitEnableAS(LLUICtrl*, void*);
-	static void onCommitDialogBlock(LLUICtrl*, void*);
-    static void onCommitKeywords(LLUICtrl* ctrl, void* user_data);
+	void onSpellAdd();
+	void onSpellRemove();
+	void onSpellEditCustom();
+	void onSpellBaseComboBoxCommit(const LLSD& value);
+	void onCommitTimeDate(LLUICtrl* ctrl);
+	void onCommitEnableAS(const LLSD& value);
+	void onCommitDialogBlock(LLUICtrl* ctrl, const LLSD& value);
+	void onCommitKeywords(LLUICtrl* ctrl);
 
     //Chat/IM -----------------------------------------------------------------------------
     BOOL mIMAnnounceIncoming;
     BOOL mHideTypingNotification;
+    bool mInstantMessagesFriendsOnly;
     BOOL mShowGroupNameInChatIM;
     bool mShowDisplayNameChanges;
+    bool mUseTypingBubbles;
     BOOL mPlayTypingSound;
     BOOL mHideNotificationsInChat;
     BOOL mEnableMUPose;
@@ -78,24 +75,24 @@ protected:
     BOOL mSecondsInChatAndIMs;
     BOOL mSecondsInLog;
 
-    BOOL mIMResponseAnyone;
-    BOOL mIMResponseFriends;
-    BOOL mIMResponseMuted;
-    BOOL mIMShowOnTyping;
-    BOOL mIMShowResponded;
-    BOOL mIMResponseRepeat;
-    BOOL mIMResponseItem;
-    std::string mIMResponseText;
-
     //Chat UI -----------------------------------------------------------------------------
 	bool mWoLfVerticalIMTabs;
 	bool mOtherChatsTornOff;
+	bool mIMAnnounceStealFocus;
 	bool mShowLocalChatFloaterBar;
 	bool mHorizButt;
 	bool mOneLineIMButt;
 	bool mOneLineGroupButt;
 	bool mOneLineConfButt;
 	bool mOnlyComm;
+	bool mItalicizeActions;
+	bool mLegacySpeakerNames;
+
+	//Autoresponse ------------------------------------------------------------------------
+	std::string mIMResponseAnyoneItemID;
+	std::string mIMResponseNonFriendsItemID;
+	std::string mIMResponseMutedItemID;
+	std::string mIMResponseBusyItemID;
 
     //Spam --------------------------------------------------------------------------------
     BOOL mEnableAS;
@@ -109,8 +106,11 @@ protected:
     BOOL mBlockGroupInviteSpam;
 	BOOL mBlockGroupFeeInviteSpam;
     BOOL mBlockItemOfferSpam;
+	bool mBlockNotMineSpam;
+	bool mBlockNotFriendSpam;
     BOOL mBlockScriptSpam;
     BOOL mBlockTeleportSpam;
+	bool mBlockTeleportRequestSpam;
     BOOL mNotifyOnSpam;
     BOOL mSoundMulti;
     U32  mNewLines;
@@ -127,9 +127,6 @@ protected:
     LLColor4 mKeywordsColor;
     BOOL mKeywordsPlaySound;
     LLUUID mKeywordsSound;
-private:
-	static LLPrefsAscentChat* sInst;
-	static void SinguIMResponseItemDrop(LLViewerInventoryItem* item);
 };
 
 #endif

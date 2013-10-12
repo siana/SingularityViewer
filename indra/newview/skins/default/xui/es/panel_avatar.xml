@@ -7,40 +7,13 @@
 [PAYMENTINFO]
 [AGEVERIFICATION]
 			</string>
-			<string name="AcctTypeResident">
-				Residente
-			</string>
-			<string name="AcctTypeTrial">
-				Prueba
-			</string>
-			<string name="AcctTypeCharterMember">
-				Miembro Fundador
-			</string>
-			<string name="AcctTypeEmployee">
-				Empleado de Linden Lab
-			</string>
-			<string name="PaymentInfoUsed">
-				Información de Pago utilizada
-			</string>
-			<string name="PaymentInfoOnFile">
-				Información de Pago en Archivo
-			</string>
-			<string name="NoPaymentInfoOnFile">
-				Sin Información de Pago
-			</string>
-			<string name="AgeVerified">
-				Edad Verificada
-			</string>
-			<string name="NotAgeVerified">
-				Edad No Verificada
-			</string>
-			<text name="Key:">
-				Key:
-			</text>
-			<button label="Copiar" tool_tip="Copyiar key al portapapeles" name="copy_key"/>
+			<button label="Copiar Key:" tool_tip="Copyiar key al portapapeles" name="copy_key"/>
+			<name_editor name="avatar_key"/>
+			<button name="web_profile" label="Perfil Web"/>
 			<text name="Name:" >
 				Nombre:
 			</text>
+			<line_editor name="dnname"/>
 			<text name="online_yes">
 				En Línea
 			</text>
@@ -65,10 +38,12 @@
 				Foto:
 			</text>
 			<texture_picker label="" name="img" tool_tip="Pulsa aquí para seleccionar una foto" />
+			<button name="bigimg"/>
 			<text name="Groups:">
 				Grupos:
 			</text>
 			<scroll_list name="groups"/>
+			<string name="None">Ninguno</string>
 			<text name="About:">
 				Sobre mi:
 			</text>
@@ -79,23 +54,20 @@
 			<text name="Give item:">
 				Dar un Item:
 			</text>
-			<view_border name="drop_target_rect"/>
-			<view_border name="drop_target_rect_vis"/>
-			<text name="Give inventory" tool_tip="Arrastra hasta aquí items de tu inventario para dárselos a este usuario">
-				  Arrastra hasta aquí un ítem del inventario.
-			</text>
+			<drop_target name="drop_target_rect" label="Suelta aquí un ítem de tu inventario." tool_tip="Arrastra hasta aquí ítems del inventario para dárselos a esta persona."/>
 			<check_box label="Mostrar en la Búsqueda" name="allow_publish" tool_tip="Publicar información del Perfil en la búsqueda."/>
 			<button label="?" label_selected="?" name="?"/>
 			<button label="Localizar en el Mapa" label_selected="Localizar en el Mapa" name="Find on Map" left="10" width="135"/>
 			<button label="Ofrecer Teleporte" label_selected="Ofrecer Teleporte" name="Offer Teleport..." left_delta="143" width="120"/>
 			<button label="Añadir como Amigo" label_selected="Añadir como Amigo" name="Add Friend..." left_delta="129" />
 			<button label="Pagar..." label_selected="Pagar..." name="Pay..." left="10"/>
-			<button label="Mensaje Instantáneo" label_selected="Mensaje Instantáneo" name="Instant Message..." tool_tip="Mensaje Instantáneo (IM)" left_delta="78"/>
-			<button label="Ignorar" label_selected="Ignorar" name="Mute" left_delta="148"/>
-			<button label="Invitar al Grupo" label_selected="Invitar al Grupo" name="GroupInvite_Button" left_delta="68" width="110"/>
+			<button label="Mensaje Instantáneo" label_selected="Mensaje Instantáneo" name="Instant Message..." tool_tip="Mensaje Instantáneo (IM)" left_delta="75"/>
+			<button label="(No) Ignorar" label_selected="Ignorar" name="Mute" left_delta="143" width="69"/>
+			<button label="Invitar al Grupo" label_selected="Invitar al Grupo" name="GroupInvite_Button" left_delta="74" width="110"/>
 		</panel>
-		 <!-- Panel Perfil Web -->
-		<panel label="Web" name="WebProfile" width="400"> 
+		<!-- =========================== -->
+		<panel label="Web" name="WebProfile" width="400">
+		  <line_editor name="url_edit"/>
 			<flyout_button label="Cargar" label_selected="Cargar" name="load" tool_tip="Cargar este perfil con el navegador incorporado">
 				<flyout_button_item value="open" name="open_item">
 					En navegador externo
@@ -109,6 +81,7 @@
 			<web_browser name="profile_html" start_url="" />
 			<text name="status_text" />
 		</panel>
+		<!-- =========================== -->
 		<panel label="Intereses" name="Interests">
 			<text name="I Want To:">
 				Quiero:
@@ -137,6 +110,7 @@
 			</text>
 			<line_editor name="languages_edit"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Destacados" name="Picks">
 			<text name="Tell everyone about your favorite places in Second Life.">
 				Muestra a los demás tus lugares favoritos en Second Life.
@@ -150,6 +124,7 @@
 				Cargando...
 			</text>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Clasificados" name="Classified">
 			<text name="Place an ad in Second Life&apos;s classified listings.">
 				Pon tu anuncio en los Clasificados de Second Life.
@@ -161,11 +136,13 @@
 				  Cargando...
 			</text>
 		</panel>
+		<!-- =========================== -->
 		<panel label="1º Vida" name="1st Life">
 			<text name="Photo:">
 				Foto:
 			</text>
 			<texture_picker label="" name="img" tool_tip="Pulsa aquí para elegir una foto" />
+			<button label="" name="flbigimg"/>
 			<text name="Info:">
 				Información:
 			</text>
@@ -174,6 +151,7 @@
 			</text>
 			<text_editor name="about"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Mis Notas" name="My Notes">
 			<string name="Loading">
 				Cargando...

@@ -38,15 +38,11 @@ class LLMediaCtrl;
 class LLURLDispatcher
 {
 public:
-	static bool isSLURL(const std::string& url);
-		// Is this any sort of secondlife:// or sl:// URL?
-
-	static bool isSLURLCommand(const std::string& url);
-		// Is this a special secondlife://app/ URL?
-
-	static bool dispatch(const std::string& url,
+	
+	static bool dispatch(const std::string& slurl,
+						 const std::string& nav_type,
 						 LLMediaCtrl* web,
-						 bool trusted_browser);
+						 bool trusted_browser);	
 		// At startup time and on clicks in internal web browsers,
 		// teleport, open map, or run requested command.
 		// @param url
@@ -60,12 +56,9 @@ public:
 		//   that navigates to trusted (Linden Lab) pages.
 		// Returns true if someone handled the URL.
 
-	static bool dispatchRightClick(const std::string& url);
+	static bool dispatchRightClick(const std::string& slurl);
 
-	static bool dispatchFromTextEditor(const std::string& url);
-
-	static std::string buildSLURL(const std::string& regionname, S32 x, S32 y, S32 z);
-		//   builds: http://slurl.com/secondlife/RegionName/x/y/z/
+	static bool dispatchFromTextEditor(const std::string& slurl);
 };
 
 #endif

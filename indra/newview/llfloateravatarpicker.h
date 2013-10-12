@@ -65,7 +65,7 @@ public:
 	void openFriendsTab();
 
 private:
-	static void editKeystroke(class LLLineEditor* caller, void* user_data);
+	void editKeystroke(class LLLineEditor* caller);
 
 	void onBtnFind();
 	void onBtnSelect();

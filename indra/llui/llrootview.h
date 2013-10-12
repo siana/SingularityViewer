@@ -30,15 +30,15 @@
  * $/LicenseInfo$
  */
 
-#ifndef LLROOTVIEW_H
-#define LLROOTVIEW_H
+#ifndef LL_LLROOTVIEW_H
+#define LL_LLROOTVIEW_H
 
 #include "llview.h"
 
 class LLRootView : public LLView
 {
 public:
-	LLRootView(const std::string& name, const LLRect& rect, BOOL mouse_opaque, U32 follows=FOLLOWS_NONE);
+	LLRootView(const Params& p) ;
 };
 
 #endif

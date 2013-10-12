@@ -3,37 +3,10 @@
 
 #include <vector>
 
-#ifndef LL_V3MATH_H
-class LLVector3
-{
-public:
-	float mV[3];
-};
-#endif
-
-#ifndef LL_V4COLORU_H
-class LLColor4U
-{
-public:
-	unsigned char mV[4];
-};
-#endif
-
-#ifndef LL_LLUUID_H
-class LLUUID
-{
-public:
-	unsigned char mData[16];
-};
-#endif
-
-#ifndef LLQUATERNION_H
-class LLQuaternion
-{
-public:
-	double mQ[4];
-};
-#endif
+#include "v3math.h"
+#include "v4coloru.h"
+#include "llquaternion.h"
+#include "lluuid.h"
 
 class LLRender;
 
@@ -43,7 +16,7 @@ public:
 	enum LLPLResult
 	{
 		LLPL_NO_PATH,
-		LLPL_PATH_GENERATED_OK,
+		LLPL_PATH_GENERATED_OK
 	};
 
 	enum LLPLCharacterType
@@ -52,7 +25,7 @@ public:
 		LLPL_CHARACTER_TYPE_A,
 		LLPL_CHARACTER_TYPE_B,
 		LLPL_CHARACTER_TYPE_C,
-		LLPL_CHARACTER_TYPE_D,
+		LLPL_CHARACTER_TYPE_D
 	};
 
 	enum LLShapeType
@@ -60,13 +33,13 @@ public:
 		LLST_WalkableObjects = 1,
 		LLST_ObstacleObjects = 2,
 		LLST_MaterialPhantoms = 3,
-		LLST_ExclusionPhantoms = 4,
+		LLST_ExclusionPhantoms = 4
 	};
 
 	enum LLPLRenderType
 	{
 		LLPL_START,
-		LLPL_END,
+		LLPL_END
 	};
 
 	struct Vector
@@ -87,9 +60,9 @@ public:
 		operator LLVector3() const
 		{
 			LLVector3 ret;
-			ret.mV[0] = mX;
-			ret.mV[1] = mY;
-			ret.mV[2] = mZ;
+			ret.mV[0] = (F32) mX;
+			ret.mV[1] = (F32) mY;
+			ret.mV[2] = (F32) mZ;
 			return ret;
 		}
 	};

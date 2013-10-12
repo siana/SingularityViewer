@@ -51,7 +51,6 @@ private:
 	static void onClickClearCookies(void*);
 	static bool callback_clear_browser_cache(const LLSD& notification, const LLSD& response);
 	static bool callback_clear_cookies(const LLSD& notification, const LLSD& response);
-	static void onCommitCookies(LLUICtrl* ctrl, void* data);
 	static void onCommitWebProxyEnabled(LLUICtrl* ctrl, void* data);
 };
 

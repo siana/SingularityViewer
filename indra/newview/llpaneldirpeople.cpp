@@ -33,11 +33,7 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llpaneldirpeople.h"
-#include "llviewerwindow.h"
 #include "llnotificationsutil.h"
-
-// linden library includes
-#include "message.h"
 
 // viewer project includes
 #include "llqueryflags.h"
@@ -52,9 +48,9 @@ BOOL LLPanelDirPeople::postBuild()
 {
 	LLPanelDirBrowser::postBuild();
 
-	childSetKeystrokeCallback("name", &LLPanelDirBrowser::onKeystrokeName, this);
+	getChild<LLLineEditor>("name")->setKeystrokeCallback(boost::bind(&LLPanelDirBrowser::onKeystrokeName,this,_1));
 
-	childSetAction("Search", &LLPanelDirBrowser::onClickSearchCore, this);
+	getChild<LLButton>("Search")->setClickedCallback(boost::bind(&LLPanelDirBrowser::onClickSearchCore,this));
 	childDisable("Search");
 	setDefaultBtn( "Search" );
 
@@ -90,7 +86,10 @@ void LLPanelDirPeople::performQuery()
 	{
 		LLNotificationsUtil::add("SeachFilteredOnShortWordsEmpty");
 		return;
-	};
+	}
+
+	// Allow searching for Account Name from account.name
+	LLStringUtil::replaceChar(query_string, '.', ' ');
 
 	// if we filtered something out, display a popup
 	if ( query_was_filtered )
@@ -98,7 +97,7 @@ void LLPanelDirPeople::performQuery()
 		LLSD args;
 		args["FINALQUERY"] = query_string;
 		LLNotificationsUtil::add("SeachFilteredOnShortWords", args);
-	};
+	}
 
 	setupNewSearch();
 

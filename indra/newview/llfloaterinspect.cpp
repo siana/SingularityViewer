@@ -31,30 +31,47 @@
  */
 
 #include "llviewerprecompiledheaders.h"
-#include "llfloateravatarinfo.h"
+
 #include "llfloaterinspect.h"
+
 #include "llfloatertools.h"
-#include "llcachename.h"
+#include "llavataractions.h"
+#include "llavatarnamecache.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "llselectmgr.h"
 #include "lltoolcomp.h"
 #include "lltoolmgr.h"
-#include "llviewercontrol.h"
+#include "lltrans.h"
 #include "llviewerobject.h"
 #include "lluictrlfactory.h"
-
-// [RLVa:KB]
+// [RLVa:KB] - Checked: 2011-05-22 (RLVa-1.3.1a)
 #include "rlvhandler.h"
+#include "llagent.h"
 // [/RLVa:KB]
 
-LLFloaterInspect* LLFloaterInspect::sInstance = NULL;
+//LLFloaterInspect* LLFloaterInspect::sInstance = NULL;
 
-LLFloaterInspect::LLFloaterInspect(void) :
-	LLFloater(std::string("Inspect Object")),
+LLFloaterInspect::LLFloaterInspect()
+  : LLFloater(std::string("Inspect Object")),
 	mDirty(FALSE)
 {
-	sInstance = this;
+	mCommitCallbackRegistrar.add("Inspect.OwnerProfile",	boost::bind(&LLFloaterInspect::onClickOwnerProfile, this));
+	mCommitCallbackRegistrar.add("Inspect.CreatorProfile",	boost::bind(&LLFloaterInspect::onClickCreatorProfile, this));
+	mCommitCallbackRegistrar.add("Inspect.SelectObject",	boost::bind(&LLFloaterInspect::onSelectObject, this));
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_inspect.xml");
+}
+
+BOOL LLFloaterInspect::postBuild()
+{
+	mObjectList = getChild<LLScrollListCtrl>("object_list");
+//	childSetAction("button owner",onClickOwnerProfile, this);
+//	childSetAction("button creator",onClickCreatorProfile, this);
+//	childSetCommitCallback("object_list", onSelectObject, this);
+
+	refresh();
+
+	return TRUE;
 }
 
 LLFloaterInspect::~LLFloaterInspect(void)
@@ -72,42 +89,30 @@ LLFloaterInspect::~LLFloaterInspect(void)
 	{
 		gFloaterTools->setFocus(TRUE);
 	}
-	sInstance = NULL;
+	//sInstance = NULL;
 }
 
-BOOL LLFloaterInspect::isVisible()
+// static
+void LLFloaterInspect::showInstance()
 {
-	return (!!sInstance);
+	getInstance()->open();
 }
 
-void LLFloaterInspect::show(void* ignored)
+void LLFloaterInspect::onOpen()
 {
-	// setForceSelection ensures that the pie menu does not deselect things when it 
-	// looses the focus (this can happen with "select own objects only" enabled
-	// VWR-1471
 	BOOL forcesel = LLSelectMgr::getInstance()->setForceSelection(TRUE);
-
-	if (!sInstance)	// first use
-	{
-		sInstance = new LLFloaterInspect;
-	}
-
-	sInstance->open();
 	LLToolMgr::getInstance()->setTransientTool(LLToolCompInspect::getInstance());
 	LLSelectMgr::getInstance()->setForceSelection(forcesel);	// restore previouis value
-
-	sInstance->mObjectSelection = LLSelectMgr::getInstance()->getSelection();
-	sInstance->refresh();
+	mObjectSelection = LLSelectMgr::getInstance()->getSelection();
+	refresh();
 }
-
-void LLFloaterInspect::onClickCreatorProfile(void* ctrl)
+void LLFloaterInspect::onClickCreatorProfile()
 {
-	if(sInstance->mObjectList->getAllSelected().size() == 0)
+	if(mObjectList->getAllSelected().size() == 0)
 	{
 		return;
 	}
-	LLScrollListItem* first_selected =
-		sInstance->mObjectList->getFirstSelected();
+	LLScrollListItem* first_selected =mObjectList->getFirstSelected();
 
 	if (first_selected)
 	{
@@ -120,19 +125,27 @@ void LLFloaterInspect::onClickCreatorProfile(void* ctrl)
 				return (obj_id == node->getObject()->getID());
 			}
 		} func(first_selected->getUUID());
-		LLSelectNode* node = sInstance->mObjectSelection->getFirstNode(&func);
+		LLSelectNode* node = mObjectSelection->getFirstNode(&func);
 		if(node)
 		{
-			LLFloaterAvatarInfo::showFromDirectory(node->mPermissions->getCreator());
+//			LLAvatarActions::showProfile(node->mPermissions->getCreator());
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.2a) | Modified: RLVa-1.0.0e
+			const LLUUID& idCreator = node->mPermissions->getCreator();
+			if ( (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) &&
+				 ((node->mPermissions->getOwner() == idCreator) || (RlvUtil::isNearbyAgent(idCreator))) )
+			{
+				return;
+			}
+			LLAvatarActions::showProfile(idCreator);
+// [/RLVa:KB]
 		}
 	}
 }
 
-void LLFloaterInspect::onClickOwnerProfile(void* ctrl)
+void LLFloaterInspect::onClickOwnerProfile()
 {
-	if(sInstance->mObjectList->getAllSelected().size() == 0) return;
-	LLScrollListItem* first_selected =
-		sInstance->mObjectList->getFirstSelected();
+	if(mObjectList->getAllSelected().size() == 0) return;
+	LLScrollListItem* first_selected =mObjectList->getFirstSelected();
 
 	if (first_selected)
 	{
@@ -146,57 +159,53 @@ void LLFloaterInspect::onClickOwnerProfile(void* ctrl)
 				return (obj_id == node->getObject()->getID());
 			}
 		} func(selected_id);
-		LLSelectNode* node = sInstance->mObjectSelection->getFirstNode(&func);
+		LLSelectNode* node = mObjectSelection->getFirstNode(&func);
 		if(node)
 		{
 			const LLUUID& owner_id = node->mPermissions->getOwner();
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
-			if (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-			{
-				LLFloaterAvatarInfo::showFromDirectory(owner_id);
-			}
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.2a) | Modified: RLVa-1.0.0e
+			if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
+				return;
 // [/RLVa:KB]
-//			LLFloaterAvatarInfo::showFromDirectory(owner_id);
+			LLAvatarActions::showProfile(owner_id);
 		}
 	}
 }
 
-BOOL LLFloaterInspect::postBuild()
-{
-	mObjectList = getChild<LLScrollListCtrl>("object_list");
-	childSetAction("button owner",onClickOwnerProfile, this);
-	childSetAction("button creator",onClickCreatorProfile, this);
-	childSetCommitCallback("object_list", onSelectObject, this);
-	return TRUE;
-}
-
-void LLFloaterInspect::onSelectObject(LLUICtrl* ctrl, void* user_data)
+void LLFloaterInspect::onSelectObject()
 {
 	if(LLFloaterInspect::getSelectedUUID() != LLUUID::null)
 	{
-		//sInstance->childSetEnabled("button owner", true);
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e) | Added: RLVa-1.0.0e
-		sInstance->childSetEnabled("button owner", !gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
+//		getChildView("button owner")->setEnabled(true);
+//		getChildView("button creator")->setEnabled(true);
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.2a) | Modified: RLVa-1.0.0e
+		getChildView("button owner")->setEnabled(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES));
+		// TODO-RLVa: [RLVa-1.2.2] Is it worth checking the selected node just to selectively disable this button?
+		getChildView("button creator")->setEnabled(true);
 // [/RLVa:KB]
-		sInstance->childSetEnabled("button creator", true);
 	}
 }
 
 LLUUID LLFloaterInspect::getSelectedUUID()
 {
-	if(sInstance)
+	if(mObjectList->getAllSelected().size() > 0)
 	{
-		if(sInstance->mObjectList->getAllSelected().size() > 0)
+		LLScrollListItem* first_selected =mObjectList->getFirstSelected();
+		if (first_selected)
 		{
-			LLScrollListItem* first_selected =
-				sInstance->mObjectList->getFirstSelected();
-			if (first_selected)
-			{
-				return first_selected->getUUID();
-			}
+			return first_selected->getUUID();
 		}
 	}
 	return LLUUID::null;
+}
+
+void LLFloaterInspect::onGetAvNameCallback(const LLUUID& idCreator, const LLAvatarName& av_name, void* FloaterPtr)
+{
+	if (FloaterPtr)
+	{
+		LLFloaterInspect* floater = (LLFloaterInspect*)FloaterPtr;
+		floater->dirty();
+	}
 }
 
 void LLFloaterInspect::refresh()
@@ -204,8 +213,8 @@ void LLFloaterInspect::refresh()
 	LLUUID creator_id;
 	std::string creator_name;
 	S32 pos = mObjectList->getScrollPos();
-	childSetEnabled("button owner", false);
-	childSetEnabled("button creator", false);
+	getChildView("button owner")->setEnabled(false);
+	getChildView("button creator")->setEnabled(false);
 	LLUUID selected_uuid;
 	S32 selected_index = mObjectList->getFirstSelectedIndex();
 	if(selected_index > -1)
@@ -234,18 +243,67 @@ void LLFloaterInspect::refresh()
 
 		time_t timestamp = (time_t) (obj->mCreationDate/1000000);
 		timeToFormattedString(timestamp, gSavedSettings.getString("TimestampFormat"), time);
-		gCacheName->getFullName(obj->mPermissions->getOwner(), owner_name);
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
-		if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-		{
-			// TODO-RLVa: shouldn't filter if this is a group-owned prim (will show "(nobody)")
-			owner_name = RlvStrings::getAnonym(owner_name);
-		}
-// [/RLVa:KB]
-		gCacheName->getFullName(obj->mPermissions->getCreator(), creator_name);
+
+		const LLUUID& idOwner = obj->mPermissions->getOwner();
+		const LLUUID& idCreator = obj->mPermissions->getCreator();
 		// <edit>
-		gCacheName->getFullName(obj->mPermissions->getLastOwner(), last_owner_name);
+		const LLUUID& idLastOwner = obj->mPermissions->getLastOwner();
 		// </edit>
+		LLAvatarName av_name;
+
+		// Only work with the names if we actually get a result
+		// from the name cache. If not, defer setting the
+		// actual name and set a placeholder.
+		if (LLAvatarNameCache::get(idOwner, &av_name))
+		{
+//			owner_name = av_name.getCompleteName();
+// [RLVa:KB] - Checked: 2010-11-01 (RLVa-1.2.2a) | Modified: RLVa-1.2.2a
+			bool fRlvFilterOwner = (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) && (idOwner != gAgent.getID()) &&
+				(!obj->mPermissions->isGroupOwned());
+			owner_name = (!fRlvFilterOwner) ? av_name.getCompleteName() : RlvStrings::getAnonym(av_name);
+// [/RLVa:KB]
+		}
+		else
+		{
+			owner_name = LLTrans::getString("RetrievingData");
+			LLAvatarNameCache::get(idOwner, boost::bind(&LLFloaterInspect::onGetAvNameCallback, _1, _2, this));
+		}
+
+		if (LLAvatarNameCache::get(idCreator, &av_name))
+		{
+//			creator_name = av_name.getCompleteName();
+// [RLVa:KB] - Checked: 2010-11-01 (RLVa-1.2.2a) | Modified: RLVa-1.2.2a
+			const LLUUID& idCreator = obj->mPermissions->getCreator();
+			LLAvatarNameCache::get(idCreator, &av_name);
+			bool fRlvFilterCreator = (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) && (idCreator != gAgent.getID()) &&
+				( (obj->mPermissions->getOwner() == idCreator) || (RlvUtil::isNearbyAgent(idCreator)) );
+			creator_name = (!fRlvFilterCreator) ? av_name.getCompleteName() : RlvStrings::getAnonym(av_name);
+// [/RLVa:KB]
+		}
+		else
+		{
+			creator_name = LLTrans::getString("RetrievingData");
+			LLAvatarNameCache::get(idCreator, boost::bind(&LLFloaterInspect::onGetAvNameCallback, _1, _2, this));
+		}
+
+		// <edit>
+		if (LLAvatarNameCache::get(idLastOwner, &av_name))
+		{
+//			last_owner_name = av_name.getCompleteName();
+// [RLVa:LF] - Copied from the above creator check Checked: 2010-11-01 (RLVa-1.2.2a) | Modified: RLVa-1.2.2a
+			LLAvatarNameCache::get(idLastOwner, &av_name);
+			bool fRlvFilterLastOwner = (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) && (idLastOwner != gAgent.getID()) &&
+				( (obj->mPermissions->getOwner() == idLastOwner) || (RlvUtil::isNearbyAgent(idLastOwner)) );
+			last_owner_name = (!fRlvFilterLastOwner) ? av_name.getCompleteName() : RlvStrings::getAnonym(av_name);
+// [/RLVa:LF]
+		}
+		else
+		{
+			last_owner_name = LLTrans::getString("RetrievingData");
+			LLAvatarNameCache::get(idLastOwner, boost::bind(&LLFloaterInspect::onGetAvNameCallback, _1, _2, this));
+		}
+		// </edit>
+
 		row["id"] = obj->getObject()->getID();
 		row["columns"][0]["column"] = "object_name";
 		row["columns"][0]["type"] = "text";
@@ -259,28 +317,25 @@ void LLFloaterInspect::refresh()
 		{
 			row["columns"][0]["value"] = obj->mName;
 		}
+		row["columns"][1]["column"] = "owner_name";
+		row["columns"][1]["type"] = "text";
+		row["columns"][1]["value"] = owner_name;
 		// <edit>
-		int i = 1;
-		row["columns"][i]["column"] = "owner_name";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = owner_name;
-		++i;
-		row["columns"][i]["column"] = "last_owner_name";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = last_owner_name;
-		++i;
-		row["columns"][i]["column"] = "creator_name";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = creator_name;
-		++i;
-		row["columns"][i]["column"] = "face_num";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = llformat("%d",obj->getObject()->getNumFaces());
-		++i;
-		row["columns"][i]["column"] = "vertex_num";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = llformat("%d",obj->getObject()->getNumVertices());
-		++i;
+		row["columns"][2]["column"] = "last_owner_name";
+		row["columns"][2]["type"] = "text";
+		row["columns"][2]["value"] = last_owner_name;
+		// </edit>
+		row["columns"][3]["column"] = "creator_name";
+		row["columns"][3]["type"] = "text";
+		row["columns"][3]["value"] = creator_name;
+		// <edit>
+		row["columns"][4]["column"] = "face_num";
+		row["columns"][4]["type"] = "text";
+		row["columns"][4]["value"] = llformat("%d",obj->getObject()->getNumFaces());
+
+		row["columns"][5]["column"] = "vertex_num";
+		row["columns"][5]["type"] = "text";
+		row["columns"][5]["value"] = llformat("%d",obj->getObject()->getNumVertices());
 		// inventory silliness
 		S32 scripts,total_inv;
 		std::map<LLUUID,std::pair<S32,S32> >::iterator itr = mInventoryNums.find(obj->getObject()->getID());
@@ -300,18 +355,16 @@ void LLFloaterInspect::refresh()
 				requestVOInventory();
 			}
 		}
-		row["columns"][i]["column"] = "script_num";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = llformat("%d",scripts);
-		++i;
-		row["columns"][i]["column"] = "inv_num";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = llformat("%d",total_inv);
-		++i;
-		row["columns"][i]["column"] = "creation_date";
-		row["columns"][i]["type"] = "text";
-		row["columns"][i]["value"] = time;
+		row["columns"][6]["column"] = "script_num";
+		row["columns"][6]["type"] = "text";
+		row["columns"][6]["value"] = llformat("%d",scripts);
+		row["columns"][7]["column"] = "inv_num";
+		row["columns"][7]["type"] = "text";
+		row["columns"][7]["value"] = llformat("%d",total_inv);
 		// </edit>
+		row["columns"][8]["column"] = "creation_date";
+		row["columns"][8]["type"] = "text";
+		row["columns"][8]["value"] = time;
 		mObjectList->addElement(row, ADD_TOP);
 	}
 	if(selected_index > -1 && mObjectList->getItemIndex(selected_uuid) == selected_index)
@@ -322,26 +375,23 @@ void LLFloaterInspect::refresh()
 	{
 		mObjectList->selectNthItem(0);
 	}
-	onSelectObject(this, NULL);
+	onSelectObject();
 	mObjectList->setScrollPos(pos);
 }
+
 // <edit>
-void LLFloaterInspect::inventoryChanged(LLViewerObject* viewer_object,
-											 LLInventoryObject::object_list_t* inv,
-											 S32,
-											 void* q_id)
+void LLFloaterInspect::inventoryChanged(LLViewerObject* viewer_object, LLInventoryObject::object_list_t* inv, S32, void* q_id)
 {
-	S32 scripts = 0;
 	std::vector<LLUUID>::iterator iter = std::find(mQueue.begin(),mQueue.end(),viewer_object->getID());
 	if (viewer_object && inv && iter != mQueue.end() )
 	{
-		LLInventoryObject::object_list_t::const_iterator it = inv->begin();
+		S32 scripts = 0;
 		LLInventoryObject::object_list_t::const_iterator end = inv->end();
-		for ( ; it != end; ++it)
+		for (LLInventoryObject::object_list_t::const_iterator it = inv->begin(); it != end; ++it)
 		{
 			if((*it)->getType() == LLAssetType::AT_LSL_TEXT)
 			{
-				scripts++;
+				++scripts;
 			}
 		}
 		mInventoryNums[viewer_object->getID()] = std::make_pair(scripts,inv->size());
@@ -350,6 +400,7 @@ void LLFloaterInspect::inventoryChanged(LLViewerObject* viewer_object,
 	}
 }
 // </edit>
+
 void LLFloaterInspect::onFocusReceived()
 {
 	LLToolMgr::getInstance()->setTransientTool(LLToolCompInspect::getInstance());
@@ -358,13 +409,11 @@ void LLFloaterInspect::onFocusReceived()
 
 void LLFloaterInspect::dirty()
 {
-	if(sInstance)
-	{
-		// <edit>
-		sInstance->mInventoryNums.clear();
-		sInstance->mQueue.clear();
-		sInstance->setDirty();
-	}
+	// <edit>
+	mInventoryNums.clear();
+	mQueue.clear();
+	// </edit>
+	setDirty();
 }
 
 void LLFloaterInspect::draw()

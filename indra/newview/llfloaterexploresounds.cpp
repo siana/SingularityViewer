@@ -3,15 +3,16 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llfloaterexploresounds.h"
-#include "lluictrlfactory.h"
+
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
+#include "lluictrlfactory.h"
+
 #include "llagent.h"
 #include "llagentcamera.h"
-#include "llviewerwindow.h"
+#include "llfloaterblacklist.h"
 #include "llviewerobjectlist.h"
 #include "llviewerregion.h"
-#include "llfloaterchat.h"
-#include "llfloaterblacklist.h"
 
 static const size_t num_collision_sounds = 29;
 const LLUUID collision_sounds[num_collision_sounds] =
@@ -66,6 +67,13 @@ void LLFloaterExploreSounds::toggle()
 {
 	if(LLFloaterExploreSounds::sInstance) LLFloaterExploreSounds::sInstance->close(FALSE);
 	else LLFloaterExploreSounds::sInstance = new LLFloaterExploreSounds();
+}
+
+BOOL LLFloaterExploreSounds::visible()
+{
+	if (LLFloaterExploreSounds::sInstance)
+		return TRUE;
+	return FALSE;
 }
 
 void LLFloaterExploreSounds::close(bool app_quitting)
@@ -296,6 +304,7 @@ void LLFloaterExploreSounds::handle_play_locally(void* user_data)
 		if(std::find(asset_list.begin(), asset_list.end(), item.mAssetID) == asset_list.end())
 		{
 			asset_list.push_back(item.mAssetID);
+			if(gAudiop)
 			gAudiop->triggerSound(item.mAssetID, LLUUID::null, 1.0f, LLAudioEngine::AUDIO_TYPE_UI);
 		}
 	}

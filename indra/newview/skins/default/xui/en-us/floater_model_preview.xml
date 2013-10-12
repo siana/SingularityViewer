@@ -518,7 +518,7 @@
 			<!-- WEIGHTS -->
 			<text name="upload_fee" word_wrap="true" follows="top|left"
 			 left="5" bottom_delta="-24" height="16" width="130">
-				Upload fee: L$ [FEE]
+				Upload fee: [CURRENCY] [FEE]
 			</text>
 			<text name="prim_weight" word_wrap="true" follows="top|left"
 			 left_delta="140" bottom_delta="0" height="16" width="120">

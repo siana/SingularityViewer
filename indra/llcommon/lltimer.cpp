@@ -251,7 +251,7 @@ U64 totalTime()
 	}
 	else
 	{
-		if (current_clock_count >= gLastTotalTimeClockCount)
+		if (LL_LIKELY(current_clock_count >= gLastTotalTimeClockCount))
 		{
 			// No wrapping, we're all okay.
 			gTotalTimeClockCount += current_clock_count - gLastTotalTimeClockCount;

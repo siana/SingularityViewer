@@ -44,8 +44,6 @@
 #include "llfloater.h"
 #include "llscrolllistctrl.h"
 
-#include "llviewerinventory.h"
-
 class LLFloaterBulkPermission : public LLFloater, public LLVOInventoryListener, public LLFloaterSingleton<LLFloaterBulkPermission>
 {
 public:
@@ -62,7 +60,7 @@ private:
 	// This is the callback method for the viewer object currently
 	// being worked on.
 	/*virtual*/ void inventoryChanged(LLViewerObject* obj,
-								  LLInventoryObject::object_list_t* inv,
+								 LLInventoryObject::object_list_t* inv,
 								 S32 serial_num,
 								 void* queue);
 	
@@ -76,12 +74,12 @@ private:
 								U8 key,
 								bool is_new);
 
-	static void onHelpBtn(void* user_data);
-	static void onCloseBtn(void* user_data);
-	static void onApplyBtn(void* user_data);
-	static void onCommitCopy(LLUICtrl* ctrl, void* data);
-	static void onCheckAll(  void* user_data) { ((LLFloaterBulkPermission*)user_data)->doCheckUncheckAll(TRUE); }
-	static void onUncheckAll(void* user_data) { ((LLFloaterBulkPermission*)user_data)->doCheckUncheckAll(FALSE); }
+	static void onHelpBtn();
+	void onCloseBtn();
+	void onApplyBtn();
+	void onCommitCopy();
+	void onCheckAll() { doCheckUncheckAll(TRUE); }
+	void onUncheckAll() { doCheckUncheckAll(FALSE); }
 	
 	// returns true if this is done
 	BOOL isDone() const { return (mCurrentObjectID.isNull() || (mObjectIDs.count() == 0)); }
@@ -91,18 +89,12 @@ private:
 	void doCheckUncheckAll(BOOL check);
 
 private:
-	// UI
-	LLScrollListCtrl* mMessages;
-	LLButton* mCloseBtn;
-
 	// Object Queue
 	LLDynamicArray<LLUUID> mObjectIDs;
 	LLUUID mCurrentObjectID;
 	BOOL mDone;
 
 	LLUUID mID;
-
-	const char* mStartString;
 };
 
 #endif

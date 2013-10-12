@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater title="Publicar en Mi Perfil Web" name="floater_snapshot_profile">
+    <text_editor name="caption" >
+		Escribe aquí tu mensaje.
+	</text_editor> 
+    <check_box label="Incluir ubicación" name="add_location_cb"/>
+    <button label="Cancelar" name="cancel_btn"/>
+    <button label="Publicar" name="post_btn"/>
+    <string name="default_message">
+      Pulsa en el link de la "Instantánea" para verla en tamaño original.
+    </string>
+    <string name="upload_message">
+      "Publicando..."
+    </string>
+</floater>

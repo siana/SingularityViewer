@@ -33,14 +33,31 @@
 #ifndef LL_LLFLOATEROBJECTIMINFO_H
 #define LL_LLFLOATEROBJECTIMINFO_H
 
-namespace LLObjectIMInfo
+#include "llfloater.h"
+
+class LLFloaterObjectIMInfo : public LLFloater, public LLFloaterSingleton<LLFloaterObjectIMInfo>
 {
-	// Show an LLFloaterObjectIMInfo for this object.
-	static void show(const LLUUID& object_id, 
-						const std::string& name, 
-						const std::string& location, 
-						const LLUUID& owner_id, 
-						bool owner_is_group);
+public:
+	LLFloaterObjectIMInfo(const LLSD& sd);
+	virtual ~LLFloaterObjectIMInfo() { };
+
+	/*virtual*/ BOOL postBuild(void);
+
+	void update(LLSD& payload);
+
+	// UI Handlers
+	static void onClickMap(void* data);
+	static void onClickOwner(void* data);
+	static void onClickMute(void* data);
+
+	void nameCallback(const LLUUID& id, const std::string& full_name, bool is_group);
+
+private:
+	LLUUID mObjectID;
+	LLUUID mOwnerID;
+	std::string mSLurl;
+	std::string mName;
+	bool mGroupOwned;
 };
 
 #endif // LL_LLFLOATERURLDISPLAY_H

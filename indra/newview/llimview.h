@@ -36,12 +36,11 @@
 #include "llmultifloater.h"
 #include "llinstantmessage.h"
 #include "lluuid.h"
+#include "llvoicechannel.h"
+
 
 class LLFloaterChatterBox;
-class LLUUID;
 class LLFloaterIMPanel;
-class LLFriendObserver;
-class LLFloaterIM;
 
 class LLIMMgr : public LLSingleton<LLIMMgr>
 {
@@ -125,14 +124,12 @@ public:
 	void processIMTypingStart(const LLIMInfo* im_info);
 	void processIMTypingStop(const LLIMInfo* im_info);
 
-	// Rebuild stuff
-	void refresh();
-
-	void notifyNewIM();
 	void clearNewIMNotification();
 
+	// automatically start a call once the session has initialized
+	void autoStartCallOnStartup(const LLUUID& session_id);
+
 	// IM received that you haven't seen yet
-	BOOL getIMReceived() const;
 	int getIMUnreadCount();
 
 	void		setFloaterOpen(BOOL open);		/*Flawfinder: ignore*/
@@ -146,11 +143,7 @@ public:
 	// good connection.
 	void disconnectAllSessions();
 
-	static void	toggle(void*);
-
-	// This is a helper function to determine what kind of im session
-	// should be used for the given agent.
-	static EInstantMessage defaultIMTypeForAgent(const LLUUID& agent_id);
+	void toggle();
 
 	BOOL hasSession(const LLUUID& session_id);
 
@@ -163,6 +156,7 @@ public:
 
 	void clearPendingInvitation(const LLUUID& session_id);
 
+	void processAgentListUpdates(const LLUUID& session_id, const LLSD& body);
 	LLSD getPendingAgentListUpdates(const LLUUID& session_id);
 	void addPendingAgentListUpdates(
 		const LLUUID& sessioN_id,
@@ -178,6 +172,18 @@ public:
 	// Returns true if group chat is ignored for the UUID, false if not
 	bool getIgnoreGroup(const LLUUID& group_id) const;
 
+	/**
+	 * Start call in a session
+	 * @return false if voice channel doesn't exist
+	 **/
+	bool startCall(const LLUUID& session_id, LLVoiceChannel::EDirection direction = LLVoiceChannel::OUTGOING_CALL);
+
+	/**
+	 * End call in a session
+	 * @return false if voice channel doesn't exist
+	 **/
+	bool endCall(const LLUUID& session_id);
+
 private:
 	// create a panel and update internal representation for
 	// consistency. Returns the pointer, caller (the class instance
@@ -186,15 +192,9 @@ private:
 	LLFloaterIMPanel* createFloater(const LLUUID& session_id,
 									const LLUUID& target_id,
 									const std::string& name,
-									EInstantMessage dialog,
-									BOOL user_initiated = FALSE);
-
-	LLFloaterIMPanel* createFloater(const LLUUID& session_id,
-									const LLUUID& target_id,
-									const std::string& name,
-									const LLDynamicArray<LLUUID>& ids,
-									EInstantMessage dialog,
-									BOOL user_initiated = FALSE);
+									const EInstantMessage& dialog,
+									const LLDynamicArray<LLUUID>& ids = LLDynamicArray<LLUUID>(),
+									bool user_initiated = false);
 
 	// This simple method just iterates through all of the ids, and
 	// prints a simple message if they are not online. Used to help
@@ -209,10 +209,8 @@ private:
 
 private:
 	std::set<LLHandle<LLFloater> > mFloaters;
-	LLFriendObserver* mFriendObserver;
 
 	// An IM has been received that you haven't seen yet.
-	BOOL mIMReceived;
 	int		mIMUnreadCount;
 
 	LLSD mPendingInvitations;
@@ -225,14 +223,7 @@ public:
 	S32 getIgnoreGroupListCount() { return mIgnoreGroupList.size(); }
 };
 
-
-class LLFloaterIM : public LLMultiFloater
-{
-public:
-	LLFloaterIM();
-};
-
 // Globals
 extern LLIMMgr *gIMMgr;
 
-#endif  // LL_LLIMView_H
+#endif  // LL_LLIMVIEW_H

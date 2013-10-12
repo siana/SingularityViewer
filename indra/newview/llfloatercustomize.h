@@ -33,38 +33,16 @@
 #ifndef LL_LLFLOATERCUSTOMIZE_H
 #define LL_LLFLOATERCUSTOMIZE_H
 
-#include <map>
-
 #include "llfloater.h"
-#include "llstring.h"
-#include "v3dmath.h"
-#include "lltimer.h"
-#include "llundo.h"
-#include "llviewermenu.h"
 #include "llwearable.h"
-#include "lliconctrl.h"
 #include "llsingleton.h"
 
-class LLButton;
-class LLIconCtrl;
-class LLColorSwatchCtrl;
-class LLGenePool;
 class LLInventoryObserver;
-class LLJoint;
-class LLLineEditor;
-class LLMakeOutfitDialog;
-class LLRadioGroup;
-class LLScrollableContainerView;
+class LLScrollContainer;
 class LLScrollingPanelList;
 class LLTabContainer;
-class LLTextBox;
-class LLTextureCtrl;
-class LLViewerJointMesh;
-class LLViewerVisualParam;
-class LLVisualParam;
-class LLVisualParamReset;
 class LLViewerWearable;
-class LLWearableSaveAsDialog;
+class LLVisualParamReset;
 class LLPanelEditWearable;
 class AIFilePicker;
 
@@ -78,22 +56,24 @@ public:
 	LLFloaterCustomize();
 	virtual ~LLFloaterCustomize();
 
-	// Inherted methods
+	// Inherited methods
 	/*virtual*/ BOOL 	postBuild();
 	/*virtual*/ void	onClose(bool app_quitting);
 	/*virtual*/ void	draw();
 	
+	void refreshCurrentOutfitName(const std::string& name = "");
+
 	// Creation procedures
 	static void		editWearable(LLViewerWearable* wearable, bool disable_camera_switch);
 	static void		show();
 
 
 private:
-	// Initilization	
+	// Initialization
 	void			initWearablePanels();
 	void			initScrollingPanelList();
 
-	// Deinitilization
+	// Destruction
 	void			delayedClose(bool proceed, bool app_quitting);
 
 	// Setters/Getters
@@ -125,9 +105,9 @@ private:
 	void			onBtnOk();
 	void			onBtnMakeOutfit();
 	void			onBtnImport();
-	static void		onBtnImport_continued(AIFilePicker* filepicker);
+	void			onBtnImport_continued(AIFilePicker* filepicker);
 	void			onBtnExport();
-	static void		onBtnExport_continued(AIFilePicker* filepicker);
+	static void		onBtnExport_continued(LLViewerWearable* edit_wearable, AIFilePicker* filepicker);
 	void			onTabChanged( const LLSD& param );
 	bool			onTabPrecommit( LLUICtrl* ctrl, const LLSD& param );
 	bool			onSaveDialog(const LLSD& notification, const LLSD& response);
@@ -142,7 +122,7 @@ private:
 	LLWearableType::EType			mCurrentWearableType;
 
 	LLScrollingPanelList*			mScrollingPanelList;
-	LLScrollableContainerView*		mScrollContainer;
+	LLScrollContainer*		mScrollContainer;
 	LLPointer<LLVisualParamReset>	mResetParams;
 
 	LLInventoryObserver*			mInventoryObserver;

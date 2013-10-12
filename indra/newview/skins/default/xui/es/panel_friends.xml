@@ -14,7 +14,7 @@
 		<column name="icon_edit_theirs" tool_tip="Puedes editar los objetos de este amigo"/>
 		<column name="friend_last_update_generation"/>
 	</scroll_list>
-	<search_editor name="buddy_search_lineedit" label="Buscar Contactos" tool_tip="Nombre del amigo que estás buscando"/>
+  <filter_editor name="buddy_search_lineedit" label="Buscar Contactos" tool_tip="Nombre del amigo que estás buscando"/>
 	<button label="0" name="expand_collapse_btn" tool_tip="Ampliar/Contraer información extra"/>
 	<button label="MI/Llamada" name="im_btn" tool_tip="Abrir sesión de Mensajes Instantáneos"/>
 	<button label="Perfil" name="profile_btn" tool_tip="Mostrar foto, grupos e información adicional"/>

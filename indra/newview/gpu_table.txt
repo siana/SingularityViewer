@@ -76,9 +76,6 @@ ATI FirePro M5800				.*ATI.*FirePro.*M58.*						3		1
 ATI FirePro M7740				.*ATI.*FirePro.*M77.*						3		1
 ATI FirePro M7820				.*ATI.*FirePro.*M78.*						3		1
 ATI FireMV						.*ATI.*FireMV.*								0		1
-ATI Geforce 9500 GT				.*ATI.*Geforce 9500 *GT.*					2		1
-ATI Geforce 9600 GT				.*ATI.*Geforce 9600 *GT.*					2		1
-ATI Geforce 9800 GT				.*ATI.*Geforce 9800 *GT.*					2		1
 ATI Generic						.*ATI.*Generic.*							0		0
 ATI Hercules 9800				.*ATI.*Hercules.*9800.*						1		1
 ATI IGP 340M					.*ATI.*IGP.*340M.*							0		0

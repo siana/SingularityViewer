@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="floater_pathfinding_characters" title="Personajes Pathfinding">
+	<string name="messaging_initial"></string>
+	<string name="messaging_get_inprogress">
+		Consultando Querying los personajes pathfinding ...
+	</string>
+	<string name="messaging_get_error">
+		Error detectado al consultar los personajes pathfinding.
+	</string>
+	<string name="messaging_set_inprogress"></string>
+	<string name="messaging_set_error"></string>
+	<string name="messaging_complete_none_found">
+		Sin personajes pathfinding.
+	</string>
+	<string name="messaging_complete_available">
+		[NUM_SELECTED] personajes seleccionados de un total de [NUM_TOTAL].
+	</string>
+	<string name="messaging_not_enabled">
+		Esta región no tiene pathfinding habilitado.
+	</string>
+	<string name="character_cpu_time">
+		[CPU_TIME] µs
+	</string>
+	<string name="character_owner_loading">
+		[Cargando]
+	</string>
+	<string name="character_owner_unknown">
+		[Desconocido]
+	</string>
+	<string name="character_owner_group">
+		[grupo]
+	</string>
+	<panel name="pathfinding_chars_main">
+		<scroll_list name="objects_scroll_list">
+			<column label="Nombre" name="name"/>
+			<column label="Descripción" name="description"/>
+			<column label="Propietario" name="owner"/>
+			<column label="CPU" name="cpu_time"/>
+			<column label="Altitud" name="altitude"/>
+		</scroll_list>
+		<text name="messaging_status">
+			Personajes:
+		</text>
+		<button label="Actualizar Lista" name="refresh_objects_list"
+        left_delta="238"
+        bottom_delta="10"
+        width="100"/>
+		<button label="Seleccionar Todo" name="select_all_objects"
+        left_delta="105"
+        bottom_delta="0"
+        width="115"/>
+		<button label="Seleccionar Ninguno" name="select_none_objects"
+        left_delta="120"
+        bottom_delta="0"
+        width="135"/>
+	</panel>
+	<view_border name="horiz_separator"/>
+	<panel name="pathfinding_chars_actions">
+		<text name="actions_label" >
+			Acciones sobre los personajes seleccionados:
+		</text>
+		<check_box label="Mostrar Baliza" name="show_beacon" left_delta="242"
+        bottom_delta="-5"
+        width="150" />
+<!-- Singu NOTE: Requires havok
+    <check_box
+        height="19"
+        follows="left|bottom"
+        label="Show physics capsule"
+        layout="topleft"
+        name="show_physics_capsule"
+        top_pad="-19"
+        left_delta="150"
+        bottom_delta="0"
+		width="150" />
+-->
+		<button label="Recoger" name="take_objects" 
+        left="18"
+        bottom_delta="-25"
+        width="80"/>
+		<button label="Recoger una copia" name="take_copy_objects" 
+        left_delta="90"
+        bottom_delta="0"
+        width="120"/>
+		<button label="Teleportarme hacia ahí" name="teleport_me_to_object"
+        tool_tip="Habilitado solamente cuando se ha seleccionado un solo personaje." 
+        left_delta="130"
+        bottom_delta="0"
+        width="159"/>
+		<button label="Devolver" name="return_objects"
+        left_delta="195"
+        bottom_delta="0"
+        width="90"/>
+		<button label="Borrar" name="delete_objects"
+        left_delta="100"
+        bottom_delta="0"
+        width="90"/>
+	</panel>
+</floater>

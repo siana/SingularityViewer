@@ -152,7 +152,6 @@ public:
 	void onClickProfile();
 	void onClickSetGroup();
 	static void onClickInfoGroup(void*);
-	static void cbGroupID(LLUUID group_id, void* userdata);
 	static void onClickDeed(void*);
 	static void onClickBuyLand(void* data);
 	static void onClickScriptLimits(void* data);

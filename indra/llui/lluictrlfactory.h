@@ -41,17 +41,54 @@
 #include "llinitparam.h"
 
 class LLView;
-class LLPanel;
+
+
+extern LLFastTimer::DeclareTimer FTM_WIDGET_SETUP;
+extern LLFastTimer::DeclareTimer FTM_WIDGET_CONSTRUCTION;
+extern LLFastTimer::DeclareTimer FTM_INIT_FROM_PARAMS;
+
+// Build time optimization, generate this once in .cpp file
+#ifndef LLUICTRLFACTORY_CPP
+extern template class LLUICtrlFactory* LLSingleton<class LLUICtrlFactory>::getInstance();
+#endif
 
 class LLUICtrlFactory : public LLSingleton<LLUICtrlFactory>
 {
-public:
+private:
+	friend class LLSingleton<LLUICtrlFactory>;
 	LLUICtrlFactory();
-	// do not call!  needs to be public so run-time can clean up the singleton
-	virtual ~LLUICtrlFactory();
+	~LLUICtrlFactory();
 
+	// only partial specialization allowed in inner classes, so use extra dummy parameter
+	template <typename PARAM_BLOCK, int DUMMY>
+	class ParamDefaults : public LLSingleton<ParamDefaults<PARAM_BLOCK, DUMMY> > 
+	{
+	public:
+		ParamDefaults()
+		{
+			// recursively fill from base class param block
+			((typename PARAM_BLOCK::base_block_t&)mPrototype).fillFrom(ParamDefaults<typename PARAM_BLOCK::base_block_t, DUMMY>::instance().get());
+		}
+
+		const PARAM_BLOCK& get() { return mPrototype; }
+
+	private:
+		PARAM_BLOCK mPrototype;
+	};
+
+	// base case for recursion, there are NO base classes of LLInitParam::BaseBlock
+	template<int DUMMY>
+	class ParamDefaults<LLInitParam::BaseBlock, DUMMY> : public LLSingleton<ParamDefaults<LLInitParam::BaseBlock, DUMMY> >
+	{
+	public:
+		const LLInitParam::BaseBlock& get() { return mBaseBlock; }
+	private:
+		LLInitParam::BaseBlock mBaseBlock;
+	};
+
+public:
 	void setupPaths();
-
+	
 	void buildFloater(LLFloater* floaterp, const std::string &filename, 
 					const LLCallbackMap::map_t* factory_map = NULL, BOOL open = TRUE);
 	void buildFloaterFromBuffer(LLFloater *floaterp, const std::string &buffer,
@@ -82,8 +119,22 @@ public:
 
 	LLPanel* createFactoryPanel(const std::string& name);
 
-	virtual LLView* createCtrlWidget(LLPanel *parent, LLXMLNodePtr node);
-	virtual LLView* createWidget(LLPanel *parent, LLXMLNodePtr node);
+	LLView* createCtrlWidget(LLPanel *parent, LLXMLNodePtr node);
+	LLView* createWidget(LLPanel *parent, LLXMLNodePtr node);
+
+	template<typename T>
+	static T* create(typename T::Params& params, LLView* parent = NULL)
+	{
+		params.fillFrom(ParamDefaults<typename T::Params, 0>::instance().get());
+
+		T* widget = createWidgetImpl<T>(params, parent);
+		if (widget)
+		{
+			widget->postBuild();
+		}
+
+		return widget;
+	}
 
 	static bool getLayeredXMLNode(const std::string &filename, LLXMLNodePtr& root);
 	static bool getLayeredXMLNodeFromBuffer(const std::string &buffer, LLXMLNodePtr& root);
@@ -92,6 +143,43 @@ public:
 
 private:
 	bool getLayeredXMLNodeImpl(const std::string &filename, LLXMLNodePtr& root);
+
+
+	void buildFloaterInternal(LLFloater *floaterp, LLXMLNodePtr &root, const std::string &filename,
+							  const LLCallbackMap::map_t *factory_map, BOOL open);
+	BOOL buildPanelInternal(LLPanel* panelp, LLXMLNodePtr &root, const std::string &filename,
+							const LLCallbackMap::map_t* factory_map = NULL);
+
+	template<typename T>
+	static T* createWidgetImpl(const typename T::Params& params, LLView* parent = NULL)
+	{
+		T* widget = NULL;
+
+		if (!params.validateBlock())
+		{
+			llwarns << /*getInstance()->getCurFileName() <<*/ ": Invalid parameter block for " << typeid(T).name() << llendl;
+			//return NULL;
+		}
+
+		{ LLFastTimer _(FTM_WIDGET_CONSTRUCTION);
+			widget = new T(params);	
+		}
+		{ LLFastTimer _(FTM_INIT_FROM_PARAMS);
+			widget->initFromParams(params);
+		}
+
+		if (parent)
+		{
+			S32 tab_group = params.tab_group.isProvided() ? params.tab_group() : S32_MAX;
+			setCtrlParent(widget, parent, tab_group);
+		}
+		return widget;
+	}
+
+	// this exists to get around dependency on llview
+	static void setCtrlParent(LLView* view, LLView* parent, S32 tab_group);
+
+	LLPanel* mDummyPanel;
 
 	typedef std::map<LLHandle<LLPanel>, std::string> built_panel_t;
 	built_panel_t mBuiltPanels;
@@ -102,13 +190,6 @@ private:
 	std::deque<const LLCallbackMap::map_t*> mFactoryStack;
 
 	static std::vector<std::string> sXUIPaths;
-
-	LLPanel* mDummyPanel;
-	
-	void buildFloaterInternal(LLFloater *floaterp, LLXMLNodePtr &root, const std::string &filename,
-							  const LLCallbackMap::map_t *factory_map, BOOL open);
-	BOOL buildPanelInternal(LLPanel* panelp, LLXMLNodePtr &root, const std::string &filename,
-							const LLCallbackMap::map_t* factory_map = NULL);
 };
 
 

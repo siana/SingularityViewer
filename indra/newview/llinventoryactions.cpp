@@ -32,77 +32,27 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#include <utility> // for std::pair<>
-
-#include "llinventorypanel.h"
-#include "llpanelobjectinventory.h"
-#include "llinventorybridge.h"
-
-#include "message.h"
-
-#include "llagent.h"
 #include "llagentwearables.h"
-#include "llcallingcard.h"
-#include "llcheckboxctrl.h"		// for radio buttons
+#include "llappearancemgr.h"
 #include "llfoldervieweventlistener.h"
-#include "llnotificationsutil.h"
-#include "llradiogroup.h"
-#include "llspinctrl.h"
-#include "lltextbox.h"
-#include "llui.h"
-
-
-#include "llviewercontrol.h"
-#include "llfirstuse.h"
-#include "llfloateravatarinfo.h"
-#include "llfloaterchat.h"
-#include "llfloatercustomize.h"
-#include "llfloaterinventory.h"
-#include "llfloaterproperties.h"
-#include "llfocusmgr.h"
-#include "llfolderview.h"
-#include "llgesturemgr.h"
-#include "lliconctrl.h"
-#include "llinventoryfunctions.h"
-#include "llinventoryclipboard.h"
-#include "llinventorymodelbackgroundfetch.h"
-#include "lllineeditor.h"
-#include "llmakeoutfitdialog.h"
-#include "llmenugl.h"
-#include "llpreviewanim.h"
-#include "llpreviewgesture.h"
-#include "llpreviewlandmark.h"
-#include "llpreviewnotecard.h"
-#include "llpreviewscript.h"
-#include "llpreviewsound.h"
-#include "llpreviewtexture.h"
-#include "llresmgr.h"
-#include "llscrollcontainer.h"
 #include "llimview.h"
-#include "lltooldraganddrop.h"
-#include "llviewertexturelist.h"
-#include "llviewerinventory.h"
-#include "llviewerobjectlist.h"
-#include "llviewerwindow.h"
+#include "llinventorybridge.h"
+#include "llinventoryclipboard.h"
+#include "llinventoryfunctions.h"
+#include "llinventorymodelbackgroundfetch.h"
+#include "llinventorypanel.h"
+#include "llmakeoutfitdialog.h"
+#include "llnotificationsutil.h"
+#include "llpanelmaininventory.h"
+#include "llpanelobjectinventory.h"
+#include "llpreview.h" // For LLMultiPreview
+#include "lltrans.h"
 #include "llvoavatarself.h"
-#include "llwearable.h"
-#include "llwearablelist.h"
-#include "llviewermessage.h" 
-#include "llviewerregion.h"
-#include "lltabcontainer.h"
-#include "lluictrlfactory.h"
-#include "llselectmgr.h"
+#include "llnotifications.h"
 
-// <edit>
-#include "lllocalinventory.h"
-#include "statemachine/aifilepicker.h"
-// </edit>
+extern LLUUID gAgentID;
 
 using namespace LLOldEvents;
-
-const std::string NEW_LSL_NAME = "New Script"; // *TODO:Translate? (probably not)
-const std::string NEW_NOTECARD_NAME = "New Note"; // *TODO:Translate? (probably not)
-const std::string NEW_GESTURE_NAME = "New Gesture"; // *TODO:Translate? (probably not)
 
 typedef LLMemberListener<LLPanelObjectInventory> object_inventory_listener_t;
 typedef LLMemberListener<LLInventoryView> inventory_listener_t;
@@ -116,42 +66,39 @@ bool doToSelected(LLFolderView* folder, std::string action)
 		folder->startRenamingSelectedItem();
 		return true;
 	}
-	if ("delete" == action)
+	else if ("delete" == action)
 	{
 		folder->removeSelectedItems();
 		return true;
 	}
-
-	if ("copy" == action || "cut" == action)
+	else if ("copy" == action || "cut" == action)
 	{	
 		LLInventoryClipboard::instance().reset();
 	}
 
 	std::set<LLUUID> selected_items = folder->getSelectionList();
 
-	LLMultiPreview* multi_previewp = NULL;
-	LLMultiProperties* multi_propertiesp = NULL;
+	LLMultiFloater* multi_floaterp = NULL;
 
 	if (("task_open" == action  || "open" == action) && selected_items.size() > 1)
 	{
 		S32 left, top;
 		gFloaterView->getNewFloaterPosition(&left, &top);
 
-		multi_previewp = new LLMultiPreview(LLRect(left, top, left + 300, top - 100));
-		gFloaterView->addChild(multi_previewp);
+		multi_floaterp = new LLMultiPreview(LLRect(left, top, left + 300, top - 100));
+		gFloaterView->addChild(multi_floaterp);
 
-		LLFloater::setFloaterHost(multi_previewp);
-	
+		LLFloater::setFloaterHost(multi_floaterp);
 	}
 	else if (("task_properties" == action || "properties" == action) && selected_items.size() > 1)
 	{
 		S32 left, top;
 		gFloaterView->getNewFloaterPosition(&left, &top);
 
-		multi_propertiesp = new LLMultiProperties(LLRect(left, top, left + 100, top - 100));
-		gFloaterView->addChild(multi_propertiesp);
+		multi_floaterp = new LLMultiProperties(LLRect(left, top, left + 100, top - 100));
+		gFloaterView->addChild(multi_floaterp);
 
-		LLFloater::setFloaterHost(multi_propertiesp);
+		LLFloater::setFloaterHost(multi_floaterp);
 	}
 
 	std::set<LLUUID>::iterator set_iter;
@@ -167,13 +114,9 @@ bool doToSelected(LLFolderView* folder, std::string action)
 	}
 
 	LLFloater::setFloaterHost(NULL);
-	if (multi_previewp)
+	if (multi_floaterp)
 	{
-		multi_previewp->open();
-	}
-	else if (multi_propertiesp)
-	{
-		multi_propertiesp->open();		/*Flawfinder: ignore*/
+		multi_floaterp->open();
 	}
 
 	return true;
@@ -183,12 +126,11 @@ class LLDoToSelectedPanel : public object_inventory_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		std::string action = userdata.asString();
 		LLPanelObjectInventory *panel = mPtr;
 		LLFolderView* folder = panel->getRootFolder();
 		if(!folder) return true;
 
-		return doToSelected(folder, action);
+		return doToSelected(folder, userdata.asString());
 	}
 };
 
@@ -196,12 +138,11 @@ class LLDoToSelectedFloater : public inventory_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		std::string action = userdata.asString();
 		LLInventoryPanel *panel = mPtr->getPanel();
 		LLFolderView* folder = panel->getRootFolder();
 		if(!folder) return true;
 
-		return doToSelected(folder, action);
+		return doToSelected(folder, userdata.asString());
 	}
 };
 
@@ -209,12 +150,11 @@ class LLDoToSelected : public inventory_panel_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		std::string action = userdata.asString();
 		LLInventoryPanel *panel = mPtr;
 		LLFolderView* folder = panel->getRootFolder();
 		if(!folder) return true;
 
-		return doToSelected(folder, action);
+		return doToSelected(folder, userdata.asString());
 	}
 };
 
@@ -356,7 +296,7 @@ void do_create(LLInventoryModel *model, LLInventoryPanel *ptr, std::string type,
 	else if ("lsl" == type)
 	{
 		LLUUID parent_id = self ? self->getUUID() : model->findCategoryUUIDForType(LLFolderType::FT_LSL_TEXT);
-		ptr->createNewItem(NEW_LSL_NAME,
+		ptr->createNewItem(LLTrans::getString("New Script"),
 							parent_id,
 							LLAssetType::AT_LSL_TEXT,
 							LLInventoryType::IT_LSL,
@@ -365,7 +305,7 @@ void do_create(LLInventoryModel *model, LLInventoryPanel *ptr, std::string type,
 	else if ("notecard" == type)
 	{
 		LLUUID parent_id = self ? self->getUUID() : model->findCategoryUUIDForType(LLFolderType::FT_NOTECARD);
-		ptr->createNewItem(NEW_NOTECARD_NAME,
+		ptr->createNewItem(LLTrans::getString("New Note"),
 							parent_id,
 							LLAssetType::AT_NOTECARD,
 							LLInventoryType::IT_NOTECARD,
@@ -374,20 +314,20 @@ void do_create(LLInventoryModel *model, LLInventoryPanel *ptr, std::string type,
 	else if ("gesture" == type)
 	{
 		LLUUID parent_id = self ? self->getUUID() : model->findCategoryUUIDForType(LLFolderType::FT_GESTURE);
-		ptr->createNewItem(NEW_GESTURE_NAME,
+		ptr->createNewItem(LLTrans::getString("New Gesture"),
 							parent_id,
 							LLAssetType::AT_GESTURE,
 							LLInventoryType::IT_GESTURE,
 							PERM_ALL);
 	}
-	else if ("outfit" == type)
+	else if ("outfit" == type || ("update outfit" == type && !LLAppearanceMgr::getInstance()->updateBaseOutfit())) // If updateBaseOutfit fails, prompt to make a new outfit
 	{
 		new LLMakeOutfitDialog(false);
+		return;
 	}
 	else
 	{
-		LLWearableType::EType wear_type = LLWearableType::typeNameToType(type);
-		LLAgentWearables::createWearable(wear_type, false, self ? self->getUUID() : LLUUID::null);
+		LLAgentWearables::createWearable(LLWearableType::typeNameToType(type), false, self ? self->getUUID() : LLUUID::null);
 	}
 	ptr->getRootFolder()->setNeedsAutoRename(TRUE);	
 }
@@ -411,14 +351,6 @@ class LLDoCreateFloater : public inventory_listener_t
 		LLInventoryModel* model = mPtr->getPanel()->getModel();
 		if(!model) return false;
 		std::string type = userdata.asString();
-		// <edit>
-		if(type == "pretend")
-		{
-			LLFloaterNewLocalInventory* floater = new LLFloaterNewLocalInventory();
-			floater->center();
-		}
-		else
-		// </edit>
 		do_create(model, mPtr->getPanel(), type);
 		return true;
 	}
@@ -484,28 +416,6 @@ class LLSetSortBy : public inventory_listener_t
 	}
 };
 
-// <edit>
-class LLLoadInvCacheFloater : public inventory_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		LLInventoryModel* model = mPtr->getPanel()->getModel();
-		if(!model) return false;
-		AIFilePicker* filepicker = AIFilePicker::create();
-		filepicker->open(FFLOAD_INVGZ, "", "invgz");
-		filepicker->run(boost::bind(&LLLoadInvCacheFloater::filepicker_callback, this, filepicker));
-		return true;
-	}
-
-	void filepicker_callback(AIFilePicker* filepicker)
-	{
-		if(filepicker->hasFilename())
-		{
-			LLLocalInventory::loadInvCache(filepicker->getFilename());
-		}
-	}
-};
-
 class LLRefreshInvModel : public inventory_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
@@ -522,8 +432,7 @@ class LLSetSearchType : public inventory_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		std::string toggle = userdata.asString();
-		U32 flags = mPtr->getActivePanel()->getRootFolder()->toggleSearchType(toggle);
+		U32 flags = mPtr->getActivePanel()->getRootFolder()->toggleSearchType(userdata.asString());
 		mPtr->getControl("Inventory.SearchName")->setValue((BOOL)(flags & 1));
 		mPtr->getControl("Inventory.SearchDesc")->setValue((BOOL)(flags & 2));
 		mPtr->getControl("Inventory.SearchCreator")->setValue((BOOL)(flags & 4));
@@ -546,8 +455,7 @@ class LLBeginIMSession : public inventory_panel_listener_t
 		LLDynamicArray<LLUUID> members;
 		EInstantMessage type = IM_SESSION_CONFERENCE_START;
 
-		std::set<LLUUID>::const_iterator iter;
-		for (iter = selected_items.begin(); iter != selected_items.end(); iter++)
+		for (std::set<LLUUID>::const_iterator iter = selected_items.begin(); iter != selected_items.end(); iter++)
 		{
 
 			LLUUID item = *iter;
@@ -577,11 +485,10 @@ class LLBeginIMSession : public inventory_panel_listener_t
 					{
 						// create the session
 						gIMMgr->setFloaterOpen(TRUE);
-						S32 i;
-						
+
 						LLAvatarTracker& at = LLAvatarTracker::instance();
 						LLUUID id;
-						for(i = 0; i < count; ++i)
+						for(S32 i = 0; i < count; ++i)
 						{
 							id = item_array.get(i)->getCreatorUUID();
 							if(at.isBuddyOnline(id))
@@ -660,43 +567,34 @@ class LLAttachObject : public inventory_panel_listener_t
 				break;
 			}
 		}
-		if (attachmentp == NULL)
+		if (!attachmentp)
 		{
 			return true;
 		}
-		LLViewerInventoryItem* item = (LLViewerInventoryItem*)gInventory.getItem(id);
-
-		if(item && gInventory.isObjectDescendentOf(id, gInventory.getRootFolderID()))
+		if (LLViewerInventoryItem* item = (LLViewerInventoryItem*)gInventory.getItem(id))
 		{
-			rez_attachment(item, attachmentp);	// don't replace if called from an "Attach To..." menu
-		}
-		else if(item && item->isFinished())
-		{
-			// must be in library. copy it to our inventory and put it on.
-			LLPointer<LLInventoryCallback> cb = new LLBoostFuncInventoryCallback(boost::bind(rez_attachment_cb, _1, attachmentp, false));
-			copy_inventory_item(
-				gAgent.getID(),
-				item->getPermissions().getOwner(),
-				item->getUUID(),
-				LLUUID::null,
-				std::string(),
-				cb);
+			if(gInventory.isObjectDescendentOf(id, gInventory.getRootFolderID()))
+			{
+				rez_attachment(item, attachmentp);	// don't replace if called from an "Attach To..." menu
+			}
+			else if(item->isFinished())
+			{
+				// must be in library. copy it to our inventory and put it on.
+				LLPointer<LLInventoryCallback> cb = new LLBoostFuncInventoryCallback(boost::bind(rez_attachment_cb, _1, attachmentp, false));
+				copy_inventory_item(
+					gAgentID,
+					item->getPermissions().getOwner(),
+					item->getUUID(),
+					LLUUID::null,
+					std::string(),
+					cb);
+			}
 		}
 		gFocusMgr.setKeyboardFocus(NULL);
 
 		return true;
 	}
 };
-
-/*
-class LL : public listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		return true;
-	}
-};
-*/
 
 void init_object_inventory_panel_actions(LLPanelObjectInventory *panel)
 {
@@ -709,9 +607,6 @@ void init_inventory_actions(LLInventoryView *floater)
 	(new LLCloseAllFoldersFloater())->registerListener(floater, "Inventory.CloseAllFolders");
 	(new LLEmptyTrashFloater())->registerListener(floater, "Inventory.EmptyTrash");
 	(new LLDoCreateFloater())->registerListener(floater, "Inventory.DoCreate");
-	// <edit>
-	(new LLLoadInvCacheFloater())->registerListener(floater, "Inventory.LoadInvCache");
-	// </edit>
 
 	(new LLNewWindow())->registerListener(floater, "Inventory.NewWindow");
 	(new LLShowFilters())->registerListener(floater, "Inventory.ShowFilters");
@@ -719,7 +614,6 @@ void init_inventory_actions(LLInventoryView *floater)
 	(new LLSetSortBy())->registerListener(floater, "Inventory.SetSortBy");
 
 	(new LLSetSearchType())->registerListener(floater, "Inventory.SetSearchType");
-	
 }
 
 void init_inventory_panel_actions(LLInventoryPanel *panel)

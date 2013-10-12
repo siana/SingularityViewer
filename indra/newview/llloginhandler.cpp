@@ -36,8 +36,8 @@
 
 // viewer includes
 #include "llpanellogin.h"			// save_password_to_disk()
+#include "llslurl.h"
 #include "llstartup.h"				// getStartupState()
-#include "llurlsimstring.h"
 #include "llviewercontrol.h"		// gSavedSettings
 #include "llviewernetwork.h"		// EGridInfo
 
@@ -79,17 +79,15 @@ void LLLoginHandler::parse(const LLSD& queryMap)
 
 	if (startLocation == "specify")
 	{
-		LLURLSimString::setString(queryMap["region"].asString());
+	  LLStartUp::setStartSLURL(queryMap["region"].asString());
 	}
 	else if (startLocation == "home")
 	{
-		gSavedSettings.setBOOL("LoginLastLocation", FALSE);
-		LLURLSimString::setString(LLStringUtil::null);
+	  LLStartUp::setStartSLURL(LLSLURL(LLSLURL::SIM_LOCATION_HOME));
 	}
 	else if (startLocation == "last")
 	{
-		gSavedSettings.setBOOL("LoginLastLocation", TRUE);
-		LLURLSimString::setString(LLStringUtil::null);
+	  LLStartUp::setStartSLURL(LLSLURL(LLSLURL::SIM_LOCATION_LAST));
 	}
 }
 

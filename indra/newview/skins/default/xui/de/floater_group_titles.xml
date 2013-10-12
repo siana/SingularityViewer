@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="goup titles" title="Gruppentitel">
+	<scroll_list name="titles_list">
+		<column name="title" label="Titel"/>
+		<column name="group_name" label="Gruppe"/>
+		<!--Hidden field, used as storage for UUID, please keep at width 0-->
+		
+	</scroll_list>
+	<button name="activate" label="Aktivieren" tool_tip="Aktivieren Sie den gewählten Titel."/>
+</floater>

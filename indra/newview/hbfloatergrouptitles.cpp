@@ -40,8 +40,9 @@
 #include "hbfloatergrouptitles.h"
 
 #include "llagent.h"
+#include "llgroupactions.h"
+#include "llscrolllistitem.h"
 #include "lluictrlfactory.h"
-#include "llviewercontrol.h"
 
 // static variable
 HBFloaterGroupTitles* HBFloaterGroupTitles::sInstance = NULL;
@@ -145,19 +146,13 @@ void HBFloaterGroupTitles::onActivate(void* userdata)
 	LLUUID group_id = item->getColumn(LIST_GROUP_ID)->getValue().asUUID();
 	if (group_id != old_group_id)
 	{
-		LLMessageSystem* msg = gMessageSystem;
-		msg->newMessageFast(_PREHASH_ActivateGroup);
-		msg->nextBlockFast(_PREHASH_AgentData);
-		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		msg->addUUIDFast(_PREHASH_GroupID, group_id);
-		gAgent.sendReliableMessage();
+		LLGroupActions::activate(group_id);
 	}
 
 	// Set the title
 	LLGroupMgr::getInstance()->sendGroupTitleUpdate(group_id, item->getUUID());
 	// Force a refresh via the observer
-	if (group_id == LLUUID::null)
+	if (group_id.isNull())
 	{
 		group_id = old_group_id;
 	}

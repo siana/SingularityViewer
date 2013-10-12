@@ -75,6 +75,9 @@ static bool ATIbug = false;
 
 #if LL_X11
 # include <X11/Xutil.h>
+#include <fstream>
+#include <string>
+#include <boost/regex.hpp>
 #endif //LL_X11
 
 // TOFU HACK -- (*exactly* the same hack as LLWindowMacOSX for a similar
@@ -189,7 +192,7 @@ LLWindowSDL::LLWindowSDL(LLWindowCallbacks* callbacks,
 			 const std::string& title, S32 x, S32 y, S32 width,
 			 S32 height, U32 flags,
 			 BOOL fullscreen, BOOL clearBg,
-			 BOOL disable_vsync, BOOL use_gl,
+			 BOOL disable_vsync,
 			 BOOL ignore_pixel_depth, U32 fsaa_samples)
 	: LLWindow(callbacks, fullscreen, flags),
 	  Lock_Display(NULL),
@@ -200,7 +203,6 @@ LLWindowSDL::LLWindowSDL(LLWindowCallbacks* callbacks,
 	gKeyboard->setCallbacks(callbacks);
 	// Note that we can't set up key-repeat until after SDL has init'd video
 
-	// Ignore use_gl for now, only used for drones on PC
 	mWindow = NULL;
 	mNeedsResize = FALSE;
 	mOverrideAspectRatio = 0.f;
@@ -271,57 +273,41 @@ static SDL_Surface *Load_BMP_Resource(const char *basename)
 }
 
 #if LL_X11
-// This is an XFree86/XOrg-specific hack for detecting the amount of Video RAM
-// on this machine.  It works by searching /var/log/var/log/Xorg.?.log or
-// /var/log/XFree86.?.log for a ': (VideoRAM ?|Memory): (%d+) kB' regex, where
-// '?' is the X11 display number derived from $DISPLAY
-static int x11_detect_VRAM_kb_fp(FILE *fp, const char *prefix_str)
-{
-	const int line_buf_size = 1000;
-	char line_buf[line_buf_size];
-	while (fgets(line_buf, line_buf_size, fp))
-	{
-		//lldebugs << "XLOG: " << line_buf << llendl;
-
-		// Why the ad-hoc parser instead of using a regex?  Our
-		// favourite regex implementation - libboost_regex - is
-		// quite a heavy and troublesome dependency for the client, so
-		// it seems a shame to introduce it for such a simple task.
-		// *FIXME: libboost_regex is a dependency now anyway, so we may
-		// as well use it instead of this hand-rolled nonsense.
-		const char *part1_template = prefix_str;
-		const char part2_template[] = " kB";
-		char *part1 = strstr(line_buf, part1_template);
-		if (part1) // found start of matching line
-		{
-			part1 = &part1[strlen(part1_template)]; // -> after
-			char *part2 = strstr(part1, part2_template);
-			if (part2) // found end of matching line
-			{
-				// now everything between part1 and part2 is
-				// supposed to be numeric, describing the
-				// number of kB of Video RAM supported
-				int rtn = 0;
-				for (; part1 < part2; ++part1)
-				{
-					if (*part1 < '0' || *part1 > '9')
-					{
-						// unexpected char, abort parse
-						rtn = 0;
-						break;
-					}
-					rtn *= 10;
-					rtn += (*part1) - '0';
-				}
-				if (rtn > 0)
-				{
-					// got the kB number.  return it now.
-					return rtn;
-				}
-			}
-		}
-	}
-	return 0; // 'could not detect'
+// This function scrapes the Xorg log to determine the amount of VRAM available to the system.
+// Believe it or not, this is the most reliable way at present to detect VRAM on Linux (until
+// some angelic being ports the whole viewer to SDL 2.0 or something).
+//
+// Returns -1 if it couldn't open the file,
+//	    0 if it could open the file but couldn't detect the amount of VRAM, or
+//	    >0 if it open the file and detect the amount of VRAM present.
+//		In that case, the number will be the amount of available VRAM in kilobytes.
+//
+//
+static int x11_detect_VRAM_kb_br(std::string filename) {
+  boost::regex pattern(".*?(VRAM|Memory|Video\\s?RAM)\\D*(\\d+)\\s?([kK]B?)");
+  std::string line;
+  std::ifstream in(filename.c_str());
+  int matched = -1; 
+  if(in.is_open()) {
+    matched = 0;
+    while (getline(in, line))
+    {
+      // lldebugs << "Processing line: " << line << llendl;
+      boost::cmatch match;
+      if(boost::regex_search(line.c_str(), match, pattern))
+      {
+	matched = atoi(std::string(match[2]).c_str());
+	lldebugs << "VRAM found: " << matched << llendl;
+	lldebugs << "Line matched: " << line << llendl;
+      }
+    }
+    in.close();
+  }
+  else // We couldn't open the file, so bow out.
+  {
+    lldebugs << "Couldn't open logfile " << filename << llendl;
+  }
+  return matched;
 }
 
 static int x11_detect_VRAM_kb()
@@ -336,9 +322,16 @@ static int x11_detect_VRAM_kb()
 	std::string fname;
 	int rtn = 0; // 'could not detect'
 	int display_num = 0;
-	FILE *fp;
-	char *display_env = getenv("DISPLAY"); // e.g. :0 or :0.0 or :1.0 etc
-	// parse DISPLAY number so we can go grab the right log file
+	char *display_env = getenv("VGL_DISPLAY"); // e.g. :0 or :0.0 or :1.0 etc
+	// We parse $VGL_DISPLAY first so we can grab the right Xorg filename
+	// if we're using VirtualGL (like Optimus systems do).
+	
+	if (display_env == NULL) {
+	  // if $VGL_DISPLAY doesn't exist, then we're in a single-card setup
+	  display_env = getenv("DISPLAY");
+	}
+	
+	// parse display number so we can go grab the right log file
 	if (display_env[0] == ':' &&
 	    display_env[1] >= '0' && display_env[1] <= '9')
 	{
@@ -346,40 +339,16 @@ static int x11_detect_VRAM_kb()
 	}
 
 	// *TODO: we could be smarter and see which of Xorg/XFree86 has the
-	// freshest time-stamp.
+	// freshest time-stamp. (...but would it work with VirtualGL?)
 
 	// Try Xorg log first
 	fname = x_log_location;
 	fname += "Xorg.";
 	fname += ('0' + display_num);
 	fname += ".log";
-	fp = fopen(fname.c_str(), "r");
-	if (fp)
-	{
-		llinfos << "Looking in " << fname
-			<< " for VRAM info..." << llendl;
-		rtn = x11_detect_VRAM_kb_fp(fp, ": VideoRAM: ");
-		fclose(fp);
-		if (0 == rtn)
-		{
-			fp = fopen(fname.c_str(), "r");
-			if (fp)
-			{
-				rtn = x11_detect_VRAM_kb_fp(fp, ": Video RAM: ");
-				fclose(fp);
-				if (0 == rtn)
-				{
-					fp = fopen(fname.c_str(), "r");
-					if (fp)
-					{
-						rtn = x11_detect_VRAM_kb_fp(fp, ": Memory: ");
-						fclose(fp);
-					}
-				}
-			}
-		}
-	}
-	else
+	llinfos << "Looking in " << fname << " for VRAM info..." << llendl;
+	rtn = x11_detect_VRAM_kb_br(fname);
+	if(rtn == -1) // we couldn't read the Xorg file
 	{
 		llinfos << "Could not open " << fname
 			<< " - skipped." << llendl;	
@@ -388,29 +357,17 @@ static int x11_detect_VRAM_kb()
 		fname += "XFree86.";
 		fname += ('0' + display_num);
 		fname += ".log";
-		fp = fopen(fname.c_str(), "r");
-		if (fp)
-		{
-			llinfos << "Looking in " << fname
-				<< " for VRAM info..." << llendl;
-			rtn = x11_detect_VRAM_kb_fp(fp, ": VideoRAM: ");
-			fclose(fp);
-			if (0 == rtn)
-			{
-				fp = fopen(fname.c_str(), "r");
-				if (fp)
-				{
-					rtn = x11_detect_VRAM_kb_fp(fp, ": Memory: ");
-					fclose(fp);
-				}
-			}
-		}
-		else
+		llinfos << "Looking in " << fname << " for VRAM info..." << llendl;
+		rtn = x11_detect_VRAM_kb_br(fname);
+		if(rtn == -1) // couldn't read old X log file either
 		{
 			llinfos << "Could not open " << fname
 				<< " - skipped." << llendl;
+			//stumped here, return 0
+			rtn = 0;
 		}
 	}
+	llinfos << "Amount of VRAM detected: "<< rtn << " KB" << llendl;
 	return rtn;
 #endif // LL_SOLARIS
 }
@@ -975,7 +932,7 @@ BOOL LLWindowSDL::setPosition(const LLCoordScreen position)
 	return TRUE;
 }
 
-BOOL LLWindowSDL::setSize(const LLCoordScreen size)
+BOOL LLWindowSDL::setSizeImpl(const LLCoordScreen size)
 {
 	if(mWindow)
 	{
@@ -992,6 +949,25 @@ BOOL LLWindowSDL::setSize(const LLCoordScreen size)
 		
 	return FALSE;
 }
+
+BOOL LLWindowSDL::setSizeImpl(const LLCoordWindow size)
+{
+	if(mWindow)
+	{
+		// Push a resize event onto SDL's queue - we'll handle it
+		// when it comes out again.
+		SDL_Event event;
+		event.type = SDL_VIDEORESIZE;
+		event.resize.w = size.mX;
+		event.resize.h = size.mY;
+		SDL_PushEvent(&event); // copied into queue
+
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 
 void LLWindowSDL::swapBuffers()
 {
@@ -1043,6 +1019,25 @@ BOOL LLWindowSDL::isCursorHidden()
 void LLWindowSDL::setMouseClipping( BOOL b )
 {
     //SDL_WM_GrabInput(b ? SDL_GRAB_ON : SDL_GRAB_OFF);
+}
+
+// virtual
+void LLWindowSDL::setMinSize(U32 min_width, U32 min_height, bool enforce_immediately)
+{
+	LLWindow::setMinSize(min_width, min_height, enforce_immediately);
+
+#if LL_X11
+	// Set the minimum size limits for X11 window
+	// so the window manager doesn't allow resizing below those limits.
+	XSizeHints* hints = XAllocSizeHints();
+	hints->flags |= PMinSize;
+	hints->min_width = mMinWindowWidth;
+	hints->min_height = mMinWindowHeight;
+
+	XSetWMNormalHints(mSDL_Display, mSDL_XWindowID, hints);
+
+	XFree(hints);
+#endif
 }
 
 BOOL LLWindowSDL::setCursorPosition(const LLCoordWindow position)
@@ -1859,8 +1854,8 @@ void LLWindowSDL::gatherInput()
             llinfos << "Handling a resize event: " << event.resize.w <<
                        "x" << event.resize.h << llendl;
 
-            S32 width = llmax(event.resize.w, MIN_WINDOW_WIDTH);
-            S32 height = llmax(event.resize.h, MIN_WINDOW_HEIGHT);
+			S32 width = llmax(event.resize.w, (S32)mMinWindowWidth);
+			S32 height = llmax(event.resize.h, (S32)mMinWindowHeight);
 
             if (width != mWindow->w || height != mWindow->h)
             {
@@ -2068,7 +2063,7 @@ void LLWindowSDL::initCursors()
 	mSDLCursors[UI_CURSOR_SIZEWE] = makeSDLCursorFromBMP("sizewe.BMP",16,14);
 	mSDLCursors[UI_CURSOR_SIZENS] = makeSDLCursorFromBMP("sizens.BMP",17,16);
 	mSDLCursors[UI_CURSOR_NO] = makeSDLCursorFromBMP("llno.BMP",8,8);
-	mSDLCursors[UI_CURSOR_WORKING] = makeSDLCursorFromBMP("working.BMP",12,15);
+	mSDLCursors[UI_CURSOR_WORKING] = makeSDLCursorFromBMP("working.BMP",0,0);
 	mSDLCursors[UI_CURSOR_TOOLGRAB] = makeSDLCursorFromBMP("lltoolgrab.BMP",2,13);
 	mSDLCursors[UI_CURSOR_TOOLLAND] = makeSDLCursorFromBMP("lltoolland.BMP",1,6);
 	mSDLCursors[UI_CURSOR_TOOLFOCUS] = makeSDLCursorFromBMP("lltoolfocus.BMP",8,5);
@@ -2488,6 +2483,23 @@ void exec_cmd(const std::string& cmd, const std::string& arg)
 // Must begin with protocol identifier.
 void LLWindowSDL::spawnWebBrowser(const std::string& escaped_url, bool async)
 {
+	bool found = false;
+	S32 i;
+	for (i = 0; i < gURLProtocolWhitelistCount; i++)
+	{
+		if (escaped_url.find(gURLProtocolWhitelist[i]) != std::string::npos)
+		{
+			found = true;
+			break;
+		}
+	}
+
+	if (!found)
+	{
+		llwarns << "spawn_web_browser called for url with protocol not on whitelist: " << escaped_url << llendl;
+		return;
+	}
+
 	llinfos << "spawn_web_browser: " << escaped_url << llendl;
 	
 #if LL_LINUX || LL_SOLARIS
@@ -2623,9 +2635,9 @@ std::vector<std::string> LLWindowSDL::getDynamicFallbackFontList()
 	if (sortpat)
 	{
 		// Sort the list of system fonts from most-to-least-desirable.
-		FcResult fresult;
+		FcResult result;
 		fs = FcFontSort(NULL, sortpat, elide_unicode_coverage,
-				NULL, &fresult);
+				NULL, &result);
 		FcPatternDestroy(sortpat);
 	}
 

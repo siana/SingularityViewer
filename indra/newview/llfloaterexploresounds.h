@@ -36,6 +36,7 @@ public:
 	static LLFloaterExploreSounds* sInstance;
 
 	static void toggle();
+	static BOOL visible();
 };
 
 #endif

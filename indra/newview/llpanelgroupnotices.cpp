@@ -41,10 +41,9 @@
 #include "llviewerinventory.h"
 #include "llinventorydefines.h"
 #include "llinventoryfunctions.h"
-#include "llinventorymodel.h"
 #include "llinventoryicon.h"
+#include "llinventorymodel.h"
 #include "llagent.h"
-#include "lltooldraganddrop.h"
 
 #include "lllineeditor.h"
 #include "lltexteditor.h"
@@ -52,11 +51,11 @@
 #include "lliconctrl.h"
 #include "llcheckboxctrl.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "lltextbox.h"
 
 #include "roles_constants.h"
 #include "llviewerwindow.h"
-#include "llviewercontrol.h"
 #include "llviewermessage.h"
 #include "llnotificationsutil.h"
 #include "llgiveinventory.h"
@@ -66,20 +65,17 @@ const S32 NOTICE_DATE_STRING_SIZE = 30;
 /////////////////////////
 // LLPanelGroupNotices //
 /////////////////////////
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Class LLDropTarget
-//
-// This handy class is a simple way to drop something on another
-// view. It handles drop events, always setting itself to the size of
-// its parent.
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class LLGroupDropTarget : public LLView
+
+#include "lldroptarget.h"
+class LLGroupDropTarget : public LLDropTarget
 {
 public:
-	LLGroupDropTarget(const std::string& name, const LLRect& rect, LLPanelGroupNotices* panel, const LLUUID& group_id);
+	LLGroupDropTarget(const LLDropTarget::Params& p = LLDropTarget::Params());
 	~LLGroupDropTarget() {};
 
-	void doDrop(EDragAndDropType cargo_type, void* cargo_data);
+	//
+	// LLDropTarget functionality
+	virtual void doDrop(EDragAndDropType cargo_type, void* cargo_data);
 
 	//
 	// LLView functionality
@@ -88,17 +84,23 @@ public:
 								   void* cargo_data,
 								   EAcceptance* accept,
 								   std::string& tooltip_msg);
+	static LLView* fromXML(LLXMLNodePtr node, LLView* parent, class LLUICtrlFactory* factory);
+	void setPanel(LLPanelGroupNotices* panel) { mGroupNoticesPanel = panel; }
+
 protected:
 	LLPanelGroupNotices* mGroupNoticesPanel;
-	LLUUID	mGroupID;
 };
 
-LLGroupDropTarget::LLGroupDropTarget(const std::string& name, const LLRect& rect,
-						   LLPanelGroupNotices* panel, const LLUUID& group_id) :
-	LLView(name, rect, NOT_MOUSE_OPAQUE, FOLLOWS_ALL),
-	mGroupNoticesPanel(panel),
-	mGroupID(group_id)
+LLGroupDropTarget::LLGroupDropTarget(const LLDropTarget::Params& p)
+:	LLDropTarget(p)
+{}
+
+// static
+LLView* LLGroupDropTarget::fromXML(LLXMLNodePtr node, LLView* parent, LLUICtrlFactory* factory)
 {
+	LLGroupDropTarget* target = new LLGroupDropTarget();
+	target->initFromXML(node, parent);
+	return target;
 }
 
 void LLGroupDropTarget::doDrop(EDragAndDropType cargo_type, void* cargo_data)
@@ -114,7 +116,7 @@ BOOL LLGroupDropTarget::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 {
 	BOOL handled = FALSE;
 
-	if (!gAgent.hasPowerInGroup(mGroupID,GP_NOTICES_SEND))
+	if (!gAgent.hasPowerInGroup(mEntityID,GP_NOTICES_SEND))
 	{
 		*accept = ACCEPT_NO;
 		return TRUE;
@@ -140,6 +142,7 @@ BOOL LLGroupDropTarget::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 		case DAD_BODYPART:
 		case DAD_ANIMATION:
 		case DAD_GESTURE:
+		case DAD_CALLINGCARD:
 		{
 			LLViewerInventoryItem* inv_item = (LLViewerInventoryItem*)cargo_data;
 			if(gInventory.getItem(inv_item->getUUID())
@@ -163,7 +166,6 @@ BOOL LLGroupDropTarget::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 			break;
 		}
 		case DAD_CATEGORY:
-		case DAD_CALLINGCARD:
 		default:
 			*accept = ACCEPT_NO;
 			break;
@@ -171,6 +173,8 @@ BOOL LLGroupDropTarget::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 	}
 	return handled;
 }
+
+static LLRegisterWidget<LLGroupDropTarget> r("group_drop_target");
 
 //-----------------------------------------------------------------------------
 // LLPanelGroupNotices
@@ -216,8 +220,7 @@ BOOL LLPanelGroupNotices::postBuild()
 
 	mNoticesList = getChild<LLScrollListCtrl>("notice_list",recurse);
 	mNoticesList->setCommitOnSelectionChange(TRUE);
-	mNoticesList->setCommitCallback(onSelectNotice);
-	mNoticesList->setCallbackUserData(this);
+	mNoticesList->setCommitCallback(boost::bind(&LLPanelGroupNotices::onSelectNotice, this));
 
 	mBtnNewMessage = getChild<LLButton>("create_new_notice",recurse);
 	mBtnNewMessage->setClickedCallback(boost::bind(&LLPanelGroupNotices::onClickNewMessage,this));
@@ -264,17 +267,9 @@ BOOL LLPanelGroupNotices::postBuild()
 	mPanelCreateNotice = getChild<LLPanel>("panel_create_new_notice",recurse);
 	mPanelViewNotice = getChild<LLPanel>("panel_view_past_notice",recurse);
 
-	// Must be in front of all other UI elements.
-	LLPanel* dtv = getChild<LLPanel>("drop_target",recurse);
-	LLGroupDropTarget* target = new LLGroupDropTarget("drop_target",
-											dtv->getRect(),
-											this, mGroupID);
-	target->setEnabled(TRUE);
-	target->setToolTip(dtv->getToolTip());
-
-	mPanelCreateNotice->addChild(target);
-	mPanelCreateNotice->removeChild(dtv);
-	delete dtv;
+	LLGroupDropTarget* target = getChild<LLGroupDropTarget>("drop_target",recurse);
+	target->setPanel(this);
+	target->setEntityID(mGroupID);
 
 	arrangeNoticeView(VIEW_PAST_NOTICE);
 
@@ -460,7 +455,6 @@ void LLPanelGroupNotices::processNotices(LLMessageSystem* msg)
 		msg->getBOOL("Data","HasAttachment",has_attachment,i);
 		msg->getU8("Data","AssetType",asset_type,i);
 		msg->getU32("Data","Timestamp",timestamp,i);
-		time_t t = timestamp;
 
 		LLSD row;
 		row["id"] = id;
@@ -482,9 +476,13 @@ void LLPanelGroupNotices::processNotices(LLMessageSystem* msg)
 		row["columns"][2]["value"] = name;
 
 		std::string buffer;
-		timeToFormattedString(t, gSavedSettings.getString("ShortDateFormat"), buffer);
+		std::string format(gSavedSettings.getString("ShortDateFormat"));
+		if (gSavedSettings.getBOOL("LiruGroupNoticeTimes"))
+			format += " " + gSavedSettings.getString("ShortTimeFormat");
+		row["columns"][3]["type"] = "date";
+		row["columns"][3]["format"] = format;
 		row["columns"][3]["column"] = "date";
-		row["columns"][3]["value"] = buffer;
+		row["columns"][3]["value"] = LLDate(timestamp);
 
 		buffer = llformat( "%u", timestamp);
 		row["columns"][4]["column"] = "sort";
@@ -496,14 +494,11 @@ void LLPanelGroupNotices::processNotices(LLMessageSystem* msg)
 	mNoticesList->updateSort();
 }
 
-void LLPanelGroupNotices::onSelectNotice(LLUICtrl* ctrl, void* data)
+void LLPanelGroupNotices::onSelectNotice()
 {
-	LLPanelGroupNotices* self = (LLPanelGroupNotices*)data;
-
-	if(!self) return;
-	LLScrollListItem* item = self->mNoticesList->getFirstSelected();
+	LLScrollListItem* item = mNoticesList->getFirstSelected();
 	if (!item) return;
-	
+
 	LLMessageSystem* msg = gMessageSystem;
 	msg->newMessage("GroupNoticeRequest");
 	msg->nextBlock("AgentData");
@@ -544,8 +539,7 @@ void LLPanelGroupNotices::showNotice(const std::string& subject,
 		mInventoryOffer = inventory_offer;
 
 		std::string icon_name = LLInventoryIcon::getIconName(mInventoryOffer->mType,
-												LLInventoryType::IT_TEXTURE,
-												0, FALSE);
+												LLInventoryType::IT_TEXTURE);
 
 		mViewInventoryIcon->setImage(icon_name);
 		mViewInventoryIcon->setVisible(TRUE);

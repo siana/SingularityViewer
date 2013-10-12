@@ -30,17 +30,17 @@
   <!-- Buttons -->
   <button label="Delete" label_selected="Delete" enabled="true" name="btn_delete"
 		height="18" width="75" left="120" bottom_delta="-27"
-		halign="center"
+		halign="center" tool_tip="Delete the selected grid from the list"
 		follows="left|top" scale_image="true"
 	    font="SansSerifSmall" mouse_opaque="true" />
-  <button label="Add" label_selected="Add" enabled="true" name="btn_add"
+  <button label="Create" label_selected="Add" enabled="true" name="btn_add"
 		height="18" width="75" left_delta="78" bottom_delta="0"
-		halign="center"
+		halign="center" tool_tip="Add a new grid to the list"
 		follows="left|top" scale_image="true"
 	    font="SansSerifSmall" mouse_opaque="true" />
   <button label="Copy" label_selected="Copy" enabled="true" name="btn_copy"
 		height="18" width="75" left_delta="78" bottom_delta="0"
-		halign="center"
+		halign="center" tool_tip="Create a new entry using the selected entry as template"
 		follows="left|top" scale_image="true"
 	    font="SansSerifSmall" mouse_opaque="true" />
   <!-- Advanced -->
@@ -65,11 +65,11 @@
 		font="SansSerifSmall"
 		follows="left|top|right" border_visible="false" mouse_opaque="false"
 		drop_shadow_visible="true" border_drop_shadow_visible="false" />
-  <!--<button label="Get Grid Info" label_selected="Get Grid Info" enabled="true" name="btn_gridinfo"
+  <button label="Refresh Grid URLs" enabled="true" name="btn_gridinfo"
 		height="18" width="100" left="120" bottom_delta="-22"
-		halign="center"
+		halign="center" tool_tip="Retrieve all grid info from the given Login URI (overwriting the current URLs, see Advanced)"
 		follows="left|top" scale_image="true"
-	    font="SansSerifSmall" mouse_opaque="true" />-->
+	    font="SansSerifSmall" mouse_opaque="true" />
   <!-- Platform -->
   <text type="string" length="1" enabled="true" name="platform_label"
 		height="10" width="100" left="12" bottom_delta="-32"

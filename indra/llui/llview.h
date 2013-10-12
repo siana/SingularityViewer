@@ -55,6 +55,7 @@
 #include "lluistring.h"
 #include "llcursortypes.h"
 #include "llinitparam.h"
+#include "lltreeiterators.h"
 #include "llfocusmgr.h"
 #include <boost/unordered_map.hpp>
 #include "ailist.h"
@@ -128,6 +129,35 @@ public:
 			registry->registerCtrl(tag, T::fromXML);
 		}
 	}
+};
+
+// maintains render state during traversal of UI tree
+class LLViewDrawContext
+{
+public:
+	F32 mAlpha;
+
+	LLViewDrawContext(F32 alpha = 1.f)
+	:	mAlpha(alpha)
+	{
+		if (!sDrawContextStack.empty())
+		{
+			LLViewDrawContext* context_top = sDrawContextStack.back();
+			// merge with top of stack
+			mAlpha *= context_top->mAlpha;
+		}
+		sDrawContextStack.push_back(this);
+	}
+
+	~LLViewDrawContext()
+	{
+		sDrawContextStack.pop_back();
+	}
+
+	static const LLViewDrawContext& getCurrentContext();
+
+private:
+	static std::vector<LLViewDrawContext*> sDrawContextStack;
 };
 
 class LLView 
@@ -307,7 +337,9 @@ public:
 	// remove the specified child from the view, and set it's parent to NULL.
 	virtual void	removeChild(LLView* view);
 
-	child_tab_order_t getCtrlOrder() const		{ return mCtrlOrder; }
+	virtual BOOL	postBuild() { return TRUE; }
+
+	const child_tab_order_t& getCtrlOrder() const		{ return mCtrlOrder; }
 	ctrl_list_t getCtrlList() const;
 	ctrl_list_t getCtrlListSorted() const;
 	
@@ -376,7 +408,24 @@ public:
 	BOOL		hasAncestor(const LLView* parentp) const;
 	BOOL		hasChild(const std::string& childname, BOOL recurse = FALSE) const;
 	BOOL 		childHasKeyboardFocus( const std::string& childname ) const;
+	
+	// these iterators are used for collapsing various tree traversals into for loops
+	typedef LLTreeDFSIter<LLView, child_list_const_iter_t> tree_iterator_t;
+	tree_iterator_t beginTreeDFS();
+	tree_iterator_t endTreeDFS();
 
+	typedef LLTreeDFSPostIter<LLView, child_list_const_iter_t> tree_post_iterator_t;
+	tree_post_iterator_t beginTreeDFSPost();
+	tree_post_iterator_t endTreeDFSPost();
+
+	typedef LLTreeBFSIter<LLView, child_list_const_iter_t> bfs_tree_iterator_t;
+	bfs_tree_iterator_t beginTreeBFS();
+	bfs_tree_iterator_t endTreeBFS();
+
+
+	typedef LLTreeDownIter<LLView> root_to_view_iterator_t;
+	root_to_view_iterator_t beginRootToView();
+	root_to_view_iterator_t endRootToView();
 
 	//
 	// UTILITIES
@@ -409,6 +458,8 @@ public:
 	std::string getShowNamesToolTip();
 
 	virtual void	draw();
+
+	void parseFollowsFlags(const LLView::Params& params);
 
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
 	//FIXME: make LLView non-instantiable from XML
@@ -485,6 +536,9 @@ public:
 
 	virtual		LLView*	childFromPoint(S32 x, S32 y, bool recur=false);
 
+	// view-specific handlers 
+	virtual void	onMouseEnter(S32 x, S32 y, MASK mask);
+	virtual void	onMouseLeave(S32 x, S32 y, MASK mask);
 	template <class T> T* findChild(const std::string& name)
 	{
 		return getChild<T>(name,true,false);
@@ -603,6 +657,16 @@ public:
 
 	//send custom notification to LLView parent
 	virtual S32	notifyParent(const LLSD& info);
+
+	//send custom notification to all view childrend
+	// return true if _any_ children return true. otherwise false.
+	virtual bool	notifyChildren(const LLSD& info);
+
+	//send custom notification to current view
+	virtual S32	notify(const LLSD& info) { return 0;};
+
+	static const LLViewDrawContext& getDrawContext();
+	
 protected:
 	void			drawDebugRect();
 	void			drawChild(LLView* childp, S32 x_offset = 0, S32 y_offset = 0, BOOL force_draw = FALSE);

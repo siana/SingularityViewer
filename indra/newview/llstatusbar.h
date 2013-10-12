@@ -61,6 +61,7 @@ public:
 
 	// MANIPULATORS
 	void		setBalance(S32 balance);
+	void		setUPC(S32 balance);
 	void		debitBalance(S32 debit);
 	void		creditBalance(S32 credit);
 
@@ -99,6 +100,7 @@ private:
 
 private:
 	LLTextBox	*mTextBalance;
+	LLTextBox	*mTextUPC;
 	LLTextBox	*mTextHealth;
 	LLTextBox	*mTextTime;
 
@@ -110,6 +112,7 @@ private:
 	LLButton	*mBtnBuyCurrency;
 
 	S32				mBalance;
+	S32				mUPC;
 	S32				mHealth;
 	S32				mSquareMetersCredit;
 	S32				mSquareMetersCommitted;
@@ -118,6 +121,7 @@ private:
 	boost::signals2::connection	mRegionCrossingSlot;
 	LLPathfindingNavMesh::navmesh_slot_t mNavMeshSlot;
 	bool mIsNavMeshDirty;
+	bool mUPCSupported;
 	
 	static std::vector<std::string> sDays;
 	static std::vector<std::string> sMonths;

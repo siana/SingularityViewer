@@ -34,27 +34,15 @@
 
 #include "llfloatermute.h"
 
-#include "llfontgl.h"
-#include "llrect.h"
-#include "llerror.h"
-#include "llstring.h"
-#include "message.h"
+#include "llavatarname.h"
 #include "llnotificationsutil.h"
+#include "llscrolllistitem.h"
+#include "lluictrlfactory.h"
 
 // project include
-#include "llagent.h"
-#include "llavatarnamecache.h"
 #include "llfloateravatarpicker.h"
-#include "llbutton.h"
-#include "lllineeditor.h"
 #include "llmutelist.h"
 #include "llnamelistctrl.h"
-#include "llresizehandle.h"
-#include "lltextbox.h"
-#include "llviewertexteditor.h"
-#include "llviewerwindow.h"
-#include "lluictrlfactory.h"
-#include "llfocusmgr.h"
 
 #include <boost/lexical_cast.hpp>
 
@@ -250,46 +238,48 @@ void LLFloaterMute::refreshMuteList()
 	for (it = mutes.begin(); it != mutes.end(); ++it)
 	{
 		std::string display_name = it->mName;
-		LLSD element;
+		LLNameListCtrl::NameItem element;
 		LLUUID entry_id;
 		if(it->mType == LLMute::GROUP || it->mType == LLMute::AGENT)
 			entry_id = it->mID;
 		else
 			entry_id.generate(boost::lexical_cast<std::string>( count++ ));
 		mMuteDict.insert(std::make_pair(entry_id,*it));
-		element["id"] = entry_id;
-		element["name"] = display_name;
+		element.value = entry_id;
+		element.name = display_name;
 
-		LLSD& name_column = element["columns"][1];
-		name_column["column"] = "name";
-		name_column["type"] = "text";
-		name_column["value"] = "";
+		LLScrollListCell::Params name_column;
+		name_column.column = "name";
+		name_column.type = "text";
+		name_column.value = "";
 
-		LLSD& icon_column = element["columns"][0];
-		icon_column["column"] = "icon";
-		icon_column["type"] = "icon";
+		LLScrollListCell::Params icon_column;
+		icon_column.column = "icon";
+		icon_column.type = "icon";
 
 		switch(it->mType)
 		{
 		case LLMute::GROUP:
-			icon_column["value"] = mGroupIcon->getName();
-			element["target"] = LLNameListCtrl::GROUP;
+			icon_column.value = mGroupIcon->getName();
+			element.target = LLNameListCtrl::GROUP;
 			break;
 		case LLMute::AGENT:
-			icon_column["value"] = mAvatarIcon->getName();
-			element["target"] = LLNameListCtrl::INDIVIDUAL;
+			icon_column.value = mAvatarIcon->getName();
+			element.target = LLNameListCtrl::INDIVIDUAL;
 			break;
 		case LLMute::OBJECT:
-			icon_column["value"] = mObjectIcon->getName();
-			element["target"] = LLNameListCtrl::SPECIAL;
+			icon_column.value = mObjectIcon->getName();
+			element.target = LLNameListCtrl::SPECIAL;
 			break;
 		case LLMute::BY_NAME:
 		default:
-			icon_column["value"] = mNameIcon->getName();
-			element["target"] = LLNameListCtrl::SPECIAL;
+			icon_column.value = mNameIcon->getName();
+			element.target = LLNameListCtrl::SPECIAL;
 
 			break;
 		}
+		element.columns.add(icon_column);
+		element.columns.add(name_column);
 		mMuteList->addNameItemRow(element);
 	}
 	mMuteList->updateSort();

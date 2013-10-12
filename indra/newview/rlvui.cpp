@@ -16,6 +16,7 @@
 
 #include "llviewerprecompiledheaders.h"
 #include "llagent.h"
+#include "llavataractions.h"			// LLAvatarActions::profileVisible()
 #include "llavatarnamecache.h"
 #include "llenvmanager.h"
 #include "llhudtext.h"					// LLHUDText::refreshAllObjectText()
@@ -28,6 +29,7 @@
 #include "llvoavatar.h"
 #include "roles_constants.h"			// Group "powers"
 
+#include "lffloaterinvpanel.h"
 #include "llfloaterbeacons.h"
 #include "llfloatertools.h"
 #include "llfloaterenvsettings.h"
@@ -207,6 +209,7 @@ void RlvUIEnabler::onToggleShowInv(bool fQuitting)
 	if (!fEnable)
 	{
 		LLInventoryView::closeAll();
+		LFFloaterInvPanel::closeAll();
 	}
 }
 
@@ -277,7 +280,7 @@ void RlvUIEnabler::onToggleShowWorldMap()
 
 	// Simulate clicking the Map button [see LLToolBar::onClickMap()]
 	if ((!fEnable) && gFloaterWorldMap->getVisible())
-		LLFloaterWorldMap::toggle(NULL);
+		LLFloaterWorldMap::toggle();
 }
 
 // Checked: 2010-08-22 (RLVa-1.2.1a) | Added: RLVa-1.2.1a
@@ -471,10 +474,10 @@ bool RlvUIEnabler::canViewRegionProperties()
 }
 
 // Checked: 2010-04-20 (RLVa-1.2.0f) | Added: RLVa-1.2.0f
-/*bool RlvUIEnabler::hasOpenIM(const LLUUID& idAgent)
+bool RlvUIEnabler::hasOpenIM(const LLUUID& idAgent)
 {
 	LLUUID idSession = LLIMMgr::computeSessionID(IM_NOTHING_SPECIAL, idAgent);
-	return (NULL != LLFloaterReg::findInstance("impanel", idSession));
+	return gIMMgr->hasSession(idSession);
 }
 
 // Checked: 2011-11-04 (RLVa-1.4.4a) | Modified: RLVa-1.4.4a
@@ -486,7 +489,7 @@ bool RlvUIEnabler::hasOpenProfile(const LLUUID& idAgent)
 
 	// Check if the user has the specified agent's profile open
 	return LLAvatarActions::profileVisible(idAgent);
-}*/
+}
 
 // Checked: 2010-09-11 (RLVa-1.2.1d) | Added: RLVa-1.2.1d
 bool RlvUIEnabler::isBuildEnabled()

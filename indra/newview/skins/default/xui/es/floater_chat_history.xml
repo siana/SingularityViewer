@@ -7,7 +7,7 @@
 		Conectado
 	</string>
 	<string name="unavailable">
-		La Voz no está disponible en su ubicación actual
+		La Voz no está disponible en tu ubicación actual
 	</string>
 	<string name="hang_up">
 		Desconectado del Chat de Voz
@@ -18,75 +18,42 @@
 	<string name="IM_end_log_string">
 		-- Fin del Registro --
 	</string>
-	<string name="ScriptQuestionCautionChatGranted">
-		el objeto '[OBJECTNAME]', propiedad de  '[OWNERNAME]', ubicado en [REGIONNAME] en la posición [REGIONPOS], ha recibido permiso para: [PERMISSIONS].
-	</string>
-	<string name="ScriptQuestionCautionChatDenied">
-		al objeto '[OBJECTNAME]', propiedad de  '[OWNERNAME]', ubicado en [REGIONNAME] en la posición [REGIONPOS], se le ha denegado el permiso para: [PERMISSIONS].
-	</string>
-	<string name="ScriptTakeMoney">
-		Transferir ([CURRENCY]) de tu cuenta
-	</string>
-	<string name="ActOnControlInputs">
-		Actuar en tus controles de entrada
-	</string>
-	<string name="RemapControlInputs">
-		Reconfigurar tus controles de entrada
-	</string>
-	<string name="AnimateYourAvatar">
-		Animar tu avatar
-	</string>
-	<string name="AttachToYourAvatar">
-		Anexarse a tu avatar
-	</string>
-	<string name="ReleaseOwnership">
-		Anular propiedad y pasar a ser público
-	</string>
-	<string name="LinkAndDelink">
-		Enlazarse y desenlazarse de otros objetos
-	</string>
-	<string name="AddAndRemoveJoints">
-		Añadir y quitar uniones con otros objetos
-	</string>
-	<string name="ChangePermissions">
-		Cambiar sus permisos
-	</string>
-	<string name="TrackYourCamera">
-		Seguir tu cámara
-	</string>
-	<string name="TeleportYourAgent">
-		Teleportarte
-	</string>
-	<string name="ControlYourCamera">
-		Controlar tu cámara
-	</string>
 	<layout_stack name="panels">
 		<layout_panel name="im_contents_panel">
-			<combo_box label="Gestos" name="Gesture">
-				<combo_item name="Gestures">
-					Gestos
-				</combo_item>
-			</combo_box>
-			<check_box label="Mostrar Texto Ignorado" name="show mutes"/>
-			<button label="Abrir Historial" name="chat_history_open" tool_tip="Pulsá aquí para abrir el historial de chat en un editor externo." left_delta="150"/>
-			<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Pulsa aqui para ver la lista de los participantes en esta sesión de MI"/>
-			<panel name="chat_panel">
-				<string name="gesture_label">
-					Gestos
-				</string>
-				<line_editor label="Pulsa aquí para escribir en el chat." name="Chat Editor"/>
-				<flyout_button label="Decir" name="Say" tool_tip="(Intro)" left="-62" width="68">
-					<flyout_button_item name="shout_item">
-						Gritar
-					</flyout_button_item>
-					<flyout_button_item name="say_item">
-						Decir
-					</flyout_button_item>
-					<flyout_button_item name="whisper_item">
-						Susurrar
-					</flyout_button_item>
-				</flyout_button>
-			</panel>
+			<layout_stack name="im_contents_stack">
+				<layout_panel name="history_panel">			
+					<combo_box label="Gestos" name="Gesture">
+						<combo_item name="Gestures">
+							Gestos
+						</combo_item>
+					</combo_box>
+					<check_box label="Mostrar Texto Ignorado" name="show mutes"/>
+					<button label="Abrir Historial" name="chat_history_open" tool_tip="Pulsá aquí para abrir el historial de chat en un editor externo." left_delta="150"/>
+					<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Pulsa aqui para ver la lista de los participantes en esta sesión de MI"/>
+					<text_editor name="Chat History Editor"/>
+					<text_editor name="Chat History Editor with mute"/>
+				</layout_panel>
+				<layout_panel name="chat_layout_panel">
+					<panel name="chat_panel">
+						<string name="gesture_label">
+							Gestos
+						</string>
+						<line_editor label="Pulsa aquí para escribir en el chat." name="Chat Editor"/>
+						<flyout_button label="Decir" name="Say" tool_tip="(Intro)" left="-62" width="68">
+							<flyout_button_item name="shout_item">
+								Gritar
+							</flyout_button_item>
+							<flyout_button_item name="say_item">
+								Decir
+							</flyout_button_item>
+							<flyout_button_item name="whisper_item">
+								Susurrar
+							</flyout_button_item>
+						</flyout_button>
+					</panel>
+				</layout_panel>
+			</layout_stack>
 		</layout_panel>
+		<layout_panel name="active_speakers_panel"/>
 	</layout_stack>
 </floater>

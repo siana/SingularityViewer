@@ -58,24 +58,24 @@ class LLLineEditorRollback;
 class LLButton;
 class LLMenuGL;
 
-typedef BOOL (*LLLinePrevalidateFunc)(const LLWString &wstr);
-
-
 class LLLineEditor
 : public LLUICtrl, public LLEditMenuHandler, protected LLPreeditor
 {
 
 public:
+	typedef boost::function<void (LLLineEditor* caller)> keystroke_callback_t;
+	typedef boost::function<void (LLFocusableElement*)> focus_lost_callback_t;
+	typedef boost::function<BOOL (const LLWString &wstr)> validate_func_t;
+
 	LLLineEditor(const std::string& name, 
 				 const LLRect& rect,
 				 const std::string& default_text = LLStringUtil::null,
 				 const LLFontGL* glfont = NULL,
 				 S32 max_length_bytes = 254,
-				 void (*commit_callback)(LLUICtrl* caller, void* user_data) = NULL,
-				 void (*keystroke_callback)(LLLineEditor* caller, void* user_data) = NULL,
-				 void (*focus_lost_callback)(LLFocusableElement* caller, void* user_data) = NULL,
-				 void* userdata = NULL,
-				 LLLinePrevalidateFunc prevalidate_func = NULL,
+				 commit_callback_t commit_callback = NULL,
+				 keystroke_callback_t keystroke_callback = NULL,
+				 focus_lost_callback_t focus_lost_callback = NULL,
+				 validate_func_t prevalidate_func = NULL,
 				 LLViewBorder::EBevel border_bevel = LLViewBorder::BEVEL_IN,
 				 LLViewBorder::EStyle border_style = LLViewBorder::STYLE_LINE,
 				 S32 border_thickness = 1);
@@ -230,13 +230,14 @@ public:
 	void			setSelectAllonFocusReceived(BOOL b);
 	void			setSelectAllonCommit(BOOL b) { mSelectAllonCommit = b; }
 
-	void			setKeystrokeCallback(void (*keystroke_callback)(LLLineEditor* caller, void* user_data));
+	void			onKeystroke();
+	void			setKeystrokeCallback(keystroke_callback_t callback);
 
 	void			setMaxTextLength(S32 max_text_length);
 	void			setTextPadding(S32 left, S32 right); // Used to specify room for children before or after text.
 
 	// Prevalidation controls which keystrokes can affect the editor
-	void			setPrevalidate( BOOL (*func)(const LLWString &) );
+	void			setPrevalidate( validate_func_t func );
 	static BOOL		prevalidateFloat(const LLWString &str );
 	static BOOL		prevalidateInt(const LLWString &str );
 	static BOOL		prevalidatePositiveS32(const LLWString &str);
@@ -265,6 +266,7 @@ private:
 	void            pasteHelper(bool is_primary);
 
 	void			removeChar();
+	void			removeWord(bool prev);
 	void			addChar(const llwchar c);
 	void			setCursorAtLocalPos(S32 local_mouse_x);
 	S32				calculateCursorFromMouse(S32 local_mouse_x);
@@ -323,7 +325,7 @@ protected:
 	BOOL		mCommitOnFocusLost;
 	BOOL		mRevertOnEsc;
 
-	void		(*mKeystrokeCallback)( LLLineEditor* caller, void* userdata );
+	keystroke_callback_t mKeystrokeCallback;
 
 	BOOL		mIsSelecting;				// Selection for clipboard operations
 	S32			mSelectionStart;
@@ -333,8 +335,7 @@ protected:
 	S32			mLastSelectionStart;
 	S32			mLastSelectionEnd;
 
-	S32			(*mPrevalidateFunc)(const LLWString &str);
-
+	validate_func_t mPrevalidateFunc;
 	LLFrameTimer mKeystrokeTimer;
 
 	LLColor4	mCursorColor;
@@ -417,47 +418,5 @@ private:
 }; // end class LLLineEditor
 
 
-
-/*
- * @brief A line editor with a button to clear it and a callback to call on every edit event.
- */
-class LLSearchEditor : public LLUICtrl
-{
-public:
-	LLSearchEditor(const std::string& name, 
-		const LLRect& rect,
-		S32 max_length_bytes,
-		void (*search_callback)(const std::string& search_string, void* user_data),
-		void* userdata);
-
-	virtual ~LLSearchEditor() {}
-
-	/*virtual*/ void	draw();
-
-	virtual LLXMLNodePtr getXML(bool save_children = true) const;
-	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
-
-	void setText(const LLStringExplicit &new_text) { mSearchEdit->setText(new_text); }
-
-	typedef boost::function<void (const std::string&, void *)> search_callback_t;
-	void setSearchCallback(search_callback_t cb,void *user_data) { mSearchCallback = boost::bind(cb,_1,user_data); }
-
-	// LLUICtrl interface
-	virtual void	setValue(const LLSD& value );
-	virtual LLSD	getValue() const;
-	virtual BOOL	setTextArg( const std::string& key, const LLStringExplicit& text );
-	virtual BOOL	setLabelArg( const std::string& key, const LLStringExplicit& text );
-	virtual void	clear();
-
-private:
-	static void onSearchEdit(LLLineEditor* caller, void* user_data );
-	static void onClearSearch(void* user_data);
-
-	LLLineEditor* mSearchEdit;
-	class LLButton* mClearSearchButton;
-
-	search_callback_t	mSearchCallback;
-
-};
 
 #endif  // LL_LINEEDITOR_

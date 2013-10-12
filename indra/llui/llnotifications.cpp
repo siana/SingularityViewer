@@ -880,6 +880,7 @@ bool LLNotificationChannelBase::updateItem(const LLSD& payload, LLNotificationPt
 		assert(!wasFound);
 		if (passesFilter)
 		{
+			llinfos << "Inserting " << pNotification->getName() << llendl;
 			// not in our list, add it and say so
 			mItems.insert(pNotification);
 			abortProcessing = mChanged(payload);
@@ -1561,4 +1562,3 @@ std::ostream& operator<<(std::ostream& s, const LLNotification& notification)
 	s << notification.summarize();
 	return s;
 }
-

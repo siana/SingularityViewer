@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater name="Snapshot" title="Vista Previa de la foto">
+	<text name="file_size_label" right="-26" width="140">
+		Tamaño de Archivo: [SIZE] KB
+	</text>
 	<text name="type_label">
-		Destino de la foto
+		Destino
 	</text>
 	<radio_group label="Tipo de foto" name="snapshot_type_radio">
+		<radio_item name="feed">
+			Publicar en my.secondlife.com
+		</radio_item>	
 		<radio_item name="postcard">
 			Enviar por Email
 		</radio_item>
@@ -14,10 +20,9 @@
 			Guardarla en disco duro
 		</radio_item>
 	</radio_group>
-	<text name="file_size_label">
-		Tamaño del Archivo: [SIZE] KB
-	</text>
 	<button label="Actualizar foto" name="new_snapshot_btn"/>
+	<button label="Congelar" name="freeze_time_btn" tool_tip="Congelar la imagen y mostrar la vista previa en pantalla completa. Permite mover la cámara por la escena congelada y tomar múltiples fotos de la misma. ¡Presiona ESC para deshacer!" />
+	<button label="Publicar" name="feed_btn"/>	
 	<button label="Enviar" name="send_btn"/>
 	<button label="Guardar ([UPLOADFEE])" name="upload_btn"/>
 	<flyout_button label="Guardar" name="save_btn" tool_tip="Guardar la imagen en un archivo">
@@ -28,75 +33,45 @@
 			Guardar Como...
 		</flyout_button_item>
 	</flyout_button>
-	<button label="Cancelar" name="discard_btn"/>
-	<button label="Más &gt;&gt;" name="more_btn" tool_tip="Opciones Avanzadas"/>
-	<button label="&lt;&lt; Menos" name="less_btn" tool_tip="Opciones Avanzadas"/>
+	<button label="Cancelar" name="discard_btn"/>	
+	<button label="Más&gt;&gt;" name="more_btn" tool_tip="Opciones Avanzadas."/>
+	<button label="&lt;&lt;Menos" name="less_btn" tool_tip="Opciones Avanzadas."/>	
 	<text name="type_label2">
-		Tamaño
+		Resolución Destino
 	</text>
 	<text name="format_label">
 		Formato
-	</text>
+	</text>	
+	<combo_box label="Resolución" name="feed_size_combo">
+		<combo_item name="CurrentWindow">
+			Ventana Actual
+		</combo_item>
+		<combo_item name="Custom">
+			Personalizado
+		</combo_item>
+	</combo_box>
+	<!-- ========================== -->
 	<combo_box label="Resolución" name="postcard_size_combo">
 		<combo_item name="CurrentWindow">
 			Ventana Actual
 		</combo_item>
-		<combo_item name="640x480">
-			640x480
-		</combo_item>
-		<combo_item name="800x600">
-			800x600
-		</combo_item>
-		<combo_item name="1024x768">
-			1024x768
-		</combo_item>
 		<combo_item name="Custom">
 			Personalizado
 		</combo_item>
 	</combo_box>
+	<!-- ========================== -->
 	<combo_box label="Resolución" name="texture_size_combo">
-		<combo_item name="CurrentWindow">
-			Ventana Actual
-		</combo_item>
-		<combo_item name="Small(128x128)">
-			Pequeño (128x128)
-		</combo_item>
-		<combo_item name="Medium(256x256)">
-			Medio (256x256)
-		</combo_item>
-		<combo_item name="Large(512x512)">
-			Alto (512x512)
-		</combo_item>
-		<combo_item name="Custom">
-			Personalizado
-		</combo_item>
 	</combo_box>
+	<!-- ========================== -->
 	<combo_box label="Resolución" name="local_size_combo">
 		<combo_item name="CurrentWindow">
 			Ventana Actual
 		</combo_item>
-		<combo_item name="320x240">
-			320x240
-		</combo_item>
-		<combo_item name="640x480">
-			640x480
-		</combo_item>
-		<combo_item name="800x600">
-			800x600
-		</combo_item>
-		<combo_item name="1024x768">
-			1024x768
-		</combo_item>
-		<combo_item name="1280x1024">
-			1280x1024
-		</combo_item>
-		<combo_item name="1600x1200">
-			1600x1200
-		</combo_item>
 		<combo_item name="Custom">
 			Personalizado
 		</combo_item>
 	</combo_box>
+	<!-- ========================== -->
 	<combo_box label="Formato" name="local_format_combo">
 		<combo_item name="PNG">
 			PNG
@@ -110,8 +85,53 @@
 	</combo_box>
 	<spinner label="Ancho" name="snapshot_width"/>
 	<spinner label="Alto" name="snapshot_height"/>
-	<check_box label="Mantener Proporciones" name="keep_aspect_check" />
-	<slider label="Calidad de la Imagen" name="image_quality_slider"/>
+	<slider label="Calidad de Imagen" left="10"
+	     name="image_quality_slider" width="210" />	
+	<check_box label="Mantener relación de aspecto"
+	     left="10" name="keep_aspect" tool_tip="Nota: definiendo la resolución a no Personalizada, o el aspecto al prestablecido reiniciará esta casilla de verificación ya que ambos con incompatibles entre si." />	
+	<text name="type_label3"/>
+	<combo_box label="Aspecto" name="feed_aspect_combo">
+		<combo_item name="Default">
+			Predeterminado
+		</combo_item>
+		<combo_item name="Custom">
+			Personalizado
+		</combo_item>
+	</combo_box>
+	<combo_box label="Aspecto" name="postcard_aspect_combo">
+		<combo_item name="Default">
+			Predeterminado
+		</combo_item>
+		<combo_item name="Custom">
+			Personalizado
+		</combo_item>
+	</combo_box>
+	<combo_box label="Aspect" name="texture_aspect_combo">
+		<combo_item name="CurrentWindow">
+			Ventana Actual
+		</combo_item>
+		<combo_item name="4:3">
+			4:3 (perfil)
+		</combo_item>
+		<combo_item name="Custom" value="-1">
+			Personalizado
+		</combo_item>
+	</combo_box>
+	<combo_box label="Aspecto" name="local_aspect_combo">
+		<combo_item name="Default">
+			Predeterminado
+		</combo_item>
+		<combo_item name="CurrentWindow">
+			Ventana Actual
+		</combo_item>
+		<combo_item name="4:3">
+			4:3 (perfil)
+		</combo_item>
+		<combo_item name="Custom" value="-1">
+			Personalizado
+		</combo_item>
+	</combo_box>	
+	<spinner label="" name="aspect_ratio"/>	
 	<text name="layer_type_label">
 		Captura:
 	</text>
@@ -123,14 +143,21 @@
 			Profundidad
 		</combo_item>
 	</combo_box>
-	<check_box label="Incluir la interfaz en la foto" name="ui_check"/>
-	<check_box label="Incluir HUDs en la foto" name="hud_check"/>
+	<check_box label="Incluir la interfaz en la foto" name="ui_check" tool_tip="Muestra la Interfaz en la foto. Esto impone que la resolución de la captura sea la de la ventana actual."/>
+	<check_box label="Incluir HUDs en la foto" name="hud_check" tool_tip="Muestra los HUDs en la foto. Esto impone que la resolución de la captura sea la de la ventana actual."/>
 	<check_box label="Mantener abierto tras guardar" name="keep_open_check"/>
-	<check_box label="Congelar toma (Vista Previa en Pant. Completa)" name="freeze_frame_check"/>
-	<check_box label="Actualizar Automáticamente" name="auto_snapshot_check"/>
-	<check_box label="Imagen Temporal (Gratis)" name="temp_check" tooltip="Definir en los activos que es una imagen temporaria, lo que signfica que será gratis, pero también que su existencia será limitada."/>
+	<check_box label="Abrir Flotante en Modo Congelar"
+	     left="10" name="freeze_time_check" tool_tip="Esta opción te permite rápidamente, presionando las teclas Ctrl+Mayús+S y congelar la imagen y tomarte tu tiempo para buscar y elegir la posición de la cámara e, incluso, tomar distintas tomas de la escena congelada." />	
+	<check_box label="Actualizar Automáticamente" name="auto_snapshot_check" tool_tip="En conjunto con la función Congelar: crea una nueva vista previa a pantalla completa cada vez que detienes la cámara."/>
+	<check_box label="Imagen Temporal (Gratis)" name="temp_check" tool_tip="Definir en los activos que es una imagen temporaria, lo que signfica que será gratis, pero también que su existencia será limitada. (Puede no funcionar en el grid de SL)"/>
 	<string name="unknown">
 		desconocido
 	</string>
+	<string name="targetAR">
+		Aspecto Destino
+	</string>
+	<string name="sourceAR">
+		Aspecto Resolución y Destino
+	</string>	
 </floater>
  

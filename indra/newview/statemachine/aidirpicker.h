@@ -43,6 +43,7 @@
 // Objects of this type can be reused multiple times, see
 // also the documentation of AIStateMachine.
 class AIDirPicker : protected AIFilePicker {
+	LOG_CLASS(AIDirPicker);
 public:
 	// Allow to pass the arguments to open upon creation.
 	//

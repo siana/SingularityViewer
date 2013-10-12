@@ -36,6 +36,7 @@
 #include "llpanel.h"
 #include "llframetimer.h"
 #include "llchat.h"
+#include "lllayoutstack.h"
 
 class LLLineEditor;
 class LLMessageSystem;
@@ -45,8 +46,7 @@ class LLFrameTimer;
 class LLChatBarGestureObserver;
 class LLComboBox;
 
-class LLChatBar
-:	public LLPanel
+class LLChatBar : public LLPanel
 {
 public:
 	// constructor for inline chat-bars (e.g. hosted in chat history window)
@@ -84,8 +84,7 @@ public:
 	// callbacks
 	void onClickSay(LLUICtrl* ctrl);
 
-	static void	onTabClick( void* userdata );
-	static void	onInputEditorKeystroke(LLLineEditor* caller, void* userdata);
+	void	onInputEditorKeystroke();
 	static void	onInputEditorFocusLost();
 	static void	onInputEditorGainFocus();
 

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="floater_about" title="Über Singularity">
+  <tab_container name="about_tab">
+    <panel label="Info" name="support_panel">
+      
+      <button label="In Zwischenablage kopieren" name="copy_btn"/>
+    </panel>
+
+    
+
+    
+  </tab_container>  
+  <string name="you_are_at">Sie befinden sich in [POSITION]</string>
+</floater>

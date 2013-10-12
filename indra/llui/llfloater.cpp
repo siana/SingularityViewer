@@ -58,6 +58,7 @@
 #include "v2math.h"
 #include "llfasttimer.h"
 #include "airecursive.h"
+#include "llnotifications.h"
 
 const S32 MINIMIZED_WIDTH = 160;
 const S32 CLOSE_BOX_FROM_TOP = 1;
@@ -113,13 +114,14 @@ std::string	LLFloater::sButtonToolTips[BUTTON_COUNT] =
 	"Edit",		//BUTTON_EDIT
 };
 
-LLFloater::click_callback LLFloater::sButtonCallbacks[BUTTON_COUNT] =
+
+LLFloater::button_callback LLFloater::sButtonCallbacks[BUTTON_COUNT] =
 {
-	LLFloater::onClickClose,	//BUTTON_CLOSE
-	LLFloater::onClickMinimize, //BUTTON_RESTORE
-	LLFloater::onClickMinimize, //BUTTON_MINIMIZE
-	LLFloater::onClickTearOff,	//BUTTON_TEAR_OFF
-	LLFloater::onClickEdit,	//BUTTON_EDIT
+	&LLFloater::onClickClose,	//BUTTON_CLOSE
+	&LLFloater::onClickMinimize, //BUTTON_RESTORE
+	&LLFloater::onClickMinimize, //BUTTON_MINIMIZE
+	&LLFloater::onClickTearOff,	//BUTTON_TEAR_OFF
+	&LLFloater::onClickEdit,	//BUTTON_EDIT
 };
 
 LLMultiFloater* LLFloater::sHostp = NULL;
@@ -313,67 +315,7 @@ void LLFloater::initFloater(const std::string& title,
 
 	if( mResizable )
 	{
-		// Resize bars (sides)
-		const S32 RESIZE_BAR_THICKNESS = 3;
-		mResizeBar[LLResizeBar::LEFT] = new LLResizeBar( 
-			std::string("resizebar_left"),
-			this,
-			LLRect( 0, getRect().getHeight(), RESIZE_BAR_THICKNESS, 0), 
-			min_width, S32_MAX, LLResizeBar::LEFT );
-		addChild( mResizeBar[0] );
-
-		mResizeBar[LLResizeBar::TOP] = new LLResizeBar( 
-			std::string("resizebar_top"),
-			this,
-			LLRect( 0, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_BAR_THICKNESS), 
-			min_height, S32_MAX, LLResizeBar::TOP );
-		addChild( mResizeBar[1] );
-
-		mResizeBar[LLResizeBar::RIGHT] = new LLResizeBar( 
-			std::string("resizebar_right"),
-			this,
-			LLRect( getRect().getWidth() - RESIZE_BAR_THICKNESS, getRect().getHeight(), getRect().getWidth(), 0), 
-			min_width, S32_MAX, LLResizeBar::RIGHT );
-		addChild( mResizeBar[2] );
-
-		mResizeBar[LLResizeBar::BOTTOM] = new LLResizeBar( 
-			std::string("resizebar_bottom"),
-			this,
-			LLRect( 0, RESIZE_BAR_THICKNESS, getRect().getWidth(), 0), 
-			min_height, S32_MAX, LLResizeBar::BOTTOM );
-		addChild( mResizeBar[3] );
-
-
-		// Resize handles (corners)
-		mResizeHandle[0] = new LLResizeHandle( 
-			std::string("Resize Handle"),
-			LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT, getRect().getWidth(), 0),
-			min_width,
-			min_height,
-			LLResizeHandle::RIGHT_BOTTOM);
-		addChild(mResizeHandle[0]);
-
-		mResizeHandle[1] = new LLResizeHandle(
-			std::string("resize"), 
-			LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_HANDLE_HEIGHT),
-			min_width,
-			min_height,
-			LLResizeHandle::RIGHT_TOP );
-		addChild(mResizeHandle[1]);
-		
-		mResizeHandle[2] = new LLResizeHandle( std::string("resize"), 
-											   LLRect( 0, RESIZE_HANDLE_HEIGHT, RESIZE_HANDLE_WIDTH, 0 ),
-											   min_width,
-											   min_height,
-											   LLResizeHandle::LEFT_BOTTOM );
-		addChild(mResizeHandle[2]);
-
-		mResizeHandle[3] = new LLResizeHandle( std::string("resize"), 
-			LLRect( 0, getRect().getHeight(), RESIZE_HANDLE_WIDTH, getRect().getHeight() - RESIZE_HANDLE_HEIGHT ),
-			min_width,
-			min_height,
-			LLResizeHandle::LEFT_TOP );
-		addChild(mResizeHandle[3]);
+		addResizeCtrls();
 	}
 
 	// Close button.
@@ -411,6 +353,94 @@ void LLFloater::initFloater(const std::string& title,
 	{
 		gFloaterView->addChild(this);
 	}
+}
+
+void LLFloater::addResizeCtrls()
+{	
+	// Resize bars (sides)
+	LLResizeBar::Params p;
+	p.name("resizebar_left");
+	p.resizing_view(this);
+	p.min_size(mMinWidth);
+	p.side(LLResizeBar::LEFT);
+	mResizeBar[LLResizeBar::LEFT] = LLUICtrlFactory::create<LLResizeBar>(p);
+	addChild( mResizeBar[LLResizeBar::LEFT] );
+
+	p.name("resizebar_top");
+	p.min_size(mMinHeight);
+	p.side(LLResizeBar::TOP);
+
+	mResizeBar[LLResizeBar::TOP] = LLUICtrlFactory::create<LLResizeBar>(p);
+	addChild( mResizeBar[LLResizeBar::TOP] );
+
+	p.name("resizebar_right");
+	p.min_size(mMinWidth);
+	p.side(LLResizeBar::RIGHT);	
+	mResizeBar[LLResizeBar::RIGHT] = LLUICtrlFactory::create<LLResizeBar>(p);
+	addChild( mResizeBar[LLResizeBar::RIGHT] );
+
+	p.name("resizebar_bottom");
+	p.min_size(mMinHeight);
+	p.side(LLResizeBar::BOTTOM);
+	mResizeBar[LLResizeBar::BOTTOM] = LLUICtrlFactory::create<LLResizeBar>(p);
+	addChild( mResizeBar[LLResizeBar::BOTTOM] );
+
+	// Resize handles (corners)
+	LLResizeHandle::Params handle_p;
+	// handles must not be mouse-opaque, otherwise they block hover events
+	// to other buttons like the close box. JC
+	handle_p.mouse_opaque(false);
+	handle_p.min_width(mMinWidth);
+	handle_p.min_height(mMinHeight);
+	handle_p.corner(LLResizeHandle::RIGHT_BOTTOM);
+	mResizeHandle[0] = LLUICtrlFactory::create<LLResizeHandle>(handle_p);
+	addChild(mResizeHandle[0]);
+
+	handle_p.corner(LLResizeHandle::RIGHT_TOP);
+	mResizeHandle[1] = LLUICtrlFactory::create<LLResizeHandle>(handle_p);
+	addChild(mResizeHandle[1]);
+	
+	handle_p.corner(LLResizeHandle::LEFT_BOTTOM);
+	mResizeHandle[2] = LLUICtrlFactory::create<LLResizeHandle>(handle_p);
+	addChild(mResizeHandle[2]);
+
+	handle_p.corner(LLResizeHandle::LEFT_TOP);
+	mResizeHandle[3] = LLUICtrlFactory::create<LLResizeHandle>(handle_p);
+	addChild(mResizeHandle[3]);
+
+	layoutResizeCtrls();
+}
+
+void LLFloater::layoutResizeCtrls()
+{
+	LLRect rect;
+
+	// Resize bars (sides)
+	const S32 RESIZE_BAR_THICKNESS = 3;
+	rect = LLRect( 0, getRect().getHeight(), RESIZE_BAR_THICKNESS, 0);
+	mResizeBar[LLResizeBar::LEFT]->setRect(rect);
+
+	rect = LLRect( 0, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_BAR_THICKNESS);
+	mResizeBar[LLResizeBar::TOP]->setRect(rect);
+
+	rect = LLRect(getRect().getWidth() - RESIZE_BAR_THICKNESS, getRect().getHeight(), getRect().getWidth(), 0);
+	mResizeBar[LLResizeBar::RIGHT]->setRect(rect);
+
+	rect = LLRect(0, RESIZE_BAR_THICKNESS, getRect().getWidth(), 0);
+	mResizeBar[LLResizeBar::BOTTOM]->setRect(rect);
+
+	// Resize handles (corners)
+	rect = LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT, getRect().getWidth(), 0);
+	mResizeHandle[0]->setRect(rect);
+
+	rect = LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_HANDLE_HEIGHT);
+	mResizeHandle[1]->setRect(rect);
+	
+	rect = LLRect( 0, RESIZE_HANDLE_HEIGHT, RESIZE_HANDLE_WIDTH, 0 );
+	mResizeHandle[2]->setRect(rect);
+
+	rect = LLRect( 0, getRect().getHeight(), RESIZE_HANDLE_WIDTH, getRect().getHeight() - RESIZE_HANDLE_HEIGHT );
+	mResizeHandle[3]->setRect(rect);
 }
 
 void LLFloater::enableResizeCtrls(bool enable, bool width, bool height)
@@ -1045,7 +1075,8 @@ void LLFloater::setForeground(BOOL front)
 			releaseFocus();
 		}
 
-		setBackgroundOpaque( front ); 
+		if (front || !LLUI::sConfigGroup->getBOOL("FloaterUnfocusedBackgroundOpaque")) // Singu Note: This can be removed when InactiveFloaterTransparency is added
+			setBackgroundOpaque( front );
 	}
 }
 
@@ -1286,60 +1317,49 @@ void LLFloater::setEditModeEnabled(BOOL enable)
 }
 
 
-// static
-void LLFloater::onClickMinimize(void *userdata)
+void LLFloater::onClickMinimize()
 {
-	LLFloater* self = (LLFloater*) userdata;
-	if (!self) return;
-
-	self->setMinimized( !self->isMinimized() );
+	setMinimized( !isMinimized() );
 }
 
-void LLFloater::onClickTearOff(void *userdata)
+void LLFloater::onClickTearOff()
 {
-	LLFloater* self = (LLFloater*) userdata;
-	if (!self) return;
-
-	LLMultiFloater* host_floater = self->getHost();
+	LLMultiFloater* host_floater = getHost();
 	if (host_floater) //Tear off
 	{
 		LLRect new_rect;
-		host_floater->removeFloater(self);
+		host_floater->removeFloater(this);
 		// reparent to floater view
-		gFloaterView->addChild(self);
+		gFloaterView->addChild(this);
 
-		self->open();	/* Flawfinder: ignore */
+		open();	/* Flawfinder: ignore */
 		
 		// only force position for floaters that don't have that data saved
-		if (self->getRectControl().empty())
+		if (getRectControl().empty())
 		{
-			new_rect.setLeftTopAndSize(host_floater->getRect().mLeft + 5, host_floater->getRect().mTop - LLFLOATER_HEADER_SIZE - 5, self->getRect().getWidth(), self->getRect().getHeight());
-			self->setRect(new_rect);
+			new_rect.setLeftTopAndSize(host_floater->getRect().mLeft + 5, host_floater->getRect().mTop - LLFLOATER_HEADER_SIZE - 5, getRect().getWidth(), getRect().getHeight());
+			setRect(new_rect);
 		}
-		gFloaterView->adjustToFitScreen(self, FALSE);
+		gFloaterView->adjustToFitScreen(this, FALSE);
 		// give focus to new window to keep continuity for the user
-		self->setFocus(TRUE);
+		setFocus(TRUE);
 	}
 	else  //Attach to parent.
 	{
-		LLMultiFloater* new_host = (LLMultiFloater*)self->mLastHostHandle.get();
+		LLMultiFloater* new_host = (LLMultiFloater*)mLastHostHandle.get();
 		if (new_host)
 		{
-			self->setMinimized(FALSE); // to reenable minimize button if it was minimized
-			new_host->showFloater(self);
+			setMinimized(FALSE); // to reenable minimize button if it was minimized
+			new_host->showFloater(this);
 			// make sure host is visible
 			new_host->open();
 		}
 	}
 }
 
-// static
-void LLFloater::onClickEdit(void *userdata)
+void LLFloater::onClickEdit()
 {
-	LLFloater* self = (LLFloater*) userdata;
-	if (!self) return;
-
-	self->mEditing = self->mEditing ? FALSE : TRUE;
+	mEditing = mEditing ? FALSE : TRUE;
 }
 
 // static 
@@ -1392,14 +1412,14 @@ void LLFloater::closeFocusedFloater()
 	}
 }
 
-
-// static
-void LLFloater::onClickClose( void* userdata )
+LLNotificationPtr LLFloater::addContextualNotification(const std::string& name, const LLSD& substitutions)
 {
-	LLFloater* self = (LLFloater*) userdata;
-	if (!self) return;
+	return LLNotifications::instance().add(LLNotification::Params(name).context(mNotificationContext).substitutions(substitutions));
+}
 
-	self->close();
+void LLFloater::onClickClose()
+{
+	close();
 }
 
 
@@ -1561,66 +1581,7 @@ void	LLFloater::setCanResize(BOOL can_resize)
 	}
 	else if (!mResizable && can_resize)
 	{
-		// Resize bars (sides)
-		const S32 RESIZE_BAR_THICKNESS = 3;
-		mResizeBar[0] = new LLResizeBar( 
-			std::string("resizebar_left"),
-			this,
-			LLRect( 0, getRect().getHeight(), RESIZE_BAR_THICKNESS, 0), 
-			mMinWidth, S32_MAX, LLResizeBar::LEFT );
-		addChild( mResizeBar[0] );
-
-		mResizeBar[1] = new LLResizeBar( 
-			std::string("resizebar_top"),
-			this,
-			LLRect( 0, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_BAR_THICKNESS), 
-			mMinHeight, S32_MAX, LLResizeBar::TOP );
-		addChild( mResizeBar[1] );
-
-		mResizeBar[2] = new LLResizeBar( 
-			std::string("resizebar_right"),
-			this,
-			LLRect( getRect().getWidth() - RESIZE_BAR_THICKNESS, getRect().getHeight(), getRect().getWidth(), 0), 
-			mMinWidth, S32_MAX, LLResizeBar::RIGHT );
-		addChild( mResizeBar[2] );
-
-		mResizeBar[3] = new LLResizeBar( 
-			std::string("resizebar_bottom"),
-			this,
-			LLRect( 0, RESIZE_BAR_THICKNESS, getRect().getWidth(), 0), 
-			mMinHeight, S32_MAX, LLResizeBar::BOTTOM );
-		addChild( mResizeBar[3] );
-
-
-		// Resize handles (corners)
-		mResizeHandle[0] = new LLResizeHandle( 
-			std::string("Resize Handle"),
-			LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, RESIZE_HANDLE_HEIGHT, getRect().getWidth(), 0),
-			mMinWidth,
-			mMinHeight,
-			LLResizeHandle::RIGHT_BOTTOM);
-		addChild(mResizeHandle[0]);
-
-		mResizeHandle[1] = new LLResizeHandle( std::string("resize"), 
-			LLRect( getRect().getWidth() - RESIZE_HANDLE_WIDTH, getRect().getHeight(), getRect().getWidth(), getRect().getHeight() - RESIZE_HANDLE_HEIGHT),
-			mMinWidth,
-			mMinHeight,
-			LLResizeHandle::RIGHT_TOP );
-		addChild(mResizeHandle[1]);
-		
-		mResizeHandle[2] = new LLResizeHandle( std::string("resize"), 
-											   LLRect( 0, RESIZE_HANDLE_HEIGHT, RESIZE_HANDLE_WIDTH, 0 ),
-											   mMinWidth,
-											   mMinHeight,
-											   LLResizeHandle::LEFT_BOTTOM );
-		addChild(mResizeHandle[2]);
-
-		mResizeHandle[3] = new LLResizeHandle( std::string("resize"), 
-			LLRect( 0, getRect().getHeight(), RESIZE_HANDLE_WIDTH, getRect().getHeight() - RESIZE_HANDLE_HEIGHT ),
-			mMinWidth,
-			mMinHeight,
-			LLResizeHandle::LEFT_TOP );
-		addChild(mResizeHandle[3]);
+		addResizeCtrls();
 		enableResizeCtrls(can_resize);
 	}
 	mResizable = can_resize;
@@ -1716,8 +1677,7 @@ void LLFloater::buildButtons()
 			sButtonActiveImageNames[i],
 			sButtonPressedImageNames[i],
 			LLStringUtil::null,
-			sButtonCallbacks[i],
-			this,
+			boost::bind(sButtonCallbacks[i],this),
 			LLFontGL::getFontSansSerif());
 
 		buttonp->setTabStop(FALSE);
@@ -1740,7 +1700,7 @@ void LLFloater::buildButtons()
 // LLFloaterView
 
 LLFloaterView::LLFloaterView( const std::string& name, const LLRect& rect )
-:	LLUICtrl( name, rect, FALSE, NULL, NULL, FOLLOWS_ALL ),
+:	LLUICtrl( name, rect, FALSE, NULL, FOLLOWS_ALL ),
 	mFocusCycleMode(FALSE),
 	mSnapOffsetBottom(0)
 {
@@ -2533,8 +2493,13 @@ LLView* LLFloater::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *f
 
 	if (filename.empty())
 	{
+		// for local registry callbacks; define in constructor, referenced in XUI or postBuild
+		floaterp->getCommitCallbackRegistrar().pushScope();
+		floaterp->getEnableCallbackRegistrar().pushScope();
 		// Load from node
 		floaterp->initFloaterXML(node, parent, factory);
+		floaterp->getCommitCallbackRegistrar().popScope();
+		floaterp->getEnableCallbackRegistrar().popScope();
 	}
 	else
 	{

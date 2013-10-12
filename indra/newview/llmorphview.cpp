@@ -132,6 +132,8 @@ void LLMorphView::setVisible(BOOL visible)
 		}
 		else
 		{
+			if (LLFloaterCustomize::instanceExists() && gSavedSettings.getBOOL("AppearanceCloseOnEscape"))
+				LLFloaterCustomize::instance().onClose(false);
 			shutdown();
 		}
 	}

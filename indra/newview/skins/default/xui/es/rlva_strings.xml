@@ -9,7 +9,7 @@
 			(Parcela Oculta)
 		</string>
 		<string name="hidden_region">
-			(Regióon oculta)
+			(Región oculta)
 		</string>
 		<!-- Received/sent IMs will be replaced by the matching string when @recvim/sendim restricted -->
 		<string name="blocked_recvim">
@@ -47,7 +47,7 @@
 		<!-- Shown in local chat when dropping inventory onto a nearby agent (moved to strings.xml since it needs to be accesible by LLTrans) -->
 		<!--
 		<string name="inventory_item_offered_rlv">
-			Inventory item offered to [NAME]
+			Ítem de inventario ofrecido a [NAME]
 		</string>
 		-->
 	</strings>

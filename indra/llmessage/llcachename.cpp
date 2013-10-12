@@ -29,6 +29,7 @@
 #include "llcachename.h"
 
 // linden library includes
+#include "llcontrol.h" // For LLCachedControl
 #include "lldbstrings.h"
 #include "llframetimer.h"
 #include "llhost.h"
@@ -506,9 +507,10 @@ BOOL LLCacheName::getUUID(const std::string& full_name, LLUUID& id)
 //static
 std::string LLCacheName::buildFullName(const std::string& first, const std::string& last)
 {
+	static const LLCachedControl<bool> show_resident("LiruShowLastNameResident", false);
 	std::string fullname = first;
 	if (!last.empty()
-		&& last != "Resident")
+		&& (show_resident || last != "Resident"))
 	{
 		fullname += ' ';
 		fullname += last;
@@ -519,6 +521,8 @@ std::string LLCacheName::buildFullName(const std::string& first, const std::stri
 //static
 std::string LLCacheName::cleanFullName(const std::string& full_name)
 {
+	static const LLCachedControl<bool> show_resident("LiruShowLastNameResident", false);
+	if (show_resident) return full_name;
 	return full_name.substr(0, full_name.find(" Resident"));
 }
 
@@ -539,7 +543,8 @@ std::string LLCacheName::buildUsername(const std::string& full_name)
 		username = full_name.substr(0, index);
 		std::string lastname = full_name.substr(index+1);
 
-		if (lastname != "Resident")
+		static const LLCachedControl<bool> show_resident("LiruShowLastNameResident", false);
+		if (lastname != "Resident" || show_resident)
 		{
 			username = username + "." + lastname;
 		}

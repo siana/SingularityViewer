@@ -14,72 +14,7 @@
 				<string />
 			</array>
 		</map>
-		<key>AscentInstantMessageResponse</key>
-		<map>
-			<key>Comment</key>
-			<string>Auto response to instant messages</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>String</string>
-			<key>Value</key>
-			<string>This is an autoresponse!</string>
-		</map>
-		<key>AscentInstantMessageResponseAnyone</key>
-		<map>
-			<key>Comment</key>
-			<string>Whether to auto-respond to anyone</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
-		<key>AscentInstantMessageResponseFriends</key>
-		<map>
-			<key>Comment</key>
-			<string>Whether to auto-respond to non-friends</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
-		<key>AscentInstantMessageResponseItem</key>
-		<map>
-			<key>Comment</key>
-			<string>Whether to send a item along with the autoresponse</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
-		<key>AscentInstantMessageResponseItemData</key>
-		<map>
-			<key>Comment</key>
-			<string>UUID</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>String</string>
-			<key>Value</key>
-			<string></string>
-		</map>
-		<key>AscentInstantMessageResponseMuted</key>
-		<map>
-			<key>Comment</key>
-			<string>Whether to auto-respond to muted people</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
+
 		<key>AscentInstantMessageResponseRepeat</key>
 		<map>
 			<key>Comment</key>
@@ -91,10 +26,11 @@
 			<key>Value</key>
 			<integer>0</integer>
 		</map>
+
 		<key>AscentInstantMessageShowOnTyping</key>
 		<map>
 			<key>Comment</key>
-			<string>Whether to perform the autorespond the moment they begin to type instead of waiting for a actual message</string>
+			<string>Whether to perform the autorespond the moment they begin to type instead of waiting for an actual message</string>
 			<key>Persist</key>
 			<integer>1</integer>
 			<key>Type</key>
@@ -102,16 +38,216 @@
 			<key>Value</key>
 			<integer>0</integer>
 		</map>
-		<key>AscentInstantMessageShowResponded</key>
-		<map>
-			<key>Comment</key>
-			<string>Whether to hide IMs entirely from those you have chosen to send autoresponses</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
+
+    <!-- Autoresponse Section -->
+    <key>AutoresponseAnyone</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send autoresponse to anyone who isn't muted (or just friends, if AutoresponseAnyoneFriendsOnly)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseAnyoneFriendsOnly</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send AutoresponseAnyone to friends only</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseAnyoneItem</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send a item along with AutoresponseAnyone</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseAnyoneItemID</key>
+    <map>
+      <key>Comment</key>
+      <string>UUID of item to send along with AutoresponseAnyone</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string/>
+    </map>
+    <key>AutoresponseAnyoneMessage</key>
+    <map>
+      <key>Comment</key>
+      <string>Message to send as the autoresponse to AutoresponseAnyone</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>This is an autoresponse!</string>
+    </map>
+    <key>AutoresponseAnyoneShow</key>
+     <map>
+      <key>Comment</key>
+      <string>Whether to show that AutoresponseAnyone's were sent</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseNonFriends</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send autoresponse to nonfriends, separately using a different response</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseNonFriendsItem</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send a item along with AutoresponseNonFriends</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseNonFriendsItemID</key>
+    <map>
+      <key>Comment</key>
+      <string>UUID of item to send along with AutoresponseNonFriends</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string/>
+    </map>
+    <key>AutoresponseNonFriendsMessage</key>
+    <map>
+      <key>Comment</key>
+      <string>Message to send as the autoresponse to AutoresponseNonFriends</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>This is an autoresponse!</string>
+    </map>
+    <key>AutoresponseNonFriendsShow</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to show that AutoresponseNonFriends's were sent</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseMuted</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send autoresponse to muted people</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseMutedItem</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send a item along with AutoresponseMuted</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AutoresponseMutedItemID</key>
+    <map>
+      <key>Comment</key>
+      <string>UUID of item to send along with AutoresponseMuted</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string/>
+    </map>
+    <key>AutoresponseMutedMessage</key>
+    <map>
+      <key>Comment</key>
+      <string>Message to send as the autoresponse to AutoresponseMuted</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>This is an autoresponse!</string>
+    </map>
+    <key>BusyModeResponse</key>
+    <map>
+      <key>Comment</key>
+      <string>Auto response to instant messages while in busy mode.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>The Resident you messaged is in 'busy mode' which means they have requested not to be disturbed.  Your message will still be shown in their IM panel for later viewing.</string>
+    </map>
+    <key>BusyModeResponseItem</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to send a item along with BusyModeResponse</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+	  </map>
+    <key>BusyModeResponseItemID</key>
+    <map>
+      <key>Comment</key>
+      <string>UUID of item to send along with BusyModeResponse</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string/>
+    </map>
+    <key>BusyModeResponseShow</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether to show that BusyModeResponses were sent</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
 	</map>
 </llsd>

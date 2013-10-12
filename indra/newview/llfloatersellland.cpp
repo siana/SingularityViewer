@@ -184,7 +184,7 @@ BOOL LLFloaterSellLandUI::postBuild()
 {
 	childSetCommitCallback("sell_to", onChangeValue, this);
 	childSetCommitCallback("price", onChangeValue, this);
-	childSetPrevalidate("price", LLLineEditor::prevalidateNonNegativeS32);
+	getChild<LLLineEditor>("price")->setPrevalidate(LLLineEditor::prevalidateNonNegativeS32);
 	childSetCommitCallback("sell_objects", onChangeValue, this);
 	childSetAction("sell_to_select_agent", doSelectAgent, this);
 	childSetAction("cancel_btn", doCancel, this);

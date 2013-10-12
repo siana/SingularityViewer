@@ -107,9 +107,8 @@ and you can&apos;t send a folder.
 		     name="drop_target2" width="76" />
 		<icon bottom_delta="7" height="64" image_name="icon_groupnoticeinventory.tga"
 		     left_delta="5" mouse_opaque="true" name="drop_icon" width="64" />
-		<panel bottom="0" height="466" left="0" mouse_opaque="false" name="drop_target"
-		     tool_tip="Drag an inventory item onto the message box to send it with the notice. You must have permission to copy and transfer the object to send it with the notice."
-		     width="422" />
+		<group_drop_target bottom="24" left="67" fill_parent="true" height="14" width="207" name="drop_target" border_visible="false"
+		     tool_tip="Drag an inventory item onto the message box to send it with the notice. You must have permission to copy and transfer the object to send it with the notice."/>
 	</panel>
 	<panel border="false" bottom="0" follows="all" height="268" label="View Past Notice"
 	     left="1" mouse_opaque="true" name="panel_view_past_notice" width="418">

@@ -100,21 +100,20 @@ void gl_rect_2d_offset_local( S32 left, S32 top, S32 right, S32 bottom, const LL
 
 void gl_rect_2d_offset_local( S32 left, S32 top, S32 right, S32 bottom, S32 pixel_offset, BOOL filled)
 {
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	left += LLFontGL::sCurOrigin.mX;
 	right += LLFontGL::sCurOrigin.mX;
 	bottom += LLFontGL::sCurOrigin.mY;
 	top += LLFontGL::sCurOrigin.mY;
 
-	gGL.loadIdentity();
+	gGL.loadUIIdentity();
 	gl_rect_2d(llfloor((F32)left * LLRender2D::sGLScaleFactor.mV[VX]) - pixel_offset,
 				llfloor((F32)top * LLRender2D::sGLScaleFactor.mV[VY]) + pixel_offset,
 				llfloor((F32)right * LLRender2D::sGLScaleFactor.mV[VX]) + pixel_offset,
 				llfloor((F32)bottom * LLRender2D::sGLScaleFactor.mV[VY]) - pixel_offset,
 				filled);
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
-
 
 void gl_rect_2d(S32 left, S32 top, S32 right, S32 bottom, BOOL filled )
 {
@@ -386,8 +385,8 @@ void gl_draw_scaled_image_with_border(S32 x, S32 y, S32 width, S32 height, LLTex
 	}
 
 	// add in offset of current image to current UI translation
-	const LLVector3 ui_scale = LLVector3(1.f,1.f,1.f);//gGL.getUIScale();
-	const LLVector3 ui_translation = LLVector3(x,y,0.f);//(gGL.getUITranslation() + LLVector3(x, y, 0.f)).scaledVec(ui_scale);
+	const LLVector3 ui_scale = gGL.getUIScale();
+	const LLVector3 ui_translation = (gGL.getUITranslation() + LLVector3(x, y, 0.f)).scaledVec(ui_scale);
 
 	F32 uv_width = uv_outer_rect.getWidth();
 	F32 uv_height = uv_outer_rect.getHeight();
@@ -451,6 +450,7 @@ void gl_draw_scaled_image_with_border(S32 x, S32 y, S32 width, S32 height, LLTex
 	gGL.getTexUnit(0)->bind(image, true);
 
 	gGL.color4fv(color.mV);
+	gGL.diffuseColor4fv(color.mV); //workaround: Intel HD 4000
 	
 	const S32 NUM_VERTICES = 9 * 4; // 9 quads
 	LLVector2 uv[NUM_VERTICES];
@@ -658,8 +658,8 @@ void gl_draw_scaled_rotated_image(S32 x, S32 y, S32 width, S32 height, F32 degre
 
 		gGL.begin(LLRender::QUADS);
 		{
-			LLVector3 ui_scale = LLVector3(1.f,1.f,1.f);//gGL.getUIScale();
-			LLVector3 ui_translation = LLVector3(0.f,0.f,0.f); //gGL.getUITranslation();
+			LLVector3 ui_scale = gGL.getUIScale();
+			LLVector3 ui_translation = gGL.getUITranslation();
 			ui_translation.mV[VX] += x;
 			ui_translation.mV[VY] += y;
 			ui_translation.scaleVec(ui_scale);
@@ -689,13 +689,13 @@ void gl_draw_scaled_rotated_image(S32 x, S32 y, S32 width, S32 height, F32 degre
 	}
 	else
 	{
-		gGL.pushMatrix();
-		gGL.translatef((F32)x, (F32)y, 0.f);
+		gGL.pushUIMatrix();
+		gGL.translateUI((F32)x, (F32)y, 0.f);
 	
 		F32 offset_x = F32(width/2);
 		F32 offset_y = F32(height/2);
 
-		gGL.translatef(offset_x, offset_y, 0.f);
+		gGL.translateUI(offset_x, offset_y, 0.f);
 
 		LLMatrix3 quat(0.f, 0.f, degrees*DEG_TO_RAD);
 		
@@ -724,7 +724,7 @@ void gl_draw_scaled_rotated_image(S32 x, S32 y, S32 width, S32 height, F32 degre
 			gGL.vertex2f(v.mV[0], v.mV[1] );
 		}
 		gGL.end();
-		gGL.popMatrix();
+		gGL.popUIMatrix();
 	}
 }
 
@@ -765,9 +765,9 @@ void gl_arc_2d(F32 center_x, F32 center_y, F32 radius, S32 steps, BOOL filled, F
 		end_angle += F_TWO_PI;
 	}
 
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	{
-		gGL.translatef(center_x, center_y, 0.f);
+		gGL.translateUI(center_x, center_y, 0.f);
 
 		// Inexact, but reasonably fast.
 		F32 delta = (end_angle - start_angle) / steps;
@@ -798,15 +798,15 @@ void gl_arc_2d(F32 center_x, F32 center_y, F32 radius, S32 steps, BOOL filled, F
 		}
 		gGL.end();
 	}
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 void gl_circle_2d(F32 center_x, F32 center_y, F32 radius, S32 steps, BOOL filled)
 {
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	{
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-		gGL.translatef(center_x, center_y, 0.f);
+		gGL.translateUI(center_x, center_y, 0.f);
 
 		// Inexact, but reasonably fast.
 		F32 delta = F_TWO_PI / steps;
@@ -837,7 +837,7 @@ void gl_circle_2d(F32 center_x, F32 center_y, F32 radius, S32 steps, BOOL filled
 		}
 		gGL.end();
 	}
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 // Renders a ring with sides (tube shape)
@@ -864,9 +864,9 @@ void gl_deep_circle( F32 radius, F32 depth, S32 steps )
 
 void gl_ring( F32 radius, F32 width, const LLColor4& center_color, const LLColor4& side_color, S32 steps, BOOL render_center )
 {
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	{
-		gGL.translatef(0.f, 0.f, -width / 2);
+		gGL.translateUI(0.f, 0.f, -width / 2);
 		if( render_center )
 		{
 			gGL.color4fv(center_color.mV);
@@ -877,11 +877,11 @@ void gl_ring( F32 radius, F32 width, const LLColor4& center_color, const LLColor
 		{
 			gGL.diffuseColor4fv(side_color.mV);
 			gl_washer_2d(radius, radius - width, steps, side_color, side_color);
-			gGL.translatef(0.f, 0.f, width);
+			gGL.translateUI(0.f, 0.f, width);
 			gl_washer_2d(radius - width, radius, steps, side_color, side_color);
 		}
 	}
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 // Draw gray and white checkerboard with black border
@@ -1056,9 +1056,9 @@ void gl_segmented_rect_2d_tex(const S32 left,
 	S32 width = llabs(right - left);
 	S32 height = llabs(top - bottom);
 
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 
-	gGL.translatef((F32)left, (F32)bottom, 0.f);
+	gGL.translateUI((F32)left, (F32)bottom, 0.f);
 	LLVector2 border_uv_scale((F32)border_size / (F32)texture_width, (F32)border_size / (F32)texture_height);
 
 	if (border_uv_scale.mV[VX] > 0.5f)
@@ -1199,7 +1199,7 @@ void gl_segmented_rect_2d_tex(const S32 left,
 	}
 	gGL.end();
 
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 //FIXME: rewrite to use scissor?
@@ -1217,9 +1217,9 @@ void gl_segmented_rect_2d_fragment_tex(const S32 left,
 	S32 width = llabs(right - left);
 	S32 height = llabs(top - bottom);
 
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 
-	gGL.translatef((F32)left, (F32)bottom, 0.f);
+	gGL.translateUI((F32)left, (F32)bottom, 0.f);
 	LLVector2 border_uv_scale((F32)border_size / (F32)texture_width, (F32)border_size / (F32)texture_height);
 
 	if (border_uv_scale.mV[VX] > 0.5f)
@@ -1390,7 +1390,7 @@ void gl_segmented_rect_2d_fragment_tex(const S32 left,
 	}
 	gGL.end();
 
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 }
 
 void gl_segmented_rect_3d_tex(const LLVector2& border_scale, const LLVector3& border_width, 
@@ -1553,7 +1553,7 @@ void LLRender2D::cleanupClass()
 //static
 void LLRender2D::translate(F32 x, F32 y, F32 z)
 {
-	gGL.translatef(x,y,z);
+	gGL.translateUI(x,y,z);
 	LLFontGL::sCurOrigin.mX += (S32) x;
 	LLFontGL::sCurOrigin.mY += (S32) y;
 	LLFontGL::sCurDepth += z;
@@ -1562,14 +1562,14 @@ void LLRender2D::translate(F32 x, F32 y, F32 z)
 //static
 void LLRender2D::pushMatrix()
 {
-	gGL.pushMatrix();
+	gGL.pushUIMatrix();
 	LLFontGL::sOriginStack.push_back(std::make_pair(LLFontGL::sCurOrigin, LLFontGL::sCurDepth));
 }
 
 //static
 void LLRender2D::popMatrix()
 {
-	gGL.popMatrix();
+	gGL.popUIMatrix();
 	LLFontGL::sCurOrigin = LLFontGL::sOriginStack.back().first;
 	LLFontGL::sCurDepth = LLFontGL::sOriginStack.back().second;
 	LLFontGL::sOriginStack.pop_back();
@@ -1578,7 +1578,7 @@ void LLRender2D::popMatrix()
 //static 
 void LLRender2D::loadIdentity()
 {
-	gGL.loadIdentity();
+	gGL.loadUIIdentity(); 
 	LLFontGL::sCurOrigin.mX = 0;
 	LLFontGL::sCurOrigin.mY = 0;
 	LLFontGL::sCurDepth = 0.f;

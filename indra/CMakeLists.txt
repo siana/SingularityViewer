@@ -30,8 +30,6 @@ include(BuildVersion)
 
 include(UnixInstall)
 
-set (DISABLE_FATAL_WARNINGS CACHE BOOL TRUE)
-
 if (NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Build type.  One of: Debug Release RelWithDebInfo" FORCE)
@@ -77,7 +75,6 @@ if (WINDOWS AND EXISTS ${LIBS_CLOSED_DIR}copy_win_scripts)
 endif (WINDOWS AND EXISTS ${LIBS_CLOSED_DIR}copy_win_scripts)
 
 add_custom_target(viewer)
-add_subdirectory(${LIBS_OPEN_PREFIX}llcrashlogger)
 add_subdirectory(${LIBS_OPEN_PREFIX}llplugin)
 add_subdirectory(${LIBS_OPEN_PREFIX}llui)
 
@@ -88,28 +85,6 @@ add_subdirectory(${LIBS_OPEN_PREFIX}plugins)
 #if (NOT LINUX)
 #  add_subdirectory(${VIEWER_PREFIX}test_apps/llplugintest)
 #endif (NOT LINUX)
-
-if (LINUX)
-  add_subdirectory(${VIEWER_PREFIX}linux_crash_logger)
-  add_dependencies(viewer linux-crash-logger-strip-target)
-elseif (DARWIN)
-  #add_subdirectory(${VIEWER_PREFIX}mac_crash_logger)
-  #add_subdirectory(${VIEWER_PREFIX}mac_updater)
-  add_dependencies(viewer mac-crash-logger)
-  #add_dependencies(viewer mac-updater)
-elseif (WINDOWS)
-  add_subdirectory(${VIEWER_PREFIX}win_crash_logger)
-  # cmake EXISTS requires an absolute path, see indra/cmake/Variables.cmake
-  if (EXISTS ${VIEWER_DIR}win_setup)
-    add_subdirectory(${VIEWER_DIR}win_setup)
-  endif (EXISTS ${VIEWER_DIR}win_setup)
-  add_subdirectory(${VIEWER_PREFIX}win_updater)
-  add_dependencies(viewer windows-updater)
-  add_dependencies(viewer windows-crash-logger)
-elseif (SOLARIS)
-  add_subdirectory(solaris_crash_logger)
-  add_dependencies(viewer solaris-crash-logger)
-endif (LINUX)
 
 add_subdirectory(${VIEWER_PREFIX}newview/statemachine)
 add_subdirectory(${VIEWER_PREFIX}newview)

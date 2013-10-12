@@ -50,14 +50,15 @@ LLSplashScreen *gSplashScreenp = NULL;
 BOOL gDebugClicks = FALSE;
 BOOL gDebugWindowProc = FALSE;
 
-const S32 gURLProtocolWhitelistCount = 3;
-const std::string gURLProtocolWhitelist[] = { "file:", "http:", "https:" };
+const S32 gURLProtocolWhitelistCount = 4;
+const std::string gURLProtocolWhitelist[] = { "secondlife:", "http:", "https:", "data:"/*, "file:"*/ };
 
 // CP: added a handler list - this is what's used to open the protocol and is based on registry entry
 //	   only meaningful difference currently is that file: protocols are opened using http:
 //	   since no protocol handler exists in registry for file:
 //     Important - these lists should match - protocol to handler
-const std::string gURLProtocolWhitelistHandler[] = { "http", "http", "https" };	
+// Maestro: This list isn't referenced anywhere that I could find
+//const std::string gURLProtocolWhitelistHandler[] = { "http", "http", "https" };	
 
 
 S32 OSMessageBox(const std::string& text, const std::string& caption, U32 type)
@@ -112,6 +113,8 @@ LLWindow::LLWindow(LLWindowCallbacks* callbacks, BOOL fullscreen, U32 flags)
 	  mCursorHidden(FALSE),
 	  mBusyCount(0),
 	  mIsMouseClipping(FALSE),
+	  mMinWindowWidth(0),
+	  mMinWindowHeight(0),
 	  mSwapMethod(SWAP_METHOD_UNDEFINED),
 	  mHideCursorPermanent(FALSE),
 	  mFlags(flags),
@@ -180,6 +183,51 @@ void *LLWindow::getMediaWindow()
 	return getPlatformWindow();
 }
 
+BOOL LLWindow::setSize(LLCoordScreen size)
+{
+	if (!getMaximized())
+	{
+		size.mX = llmax(size.mX, mMinWindowWidth);
+		size.mY = llmax(size.mY, mMinWindowHeight);
+	}
+	return setSizeImpl(size);
+}
+
+BOOL LLWindow::setSize(LLCoordWindow size)
+{
+	//HACK: we are inconsistently using minimum window dimensions
+	// in this case, we are constraining the inner "client" rect and other times
+	// we constrain the outer "window" rect
+	// There doesn't seem to be a good way to do this consistently without a bunch of platform
+	// specific code
+	if (!getMaximized())
+	{
+		size.mX = llmax(size.mX, mMinWindowWidth);
+		size.mY = llmax(size.mY, mMinWindowHeight);
+	}
+	return setSizeImpl(size);
+}
+
+
+// virtual
+void LLWindow::setMinSize(U32 min_width, U32 min_height, bool enforce_immediately)
+{
+	mMinWindowWidth = min_width;
+	mMinWindowHeight = min_height;
+
+	if (enforce_immediately)
+	{
+		LLCoordScreen cur_size;
+		if (!getMaximized() && getSize(&cur_size))
+		{
+			if (cur_size.mX < mMinWindowWidth || cur_size.mY < mMinWindowHeight)
+			{
+				setSizeImpl(LLCoordScreen(llmin(cur_size.mX, mMinWindowWidth), llmin(cur_size.mY, mMinWindowHeight)));
+			}
+		}
+	}
+}
+
 //virtual
 void LLWindow::processMiscNativeEvents()
 {
@@ -209,6 +257,8 @@ std::vector<std::string> LLWindow::getDynamicFallbackFontList()
 	return LLWindowWin32::getDynamicFallbackFontList();
 #elif LL_DARWIN
 	return LLWindowMacOSX::getDynamicFallbackFontList();
+#elif LL_MESA_HEADLESS
+	return std::vector<std::string>();
 #elif LL_SDL
 	return LLWindowSDL::getDynamicFallbackFontList();
 #else
@@ -350,26 +400,26 @@ LLWindow* LLWindowManager::createWindow(
 #if LL_MESA_HEADLESS
 		new_window = new LLWindowMesaHeadless(callbacks,
 			title, name, x, y, width, height, flags, 
-			fullscreen, clearBg, disable_vsync, use_gl, ignore_pixel_depth);
+			fullscreen, clearBg, disable_vsync, ignore_pixel_depth);
 #elif LL_SDL
 		new_window = new LLWindowSDL(callbacks,
 			title, x, y, width, height, flags, 
-			fullscreen, clearBg, disable_vsync, use_gl, ignore_pixel_depth, fsaa_samples);
+			fullscreen, clearBg, disable_vsync, ignore_pixel_depth, fsaa_samples);
 #elif LL_WINDOWS
 		new_window = new LLWindowWin32(callbacks,
 			title, name, x, y, width, height, flags, 
-			fullscreen, clearBg, disable_vsync, use_gl, ignore_pixel_depth, fsaa_samples);
+			fullscreen, clearBg, disable_vsync, ignore_pixel_depth, fsaa_samples);
 #elif LL_DARWIN
 		new_window = new LLWindowMacOSX(callbacks,
 			title, name, x, y, width, height, flags, 
-			fullscreen, clearBg, disable_vsync, use_gl, ignore_pixel_depth, fsaa_samples);
+			fullscreen, clearBg, disable_vsync, ignore_pixel_depth, fsaa_samples);
 #endif
 	}
 	else
 	{
 		new_window = new LLWindowHeadless(callbacks,
 			title, name, x, y, width, height, flags, 
-			fullscreen, clearBg, disable_vsync, use_gl, ignore_pixel_depth);
+			fullscreen, clearBg, disable_vsync, ignore_pixel_depth);
 	}
 
 	if (FALSE == new_window->isValid())
@@ -403,4 +453,43 @@ BOOL LLWindowManager::destroyWindow(LLWindow* window)
 BOOL LLWindowManager::isWindowValid(LLWindow *window)
 {
 	return sWindowList.find(window) != sWindowList.end();
+}
+
+//coordinate conversion utility funcs that forward to llwindow
+LLCoordCommon LL_COORD_TYPE_WINDOW::convertToCommon() const
+{
+	const LLCoordWindow& self = LLCoordWindow::getTypedCoords(*this);
+
+	LLWindow* windowp = &(*LLWindow::beginInstances());
+	LLCoordGL out;
+	windowp->convertCoords(self, &out);
+	return out.convert();
+}
+
+void LL_COORD_TYPE_WINDOW::convertFromCommon(const LLCoordCommon& from)
+{
+	LLCoordWindow& self = LLCoordWindow::getTypedCoords(*this);
+
+	LLWindow* windowp = &(*LLWindow::beginInstances());
+	LLCoordGL from_gl(from);
+	windowp->convertCoords(from_gl, &self);
+}
+
+LLCoordCommon LL_COORD_TYPE_SCREEN::convertToCommon() const
+{
+	const LLCoordScreen& self = LLCoordScreen::getTypedCoords(*this);
+
+	LLWindow* windowp = &(*LLWindow::beginInstances());
+	LLCoordGL out;
+	windowp->convertCoords(self, &out);
+	return out.convert();
+}
+
+void LL_COORD_TYPE_SCREEN::convertFromCommon(const LLCoordCommon& from)
+{
+	LLCoordScreen& self = LLCoordScreen::getTypedCoords(*this);
+
+	LLWindow* windowp = &(*LLWindow::beginInstances());
+	LLCoordGL from_gl(from);
+	windowp->convertCoords(from_gl, &self);
 }

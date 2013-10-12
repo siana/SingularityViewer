@@ -576,6 +576,7 @@ void LLAudioChannelFMOD::updateLoop()
 
 void LLAudioChannelFMOD::cleanup()
 {
+	LLAudioChannel::cleanup();
 	if (!mChannelID)
 	{
 		//llinfos << "Aborting cleanup with no channelID." << llendl;
@@ -588,7 +589,6 @@ void LLAudioChannelFMOD::cleanup()
 		LL_DEBUGS("FMOD") << "LLAudioChannelFMOD::cleanup error: " << FMOD_ErrorString(FSOUND_GetError()) << llendl;
 	}
 
-	mCurrentBufferp = NULL;
 	mChannelID = 0;
 }
 
@@ -647,7 +647,7 @@ bool LLAudioChannelFMOD::isPlaying()
 //
 
 
-LLAudioBufferFMOD::LLAudioBufferFMOD()
+LLAudioBufferFMOD::LLAudioBufferFMOD() : LLAudioBuffer()
 {
 	mSamplep = NULL;
 }

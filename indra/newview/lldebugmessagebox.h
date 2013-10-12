@@ -67,7 +67,7 @@ protected:
 
 	static LLDebugVarMessageBox* show(const std::string& title, EDebugVarType var_type, void *var);
 	static void slider_changed(LLUICtrl* ctrl, void* user_data);
-	static void onAnimateClicked(void* user_data);
+	void onAnimateClicked();
 
 public:
 	static void show(const std::string& title, F32 *var, F32 max_value = 100.f, F32 increment = 0.1f);

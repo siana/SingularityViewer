@@ -193,8 +193,7 @@ BOOL LLPanelDisplay::postBuild()
 	}
 
 	mCtrlAspectRatio = getChild<LLComboBox>( "aspect_ratio");
-	mCtrlAspectRatio->setTextEntryCallback(&LLPanelDisplay::onKeystrokeAspectRatio);
-	mCtrlAspectRatio->setCallbackUserData(this); 
+	mCtrlAspectRatio->setTextEntryCallback(boost::bind(&LLPanelDisplay::onKeystrokeAspectRatio,this));
 	mCtrlAspectRatio->setCommitCallback(boost::bind(&LLPanelDisplay::onSelectAspectRatio,this));
 	// add default aspect ratios
 	mCtrlAspectRatio->add(aspect_ratio_text, &mAspectRatio, ADD_TOP);
@@ -1011,8 +1010,8 @@ void LLPanelDisplay::onCommitAutoDetectAspect(const LLSD& value)
 		S32 denominator = 0;
 		
 		// clear any aspect ratio override
-		gViewerWindow->mWindow->setNativeAspectRatio(0.f);
-		fractionFromDecimal(gViewerWindow->mWindow->getNativeAspectRatio(), numerator, denominator);
+		gViewerWindow->getWindow()->setNativeAspectRatio(0.f);
+		fractionFromDecimal(gViewerWindow->getWindow()->getNativeAspectRatio(), numerator, denominator);
 
 		std::string aspect;
 		if (numerator != 0)
@@ -1021,21 +1020,19 @@ void LLPanelDisplay::onCommitAutoDetectAspect(const LLSD& value)
 		}
 		else
 		{
-			aspect = llformat("%.3f", gViewerWindow->mWindow->getNativeAspectRatio());
+			aspect = llformat("%.3f", gViewerWindow->getWindow()->getNativeAspectRatio());
 		}
 
 		mCtrlAspectRatio->setLabel(aspect);
 
-		ratio = gViewerWindow->mWindow->getNativeAspectRatio();
+		ratio = gViewerWindow->getWindow()->getNativeAspectRatio();
 		gSavedSettings.setF32("FullScreenAspectRatio", ratio);
 	}
 }
 
-void LLPanelDisplay::onKeystrokeAspectRatio(LLLineEditor* caller, void *user_data)
+void LLPanelDisplay::onKeystrokeAspectRatio()
 {
-	LLPanelDisplay* panel = (LLPanelDisplay*)user_data; 
-
-	panel->mCtrlAutoDetectAspect->set(FALSE);
+	mCtrlAutoDetectAspect->set(FALSE);
 }
 
 void LLPanelDisplay::onSelectAspectRatio()

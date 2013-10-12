@@ -5,9 +5,11 @@
 			<text name="Name:">
 				Nombre:
 			</text>
+			<line_editor name="Name"/>
 			<text name="Description:">
 				Descripción:
 			</text>
+			<text_editor name="Description"/>			
 			<text name="LandType">
 				Tipo:
 			</text>
@@ -30,6 +32,7 @@
 			<text name="Group:">
 				Grupo:
 			</text>
+			<text name="GroupText"/>
 			<button label="Definir..." label_selected="Definir..." name="Set..."/>
 			<button bottom="-160"  label="Info" name="group_profile"/>
 			<check_box label="Permitir transferir al grupo" name="check deed" tool_tip="Un oficial del grupo puede transferir este terreno al grupo. El terreno será sostenido por el grupo en sus asignaciones de terreno."/>
@@ -44,17 +47,18 @@
 			<text name="For Sale: Price L$[PRICE].">
 				Precio: [CURRENCY][PRICE] ([CURRENCY][PRICE_PER_SQM]/m².).
 			</text>
+			<text name="SalePending"/>
 			<button label="Vender el Terreno..." label_selected="Vender el Terreno..." name="Sell Land..."/>
 			<text name="For sale to">
 				En venta a: [BUYER]
 			</text>
 			<text name="Sell with landowners objects in parcel.">
-				  Los objetos se incluyen en la venta.
+				Objetos incluidos en la venta.
 			</text>
 			<text name="Selling with no objects in parcel.">
-				  Los objetos no se incluyen en la venta.
+				Objetos NO incluidos en la venta.
 			</text>
-			<button label="Cancelar la venta del terreno" label_selected="Cancelar la venta del terreno" name="Cancel Land Sale"/>
+			<button label="Cancelar Venta del Terreno" label_selected="Cancelar Venta del Terreno" name="Cancel Land Sale"/>
 			<text name="Claimed:">
 				Reclamada:
 			</text>
@@ -74,10 +78,11 @@
 				0
 			</text>
 			<button label="Comprar terreno..." label_selected="Comprar terreno..." name="Buy Land..." width="120"/>
+			<button name="Scripts..." label="Info de Scripts"/>			
 			<button label="Comprar para el grupo..." label_selected="Comprar para el grupo..." name="Buy For Group..." width="160" left="280"/>
 			<button label="Comprar un Pase..." label_selected="Comprar un Pase..." name="Buy Pass..." tool_tip="Un pase te da acceso temporario a este terreno." width="120"/>
 			<button label="Abandonar terreno..." label_selected="Abandonar terreno..." name="Abandon Land..." width="160" left="280"/>
-			<button label="Reclamar tereno..." label_selected="Reclamar terreno..." name="Reclaim Land..."/>
+			<button label="Reclamar terreno..." label_selected="Reclamar terreno..." name="Reclaim Land..."/>
 			<button label="Venta Linden..." label_selected="Venta Linden..." name="Linden Sale..." tool_tip="El terreno debe estar en propiedad, con contenido, y no estar en subasta."/>
 			<string name="new users only">
 				Sólo usuarios nuevos
@@ -95,7 +100,7 @@
 				ID de la subasta: [ID]
 			</string>
 			<string name="need_tier_to_modify">
-				Debe aprobar su compra para modificar este terreno.
+				Debes autorizar tu compra para modificar este terreno.
 			</string>
 			<string name="group_owned_text">
 				(Propiedad del Grupo)
@@ -189,7 +194,7 @@ Ve al Menú Mundo &gt; Acerca del terreno o selecciona otra parcela para ver sus
 				El terreno comprado en esta región no se podrá unir o dividir.
 			</string>
 		</panel>
-		<!-- ============================= -->
+		<!-- =========================== -->
 		<panel label="Objetos" name="land_objects_panel">
 			<text name="parcel_object_bonus">
 				Plus de Objectos en la Región: [BONUS]
@@ -225,7 +230,7 @@ Ve al Menú Mundo &gt; Acerca del terreno o selecciona otra parcela para ver sus
 				[COUNT]
 			</text>
 			<button label="Mostrar" label_selected="Mostrar" name="ShowOwner" right="-150"/>
-			<button label="Retornar..." label_selected="Retornar..." name="ReturnOwner..." tool_tip="Return objects to their owners." right="-20"/>
+			<button label="Retornar..." label_selected="Retornar..." name="ReturnOwner..." tool_tip="Retornar objetos a sus propietarios." right="-20"/>
 			<text name="Set to group:">
 				Del grupo:
 			</text>
@@ -256,7 +261,7 @@ Ve al Menú Mundo &gt; Acerca del terreno o selecciona otra parcela para ver sus
 			<text name="Object Owners:" width="250">
 				Propietarios de los objetos:
 			</text>
-			<button label="Actualizar la lista" label_selected="Actualizar la lista" name="Refresh List" left="190" width="50"/>
+			<button label="Actualizar Lista" label_selected="Actualizar Lista" name="Refresh List" left="190" width="90"/>
 			<button label="Retornar objetos..." label_selected="Retornar objetos..." name="Return objects..." left="300" width="120"/>
 			<name_list name="owner list">
 				<column name="type" label="Tipo"/>
@@ -294,7 +299,7 @@ Ve al Menú Mundo &gt; Acerca del terreno o selecciona otra parcela para ver sus
 			</text>
 			<check_box label="Seguro (sin daño)" name="check safe" tool_tip="Marcado, convierte el terreno en 'seguro', desactivando el daño en combate. Si no, se activa el daño en combate."/>
 			<check_box label="Sin Empujones" name="PushRestrictCheck" tool_tip="Previene scripts que empujen. Marcando esta opción evitará que en tu terreno haya comportamientos destructivos."/>
-			<check_box label="Mostrar parcela en la busqueda ([DIRECTORYFEE]) en" name="ShowDirectoryCheck" tool_tip="Permitir que aparezca esta parcela en los resultados de la búsqueda" left="14"/>
+			<check_box label="Mostrar parcela en la búsqueda ([DIRECTORYFEE]) en" name="ShowDirectoryCheck" tool_tip="Permitir que aparezca esta parcela en los resultados de la búsqueda" left="14"/>
 			<string name="search_enabled_tooltip">
 				Permitir que aparezca esta parcela en los resultados de la búsqueda
 			</string>
@@ -305,9 +310,6 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 			<string name="search_disabled_permissions_tooltip">
 				Esta opción no esta activada porque no puedes modificar las opciones de la parcela.
 			</string>
-			<string name="see_avs_text">
-				Ver y conversar con residentes en esta parcela
-			</string>			
 			<combo_box name="land category with adult" left="280">
 				<combo_item name="AnyCategory">
 					Cualquier Categoría
@@ -399,6 +401,7 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 			</combo_box>
 			<button label="?" label_selected="?" name="?" left="420"/>
 			<check_box label="Contenido Mature" name="MatureCheck"/>
+			<check_box name="GamingCheck" label="Esta parcela está destinada a juegos de azar"/>
 			<string name="mature_check_mature">
 				Contenido Mature
 			</string>
@@ -406,15 +409,15 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 				Contenido Adulto
 			</string>
 			<string name="mature_check_mature_tooltip">
-				La información o el contenido de su parcela se considera mature.
+				La información o el contenido de tu parcela se considera mature.
 			</string>
 			<string name="mature_check_adult_tooltip">
-				La información o el contenido de su parcela se considera adulto.
+				La información o el contenido de tu parcela se considera adulto.
 			</string>
 			<text name="allow_label5">
 				Permitir a residentes en otras parcelas:
 			</text>
-			<check_box label="Ver Avatares" name="SeeAvatarsCheck" tool_tip="Premite a los residentes en otras parcelas ver y conversar con los residentes en esta parcela, y tu prodrás verlos y conversar también con ellos."/>
+			<check_box label="Ver y conversar con residentes en esta parcela" name="SeeAvatarsCheck" tool_tip="Permite a los residentes en otras parcelas ver y conversar con los residentes en esta parcela, y tu podrás verlos y conversar también con ellos."/>
 			<text name="Snapshot:">
 				 Foto:
 			</text>
@@ -425,19 +428,19 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 			<string name="landing_point_none">
 				(ninguno)
 			</string>
-			<button label="Definir" label_selected="Definir" name="Set" tool_tip="Configura el punto de llegada donde aparecerán los visitantes. Configúralo a la posición de tu avatar dentro de esta parcela."/>
+			<button label="Definir" label_selected="Definir" name="Set" tool_tip="Configura el punto de llegada donde arribarán los visitantes. Configúralo a la posición de tu avatar dentro de esta parcela."/>
 			<button label="Borrar" label_selected="Borrar" name="Clear" tool_tip="Borra el punto de llegada."/>
 			<text name="Teleport Routing: ">
 				Punto de Teleporte:
 			</text>
 			<combo_box name="landing type" tool_tip="Punto de Teleporte -- define como manejar los teleportes en tu terreno.">
-				<combo_item name="Blocked" value="Blocked">
+				<combo_item name="Blocked">
 					Bloqueado
 				</combo_item>
-				<combo_item name="LandingPoint" value="Landing Point">
+				<combo_item name="LandingPoint">
 					Punto de Llegada
 				</combo_item>
-				<combo_item name="Anywhere" value="Anywhere">
+				<combo_item name="Anywhere">
 					Cualquiera
 				</combo_item>
 			</combo_box>
@@ -448,19 +451,22 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 				Sin empujones (Prevalece lo marcado en la Región)
 			</string>			
 		</panel>
-		<!-- =============================== -->
+		<!-- =========================== -->
 		<panel label="Media" name="land_media_panel">
 			<text name="with media:" width="70">
 				Tipo de media:
 			</text>
 			<combo_box name="media type" tool_tip="Especifica si la URL es una película, página web u otro tipo de media" left="90"/>
+			<text name="mime_type"/>			
 			<text name="at URL:">
 				URL base:
 			</text>
+			<line_editor name="media_url"/>
 			<button label="Definir..." label_selected="Definir..." name="set_media_url"/>
 			<text name="at URL2:">
 				URL actual:
 			</text>
+			<text name="current_url"/>
 			<button label="Reiniciar..." label_selected="Reiniciar..." name="reset_media_url"/>
 			<text name="media_reset" tool_tip="Tiempo transcurrido para revertir al URL por defecto de la parcela (0 para no retornar el valor defecto)" width="300">
 				Retornar al URL por defecto en:
@@ -479,7 +485,7 @@ Sólo las parcelas más grandes pueden listarse en la búsqueda.
 			<texture_picker label="" name="media texture" tool_tip="Pulsa aquí para elegir una textura"/>
 			<text name="replace_texture_help">
 				Los objetos que usen esta textura mostrarán la
-película o la web cuando pulse la flecha de ejecución.
+película o la web al pulsar la flecha de ejecución.
 
 Selecciona la miniatura para elegir una textura diferente.
 			</text>
@@ -535,7 +541,7 @@ Selecciona la miniatura para elegir una textura diferente.
 			</text>
 			<check_box label="Permitir Acceso Público" name="public_access"/>
 			<text name="Only Allow">
-				Bloquear acceso por:
+				Bloquear acceso a:
 			</text>
 			<check_box label="Residentes que no tengan información de pago en archivo" name="limit_payment" tool_tip="Prohibir a residentes no identificados."/>
 			<check_box label="Residentes no verificados como adultos" name="limit_age_verified" tool_tip="Prohibir a los residentes que no han verificado su edad. Ver support.secondlife.com para mayor información."/>

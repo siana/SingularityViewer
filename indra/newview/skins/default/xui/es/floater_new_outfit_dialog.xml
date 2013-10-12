@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<floater name="modal container">
+<floater name="modal container" title="Crear Nuevo Vestuario">
 	<button label="Guardar" label_selected="Guardar" name="Save"/>
 	<button label="Cancelar" label_selected="Cancelar" name="Cancel"/>
 	<check_box label="Forma" name="checkbox_shape"/>
@@ -12,8 +12,9 @@
 	<!--<check_box bottom_delta="-20" enabled="true" follows="left|top" font="SansSerifSmall"
 		height="16" initial_value="false" label="Rename Clothing To Folder Name"
 		left="13" mouse_opaque="true" name="rename" radio_style="false" width="210" />-->
-	<check_box name="checkbox_use_outfits" label="Usar Carpetas de Vestuario del  Viewer 2" />
-	<check_box name="checkbox_use_links" label="Usar enlaces para item no copiables, no modificables o de punto multiple" />
+	<check_box name="checkbox_use_outfits" label="Usar Carpetas de Vestuario del  Viewer 2"/>
+	<check_box name="checkbox_use_links" label="Usar enlaces para item no copiables, no modificables o de punto multiple"/>
+	<check_box name="checkbox_legacy_copy_changes" label="Copiar cambios a los anexos" tool_tip="Mantiene los cambios en los anexos, desde que son vestidos o desde tu último inicio de sesión, quitándotelos antes de crear el nuevo vestuario. Generalmente, esta opción debería estar marcada, si sabes lo que estás haciendo, como ser creando un nuevo vestuario para deshacer cambios erróneos, deberás desmarcar esta opción."/>
 	<check_box label="Camisa" name="checkbox_shirt"/>
 	<check_box label="Pantalones" name="checkbox_pants"/>
 	<check_box label="Zapatos" name="checkbox_shoes"/>
@@ -22,7 +23,7 @@
 	<check_box label="Guantes" name="checkbox_gloves"/>
 	<check_box label="Camiseta" name="checkbox_undershirt"/>
 	<check_box label="Ropa Interior" name="checkbox_underpants"/>
-	<check_box label="Flada" name="checkbox_skirt"/>
+	<check_box label="Falda" name="checkbox_skirt"/>
 	<check_box label="Tatuaje" name="checkbox_tattoo"/>
 	<check_box label="Alfa" name="checkbox_alpha"/>
 	<check_box label="Física" name="checkbox_physics"/>
@@ -57,18 +58,20 @@
 	<check_box label="Pectoral Izquierdo" name="checkbox_Left Pec"/>
 	<check_box label="Pectoral Derecho" name="checkbox_Right Pec"/>
 	<check_box label="Cuello" name="checkbox_Neck"/>
-	<check_box label="Root" left="413" name="checkbox_Root"/>
+	<check_box label="Raíz" left="413" name="checkbox_Root"/>
 	<check_box label="Centro 2" name="checkbox_Center 2"/>
 	<check_box label="Superior Derecha" name="checkbox_Top Right"/>
 	<check_box label="Arriba" name="checkbox_Top"/>
 	<check_box label="Superior Izquierda" name="checkbox_Top Left"/>
-	<check_box label="CentrO" name="checkbox_Center"/>
+	<check_box label="Centro" name="checkbox_Center"/>
 	<check_box label="Inferior Izquierdo" name="checkbox_Bottom Left"/>
 	<check_box label="Abajo" name="checkbox_Bottom"/>
 	<check_box label="Inferior Derecha" name="checkbox_Bottom Right"/>
+	<!--
 	<text name="Make New Outfit">
 		Hacer Nuevo Vestuario
 	</text>
+	-->
 	<text name="Outfits are folders that contain clothing and body parts. Drag an outfit folder onto your avatar to put it on.   &quot;Make New Outfit&quot; makes a new folder and saves copies of the items you are now wearing into it.">
 		Los Vestuarios son carpetas que contienen ropas y partes de cuerpo.
 Arrastra una carpeta de Vestuario a tu avatar para verstirtelo.			 

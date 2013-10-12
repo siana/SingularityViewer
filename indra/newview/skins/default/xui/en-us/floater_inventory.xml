@@ -3,7 +3,7 @@
      can_resize="true" height="563" left="882" min_height="150" min_width="240"
      mouse_opaque="true" name="Inventory" rect_control="FloaterInventoryRect"
      title="Inventory" width="467">
-	<search_editor bottom="-50" follows="left|top|right" height="16" label="Type here to search"
+	<filter_editor bottom="-50" follows="left|top|right" height="16" label="Type here to search"
 	    left="6" mouse_opaque="true" name="inventory search editor" width="455" />
   <button left="6" bottom_delta="-26" height="22" width="22" follows="left|top" halign="center"
     label="" image_overlay="inv_collapse_all.tga" name="collapse_btn" mouse_opaque="true" font="SansSerif"
@@ -72,6 +72,9 @@
 			     name="Open" width="128">
 				<on_click filter="" function="Inventory.DoToSelected" userdata="open" />
 			</menu_item_call>
+			<menu_item_call label="Update Outfit" mouse_opaque="true" name="Update Outfit">
+				<on_click filter="" function="Inventory.DoCreate" userdata="update outfit"/>
+			</menu_item_call>
 			<menu_item_separator bottom_delta="-8" height="8" left="0" mouse_opaque="true" name="separator"
 			     width="128" />
 			<menu_item_call bottom_delta="-18" height="18" label="New Window" left="0" mouse_opaque="true"
@@ -122,7 +125,7 @@
 			     name="New Gesture" width="121">
 				<on_click filter="" function="Inventory.DoCreate" userdata="gesture" />
 			</menu_item_call>
-			<menu bottom_delta="-689" drop_shadow="true" height="175" left="0"
+			<menu bottom_delta="-689" drop_shadow="true" height="175" left="0" label="New Clothes"
 			     mouse_opaque="false" name="New Clothes" opaque="true" width="125">
 				<menu_item_call bottom_delta="-18" height="18" label="New Shirt" left="0" mouse_opaque="true"
 				     name="New Shirt" width="125">
@@ -173,7 +176,7 @@
           <on_click filter="" function="Inventory.DoCreate" userdata="physics" />
         </menu_item_call>
 			</menu>
-			<menu bottom_delta="-599" drop_shadow="true" height="85" left="0"
+			<menu bottom_delta="-599" drop_shadow="true" height="85" left="0" label="New Body Parts" 
 			     mouse_opaque="false" name="New Body Parts" opaque="true" width="118">
 				<menu_item_call bottom_delta="-18" height="18" label="New Shape" left="0" mouse_opaque="true"
 				     name="New Shape" width="118">

@@ -3,10 +3,9 @@
  * @brief LLColorSwatch class implementation
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2001-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -53,37 +52,8 @@
 
 static LLRegisterWidget<LLColorSwatchCtrl> r("color_swatch");
 
-LLColorSwatchCtrl::LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const LLColor4& color,
-		void (*commit_callback)(LLUICtrl* ctrl, void* userdata),
-		void* userdata )
-:	LLUICtrl(name, rect, TRUE, commit_callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
-	mValid( TRUE ),
-	mColor( color ),
-	mBorderColor( gColors.getColor("DefaultHighlightLight") ),
-	mCanApplyImmediately(FALSE),
-	mOnCancelCallback(NULL),
-	mOnSelectCallback(NULL)
-{
-	mCaption = new LLTextBox( name,
-		LLRect( 0, BTN_HEIGHT_SMALL, getRect().getWidth(), 0 ),
-		name,
-		LLFontGL::getFontSansSerifSmall() );
-	mCaption->setFollows( FOLLOWS_LEFT | FOLLOWS_RIGHT | FOLLOWS_BOTTOM );
-	addChild( mCaption );
-
-	// Scalable UI made this off-by-one, I don't know why. JC
-	LLRect border_rect(0, getRect().getHeight()-1, getRect().getWidth()-1, 0);
-	border_rect.mBottom += BTN_HEIGHT_SMALL;
-	mBorder = new LLViewBorder(std::string("border"), border_rect, LLViewBorder::BEVEL_IN);
-	addChild(mBorder);
-
-	mAlphaGradientImage = LLUI::getUIImage("color_swatch_alpha.tga");
-}
-
-LLColorSwatchCtrl::LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const std::string& label, const LLColor4& color,
-		void (*commit_callback)(LLUICtrl* ctrl, void* userdata),
-		void* userdata )
-:	LLUICtrl(name, rect, TRUE, commit_callback, userdata, FOLLOWS_LEFT | FOLLOWS_TOP),
+LLColorSwatchCtrl::LLColorSwatchCtrl(const std::string& name, const LLRect& rect, const std::string& label, const LLColor4& color)
+:	LLUICtrl(name, rect, TRUE, NULL, FOLLOWS_LEFT | FOLLOWS_TOP),
 	mValid( TRUE ),
 	mColor( color ),
 	mBorderColor( gColors.getColor("DefaultHighlightLight") ),
@@ -217,26 +187,34 @@ void LLColorSwatchCtrl::draw()
 	// Check state
 	if ( mValid )
 	{
-		// Draw the color swatch
-		gl_rect_2d_checkerboard( calcScreenRect(), interior );
-		gl_rect_2d(interior, mColor, TRUE);
-		LLColor4 opaque_color = mColor;
-		opaque_color.mV[VALPHA] = 1.f;
-		gGL.color4fv(opaque_color.mV);
-		if (mAlphaGradientImage.notNull())
+		if (!mColor.isOpaque())
 		{
-			gGL.pushMatrix();
+			gl_rect_2d_checkerboard( calcScreenRect(), interior );
+			// Draw the color swatch
+		}
+		
+		gl_rect_2d(interior, mColor, TRUE);
+		if (!mColor.isOpaque())
+		{
+			LLColor4 opaque_color = mColor;
+			opaque_color.mV[VALPHA] = 1.f;
+			gGL.color4fv(opaque_color.mV);
+			if (mAlphaGradientImage.notNull())
 			{
-				mAlphaGradientImage->draw(interior, mColor);
+				gGL.pushMatrix();
+				{
+					mAlphaGradientImage->draw(interior, mColor);
+				}
+				gGL.popMatrix();
 			}
-			gGL.popMatrix();
 		}
 	}
 	else
 	{
 		if (!mFallbackImageName.empty())
 		{
-			LLPointer<LLViewerFetchedTexture> fallback_image = LLViewerTextureManager::getFetchedTextureFromFile(mFallbackImageName);
+			LLPointer<LLViewerFetchedTexture> fallback_image = LLViewerTextureManager::getFetchedTextureFromFile(mFallbackImageName, TRUE, 
+				LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE);
 			if( fallback_image->getComponents() == 4 )
 			{	
 				gl_rect_2d_checkerboard( calcScreenRect(), interior );
@@ -298,11 +276,11 @@ void LLColorSwatchCtrl::onColorChanged ( void* data, EColorPickOp pick_op )
 
 			if (pick_op == COLOR_CANCEL && subject->mOnCancelCallback)
 			{
-				subject->mOnCancelCallback(subject, subject->mCallbackUserData);
+				subject->mOnCancelCallback(subject, LLSD());
 			}
 			else if (pick_op == COLOR_SELECT && subject->mOnSelectCallback)
 			{
-				subject->mOnSelectCallback(subject, subject->mCallbackUserData);
+				subject->mOnSelectCallback(subject, LLSD());
 			}
 			else
 			{
@@ -373,9 +351,6 @@ LLXMLNodePtr LLColorSwatchCtrl::getXML(bool save_children) const
 
 LLView* LLColorSwatchCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("colorswatch");
-	node->getAttributeString("name", name);
-
 	std::string label;
 	node->getAttributeString("label", label);
 
@@ -388,20 +363,16 @@ LLView* LLColorSwatchCtrl::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFa
 	BOOL can_apply_immediately = FALSE;
 	node->getAttributeBOOL("can_apply_immediately", can_apply_immediately);
 
-	LLUICtrlCallback callback = NULL;
-
 	if (label.empty())
 	{
 		label.assign(node->getValue());
 	}
 
 	LLColorSwatchCtrl* color_swatch = new LLColorSwatchCtrl(
-		name, 
+		"colorswatch", 
 		rect,
 		label,
-		color,
-		callback,
-		NULL );
+		color );
 
 	color_swatch->setCanApplyImmediately(can_apply_immediately);
 	color_swatch->initFromXML(node, parent);

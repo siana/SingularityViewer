@@ -41,12 +41,12 @@
 #include "llenvmanager.h"
 #include "llfloaterbuycurrency.h"
 #include "llfloaterchat.h"
-#include "llfloaterdirectory.h"		// to spawn search
 #include "llfloaterinventory.h"
 #include "llfloaterlagmeter.h"
 #include "llfloaterland.h"
 #include "llfloaterregioninfo.h"
 #include "llfloaterscriptdebug.h"
+#include "llfloatersearch.h"
 #include "llhudicon.h"
 #include "llkeyboard.h"
 #include "lllineeditor.h"
@@ -68,11 +68,11 @@
 #include "llworld.h"
 #include "llstatgraph.h"
 #include "llviewercontrol.h"
+#include "llviewergenericmessage.h"
 #include "llviewermenu.h"	// for gMenuBarView
 #include "llviewerparcelmgr.h"
 #include "llviewerthrottle.h"
 #include "lluictrlfactory.h"
-#include "llvoiceclient.h"	// for gVoiceClient
 #include "llagentui.h"
 
 #include "lltoolmgr.h"
@@ -137,9 +137,33 @@ std::vector<std::string> LLStatusBar::sDays;
 std::vector<std::string> LLStatusBar::sMonths;
 const U32 LLStatusBar::MAX_DATE_STRING_LENGTH = 2000;
 
+class LLDispatchUPCBalance : public LLDispatchHandler
+{
+public:
+	virtual bool operator()(
+		const LLDispatcher* dispatcher,
+		const std::string& key,
+		const LLUUID& invoice,
+		const sparam_t& strings)
+	{
+		S32 upc = atoi(strings[0].c_str());
+		gStatusBar->setUPC(upc);
+		return true;
+	}
+};
+
+static LLDispatchUPCBalance sDispatchUPCBalance;
+
+static void toggle_time_value()
+{
+	LLControlVariable* control = gSavedSettings.getControl("LiruLocalTime");
+	control->set(!control->get());
+}
+
 LLStatusBar::LLStatusBar(const std::string& name, const LLRect& rect)
 :	LLPanel(name, LLRect(), FALSE),		// not mouse opaque
 mBalance(0),
+mUPC(0),
 mHealth(100),
 mSquareMetersCredit(0),
 mSquareMetersCommitted(0),
@@ -147,6 +171,11 @@ mRegionCrossingSlot(),
 mNavMeshSlot(),
 mIsNavMeshDirty(false)
 {
+	mUPCSupported = gHippoGridManager->getConnectedGrid()->getUPCSupported();
+
+	if (mUPCSupported)
+		gGenericDispatcher.addHandler("upcbalance", &sDispatchUPCBalance);
+
 	// status bar can possible overlay menus?
 	setMouseOpaque(FALSE);
 	setIsChrome(TRUE);
@@ -168,9 +197,14 @@ mIsNavMeshDirty(false)
 
 	mTextParcelName = getChild<LLTextBox>("ParcelNameText" );
 	mTextBalance = getChild<LLTextBox>("BalanceText" );
+	mTextUPC = getChild<LLTextBox>("UPCText" );
 
 	mTextHealth = getChild<LLTextBox>("HealthText" );
 	mTextTime = getChild<LLTextBox>("TimeText" );
+	mTextTime->setClickedCallback(boost::bind(toggle_time_value));
+
+	if (!mUPCSupported)
+		mTextUPC->setVisible(false);
 
 	childSetAction("scriptout", onClickScriptDebug, this);
 	childSetAction("health", onClickHealth, this);
@@ -287,23 +321,28 @@ void LLStatusBar::refresh()
 	mSGBandwidth->setThreshold(1, bwtotal);
 	mSGBandwidth->setThreshold(2, bwtotal);
 
-	// *TODO: Localize / translate time
+	// Singu Note: Use system's time if the user desires, otherwise use server time
+	static const LLCachedControl<bool> show_local_time("LiruLocalTime");
 
 	// Get current UTC time, adjusted for the user's clock
 	// being off.
-	time_t utc_time;
-	utc_time = time_corrected();
+	time_t utc_time = show_local_time ? time(NULL) : time_corrected();
 
 	// There's only one internal tm buffer.
 	struct tm* internal_time;
 
 	// Convert to Pacific, based on server's opinion of whether
 	// it's daylight savings time there.
-	internal_time = utc_to_pacific_time(utc_time, gPacificDaylightTime);
+	internal_time = show_local_time ? std::localtime(&utc_time) : utc_to_pacific_time(utc_time, gPacificDaylightTime);
 
 	std::string t;
 	timeStructToFormattedString(internal_time, gSavedSettings.getString("ShortTimeFormat"), t);
-	if (gPacificDaylightTime)
+	if (show_local_time)
+	{
+		static const std::string local(" " + getString("Local"));
+		t += local;
+	}
+	else if (gPacificDaylightTime)
 	{
 		t += " PDT";
 	}
@@ -477,9 +516,9 @@ void LLStatusBar::refresh()
 	if (region)
 	{
 		bool pf_disabled = !region->dynamicPathfindingEnabled();
-		getChild<LLUICtrl>("pf_dirty")->setVisible(mIsNavMeshDirty);
+		getChild<LLUICtrl>("pf_dirty")->setVisible(!pf_disabled && mIsNavMeshDirty);
 		getChild<LLUICtrl>("pf_disabled")->setVisible(pf_disabled);
-		const std::string pf_icon = mIsNavMeshDirty ? "pf_dirty" : pf_disabled ? "pf_disabled" : "";
+		const std::string pf_icon = pf_disabled ? "pf_disabled" : mIsNavMeshDirty ? "pf_dirty" : "";
 		if (!pf_icon.empty())
 		{
 			x += 6;
@@ -595,6 +634,14 @@ void LLStatusBar::refresh()
 	}
 
 	// Set rects of money, buy money, time
+	if (mUPCSupported)
+	{
+		childGetRect("UPCText", r);
+		r.translate( new_right - r.mRight, 0);
+		childSetRect("UPCText", r);
+		new_right -= r.getWidth() - 18;
+	}
+
 	childGetRect("BalanceText", r);
 	r.translate( new_right - r.mRight, 0);
 	childSetRect("BalanceText", r);
@@ -631,6 +678,8 @@ void LLStatusBar::refresh()
 void LLStatusBar::setVisibleForMouselook(bool visible)
 {
 	mTextBalance->setVisible(visible);
+	if (mUPCSupported)
+		mTextUPC->setVisible(visible);
 	mTextTime->setVisible(visible);
 	childSetVisible("buycurrency", visible);
 	childSetVisible("search_editor", visible);
@@ -653,7 +702,7 @@ void LLStatusBar::creditBalance(S32 credit)
 void LLStatusBar::setBalance(S32 balance)
 {
 	mTextBalance->setText(gHippoGridManager->getConnectedGrid()->getCurrencySymbol().c_str() +
-		LLResMgr::getInstance()->getMonetaryString(balance));
+		LLResMgr::getInstance()->getMonetaryString(balance - mUPC));
 
 	if (mBalance && (fabs((F32)(mBalance - balance)) > gSavedSettings.getF32("UISndMoneyChangeThreshold")))
 	{
@@ -670,6 +719,14 @@ void LLStatusBar::setBalance(S32 balance)
 	}
 }
 
+void LLStatusBar::setUPC(S32 upc)
+{
+	mTextUPC->setText("UPC " + LLResMgr::getInstance()->getMonetaryString(upc));
+
+	mUPC = upc;
+
+	setBalance(mBalance);
+}
 
 // static
 void LLStatusBar::sendMoneyBalanceRequest()
@@ -949,8 +1006,9 @@ void LLStatusBar::onCommitSearch(LLUICtrl*, void* data)
 void LLStatusBar::onClickSearch(void* data)
 {
 	LLStatusBar* self = (LLStatusBar*)data;
-	std::string search_text = self->childGetText("search_editor");
-	LLFloaterDirectory::showFindAll(search_text);
+	LLFloaterSearch::SearchQuery search;
+	search.query = self->childGetText("search_editor");
+	LLFloaterSearch::showInstance(search);
 }
 
 // static
@@ -971,7 +1029,7 @@ class LLBalanceHandler : public LLCommandHandler
 {
 public:
 	// Requires "trusted" browser/URL source
-	LLBalanceHandler() : LLCommandHandler("balance", true) { }
+	LLBalanceHandler() : LLCommandHandler("balance", UNTRUSTED_BLOCK) { }
 	bool handle(const LLSD& tokens, const LLSD& query_map, LLMediaCtrl* web)
 	{
 		if (tokens.size() == 1

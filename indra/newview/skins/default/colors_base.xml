@@ -151,7 +151,7 @@
 <RadarEstateOwner value="204, 102, 10, 255" />
 <RadarMuted value="128, 128, 128, 255" />
 <RadarTextChatRange value="255, 0, 0, 255"/>
-<RadarTextShoutRange value="255, 255, 0, 128"/>
+<RadarTextShoutRange value="204, 170, 0, 128"/>
 <RadarTextDrawDist value="0, 153, 0, 255"/>
 <RadarTextYoung value="255, 0, 0, 255"/>
 

@@ -46,7 +46,6 @@ class LLLineEditor;
 class LLTextBox;
 class LLButton;
 class LLObjectSelection;
-struct LLGiveMoneyInfo;
 
 typedef void (*money_callback)(const LLUUID&, LLViewerRegion*,S32,BOOL,S32,const std::string&);
 
@@ -72,16 +71,15 @@ public:
 							BOOL is_group);
 
 private:
-	static void onCancel(void* data);
-	static void onKeystroke(LLLineEditor* editor, void* data);
-	static void onGive(void* data);
+	void onCancel();
+	void onKeystroke(LLLineEditor* caller);
+	void onGive(const S32& amount);
 	void give(S32 amount);
 	static void processPayPriceReply(LLMessageSystem* msg, void **userdata);
 	void onCacheOwnerName( const LLUUID& owner_id,	const std::string& full_name, bool is_group);
 	void finishPayUI(const LLUUID& target_id, BOOL is_group);
 
 protected:
-	std::vector<LLGiveMoneyInfo*> mCallbackData;
 	money_callback mCallback;
 	LLTextBox* mObjectNameText;
 	LLUUID mTargetUUID;
@@ -90,7 +88,8 @@ protected:
 	BOOL mHaveName;
 
 	LLButton* mQuickPayButton[MAX_PAY_BUTTONS];
-	LLGiveMoneyInfo* mQuickPayInfo[MAX_PAY_BUTTONS];
+	S32 mQuickPayInfo[MAX_PAY_BUTTONS];
+	S32 mDefaultValue;
 
 	LLSafeHandle<LLObjectSelection> mObjectSelection;
 

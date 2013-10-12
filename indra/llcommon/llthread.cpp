@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
 
-#ifdef __GNUC__
+#if LL_GNUC
 // Generate code for inlines from llthread.h (needed for is_main_thread()).
 #pragma implementation "llthread.h"
 #endif
@@ -403,8 +403,8 @@ void LLCondition::broadcast()
 
 //============================================================================
 LLMutexBase::LLMutexBase() :
-	mLockingThread(AIThreadID::sNone),
-	mCount(0)
+	mCount(0),
+	mLockingThread(AIThreadID::sNone)
 {
 }
 

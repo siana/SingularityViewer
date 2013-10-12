@@ -34,6 +34,7 @@
 #define LL_LLTOOLBAR_H
 
 #include "llpanel.h"
+#include "lllayoutstack.h"
 
 #include "llframetimer.h"
 
@@ -47,7 +48,7 @@ extern S32 TOOL_BAR_HEIGHT;
 class LLFlyoutButton;
 
 class LLToolBar
-:	public LLPanel
+:	public LLLayoutPanel
 {
 public:
 	LLToolBar();

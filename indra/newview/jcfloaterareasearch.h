@@ -40,59 +40,53 @@ class LLTextBox;
 class LLScrollListCtrl;
 class LLViewerRegion;
 
-struct AObjectDetails
-{
-	LLUUID id;
-	std::string name;
-	std::string desc;
-	LLUUID owner_id;
-	LLUUID group_id;
-};
-
-class JCFloaterAreaSearch : public LLFloater
+class JCFloaterAreaSearch : public LLFloater, public LLFloaterSingleton<JCFloaterAreaSearch>
 {
 public:
-	JCFloaterAreaSearch();
+	JCFloaterAreaSearch(const LLSD& data);
 	virtual ~JCFloaterAreaSearch();
 
 	/*virtual*/ BOOL postBuild();
 	/*virtual*/ void close(bool app = false);
+	/*virtual*/ void onOpen();
 
-	static void results();
-	static void toggle();
-	static JCFloaterAreaSearch* getInstance() { return sInstance; }
+	void results();
 	static void processObjectPropertiesFamily(LLMessageSystem* msg, void** user_data);
 
 private:
-	static void checkRegion();
-	static void cancel(void* data);
-	static void search(void* data);
-	static void onCommitLine(LLLineEditor* line, void* user_data);
-	static void requestIfNeeded(LLViewerObject *objectp);
-	static void onDoubleClick(void *userdata);
 
 	enum OBJECT_COLUMN_ORDER
 	{
-		LIST_OBJECT_NAME,
+		LIST_OBJECT_NAME = 0,
 		LIST_OBJECT_DESC,
 		LIST_OBJECT_OWNER,
-		LIST_OBJECT_GROUP
+		LIST_OBJECT_GROUP,
+		LIST_OBJECT_COUNT
 	};
 
-	static JCFloaterAreaSearch* sInstance;
-
-	static S32 sRequested;
+	void checkRegion(bool force_clear = false);
+	void onStop();
+	void onRefresh();
+	void onCommitLine(LLUICtrl* caller, const LLSD& value, OBJECT_COLUMN_ORDER type);
+	bool requestIfNeeded(LLUUID object_id);
+	void onDoubleClick();
 
 	LLTextBox* mCounterText;
 	LLScrollListCtrl* mResultList;
 	LLFrameTimer mLastUpdateTimer;
+	LLViewerRegion* mLastRegion;
+	bool mStopped;
 
-	static std::map<LLUUID, AObjectDetails> sObjectDetails;
+	struct ObjectData
+	{
+		LLUUID id;
+		std::string name;
+		std::string desc;
+		LLUUID owner_id;
+		LLUUID group_id;
+	};
+	std::set<LLUUID> mPendingObjects;
+	std::map<LLUUID, ObjectData> mCachedObjects;
 
-	static std::string sSearchedName;
-	static std::string sSearchedDesc;
-	static std::string sSearchedOwner;
-	static std::string sSearchedGroup;
-
-	static LLViewerRegion* sLastRegion;
+	std::string mFilterStrings[LIST_OBJECT_COUNT];
 };

@@ -10,6 +10,9 @@
 	<string name="cant_view_group_land_text">
 		You do not have permission to view group owned land.
 	</string>
+  <string name="epmty_view_group_land_text">
+    No entries
+  </string>
 	<string name="cant_view_group_accounting_text">
 		You do not have permission to view the group&apos;s accounting information.
 	</string>

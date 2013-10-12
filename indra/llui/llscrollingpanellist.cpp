@@ -152,13 +152,10 @@ LLXMLNodePtr LLScrollingPanelList::getXML(bool save_children) const
 // static
 LLView* LLScrollingPanelList::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-    std::string name("scrolling_panel_list");
-    node->getAttributeString("name", name);
-
     LLRect rect;
     createRect(node, rect, parent, LLRect());
 
-    LLScrollingPanelList* scrolling_panel_list = new LLScrollingPanelList(name, rect);
+    LLScrollingPanelList* scrolling_panel_list = new LLScrollingPanelList("scrolling_panel_list", rect);
     scrolling_panel_list->initFromXML(node, parent);
     return scrolling_panel_list;
 }

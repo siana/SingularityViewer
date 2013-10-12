@@ -37,9 +37,11 @@
 #include "llmemory.h"			// LLPointer<>
 #include "llmediactrl.h"	// LLMediaCtrlObserver
 #include "llsavedlogins.h"
+#include "llslurl.h"
 
 class LLUIImage;
 class LLComboBox;
+class HippoGridInfo;
 
 class LLPanelLogin:	
 	public LLPanel,
@@ -76,16 +78,14 @@ public:
 	 * @brief	Set the values of the displayed fields from a populated history entry.
 	 * @param	entry	History entry containing all necessary fields.
 	 */
-	static void setFields(const LLSavedLoginEntry& entry, bool takeFocus = false);
+	static void setFields(const LLSavedLoginEntry& entry, bool takeFocus = true);
 
-	//static void addServer(const std::string& server, S32 domain_name);
-	static void refreshLocation( bool force_visible );
+	static void getFields(std::string *firstname, std::string *lastname, std::string *password);
 
-	static void getFields(std::string *firstname, std::string *lastname,
-						  std::string *password);
-
-	//static BOOL isGridComboDirty();
-	static void getLocation(std::string &location);
+	static void setLocation(const LLSLURL& slurl);
+	
+	/// Call when preferences that control visibility may have changed
+	static void updateLocationSelectorsVisibility();
 
 	static void close();
 
@@ -93,6 +93,7 @@ public:
 
 	void updateGridCombo();
 
+	void onCurGridChange(HippoGridInfo* new_grid, HippoGridInfo* old_grid);
 	static void loadLoginPage();	
 	static void refreshLoginPage();
 	static void giveFocus();
@@ -102,18 +103,21 @@ public:
 	// inherited from LLViewerMediaObserver
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event);
 
+	/// to be called from LLStartUp::setStartSLURL
+	static void onUpdateStartSLURL(const LLSLURL& new_start_slurl);
+
 private:
+	void reshapeBrowser();
+	void onLocationSLURL();
+
 	static void onClickConnect(void*);
-	static void onClickNewAccount(void*);
+	static void onClickNewAccount();
 	static bool newAccountAlertCallback(const LLSD& notification, const LLSD& response);
 	static void onClickGrids(void*);
-	static void onSelectGrid(LLUICtrl *ctrl, void*);
-	static void onClickQuit(void*);
+	static void onSelectGrid(LLUICtrl *ctrl);
 	static void onClickVersion(void*);
-	static void onClickForgotPassword(void*);
-	static void onPassKey(LLLineEditor* caller, void* user_data);
-	//static void onSelectServer(LLUICtrl*, void*);
-	//static void onServerComboLostFocus(LLFocusableElement*, void*);
+	static void onClickForgotPassword();
+	static void onPassKey(LLLineEditor* caller);
 	static void onSelectLoginEntry(LLUICtrl*, void*);
 	void onLoginComboLostFocus(LLComboBox* combo_box);
 	static void onNameCheckChanged(LLUICtrl* ctrl, void* data);
@@ -153,7 +157,6 @@ private:
 
 	static LLPanelLogin* sInstance;
 	static BOOL		sCapslockDidNotification;
-	BOOL			mHtmlAvailable;
 
 	LLSavedLogins	mLoginHistoryData;
 };

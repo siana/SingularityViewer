@@ -3,10 +3,10 @@
  * Copyright (c) 2009-2011, Kitty Barnett
  * 
  * The source code in this file is provided to you under the terms of the 
- * GNU General Public License, version 2.0, but WITHOUT ANY WARRANTY;
+ * GNU Lesser General Public License, version 2.1, but WITHOUT ANY WARRANTY;
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
- * PARTICULAR PURPOSE. Terms of the GPL can be found in doc/GPL-license.txt 
- * in this distribution, or online at http://www.gnu.org/licenses/gpl-2.0.txt
+ * PARTICULAR PURPOSE. Terms of the LGPL can be found in doc/LGPL-licence.txt
+ * in this distribution, or online at http://www.gnu.org/licenses/lgpl-2.1.txt
  * 
  * By copying, modifying or distributing this software, you acknowledge that
  * you have read and understood your obligations described above, and agree to 
@@ -141,7 +141,8 @@ public:
 
 protected:
 	static std::vector<std::string> m_Anonyms;
-	static std::map<std::string, std::string> m_StringMap;
+	typedef std::map<std::string, std::string> string_map_t;
+	static string_map_t m_StringMap;
 };
 
 // ============================================================================
@@ -172,8 +173,6 @@ public:
 	static bool sendChatReply(S32 nChannel, const std::string& strUTF8Text);
 	static bool sendChatReply(const std::string& strChannel, const std::string& strUTF8Text);
 
-	static void warnGiveToRLV();
-	static void onGiveToRLVConfirmation(const LLSD& notification, const LLSD& response);
 protected:
 	static bool m_fForceTp;															// @standtp
 };

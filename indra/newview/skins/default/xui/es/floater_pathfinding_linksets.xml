@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="floater_pathfinding_linksets" title="Conjuntos de Enlaces Pathfinding">
+	<string name="messaging_initial"></string>
+	<string name="messaging_get_inprogress">
+		Consultando los Conjuntos de Enlaces de pathfinding ...
+	</string>
+	<string name="messaging_get_error">
+		Error detectado al consultar los conjuntos de enlaces de pathfinding.
+	</string>
+	<string name="messaging_set_inprogress">
+		Modificando los conjuntos de enlaces de pathfinding seleccionados...
+	</string>
+	<string name="messaging_set_error">
+		Error detectado al modificar los conjuntos de enlaces de pathfinding seleccionados.
+	</string>
+	<string name="messaging_complete_none_found">
+		Sin conjuntos de enlaces de pathfinding.
+	</string>
+	<string name="messaging_complete_available">
+		[NUM_SELECTED] conjuntos de enlaces de un total de [NUM_TOTAL].
+	</string>
+	<string name="messaging_not_enabled">
+		Esta región no tiene pathfinding habilitado.
+	</string>
+	<string name="linkset_terrain_name">
+		[Terreno]
+	</string>
+	<string name="linkset_terrain_description">--</string>
+	<string name="linkset_terrain_owner">--</string>
+	<string name="linkset_terrain_scripted">--</string>
+	<string name="linkset_terrain_land_impact">--</string>
+	<string name="linkset_terrain_dist_from_you">--</string>
+	<string name="linkset_owner_loading">
+		[Cargando]
+	</string>
+	<string name="linkset_owner_unknown">
+		[Desconocido]
+	</string>
+	<string name="linkset_owner_group">
+		[grupo]
+	</string>
+	<string name="linkset_is_scripted">
+		Si
+	</string>
+	<string name="linkset_is_not_scripted">
+		No
+	</string>
+	<string name="linkset_is_unknown_scripted">
+		Desconocido
+	</string>
+	<string name="linkset_use_walkable">
+		Transitable
+	</string>
+	<string name="linkset_use_static_obstacle">
+		Obstáculo estático
+	</string>
+	<string name="linkset_use_dynamic_obstacle">
+		Obstáculo móvil
+	</string>
+	<string name="linkset_use_material_volume">
+		Masa Material
+	</string>
+	<string name="linkset_use_exclusion_volume">
+		Masa de Exclusión
+	</string>
+	<string name="linkset_use_dynamic_phantom">
+		Inmaterial móvil
+	</string>
+	<string name="linkset_is_terrain">
+		[no modificable]
+	</string>
+	<string name="linkset_is_restricted_state">
+		[restringido]
+	</string>
+	<string name="linkset_is_non_volume_state">
+		[concavo]
+	</string>
+	<string name="linkset_is_restricted_non_volume_state">
+		[restringido,concavo]
+	</string>
+	<string name="linkset_choose_use">
+		Seleccionar uso del conjunto de enlaces...
+	</string>
+	<panel name="pathfinding_linksets_main">
+		<text name="linksets_filter_label">
+			Filtrar por:
+		</text>
+		<text name="linksets_name_label">
+			Nombre
+		</text>
+		<text name="linksets_desc_label">
+			Descripción
+		</text>
+		<combo_box name="filter_by_linkset_use">
+			<combo_item name="filter_by_linkset_use_none">
+				Filtrar por uso de conjunto de enlaces...
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_walkable">
+				Transitable
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_static_obstacle">
+				Obstáculo estático
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_dynamic_obstacle">
+				Obstáculo móvil
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_material_volume">
+				Masa Material
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_exclusion_volume">
+				Masa de Exclusion
+			</combo_item>
+			<combo_item name="filter_by_linkset_use_dynamic_phantom">
+				Inmaterial móvil
+			</combo_item>
+		</combo_box>
+		<button label="Aplicar" name="apply_filters"/>
+		<button label="Limpiar" name="clear_filters"/>
+		<scroll_list name="objects_scroll_list">
+			<column label="Nombre (prim raíz)" name="name"/>
+			<column label="Descripción (prim raíz)" name="description"/>
+			<column label="Propietario" name="owner"/>
+			<column label="Scripts" name="scripted"/>
+			<column label="Impacto" name="land_impact" width="63" />
+			<column label="Distancia" name="dist_from_you"/>
+			<column label="Uso Conjunto de Enlaces" name="linkset_use" width="226" />
+			<column label="A%" name="a_percent"/>
+			<column label="B%" name="b_percent"/>
+			<column label="C%" name="c_percent"/>
+			<column label="D%" name="d_percent"/>
+		</scroll_list>
+		<text name="messaging_status">
+			Conjuntos de Enlace:
+		</text>
+		<button label="Actualizar Lista" name="refresh_objects_list" left_delta="670" width="110"/>
+		<button label="Seleccionar Todo" name="select_all_objects" left_delta="115"/>
+		<button label="Seleccionar Ninguno" name="select_none_objects" left_delta="120" width="135"/>
+	</panel>
+	<view_border name="horiz_separator"/>
+	<panel name="pathfinding_linksets_actions" >
+		<text name="linksets_actions_label">
+			Actiones sobre conjuntos de enlaces (Si uno es quitado del mundo sus atributos se perderán):
+		</text>
+		<check_box label="Mostrar Baliza" name="show_beacon"/>
+		<button label="Recoger" name="take_objects"/>
+		<button label="Recoger una copiar" name="take_copy_objects" width="120"/>
+		<button label="Teleportarme hacia ahí" name="teleport_me_to_object"/>
+		<button label="Devolver" name="return_objects"/>
+		<button label="Borrar" name="delete_objects"/>
+	</panel>
+	<view_border name="horiz_separator"/>
+	<panel name="pathfinding_linksets_attributes"  >
+		<text name="linksets_attributes_label">
+			Edita los atributos del conjunto de enlaces seleccionado y presiona el botón para aplicar los cambios
+		</text>
+		<combo_box name="edit_linkset_use">
+		</combo_box>
+		<text name="walkability_coefficients_label">
+			Transitabilidad:
+		</text>
+		<text name="edit_a_label">
+			A
+		</text>
+		<line_editor name="edit_a_value" tool_tip="Transibilidad del personaje de tipo A.  Un ejemplo de personaje de este tipo es Humanoide."/>
+		<text name="edit_b_label">
+			B
+		</text>
+		<line_editor name="edit_b_value" tool_tip="Transibilidad del personaje de tipo B.  Un ejemplo de personaje de este tipo es Criatura."/>
+		<text name="edit_c_label">
+			C
+		</text> 
+		<line_editor name="edit_c_value" tool_tip="Transibilidad del personaje de tipo C.  Un ejemplo de personaje de este tipo es un Mecánico."/>
+		<text name="edit_d_label" >
+			D
+		</text>
+		<line_editor name="edit_d_value" tool_tip="Transibilidad del personaje de tipo D.  Un ejemplo de personaje de este tipo es Otro."/>
+		<button label="Aplicar cambios" name="apply_edit_values"/>
+		<text name="suggested_use_a_label">
+			(Humanoide)
+		</text>
+		<text name="suggested_use_b_label">
+			(Criatura)
+		</text> 
+		<text name="suggested_use_c_label">
+			(Mecánico)
+		</text>
+		<text name="suggested_use_d_label">
+			(Otro)
+		</text>
+	</panel>
+</floater>

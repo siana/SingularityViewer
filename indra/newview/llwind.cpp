@@ -50,7 +50,7 @@
 #include "noise.h"
 #include "v4color.h"
 #include "llagent.h"
-#include "llworld.h"
+#include "llviewerregion.h"
 
 const F32 CLOUD_DIVERGENCE_COEF = 0.5f; 
 
@@ -254,7 +254,10 @@ LLVector3 LLWind::getVelocity(const LLVector3 &pos_region)
 
 	LLVector3 pos_clamped_region(pos_region);
 	
-	F32 region_width_meters = LLWorld::getInstance()->getRegionWidthInMeters();
+// <FS:CR> Aurora Sim
+	//F32 region_width_meters = LLWorld::getInstance()->getRegionWidthInMeters();
+	F32 region_width_meters = gAgent.getRegion()->getWidth();
+// </FS:CR> Aurora Sim
 
 	if (pos_clamped_region.mV[VX] < 0.f)
 	{
@@ -321,7 +324,7 @@ LLVector3 LLWind::getCloudVelocity(const LLVector3 &pos_region)
 
 	LLVector3 pos_clamped_region(pos_region);
 	
-	F32 region_width_meters = LLWorld::getInstance()->getRegionWidthInMeters();
+	F32 region_width_meters = gAgent.getRegion()->getWidth();
 
 	if (pos_clamped_region.mV[VX] < 0.f)
 	{

@@ -1,47 +1,33 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <pie_menu name="Attachment Pie">
-	  <menu_item_call label="Perfil..." name="Profile...">
-			 <on_click function="ShowAgentProfile" userdata="agent" />
-	  </menu_item_call>
-	  <menu_item_call label="Soltar" name="Drop">
-			 <on_click function="Attachment.Drop" />
-			 <on_enable function="Attachment.EnableDrop" />
-	  </menu_item_call>
-	  <menu_item_call label="Tocar" name="Attachment Object Touch">
-			 <on_click function="Object.Touch" />
-			 <on_enable function="Object.EnableTouch" userdata="Touch" name="EnableTouch"/>
-	  </menu_item_call>
-	  <menu_item_call label="Pararse" name="Stand Up">
-			 <on_click function="Self.StandUp" userdata="" />
-			 <on_enable function="Self.EnableStandUp" />
-	  </menu_item_call>
-	  <menu_item_call label="Quitar" name="Detach">
-			 <on_click function="Attachment.Detach" />
-			 <on_enable function="Attachment.EnableDetach" />
-	  </menu_item_call>
-	  <pie_menu label="Herramientas &gt;" name="Tools &gt;">
-			 <menu_item_call label="S. Count" name="ScriptCount">
-					<on_click function="Object.ScriptCount" />
-					<on_visible function="Object.VisibleScriptCount" />
-			 </menu_item_call>
-			 <menu_item_call label="Inspeccionar" name="Object Inspect">
-					<on_click function="Object.Inspect" />
-					<on_enable function="Object.EnableInspect"/>
-			 </menu_item_call>
-			 <menu_item_call label="Datos" name="Data">
-					<on_click function="Object.Data" />
-			 </menu_item_call>
-			 <menu_item_call label="Derender" name="Derender">
-					<on_click function="Object.DERENDER" />
-					<on_enable function="Object.EnableDerender" />
-			 </menu_item_call>
-	  </pie_menu>
-	  <menu_item_call label="Apariencia..." name="Appearance...">
-			 <on_click function="ShowFloater" userdata="appearance" />
-			 <on_enable function="Edit.EnableCustomizeAvatar" />
-	  </menu_item_call>
-	  <menu_item_call label="Editar..." name="Edit...">
-			 <on_click function="Object.Edit" />
-			 <on_enable function="EnableEdit" />
-	  </menu_item_call>
-</pie_menu>
+	<menu_item_call label="Perfil..." name="Profile..."/>
+	<menu_item_call label="Soltar" name="Drop"/>
+	<menu_item_call label="Tocar" name="Attachment Object Touch">
+		<on_click function="Object.Touch" />
+		<on_enable function="Object.EnableTouch" userdata="Tocar" name="EnableTouch"/>
+	</menu_item_call>	
+	<menu_item_call label="Pararse" name="Stand Up">
+		<on_click function="Self.SitOrStand"/>
+		<on_enable function="Self.EnableSitOrStand" userdata="Sentarse,Pararse"/>
+	</menu_item_call>
+	<menu_item_call label="Quitar" name="Detach"/>
+	<pie_menu label="Herramientas &gt;" name="Tools &gt;">
+		<pie_menu label="Scripts &gt;" name="ScriptsMenu">	  
+			<menu_item_call label="Compilar en Mono" name="CompileMono"/>
+			<menu_item_call label="Compilar en LSL" name="CompileLSL"/>
+			<menu_item_call label="Reiniciar" name="Reset Scripts"/>
+			<menu_item_call label="Iniciar" name="Object Set Scripts to Running"/>
+			<menu_item_call label="Detener" name="Object Set Scripts to Not Running"/>
+			<menu_item_call label="Borrar" name="Remove Scripts From Selection"/> 
+			<menu_item_call label="Conteo de Scripts" name="ScriptCount"/>
+			<menu_item_call label="Info de Script" name="Script Info"/>
+		</pie_menu>			
+		<menu_item_call label="Inspeccionar" name="Object Inspect"/>
+		<menu_item_call label="Datos" name="Data"/>
+		<menu_item_call label="Desdibujar" name="Derender"/>
+		<menu_item_call label="Recargar" name="Reload Textures"/>
+		<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
+		<menu_item_call label="Guardar DAE..." name="Save DAE..."/>
+	</pie_menu>
+	<menu_item_call label="Apariencia..." name="Appearance..."/>
+	<menu_item_call label="Editar..." name="Edit..."/></pie_menu>

@@ -4,13 +4,19 @@ Second Life - Linux Voice Support README
 WHAT IS IT?
 -=-=-=-=-=-
 
-Linux Voice Support is a new feature in testing which allows users
-of the Linux Second Life client to participate in voice-chat with other
-residents and groups inside Second Life, with an appropriate
-headset/microphone.
+Linux Voice Support is a feature in testing which allows users of the Linux
+Second Life client to participate in voice-chat with other residents and
+groups inside Second Life, with an appropriate headset/microphone.
 
 Linux Voice Support is currently EXPERIMENTAL and is known to still
 have some compatibility issues.
+
+SINGULARITY MULTI-VOICE
+-=-=-=-=-=-=-=-=-=-=-=-
+Singularity multi-voice is an experimental feature that allows you to run multiple
+SLVoice daemons at the same time, in order to do this, the debug setting VoiceMultiInstance
+must be TRUE, this allows multiple instances of the viewer to run concurrently and
+each connect to voice.
 
 REQUIREMENTS
 -=-=-=-=-=-=
@@ -29,6 +35,13 @@ systems:
 * Fedora Core 6 with (unknown) audio chipset
 * Ubuntu 8.04 (Hardy) with (unknown) audio chipset
 
+TESTING YOUR SETTINGS
+-=-=-=-=-=-=-=-=-=-=-
+
+* The Second Life region 'Voice Echo Canyon' is a great place for testing
+your hardware settings and quality - it will 'echo' your voice back to you
+when you speak.
+
 KNOWN PROBLEMS
 -=-=-=-=-=-=-=
 
@@ -41,12 +54,12 @@ TROUBLESHOOTING
 PROBLEM 1: I don't see a white dot over the head of my avatar or other
   Voice-using avatars.
 SOLUTION:
-a. Ensure that 'Enable voice chat' is enabled in the Voice Chat
-  preferences window and that you are in a voice-enabled area (you
-  will see a blue headphone icon in the SL menu-bar).
+a. Ensure that 'Enable voice chat' is enabled in the 'Voice Chat' section of the
+  Preferences window, and that you are in a voice-enabled area
+  (you will see a blue headphone icon in the SL menu-bar).
 b. If the above does not help, exit Second Life and ensure that any
   remaining 'SLVoice' processes (as reported by 'ps', 'top' or similar)
-  are killed.
+  are killed before restarting.
 
 PROBLEM 2: I have a white dot over my head but I never see (or hear!) anyone
   except myself listed in the Active Speakers dialog when I'm sure that other
@@ -65,12 +78,13 @@ c. Update to the latest version of ALSA manually.  For a guide, see the
 
 PROBLEM 3: I can hear other people, but they cannot hear me.
 SOLUTION:
-a. Ensure that you have the 'Talk' button activated while you are trying to
-  speak.
+a. Ensure that you have the 'Talk' button (at the bottom of the Second Life
+   window)activated while you are trying to speak.
 b. Ensure that your microphone jack is inserted into the correct socket of your
   sound card, where appropriate.
-c. Use your system mixer-setting program or the 'alsamixer' program to ensure
-  that microphone input is set as the active input source and is not muted.
+c. Use your system mixer-setting program (such as the PulseAudio 'volume
+  control' applet or the ALSA 'alsamixer' program) to ensure that microphone
+  input is set as the active input source and is not muted.
 d. Verify that audio input works in other applications, i.e. Audacity
 
 PROBLEM 4: Other people just hear bursts of loud noise when I speak.

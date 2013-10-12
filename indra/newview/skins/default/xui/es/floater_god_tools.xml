@@ -5,10 +5,12 @@
 			<button label="Expulsar a todos los usuarios" label_selected="Expulsar a todos los usuarios" name="Kick all users" width="200"/>
 			<button label="Vaciar caché de visibilidad del Mapa de esta Región" label_selected="Vaciar caché de visibilidad del Mapa de esta Región" name="Flush This Region&apos;s Map Visibility Caches" width="350"/>
 		</panel>
+		<!-- ======================== -->
 		<panel label="Región" name="region">
 			<text name="Sim Name:">
 				Nombre del Sim:
 			</text>
+			<line_editor name="region name"/>
 			<check_box label="Preludio" name="check prelude" tool_tip="Marcar aqui para hacer un preludio de esta Región."/>
 			<check_box label="Sol Fijo" name="check fixed sun" tool_tip="Fijar la posición del sol (Así como en Región/Estado &gt; Terreno."/>
 			<check_box label="Reiniciar Base al Teleportar" name="check reset home" tool_tip="Cuando un residente se teleporta a otro lugar, reiniciar su base al punto de destino."/>
@@ -17,16 +19,19 @@
 			<check_box label="Bloquear Seguimiento de Tráfico" name="block dwell" tool_tip="Marcar aquí para que esta región no compute el tráfico"/>
 			<check_box label="Bloquear Terraformado" name="block terraform" tool_tip="Marcar aquí para impedir que los usuarios puedan terraformar sus terrenos"/>
 			<check_box label="Sandbox" name="is sandbox" tool_tip="Definir cuando esta región es o no un sandbox."/>
+			<check_box name="is gaming" label="Juegos de Azar" tool_tip="Marcar si es o no una región de juegos de azar."/>
+			<check_box name="hide from search" label="Ocultar Región en las búsquedas" tool_tip="Marcar si esta región aparecerá o no en las búsquedas."/>
 			<button label="Resguardar Terreno" label_selected="Resguardar Terreno" name="Bake Terrain" tool_tip="Guardar el terreno actual como predefinido"/>
 			<button label="Revertir Terreno" label_selected="Revertir Terreno" name="Revert Terrain" tool_tip="Sustituir el terreno actual por el predefinido"/>
 			<button label="Intercambiar Terreno" label_selected="Intercambiar Terreno" name="Swap Terrain" tool_tip="Intercambiar terreno por el predefinido"/>
 			<text name="estate id">
 				ID del Estado:
 			</text>
+			<line_editor name="estate"/>
 			<text name="parent id">
 				ID del padre:
 			</text>
-			<line_editor name="parentestate" tool_tip="Esta es una propiedad padre para esta región"/>
+			<line_editor name="parentestate" tool_tip="Este es un Estado padre para esta región"/>
 			<text name="Grid Pos: ">
 				Pos. del Grid:
 			</text>
@@ -35,18 +40,26 @@
 			<text name="Redirect to Grid: ">
 				Redireccionar al Grid:
 			</text>
+			<line_editor name="redirectx"/>
+			<line_editor name="redirecty"/>
+			<spinner name="billable factor"/>
 			<text name="billable factor text">
 				Factor de cobro:
 			</text>
+			<spinner name="land cost"/>
 			<text name="land cost text">
 				[CURRENCY] por m2:
 			</text>
 			<button label="Actualizar" label_selected="Actualizar" name="Refresh" tool_tip="Pulsa aqui para actualizar la información superior"/>
 			<button label="Aplicar" label_selected="Aplicar" name="Apply" tool_tip="Pulsa aqui para aplicar los cambios superiores"/>
-			<button label="Seleccionar Región" label_selected="Seleccionar Región" name="Select Region" tool_tip="Seccionar toda la región con la herramienta de terreno"/>
+			<button label="Seleccionar Región" label_selected="Seleccionar Región" name="Select Region" tool_tip="Seleccionar toda la región con la herramienta de terreno"/>
 			<button label="Guardado Automático Ahora" label_selected="Guardado Automático Ahora" name="Autosave now" tool_tip="Guardar con gzip el estado actual en el directorio de guardado automático"/>
 		</panel>
+		<!-- ======================== -->
 		<panel label="Objetos" name="objects">
+			<string name="no_target">
+				(ningún objetivo)
+			</string>		
 			<text name="Sim Name:">
 				Nombre del Sim:
 			</text>
@@ -61,13 +74,14 @@
 			<text name="target_avatar_name">
 				(sin objetivo)
 			</text>
-			<button label="Borrar objetos con scripts del Objetivo en otros terrenos" label_selected="Borrar objetos con scripts del Objetivo en otros terrenos" name="Delete Target&apos;s Scripted Objects On Others Land" tool_tip="Borrar todos los objetivos con scripts propiedad del Objetivo en terrenos que no son propiedad del Objetivo. Los Objetos (No Copiables) serán retornados"/>
+			<button label="Borrar objetos con scripts del Objetivo en otros terrenos" label_selected="Borrar objetos con scripts del Objetivo en otros terrenos" name="Delete Target&apos;s Scripted Objects On Others Land" tool_tip="Borrar todos los objetos con scripts propiedad del Objetivo en terrenos que no son propiedad del mismo. Los Objetos (No Copiables) serán retornados"/>
 			<button label="Borrar los objetos con scripts del Objetivo en *Cualquier* terreno" label_selected="Borrar los objetos con scripts del Objetivo en *Cualquier* terreno" name="Delete Target&apos;s Scripted Objects On *Any* Land" tool_tip="Borra todos los objetos con scripts propiedad del Objetivo en esta región. Los objetos (no copiables) serán retornados"/>
 			<button label="Borrar *TODOS* los objetos del Objetivo" label_selected="Borrar *TODOS* los objetos del Objetivo" name="Delete *ALL* Of Target&apos;s Objects" tool_tip="Borra todos los objetos propiedad del Objetivo en esta región. Los objetos (no copiables) serán retornados"/>
 			<button label="Obtener Principales Colisionadores" label_selected="Obtener Principales Colisionadores" name="Get Top Colliders" tool_tip="Obtiene una lista  de los objetos que experimentan llamadas de fase estrecha."/>
 			<button label="Obtener Principales Scripts" label_selected="Obtener Principales Scripts" name="Get Top Scripts" tool_tip="Obtiene una lista de los objetos que consumen mas tiempo ejecutando scripts"/>
 			<button label="Compilación de Scripts" label_selected="Compilación de Scripts" name="Scripts digest" tool_tip="Obtener un listado de todos los scripts y número de ocurrencias de cada uno."/>
 		</panel>
+		<!-- ======================== -->
 		<panel label="Solicitar" name="request">
 			<text name="Destination:">
 				Destino:
@@ -100,6 +114,7 @@
 			<text name="Parameter:">
 				Parámetro:
 			</text>
+			<line_editor name="parameter"/>
 			<button label="Hacer Solicitud" label_selected="Hacer Solicitud" name="Make Request"/>
 		</panel>
 	</tab_container>

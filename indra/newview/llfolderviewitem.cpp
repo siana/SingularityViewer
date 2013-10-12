@@ -93,7 +93,7 @@ LLFolderViewItem::LLFolderViewItem( const std::string& name, LLUIImagePtr icon,
 								   S32 creation_date,
 								   LLFolderView* root,
 									LLFolderViewEventListener* listener ) :
-	LLUICtrl( name, LLRect(0, 0, 0, 0), TRUE, NULL, NULL, FOLLOWS_LEFT|FOLLOWS_TOP|FOLLOWS_RIGHT),
+	LLUICtrl( name, LLRect(0, 0, 0, 0), TRUE, NULL, FOLLOWS_LEFT|FOLLOWS_TOP|FOLLOWS_RIGHT),
 	mLabelWidth(0),
 	mLabelWidthDirty(false),
 	mParentFolder( NULL ),
@@ -612,6 +612,15 @@ void LLFolderViewItem::rename(const std::string& new_name)
 				mParentFolder->requestSort();
 			}
 		}
+	}
+}
+
+void LLFolderViewItem::nameOrDescriptionChanged(void) const
+{
+	// Inform the listeners. Our name was already updated (and we don't have a description).
+	if( mListener )
+	{
+		mListener->nameOrDescriptionChanged();
 	}
 }
 
@@ -2872,3 +2881,4 @@ bool LLInventorySort::operator()(const LLFolderViewItem* const& a, const LLFolde
 		}
 	}
 }
+

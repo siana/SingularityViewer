@@ -71,10 +71,10 @@ glh_linear.h
 #define     GLH_EPSILON         GLH_REAL(10e-6)
 #define     GLH_PI              GLH_REAL(3.1415926535897932384626433832795)    
 
-#define     equivalent(a,b)     (((a < b + GLH_EPSILON) && (a > b - GLH_EPSILON)) ? true : false)
 
 namespace glh
 {
+	inline bool equivalent(GLH_REAL a, GLH_REAL b) { return b - GLH_EPSILON < a && a < b + GLH_EPSILON; }
 
 	inline GLH_REAL to_degrees(GLH_REAL radians) { return radians*GLH_RAD_TO_DEG; }
 	inline GLH_REAL to_radians(GLH_REAL degrees) { return degrees*GLH_DEG_TO_RAD; }

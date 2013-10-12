@@ -37,6 +37,7 @@
 
 class LLViewerTexture ;
 class LLEventPump;
+class LLSLURL;
 
 #include "llviewerstats.h"
 
@@ -58,8 +59,6 @@ typedef enum {
 	STATE_LOGIN_VOICE_LICENSE,		// Show license agreement for using voice
 	STATE_UPDATE_CHECK,				// Wait for user at a dialog box (updates, term-of-service, etc)
 	STATE_LOGIN_AUTH_INIT,			// Start login to SL servers
-	STATE_LOGIN_AUTHENTICATE,		// Do authentication voodoo
-	STATE_WAIT_LEGACY_LOGIN,        // Waiting for legacy login 
 	STATE_XMLRPC_LEGACY_LOGIN,      // XMLRPC for legacy login, OGPX maintain legacy XMLRPC
 	STATE_LOGIN_NO_DATA_YET,		// Waiting for authentication replies to start
 	STATE_LOGIN_DOWNLOADING,		// Waiting for authentication replies to download
@@ -133,14 +132,14 @@ public:
 		// the viewer, dispatch it
 
 	static void postStartupState();
-	static std::string sSLURLCommand;
-		// *HACK: On startup, if we were passed a secondlife://app/do/foo
-		// command URL, store it for later processing.
+	static void setStartSLURL(const LLSLURL& slurl); 
+	static LLSLURL& getStartSLURL();
 
 	static bool startLLProxy(); // Initialize the SOCKS 5 proxy	
 
 	static LLViewerStats::PhaseMap& getPhases() { return *sPhases; }
 private:
+	static LLSLURL sStartSLURL;
 
 	static std::string startupStateToString(EStartupState state);
 	static EStartupState gStartupState; // Do not set directly, use LLStartup::setStartupState

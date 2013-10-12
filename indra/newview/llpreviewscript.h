@@ -40,7 +40,6 @@
 #include "llcombobox.h"
 #include "lliconctrl.h"
 #include "llframetimer.h"
-#include "lleventtimer.h"
 
 class LLLiveLSLFile;
 class LLMessageSystem;
@@ -53,58 +52,62 @@ struct 	LLEntryAndEdCore;
 class LLMenuBarGL;
 class LLKeywordToken;
 class AIFilePicker;
+class LLScriptEdContainer;
 
 // Inner, implementation class.  LLPreviewScript and LLLiveLSLEditor each own one of these.
-class LLScriptEdCore : public LLPanel, public LLEventTimer
+class LLScriptEdCore : public LLPanel
 {
 	friend class LLPreviewScript;
 	friend class LLPreviewLSL;
 	friend class LLLiveLSLEditor;
+	friend class LLFloaterSearchReplace;
+	friend class LLScriptEdContainer;
 
 public:
 	static void parseFunctions(const std::string& filename);
+
+protected:
+	// Supposed to be invoked only by the container.
 	LLScriptEdCore(
-		const std::string& name,
-		const LLRect& rect,
+		LLScriptEdContainer* container,
 		const std::string& sample,
-		const std::string& help_url,
 		const LLHandle<LLFloater>& floater_handle,
 		void (*load_callback)(void* userdata),
 		void (*save_callback)(void* userdata, BOOL close_after_save),
 		void (*search_replace_callback)(void* userdata),
 		void* userdata,
-        LLUUID objectUUID,
-        LLUUID itemUUID,
 		S32 bottom_pad = 0);	// pad below bottom row of buttons
+public:
 	~LLScriptEdCore();
 	
 	void			initMenu();
 
 	virtual void	draw();
-
+	/*virtual*/	BOOL	postBuild();
 	BOOL			canClose();
+	void			setEnableEditing(bool enable);
 
 	void            setScriptText(const std::string& text, BOOL is_valid);
 	bool			loadScriptText(const std::string& filename);
 	bool			writeToFile(const std::string& filename);
 	void			sync();
-	std::string		getTmpFileName();
-	static void     openInExternalEditor(void* userdata);
-	bool			onExternalChange(const std::string& filename);
+
+	void			doSave( BOOL close_after_save );
 
 	bool			handleSaveChangesDialog(const LLSD& notification, const LLSD& response);
 	bool			handleReloadFromServerDialog(const LLSD& notification, const LLSD& response);
 
-	static bool		onHelpWebDialog(const LLSD& notification, const LLSD& response);
-	static void		onBtnHelp(void* userdata);
-	static void		onBtnDynamicHelp(void* userdata);
+	void			openInExternalEditor();
+
 	static void		onCheckLock(LLUICtrl*, void*);
 	static void		onHelpComboCommit(LLUICtrl* ctrl, void* userdata);
 	static void		onClickBack(void* userdata);
 	static void		onClickForward(void* userdata);
 	static void		onBtnInsertSample(void*);
 	static void		onBtnInsertFunction(LLUICtrl*, void*);
-	static void		doSave( void* userdata, BOOL close_after_save, BOOL sync_external_editor = TRUE );
+
+	// Singu TODO: modernize the menu callbacks and get rid of/update this giant block of static functions
+	static BOOL		hasChanged(void* userdata);
 	static void		onBtnSave(void*);
 	static void		onBtnUndoChanges(void*);
 	static void		onSearchMenu(void* userdata);
@@ -125,15 +128,17 @@ public:
 	static BOOL		enableSelectAllMenu(void* userdata);
 	static BOOL		enableDeselectMenu(void* userdata);
 
-	static BOOL		hasChanged(void* userdata);
+private:
+	static bool		onHelpWebDialog(const LLSD& notification, const LLSD& response);
+	static void		onBtnHelp(void* userdata);
+	static void		onBtnDynamicHelp(void* userdata);
+	void		onBtnUndoChanges();
+
+	bool		hasChanged();
 
 	void selectFirstError();
-	
-	void autoSave();
 
 	virtual BOOL handleKeyHere(KEY key, MASK mask);
-	
-	virtual BOOL tick();
 	
 	void enableSave(BOOL b) {mEnableSave = b;}
 
@@ -144,12 +149,8 @@ protected:
 	void addHelpItemToHistory(const std::string& help_string);
 	static void onErrorList(LLUICtrl*, void* user_data);
 
- 	virtual const char *getTitleName() const { return "Script"; }
-
 private:
 	std::string		mSampleText;
-	std::string		mAutosaveFilename;
-	std::string		mHelpURL;
 	LLTextEditor*	mEditor;
 	void			(*mLoadCallback)(void* userdata);
 	void			(*mSaveCallback)(void* userdata, BOOL close_after_save);
@@ -157,7 +158,6 @@ private:
 	void*			mUserdata;
 	LLComboBox		*mFunctions;
 	BOOL			mForceClose;
-	//LLPanel*		mGuiPanel;
 	LLPanel*		mCodePanel;
 	LLScrollListCtrl* mErrorList;
 	LLDynamicArray<LLEntryAndEdCore*> mBridges;
@@ -168,8 +168,8 @@ private:
 	BOOL			mEnableSave;
 	BOOL			mHasScriptData;
 	LLLiveLSLFile*	mLiveFile;
-	LLUUID          mObjectUUID;
-	LLUUID          mItemUUID;
+
+	LLScriptEdContainer* mContainer; // parent view
 
 	struct LSLFunctionProps
 	{
@@ -180,25 +180,47 @@ private:
 	static std::vector<LSLFunctionProps> mParsedFunctions;
 };
 
+class LLScriptEdContainer : public LLPreview
+{
+	friend class LLScriptEdCore;
+	friend class LLMultiPreview;
+
+public:
+	LLScriptEdContainer(const std::string& name, const LLRect& rect, const std::string& title, const LLUUID& item_id, const LLUUID& object_id = LLUUID::null);
+
+protected:
+	std::string		getTmpFileName();
+	bool			onExternalChange(const std::string& filename);
+	virtual void	saveIfNeeded(bool sync = true) = 0;
+
+	LLTextEditor* getEditor() { return mScriptEd->mEditor; }
+	/*virtual*/ const char *getTitleName() const { return "Script"; }
+	/*virtual*/ void reshape(S32 width, S32 height, BOOL called_from_parent = TRUE);
+	// <edit>
+	/*virtual*/ BOOL canSaveAs() const;
+	/*virtual*/ void saveAs();
+	void saveAs_continued(AIFilePicker* filepicker);
+	// </edit>
+
+	LLScriptEdCore*		mScriptEd;
+};
 
 // Used to view and edit a LSL from your inventory.
-class LLPreviewLSL : public LLPreview
+class LLPreviewLSL : public LLScriptEdContainer
 {
 public:
-	LLPreviewLSL(const std::string& name, const LLRect& rect, const std::string& title,
-				 const LLUUID& item_uuid );
+	LLPreviewLSL(const std::string& name, const LLRect& rect, const std::string& title, const LLUUID& item_uuid );
 	virtual void callbackLSLCompileSucceeded();
 	virtual void callbackLSLCompileFailed(const LLSD& compile_errors);
 
-	/*virtual*/ void open();		/*Flawfinder: ignore*/
+	/*virtual*/ BOOL postBuild();
 
 protected:
 	virtual BOOL canClose();
 	void closeIfNeeded();
-	virtual void reshape(S32 width, S32 height, BOOL called_from_parent = TRUE);
 
 	virtual void loadAsset();
-	void saveIfNeeded();
+	/*virtual*/ void saveIfNeeded(bool sync = true);
 	void uploadAssetViaCaps(const std::string& url,
 							const std::string& filename, 
 							const LLUUID& item_id);
@@ -207,11 +229,6 @@ protected:
 							const LLUUID& item_id,
 							const LLTransactionID& tid);
 #endif
-	// <edit>
-	virtual BOOL canSaveAs() const;
-	virtual void saveAs();
-	void saveAs_continued(AIFilePicker* filepicker);
-	// </edit>
 
 	static void onSearchReplace(void* userdata);
 	static void onLoad(void* userdata);
@@ -224,17 +241,13 @@ protected:
 	static void onSaveComplete(const LLUUID& uuid, void* user_data, S32 status, LLExtStat ext_status);
 	static void onSaveBytecodeComplete(const LLUUID& asset_uuid, void* user_data, S32 status, LLExtStat ext_status);
 #endif
-public:
-	static LLPreviewLSL* getInstance(const LLUUID& uuid);
-	LLTextEditor* getEditor() { return mScriptEd->mEditor; }
+
 protected:
 	static void* createScriptEdPanel(void* userdata);
 
 
 protected:
 
- 	virtual const char *getTitleName() const { return "Script"; }
-	LLScriptEdCore* mScriptEd;
 	// Can safely close only after both text and bytecode are uploaded
 	S32 mPendingUploads;
 
@@ -242,18 +255,12 @@ protected:
 
 
 // Used to view and edit an LSL that is attached to an object.
-class LLLiveLSLEditor : public LLPreview
+class LLLiveLSLEditor : public LLScriptEdContainer
 {
+	friend class LLLiveLSLFile;
 public: 
-	LLLiveLSLEditor(const std::string& name, const LLRect& rect,
-					const std::string& title,
-					const LLUUID& object_id, const LLUUID& item_id);
-	~LLLiveLSLEditor();
+	LLLiveLSLEditor(const std::string& name, const LLRect& rect, const std::string& title, const LLUUID& object_id, const LLUUID& item_id);
 
-
-	static LLLiveLSLEditor* show(const LLUUID& item_id, const LLUUID& object_id);
-	static void hide(const LLUUID& item_id, const LLUUID& object_id);
-	static LLLiveLSLEditor* find(const LLUUID& item_id, const LLUUID& object_id);
 
 	static void processScriptRunningReply(LLMessageSystem* msg, void**);
 
@@ -262,18 +269,18 @@ public:
 											bool is_script_running);
 	virtual void callbackLSLCompileFailed(const LLSD& compile_errors);
 
-	// Overide LLPreview::open() to avoid calling loadAsset twice.
-	/*virtual*/ void open();		/*Flawfinder: ignore*/
+	/*virtual*/ BOOL postBuild();
 
-protected:
+	void setIsNew() { mIsNew = TRUE; }
+
+private:
 	virtual BOOL canClose();
 	void closeIfNeeded();
 	virtual void draw();
-	virtual void reshape(S32 width, S32 height, BOOL called_from_parent = TRUE);
 
 	virtual void loadAsset();
 	void loadAsset(BOOL is_new);
-	void saveIfNeeded();
+	/*virtual*/ void saveIfNeeded(bool sync = true);
 	void uploadAssetViaCaps(const std::string& url,
 							const std::string& filename, 
 							const LLUUID& task_id,
@@ -285,11 +292,8 @@ protected:
 						   const LLTransactionID& tid,
 						   BOOL is_running);
 #endif
-	// <edit>
-	virtual BOOL canSaveAs() const;
-	virtual void saveAs();
-	void saveAs_continued(AIFilePicker* filepicker);
-	// </edit>
+	BOOL monoChecked() const;
+
 
 	static void onSearchReplace(void* userdata);
 	static void onLoad(void* userdata);
@@ -305,19 +309,16 @@ protected:
 	static void onRunningCheckboxClicked(LLUICtrl*, void* userdata);
 	static void onReset(void* userdata);
 
-// 	void loadScriptText(const std::string& filename); // unused
 	void loadScriptText(LLVFS *vfs, const LLUUID &uuid, LLAssetType::EType type);
 
 	static void onErrorList(LLUICtrl*, void* user_data);
 
 	static void* createScriptEdPanel(void* userdata);
 
+	static void	onMonoCheckboxClicked(LLUICtrl*, void* userdata);
 
-protected:
-	LLUUID mObjectID;
-	LLUUID mItemID; // The inventory item this script is associated with
-	BOOL mIsNew;
-	LLScriptEdCore* mScriptEd;
+private:
+	bool mIsNew;
 	//LLUUID mTransmitID;
 	LLCheckBoxCtrl	*mRunningCheckbox;
 	BOOL mAskedForRunningInfo;
@@ -328,14 +329,8 @@ protected:
 	// need to save both text and script, so need to decide when done
 	S32 mPendingUploads;
 
-	static LLMap<LLUUID, LLLiveLSLEditor*> sInstances;
 	BOOL getIsModifiable() const { return mIsModifiable; } // Evaluated on load assert
 	
-private:
-
-	static void	onMonoCheckboxClicked(LLUICtrl*, void* userdata);
-	BOOL monoChecked() const;
-
 	LLCheckBoxCtrl*	mMonoCheckbox;
 	BOOL mIsModifiable;
 };

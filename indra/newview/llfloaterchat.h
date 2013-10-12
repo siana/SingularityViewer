@@ -48,7 +48,7 @@ class LLViewerTextEditor;
 class LLMessageSystem;
 class LLUUID;
 class LLCheckBoxCtrl;
-class LLPanelActiveSpeakers;
+class LLParticipantList;
 class LLLogChat;
 class LLChatBar;
 
@@ -95,7 +95,7 @@ public:
 	static void show(LLFloater* instance, const LLSD& key);
 	static void hide(LLFloater* instance, const LLSD& key);
 
-	LLPanelActiveSpeakers* mPanel;
+	LLParticipantList* mPanel;
 	BOOL mScrolledToEnd;
 
 	BOOL    focusFirstItem(BOOL prefer_text_fields = FALSE, BOOL focus_flash = TRUE );

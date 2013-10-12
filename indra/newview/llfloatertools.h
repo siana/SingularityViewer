@@ -49,6 +49,7 @@ class LLPanelLandInfo;
 class LLSlider;
 class LLTabContainer;
 class LLTextBox;
+class LLMediaCtrl;
 class LLTool;
 class LLParcelSelection;
 class LLObjectSelection;
@@ -71,11 +72,11 @@ public:
 	LLFloaterTools();
 	virtual ~LLFloaterTools();
 
-	virtual void onOpen();
-	virtual BOOL canClose();
-	virtual void onClose(bool app_quitting);
+	/*virtual*/ void onOpen();
+	/*virtual*/ BOOL canClose();
+	/*virtual*/ void onClose(bool app_quitting);
 	/*virtual*/ void draw();
-	virtual void onFocusReceived();
+	/*virtual*/ void onFocusReceived();
 
 	// call this once per frame to handle visibility, rect location,
 	// button highlights, etc.
@@ -100,13 +101,25 @@ public:
 
 	void setStatusText(const std::string& text);
 	static void setEditTool(void* data);
+	void setTool(const LLSD& user_data);
 	void saveLastTool();
+	void onClickBtnDeleteMedia();
+	void onClickBtnAddMedia();
+	void onClickBtnEditMedia();
+	void clearMediaSettings();
+	void updateMediaTitle();
+	void navigateToTitleMedia( const std::string url );
+	bool selectedMediaEditable();
 
 private:
 	void refresh();
-
+	void refreshMedia();
+	void getMediaState();
+	void updateMediaSettings();
+	static bool deleteMediaConfirm(const LLSD& notification, const LLSD& response);
+	static bool multipleFacesSelectedConfirm(const LLSD& notification, const LLSD& response);
 	static void setObjectType( LLPCode pcode );
-	static void onClickGridOptions(void* data);
+	void onClickGridOptions();
 
 public:
 	LLButton		*mBtnFocus;
@@ -190,6 +203,8 @@ public:
 	LLParcelSelectionHandle	mParcelSelection;
 	LLObjectSelectionHandle	mObjectSelection;
 
+	LLMediaCtrl				*mTitleMedia;
+	bool					mNeedMediaTitle;
 private:
 	BOOL					mDirty;
 
@@ -197,6 +212,8 @@ private:
 
 	void updateTreeGrassCombo(bool visible);
 	static void onSelectTreesGrass(LLUICtrl*, void*);
+protected:
+	LLSD				mMediaSettings;
 };
 
 extern LLFloaterTools *gFloaterTools;

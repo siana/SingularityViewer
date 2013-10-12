@@ -89,6 +89,10 @@ const U8 PERM_GROUP		= 0x04;
 const U8 PERM_EVERYONE	= 0x08;
 const U8 PERM_NEXT_OWNER = 0x10;
 
+// Boolean values for "Set".
+const U8 PERM_SET_TRUE	= 0x1;
+const U8 PERM_SET_FALSE = 0x0;
+
 // This is just a quickie debugging key
 // no modify: PERM_ALL & ~PERM_MODIFY                  = 0x7fffbfff 
 // no copy:   PERM_ALL & ~PERM_COPY                    = 0x7fff7fff

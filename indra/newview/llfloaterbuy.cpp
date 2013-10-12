@@ -41,7 +41,6 @@
 #include "llfloaterbuy.h"
 
 #include "llagent.h"			// for agent id
-#include "llalertdialog.h"
 #include "llinventorymodel.h"	// for gInventory
 #include "llinventorydefines.h"
 #include "llinventoryicon.h"

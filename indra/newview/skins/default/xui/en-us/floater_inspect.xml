@@ -16,14 +16,22 @@
     <column label="Scripts" name="script_num" width="35" />
     <column label="Inv Total" name="inv_num" width="35" />
 		<column label="Creation Date" name="creation_date" width="150" />
+		 <scroll_list.commit_callback
+		   function="Inspect.SelectObject" />
 	</scroll_list>
 	<button bottom="5" follows="left|bottom" font="SansSerif" halign="center" height="20"
 	     label="See Owner Profile..." label_selected="" left="10"
 	     mouse_opaque="true" name="button owner"
-	     tool_tip="See profile of the highlighted object&apos;s owner" width="150" />
+	     tool_tip="See profile of the highlighted object&apos;s owner" width="150" >
+		<button.commit_callback
+		function="Inspect.OwnerProfile" />
+	</button>
 	<button bottom="5" follows="left|bottom" font="SansSerif" halign="center" height="20"
 	     label="See Creator Profile..." label_selected="" left="170"
 	     mouse_opaque="true" name="button creator"
 	     tool_tip="See profile of the highlighted object&apos;s original creator"
-	     width="150" />
+	     width="150" >
+		<button.commit_callback
+		function="Inspect.CreatorProfile" />
+	</button>
 </floater>

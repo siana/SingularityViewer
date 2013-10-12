@@ -42,7 +42,7 @@ class LLMenuButton;
 class LLMenuGL;
 class LLToggleableMenu;
 class LLFloater;
-class LLSearchEditor;
+class LLFilterEditor;
 class LLComboBox;
 class LLFloaterInventoryFinder;
 
@@ -91,7 +91,7 @@ public:
 	const std::string& getFilterText() const { return mFilterText; }
 
 	void setSelectCallback(const LLFolderView::signal_t::slot_type& cb);
-	static void onSearchEdit(const std::string& search_string, void* user_data );
+	void onFilterEdit(const std::string& search_string);
 	//
 	// Misc functions
 	//
@@ -102,7 +102,7 @@ public:
 	void onSelectionChange(LLInventoryPanel *panel, const std::deque<LLFolderViewItem*>& items, BOOL user_action);
 
 	static BOOL filtersVisible(void* user_data);
-	static void onClearSearch(void* user_data);
+	void onClearSearch();
 	static void onFoldersByName(void *user_data);
 	static BOOL checkFoldersByName(void *user_data);
 	
@@ -161,7 +161,7 @@ protected:
 
 protected:
 	LLFloaterInventoryFinder* getFinder();
-	LLSearchEditor*				mSearchEditor;
+	LLFilterEditor*				mFilterEditor;
 	LLComboBox*					mQuickFilterCombo;
 	LLTabContainer*				mFilterTabs;
 	LLHandle<LLFloater>			mFinderHandle;

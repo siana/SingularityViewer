@@ -68,8 +68,7 @@ class LLCheckBoxCtrl
 public:
 	LLCheckBoxCtrl(const std::string& name, const LLRect& rect, const std::string& label,	
 		const LLFontGL* font = NULL,
-		void (*commit_callback)(LLUICtrl*, void*) = NULL,
-		void* callback_userdata = NULL,
+		commit_callback_t commit_callback = NULL,
 		BOOL initial_value = FALSE,
 		BOOL use_radio_style = FALSE, // if true, draw radio button style icons
 		const std::string& control_which = LLStringUtil::null);
@@ -113,7 +112,7 @@ public:
 	virtual void		setControlName(const std::string& control_name, LLView* context);
 	virtual std::string 	getControlName() const;
 
-	static void			onButtonPress(void *userdata);
+	void				onButtonPress(const LLSD& data);
 
 	virtual BOOL		isDirty()	const;		// Returns TRUE if the user has modified this control.
 	virtual void		resetDirty();			// Clear dirty state

@@ -32,7 +32,7 @@
 
 #include "llinventory.h"
 
-class LLScrollableContainerView;
+class LLScrollContainer;
 class LLFolderView;
 class LLFolderViewFolder;
 class LLViewerObject;
@@ -81,7 +81,7 @@ protected:
 	void clearContents();
 
 private:
-	LLScrollableContainerView* mScroller;
+	LLScrollContainer* mScroller;
 	LLFolderView* mFolders;
 	
 	LLUUID mTaskUUID;

@@ -60,7 +60,7 @@ inline void LLMatrix3a::setTranspose(const LLMatrix3a& src)
 	const LLQuad srcCol1 = src.mColumns[1];
 	const LLQuad unpacklo = _mm_unpacklo_ps( srcCol0, srcCol1 );
 	mColumns[0] = _mm_movelh_ps( unpacklo, src.mColumns[2] );
-	mColumns[1] = _mm_shuffle_ps( unpacklo, src.mColumns[2], _MM_SHUFFLE(0, 1, 3, 2) );
+	mColumns[1] = _mm_shuffle_ps( _mm_movehl_ps( srcCol0, unpacklo ), src.mColumns[2], _MM_SHUFFLE(0, 1, 1, 0) );
 	mColumns[2] = _mm_shuffle_ps( _mm_unpackhi_ps( srcCol0, srcCol1 ), src.mColumns[2], _MM_SHUFFLE(0, 2, 1, 0) );
 }
 

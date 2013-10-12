@@ -109,6 +109,16 @@ public:
         return const_cast<self*>(this)->find(key);
     }
 
+	//For easy insertion shorthand. Eases std::map => LLSortedVector drop-in replacement.
+	mapped_type& operator[] (const key_type& key)
+	{
+		 return insert(std::make_pair(key,mapped_type())).first->second;
+	}
+	const mapped_type& operator[] (const key_type& key) const
+	{
+		 return insert(std::make_pair(key,mapped_type())).first->second;
+	}
+
 private:
     // Define our own 'less' comparator so we can specialize without messing
     // with std::less.

@@ -113,6 +113,7 @@ public:
 		FFSAVE_AO = 35,
 		FFSAVE_BLACKLIST = 36,
 		FFSAVE_PHYSICS = 37,
+		FFSAVE_IMAGE = 38,
 		// </edit>
 	};
 

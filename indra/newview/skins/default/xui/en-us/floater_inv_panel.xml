@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="inventory panel floater" width="250" height="400" min_width="100" min_height="100" rect_control="FloaterInvPanelRect" can_close="true" can_minimize="true" can_resize="true">
+  <filter_editor bottom="-36" follows="left|right|top" height="18" left="4" mouse_opaque="true" right="-4" name="inventory search editor" label="Type here to search">
+    <filter_editor.commit_callback function="InvPanel.Search"/>
+  </filter_editor>
+  <panel name="placeholder_panel" follows="all" left="5" right="-5" bottom_delta="-360" height="358"/>
+</floater>

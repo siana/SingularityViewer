@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel label="Oberflächendesign" name="Skins panel">
+          <text name="Skin_txt1">Selected Skin</text>
+          
+          <text name="Skin_txt2">Primary Author</text>
+		
+          <text name="custom_skin_author">skin author</text>
+          <text name="Skin_txt3">Additional Authors</text>
+		
+          <text name="custom_skin_ad_authors">additional skin authors</text>
+          <text name="Skin_txt4">Skin folder</text>
+		
+          <text name="custom_skin_folder">skin folder</text>
+  <button name="custom_skin_preview" tool_tip="Skin Preview"/>
+          <text name="Skin_txt5">Additional info</text>
+		
+</panel>

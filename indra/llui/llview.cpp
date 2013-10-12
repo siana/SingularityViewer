@@ -74,6 +74,7 @@ BOOL	LLView::sForceReshape = FALSE;
 LLView*	LLView::sEditingUIView = NULL;
 S32		LLView::sLastLeftXML = S32_MIN;
 S32		LLView::sLastBottomXML = S32_MIN;
+std::vector<LLViewDrawContext*> LLViewDrawContext::sDrawContextStack;
 
 LLView::DrilldownFunc LLView::sDrilldown =
 	boost::bind(&LLView::pointInView, _1, _2, _3, HIT_TEST_USE_BOUNDING_RECT);
@@ -146,7 +147,7 @@ void LLView::init(const LLView::Params& p)
 	
 	// create rect first, as this will supply initial follows flags
 	setShape(p.rect);
-	mReshapeFlags = p.follows.flags;
+	parseFollowsFlags(p);
 }
 
 LLView::LLView()
@@ -677,6 +678,16 @@ BOOL LLView::handleHover(S32 x, S32 y, MASK mask)
 }
 
 
+void LLView::onMouseEnter(S32 x, S32 y, MASK mask)
+{
+	//llinfos << "Mouse entered " << getName() << llendl;
+}
+
+void LLView::onMouseLeave(S32 x, S32 y, MASK mask)
+{
+	//llinfos << "Mouse left " << getName() << llendl;
+}
+
 std::string LLView::getShowNamesToolTip()
 {
 	LLView* view = getParent();
@@ -1164,7 +1175,7 @@ void LLView::drawChildren()
 	}*/
 	if (!mChildList.empty())
 	{
-		LLView* rootp = getRootView();		
+		LLView* rootp = LLUI::getRootView();		
 		++sDepth;
 
 		for (child_list_const_reverse_iter_t child_iter = mChildList.rbegin(); child_iter != mChildList.rend(); ++child_iter)
@@ -2409,6 +2420,128 @@ const S32 FLOATER_H_MARGIN = 15;
 const S32 MIN_WIDGET_HEIGHT = 10;
 const S32 VPAD = 4;
 
+void LLView::initFromParams(const LLView::Params& params)
+{
+	LLRect required_rect = getRequiredRect();
+
+	S32 width = llmax(getRect().getWidth(), required_rect.getWidth());
+	S32 height = llmax(getRect().getHeight(), required_rect.getHeight());
+
+	reshape(width, height);
+
+	// call virtual methods with most recent data
+	// use getters because these values might not come through parameter block
+	setEnabled(getEnabled());
+	setVisible(getVisible());
+
+	if (!params.name().empty())
+	{
+		setName(params.name());
+	}
+}
+
+void LLView::parseFollowsFlags(const LLView::Params& params)
+{
+	// preserve follows flags set by code if user did not override
+	/*if (!params.follows.isProvided()) 
+	{
+		return;
+	}*/
+
+	// interpret either string or bitfield version of follows
+	if (params.follows.string.isChosen())
+	{
+		setFollows(FOLLOWS_NONE);
+
+		std::string follows = params.follows.string;
+
+		typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
+		boost::char_separator<char> sep("|");
+		tokenizer tokens(follows, sep);
+		tokenizer::iterator token_iter = tokens.begin();
+
+		while(token_iter != tokens.end())
+		{
+			const std::string& token_str = *token_iter;
+			if (token_str == "left")
+			{
+				setFollowsLeft();
+			}
+			else if (token_str == "right")
+			{
+				setFollowsRight();
+			}
+			else if (token_str == "top")
+			{
+				setFollowsTop();
+			}
+			else if (token_str == "bottom")
+			{
+				setFollowsBottom();
+			}
+			else if (token_str == "all")
+			{
+				setFollowsAll();
+			}
+			++token_iter;
+		}
+	}
+	else if (params.follows.flags.isChosen())
+	{
+		setFollows(params.follows.flags);
+	}
+}
+
+LLView::tree_iterator_t LLView::beginTreeDFS() 
+{ 
+	return tree_iterator_t(this, 
+							boost::bind(boost::mem_fn(&LLView::beginChild), _1), 
+							boost::bind(boost::mem_fn(&LLView::endChild), _1)); 
+}
+
+LLView::tree_iterator_t LLView::endTreeDFS() 
+{ 
+	// an empty iterator is an "end" iterator
+	return tree_iterator_t();
+}
+
+LLView::tree_post_iterator_t LLView::beginTreeDFSPost() 
+{ 
+	return tree_post_iterator_t(this, 
+							boost::bind(boost::mem_fn(&LLView::beginChild), _1), 
+							boost::bind(boost::mem_fn(&LLView::endChild), _1)); 
+}
+
+LLView::tree_post_iterator_t LLView::endTreeDFSPost() 
+{ 
+	// an empty iterator is an "end" iterator
+	return tree_post_iterator_t();
+}
+
+LLView::bfs_tree_iterator_t LLView::beginTreeBFS() 
+{ 
+	return bfs_tree_iterator_t(this, 
+							boost::bind(boost::mem_fn(&LLView::beginChild), _1), 
+							boost::bind(boost::mem_fn(&LLView::endChild), _1)); 
+}
+
+LLView::bfs_tree_iterator_t LLView::endTreeBFS() 
+{ 
+	// an empty iterator is an "end" iterator
+	return bfs_tree_iterator_t();
+}
+
+
+LLView::root_to_view_iterator_t LLView::beginRootToView()
+{
+	return root_to_view_iterator_t(this, boost::bind(&LLView::getParent, _1));
+}
+
+LLView::root_to_view_iterator_t LLView::endRootToView()
+{
+	return root_to_view_iterator_t();
+}
+
 // static
 U32 LLView::createRect(LLXMLNodePtr node, LLRect &rect, LLView* parent_view, const LLRect &required_rect)
 {
@@ -2872,6 +3005,32 @@ S32	LLView::notifyParent(const LLSD& info)
 		return parent->notifyParent(info);
 	return 0;
 }
+bool	LLView::notifyChildren(const LLSD& info)
+{
+	bool ret = false;
+	BOOST_FOREACH(LLView* childp, mChildList)
+	{
+		ret = ret || childp->notifyChildren(info);
+	}
+	return ret;
+}
+
+// convenient accessor for draw context
+const LLViewDrawContext& LLView::getDrawContext()
+{
+	return LLViewDrawContext::getCurrentContext();
+}
+
+const LLViewDrawContext& LLViewDrawContext::getCurrentContext()
+{
+	static LLViewDrawContext default_context;
+
+	if (sDrawContextStack.empty())
+		return default_context;
+		
+	return *sDrawContextStack.back();
+}
+
 LLView* LLView::createWidget(LLXMLNodePtr xml_node) const
 {
 	// forward requests to ui ctrl factory

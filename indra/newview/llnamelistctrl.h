@@ -2,31 +2,25 @@
  * @file llnamelistctrl.h
  * @brief A list of names, automatically refreshing from the name cache.
  *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2003&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -39,6 +33,36 @@
 
 class LLAvatarName;
 
+/**
+ * LLNameListCtrl item
+ *
+ * We don't use LLScrollListItem to be able to override getUUID(), which is needed
+ * because the name list item value is not simply an UUID but a map (uuid, is_group).
+ */
+class LLNameListItem : public LLScrollListItem, public LLHandleProvider<LLNameListItem>
+{
+public:
+	bool isGroup() const { return mIsGroup; }
+	void setIsGroup(bool is_group) { mIsGroup = is_group; }
+
+protected:
+	friend class LLNameListCtrl;
+
+	LLNameListItem( const LLScrollListItem::Params& p )
+	:	LLScrollListItem(p), mIsGroup(false)
+	{
+	}
+
+	LLNameListItem( const LLScrollListItem::Params& p, bool is_group )
+	:	LLScrollListItem(p), mIsGroup(is_group)
+	{
+	}
+
+private:
+	bool mIsGroup;
+};
+
+
 class LLNameListCtrl
 :	public LLScrollListCtrl, public LLInstanceTracker<LLNameListCtrl>
 {
@@ -50,35 +74,61 @@ public:
 		SPECIAL
 	} ENameType;
 
-	LLNameListCtrl(const std::string& name,
-				   const LLRect& rect,
-				   LLUICtrlCallback callback,
-				   void* userdata,
-				   BOOL allow_multiple_selection,
-				   BOOL draw_border = TRUE,
-				   bool draw_heading = false,
-				   S32 name_column_index = 0,
-				   const std::string& tooltip = LLStringUtil::null);
-	virtual ~LLNameListCtrl();
+	// provide names for enums
+	struct NameTypeNames : public LLInitParam::TypeValuesHelper<LLNameListCtrl::ENameType, NameTypeNames>
+	{
+		static void declareValues();
+	};
 
+	struct NameItem : public LLInitParam::Block<NameItem, LLScrollListItem::Params>
+	{
+		Optional<std::string>				name;
+		Optional<ENameType, NameTypeNames>	target;
+
+		NameItem()
+		:	name("name"),
+			target("target", INDIVIDUAL)
+		{}
+	};
+
+	struct NameColumn : public LLInitParam::ChoiceBlock<NameColumn>
+	{
+		Alternative<S32>				column_index;
+		Alternative<std::string>		column_name;
+		NameColumn()
+		:	column_name("name_column"),
+			column_index("name_column_index", 0)
+		{}
+	};
+
+protected:
+	LLNameListCtrl(const std::string& name, const LLRect& rect, BOOL allow_multiple_selection, BOOL draw_border = TRUE, bool draw_heading = false, S32 name_column_index = 0, const std::string& tooltip = LLStringUtil::null);
+	virtual ~LLNameListCtrl()
+	{
+		if (mAvatarNameCacheConnection.connected())
+		{
+			mAvatarNameCacheConnection.disconnect();
+		}
+	}
+	friend class LLUICtrlFactory;
+public:
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
 	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 
 	// Add a user to the list by name.  It will be added, the name 
 	// requested from the cache, and updated as necessary.
 	LLScrollListItem* addNameItem(const LLUUID& agent_id, EAddPosition pos = ADD_BOTTOM,
-					 BOOL enabled = TRUE, std::string const& suffix = LLStringUtil::null);
-	LLScrollListItem* addNameItem(LLSD& item, EAddPosition pos = ADD_BOTTOM);
+					 BOOL enabled = TRUE, const std::string& suffix = LLStringUtil::null);
+	LLScrollListItem* addNameItem(NameItem& item, EAddPosition pos = ADD_BOTTOM);
 
 	/*virtual*/ LLScrollListItem* addElement(const LLSD& element, EAddPosition pos = ADD_BOTTOM, void* userdata = NULL);
-	LLScrollListItem* addNameItemRow(const LLSD& value, EAddPosition pos = ADD_BOTTOM, void* userdata = NULL);
+	LLScrollListItem* addNameItemRow(const NameItem& value, EAddPosition pos = ADD_BOTTOM, const std::string& suffix = LLStringUtil::null);
 
 	// Add a user to the list by name.  It will be added, the name 
 	// requested from the cache, and updated as necessary.
 	void addGroupNameItem(const LLUUID& group_id, EAddPosition pos = ADD_BOTTOM,
 						  BOOL enabled = TRUE);
-	
-	void addGroupNameItem(LLSD& item, EAddPosition pos = ADD_BOTTOM);
+	void addGroupNameItem(NameItem& item, EAddPosition pos = ADD_BOTTOM);
 
 
 	void removeNameItem(const LLUUID& agent_id);
@@ -93,11 +143,14 @@ public:
 
 	void sortByName(BOOL ascending);
 private:
-	static std::set<LLNameListCtrl*> sInstances;
-	void onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name, LLHandle<LLScrollListItem> item);
+	void onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name, LLHandle<LLNameListItem> item);
+
+private:
 	S32    	 mNameColumnIndex;
 	BOOL	 mAllowCallingCardDrop;
 	bool			mShortNames;  // display name only, no SLID
+	boost::signals2::connection mAvatarNameCacheConnection;
 };
+
 
 #endif

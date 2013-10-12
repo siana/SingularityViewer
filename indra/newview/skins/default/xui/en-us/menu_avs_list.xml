@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="Avatar Menu" create_jump_keys="true">
+  <menu_item_call label="Profile" name="Profile">
+    <on_click function="List.ShowProfile"/>
+    <on_enable function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Web Profile" name="Web Profile">
+    <on_click function="List.ShowWebProfile"/>
+    <on_visible function="List.VisibleWebProfile"/>
+  </menu_item_call>
+  <menu_item_call label="Pay" name="Pay">
+    <on_click function="List.Pay"/>
+    <on_enable function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Instant Message" name="Instant Message">
+    <on_click function="List.StartIM"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Conference Chat" name="Conference Chat">
+    <on_click function="List.StartConference"/>
+    <on_visible function="List.EnableMultipleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Call" name="Call">
+    <on_click function="List.StartCall"/>
+    <on_enable function="List.EnableCall"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Conference Call" name="Conference Call">
+    <on_click function="List.StartAdhocCall"/>
+    <on_enable function="List.EnableCall"/>
+    <on_visible function="List.EnableMultipleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Add Friend" name="Add Friend">
+    <on_click function="List.RequestFriendship"/>
+    <on_enable function="List.EnableSingleSelected"/>
+    <on_visible function="List.EnableIsNotFriend"/>
+  </menu_item_call>
+  <menu_item_call label="Remove Friend" name="Remove Friend">
+    <on_click function="List.RemoveFriend"/>
+    <on_enable function="List.EnableSingleSelected"/>
+    <on_visible function="List.EnableIsFriend"/>
+  </menu_item_call>
+  <menu_item_call label="Invite To Group" name="Invite To Group">
+    <on_click function="List.InviteToGroup"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Offer Teleport" name="Offer Teleport">
+    <on_click function="List.OfferTeleport"/>
+    <on_enable function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Request Teleport" name="Request Teleport">
+    <on_click function="List.RequestTeleport"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Mute/Unmute" name="Mute/Unmute">
+    <on_click function="List.Mute"/>
+    <on_enable function="List.EnableMute"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <!--menu_item_call label="Report Abuse" name="Report Abuse">
+    <on_click function="List.ReportAbuse"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call-->
+  <menu_item_call label="Copy Key" name="Copy Key">
+    <on_click function="List.CopyUUIDs"/>
+    <on_enable function="List.EnableAnySelected"/>
+  </menu_item_call>
+</menu>

@@ -37,7 +37,6 @@
 // Viewer libs
 #include "llviewercontrol.h"
 #include "llmediactrl.h"
-#include "llalertdialog.h"
 
 // Linden libs
 #include "llnotificationsutil.h"
@@ -79,7 +78,7 @@ LLFloaterHUD::LLFloaterHUD()
 	if (mWebBrowser)
 	{
 		// Open links in internal browser
-		mWebBrowser->setOpenInExternalBrowser(false);
+		//mWebBrowser->setOpenInExternalBrowser(false);
 
 		// This is a "chrome" floater, so we don't want anything to
 		// take focus (as the user needs to be able to walk with 

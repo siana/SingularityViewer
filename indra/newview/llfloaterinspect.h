@@ -35,6 +35,7 @@
 #ifndef LL_LLFLOATERINSPECT_H
 #define LL_LLFLOATERINSPECT_H
 
+#include "llavatarname.h"
 #include "llfloater.h"
 #include "llvoinventorylistener.h"
 
@@ -43,41 +44,47 @@ class LLObjectSelection;
 class LLScrollListCtrl;
 class LLUICtrl;
 
-class LLFloaterInspect : public LLFloater, public LLVOInventoryListener
+class LLFloaterInspect : public LLFloater, public LLSingleton<LLFloaterInspect>, public LLVOInventoryListener
 {
+	friend class LLSingleton<LLFloaterInspect>;
 public:
-	virtual ~LLFloaterInspect(void);
-	static void show(void* ignored = NULL);
+
+	static void showInstance();
+//	static void show(void* ignored = NULL);
+	void onOpen();
 	virtual BOOL postBuild();
-	static void dirty();
-	static LLUUID getSelectedUUID();
+	void dirty();
+	LLUUID getSelectedUUID();
 	virtual void draw();
 	virtual void refresh();
-	static BOOL isVisible();
+//	static BOOL isVisible();
 	virtual void onFocusReceived();
-	static void onClickCreatorProfile(void* ctrl);
-	static void onClickOwnerProfile(void* ctrl);
-	static void onSelectObject(LLUICtrl* ctrl, void* user_data);
+	void onClickCreatorProfile();
+	void onClickOwnerProfile();
+	void onSelectObject();
+
+	static void onGetAvNameCallback(const LLUUID& idCreator, const LLAvatarName& av_name, void* FloaterPtr);
+
 	LLScrollListCtrl* mObjectList;
 protected:
 	// protected members
-	LLFloaterInspect();
 	void setDirty() { mDirty = TRUE; }
 	bool mDirty;
 	// <edit>
-	/*virtual*/ void inventoryChanged(LLViewerObject* obj,
-								 LLInventoryObject::object_list_t* inv,
-								 S32 serial_num,
-								 void* queue);
+	/*virtual*/ void inventoryChanged(LLViewerObject* obj, LLInventoryObject::object_list_t* inv, S32, void* queue);
+	// </edit>
 
 private:
+	LLFloaterInspect();
+	virtual ~LLFloaterInspect(void);
 	// static data
-	static LLFloaterInspect* sInstance;
+//	static LLFloaterInspect* sInstance;
 
 	LLSafeHandle<LLObjectSelection> mObjectSelection;
 	// <edit>
 	std::map<LLUUID,std::pair<S32,S32> > mInventoryNums; //<scripts,total>
 	std::vector<LLUUID> mQueue;
+	// </edit>
 };
 
 #endif //LL_LLFLOATERINSPECT_H

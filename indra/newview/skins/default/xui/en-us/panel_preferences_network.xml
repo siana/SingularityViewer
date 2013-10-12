@@ -5,7 +5,7 @@
 	<text bottom_delta="4" follows="top" height="10" left_delta="186" name="text_box2">kbps (kilobits per second)</text>
 	<text bottom_delta="-20" follows="top" height="10" left="12" name="text_box3">Texture Bandwidth:</text>
 	<slider bottom_delta="-4" left_delta="110" can_edit_text="true" decimal_digits="0" follows="top" height="15" increment="10" initial_val="50" max_val="5000" min_val="50" name="tex_bandwidth" show_text="true" value="500" width="180"/>
-	<text bottom_delta="4" follows="top" height="10" left_delta="186" name="text_box2">kbps (kilobits per second)</text>
+	<text bottom_delta="4" follows="top" height="10" left_delta="186" name="text_box4">kbps (kilobits per second)</text>
 	<text bottom_delta="-25" follows="top" height="10" left="12" name="use_http_for">Use HTTP for:</text>
 	<check_box bottom_delta="-5" follows="top" left_delta="90" label="Textures" name="http_textures"/>
 	<check_box bottom_delta="0" follows="top" left_delta="90" label="Inventory" name="http_inventory"/>

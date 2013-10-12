@@ -3,7 +3,7 @@
 #define LL_LLFLOATEREXPLOREANIMATIONS_H
 
 #include "llfloater.h"
-#include "llfloateranimpreview.h"
+#include "llfloaterbvhpreview.h"
 #include "llviewerwindow.h" // gViewerWindow
 
 class LLAnimHistoryItem

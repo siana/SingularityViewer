@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel border="true" bottom="0" height="500" label="Popups" left="0" name="popups" title="Popups" width="400">
-	 <text bottom="-20" follows="top" left="15" name="dont_show_label">Do not show these popups:</text>
-	<scroll_list follows="top" height="88" name="disabled_popups" width="480"/>
-	<button follows="top" height="20" label="Enable this popup" name="enable_popup" width="175"/>
-	<button follows="top" height="20" label="Enable all popups..." left="200" name="reset_dialogs_btn" tool_tip="Enable all of the optional popups and &apos;first time use&apos; notifications." width="175" bottom_delta="0"/>
-	<text follows="top" left="15" name="show_label" bottom_delta="-24">Show these popups:</text>
-	<scroll_list follows="top" height="88" left="15" name="enabled_popups" width="480"/>
-	<button follows="top" height="20" label="Disable first time popups..." name="skip_frst_btn" tool_tip="Disable all of the first time use notifications." width="175"/>
-	<button bottom_delta="0" follows="top" height="20" label="Disable all these popups..." left="200" name="skip_dialogs_btn" tool_tip="Disable all of the optional popups and &apos;first time use&apos; notifications." width="175"/>
-	<text bottom_delta="-24" follows="top" height="10" left="15" name="text_box2">Offers of notecards, textures and landmarks:</text>
-	<check_box bottom_delta="-25" follows="top" height="16" initial_value="false" label="Automatically accept" left="40" name="accept_new_inventory"/>
-	<check_box bottom_delta="-20" follows="top" height="16" initial_value="true" label="Automatically view after accepting" name="show_new_inventory"/>
-   	<check_box bottom_delta="-20" follows="top" height="16" initial_value="true" label="Automatically show newly accepted objects in inventory" left="18" name="show_in_inventory"/>
+  <check_box bottom="-22" left="16" follows="top" height="16" label="Automatically accept item offers" name="accept_new_inventory"/>
+  <check_box bottom_delta="0" left_delta="250" follows="top" height="16" label="View previewable items after accepting" name="show_new_inventory"/>
+  <check_box bottom_delta="-20" left="16" follows="top" height="16" label="Show newly accepted objects in inventory" name="show_in_inventory"/>
+  <text bottom_delta="-12" follows="top" left="15" name="show_label">Always show:</text>
+  <scroll_list follows="top" multi_select="true" height="169" name="enabled_popups" width="480"/>
+  <button follows="top" height="20" label="Enable all" left="25" name="reset_dialogs_btn" tool_tip="Enable all of the optional popups and 'first time use' notifications." width="100"/>
+  <button follows="top" height="20" label="" image_overlay="arrow_up.tga" left_delta="105" name="enable_popup" width="30" bottom_delta="0"/>
+  <button follows="top" height="20" label="Disable first time popups..." left_delta="35" name="skip_frst_btn" tool_tip="Disable all of the first time use notifications." width="175" bottom_delta="0"/>
+  <button follows="top" height="20" label="" image_overlay="arrow_down.tga" left_delta="180" name="disable_popup" width="30" bottom_delta="0"/>
+  <button bottom_delta="0" follows="top" height="20" label="Disable all" left_delta="35" name="skip_dialogs_btn" tool_tip="Disable all of the optional popups and 'first time use' notifications." width="100"/>
+  <text follows="top" left="15" name="dont_show_label" bottom_delta="-12">Never show:</text>
+  <scroll_list follows="top" multi_select="true" height="169" left="15" name="disabled_popups" width="480"/>
 </panel>

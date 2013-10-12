@@ -1,90 +1,299 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater can_close="true" can_drag_on_left="false" can_minimize="true" can_resize="true"
-     height="400" min_height="300" min_width="580" name="top_objects"
-     title="loading..." width="580">
-	<text bottom="-50" follows="left|top" font="SansSerif" height="20" left="10"
-	     name="title_text" width="400">
-		Loading...
-	</text>
-	<scroll_list bottom_delta="-200" draw_border="true" draw_heading="true"
-	     follows="left|top|bottom|right" height="200" left="10" multi_select="true"
-	     name="objects_list" width="560">
-		<column label="Score" name="score" width="43" />
-		<column label="Name" name="name" dynamicwidth="true" />
-		<column label="Owner" name="owner" width="100" />
-		<column label="Location" name="location" width="100" />
-		<column label="Time" name="time" width="105" />
-    <column label="Mono Time" name="mono_time" width="50" />
-	  <column label="URLs" name="URLs" width="50" />
-  </scroll_list>
-	<text bottom_delta="-30" follows="left|bottom" font="SansSerifSmall" height="20"
-	     left="10" name="id_text" width="100">
-		Object ID:
-	</text>
-	<line_editor bottom_delta="3" enabled="false"
-	     follows="left|bottom|right" font="SansSerifSmall" height="20" left="80"
-	     name="id_editor" width="385" />
-	<button bottom_delta="0" follows="bottom|right" height="20" label="Show Beacon"
-	     name="show_beacon_btn" right="-10" width="100" />
-	<text bottom_delta="-30" follows="left|bottom" font="SansSerifSmall" height="20"
-	     left="10" name="obj_name_text" width="100">
-		Object Name:
-	</text>
-	<line_editor bottom_delta="3" enabled="true"
-	     follows="left|bottom|right" font="SansSerifSmall" height="20" left="80"
-	     name="object_name_editor" width="385" />
-	<button bottom_delta="0" follows="bottom|right" height="20" label="Filter"
-	     name="filter_object_btn" right="-10" width="100" />
-	<text bottom_delta="-30" follows="left|bottom" font="SansSerifSmall" height="20"
-	     left="10" name="owner_name_text" width="100">
-		Owner Name:
-	</text>
-	<line_editor bottom_delta="3" enabled="true"
-	     follows="left|bottom|right" font="SansSerifSmall" height="20" left="80"
-	     name="owner_name_editor" width="385" />
-	<button bottom_delta="0" follows="bottom|right" height="20" label="Filter"
-	     name="filter_owner_btn" right="-10" width="100" />
-	<button bottom="35" follows="bottom|left" height="20" label="Return Selected" left="10"
-	     name="return_selected_btn" width="110" />
-	<button bottom="35" follows="bottom|left" height="20" label="Return All" left="125"
-	     name="return_all_btn" width="110" />
-  <button bottom="35" follows="bottom|left" height="20" label="Lag Warning" left="240"
-	     name="lagwarning" width="110" />
-  <button bottom="35" follows="bottom|left" height="20" label="Kick" left="355"
-	     name="kick" width="110" />
-	<button bottom="10" follows="bottom|left" height="20" label="Disable Selected"
-	     left="10" name="disable_selected_btn" width="110" />
-	<button bottom="10" follows="bottom|left" height="20" label="Disable All" left="125"
-	     name="disable_all_btn" width="110" />
-  <button bottom="10" follows="bottom|left" height="20" label="Profile" left="240"
-	     name="profile" width="110" />  
-  <button bottom="10" follows="bottom|left" height="20" label="TP to" left="355"
-	     name="tpto" width="110" />
-
-	<button bottom="35" follows="bottom|right" height="20" label="Refresh"
-	     name="refresh_btn" right="-10" width="100" />
-	<string name="top_scripts_title">
-		Top Scripts
-	</string>
-	<string name="top_scripts_text">
-		[COUNT] scripts taking a total of [TIME] ms
-	</string>
-	<string name="scripts_score_label">
-		Time
-	</string>
-    <string name="scripts_mono_time_label">
-        Mono Time
+<floater
+ can_close="true"
+ can_drag_on_left="false"
+ can_minimize="true"
+ can_resize="true"
+ height="372"
+ min_height="300"
+ min_width="572"
+ name="top_objects"
+ help_topic="top_objects"
+ title="Top Objects"
+ width="800">
+    <string
+     name="top_scripts_title">
+        Top Scripts
     </string>
-    <string name="top_colliders_title">
-		Top Colliders
-	</string>
-	<string name="top_colliders_text">
-		Top [COUNT] objects experiencing many potential collisions
-	</string>
-	<string name="colliders_score_label">
-		Score
-	</string>
+    <string
+     name="top_scripts_text">
+        [COUNT] scripts taking a total of [TIME] ms
+    </string>
+    <string
+     name="scripts_score_label">
+        Time
+    </string>
+    <string
+     name="top_colliders_title">
+        Top Colliders
+    </string>
+    <string name="top_colliders_text">
+        Top [COUNT] objects experiencing many potential collisions
+    </string>
+    <string name="colliders_score_label">
+        Score
+    </string>
     <string name="none_descriptor">
-		None found.
-	</string>
+        None found.
+    </string>
+    <text
+     type="string"
+     length="1"
+     follows="left|top"
+     height="20"
+     left="10"
+     name="title_text"
+     bottom="-40"
+     width="400">
+        Loading...
+    </text>
+    <scroll_list
+     draw_heading="true"
+     follows="all"
+     height="170"
+     left_delta="0"
+     multi_select="true"
+     name="objects_list"
+     bottom_delta="-170"
+     width="780">
+        <column
+         label="Score"
+         name="score"
+         width="45" />
+        <column
+         label="Name"
+         name="name"
+         width="130" />
+        <column
+         label="Owner"
+         name="owner"
+         width="100" />
+        <column
+         label="Location"
+         name="location"
+         width="120" />
+        <column
+         label="Parcel"
+         name="parcel"
+         width="120" />
+        <column
+         label="Time"
+         name="time"
+         width="130" />
+        <column
+         label="URLs"
+         name="URLs"
+         width="40" />
+        <column
+         label="Memory (KB)"
+         name="memory"
+         width="40" />
+		<scroll_list.commit_callback
+          function="TopObjects.CommitObjectsList" />
+    </scroll_list>
+    <text
+     type="string"
+     length="1"
+     follows="left|bottom"
+     height="20"
+     left_delta="0"
+     name="id_text"
+     bottom_delta="-30"
+     width="107">
+        Object ID:
+    </text>
+    <line_editor
+     enabled="false"
+     follows="left|bottom|right"
+     height="20"
+     left="107"
+     name="id_editor"
+     bottom_delta="3"
+     width="568" />
+    <button
+     follows="bottom|right"
+     height="20"
+     label="Show Beacon"
+     right="-10"
+     name="show_beacon_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.ShowBeacon" />
+    </button>
+    <text
+     type="string"
+     length="1"
+     follows="left|bottom"
+     height="20"
+     left="10"
+     bottom_delta="-30"
+     name="obj_name_text"
+     width="107">
+        Object name:
+    </text>
+    <line_editor
+     follows="left|bottom|right"
+     height="20"
+     left="107"
+     name="object_name_editor"
+     bottom_delta="3"
+     width="568" />
+    <button
+     follows="bottom|right"
+     height="20"
+     label="Filter"
+     right="-10"
+     name="filter_object_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.GetByObjectName" />
+    </button>
+    <text
+     type="string"
+     length="1"
+     follows="left|bottom"
+     height="20"
+     left="10"
+     bottom_delta="-30"
+     name="owner_name_text"
+     width="107">
+        Owner:
+    </text>
+    <line_editor
+     follows="left|bottom|right"
+     height="20"
+     left="107"
+     name="owner_name_editor"
+     bottom_delta="3"
+     width="568" />
+    <button
+     follows="bottom|right"
+     height="20"
+     label="Filter"
+     right="-10"
+     name="filter_owner_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.GetByOwnerName" />
+    </button>
+    <text
+     type="string"
+     length="1"
+     follows="left|bottom"
+     height="20"
+     left="10"
+     bottom_delta="-30"
+     name="parcel_name_text"
+     width="107">
+        Parcel:
+    </text>
+    <line_editor
+     follows="left|bottom|right"
+     height="20"
+     left="107"
+     name="parcel_name_editor"
+     bottom_delta="3"
+     width="568" />
+    <button
+     follows="bottom|right"
+     height="20"
+     label="Filter"
+     right="-10"
+     name="filter_parcel_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.GetByParcelName" />
+    </button>
+    <button
+     follows="bottom|right"
+     height="20"
+     label="Refresh"
+     name="refresh_btn"
+     right="-10"
+     bottom_delta="-27"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.Refresh" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Return Selected"
+     left="10"
+     bottom_delta="0"
+     name="return_selected_btn"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.ReturnSelected" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Return All"
+     left_delta="110"
+     name="return_all_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.ReturnAll" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Teleport to"
+     left_delta="110"
+     name="teleport_to_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.TeleportToObject" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Profile"
+     left_delta="110"
+     name="profile_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.Profile" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Disable Selected"
+     bottom_delta="-20"
+     left="10"
+     name="disable_selected_btn"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.DisableSelected" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Disable All"
+     left_delta="110"
+     name="disable_all_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.DisableAll" />
+    </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Estate Kick"
+     left_delta="110"
+     name="estate_kick_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.Kick" />
+    </button>
 </floater>

@@ -43,17 +43,21 @@ LL_COMMON_API extern const std::string AUCTION_URL;
 
 LL_COMMON_API extern const std::string EVENTS_URL;
 
+/*
 // Tier up to a new land level.
 LL_COMMON_API extern const std::string TIER_UP_URL;
 
 // Tier up to a new land level.
 LL_COMMON_API extern const std::string LAND_URL;
-
-// Upgrade from basic membership to premium membership
-LL_COMMON_API extern const std::string UPGRADE_TO_PREMIUM_URL;
+*/
 
 // How to get DirectX 9
 LL_COMMON_API extern const std::string DIRECTX_9_URL;
+
+/*
+// Upgrade from basic membership to premium membership
+LL_COMMON_API extern const std::string UPGRADE_TO_PREMIUM_URL;
+
 
 // Out of date VIA chipset
 LL_COMMON_API extern const std::string VIA_URL;
@@ -63,10 +67,12 @@ LL_COMMON_API extern const std::string SUPPORT_URL;
 
 // Linden Blogs page
 LL_COMMON_API extern const std::string BLOGS_URL;
+*/
 
 // Currency page
 LL_COMMON_API extern const std::string BUY_CURRENCY_URL;
 
+/*
 // LSL script wiki
 LL_COMMON_API extern const std::string LSL_DOC_URL;
 
@@ -75,5 +81,5 @@ LL_COMMON_API extern const std::string SL_KB_URL;
 
 // Release Notes Redirect URL for Server and Viewer
 LL_COMMON_API extern const std::string RELEASE_NOTES_BASE_URL;
-
+*/
 #endif

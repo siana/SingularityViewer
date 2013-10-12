@@ -1,25 +1,24 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Chat Avanc&#xE9;" name="ascsys">
-  <tab_container label="Advanced Chat" name="Ascent Chat">
-     <panel label="Chat/IM" name="Chat/IM">
+  <tab_container name="Ascent Chat">
 
+    <panel label="Chat/IM" name="Chat/IM">
       <check_box label="Annonce les IMs entrants" name="quickstart_im_check"/>
       <check_box label="Ne pas envoyer &#x22;[Machin Truc] is typing..." name="hide_typing_check"/>
+      <check_box label="N'accepter les IMs que de ses amis" name="InstantMessagesFriendsOnly"/>
       <check_box label="Montrer le nom du groupe dans le chat" name="append_group_name_check"/>
       <check_box label="Jouer le son typique pour le chat local" name="play_typing_sound_check"/>
       <check_box label="Ne pas afficher les notifs. de log dans le chat" name="hide_notifications_in_chat_check"/>
       <check_box label="Permet d'utiliser &#x22;/me&#x22; aussi bien que &#x22;:&#x22;" name="allow_mu_pose_check"/>
       <check_box label="Ajoute les fins des commentaires (RP mode)" tool_tip="Ajoute automatiquement &#x22;))&#x22; &#xE0; chaque message commen&#xE7;ant par &#x22;((&#x22;, et vice-versa." name="close_ooc_check"/>
-      <check_box bottom_delta="-20" follows="left|top" control_name="ShowDisplayNameChanges" label="Montre les changements de display name" tool_tip="" name="display_name_change"/>
-
-	  
-	  <text name="objects_link_text_box3">Active un lien qui montre le nom du propri&#xE9;taire dans l'historique du chat pour :</text>
-       <radio_group tool_tip="Enables a link to show you the owner of the speaking object." name="objects_link">
+      <check_box label="Montre les changements de display name" tool_tip="" name="display_name_change"/>
+      <check_box label="Signale, au dessus de la t&#xEA;te, que vous &#xE9;crivez" name="use_typing_bubbles"/>
+      <text name="objects_link_text_box3">Active un lien qui montre le nom du propri&#xE9;taire dans l'historique du chat pour :</text>
+      <radio_group name="objects_link">
         <radio_item name="no_object">Aucun objet</radio_item>
         <radio_item name="others_objects">Les objets des autres</radio_item>
         <radio_item left_delta="65" name="anyones_objects">Tous les objets</radio_item>
       </radio_group>
-
       <text name="time_format_text_box">Type d'heure :</text>
       <combo_box name="time_format_combobox">
         <combo_item name="24hours">Horloge 24/H</combo_item>
@@ -32,22 +31,9 @@
         <combo_item name="day_first">JJ/MM/AAAA</combo_item>
         <combo_item name="month_first">MM/JJ/AAA</combo_item>
       </combo_box>
-	  <check_box bottom_delta="0" left="240" follows="top" control_name="SecondsInLog" label="Secondes dans les horaires de log" name="seconds_in_log"/>
-      <!-- Auto-responder -->
-      <check_box label="Activer le R&#xE9;pondeur Automatique" name="AscentInstantMessageResponseAnyone"/>
-	  <check_box label="Auto-r&#xE9;ponse aux 'non-friends'" name="AscentInstantMessageResponseFriends"/>
-	  <check_box label="Auto-r&#xE9;ponse aux personnes 'muted'" name="AscentInstantMessageResponseMuted"/>
-      <check_box label="Envoyer d&#xE8;s que l'on commence &#xE0; vous &#xE9;crire" name="AscentInstantMessageShowOnTyping"/>
-      <check_box label="Ne pas montrer les IMs auxquels vous avez r&#xE9;pondu" name="AscentInstantMessageShowResponded"/>
-      <check_box label="Auto-r&#xE9;ponse &#xE0; chaque message" name="AscentInstantMessageResponseRepeat"/>
-      <check_box label="Joindre un objet &#xE0; la r&#xE9;ponse" name="AscentInstantMessageResponseItem" tool_tip="Glissez l'objet dans la fen&#xEA;tre de r&#xE9;ponse."/>
-	  <text bottom_delta="140" left_delta="280" follows="left|top" height="18" name="text_box1">Texte de la r&#xE9;ponse :</text>
-      <text_editor bottom_delta="-130" height="130" name="im_response" width="190"/>
-      <text name="text_box2">
-#f Pr&#xE9;nom,#l Nom,#t Dur&#xE9;e,#r SLURL,
-#i Dur&#xE9;e de 'l'IDLE'. (ex. "5 mins")
-      </text>
+      <check_box label="Secondes dans les horaires de log" name="seconds_in_log"/>
     </panel>
+
     <panel label="Chat UI" name="ChatUI">
       <check_box label="IMs Verticaux (Déco Reco)" name="use_vertical_ims_check"/>
       <check_box label="Ouvre les nouveaux IMs séparements" name="chats_torn_off"/>
@@ -57,7 +43,33 @@
       <check_box label="Boutons sur la ligne des noms des chats de groupe" name="group_concise_butt"/>
       <check_box label="Boutons sur la ligne de titre des conférences" name="conf_concise_butt"/>
       <check_box label="Désactive le raccourci ouvrant détacher la liste d'amis" name="only_comm"/>
+      <check_box label="Ecrit en Italiques le /me" name="italicize_actions"/>
     </panel>
+
+  <panel label="Auto Réponse" name="Autoresponse">
+    <text name="Autoresponse Info">
+Cette fonction vous permet de répondre avec des messages personnalisés.
+Et aussi : #n Pour le nom classique, #d Pour le Display, #r Pour la SLURL de vôtre emplacement,
+#i Pour vôtre 'Idle Time' (inoccupation) en minutes.
+    </text>
+    <check_box name="AscentInstantMessageResponseRepeat" label="Auto Répond à chaque message reçu dont vous avez activé le choix"/>
+    <check_box name="AutoresponseAnyone" label="Auto Réponse basique" tool_tip="Envoye à toute personne non mutée"/>
+    <check_box name="AutoresponseAnyoneFriendsOnly" label="Amis seulement" tool_tip=""/>
+    <check_box name="AutoresponseAnyoneItem" label="Envoyer un élément"/>
+    <check_box left_delta="120" name="AutoresponseAnyoneShow" label="Montrer l'envoi"/>
+    <drop_target name="AutoresponseAnyoneItemID" tool_tip=""/>
+    <check_box name="AutoresponseNonFriends" label="Auto Réponse aux 'non amis'" tool_tip=""/>
+    <check_box left_delta="200" name="AutoresponseNonFriendsItem" label="Envoyer un élément"/>
+    <check_box left_delta="120" name="AutoresponseNonFriendsShow" label="Montrer l'envoi"/>
+    <drop_target name="AutoresponseNonFriendsItemID" tool_tip=""/>
+    <check_box name="AutoresponseMuted" label="Auto Réponse aux mutés" tool_tip=""/>
+    <check_box left_delta="200" name="AutoresponseMutedItem" label="Envoyer un élément"/>
+    <drop_target name="AutoresponseMutedItemID" tool_tip=""/>
+    <text name="BusyModeResponseText" tool_tip="">Mode Busy:</text>
+    <check_box left_delta="200" name="BusyModeResponseItem" label="Envoyer un élément"/>
+    <check_box left_delta="120" name="BusyModeResponseShow" label="Montrer l'envoi"/>
+    <drop_target name="BusyModeResponseItemID" tool_tip=""/>
+  </panel>
 
     <panel label="Spam" name="Spam">
       <check_box label="Activer l'antispam" name="enable_as"/>
@@ -68,20 +80,19 @@
       <spinner label="Multiplicateur du nombre de messages pour les sons:" name="antispamsoundmulti"/>
       <spinner label="Multiplicateur du nombre de sons &#xE0; pr&#xE9;charger par spam:" name="antispamsoundpreloadmulti"/>
       <spinner label="Nombre de lignes max. d'un message:" name="antispamnewlines"/>
+      <check_box label="Me notifier quand un spam est bloqu&#xE9;" name="Notify On Spam"/>
       <check_box label="D&#xE9;sactive toutes les fen&#xEA;tres de dialogue (D&#xE9;co/Reco)" name="antispam_checkbox"/>
-
-	  <text name="Block All Dialogs From">Bloquer tous les dialogues provenants de :</text>
+      <text name="Block All Dialogs From">Bloquer tous les dialogues provenants de :</text>
       <check_box label="Alertes" name="Alerts"/>
       <check_box label="Demande d'amitié" name="Friendship Offers"/>
       <check_box label="Invitation de groupe" name="Group Invites"/>
-      <check_box label="Notices de groupes" name="Group Notices"/>
+      <check_box label="Invit. de frais de grp" name="Group Fee Invites"/>
       <check_box label="Offre d'objets" name="Item Offers"/>
       <check_box label="Scripts" name="Scripts"/>
       <check_box label="Offres de TP" name="Teleport Offers"/>
-      <check_box label="Me notifier quand un spam est bloqu&#xE9;" name="Notify On Spam" tool_tip="When enabled, the bottom right corner may become a source of pseudo-spam whenever real spam is blocked."/>
-      <check_box control_name="EnableGestureSounds" label="Active les sons des gestures" name="Enable Gesture Sounds" left="3" bottom_delta="-20"/>
-	<check_box control_name="AntiSpamGroupFeeInvites" height="16" label="Invit. de frais de grp" name="Group Fee Invites" bottom_delta="0" left_delta="120"/>
-	</panel>
+      <check_box label="Notices de groupes" name="Group Notices"/>
+      <check_box label="Active les sons des gestures" name="Enable Gesture Sounds"/>
+    </panel>
 
     <panel label="Options de Texte" name="TextOptions">
       <check_box label="Montre les 'fot de frap' ou suppos&#xE9;es telles en ROUGE" name="SpellDisplay"/>
@@ -102,7 +113,6 @@ Clic droit sur le mot mal &#xE9;crit et choisir son remplacement.
       <check_box label="Chat local" name="KeywordsInChat"/>
       <check_box label="IMs" name="KeywordsInIM"/>
       <check_box label="Mettre en valeur le message avec cette couleur :" name="KeywordsChangeColor"/>
-      <color_swatch name="KeywordsColor" tool_tip="Click to open Color Picker"/>
       <check_box label="Jouer cette alerte sonore : (UUID)" name="KeywordsPlaySound"/>
     </panel>
 

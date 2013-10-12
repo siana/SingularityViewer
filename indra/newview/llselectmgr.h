@@ -528,7 +528,7 @@ public:
 	void selectionSetTexGen( U8 texgen );
 	void selectionSetShiny( U8 shiny );
 	void selectionSetFullbright( U8 fullbright );
-	void selectionSetMediaTypeAndURL(U8 media_type, const std::string& media_url);
+	void selectionSetMedia( U8 media_type, const LLSD &media_data );
 	void selectionSetClickAction(U8 action);
 	void selectionSetIncludeInSearch(bool include_in_search);
 	void selectionSetGlow(const F32 glow);
@@ -663,6 +663,8 @@ public:
 	void sendAttach(U8 attachment_point, bool replace=true);
 	void sendDetach();
 	void sendDropAttachment();
+	void sendLink();
+	void sendDelink();
 	//void sendHinge(U8 type);
 	//void sendDehinge();
 	void sendSelect();
@@ -703,8 +705,7 @@ private:
 							void (*pack_body)(LLSelectNode* node, void *user_data), 
 							void *user_data,
 							ESendType send_type);
-	void sendLink();
-	void sendDelink();
+
 
 	static void packAgentID(	void *);
 	static void packAgentAndSessionID(void* user_data);
@@ -842,6 +843,53 @@ template <typename T> bool LLObjectSelection::getSelectedTEValue(LLSelectedTEGet
 		res = selected_value;
 	}
 	return identical;
+}
+
+// Templates
+//-----------------------------------------------------------------------------
+// isMultipleTEValue iterate through all TEs and test for uniqueness 
+// with certain return value ignored when performing the test. 
+// e.g. when testing if the selection has a unique non-empty homeurl :
+// you can set ignore_value = "" and it will only compare among the non-empty  
+// homeUrls and ignore the empty ones.
+//-----------------------------------------------------------------------------
+template <typename T> bool LLObjectSelection::isMultipleTEValue(LLSelectedTEGetFunctor<T>* func, const T& ignore_value)
+{
+	bool have_first = false;
+	T selected_value = T();
+	
+	// Now iterate through all TEs to test for sameness
+	bool unique = TRUE;
+	for (iterator iter = begin(); iter != end(); iter++)
+	{
+		LLSelectNode* node = *iter;
+		LLViewerObject* object = node->getObject();
+		for (S32 te = 0; te < object->getNumTEs(); ++te)
+		{
+			if (!node->isTESelected(te))
+			{
+				continue;
+			}
+			T value = func->get(object, te);
+			if(value == ignore_value)
+			{
+				continue;
+			}
+			if (!have_first)
+			{
+				have_first = true;
+			}
+			else
+			{
+				if (value !=selected_value  )
+				{
+					unique = false;
+					return !unique;
+				}
+			}
+		}
+	}
+	return !unique;
 }
 
 

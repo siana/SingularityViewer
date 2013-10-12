@@ -53,7 +53,7 @@ namespace FMOD
 class LLAudioEngine_FMODEX : public LLAudioEngine 
 {
 public:
-	LLAudioEngine_FMODEX(bool enable_profiler);
+	LLAudioEngine_FMODEX(bool enable_profiler, bool verbose_debugging);
 	virtual ~LLAudioEngine_FMODEX();
 
 	// initialization/startup/shutdown
@@ -95,7 +95,7 @@ class LLAudioChannelFMODEX : public LLAudioChannel
 public:
 	LLAudioChannelFMODEX(FMOD::System *audioengine);
 	virtual ~LLAudioChannelFMODEX();
-
+	void onRelease();
 protected:
 	/*virtual*/ void play();
 	/*virtual*/ void playSynced(LLAudioChannel *channelp);
@@ -112,6 +112,8 @@ protected:
 	FMOD::System *mSystemp;
 	FMOD::Channel *mChannelp;
 	S32 mLastSamplePos;
+
+	friend class CFMODSoundChecks;
 };
 
 
@@ -129,6 +131,8 @@ protected:
 	FMOD::System *mSystemp;
 	FMOD::Sound *getSound()		const{ return mSoundp; }
 	FMOD::Sound *mSoundp;
+
+	friend class CFMODSoundChecks;
 };
 
 

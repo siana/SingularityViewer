@@ -1435,10 +1435,12 @@ one from scratch and wear it.
 	</text>
     <button name="Import" label="Import"
           bottom="-486" left="10" height="20" width="70"
-          follows="left|bottom" font="SansSerif" halign="center" />
+		  follows="left|bottom" font="SansSerif" halign="center"
+		  tool_tip="Import to currently selected wearable; current wearable must be modifiable" />
     <button name="Export" label="Export"
 	      bottom="-506" left="10" height="20" width="70"
-          follows="left|bottom" font="SansSerif" halign="center" />	
+		  follows="left|bottom" font="SansSerif" halign="center"
+		  tool_tip="Export currently selected wearable; asset must be copy/mod/trans and you need to be the creator" />
 	<button bottom="-536" follows="right|bottom" font="SansSerif" halign="center"
 	     height="20" label="Cancel" label_selected="Cancel" mouse_opaque="true"
 	     name="Cancel" right="-10" scale_image="true" width="100" />
@@ -1449,4 +1451,8 @@ one from scratch and wear it.
 	     height="20" label="Make Outfit..." label_selected="Make Outfit..."
 	     mouse_opaque="true" name="Make Outfit" left="10" scale_image="true"
 	     width="100" />
+    <button bottom="-536" follows="left|bottom" height="20" left="110" width="100" name="Save Outfit" label="Save Outfit"/>
+    <string name="Save changes to" value="Save changes to [OUTFIT]"/>
+    <string name="No Outfit" value="No Outfit"/>
+    <string name="Changing outfits" value="Changing outfits"/>
 </floater>

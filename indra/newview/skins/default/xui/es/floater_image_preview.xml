@@ -47,7 +47,7 @@
 Intenta guardándola como Targa de 24 bits (.tga).
 	</text>
 	<check_box label="Usar Compresión sin pérdid" name="lossless_check"/>
-	<check_box label="Temporaria (Gratis)" name="temp_check" tooltip="Fija el item como temporario, lo cual significa que es gratis pero por un período de tiempo luego del cual, desaparece"/>
+	<check_box label="Temporaria (Gratis)" name="temp_check" tool_tip="Fija el item como temporario, lo cual significa que es gratis pero por un período de tiempo luego del cual, desaparece"/>
 	<button label="Cancelar" name="cancel_btn"/>
 	<button label="Subir ([UPLOADFEE])" name="ok_btn"/>
 </floater>

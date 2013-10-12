@@ -127,6 +127,7 @@ public:
 		mRunning = false;
 	}
 
+	void resetWithExpiry(F32 expiration)			{ reset(); setTimerExpirySec(expiration); }
 	void pause();									// Mark elapsed time so far.
 	void unpause();									// Move 'start' time in order to decrement time between pause and unpause from ElapsedTime.
 

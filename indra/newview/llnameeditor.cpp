@@ -52,21 +52,11 @@ LLNameEditor::LLNameEditor(const std::string& name, const LLRect& rect,
 		const LLUUID& name_id, 
 		BOOL is_group,
 		const LLFontGL* glfont,
-		S32 max_text_length,
-		void (*commit_callback)(LLUICtrl* caller, void* user_data),
-		void (*keystroke_callback)(LLLineEditor* caller, void* user_data),
-		void (*focus_lost_callback)(LLFocusableElement* caller, void* user_data),
-		void* userdata,
-		LLLinePrevalidateFunc prevalidate_func)
+		S32 max_text_length)
 :	LLLineEditor(name, rect, 
 				 std::string("(retrieving)"), 
 				 glfont, 
-				 max_text_length, 
-				 commit_callback, 
-				 keystroke_callback,
-				 focus_lost_callback,
-				 userdata,
-				 prevalidate_func),
+				 max_text_length),
 	mNameID(name_id)
 {
 	LLNameEditor::sInstances.insert(this);
@@ -142,9 +132,6 @@ LLXMLNodePtr LLNameEditor::getXML(bool save_children) const
 
 LLView* LLNameEditor::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	std::string name("name_editor");
-	node->getAttributeString("name", name);
-
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
@@ -153,14 +140,11 @@ LLView* LLNameEditor::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 
 	LLFontGL* font = LLView::selectFont(node);
 
-	LLUICtrlCallback commit_callback = NULL;
-
-	LLNameEditor* line_editor = new LLNameEditor(name,
+	LLNameEditor* line_editor = new LLNameEditor("name_editor",
 								rect, 
 								LLUUID::null, FALSE,
 								font,
-								max_text_length,
-								commit_callback);
+								max_text_length);
 
 	std::string label;
 	if(node->getAttributeString("label", label))

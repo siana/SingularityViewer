@@ -66,6 +66,7 @@
 #include "lltrans.h"
 #include "llurldispatcher.h"
 #include "llviewerobjectlist.h"
+#include "llviewerparcelmgr.h"
 #include "llviewerparceloverlay.h"
 #include "llviewerstatsrecorder.h"
 #include "llvlmanager.h"
@@ -78,6 +79,7 @@
 #include "llviewercontrol.h"
 #include "llsdserialize.h"
 
+#include "llviewerparcelmgr.h"	//Aurora Sim
 #ifdef LL_WINDOWS
 	#pragma warning(disable:4355)
 #endif
@@ -181,7 +183,7 @@ class LLRegionHandler : public LLCommandHandler
 {
 public:
 	// requests will be throttled from a non-trusted browser
-	LLRegionHandler() : LLCommandHandler("region", /*V3: UNTRUSTED_THROTTLE*/ true) {}
+	LLRegionHandler() : LLCommandHandler("region", UNTRUSTED_THROTTLE) {}
 
 	bool handle(const LLSD& params, const LLSD& query_map, LLMediaCtrl* web)
 	{
@@ -204,7 +206,7 @@ public:
 		}
 
 		// Process the SLapp as if it was a secondlife://{PLACE} SLurl
-		LLURLDispatcher::dispatch(url, /*V3: "clicked",*/ web, true);
+		LLURLDispatcher::dispatch(url, "clicked", web, true);
 		return true;
 	}
 };
@@ -309,9 +311,12 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 	mReleaseNotesRequested(FALSE),
 	mCapabilitiesReceived(false),
 	mFeaturesReceived(false),
-	mGamingFlags(0)
+	mGamingFlags(0),
+// <FS:CR> Aurora Sim
+	mWidth(region_width_meters)
 {
-	mWidth = region_width_meters;
+	// Moved this up... -> mWidth = region_width_meters;
+// </FS:CR>
 	mImpl->mOriginGlobal = from_region_handle(handle); 
 	updateRenderMatrix();
 
@@ -321,7 +326,10 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 	mImpl->mCompositionp =
 		new LLVLComposition(mImpl->mLandp,
 							grids_per_region_edge,
-							region_width_meters / grids_per_region_edge);
+// <FS:CR> Aurora Sim
+							//region_width_meters / grids_per_region_edge);
+							mWidth / grids_per_region_edge);
+// </FS:CR> Aurora Sim
 	mImpl->mCompositionp->setSurface(mImpl->mLandp);
 
 	// Create the surfaces
@@ -331,14 +339,22 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 					mImpl->mOriginGlobal,
 					mWidth);
 
-	mParcelOverlay = new LLViewerParcelOverlay(this, region_width_meters);
+// <FS:CR> Aurora Sim
+	//mParcelOverlay = new LLViewerParcelOverlay(this, region_width_meters);
+	mParcelOverlay = new LLViewerParcelOverlay(this, mWidth);
+	LLViewerParcelMgr::getInstance()->init(mWidth);
+// </FS:CR> Aurora Sim
 
 	setOriginGlobal(from_region_handle(handle));
 	calculateCenterGlobal();
 
 	// Create the object lists
 	initStats();
+	initPartitions();
+}
 
+void LLViewerRegion::initPartitions()
+{
 	//create object partitions
 	//MUST MATCH declaration of eObjectPartitions
 	mImpl->mObjectPartition.push_back(new LLHUDPartition());		//PARTITION_HUD
@@ -357,6 +373,12 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 	mImpl->mObjectPartition.push_back(NULL);						//PARTITION_NONE
 }
 
+void LLViewerRegion::reInitPartitions()
+{
+	std::for_each(mImpl->mObjectPartition.begin(), mImpl->mObjectPartition.end(), DeletePointer());
+	mImpl->mObjectPartition.clear();
+	initPartitions();
+}
 
 void LLViewerRegion::initStats()
 {
@@ -828,11 +850,13 @@ LLVLComposition * LLViewerRegion::getComposition() const
 
 F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 {
-	if (x >= 256)
+// Singu Note: The Aurora Sim patches here were too many to read the code itself, mWidth and getWidth() (-1) replace 256 (255) in this function, only the first and last tags remain
+// <FS:CR> Aurora Sim
+	if (x >= mWidth)
 	{
-		if (y >= 256)
+		if (y >= mWidth)
 		{
-			LLVector3d center = getCenterGlobal() + LLVector3d(256.f, 256.f, 0.f);
+			LLVector3d center = getCenterGlobal() + LLVector3d(mWidth, mWidth, 0.f);
 			LLViewerRegion *regionp = LLWorld::getInstance()->getRegionFromPosGlobal(center);
 			if (regionp)
 			{
@@ -841,8 +865,8 @@ F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 				// If we're attempting to blend, then we want to make the fractional part of
 				// this region match the fractional of the adjacent.  For now, just minimize
 				// the delta.
-				F32 our_comp = getComposition()->getValueScaled(255, 255);
-				F32 adj_comp = regionp->getComposition()->getValueScaled(x - 256.f, y - 256.f);
+				F32 our_comp = getComposition()->getValueScaled(mWidth-1.f, mWidth-1.f);
+				F32 adj_comp = regionp->getComposition()->getValueScaled(x - regionp->getWidth(), y - regionp->getWidth());
 				while (llabs(our_comp - adj_comp) >= 1.f)
 				{
 					if (our_comp > adj_comp)
@@ -859,7 +883,7 @@ F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 		}
 		else
 		{
-			LLVector3d center = getCenterGlobal() + LLVector3d(256.f, 0, 0.f);
+			LLVector3d center = getCenterGlobal() + LLVector3d(mWidth, 0.f, 0.f);
 			LLViewerRegion *regionp = LLWorld::getInstance()->getRegionFromPosGlobal(center);
 			if (regionp)
 			{
@@ -868,8 +892,8 @@ F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 				// If we're attempting to blend, then we want to make the fractional part of
 				// this region match the fractional of the adjacent.  For now, just minimize
 				// the delta.
-				F32 our_comp = getComposition()->getValueScaled(255.f, (F32)y);
-				F32 adj_comp = regionp->getComposition()->getValueScaled(x - 256.f, (F32)y);
+				F32 our_comp = getComposition()->getValueScaled(mWidth-1.f, (F32)y);
+				F32 adj_comp = regionp->getComposition()->getValueScaled(x - regionp->getWidth(), (F32)y);
 				while (llabs(our_comp - adj_comp) >= 1.f)
 				{
 					if (our_comp > adj_comp)
@@ -885,9 +909,9 @@ F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 			}
 		}
 	}
-	else if (y >= 256)
+	else if (y >= mWidth)
 	{
-		LLVector3d center = getCenterGlobal() + LLVector3d(0.f, 256.f, 0.f);
+		LLVector3d center = getCenterGlobal() + LLVector3d(0.f, mWidth, 0.f);
 		LLViewerRegion *regionp = LLWorld::getInstance()->getRegionFromPosGlobal(center);
 		if (regionp)
 		{
@@ -896,8 +920,9 @@ F32 LLViewerRegion::getCompositionXY(const S32 x, const S32 y) const
 			// If we're attempting to blend, then we want to make the fractional part of
 			// this region match the fractional of the adjacent.  For now, just minimize
 			// the delta.
-			F32 our_comp = getComposition()->getValueScaled((F32)x, 255.f);
-			F32 adj_comp = regionp->getComposition()->getValueScaled((F32)x, y - 256.f);
+			F32 our_comp = getComposition()->getValueScaled((F32)x, mWidth-1.f);
+			F32 adj_comp = regionp->getComposition()->getValueScaled((F32)x, y - regionp->getWidth());
+// <FS:CR> Aurora Sim
 			while (llabs(our_comp - adj_comp) >= 1.f)
 			{
 				if (our_comp > adj_comp)
@@ -1597,8 +1622,9 @@ void LLViewerRegion::unpackRegionHandshake()
 		// all of our terrain stuff, by
 		if (compp->getParamsReady())
 		{
-			//this line creates frame stalls on region crossing and removing it appears to have no effect
-			//getLand().dirtyAllPatches();
+			// The following line was commented out in http://hg.secondlife.com/viewer-development/commits/448b02f5b56f9e608952c810df5454f83051a992
+			// by davep. However, this is needed to see changes in region/estate texture elevation ranges, and to update the terrain textures after terraforming.
+			getLand().dirtyAllPatches();
 		}
 		else
 		{
@@ -1620,7 +1646,11 @@ void LLViewerRegion::unpackRegionHandshake()
 	msg->addUUID("AgentID", gAgent.getID());
 	msg->addUUID("SessionID", gAgent.getSessionID());
 	msg->nextBlock("RegionInfo");
-	msg->addU32("Flags", 0x0 );
+
+	U32 flags = 0;
+	flags |= REGION_HANDSHAKE_SUPPORTS_SELF_APPEARANCE;
+
+	msg->addU32("Flags", flags );
 	msg->sendReliable(host);
 }
 
@@ -1638,18 +1668,14 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("EnvironmentSettings");
 	capabilityNames.append("EstateChangeInfo");
 	capabilityNames.append("EventQueueGet");
-	
-	if (gSavedSettings.getBOOL("UseHTTPInventory")) //Caps suffixed with 2 by LL. Don't update until rest of fetch system is updated first.
-	{
-		capabilityNames.append("FetchLib2");
-		capabilityNames.append("FetchLibDescendents2");
-		capabilityNames.append("FetchInventory2");
-		capabilityNames.append("FetchInventoryDescendents2");
-	}
-
+	capabilityNames.append("FetchLib2");
+	capabilityNames.append("FetchLibDescendents2");
+	capabilityNames.append("FetchInventory2");
+	capabilityNames.append("FetchInventoryDescendents2");
 	capabilityNames.append("GamingData"); //Used by certain grids.
 	capabilityNames.append("GetDisplayNames");
 	capabilityNames.append("GetMesh");
+	capabilityNames.append("GetMesh2");		// Used on SecondLife(tm) sim versions 280647 and higher (13.09.17).
 	capabilityNames.append("GetObjectCost");
 	capabilityNames.append("GetObjectPhysicsData");
 	capabilityNames.append("GetTexture");
@@ -1662,8 +1688,8 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("MeshUploadFlag");
 	capabilityNames.append("NavMeshGenerationStatus");
 	capabilityNames.append("NewFileAgentInventory");
-	/*capabilityNames.append("ObjectMedia");
-	capabilityNames.append("ObjectMediaNavigate");*/
+	capabilityNames.append("ObjectMedia");
+	capabilityNames.append("ObjectMediaNavigate");
 	capabilityNames.append("ObjectNavMeshProperties");
 	capabilityNames.append("ParcelNavigateMedia"); //Singu Note: Removed by Baker, do we need this?
 	capabilityNames.append("ParcelPropertiesUpdate");
@@ -1671,6 +1697,7 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("ProductInfoRequest");
 	capabilityNames.append("ProvisionVoiceAccountRequest");
 	capabilityNames.append("RemoteParcelRequest");
+	capabilityNames.append("RenderMaterials");
 	capabilityNames.append("RequestTextureDownload");
 	//capabilityNames.append("ResourceCostSelected"); //Object weights (llfloaterobjectweights.cpp)
 	capabilityNames.append("RetrieveNavMeshSrc");
@@ -1701,6 +1728,7 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("ViewerMetrics");
 	capabilityNames.append("ViewerStartAuction");
 	capabilityNames.append("ViewerStats");
+	capabilityNames.append("WearablesLoaded");
 	
 	// Please add new capabilities alphabetically to reduce
 	// merge conflicts.
@@ -2045,7 +2073,7 @@ bool LLViewerRegion::meshRezEnabled() const
 {
 	if (getCapability("SimulatorFeatures").empty())
 	{
-		return !getCapability("GetMesh").empty();
+		return !getCapability("GetMesh").empty() || !getCapability("GetMesh2").empty();
 	}
 	else
 	{

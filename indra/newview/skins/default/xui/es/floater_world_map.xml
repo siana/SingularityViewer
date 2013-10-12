@@ -1,58 +1,72 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater name="worldmap" title="Mapa del Mundo">
 	<panel name="objects_mapview"/>
-	<text name="you_label">
-		Tu
-	</text>
-	<text name="home_label">
-		Base
-	</text>
-	<text name="auction_label">
-		Subasta
-	</text>
-	<text name="land_for_sale_label">
-		Terreno en Venta
-	</text>
-	<button label="Ir a Base" label_selected="Ir a Base" name="Go Home" tool_tip="Teleportar a tu Base"/>
-	<check_box label="Residente" name="people_chk"/>
-	<check_box label="Punto Info" name="infohub_chk"/>
-	<check_box label="Punto de Enlace" name="telehubchk"/>
-	<check_box label="Terreno en Venta" name="land_for_sale_chk"/>
-	<text name="events_label">
-		Eventos:
-	</text>
-	<check_box label="PG" name="event_chk"/>
-	<check_box label="Mature" name="event_mature_chk"/>
-	<check_box label="Adulto" name="event_adult_chk"/>
-	<combo_box label="Amigos Conectados" name="friend combo" tool_tip="Mostrar amigos en el mapa">
-		<combo_item name="none_selected">
-			Amigos Conectados
-		</combo_item>
-	</combo_box>
-	<combo_box label="Hitos" name="landmark combo" tool_tip="Hitos a mostrar en el Mapa">
-		<combo_item name="none_selected">
-			Hitos
-		</combo_item>
-	</combo_box>
-	<line_editor label="Buscar por Nombre de Región" name="location" tool_tip="Escribe el nombre de la región"/>
-	<button label="Buscar" name="DoSearch" tool_tip="Buscar Región"/>
-	<text name="search_label">
-		Resultados de la Búsqueda:
-	</text>
-	<scroll_list name="search_results">
-		<column label="" name="icon"/>
-		<column label="" name="sim_name"/>
-	</scroll_list>
-	<text name="location_label">
-		Ubicación:
-	</text>
-	<spinner name="spin x" tool_tip="Coordenada X de la ubicación para mostrar en el mapa"/>
-	<spinner name="spin y" tool_tip="Coordenada Y de la ubicación para mostrar en el mapa"/>
-	<spinner name="spin z" tool_tip="Coordenada Z de la ubicación para mostrar en el mapa"/>
-	<button label="Teleportar" label_selected="Teleportar" name="Teleport" tool_tip="Teleportar a la ubicación seleccionada"/>
-	<button label="Mostrar Destino" label_selected="Mostrar Destino" name="Show Destination" tool_tip="Centrar el mapa en la ubicación seleccionada"/>
-	<button label="Limpiar" label_selected="Limpiar" name="Clear" tool_tip="Detener la búsqueda"/>
-	<button label="Mostrar mi ubicación" label_selected="Mostrar mi ubicación" name="Show My Location" tool_tip="Centrar el mapa en la ubicación de tu avatar"/>
-	<button label="Copiar el SLURL al  portapapeles" name="copy_slurl" tool_tip="Copia el SLURL de la actua ubicación para poder utilizarlo en la web"/>
-	<slider label="Zoom" name="zoom slider" />
+		<icon name="self"/>
+		<text name="you_label">
+			Tu
+		</text>
+		<icon name="home"/>
+		<text name="home_label">
+			Base
+		</text>
+		<icon name="square2"/>
+		<text name="auction_label">
+			Subasta
+		</text>
+		<icon name="square"/>
+		<text name="land_for_sale_label">
+			Terreno en Venta
+		</text>
+		<button label="Ir a Base" label_selected="Ir a Base" name="Go Home" tool_tip="Teleportar a tu Base"/>
+		<icon name="person"/>
+		<check_box label="Residente" name="people_chk"/>
+		<icon name="infohub"/>
+		<check_box label="Punto de Info" name="infohub_chk"/>
+		<icon name="telehub"/>
+		<check_box label="Punto de Enlace" name="telehubchk"/>
+		<check_box label="Terreno en Venta" name="land_for_sale_chk"/>
+		<icon name="landforsale"/>
+		<text name="events_label">
+			Eventos:
+		</text>
+		<icon name="event"/>
+		<check_box label="PG" name="event_chk"/>
+		<icon name="events_mature_icon"/>
+		<check_box label="Mature" name="event_mature_chk"/>
+		<icon name="events_adult_icon"/>
+		<check_box label="Adulto" name="event_adult_chk"/>
+		<icon name="avatar_icon"/>
+		<combo_box label="Amigos Conectados" name="friend combo" tool_tip="Mostrar amigos en el mapa">
+			<combo_item name="none_selected">
+				Amigos Conectados
+			</combo_item>
+		</combo_box>
+		<icon name="landmark_icon"/>
+		<combo_box label="Hitos" name="landmark combo" tool_tip="Hitos a mostrar en el Mapa">
+			<combo_item name="none_selected">
+				Hitos
+			</combo_item>
+		</combo_box>
+		<icon name="location_icon"/>
+		<search_editor label="Buscar por Nombre de Región" name="location" tool_tip="Escribe el nombre de la región"/>
+		<button label="Buscar" name="DoSearch" tool_tip="Buscar Región"/>
+		<text name="search_label">
+			Resultados de la Búsqueda:
+		</text>
+		<scroll_list name="search_results">
+			<column label="" name="icon"/>
+			<column label="" name="sim_name"/>
+		</scroll_list>
+		<text name="location_label">
+			Ubicación:
+		</text>
+		<spinner name="spin x" tool_tip="Coordenada X de la ubicación para mostrar en el mapa"/>
+		<spinner name="spin y" tool_tip="Coordenada Y de la ubicación para mostrar en el mapa"/>
+		<spinner name="spin z" tool_tip="Coordenada Z de la ubicación para mostrar en el mapa"/>
+		<button label="Teleportar" label_selected="Teleportar" name="Teleport" tool_tip="Teleportar a la ubicación seleccionada"/>
+		<button label="Mostrar Destino" label_selected="Mostrar Destino" name="Show Destination" tool_tip="Centrar el mapa en la ubicación seleccionada"/>
+		<button label="Limpiar" label_selected="Limpiar" name="Clear" tool_tip="Detener la búsqueda"/>
+		<button label="Mostrar mi ubicación" label_selected="Mostrar mi ubicación" name="Show My Location" tool_tip="Centrar el mapa en la ubicación de tu avatar"/>
+		<button label="Copiar el SLURL al  portapapeles" name="copy_slurl" tool_tip="Copia el SLURL de la actual ubicación para poder utilizarlo en la web"/>
+		<slider label="Zoom" name="zoom slider" />
 </floater>

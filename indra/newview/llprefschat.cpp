@@ -55,6 +55,7 @@ private:
 	S32	mChatSize;
 	F32	mChatPersist;
 	S32	mChatMaxLines;
+	S32	mChatBottomOffset;
 	LLColor4 mSystemChatColor;
 	LLColor4 mUserChatColor;
 	LLColor4 mAgentChatColor;
@@ -115,6 +116,7 @@ void LLPrefsChatImpl::refreshValues()
 	mChatSize = gSavedSettings.getS32("ChatFontSize");
 	mChatPersist = gSavedSettings.getF32("ChatPersistTime");
 	mChatMaxLines = gSavedSettings.getS32("ConsoleMaxLines");
+	mChatBottomOffset = gSavedSettings.getS32("ConsoleBottomOffset");
 	mSystemChatColor = gSavedSettings.getColor4("SystemChatColor");
 	mUserChatColor = gSavedSettings.getColor4("UserChatColor");
 	mAgentChatColor = gSavedSettings.getColor4("AgentChatColor");
@@ -140,6 +142,7 @@ void LLPrefsChatImpl::cancel()
 	gSavedSettings.setS32("ChatFontSize", mChatSize);
 	gSavedSettings.setF32("ChatPersistTime", mChatPersist);
 	gSavedSettings.setS32("ConsoleMaxLines", mChatMaxLines);
+	gSavedSettings.setS32("ConsoleBottomOffset", mChatBottomOffset);
 	gSavedSettings.setColor4("SystemChatColor", mSystemChatColor);
 	gSavedSettings.setColor4("UserChatColor", mUserChatColor);
 	gSavedSettings.setColor4("AgentChatColor", mAgentChatColor);

@@ -32,55 +32,29 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#include "llimagejpeg.h"
 #include "llfloatercustomize.h"
-#include "llfontgl.h"
-#include "llbutton.h"
-#include "lliconctrl.h"
-#include "llresmgr.h"
-#include "llmorphview.h"
-#include "llfloatertools.h"
+
 #include "llagent.h"
+#include "llagentcamera.h"
 #include "llagentwearables.h"
-#include "lltoolmorph.h"
-#include "llvoavatarself.h"
-#include "llradiogroup.h"
-#include "lltoolmgr.h"
-#include "llviewermenu.h"
+#include "llappearancemgr.h"
+#include "llmakeoutfitdialog.h"
+#include "llmorphview.h"
+#include "llnotificationsutil.h"
+#include "lloutfitobserver.h"
+#include "llpaneleditwearable.h"
 #include "llscrollcontainer.h"
 #include "llscrollingpanelparam.h"
-#include "llsliderctrl.h"
-#include "llviewerwindow.h"
-#include "llinventoryfunctions.h"
-#include "llinventoryobserver.h"
-#include "llinventoryicon.h"
 #include "lltextbox.h"
-#include "lllineeditor.h"
-#include "llviewertexturelist.h"
-#include "llfocusmgr.h"
-#include "llviewerwindow.h"
-#include "llviewercamera.h"
-#include "llappearance.h"
-#include "imageids.h"
-#include "llassetstorage.h"
-#include "lltexturectrl.h"
-#include "lltextureentry.h"
-#include "llwearablelist.h"
-#include "llviewerinventory.h"
-#include "lldbstrings.h"
-#include "llcolorswatch.h"
-#include "llglheaders.h"
-#include "llui.h"
-#include "llviewermessage.h"
-#include "llviewercontrol.h"
+#include "lltoolmorph.h"
 #include "lluictrlfactory.h"
-#include "llnotificationsutil.h"
-#include "llpaneleditwearable.h"
-#include "llmakeoutfitdialog.h"
-#include "llagentcamera.h"
-#include "llappearancemgr.h"
+#include "llviewerinventory.h"
+#include "llviewerwearable.h"
+#include "llvoavatarself.h"
 
 #include "statemachine/aifilepicker.h"
+#include "llxmltree.h"
+#include "hippogridmanager.h"
 
 using namespace LLAvatarAppearanceDefines;
 
@@ -156,6 +130,11 @@ LLFloaterCustomize::LLFloaterCustomize()
 	mInventoryObserver = new LLFloaterCustomizeObserver(this);
 	gInventory.addObserver(mInventoryObserver);
 
+	LLOutfitObserver& outfit_observer =  LLOutfitObserver::instance();
+	outfit_observer.addBOFReplacedCallback(boost::bind(&LLFloaterCustomize::refreshCurrentOutfitName, this, ""));
+	outfit_observer.addBOFChangedCallback(boost::bind(&LLFloaterCustomize::refreshCurrentOutfitName, this, ""));
+	outfit_observer.addCOFChangedCallback(boost::bind(&LLFloaterCustomize::refreshCurrentOutfitName, this, ""));
+
 	LLCallbackMap::map_t factory_map;
 	const std::string &invalid_name = LLWearableType::getTypeName(LLWearableType::WT_INVALID);
 	for(U32 type=LLWearableType::WT_SHAPE;type<LLWearableType::WT_INVALID;++type)
@@ -189,6 +168,8 @@ LLFloaterCustomize::~LLFloaterCustomize()
 BOOL LLFloaterCustomize::postBuild()
 {
 	getChild<LLUICtrl>("Make Outfit")->setCommitCallback(boost::bind(&LLFloaterCustomize::onBtnMakeOutfit, this));
+	getChild<LLUICtrl>("Save Outfit")->setCommitCallback(boost::bind(&LLAppearanceMgr::updateBaseOutfit, LLAppearanceMgr::getInstance()));
+	refreshCurrentOutfitName(); // Initialize tooltip for save outfit button
 	getChild<LLUICtrl>("Ok")->setCommitCallback(boost::bind(&LLFloaterCustomize::onBtnOk, this));
 	getChild<LLUICtrl>("Cancel")->setCommitCallback(boost::bind(&LLFloater::onClickClose, this));
 
@@ -220,6 +201,44 @@ BOOL LLFloaterCustomize::postBuild()
 	initScrollingPanelList();
 	
 	return TRUE;
+}
+
+void LLFloaterCustomize::refreshCurrentOutfitName(const std::string& name)
+{
+	LLUICtrl* save_outfit_btn = getChild<LLUICtrl>("Save Outfit");
+	// Set current outfit status (wearing/unsaved).
+	bool dirty = LLAppearanceMgr::getInstance()->isOutfitDirty();
+	//std::string cof_status_str = getString(dirty ? "Unsaved Changes" : "Now Wearing");
+	//mOutfitStatus->setText(cof_status_str);
+	save_outfit_btn->setEnabled(dirty); // No use saving unless dirty
+
+	if (name == "")
+	{
+		std::string outfit_name;
+		if (LLAppearanceMgr::getInstance()->getBaseOutfitName(outfit_name))
+		{
+				//mCurrentLookName->setText(outfit_name);
+				LLStringUtil::format_map_t args;
+				args["[OUTFIT]"] = outfit_name;
+				save_outfit_btn->setToolTip(getString("Save changes to", args));
+				return;
+		}
+
+		std::string string_name = gAgentWearables.isCOFChangeInProgress() ? "Changing outfits" : "No Outfit";
+		//mCurrentLookName->setText(getString(string_name));
+		save_outfit_btn->setToolTip(getString(string_name));
+		//mOpenOutfitBtn->setEnabled(FALSE);
+		save_outfit_btn->setEnabled(false); // Can't save right now
+	}
+	else
+	{
+		//mCurrentLookName->setText(name);
+		LLStringUtil::format_map_t args;
+		args["[OUTFIT]"] = name;
+		save_outfit_btn->setToolTip(getString("Save changes to", args));
+		// Can't just call update verbs since the folder link may not have been created yet.
+		//mOpenOutfitBtn->setEnabled(TRUE);
+	}
 }
 
 //static
@@ -296,7 +315,7 @@ void LLFloaterCustomize::onBtnImport()
 {
 	AIFilePicker* filepicker = AIFilePicker::create();
 	filepicker->open(FFLOAD_XML);
-	filepicker->run(boost::bind(&LLFloaterCustomize::onBtnImport_continued, filepicker));
+	filepicker->run(boost::bind(&LLFloaterCustomize::onBtnImport_continued, this, filepicker));
 }
 
 void LLFloaterCustomize::onBtnImport_continued(AIFilePicker* filepicker)
@@ -307,59 +326,287 @@ void LLFloaterCustomize::onBtnImport_continued(AIFilePicker* filepicker)
 		return;
 	}
 
-	const std::string filename = filepicker->getFilename();
+	// Find the editted wearable.
+	LLPanelEditWearable* panel_edit_wearable = getCurrentWearablePanel();
+	LLViewerWearable* edit_wearable = panel_edit_wearable->getWearable();
 
-	FILE* fp = LLFile::fopen(filename, "rb");
+	std::string const filename = filepicker->getFilename();
+	LLSD args(LLSD::emptyMap());
+	args["FILE"] = gDirUtilp->getBaseFileName(filename);
 
-	//char text_buffer[2048];		/* Flawfinder: ignore */
-	S32 c;
-	S32 typ;
-	S32 count;
-	S32 param_id=0;
-	F32 param_weight=0;
-	S32 fields_read;
-
-	for( S32 i=0; i < LLWearableType::WT_COUNT; i++ )
+	LLXmlTree xml;
+	BOOL success = xml.parseFile(filename, FALSE);
+	if (!success)
 	{
-		fields_read = fscanf( fp, "type %d\n", &typ);
-		if( fields_read != 1 )
-		{
-			llwarns << "Bad asset type: early end of file" << llendl;
-			return;
-		}
+		LLNotificationsUtil::add("AIXMLImportParseError", args);
+		return;
+	}
+	LLXmlTreeNode* root = xml.getRoot();
+	if (!root)
+	{
+		llwarns << "No root node found in wearable import file: " << filename << llendl;
+		LLNotificationsUtil::add("AIXMLImportParseError", args);
+		return;
+	}
 
-		fields_read = fscanf( fp, "parameters %d\n", &count);
-		if( fields_read != 1 )
+	//-------------------------------------------------------------------------
+	// <linden_genepool version="1.0" [metaversion="?"]> (root)
+	//-------------------------------------------------------------------------
+	if (!root->hasName("linden_genepool"))
+	{
+		llwarns << "Invalid wearable import file (missing linden_genepool header): " << filename << llendl;
+		LLNotificationsUtil::add("AIXMLImportRootTypeError", args);
+		return;
+	}
+	static LLStdStringHandle const version_string = LLXmlTree::addAttributeString("version");
+	std::string version;
+	if (!root->getFastAttributeString(version_string, version) || (version != "1.0"))
+	{
+		llwarns << "Invalid or incompatible linden_genepool version: " << version << " in file: " << filename << llendl;
+		args["TAG"] = "version";
+		args["VERSIONMAJOR"] = "1";
+		LLNotificationsUtil::add("AIXMLImportRootVersionError", args);
+		return;
+	}
+	static LLStdStringHandle const metaversion_string = LLXmlTree::addAttributeString("metaversion");
+	std::string metaversion;
+	U32 metaversion_major;
+	if (!root->getFastAttributeString(metaversion_string, metaversion))
+	{
+		llwarns << "Invalid linden_genepool metaversion: " << metaversion << " in file: " << filename << llendl;
+		metaversion_major = 0;
+	}
+	else if (!LLStringUtil::convertToU32(metaversion, metaversion_major) || metaversion_major > 1)
+	{
+		llwarns << "Invalid or incompatible linden_genepool metaversion: " << metaversion << " in file: " << filename << llendl;
+		args["TAG"] = "metaversion";
+		args["VERSIONMAJOR"] = "1";
+		LLNotificationsUtil::add("AIXMLImportRootVersionError", args);
+		return;
+	}
+
+	//-------------------------------------------------------------------------
+	// <meta gridnick="secondlife" date="2013-07-20T15:27:55.80Z">
+	//-------------------------------------------------------------------------
+	std::string gridnick;
+	LLDate date;
+	bool different_grid = false;		// By default assume it was exported on the same grid as we're on now.
+	bool mixed_grids = false;			// Set to true if two different grids (might) share UUIDs. Currently only "secondlife" and "secondlife_beta".
+	if (metaversion_major >= 1)
+	{
+		static LLStdStringHandle const gridnick_string = LLXmlTree::addAttributeString("gridnick");
+		static LLStdStringHandle const date_string = LLXmlTree::addAttributeString("date");
+		std::string date_s;
+		bool invalid = true;
+		LLXmlTreeNode* meta_node = root->getChildByName("meta");
+		if (!meta_node)
 		{
-			llwarns << "Bad parameters : early end of file" << llendl;
-			return;
+			llwarns << "No meta (1) in wearable import file: " << filename << llendl;
 		}
-		for(c=0;c<count;c++)
+		else if (!meta_node->getFastAttributeString(gridnick_string, gridnick))
 		{
-			fields_read = fscanf( fp, "%d %f\n", &param_id, &param_weight );
-			if( fields_read != 2 )
-			{
-				llwarns << "Bad parameters list: early end of file" << llendl;
-				return;
-			}
-			gAgentAvatarp->setVisualParamWeight( param_id, param_weight, TRUE);
-			gAgentAvatarp->updateVisualParams();
+			llwarns << "meta tag in file: " << filename << " is missing the 'gridnick' parameter." << llendl;
+		}
+		else if (!meta_node->getFastAttributeString(date_string, date_s) || !date.fromString(date_s))
+		{
+			llwarns << "meta tag in file: " << filename << " is missing or invalid 'date' parameter." << llendl;
+		}
+		else
+		{
+			invalid = false;
+			std::string current_gridnick = gHippoGridManager->getConnectedGrid()->getGridNick();
+			different_grid = gridnick != current_gridnick;
+			mixed_grids = (gridnick == "secondlife" && current_gridnick == "secondlife_beta") ||
+			              (gridnick == "secondlife_beta" && current_gridnick == "secondlife");
+		}
+		if (invalid)
+		{
+			LLNotificationsUtil::add("AIXMLImportInvalidError", args);
+			return;
 		}
 	}
 
-	fclose(fp);
-	return;
+	static LLStdStringHandle const name_string = LLXmlTree::addAttributeString("name");
+
+	//-------------------------------------------------------------------------
+	// <archetype name="???">
+	//-------------------------------------------------------------------------
+	LLXmlTreeNode* archetype_node = root->getChildByName("archetype");
+	if (!archetype_node)
+	{
+		llwarns << "No archetype in wearable import file: " << filename << llendl;
+		LLNotificationsUtil::add("AIXMLImportInvalidError", args);
+		return;
+	}
+	// Legacy that name="" exists. Using it as human (only) readable type label of contents. Don't use it for anything else because it might not be set.
+	std::string label = "???";
+	if (metaversion_major >= 1)
+	{
+		if (!archetype_node->getFastAttributeString(name_string, label))
+		{
+			llwarns << "archetype tag in file: " << filename << " is missing the 'name' parameter." << llendl;
+		}
+	}
+
+	//-------------------------------------------------------------------------
+	// <meta path="Clothing" name="New Shirt27" description="Some description"/>
+	//-------------------------------------------------------------------------
+	std::string path;
+	std::string wearable_name;
+	std::string wearable_description;
+	if (metaversion_major >= 1)
+	{
+		static LLStdStringHandle const path_string = LLXmlTree::addAttributeString("path");
+		static LLStdStringHandle const description_string = LLXmlTree::addAttributeString("description");
+		bool invalid = true;
+		LLXmlTreeNode* meta_node = archetype_node->getChildByName("meta");
+		if (!meta_node)
+		{
+			llwarns << "No meta (2) in wearable import file: " << filename << llendl;
+		}
+		else if (!meta_node->getFastAttributeString(path_string, path))
+		{
+			llwarns << "meta tag in file: " << filename << " is missing the 'path' parameter." << llendl;
+		}
+		else if (!meta_node->getFastAttributeString(name_string, wearable_name))
+		{
+			llwarns << "meta tag in file: " << filename << " is missing the 'name' parameter." << llendl;
+		}
+		else if (!meta_node->getFastAttributeString(description_string, wearable_description))
+		{
+			llwarns << "meta tag in file: " << filename << " is missing the 'description' parameter." << llendl;
+		}
+		else
+		{
+			invalid = false;
+		}
+		if (invalid)
+		{
+			LLNotificationsUtil::add("AIXMLImportInvalidError", args);
+			return;
+		}
+	}
+
+	// Parse the XML content.
+	static LLStdStringHandle const id_string = LLXmlTree::addAttributeString("id");
+	static LLStdStringHandle const value_string = LLXmlTree::addAttributeString("value");
+	static LLStdStringHandle const te_string = LLXmlTree::addAttributeString("te");
+	static LLStdStringHandle const uuid_string = LLXmlTree::addAttributeString("uuid");
+	bool found_param = false;
+	bool found_texture = false;
+	for(LLXmlTreeNode* child = archetype_node->getFirstChild(); child; child = archetype_node->getNextChild())
+	{
+		if (child->hasName("param"))
+		{
+			std::string id_s;
+			U32 id;
+			std::string value_s;
+			F32 value;
+			if (!child->getFastAttributeString(id_string, id_s) || !LLStringUtil::convertToU32(id_s, id) ||
+				!child->getFastAttributeString(value_string, value_s) || !LLStringUtil::convertToF32(value_s, value))
+			{
+				llwarns << "Possible syntax error or corruption for <param id=... value=... /> node in " << filename << llendl;
+				continue;
+			}
+			LLVisualParam* visual_param = edit_wearable->getVisualParam(id);
+			if (visual_param)
+			{
+				found_param = true;
+				visual_param->setWeight(value, FALSE);
+			}
+		}
+		else if (child->hasName("texture"))
+		{
+			std::string te_s;
+			S32 te;
+			std::string uuid_s;
+			LLUUID uuid;
+			if (!child->getFastAttributeString(te_string, te_s) || !LLStringUtil::convertToS32(te_s, te) || te < 0 || te >= TEX_NUM_INDICES ||
+				!child->getFastAttributeString(uuid_string, uuid_s) || !uuid.set(uuid_s, TRUE))
+			{
+				llwarns << "Possible syntax error or corruption for <texture te=... uuid=... /> node in " << filename << llendl;
+				continue;
+			}
+			ETextureIndex te_index = (ETextureIndex)te;
+			LLWearableType::EType te_wearable_type = LLAvatarAppearanceDictionary::getTEWearableType(te_index);
+			if (te_wearable_type == edit_wearable->getType())
+			{
+				found_texture = true;
+				if (!different_grid || mixed_grids)
+				{
+					panel_edit_wearable->setNewImageID(te_index, uuid);
+				}
+			}
+		}
+	}
+	if (found_param || found_texture)
+	{
+		edit_wearable->writeToAvatar(gAgentAvatarp);
+		gAgentAvatarp->updateVisualParams();
+		panel_edit_wearable->updateScrollingPanelUI();
+		if (found_texture && different_grid)
+		{
+			args["EXPORTGRID"] = gridnick;
+			args["CURRENTGRID"] = gHippoGridManager->getConnectedGrid()->getGridNick();
+			if (mixed_grids)
+			{
+				LLNotificationsUtil::add("AIXMLImportMixedGrid", args);
+			}
+			else
+			{
+				LLNotificationsUtil::add("AIXMLImportDifferentGrid", args);
+			}
+		}
+	}
+	else
+	{
+		args["TYPE"] = panel_edit_wearable->LLPanel::getLabel();
+		args["ARCHETYPENAME"] = label;
+		LLNotificationsUtil::add("AIXMLImportWearableTypeMismatch", args);
+	}
 }
 
 // reX: new function
 void LLFloaterCustomize::onBtnExport()
 {
+	// Find the editted wearable.
+	LLPanelEditWearable* panel_edit_wearable = getCurrentWearablePanel();
+	LLViewerWearable* edit_wearable = panel_edit_wearable->getWearable();
+	U32 edit_index = panel_edit_wearable->getIndex();
+	std::string const& name = edit_wearable->getName();
+
+	// Determine if the currently selected wearable is modifiable.
+	LLWearableType::EType edit_type = getCurrentWearableType();
+	bool is_modifiable = false;
+	LLViewerWearable* old_wearable = gAgentWearables.getViewerWearable(edit_type, edit_index);
+	if (old_wearable)
+	{
+		LLViewerInventoryItem* item = gInventory.getItem(old_wearable->getItemID());
+		if (item)
+		{
+			LLPermissions const& perm = item->getPermissions();
+			// Modifiable means the user can see the sliders and type them over into a file anyway.
+			is_modifiable = perm.allowModifyBy(gAgent.getID(), gAgent.getGroupID());
+		}
+	}
+
+	if (!is_modifiable)
+	{
+		// We should never get here, because in that case the Export button is disabled.
+		llwarns << "Cannot export current wearable \"" << name << "\" of type " << (int)edit_type << "because user lacks modify permissions." << llendl;
+		return;
+	}
+
+	std::string file_name = edit_wearable->getName() + "_" + gHippoGridManager->getConnectedGrid()->getGridNick() + "_" + edit_wearable->getTypeName() + "?000.xml";
+	std::string default_path = gDirUtilp->getExpandedFilename(LL_PATH_LOGS, "");
+
 	AIFilePicker* filepicker = AIFilePicker::create();
-	filepicker->open("", FFSAVE_XML);
-	filepicker->run(boost::bind(&LLFloaterCustomize::onBtnExport_continued, filepicker));
+	filepicker->open(file_name, FFSAVE_XML, default_path, "archetype");
+	filepicker->run(boost::bind(&LLFloaterCustomize::onBtnExport_continued, edit_wearable, filepicker));
 }
 
-void LLFloaterCustomize::onBtnExport_continued(AIFilePicker* filepicker)
+//static
+void LLFloaterCustomize::onBtnExport_continued(LLViewerWearable* edit_wearable, AIFilePicker* filepicker)
 {
 	if (!filepicker->hasFilename())
 	{
@@ -367,62 +614,22 @@ void LLFloaterCustomize::onBtnExport_continued(AIFilePicker* filepicker)
 		return;
 	}
 
-	LLViewerInventoryItem* item;
-	BOOL is_modifiable;
+	std::string filename = filepicker->getFilename();
+	LLSD args(LLSD::emptyMap());
+	args["FILE"] = filename;
 
-	const std::string filename = filepicker->getFilename();
-
-	FILE* fp = LLFile::fopen(filename, "wb");
-
-	for( S32 i=0; i < LLWearableType::WT_COUNT; i++ )
+	LLAPRFile outfile;
+	outfile.open(filename, LL_APR_WB);
+	if (!outfile.getFileHandle())
 	{
-		is_modifiable = FALSE;
-		LLViewerWearable* old_wearable = gAgentWearables.getViewerWearable((LLWearableType::EType)i, 0);	// TODO: MULTI-WEARABLE
-		if( old_wearable )
-		{
-			item = gInventory.getItem(old_wearable->getItemID());
-			if(item)
-			{
-				const LLPermissions& perm = item->getPermissions();
-				is_modifiable = perm.allowModifyBy(gAgent.getID(), gAgent.getGroupID());
-			}
-		}
-		if (is_modifiable)
-		{
-			old_wearable->FileExportParams(fp);
-		}
-		if (!is_modifiable)
-		{
-			fprintf( fp, "type %d\n",i);
-			fprintf( fp, "parameters 0\n");
-		}
-	}	
+		llwarns << "Could not open \"" << filename << "\" for writing." << llendl;
+		LLNotificationsUtil::add("AIXMLExportWriteError", args);
+		return;
+	}
 
-	for( S32 i=0; i < LLWearableType::WT_COUNT; i++ )
-	{
-		is_modifiable = FALSE;
-		LLViewerWearable* old_wearable = gAgentWearables.getViewerWearable((LLWearableType::EType)i, 0);	// TODO: MULTI-WEARABLE
-		if( old_wearable )
-		{
-			item = gInventory.getItem(old_wearable->getItemID());
-			if(item)
-			{
-				const LLPermissions& perm = item->getPermissions();
-				is_modifiable = perm.allowModifyBy(gAgent.getID(), gAgent.getGroupID());
-			}
-		}
-		if (is_modifiable)
-		{
-			old_wearable->FileExportTextures(fp);
-		}
-		if (!is_modifiable)
-		{
-			fprintf( fp, "type %d\n",i);
-			fprintf( fp, "textures 0\n");
-		}
-	}	
-
-	fclose(fp);
+	LLVOAvatar::dumpArchetypeXML_header(outfile, edit_wearable->getTypeName());
+	edit_wearable->archetypeExport(outfile);
+	LLVOAvatar::dumpArchetypeXML_footer(outfile);
 }
 
 void LLFloaterCustomize::onBtnOk()
@@ -558,8 +765,8 @@ const S32 HEADER_HEIGHT = 3 * (LINE_HEIGHT + LLFLOATER_VPAD) + (2 * LLPANEL_BORD
 
 void LLFloaterCustomize::initScrollingPanelList()
 {
-	LLScrollableContainerView* scroll_container =
-		getChild<LLScrollableContainerView>("panel_container");
+	LLScrollContainer* scroll_container =
+		getChild<LLScrollContainer>("panel_container");
 	// LLScrollingPanelList's do not import correctly 
 // 	mScrollingPanelList = LLUICtrlFactory::getScrollingPanelList(this, "panel_list");
 	mScrollingPanelList = new LLScrollingPanelList(std::string("panel_list"), LLRect());
@@ -588,7 +795,7 @@ void LLFloaterCustomize::updateVisiblity(bool force_disable_camera_switch/*=fals
 	{
 		if(force_disable_camera_switch || !gAgentCamera.cameraCustomizeAvatar() || !gAgentCamera.getCameraAnimating() || (gMorphView && gMorphView->getVisible()))
 		{
-			if(gAgentAvatarp)gAgentAvatarp->mSpecialRenderMode = 3;
+			if (gAgentAvatarp && gSavedSettings.getBOOL("AppearanceSpecialLighting")) gAgentAvatarp->mSpecialRenderMode = 3;
 			setVisibleAndFrontmost(TRUE);
 		}
 	}
@@ -671,7 +878,7 @@ void LLFloaterCustomize::saveCurrentWearables()
 
 bool LLFloaterCustomize::onSaveDialog(const LLSD& notification, const LLSD& response )
 {
-	S32 option = LLNotification::getSelectedOption(notification, response);
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
 	if(option == 0)
 	{
 		saveCurrentWearables();

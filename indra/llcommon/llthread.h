@@ -27,7 +27,7 @@
 #ifndef LL_LLTHREAD_H
 #define LL_LLTHREAD_H
 
-#ifdef __GNUC__
+#if LL_GNUC
 // Needed for is_main_thread() when compiling with optimization (relwithdebinfo).
 // It doesn't hurt to just always specify it though.
 #pragma interface

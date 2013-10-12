@@ -49,6 +49,7 @@
 #include "llpathfindingmanager.h"
 #include "llresmgr.h"
 #include "llscrolllistctrl.h"
+#include "llscrolllistitem.h"
 #include "llselectmgr.h"
 #include "llsd.h"
 #include "llstring.h"
@@ -205,46 +206,46 @@ BOOL LLFloaterPathfindingObjects::postBuild()
 	mErrorTextColor = LLUI::sColorsGroup->getColor("PathfindingErrorColor");
 	mWarningTextColor = LLUI::sColorsGroup->getColor("PathfindingWarningColor");
 
-	mObjectsScrollList = getChild<LLScrollListCtrl>("objects_scroll_list");
+	mObjectsScrollList = findChild<LLScrollListCtrl>("objects_scroll_list");
 	llassert(mObjectsScrollList != NULL);
 	mObjectsScrollList->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onScrollListSelectionChanged, this));
 	mObjectsScrollList->sortByColumnIndex(static_cast<U32>(getNameColumnIndex()), TRUE);
 
-	mMessagingStatus = getChild<LLTextBox>("messaging_status");
+	mMessagingStatus = findChild<LLTextBox>("messaging_status");
 	llassert(mMessagingStatus != NULL);
 
-	mRefreshListButton = getChild<LLButton>("refresh_objects_list");
+	mRefreshListButton = findChild<LLButton>("refresh_objects_list");
 	llassert(mRefreshListButton != NULL);
 	mRefreshListButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onRefreshObjectsClicked, this));
 
-	mSelectAllButton = getChild<LLButton>("select_all_objects");
+	mSelectAllButton = findChild<LLButton>("select_all_objects");
 	llassert(mSelectAllButton != NULL);
 	mSelectAllButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onSelectAllObjectsClicked, this));
 
-	mSelectNoneButton = getChild<LLButton>("select_none_objects");
+	mSelectNoneButton = findChild<LLButton>("select_none_objects");
 	llassert(mSelectNoneButton != NULL);
 	mSelectNoneButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onSelectNoneObjectsClicked, this));
 
-	mShowBeaconCheckBox = getChild<LLCheckBoxCtrl>("show_beacon");
+	mShowBeaconCheckBox = findChild<LLCheckBoxCtrl>("show_beacon");
 	llassert(mShowBeaconCheckBox != NULL);
 
-	mTakeButton = getChild<LLButton>("take_objects");
+	mTakeButton = findChild<LLButton>("take_objects");
 	llassert(mTakeButton != NULL);
 	mTakeButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onTakeClicked, this));
 
-	mTakeCopyButton = getChild<LLButton>("take_copy_objects");
+	mTakeCopyButton = findChild<LLButton>("take_copy_objects");
 	llassert(mTakeCopyButton != NULL);
 	mTakeCopyButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onTakeCopyClicked, this));
 
-	mReturnButton = getChild<LLButton>("return_objects");
+	mReturnButton = findChild<LLButton>("return_objects");
 	llassert(mReturnButton != NULL);
 	mReturnButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onReturnClicked, this));
 
-	mDeleteButton = getChild<LLButton>("delete_objects");
+	mDeleteButton = findChild<LLButton>("delete_objects");
 	llassert(mDeleteButton != NULL);
 	mDeleteButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onDeleteClicked, this));
 
-	mTeleportButton = getChild<LLButton>("teleport_me_to_object");
+	mTeleportButton = findChild<LLButton>("teleport_me_to_object");
 	llassert(mTeleportButton != NULL);
 	mTeleportButton->setCommitCallback(boost::bind(&LLFloaterPathfindingObjects::onTeleportClicked, this));
 

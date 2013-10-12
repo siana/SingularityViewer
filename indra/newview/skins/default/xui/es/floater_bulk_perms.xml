@@ -26,6 +26,7 @@
 	<check_box label="Modificarlo" name="next_owner_modify"/>
 	<check_box label="Copiarlo" name="next_owner_copy"/>
 	<check_box label="Revenderlo/Darlo" name="next_owner_transfer"/>
+	<scroll_list name="queue output"/>	
 	<button label="Ayuda" name="help"/>
 	<button label="Aplicar" name="apply"/>
 	<button label="Cerrar" name="close"/>
@@ -39,6 +40,6 @@
 		Iniciando el cambio de permisos solicitado...
 	</string>
 	<string name="done_text">
-		Finalizando el cambio de permisos solicitado.
+		Finalizado el cambio de permisos solicitado.
 	</string>
 </floater>

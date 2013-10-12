@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Vanity" name="ascvan">
 	<tab_container label="Singularity Vanity" name="Ascent Vanity">
-		<panel label="Principal  (General)" name="General">
+		<panel label="General" name="General">
 			<check_box label="Cuando sea aplicable, guardar Ajustes Vanity por cuenta." tool_tip="Guarda ajustes individuales por cuenta, permitiendo una mas fácil personalización de Alts." name="use_account_settings_check"/>
-			<check_box label="Ocultar pantalla de progreso de Teleport" tool_tip="Activado, el visor ocultará la pantalla de progreso de Teleportación, pemitiendo leer MIs.." name="disable_tp_screen_check"/>
-			<check_box label="Reproducir sonidos de teleport al cambiar de sim" tool_tip="El Visor reproducirá el sonido de trnasportación al hacer un teleport." name="tp_sound_check"/>
+			<check_box label="Ocultar pantalla de progreso de Teleporte" tool_tip="Activado, el visor ocultará la pantalla de progreso de Teleportación, pemitiendo leer MIs.." name="disable_tp_screen_check"/>
+			<check_box label="Reproducir sonidos de teleportación al cambiar de sim" tool_tip="El Visor reproducirá el sonido de transportación al hacer un teleporte." name="tp_sound_check"/>
 			<check_box label="Ocultar la pantalla de inicio/cierre de sesión" tool_tip="Marcado, el visor ocultará la pantalla de progreso de inicio/cierre de sesión." name="disable_logout_screen_check"/>
 			<check_box label="Desactivar animaciones de chat, susurro y gritos" tool_tip="Quitar las animaciones de tu avatar. El efecto es visible para todos" name="disable_chat_animation"/>
-			<check_box label="Añadir ropa y objetos vestibles en vez de reemplazarlos" tool_tip="Cuando hagas doble click o presiones la tecla Entrar sobre ropas u objetos para vestir en tu inventario, los objetos seleccionados se agregarán a tu vestuario en vez de reemplazar a los que tengas vestidos en la misma ubicación" name="add_not_replace"/>
-			<check_box label="Dar la vuelta al caminar hacía atrás" tool_tip="Es posible que algunos AOs puedan darte vuelta incluso con esta opción deshabiltada." name="turn_around"/>	
+			<check_box label="Añadir ropa y objetos anexables en vez de reemplazarlos" tool_tip="Cuando hagas doble click o presiones la tecla Entrar sobre ropas u objetos para vestir en tu inventario, los objetos seleccionados se agregarán a tu vestuario en vez de reemplazar a los que tengas vestidos en la misma ubicación" name="add_not_replace"/>
+			<check_box label="Dar la vuelta al caminar hacía atrás" tool_tip="Es posible que algunos AOs puedan darte vuelta incluso con esta opción deshabilitada." name="turn_around"/>	
 			<check_box label="Anunciar cuando alguien toma una foto" tool_tip="No avisa si el usuario ha deshabilitado en su visor el no anunciar que está tomando fotografías." name="announce_snapshots"/>
-			<check_box label="Mostrar los metadatos de la música en stream en el chat local cuando es activada" tool_tip="Cuando comienza una nueva canción, se mostrará un mensaje en el chat local con la información disponible del tema." name="announce_stream_metadata"/>			
+			<check_box label="Mostrar los metadatos de la música en stream en el chat local cuando es activada" tool_tip="Cuando comienza una nueva canción, se mostrará un mensaje en el chat local con la información disponible del tema." name="announce_stream_metadata"/>
+			<check_box label="Mostrar opacas las ventanas flotantes sin foco (requiere que se active en foco cada flotante para tener efecto)" tool_tip="Cuando un flotante pierde el foco, no se volverá transparente con esta opción habilitada.  Esto puede causar conflictos con algunas pieles del visor." name="unfocused_floaters_opaque"/>
+			<check_box label="Mostrar nombres completos (Nombres mostrados y nombres de usuario) en perfiles" tool_tip="Sin importar la configuración global del mostrado de nombres, no funcionará si los nombres mostrados están desactivados." name="complete_name_profiles"/>
+			<check_box label="Permitir a los scripts apropiarse del foco cuando no se puedan compilar debido a errores" name="script_errors_steal_focus"/>			
 		</panel>
+		<!-- ============================ -->
 		<panel label="Tags/Colores" name="TagsColors">
 			<!-- Client tag options -->
-			<check_box label="Usar Tag de Visor:" left="10" tool_tip="Activándolo mostrará el tag de tu visor, en forma local, sobre tu nombre de avatar." name="show_my_tag_check"/>
+			<check_box label="Difundir Tag de Visor:" left="10" tool_tip="Activándolo mostrará el tag de tu visor al resto de los usuarios." name="show_my_tag_check"/>
 			<combo_box tool_tip="Tag del Visor ( Y colores subsecuentes) a transmitir. Sobreescribir en forma local por Tag/Colores personalizados." name="tag_spoofing_combobox">
 				<combo_item name="Singularity" >
 					Singularity
@@ -23,9 +27,10 @@
 			<check_box label="Mostrarte tag de cliente" tool_tip="Elige el color que verás del tag de tu visor." name="show_self_tag_check"/>
 			<check_box label="Mostrarte color del tag de cliente" tool_tip="Activándolo,  ajustará el nombre de avatar en el color de tu cliente o en el color personalizado." name="show_self_tag_color_check"/>
 			<check_box label="Ver tags de amigos como (Amigo)" tool_tip="Activándolo cambia el tag de cliente de tus amigos a (Amigo)." name="show_friend_tag_check"/>
+			<check_box label="Mostrarte tag de cliente en una nueva línea" tool_tip="Activándolo muestra el tag de cliente en una nueva línea." name="display_client_new_line_check"/>
 			<!-- End of Left Side -->
 			<check_box label="Usar color y etiqueta personalizadas (Sólo local)" tool_tip="Activándolo te permitirá ajustar tu tag de nombre para mostrar con tu tag de cliente y color  personalizados. Esto sólo funciona para ti mismo." name="customize_own_tag_check"/>
-			<text bottom_delta="-17" left_delta="25" follows="top" height="10" name="custom_tag_label_text">
+			<text name="custom_tag_label_text">
 				Etiqueta:
 			</text>
 			<line_editor left_delta="45" name="custom_tag_label_box" tool_tip="Texto personalizado que usarás para reemplazar el tag de tu visor (Sólo Local)"/>
@@ -43,7 +48,7 @@
 				Color para Mis Efectos:
 			</text>
 			<color_swatch label="Efectos" name="effect_color_swatch"/>
-			<check_box label="Utilizar Color de Tipo de usuario (Amigo, Linden, etc.)" left="10" tool_tip="Activándolo mostrará con el color definido abajo a la gente que cumple con determinado criterio de tipo de usuario (Lindens, Propietarios de Estado, amigo, usuarios bloquedos)." name="use_status_check"/>
+			<check_box label="Utilizar Color de Tipo de usuario (Amigo, Linden, etc.)" left="10" tool_tip="Activándolo mostrará con el color definido abajo a la gente que cumple con determinado criterio de tipo de usuario (Lindens, Propietarios de Estado, amigo, usuarios bloqueados)." name="use_status_check"/>
 			<text name="friends_color_textbox">
 				Color Para:
 (Radar, Tag, Minimap)
@@ -52,6 +57,7 @@
 			<color_swatch label="Estado" name="estate_owner_color_swatch" tool_tip="Color para Administrador de Regiones"/>
 			<color_swatch label="Lindens" name="linden_color_swatch" tool_tip="Color para empleados de Linden Lab"/>
 			<color_swatch label="Ignorados" name="muted_color_swatch" tool_tip="Color para usuarios ignorados o bloqueados"/>
+			<color_swatch label="Otros" name="others_color_swatch" tool_tip="Color para todos los demás usuarios en el mapa y el mini mapa"/>
 			<color_swatch label="Pers.(Minimapa)" name="custom_color_swatch" tool_tip="Color solamente para usuarios marcados en el minimapa"/>
 			<text name="chat_color_text" bottom_delta="-13" >
 				Usar colores para chat:
@@ -62,19 +68,14 @@
 			<check_box label="" name="color_muted_check" tool_tip="Color en Chat de Usuarios Ignorados"/>
 			<!--check_box bottom_delta="0" control_name="ColorCustomChat" follows="top" height="20" label="" left_delta="54" name="color_custom_check" width="44" tool_tip="Color Custom Chat"/ Not implemented, yet.-->			
 		</panel>
-		<panel label="Fiísica de Avatar" name="Body Dynamics">
-			<check_box label="Activar física avanzada de los senos del avatar" name="EmBreastsToggle" tool_tip="Deberás seleccionar Aplicar para activar o desactivar estos controles"/>
-			<slider name="EmeraldBoobMass" label="Masa del Seno:"/>
-			<slider name="EmeraldBoobHardness" label="Rebote de Seno:" />
-			<slider name="EmeraldBoobVelMax" label="Vel.Máx. Senos:" />
-			<slider name="EmeraldBoobFriction" label="Fricción de Senos:"/>
-			<slider name="EmeraldBoobVelMin" label="Vel.Mín.Senos:"/>
+		<!-- ============================ -->	
+		<panel label="Física de Avatar" name="Body Dynamics">
 			<text name="av_mod_textbox">
 				Modificar Desplazamientos del Avatar
 			</text>
-			<spinner label="Modificador X" name="X Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para elevar o aumentar los senos sin alterar el cuerpo del avatar." width="133" label_width="70"/>
-			<spinner label="Modificador Y" name="Y Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para elevar o aumentar los senos sin alterar el cuerpo del avatar." width="133" label_width="70"/>
-			<spinner label="Modificador Z" name="Z Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para elevar o aumentar los senos sin alterar el cuerpo del avatar." width="133" label_width="70"/>
+			<spinner label="Modificador X" name="X Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para subirte o bajarte sin alterar el cuerpo del avatar." width="133" label_width="70"/>
+			<spinner label="Modificador Y" name="Y Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para subirte o bajarte sin alterar el cuerpo del avatar." width="133" label_width="70"/>
+			<spinner label="Modificador Z" name="Z Modifier" tool_tip="Utiliza esto para manipular, en grados, el delimitador del avatar. Puede ser utilizado para distorsionar las órbitas, o para subirte o bajarte sin alterar el cuerpo del avatar." width="133" label_width="70"/>
 		</panel>
 	</tab_container>
 </panel>

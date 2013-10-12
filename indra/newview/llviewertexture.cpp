@@ -59,9 +59,7 @@
 //#include "lltextureatlasmanager.h"
 #include "lltextureentry.h"
 #include "lltexturemanagerbridge.h"
-#if NEW_MEDIA_TEXTURE
 #include "llmediaentry.h"
-#endif //NEW_MEDIA_TEXTURE
 #include "llvovolume.h"
 #include "llviewermedia.h"
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,9 +71,7 @@ LLPointer<LLViewerFetchedTexture> LLViewerFetchedTexture::sMissingAssetImagep = 
 LLPointer<LLViewerFetchedTexture> LLViewerFetchedTexture::sWhiteImagep = NULL;
 LLPointer<LLViewerFetchedTexture> LLViewerFetchedTexture::sDefaultImagep = NULL;
 LLPointer<LLViewerFetchedTexture> LLViewerFetchedTexture::sSmokeImagep = NULL;
-#if NEW_MEDIA_TEXTURE
 LLViewerMediaTexture::media_map_t LLViewerMediaTexture::sMediaMap ;
-#endif //NEW_MEDIA_TEXTURE
 #if 0
 LLTexturePipelineTester* LLViewerTextureManager::sTesterp = NULL ;
 #endif
@@ -167,26 +163,22 @@ void LLLoadedCallbackEntry::cleanUpCallbackList(LLLoadedCallbackEntry::source_ca
 	}
 }
 
-#if NEW_MEDIA_TEXTURE
 LLViewerMediaTexture* LLViewerTextureManager::createMediaTexture(const LLUUID &media_id, BOOL usemipmaps, LLImageGL* gl_image)
 {
 	return new LLViewerMediaTexture(media_id, usemipmaps, gl_image) ;		
 }
-#endif //NEW_MEDIA_TEXTURE
  
 LLViewerTexture*  LLViewerTextureManager::findTexture(const LLUUID& id) 
 {
 	LLViewerTexture* tex ;
 	//search fetched texture list
 	tex = gTextureList.findImage(id) ;
-
-#if NEW_MEDIA_TEXTURE
+	
 	//search media texture list
 	if(!tex)
 	{
 		tex = LLViewerTextureManager::findMediaTexture(id) ;
 	}
-#endif //NEW_MEDIA_TEXTURE
 	return tex ;
 }
 
@@ -194,8 +186,7 @@ LLViewerFetchedTexture*  LLViewerTextureManager::findFetchedTexture(const LLUUID
 {
 	return gTextureList.findImage(id);
 }
-	
-#if NEW_MEDIA_TEXTURE
+
 LLViewerMediaTexture* LLViewerTextureManager::findMediaTexture(const LLUUID &media_id)
 {
 	return LLViewerMediaTexture::findMediaTexture(media_id) ;	
@@ -213,7 +204,6 @@ LLViewerMediaTexture*  LLViewerTextureManager::getMediaTexture(const LLUUID& id,
 
 	return tex ;
 }
-#endif //NEW_MEDIA_TEXTURE
 
 LLViewerFetchedTexture* LLViewerTextureManager::staticCastToFetchedTexture(LLTexture* tex, BOOL report_error)
 {
@@ -419,9 +409,7 @@ void LLViewerTextureManager::cleanup()
 	LLViewerFetchedTexture::sMissingAssetImagep = NULL;
 	LLViewerFetchedTexture::sWhiteImagep = NULL;
 
-#if NEW_MEDIA_TEXTURE
-	LLViewerMediaTexture::cleanUpClass() ;
-#endif //NEW_MEDIA_TEXTURE
+	LLViewerMediaTexture::cleanUpClass() ;	
 }
 
 //----------------------------------------------------------------------------------------------
@@ -500,9 +488,7 @@ bool LLViewerTexture::isMemoryForTextureLow()
 	return low_mem ;
 }
 
-#if NEW_MEDIA_TEXTURE
 static LLFastTimer::DeclareTimer FTM_TEXTURE_UPDATE_MEDIA("Media");
-#endif //NEW_MEDIA_TEXTURE
 #if 0
 static LLFastTimer::DeclareTimer FTM_TEXTURE_UPDATE_TEST("Test");
 #endif
@@ -519,12 +505,10 @@ void LLViewerTexture::updateClass(const F32 velocity, const F32 angular_velocity
 		tester->update() ;
 	}
 #endif
-#if NEW_MEDIA_TEXTURE
 	{
 		LLFastTimer t(FTM_TEXTURE_UPDATE_MEDIA);
 		LLViewerMediaTexture::updateClass() ;
 	}
-#endif //NEW_MEDIA_TEXTURE
 
 	sBoundTextureMemoryInBytes = LLImageGL::sBoundTextureMemoryInBytes;//in bytes
 	sTotalTextureMemoryInBytes = LLImageGL::sGlobalTextureMemoryInBytes;//in bytes
@@ -634,9 +618,6 @@ void LLViewerTexture::init(bool firstinit)
 	mNumVolumes = 0;
 	mFaceList.clear() ;
 	mVolumeList.clear();
-#if !NEW_MEDIA_TEXTURE
-	mIsMediaTexture = false;
-#endif //!NEW_MEDIA_TEXTURE
 }
 
 //virtual 
@@ -945,7 +926,7 @@ void LLViewerFetchedTexture::init(bool firstinit)
 	mIsMissingAsset = FALSE;
 
 	mLoadedCallbackDesiredDiscardLevel = S8_MAX;
-	mPauseLoadedCallBacks = TRUE ;
+	mPauseLoadedCallBacks = FALSE ;
 
 	mNeedsCreateTexture = FALSE;
 	
@@ -1307,6 +1288,7 @@ BOOL LLViewerFetchedTexture::createTexture(S32 usename/*= 0*/)
 			// An inappropriately-sized image was uploaded (through a non standard client)
 			// We treat these images as missing assets which causes them to
 			// be renderd as 'missing image' and to stop requesting data
+			llwarns << "!size_ok, setting as missing" << llendl;
 			setIsMissingAsset();
 			destroyRawImage();
 			return FALSE;
@@ -1731,6 +1713,7 @@ bool LLViewerFetchedTexture::updateFetch()
 				{ 
 					//discard all oversized textures.
 					destroyRawImage();
+					llwarns << "oversize, setting as missing" << llendl;
 					setIsMissingAsset();
 					mRawDiscardLevel = INVALID_DISCARD_LEVEL ;
 					mIsFetching = FALSE ;
@@ -1760,6 +1743,10 @@ bool LLViewerFetchedTexture::updateFetch()
 				// We finished but received no data
 				if (current_discard < 0)
 				{
+					llwarns << "!mIsFetching, setting as missing, decode_priority " << decode_priority
+							<< " mRawDiscardLevel " << mRawDiscardLevel
+							<< " current_discard " << current_discard
+							<< llendl;
 					setIsMissingAsset();
 					desired_discard = -1;
 				}
@@ -1800,6 +1787,10 @@ bool LLViewerFetchedTexture::updateFetch()
 	{
 		make_request = false;
 	}
+	else if(mDesiredDiscardLevel > getMaxDiscardLevel())
+	{
+		make_request = false;
+	}
 	else if (mNeedsCreateTexture || mIsMissingAsset)
 	{
 		make_request = false;
@@ -1807,6 +1798,11 @@ bool LLViewerFetchedTexture::updateFetch()
 	else if (current_discard >= 0 && current_discard <= mMinDiscardLevel)
 	{
 		make_request = false;
+	}
+	else if(mCachedRawImage.notNull() && (current_discard < 0 || current_discard > mCachedRawDiscardLevel))
+	{
+		make_request = false;
+		switchToCachedImage() ; //use the cached raw data first
 	}
 	//else if (!isJustBound() && mCachedRawImageReady)
 	//{
@@ -1900,11 +1896,14 @@ void LLViewerFetchedTexture::forceToDeleteRequest()
 {
 	if (mHasFetcher)
 	{
-		LLAppViewer::getTextureFetch()->deleteRequest(getID(), true);
+		//LLAppViewer::getTextureFetch()->deleteRequest(getID(), true);
 		mHasFetcher = FALSE;
 		mIsFetching = FALSE ;
-		resetTextureStats();
 	}
+
+	resetTextureStats();
+
+	mDesiredDiscardLevel = getMaxDiscardLevel() + 1; //defer LLAppViewer::getTextureFetch()->deleteRequest to updateFetch?
 }
 
 void LLViewerFetchedTexture::setIsMissingAsset()
@@ -1947,10 +1946,18 @@ void LLViewerFetchedTexture::setLoadedCallback( loaded_callback_func loaded_call
 		mLoadedCallbackDesiredDiscardLevel = llmin(mLoadedCallbackDesiredDiscardLevel, (S8)discard_level) ;
 	}
 
-	if(mPauseLoadedCallBacks && !pause)
+	if(mPauseLoadedCallBacks)
 	{
-		unpauseLoadedCallbacks(src_callback_list) ;
+		if(!pause)
+		{
+			unpauseLoadedCallbacks(src_callback_list) ;
+		}
 	}
+	else if(pause)
+	{
+		pauseLoadedCallbacks(src_callback_list) ;
+	}
+
 	LLLoadedCallbackEntry* entryp = new LLLoadedCallbackEntry(loaded_callback, discard_level, keep_imageraw, userdata, src_callback_list, this, pause);
 	mLoadedCallbackList.push_back(entryp);	
 
@@ -3027,7 +3034,6 @@ bool LLViewerLODTexture::scaleDown()
 //----------------------------------------------------------------------------------------------
 //start of LLViewerMediaTexture
 //----------------------------------------------------------------------------------------------
-#if NEW_MEDIA_TEXTURE
 //static
 void LLViewerMediaTexture::updateClass()
 {
@@ -3112,7 +3118,7 @@ LLViewerMediaTexture::LLViewerMediaTexture(const LLUUID& id, BOOL usemipmaps, LL
 
 	setMediaImpl() ;
 
-	setCategory(LLViewerTexture::MEDIA) ;
+	setCategory(LLGLTexture::MEDIA) ;
 	
 	LLViewerTexture* tex = gTextureList.findImage(mID) ;
 	if(tex) //this media is a parcel media for tex.
@@ -3130,7 +3136,7 @@ LLViewerMediaTexture::~LLViewerMediaTexture()
 		tex->setParcelMedia(NULL) ;
 	}
 }
-#endif //NEW_MEDIA_TEXTURE
+
 void LLViewerMediaTexture::reinit(BOOL usemipmaps /* = TRUE */)
 {
 	llassert(mGLTexturep.notNull()) ;
@@ -3150,7 +3156,7 @@ void LLViewerMediaTexture::setUseMipMaps(BOOL mipmap)
 		mGLTexturep->setUseMipMaps(mipmap) ;
 	}
 }
-#if NEW_MEDIA_TEXTURE
+
 //virtual 
 S8 LLViewerMediaTexture::getType() const
 {
@@ -3524,7 +3530,6 @@ F32 LLViewerMediaTexture::getMaxVirtualSize()
 
 	return mMaxVirtualSize ;
 }
-#endif //NEW_MEDIA_TEXTURE
 //----------------------------------------------------------------------------------------------
 //end of LLViewerMediaTexture
 //----------------------------------------------------------------------------------------------

@@ -46,7 +46,8 @@ public:
 	/*virtual*/ BOOL getSize(LLCoordScreen *size) {return FALSE;};
 	/*virtual*/ BOOL getSize(LLCoordWindow *size) {return FALSE;};
 	/*virtual*/ BOOL setPosition(LLCoordScreen position) {return FALSE;};
-	/*virtual*/ BOOL setSize(LLCoordScreen size) {return FALSE;};
+	/*virtual*/ BOOL setSizeImpl(LLCoordScreen size) {return FALSE;};
+	/*virtual*/ BOOL setSizeImpl(LLCoordWindow size) {return FALSE;};
 	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, BOOL disable_vsync, const LLCoordScreen * const posp = NULL) {return FALSE;};
 	/*virtual*/ BOOL setCursorPosition(LLCoordWindow position) {return FALSE;};
 	/*virtual*/ BOOL getCursorPosition(LLCoordWindow *position) {return FALSE;};
@@ -95,7 +96,7 @@ public:
 		S32 x, S32 y, 
 		S32 width, S32 height,
 		U32 flags,  BOOL fullscreen, BOOL clear_background,
-		BOOL disable_vsync, BOOL use_gl, BOOL ignore_pixel_depth);
+		BOOL disable_vsync, BOOL ignore_pixel_depth);
 	virtual ~LLWindowHeadless();
 
 private:

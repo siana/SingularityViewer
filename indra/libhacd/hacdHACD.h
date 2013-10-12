@@ -76,6 +76,7 @@ namespace HACD
     {
     public:
 		virtual void operator()( char const *aMsg, double aProgress, double aConcavity, size_t aVertices) = 0;
+		virtual ~ICallback() {}
     };
 	
 	typedef ICallback* CallBackFunction;

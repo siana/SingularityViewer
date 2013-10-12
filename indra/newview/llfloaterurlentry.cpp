@@ -32,12 +32,15 @@
 
 #include "llviewerprecompiledheaders.h"
 
+#include "llhttpclient.h"
+
 #include "llfloaterurlentry.h"
 
 #include "llpanellandmedia.h"
+#include "llpanelface.h"
 
-// project includes
 #include "llcombobox.h"
+#include "llmimetypes.h"
 #include "llnotificationsutil.h"
 #include "llurlhistory.h"
 #include "lluictrlfactory.h"
@@ -83,7 +86,7 @@ public:
 	  {
 		  // Set empty type to none/none.  Empty string is reserved for legacy parcels
 		  // which have no mime type set.
-		  std::string resolved_mime_type = ! mime_type.empty() ? mime_type : "none/none";
+		  std::string resolved_mime_type = ! mime_type.empty() ? mime_type : LLMIMETypes::getDefaultMimeType();
 		  LLFloaterURLEntry* floater_url_entry = (LLFloaterURLEntry*)mParent.get();
 		  if ( floater_url_entry )
 			  floater_url_entry->headerFetchComplete( status, resolved_mime_type );
@@ -165,6 +168,16 @@ void LLFloaterURLEntry::headerFetchComplete(U32 status, const std::string& mime_
 		panel_media->setMediaType(mime_type);
 		panel_media->setMediaURL(mMediaURLEdit->getValue().asString());
 	}
+	else
+	{
+		LLPanelFace* panel_face = dynamic_cast<LLPanelFace*>(mPanelLandMediaHandle.get());
+		if(panel_face)
+		{
+			panel_face->setMediaType(mime_type);
+			panel_face->setMediaURL(mMediaURLEdit->getValue().asString());
+		}
+
+	}
 	// Decrement the cursor
 	getWindow()->decBusyCount();
 	getChildView("loading_label")->setVisible( false);
@@ -172,26 +185,18 @@ void LLFloaterURLEntry::headerFetchComplete(U32 status, const std::string& mime_
 }
 
 // static
-LLHandle<LLFloater> LLFloaterURLEntry::show(LLHandle<LLPanel> parent)
+LLHandle<LLFloater> LLFloaterURLEntry::show(LLHandle<LLPanel> parent, const std::string media_url)
 {
 	if (!sInstance)
 	{
 		sInstance = new LLFloaterURLEntry(parent);
 	}
 	sInstance->open();
-	sInstance->updateFromLandMediaPanel();
+	sInstance->addURLToCombobox(media_url);
 	return sInstance->getHandle();
 }
 
-void LLFloaterURLEntry::updateFromLandMediaPanel()
-{
-	LLPanelLandMedia* panel_media = (LLPanelLandMedia*)mPanelLandMediaHandle.get();
-	if (panel_media)
-	{
-		std::string media_url = panel_media->getMediaURL();
-		addURLToCombobox(media_url);
-	}
-}
+
 
 bool LLFloaterURLEntry::addURLToCombobox(const std::string& media_url)
 {

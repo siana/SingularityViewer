@@ -187,17 +187,22 @@ LLFloaterAbout::LLFloaterAbout()
 						llformat("%.1f, %.1f, %.1f ", pos.mdV[VX], pos.mdV[VY], pos.mdV[VZ]));
 		support.append(pos_text);
 
-		std::string region_text = llformat("in %s located at ",
-										gAgent.getRegion()->getName().c_str());
-		support.append(region_text);
+		if (const LLViewerRegion* region = gAgent.getRegion())
+		{
+			const LLVector3d& coords(region->getOriginGlobal());
+			std::string region_text = llformat("in %s (%.0f, %.0f) located at ", region->getName().c_str(), coords.mdV[VX]/REGION_WIDTH_METERS, coords.mdV[VY]/REGION_WIDTH_METERS);
+			support.append(region_text);
 
-		std::string buffer;
-		buffer = gAgent.getRegion()->getHost().getHostName();
-		support.append(buffer);
-		support.append(" (");
-		buffer = gAgent.getRegion()->getHost().getString();
-		support.append(buffer);
-		support.append(")\n");
+			std::string buffer;
+			buffer = region->getHost().getHostName();
+			support.append(buffer);
+			support.append(" (");
+			buffer = region->getHost().getString();
+			support.append(buffer);
+			support.append(")");
+		}
+		support.append("\n");
+
 		support.append(gLastVersionChannel);
 		support.append("\n");
 

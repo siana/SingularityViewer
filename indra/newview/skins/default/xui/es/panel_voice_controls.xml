@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel name="voice_controls">
 	<button label="" name="speakers_btn" tool_tip="Mostrar la lista de residentes cercanos usando el chat de voz"/>
-	<button label="Halbar" name="push_to_talk" tool_tip="Mantén presionado el botón para hablar"/>
+	<button label="Hablar" name="push_to_talk" tool_tip="Mantén presionado el botón para hablar"/>
 	<button label="" name="ptt_lock" tool_tip="Pulsa en Bloquear para cambiar al modo Hablar"/>
 	<button label="" name="show_channel" tool_tip="Pulsa para ver el canal actual de voz"/>
 </panel>

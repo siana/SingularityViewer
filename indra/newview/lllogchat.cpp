@@ -36,9 +36,7 @@
 #include "lllogchat.h"
 #include "llappviewer.h"
 #include "llfloaterchat.h"
-#include "llviewercontrol.h"
 
-const S32 LOG_RECALL_SIZE = 2048;
 
 //static
 std::string LLLogChat::makeLogFileName(std::string filename)
@@ -47,14 +45,16 @@ std::string LLLogChat::makeLogFileName(std::string filename)
 	{
 		time_t now; 
 		time(&now); 
-		char dbuffer[20];               /* Flawfinder: ignore */ 
+		char dbuffer[100];               /* Flawfinder: ignore */
 		if (filename == "chat") 
 		{ 
-			strftime(dbuffer, 20, "-%Y-%m-%d", localtime(&now)); 
+			static const LLCachedControl<std::string> local_chat_date_format(gSavedPerAccountSettings, "LogFileLocalChatDateFormat", "-%Y-%m-%d");
+			strftime(dbuffer, 100, local_chat_date_format().c_str(), localtime(&now));
 		} 
 		else 
 		{ 
-			strftime(dbuffer, 20, "-%Y-%m", localtime(&now)); 
+			static const LLCachedControl<std::string> ims_date_format(gSavedPerAccountSettings, "LogFileIMsDateFormat", "-%Y-%m");
+			strftime(dbuffer, 100, ims_date_format().c_str(), localtime(&now));
 		} 
 		filename += dbuffer; 
 	}
@@ -92,7 +92,7 @@ std::string LLLogChat::timestamp(bool withdate)
 	std::string text;
 	if (withdate)
 		if (withseconds)
-			text = llformat("[%d-%02d-%02d %02d:%02d:%02d]  ", (timep->tm_year-100)+2000, timep->tm_mon+1, timep->tm_mday, timep->tm_hour, timep->tm_min, timep->tm_sec);
+			text = llformat("[%d/%02d/%02d %02d:%02d:%02d]  ", (timep->tm_year-100)+2000, timep->tm_mon+1, timep->tm_mday, timep->tm_hour, timep->tm_min, timep->tm_sec);
 		else
 			text = llformat("[%d/%02d/%02d %02d:%02d]  ", (timep->tm_year-100)+2000, timep->tm_mon+1, timep->tm_mday, timep->tm_hour, timep->tm_min);
 	else
@@ -127,55 +127,81 @@ void LLLogChat::saveHistory(std::string const& filename, std::string line)
 	}
 }
 
-void LLLogChat::loadHistory(std::string const& filename , void (*callback)(ELogLineType,std::string,void*), void* userdata)
+static long const LOG_RECALL_BUFSIZ = 2048;
+
+void LLLogChat::loadHistory(std::string const& filename , void (*callback)(ELogLineType, std::string, void*), void* userdata)
 {
-	if(!filename.size())
+	bool filename_empty = filename.empty();
+	if (filename_empty)
 	{
-		llwarns << "Filename is Empty!" << llendl;
-		return ;
+		llwarns << "filename is empty!" << llendl;
 	}
-
-	LLFILE* fptr = LLFile::fopen(makeLogFileName(filename), "r");		/*Flawfinder: ignore*/
-	if (!fptr)
+	else while(1)	// So we can use break.
 	{
-		//LLUIString message = LLFloaterChat::getInstance()->getString("IM_logging_string");
-		//callback(LOG_EMPTY,"IM_logging_string",userdata);
-		callback(LOG_EMPTY,LLStringUtil::null,userdata);
-		return;			//No previous conversation with this name.
-	}
-	else
-	{
-		char buffer[LOG_RECALL_SIZE];		/*Flawfinder: ignore*/
-		char *bptr;
-		S32 len;
-		bool firstline=TRUE;
+		// The number of lines to return.
+		static const LLCachedControl<U32> lines("LogShowHistoryLines", 32);
+		if (lines == 0) break;
 
-		if ( fseek(fptr, (LOG_RECALL_SIZE - 1) * -1  , SEEK_END) )		
-		{	//File is smaller than recall size.  Get it all.
-			firstline = FALSE;
-			if ( fseek(fptr, 0, SEEK_SET) )
-			{
-				fclose(fptr);
-				return;
-			}
-		}
+		// Open the log file.
+		LLFILE* fptr = LLFile::fopen(makeLogFileName(filename), "rb");
+		if (!fptr) break;
 
-		while ( fgets(buffer, LOG_RECALL_SIZE, fptr)  && !feof(fptr) ) 
+		// Set pos to point to the last character of the file, if any.
+		if (fseek(fptr, 0, SEEK_END)) break;
+		long pos = ftell(fptr) - 1;
+		if (pos < 0) break;
+
+		char buffer[LOG_RECALL_BUFSIZ];
+		bool error = false;
+		U32 nlines = 0;
+		while (pos > 0 && nlines < lines)
 		{
-			len = strlen(buffer) - 1;		/*Flawfinder: ignore*/
-			for ( bptr = (buffer + len); (*bptr == '\n' || *bptr == '\r') && bptr>buffer; bptr--)	*bptr='\0';
-			
-			if (!firstline)
+			// Read the LOG_RECALL_BUFSIZ characters before pos.
+			size_t size = llmin(LOG_RECALL_BUFSIZ, pos);
+			pos -= size;
+			fseek(fptr, pos, SEEK_SET);
+			size_t len = fread(buffer, 1, size, fptr);
+			error = len != size;
+			if (error) break;
+			// Count the number of newlines in it and set pos to the beginning of the first line to return when we found enough.
+			for (char const* p = buffer + size - 1; p >= buffer; --p)
 			{
-				callback(LOG_LINE,std::string(buffer),userdata);
-			}
-			else
-			{
-				firstline = FALSE;
+				if (*p == '\n')
+				{
+					if (++nlines == lines)
+					{
+						pos += p - buffer + 1;
+						break;
+					}
+				}
 			}
 		}
-		callback(LOG_END,LLStringUtil::null,userdata);
-		
+		if (error)
+		{
+			fclose(fptr);
+			break;
+		}
+
+		// Set the file pointer at the first line to return.
+		fseek(fptr, pos, SEEK_SET);
+
+		// Read lines from the file one by one until we reach the end of the file.
+		while (fgets(buffer, LOG_RECALL_BUFSIZ, fptr))
+		{
+		  size_t len = strlen(buffer);
+		  int i = len - 1;
+		  while (i >= 0 && (buffer[i] == '\r' || buffer[i] == '\n')) // strip newline chars from the end of the string
+		  {
+			  buffer[i] = '\0';
+			  i--;
+		  }
+		  callback(LOG_LINE, buffer, userdata);
+		}
+
 		fclose(fptr);
+		callback(LOG_END, LLStringUtil::null, userdata);
+		return;
 	}
+	callback(LOG_EMPTY, LLStringUtil::null, userdata);
 }
+

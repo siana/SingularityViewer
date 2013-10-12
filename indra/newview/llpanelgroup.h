@@ -36,9 +36,9 @@
 #include "llpanel.h"
 #include "lltimer.h"
 
-struct LLOfferInfo;
+class LLOfferInfo;
 
-const S32 UPDATE_MEMBERS_PER_FRAME = 500;
+const F32 UPDATE_MEMBERS_SECONDS_PER_FRAME = 0.005f; // 5ms
 
 // Forward declares
 class LLPanelGroupTab;
@@ -58,10 +58,7 @@ class LLPanelGroup : public LLPanel,
 					 public LLPanelGroupTabObserver
 {
 public:
-	LLPanelGroup(const std::string& filename,
-				 const std::string& name,
-				 const LLUUID& group_id,
-				 const std::string& initial_tab_selected = std::string());
+	LLPanelGroup(const LLUUID& group_id);
 	virtual ~LLPanelGroup();
 
 	virtual BOOL postBuild();
@@ -118,9 +115,6 @@ protected:
 	LLTimer mRefreshTimer;
 
 	BOOL mForceClose;
-
-	std::string mInitialTab;
-	std::string mFilename;
 
 	std::string mDefaultNeedsApplyMesg;
 	std::string mWantApplyMesg;

@@ -85,11 +85,12 @@ class HTTPTimeout : public LLRefCount {
 	S32 mLastSecond;							// The time at which lowspeed() was last called, in seconds since mLowSpeedClock.
 	S32 mOverwriteSecond;						// The second at which the first bucket of this transfer will be overwritten.
 	U32 mTotalBytes;							// The sum of all bytes in mBuckets.
-	U64 mLowSpeedClock;							// Clock count at which low speed detection (re)started.
-	U64 mStalled;								// The clock count at which this transaction is considered to be stalling if nothing is transfered anymore.
+	U64 mLowSpeedClock;							// The time (sTime_10ms) at which low speed detection (re)started.
+	U64 mStalled;								// The time (sTime_10ms) at which this transaction is considered to be stalling if nothing is transfered anymore.
   public:
-	static F64 const sClockWidth;				// Time between two clock ticks in seconds.
-	static U64 sClockCount;						// Clock count used as 'now' during one loop of the main loop.
+	static F64 const sClockWidth_10ms;			// Time between two clock ticks in 10 ms units.
+	static F64 const sClockWidth_40ms;			// Time between two clock ticks in 40 ms units.
+	static U64 sTime_10ms;						// Time since the epoch in 10 ms units.
 #if defined(CWDEBUG) || defined(DEBUG_CURLIO)
 	ThreadSafeBufferedCurlEasyRequest* mLockObj;
 #endif
@@ -121,7 +122,7 @@ class HTTPTimeout : public LLRefCount {
 	void done(AICurlEasyRequest_wat const& curlEasyRequest_w, CURLcode code);
 
 	// Returns true when we REALLY timed out. Might call upload_finished heuristically.
-	bool has_stalled(void) { return mStalled < sClockCount && !maybe_upload_finished(); }
+	bool has_stalled(void) { return mStalled < sTime_10ms && !maybe_upload_finished(); }
 
 	// Called from BufferedCurlEasyRequest::processOutput if a timeout occurred.
 	void print_diagnostics(CurlEasyRequest const* curl_easy_request, char const* eff_url);

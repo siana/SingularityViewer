@@ -52,11 +52,11 @@ class LLScrollbar
 public:
 	enum ORIENTATION { HORIZONTAL, VERTICAL };
 
+	typedef boost::function<void (S32, LLScrollbar*)> callback_t;
 	LLScrollbar(const std::string& name, LLRect rect,
 		ORIENTATION orientation,
 		S32 doc_size, S32 doc_pos, S32 page_size,
-		void(*change_callback)( S32 new_pos, LLScrollbar* self, void* userdata ),
-		void* callback_user_data = NULL,
+		callback_t change_callback,
 		S32 step_size = 1);
 
 	virtual ~LLScrollbar();
@@ -101,8 +101,8 @@ public:
 	void				pageUp(S32 overlap);
 	void				pageDown(S32 overlap);
 
-	static void			onLineUpBtnPressed(void* userdata);
-	static void			onLineDownBtnPressed(void* userdata);
+	void				onLineUpBtnPressed(const LLSD& data);
+	void				onLineDownBtnPressed(const LLSD& data);
 
 	void setTrackColor( const LLColor4& color ) { mTrackColor = color; }
 	void setThumbColor( const LLColor4& color ) { mThumbColor = color; }
@@ -115,8 +115,7 @@ private:
 	void				updateThumbRect();
 	bool				changeLine(S32 delta, BOOL update_thumb );
 
-	void				(*mChangeCallback)( S32 new_pos, LLScrollbar* self, void* userdata );
-	void*				mCallbackUserData;
+	callback_t			mChangeCallback;
 
 	const ORIENTATION	mOrientation;	
 	S32					mDocSize;		// Size of the document that the scrollbar is modeling.  Units depend on the user.  0 <= mDocSize.

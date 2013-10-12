@@ -13,7 +13,7 @@
 	<button label="Aucune" label_selected="Aucune" name="None" width="60" left="68" />
 	<button label="Vierge" label_selected="Vierge" name="Blank" width="60" />
 	<check_box label="Afficher les dossiers" name="show_folders_check"/>
-	<search_editor label="Saisir votre recherche ici" name="inventory search editor"/>
+  <filter_editor label="Saisir votre recherche ici" name="inventory search editor"/>
 	<check_box label="Appliquer immédiatement" name="apply_immediate_check" />
 	<button label="" label_selected="" name="Pipette" bottom="-240" />
 	<button label="Annuler" label_selected="Annuler" name="Cancel"/>

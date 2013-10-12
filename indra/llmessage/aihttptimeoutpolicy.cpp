@@ -677,21 +677,46 @@ AIHTTPTimeoutPolicyBase AIHTTPTimeoutPolicy::sDebugSettingsCurlTimeout(
 // Note: All operator objects (Transaction, Connect, etc) must be globals (not temporaries)!
 // To enforce this they are passes as reference to non-const (but will never be changed).
 
-// This used to be '5 seconds'.
-Transaction transactionOp5s(5);
-AIHTTPTimeoutPolicyBase transfer_5s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
-	transactionOp5s
+// Used for baseCapabilitiesComplete - which is retried many times, and needs to be rather "fast".
+// Most connection succeed under 5 seconds.
+Connect connectOp5s(5);
+AIHTTPTimeoutPolicyBase connect_5s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	connectOp5s
 	);
 
-// This used to be '18 seconds'.
-Transaction transactionOp18s(18);
-AIHTTPTimeoutPolicyBase transfer_18s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+// Some services connects rather slow. We need to enforce that connect timeouts never drop below 10 seconds for the policies that shorten the transaction time.
+Connect connectOp10s(10);
+AIHTTPTimeoutPolicyBase connect_10s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	connectOp10s
+	);
+
+// The texture/mesh service suffers often from timeouts, give them a much longer connect timeout than normal.
+Connect connectOp30s(30);
+AIHTTPTimeoutPolicyBase connect_30s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	connectOp30s
+	);
+
+// Extreme measures.
+Connect connectOp60s(60);
+AIHTTPTimeoutPolicyBase connect_60s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	connectOp60s
+	);
+
+// This used to be '18 seconds'. Pass connectOp5s or it would become 3 seconds (which is working already pretty good actually).
+Transaction transactionOp18s(18, connectOp5s);
+AIHTTPTimeoutPolicyBase transfer_18s_connect_5s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
 	transactionOp18s
 	);
 
-// This used to be '30 seconds'.
-Transaction transactionOp30s(30);
-AIHTTPTimeoutPolicyBase transfer_30s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+// This used to be '18 seconds'. Pass connectOp10s or it would become 3 seconds.
+Transaction transactionOp22s(22, connectOp10s);
+AIHTTPTimeoutPolicyBase transfer_22s_connect_10s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	transactionOp22s
+	);
+
+// This used to be '30 seconds'. Pass connectOp10s or it would become 3 seconds.
+Transaction transactionOp30s(30, connectOp10s);
+AIHTTPTimeoutPolicyBase transfer_30s_connect_10s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
 	transactionOp30s
 	);
 
@@ -712,6 +737,14 @@ AIHTTPTimeoutPolicyBase connect_40s(AIHTTPTimeoutPolicyBase::getDebugSettingsCur
 Reply replyOp15s(15);
 AIHTTPTimeoutPolicyBase reply_15s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
 	replyOp15s
+	);
+
+// The LLEventPollResponder needs a reply delay of at least 60 seconds, and although that is the
+// default -- enforce it to be 60 seconds and not depend on CurlTimeoutReplyDelay because changing
+// it makes no sense or will break stuff.
+Reply replyOp60s(60);
+AIHTTPTimeoutPolicyBase reply_60s(AIHTTPTimeoutPolicyBase::getDebugSettingsCurlTimeout(),
+	replyOp60s
 	);
 
 // End of policy definitions.
@@ -881,7 +914,7 @@ P(asyncConsoleResponder);
 P(avatarPickerResponder);
 P(authHandler);
 P(avatarNameResponder);
-P2(baseCapabilitiesComplete,					transfer_18s);
+P2(baseCapabilitiesComplete,					transfer_18s_connect_5s);
 P(blockingLLSDPost);
 P(blockingLLSDGet);
 P(blockingRawGet);
@@ -889,25 +922,23 @@ P(charactersResponder);
 P(checkAgentAppearanceServiceResponder);
 P(classifiedStatsResponder);
 P(consoleResponder);
-P2(crashLoggerResponder,						transfer_5s);
 P(createInventoryCategoryResponder);
 P(emeraldDicDownloader);
 P(environmentApplyResponder);
 P(environmentRequestResponder);
 P(estateChangeInfoResponder);
-P(eventPollResponder);
+P2(eventPollResponder,							reply_60s);
 P(fetchInventoryResponder);
 P(fetchScriptLimitsAttachmentInfoResponder);
 P(fetchScriptLimitsRegionDetailsResponder);
 P(fetchScriptLimitsRegionInfoResponder);
 P(fetchScriptLimitsRegionSummaryResponder);
 P(fnPtrResponder);
-P2(gamingDataReceived,							transfer_18s);
+P2(gamingDataReceived,							transfer_22s_connect_10s);
 P2(groupMemberDataResponder,					transfer_300s);
 P2(groupProposalBallotResponder,				transfer_300s);
 P(homeLocationResponder);
 P2(HTTPGetResponder,							reply_15s);
-P(iamHereLogin);
 P(iamHere);
 P(iamHereVoice);
 P2(inventoryModelFetchDescendentsResponder,		transfer_300s);
@@ -916,17 +947,17 @@ P(lcl_responder);
 P(MPImportGetResponder);
 P(MPImportPostResponder);
 P(mapLayerResponder);
-P2(maturityPreferences,							transfer_30s);
+P(materialsResponder);
+P2(maturityPreferences,							transfer_30s_connect_10s);
+P(mediaDataClientResponder);
 P(mediaTypeResponder);
-P(meshDecompositionResponder);
-P(meshHeaderResponder);
-P(meshLODResponder);
-P(meshPhysicsShapeResponder);
-P(meshSkinInfoResponder);
+P2(meshDecompositionResponder,					connect_30s);
+P2(meshHeaderResponder,							connect_30s);
+P2(meshLODResponder,							connect_30s);
+P2(meshPhysicsShapeResponder,					connect_30s);
+P2(meshSkinInfoResponder,						connect_30s);
 P(mimeDiscoveryResponder);
-P(moderationModeResponder);
-P(muteTextResponder);
-P(muteVoiceResponder);
+P(moderationResponder);
 P(navMeshRebakeResponder);
 P(navMeshResponder);
 P(navMeshStatusResponder);
@@ -942,7 +973,7 @@ P(requestAgentUpdateAppearance);
 P(responderIgnore);
 P(sessionInviteResponder);
 P(setDisplayNameResponder);
-P2(simulatorFeaturesReceived,					transfer_18s);
+P2(simulatorFeaturesReceived,					transfer_22s_connect_10s);
 P(startConferenceChatResponder);
 P2(startGroupVoteResponder,						transfer_300s);
 P(terrainLinksetsResponder);
@@ -954,11 +985,11 @@ P(viewerChatterBoxInvitationAcceptResponder);
 P(viewerMediaOpenIDResponder);
 P(viewerMediaWebProfileResponder);
 P(viewerStatsResponder);
-P(viewerVoiceAccountProvisionResponder);
+P(vivoxVoiceAccountProvisionResponder);
+P(vivoxVoiceClientCapResponder);
 P(voiceCallCapResponder);
-P(voiceClientCapResponder);
 P(webProfileResponders);
 P(wholeModelFeeResponder);
 P(wholeModelUploadResponder);
 P2(XMLRPCResponder,								connect_40s);
-
+P2(crashLoggerResponder,						transfer_300s);

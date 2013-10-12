@@ -32,6 +32,7 @@
 #include "lluuid.h"
 #include "llviewertexture.h"
 #include "llvolume.h"
+#include "sguuidhash.h"
 
 #define LLCONVEXDECOMPINTER_STATIC 1
 
@@ -320,6 +321,7 @@ public:
 
 	virtual void run();
 
+	void lockAndLoadMeshLOD(const LLVolumeParams& mesh_params, S32 lod);
 	void loadMeshLOD(const LLVolumeParams& mesh_params, S32 lod);
 	bool fetchMeshHeader(const LLVolumeParams& mesh_params, U32& count);
 	void fetchMeshLOD(const LLVolumeParams& mesh_params, S32 lod, U32& count);
@@ -349,6 +351,10 @@ public:
 	//  (should hold onto mesh_id and try again later if header info does not exist)
 	bool fetchMeshPhysicsShape(const LLUUID& mesh_id);
 
+	static void incActiveLODRequests();
+	static void decActiveLODRequests();
+	static void incActiveHeaderRequests();
+	static void decActiveHeaderRequests();
 
 };
 
@@ -505,8 +511,8 @@ public:
 
 	typedef std::map<LLVolumeParams, std::set<LLUUID> > mesh_load_map;
 	mesh_load_map mLoadingMeshes[4];
-	
-	typedef std::map<LLUUID, LLMeshSkinInfo> skin_map;
+
+	typedef boost::unordered_map<LLUUID, LLMeshSkinInfo> skin_map;
 	skin_map mSkinMap;
 
 	typedef std::map<LLUUID, LLModel::Decomposition*> decomposition_map;

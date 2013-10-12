@@ -235,28 +235,6 @@
 			<key>Value</key>
 			<real>0.0</real>
 		</map>
-		<key>AscentUseSystemFolder</key>
-		<map>
-			<key>Comment</key>
-			<string>Enables the System folder for setting and non-permanent asset storage.</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
-		<key>AscentSystemTemporary</key>
-		<map>
-			<key>Comment</key>
-			<string>When enabled, temporary uploads are put in the System Asset folder (if System Folder exists).</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<integer>0</integer>
-		</map>
 		<key>AscentShowFriendsTag</key>
 		<map>
 			<key>Comment</key>
@@ -288,7 +266,7 @@
 			<key>Type</key>
 			<string>Boolean</string>
 			<key>Value</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</map>
 		<key>AscentShowOthersTag</key>
 		<map>
@@ -620,5 +598,148 @@
 			<key>Value</key>
 			<string>/away</string>
 		</map>
+		<key>SinguCmdLineURL</key>
+		<map>
+			<key>Comment</key>
+			<string>Open SLURLS and URLs from chatbar.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>String</string>
+			<key>Value</key>
+			<string>/open</string>
+		</map>
+		<key>SinguCompleteNameProfiles</key>
+		<map>
+			<key>Comment</key>
+			<string>Use the complete name "Display Name (legacy.name)" in profiles, instead of following the choice set by PhoenixNameSystem.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+		<key>SinguDefaultEaseIn</key>
+		<map>
+			<key>Comment</key>
+			<string>Amount of time (in seconds) over which uploaded bvh animation blends in by default.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>F32</string>
+			<key>Value</key>
+			<real>0</real>
+		</map>
+		<key>SinguDefaultEaseOut</key>
+		<map>
+			<key>Comment</key>
+			<string>Amount of time (in seconds) over which uploaded bvh animation blends out by default.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>F32</string>
+			<key>Value</key>
+			<real>0</real>
+		</map>
+		<key>SinguMotionResetsCamera</key>
+		<map>
+			<key>Comment</key>
+			<string>Allow camera to reset when moving.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>1</boolean>
+		</map>
+		<key>UseWebProfiles</key>
+		<map>
+			<key>Comment</key>
+			<string>Always use web profiles floaters instead of legacy profile floaters.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+		<key>UseWebSearch</key>
+		<map>
+			<key>Comment</key>
+			<string>Always use web-based search instead of legacy search.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+		<key>UseWebSearchSLURL</key>
+		<map>
+			<key>Comment</key>
+			<string>When clicking search SLURLs, or using an SLapp that uses these, display the web-based search (When false, some search SLURLs may display somewhat improperly).</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+    <key>OBJExportNotifyFailed</key>
+    <map>
+      <key>Comment</key>
+      <string>Show a notification when exporting to OBJ fails (both partially and completely)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>OBJExportNotifySuccess</key>
+    <map>
+      <key>Comment</key>
+      <string>Show a notification when exporting to OBJ succeeds</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>OBJExportSwapYZ</key>
+    <map>
+      <key>Comment</key>
+      <string>OBJ Files saved swap Y and Z axes (useful for Cinema 4D users)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>SingularitySplashPagePrefix</key>
+    <map>
+      <key>Comment</key>
+      <string>Overlay page to display on the login splash string. Leave empty if you want unmodified grid splash page</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>http://singularity-viewer.github.io</string>
+    </map>
+    <key>SingularitySplashPagePath</key>
+    <map>
+      <key>Comment</key>
+      <string>Path to the overlay page to display on the login splash string. Leave empty if you want unmodified grid splash page</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>pages/login/</string>
+    </map>
     </map>
 </llsd>

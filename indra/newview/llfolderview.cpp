@@ -235,10 +235,9 @@ LLFolderView::LLFolderView( const std::string& name,
 
 	mRenamer = new LLLineEditor(std::string("ren"), getRect(), LLStringUtil::null, getLabelFontForStyle(LLFontGL::NORMAL),
 								DB_INV_ITEM_NAME_STR_LEN,
-								&LLFolderView::commitRename,
+								boost::bind(&LLFolderView::commitRename,this),
 								NULL,
 								NULL,
-								this,
 								&LLLineEditor::prevalidatePrintableNotPipe);
 	//mRenamer->setWriteableBgColor(LLColor4::white);
 	// Escape is handled by reverting the rename, not commiting it (default behavior)
@@ -897,13 +896,9 @@ BOOL LLFolderView::startDrag(LLToolDragAndDrop::ESource source)
 	return can_drag;
 }
 
-void LLFolderView::commitRename( LLUICtrl* renamer, void* user_data )
+void LLFolderView::commitRename( )
 {
-	LLFolderView* root = reinterpret_cast<LLFolderView*>(user_data);
-	if( root )
-	{
-		root->finishRenamingItem();
-	}
+	finishRenamingItem();
 }
 
 void LLFolderView::draw()
@@ -2067,7 +2062,7 @@ void LLFolderView::scrollToShowItem(LLFolderViewItem* item, const LLRect& constr
 	}
 }
 
-void LLFolderView::setScrollContainer(LLScrollableContainerView* parent)
+void LLFolderView::setScrollContainer(LLScrollContainer* parent)
 {
 	mScrollContainer = parent;
 	parent->setPassBackToChildren(false);

@@ -97,6 +97,7 @@
 #include "llviewernetwork.h"
 #include "llvowlsky.h"
 #include "llmanip.h"
+#include "llmediaentry.h"
 
 // [RLVa:KB]
 #include "rlvhandler.h"
@@ -961,7 +962,10 @@ U32 LLViewerObject::processUpdateMessage(LLMessageSystem *mesgsys,
 	U16 valswizzle[4];
 #endif
 	U16	*val;
-	const F32 size = LLWorld::getInstance()->getRegionWidthInMeters();	
+// <FS:CR> Aurora Sim
+	//const F32 size = LLWorld::getInstance()->getRegionWidthInMeters();	
+	const F32 size = mRegionp->getWidth();	
+// </FS:CR> Aurora Sim
 	const F32 MAX_HEIGHT = LLWorld::getInstance()->getRegionMaxHeight();
 	const F32 MIN_HEIGHT = LLWorld::getInstance()->getRegionMinHeight();
 	S32 length;
@@ -2248,7 +2252,8 @@ U32 LLViewerObject::processUpdateMessage(LLMessageSystem *mesgsys,
 		if (mDrawable->isState(LLDrawable::FORCE_INVISIBLE) && !mOrphaned)
 		{
 // 			lldebugs << "Clearing force invisible: " << mID << ":" << getPCodeString() << ":" << getPositionAgent() << llendl;
-			mDrawable->setState(LLDrawable::CLEAR_INVISIBLE);
+			mDrawable->clearState(LLDrawable::FORCE_INVISIBLE);
+			gPipeline.markRebuild( mDrawable, LLDrawable::REBUILD_ALL, TRUE );
 		}
 	}
 
@@ -3902,19 +3907,19 @@ LLViewerObject* LLViewerObject::getRootEdit() const
 }
 
 
-BOOL LLViewerObject::lineSegmentIntersect(const LLVector3& start, const LLVector3& end,
+BOOL LLViewerObject::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end,
 										  S32 face,
 										  BOOL pick_transparent,
 										  S32* face_hit,
-										  LLVector3* intersection,
+										  LLVector4a* intersection,
 										  LLVector2* tex_coord,
-										  LLVector3* normal,
-										  LLVector3* bi_normal)
+										  LLVector4a* normal,
+										  LLVector4a* tangent)
 {
 	return false;
 }
 
-BOOL LLViewerObject::lineSegmentBoundingBox(const LLVector3& start, const LLVector3& end)
+BOOL LLViewerObject::lineSegmentBoundingBox(const LLVector4a& start, const LLVector4a& end)
 {
 	if (mDrawable.isNull() || mDrawable->isDead())
 	{
@@ -3931,11 +3936,7 @@ BOOL LLViewerObject::lineSegmentBoundingBox(const LLVector3& start, const LLVect
 	size.setSub(ext[1], ext[0]);
 	size.mul(0.5f);
 
-	LLVector4a starta, enda;
-	starta.load3(start.mV);
-	enda.load3(end.mV);
-
-	return LLLineSegmentBoxIntersect(starta, enda, center, size);
+	return LLLineSegmentBoxIntersect(start, end, center, size);
 }
 
 U8 LLViewerObject::getMediaType() const

@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <panel label="Pop-ups" name="popups" title="Pop-ups">
-	<text name="dont_show_label">
-		Ne pas afficher ces pop-ups:
-	</text>
-	<button label="Activer ce pop-up" label_selected="Autoriser ce pop-up" name="enable_popup"/>
-	<button label="Activer tous les pop-ups" label_selected="Réinitialiser les dialogues 'Afficher la prochaine fois'" name="reset_dialogs_btn" tool_tip="Active tous les pop-ups et les notifications envoyées lors d'un premier usage." width="185"/>
-	<text name="show_label">
-		Afficher ces pop-ups:
-	</text>
-	<button label="Désactiver ce pop-up" left="15" name="skip_frst_btn" width="175"/>
-	<button label="Désactiver tous les pop-ups" name="skip_dialogs_btn" tool_tip="Désactive tous les pop-ups et les notifications envoyées lors d'un premier usage." width="185"/>
-	<text name="text_box2">
-		Offres de notes, textures et rep&#xE8;res:
-	</text>
-	<check_box label="Accepter automatiquement" name="accept_new_inventory"/>
-	<check_box label="Afficher après avoir accepté" name="show_new_inventory"/>
-	<check_box label="Ouvrir l'inventaire et sélectionner les objets reçus" name="show_in_inventory"/>
+  <check_box label="Accepter automatiquement" name="accept_new_inventory"/>
+  <check_box label="Afficher après avoir accepté" name="show_new_inventory"/>
+  <check_box label="Ouvrir l'inventaire et sélectionner les objets reçus" name="show_in_inventory"/>
+  <text name="show_label">Toujours montrer:</text>
+  <button label="Active tous" left="20" name="reset_dialogs_btn" tool_tip="Active tous les pop-ups et les notifications envoyées lors d'un premier usage." width="100"/>
+  <button label="Désact. les 'premiers usages'" name="skip_frst_btn" tool_tip="Désactive les notifications envoyées lors d'un premier usage." width="180"/>
+  <button left_delta="185" name="disable_popup"/>
+  <button label="Désactive tous" name="skip_dialogs_btn" tool_tip="Désactive tous les pop-ups et les notifications envoyées lors d'un premier usage."/>
+  <text name="dont_show_label">Ne jamais montrer:</text>
 </panel>

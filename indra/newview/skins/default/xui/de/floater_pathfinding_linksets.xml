@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="floater_pathfinding_linksets" title="Pathfinding Linksets">
+  
+  <string name="messaging_get_inprogress">Pathfinding-Linksets werden abgerufen...</string>
+  <string name="messaging_get_error">Fehler beim Abrufen von Pathfinding-Linksets.</string>
+  <string name="messaging_set_inprogress">Ausgewählte Pathfinding-Linksets werden geändert...</string>
+  <string name="messaging_set_error">Fehler beim Ändern der ausgewählten Pathfinding-Linksets.</string>
+  <string name="messaging_complete_none_found">Keine Pathfinding-Linksets.</string>
+  <string name="messaging_complete_available">[NUM_SELECTED] Linksets von [NUM_TOTAL] ausgewählt.</string>
+  <string name="messaging_not_enabled">Pathfinding ist in dieser Region nicht aktiviert.</string>
+  <string name="linkset_terrain_name">[Terrain]</string>
+  <string name="linkset_terrain_description">--</string>
+  <string name="linkset_terrain_owner">--</string>
+  <string name="linkset_terrain_scripted">--</string>
+  <string name="linkset_terrain_land_impact">--</string>
+  <string name="linkset_terrain_dist_from_you">--</string>
+  <string name="linkset_owner_loading">[Laden]</string>
+  <string name="linkset_owner_unknown">[Unbekannt]</string>
+  <string name="linkset_owner_group">[Gruppe]</string>
+  <string name="linkset_is_scripted">Ja</string>
+  <string name="linkset_is_not_scripted">Nein</string>
+  <string name="linkset_is_unknown_scripted">Unbekannt</string>
+  <string name="linkset_use_walkable">Begehbar</string>
+  <string name="linkset_use_static_obstacle">Statisches Hinternis</string>
+  <string name="linkset_use_dynamic_obstacle">Bewegliches Hinternis</string>
+  <string name="linkset_use_material_volume">Materialvolumen</string>
+  <string name="linkset_use_exclusion_volume">Ausschlussvolumen</string>
+  <string name="linkset_use_dynamic_phantom">Bewegliches Phantom</string>
+  <string name="linkset_is_terrain">[nicht änderbar]</string>
+  <string name="linkset_is_restricted_state">[beschränkt]</string>
+  <string name="linkset_is_non_volume_state">[konkav]</string>
+  <string name="linkset_is_restricted_non_volume_state">[beschränkt,konkav]</string>
+  <string name="linkset_choose_use">Linkset-Nutzung auswählen...</string>
+  <panel name="pathfinding_linksets_main">
+    <text name="linksets_filter_label">Filtern nach:</text>
+    <text name="linksets_name_label">Name</text>
+    
+    <text name="linksets_desc_label">Beschreibung</text>
+    
+    <combo_box name="filter_by_linkset_use">
+      <combo_item name="filter_by_linkset_use_none">Nach Linkset-Nutzung filtern...</combo_item>
+      <combo_item name="filter_by_linkset_use_walkable">Begehbar</combo_item>
+      <combo_item name="filter_by_linkset_use_static_obstacle">Statisches Hinternis</combo_item>
+      <combo_item name="filter_by_linkset_use_dynamic_obstacle">Bewegliches Hinternis</combo_item>
+      <combo_item name="filter_by_linkset_use_material_volume">Materialvolumen</combo_item>
+      <combo_item name="filter_by_linkset_use_exclusion_volume">Ausschlussvolumen</combo_item>
+      <combo_item name="filter_by_linkset_use_dynamic_phantom">Bewegliches Phantom</combo_item>
+    </combo_box>
+    <button label="Anwenden" name="apply_filters"/>
+    <button label="Löschen" name="clear_filters"/>
+    <scroll_list name="objects_scroll_list">
+      <column label="Name (Hauptprim)" name="name"/>
+      <column label="Beschreibung (Hauptprim)" name="description"/>
+      <column label="Eigentümer" name="owner"/>
+      <column label="Skriptobjekte" name="scripted"/>
+      <column label="Belastung" name="land_impact"/>
+      <column label="Entfernung" name="dist_from_you"/>
+      <column label="Linkset-Nutzung" name="linkset_use"/>
+      <column label="A%" name="a_percent"/>
+      <column label="B%" name="b_percent"/>
+      <column label="C%" name="c_percent"/>
+      <column label="D%" name="d_percent"/>
+    </scroll_list>
+    <text name="messaging_status">Linksets:</text>
+    <button label="Liste aktualisieren" name="refresh_objects_list"/>
+    <button label="Alle auswählen" name="select_all_objects"/>
+    <button label="Keine auswählen" name="select_none_objects"/>
+  </panel>
+  
+  <panel name="pathfinding_linksets_actions">
+    <text name="linksets_actions_label">Aktionen auf ausgewählten Linksets (Falls ein Linkset entfernt wird, können seine Attribute verloren gehen);</text>
+    <check_box label="Beacon anzeigen" name="show_beacon"/>
+    <button label="Nehmen" name="take_objects"/>
+    <button label="Kopie nehmen" name="take_copy_objects"/>
+    <button label="Dorthin teleportieren" name="teleport_me_to_object"/>
+    <button label="Zurückgeben" name="return_objects"/>
+    <button label="Löschen" name="delete_objects"/>
+  </panel>
+  
+  <panel name="pathfinding_linksets_attributes">
+    <text name="linksets_attributes_label">Attribute ausgewählter Linksets bearbeiten; Den Übernehmen-Button drücken, um Änderungen anzuwenden</text>
+    
+    <text name="walkability_coefficients_label">Begehbarkeit:</text>
+    <text name="edit_a_label">A</text>
+    <line_editor name="edit_a_value" tool_tip="Begehbarkeit für Figuren vom Typ A. Ein Beispiel für diesen Typ wäre „Humanoid“."/>
+    <text name="edit_b_label">B</text>
+    <line_editor name="edit_b_value" tool_tip="Begehbarkeit für Figuren vom Typ B. Ein Beispiel für diesen Typ wäre „Kreatur“."/>
+    <text name="edit_c_label">C</text>
+    <line_editor name="edit_c_value" tool_tip="Begehbarkeit für Figuren vom Typ C. Ein Beispiel für diesen Typ wäre „Mechanisch“."/>
+    <text name="edit_d_label">D</text>
+    <line_editor name="edit_d_value" tool_tip="Begehbarkeit für Figuren vom Typ D. Ein Beispiel für diesen Typ wäre „Anderer“."/>
+    <button label="Änderungen übernehmen" name="apply_edit_values"/>
+    <text name="suggested_use_a_label">(Humanoid)</text>
+    <text name="suggested_use_b_label">(Kreatur)</text>
+    <text name="suggested_use_c_label">(Mechanisch)</text>
+    <text name="suggested_use_d_label">(Anderer)</text>
+  </panel>
+</floater>

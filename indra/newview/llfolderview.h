@@ -60,7 +60,7 @@ class LLInventoryModel;
 class LLPanel;
 class LLLineEditor;
 class LLMenuGL;
-class LLScrollableContainerView;
+class LLScrollContainer;
 class LLUICtrl;
 class LLTextBox;
 
@@ -217,7 +217,7 @@ public:
 
 	void scrollToShowSelection();
 	void scrollToShowItem(LLFolderViewItem* item, const LLRect& constraint_rect);
-	void setScrollContainer(LLScrollableContainerView* parent);
+	void setScrollContainer(LLScrollContainer* parent);
 	LLRect getVisibleRect();
 
 	BOOL search(LLFolderViewItem* first_item, const std::string &search_string, BOOL backward);
@@ -258,9 +258,9 @@ private:
 	void updateRenamerPosition();
 
 protected:
-	LLScrollableContainerView* mScrollContainer;  // NULL if this is not a child of a scroll container.
+	LLScrollContainer* mScrollContainer;  // NULL if this is not a child of a scroll container.
 
-	static void commitRename( LLUICtrl* renamer, void* user_data );
+	void commitRename( );
 	void onRenamerLost();
 
 	void finishRenamingItem( void );

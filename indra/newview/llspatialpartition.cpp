@@ -2944,9 +2944,9 @@ void renderNormals(LLDrawable* drawablep)
 				gGL.vertex3fv(face.mPositions[j].getF32ptr());
 				gGL.vertex3fv(p.getF32ptr());
 				
-				if (face.mBinormals)
+				if (face.mTangents)
 				{
-					n.setMul(face.mBinormals[j], scale);
+					n.setMul(face.mTangents[j], scale);
 					p.setAdd(face.mPositions[j], n);
 				
 					gGL.diffuseColor4f(0,1,1,1);
@@ -3573,7 +3573,8 @@ void renderLights(LLDrawable* drawablep)
 		size.mul(0.5f);
 
 		{
-			LLGLDepthTest depth(GL_FALSE, GL_TRUE);
+			//LLGLDepthTest depth(GL_FALSE, GL_TRUE);
+			LLGLDepthTest depth(GL_TRUE, GL_TRUE, GL_ALWAYS);
 			gGL.diffuseColor4f(1,1,1,1);
 			drawBoxOutline(pos, size);
 		}
@@ -3693,11 +3694,17 @@ void renderRaycast(LLDrawable* drawablep)
 					gGL.translatef(trans.mV[0], trans.mV[1], trans.mV[2]);					
 					gGL.multMatrix((F32*) vobj->getRelativeXform().mMatrix);
 
-					LLVector3 start, end;
+					LLVector4a start, end;
 					if (transform)
 					{
-						start = vobj->agentPositionToVolume(gDebugRaycastStart);
-						end = vobj->agentPositionToVolume(gDebugRaycastEnd);
+						LLVector3 v_start(gDebugRaycastStart.getF32ptr());
+						LLVector3 v_end(gDebugRaycastEnd.getF32ptr());
+
+						v_start = vobj->agentPositionToVolume(v_start);
+						v_end = vobj->agentPositionToVolume(v_end);
+
+						start.load3(v_start.mV);
+						end.load3(v_end.mV);
 					}
 					else
 					{
@@ -3705,11 +3712,8 @@ void renderRaycast(LLDrawable* drawablep)
 						end = gDebugRaycastEnd;
 					}
 
-					LLVector4a starta, enda;
-					starta.load3(start.mV);
-					enda.load3(end.mV);
 					LLVector4a dir;
-					dir.setSub(enda, starta);
+					dir.setSub(end, start);
 
 					gGL.flush();
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);				
@@ -3732,10 +3736,11 @@ void renderRaycast(LLDrawable* drawablep)
 							((LLVolumeFace*) &face)->createOctree(); 
 						}
 
-						LLRenderOctreeRaycast render(starta, dir, &t);
+						LLRenderOctreeRaycast render(start, dir, &t);
 					
 						render.traverse(face.mOctree);
 					}
+
 					gGL.popMatrix();		
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 				}
@@ -3756,10 +3761,18 @@ void renderRaycast(LLDrawable* drawablep)
 			// draw intersection point
 			gGL.pushMatrix();
 			gGL.loadMatrix(gGLModelView);
-			LLVector3 translate = gDebugRaycastIntersection;
+			LLVector3 translate(gDebugRaycastIntersection.getF32ptr());
 			gGL.translatef(translate.mV[0], translate.mV[1], translate.mV[2]);
 			LLCoordFrame orient;
-			orient.lookDir(gDebugRaycastNormal, gDebugRaycastBinormal);
+			LLVector4a debug_binormal;
+			
+			debug_binormal.setCross3(gDebugRaycastNormal, gDebugRaycastTangent);
+			debug_binormal.mul(gDebugRaycastTangent.getF32ptr()[3]);
+
+			LLVector3 normal(gDebugRaycastNormal.getF32ptr());
+			LLVector3 binormal(debug_binormal.getF32ptr());
+						
+			orient.lookDir(normal, binormal);
 			LLMatrix4 rotation;
 			orient.getRotMatrixToParent(rotation);
 			gGL.multMatrix((float*)rotation.mMatrix);
@@ -3782,7 +3795,8 @@ void renderRaycast(LLDrawable* drawablep)
 			size.setSub(ext[1], ext[0]);
 			size.mul(0.5f);
 
-			LLGLDepthTest depth(GL_FALSE, GL_TRUE);
+			//LLGLDepthTest depth(GL_FALSE, GL_TRUE);
+			LLGLDepthTest depth(GL_TRUE, GL_TRUE, GL_ALWAYS);
 			gGL.diffuseColor4f(0,0.5f,0.5f,1);
 			drawBoxOutline(pos, size);		
 		}
@@ -4259,28 +4273,30 @@ BOOL LLSpatialPartition::isVisible(const LLVector3& v)
 	return TRUE;
 }
 
+LL_ALIGN_PREFIX(16)
 class LLOctreeIntersect : public LLSpatialGroup::OctreeTraveler
 {
 public:
-	LLVector3 mStart;
-	LLVector3 mEnd;
+	LL_ALIGN_16(LLVector4a mStart);
+	LL_ALIGN_16(LLVector4a mEnd);
+
 	S32       *mFaceHit;
-	LLVector3 *mIntersection;
+	LLVector4a *mIntersection;
 	LLVector2 *mTexCoord;
-	LLVector3 *mNormal;
-	LLVector3 *mBinormal;
+	LLVector4a *mNormal;
+	LLVector4a *mTangent;
 	LLDrawable* mHit;
 	BOOL mPickTransparent;
 
-	LLOctreeIntersect(LLVector3 start, LLVector3 end, BOOL pick_transparent,
-					  S32* face_hit, LLVector3* intersection, LLVector2* tex_coord, LLVector3* normal, LLVector3* binormal)
+	LLOctreeIntersect(const LLVector4a& start, const LLVector4a& end, BOOL pick_transparent,
+					  S32* face_hit, LLVector4a* intersection, LLVector2* tex_coord, LLVector4a* normal, LLVector4a* tangent)
 		: mStart(start),
 		  mEnd(end),
 		  mFaceHit(face_hit),
 		  mIntersection(intersection),
 		  mTexCoord(tex_coord),
 		  mNormal(normal),
-		  mBinormal(binormal),
+		  mTangent(tangent),
 		  mHit(NULL),
 		  mPickTransparent(pick_transparent)
 	{
@@ -4313,23 +4329,22 @@ public:
 			size = group->mBounds[1];
 			center = group->mBounds[0];
 			
-			LLVector3 local_start = mStart;
-			LLVector3 local_end   = mEnd;
+			LLVector4a local_start = mStart;
+			LLVector4a local_end   = mEnd;
 
 			if (group->mSpatialPartition->isBridge())
 			{
 				LLMatrix4 local_matrix = group->mSpatialPartition->asBridge()->mDrawable->getRenderMatrix();
 				local_matrix.invert();
-				
-				local_start = mStart * local_matrix;
-				local_end   = mEnd   * local_matrix;
+
+				LLMatrix4a local_matrix4a;
+				local_matrix4a.loadu(local_matrix);
+
+				local_matrix4a.affineTransform(mStart, local_start);
+				local_matrix4a.affineTransform(mEnd, local_end);
 			}
 
-			LLVector4a start, end;
-			start.load3(local_start.mV);
-			end.load3(local_end.mV);
-
-			if (LLLineSegmentBoxIntersect(start, end, center, size))
+			if (LLLineSegmentBoxIntersect(local_start, local_end, center, size))
 			{
 				check(child);
 			}
@@ -4360,14 +4375,14 @@ public:
 
 			if (vobj)
 			{
-				LLVector3 intersection;
+				LLVector4a intersection;
 				bool skip_check = false;
 				if (vobj->isAvatar())
 				{
 					LLVOAvatar* avatar = (LLVOAvatar*) vobj;
 					if (avatar->isSelf() && gFloaterTools->getVisible())
 					{
-						LLViewerObject* hit = avatar->lineSegmentIntersectRiggedAttachments(mStart, mEnd, -1, mPickTransparent, mFaceHit, &intersection, mTexCoord, mNormal, mBinormal);
+						LLViewerObject* hit = avatar->lineSegmentIntersectRiggedAttachments(mStart, mEnd, -1, mPickTransparent, mFaceHit, &intersection, mTexCoord, mNormal, mTangent);
 						if (hit)
 						{
 							mEnd = intersection;
@@ -4387,7 +4402,7 @@ public:
 					}
 				}
 
-				if (!skip_check && vobj->lineSegmentIntersect(mStart, mEnd, -1, mPickTransparent, mFaceHit, &intersection, mTexCoord, mNormal, mBinormal))
+				if (!skip_check && vobj->lineSegmentIntersect(mStart, mEnd, -1, mPickTransparent, mFaceHit, &intersection, mTexCoord, mNormal, mTangent))
 				{
 					mEnd = intersection;  // shorten ray so we only find CLOSER hits
 					if (mIntersection)
@@ -4402,19 +4417,19 @@ public:
 				
 		return false;
 	}
-};
+} LL_ALIGN_POSTFIX(16);
 
-LLDrawable* LLSpatialPartition::lineSegmentIntersect(const LLVector3& start, const LLVector3& end,
+LLDrawable* LLSpatialPartition::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end,
 													 BOOL pick_transparent,													
 													 S32* face_hit,                   // return the face hit
-													 LLVector3* intersection,         // return the intersection point
+													 LLVector4a* intersection,         // return the intersection point
 													 LLVector2* tex_coord,            // return the texture coordinates of the intersection point
-													 LLVector3* normal,               // return the surface normal at the intersection point
-													 LLVector3* bi_normal             // return the surface bi-normal at the intersection point
+													 LLVector4a* normal,               // return the surface normal at the intersection point
+													 LLVector4a* tangent			// return the surface tangent at the intersection point
 	)
 
 {
-	LLOctreeIntersect intersect(start, end, pick_transparent, face_hit, intersection, tex_coord, normal, bi_normal);
+	LLOctreeIntersect intersect(start, end, pick_transparent, face_hit, intersection, tex_coord, normal, tangent);
 	LLDrawable* drawable = intersect.check(mOctree);
 
 	return drawable;

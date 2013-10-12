@@ -398,6 +398,7 @@ Apenas lotes maiores podem ser listados na busca.
 				Foto:
 			</text>
 			<texture_picker label="" name="snapshot_ctrl" tool_tip="Clique para escolher uma imagem"/>
+			<check_box label="Avatares em outros lotes podem ver" name="SeeAvatarsCheck" tool_tip="Permite que os avatares em outros lotes vejam e batam papo com avatares neste lote. Você poderá vê-los e conversar com eles."/>
 			<text name="landing_point">
 				Ponto de Aterrissagem: [LANDING]
 			</text>

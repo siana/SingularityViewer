@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="move floater" title="">
-	<button label="" label_selected="" name="turn left btn" tool_tip="Girar a la Izquierda"/>
-	<button label="" label_selected="" name="turn right btn" tool_tip="Girar a la Derecha"/>
-	<button label="" label_selected="" name="move up btn" tool_tip="Saltar o iniciar vuelo"/>
-	<button label="" label_selected="" name="move down btn" tool_tip="Agacharse o Descender"/>
+	<button name="turn left btn" tool_tip="Girar a la Izquierda"/>
+	<button name="turn right btn" tool_tip="Girar a la Derecha"/>
+	<button name="move up btn" tool_tip="Saltar o iniciar vuelo"/>
+	<button name="move down btn" tool_tip="Agacharse o Descender"/>
 	<!--
 	<button bottom="-54" control_name="FlyBtnState" enabled="true" follows="left|bottom"
 		font="SansSerif" halign="center" height="20" label="Fly"

@@ -56,7 +56,7 @@ class LLEventHandler : public LLCommandHandler
 {
 public:
 	// requires trusted browser to trigger
-	LLEventHandler() : LLCommandHandler("event", true) { }
+	LLEventHandler() : LLCommandHandler("event", UNTRUSTED_THROTTLE) { }
 	bool handle(const LLSD& tokens, const LLSD& query_map,
 				LLMediaCtrl* web)
 	{

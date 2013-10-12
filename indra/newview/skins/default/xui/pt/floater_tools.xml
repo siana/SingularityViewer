@@ -124,9 +124,7 @@
 			<text name="Group:">
 				Grupo:
 			</text>
-			<text name="Group Name Proxy">
-				The Lindens
-			</text>
+      <name_box initial_value="Carregando..." name="Group Name Proxy"></name_box>
 			<button label="Definir..." label_selected="Definir..." name="button set group"/>
 			<text name="Permissions:">
 				Permissões:
@@ -573,9 +571,6 @@
 			</text>
 			<spinner label="Horizontal (U)" name="TexOffsetU"/>
 			<spinner label="Vertical (V)" name="TexOffsetV"/>
-			<text name="textbox autofix">
-				Alinhar Texturas
-			</text>
 			<button label="Alinhar" label_selected="Alinhar" name="button align"/>
 		</panel>
 		<panel label="Conteúdo" name="Contents">

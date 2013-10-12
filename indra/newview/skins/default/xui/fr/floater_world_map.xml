@@ -48,7 +48,7 @@
 		</combo_item>
 	</combo_box>
 	<icon left="973" name="location_icon"/>
-	<line_editor label="Rechercher par nom de région" name="location" tool_tip="Saisissez le nom d'une région" width="155"/>
+  <search_editor label="Rechercher par nom de région" name="location" tool_tip="Saisissez le nom d'une région" width="155"/>
 	<button label="Rechercher" label_selected="&gt;" left_delta="160" name="DoSearch" tool_tip="Recherchez sur la carte" width="75"/>
 	<text left="973" name="search_label">
 		Résultats de la recherche :

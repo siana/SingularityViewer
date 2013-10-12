@@ -10,9 +10,11 @@
 					<button label="Flycam" label_selected="Flycam" name="Flycam" tool_tip="Tu cámara está siendo controlada por un joystick, pulsa aquí para liberar el control"/>
 					<button label="Vista Subjetiva" label_selected="Vista Subjetiva" name="Mouselook" tool_tip="Usa el mouse para dirigir tu vista. Si tienes un arma, pulsando el botón del ratón harás fuego"/>
 					<button label="Pararse" label_selected="Pararse" name="Stand Up" tool_tip="Pulsa aquí para pararte"/>
-					<button label="Cancelar TP" label_selected="Cancelar TP" name="Cancel TP" tool_tip="Pulsa aquí para cancerla el proceso de teleporte actual"/>
+					<button label="Cancelar TP" label_selected="Cancelar TP" name="Cancel TP" tool_tip="Pulsa aquí para cancelar el proceso de teleporte actual"/>
 				</layout_panel>
-				<layout_panel name="chat_bar"/>
+				<layout_panel name="chat_bar_layout_panel">
+				<panel name="chat_bar"/>
+			</layout_panel>
 			</layout_stack>
 		</layout_panel>
 		<layout_panel name="ao_remote_container">
@@ -24,10 +26,7 @@
 		<layout_panel name="voice_remote_container">
 			<panel name="voice_remote"/>
 		</layout_panel>
-		<layout_panel name="AdvSettings_container">
-			<panel name="Adv_Settings"/>
-		</layout_panel>
-		<layout_panel name="AdvSettings_container_exp" min_width="230">
+		<layout_panel name="AdvSettings_container" expanded_min_dim="230">
 			<panel name="Adv_Settings"/>
 		</layout_panel>
 	</layout_stack>

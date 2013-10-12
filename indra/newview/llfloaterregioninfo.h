@@ -229,7 +229,7 @@ public:
 	virtual BOOL postBuild();												// LLPanel
 	
 	virtual bool refreshFromRegion(LLViewerRegion* region);					// refresh local settings from region update from simulator
-	
+
 	BOOL validateTextureSizes();
 
 protected:
@@ -273,7 +273,7 @@ public:
 
 	// Group picker callback is different, can't use core methods below
 	bool addAllowedGroup(const LLSD& notification, const LLSD& response);
-	static void addAllowedGroup2(LLUUID id, void*);
+	void addAllowedGroup2(LLUUID id);
 
 	// Core methods for all above add/remove button clicks
 	static void accessAddCore(U32 operation_flag, const std::string& dialog_name);
@@ -309,7 +309,7 @@ public:
 	virtual BOOL postBuild();
 	virtual void updateChild(LLUICtrl* child_ctrl);
 	virtual void refresh();
-	
+
 	void refreshFromEstate();
 	
 	static bool isLindenEstate();
@@ -369,9 +369,9 @@ public:
 
 	const LLUUID& getCovenantID() const { return mCovenantID; }
 	void setCovenantID(const LLUUID& id) { mCovenantID = id; }
-	const std::string& getEstateName() const;
+	std::string getEstateName() const;
 	void setEstateName(const std::string& name);
-	const std::string& getOwnerName() const;
+	std::string getOwnerName() const;
 	void setOwnerName(const std::string& name);
 	void setCovenantTextEditor(const std::string& text);
 

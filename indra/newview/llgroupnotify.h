@@ -89,12 +89,11 @@ protected:
 	static LLRect getGroupNotifyRect();
 
 	// internal handler for button being clicked
-	static void onClickOk(void* data);
-	static void onClickGroupInfo(void* data);
-	static void onClickSaveInventory(void* data);
+	void onClickOk();
+	void onClickSaveInventory();
 
 	// for "next" button
-	static void onClickNext(void* data);
+	void onClickNext();
 
 private:
 	// Are we sliding onscreen?

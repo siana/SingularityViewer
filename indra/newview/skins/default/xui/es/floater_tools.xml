@@ -12,27 +12,28 @@
 <!-- Focus panel -->
 
 	<check_box label="Zoom" name="radio zoom"/>
+	<volume_slider name="slider zoom"/>
 	<check_box label="Órbita (Ctrl)" name="radio orbit"/>
-	<check_box label="Panorámica (Ctrl-Shift)" name="radio pan"/>
+	<check_box label="Panorámica (Ctrl-Mayús)" name="radio pan"/>
 
 <!-- Move panel -->
 
 	<check_box label="Mover" name="radio move"/>
 	<check_box label="Elevar (Ctrl)" name="radio lift"/>
-	<check_box label="Rotar (Ctrl-Shift)" name="radio spin"/>
+	<check_box label="Rotar (Ctrl-Mayús)" name="radio spin"/>
 
 <!-- Edit panel -->
 	<check_box label="Posición" name="radio position"/>
 	<check_box label="Girar (Ctrl)" name="radio rotate"/>
-	<check_box label="Estirar (Ctrl-Shift)" name="radio stretch"/>
+	<check_box label="Estirar (Ctrl-Mayús)" name="radio stretch"/>
 	<check_box label="Elegir Cara" name="radio select face"/>
 	<check_box label="Alinear (Ctrl-A)" name="radio align"/>
 	<check_box label="Editar partes enlazadas" name="checkbox edit linked parts"/>
 	<text name="text ruler mode">
 		Regla:
 	</text>
-	<combo_box name="combobox grid mode">
-		<combo_item name="World" value="World">
+	<combo_box name="combobox grid mode" left_delta="35">
+		<combo_item name="World">
 			Mundo
 		</combo_item>
 		<combo_item name="Local">
@@ -44,8 +45,8 @@
 	</combo_box>
 	<check_box label="Estirar ambos lados" name="checkbox uniform"/>
 	<check_box label="Estirar Texturas" name="checkbox stretch textures"/>
-	<check_box label="Limitar dist. Arrastre" name="checkbox limit drag distance"/>
-	<check_box label="Editar Ejes Raíz" name="checkbox actual root"/>
+	<check_box label="Limitar Dist. Arrastre" name="checkbox limit drag distance"/>
+	<check_box label="Editar Ejes en Raíz" name="checkbox actual root"/>
 	<check_box label="Mostrar Resaltado" name="checkbox show highlight"/>
 	<check_box label="Usar Cuadrícula" name="checkbox snap to grid"/>	
 	<button label="Opciones..." label_selected="Opciones..." name="Options..."/>
@@ -73,6 +74,9 @@
 	<button label="" label_selected="" name="ToolRing" tool_tip="Anillo"/>
 	<button label="" label_selected="" name="ToolTree" tool_tip="Árbol"/>
 	<button label="" label_selected="" name="ToolGrass" tool_tip="Hierba"/>
+	<text name="tree_grass_label"/>
+	<combo_box name="trees_grass" width="125" right="-3"/>
+	<string name="Random">Al Azar</string>
 	<check_box label="Mantener Seleccionado" name="checkbox sticky"/>
 	<check_box label="Copiar Seleccionado" name="checkbox copy selection"/>
 	<check_box label="Centrar" name="checkbox copy centers"/>
@@ -87,19 +91,22 @@
 	<check_box label="Suavizar" name="radio smooth"/>
 	<check_box label="Escarpar" name="radio noise"/>
 	<check_box label="Restablecer" name="radio revert"/>
-	<button label="Aplicar" label_selected="Aplicar" name="button apply to selection" tool_tip="Modificar el terreno seleccionado"/>
+	<button label="Aplicar" label_selected="Aplicar" name="button apply to selection" tool_tip="Modificar el terreno seleccionado" left="126"/>
 	<text name="Bulldozer:">
 		Excavadora:
 	</text>
 	<text name="Dozer Size:">
 		Tamaño
 	</text>
+	<volume_slider name="slider brush size"/>
 	<text name="Strength:">
 		Fuerza
 	</text>
+	<volume_slider name="slider force"/>
 	<text name="link_num_obj_count">
 		[DESC] [NUM]
 	</text>
+	<text name="prim_count"/>
 
 <!-- Sub-tabs -->
 
@@ -108,9 +115,11 @@
 			<text name="Name:">
 				Nombre:
 			</text>
+			<line_editor name="Object Name"/>
 			<text name="Description:">
 				Descripción:
 			</text>
+			<line_editor name="Object Description"/>
 			<text name="Creator:">
 				Creador:
 			</text>
@@ -135,9 +144,7 @@
 			<text name="Group:">
 				Grupo:
 			</text>
-			<text name="Group Name Proxy">
-				The Lindens
-			</text>
+      <name_box initial_value="Cargando..." name="Group Name Proxy"/>
 			<button label="Definir" label_selected="Definir..." name="button set group" width="48"/>
 			<button label="Ver" label_selected="Abrir" name="button open group" left_delta="48" width="30" />
 			<text name="Permissions:">
@@ -154,13 +161,18 @@
 				Transferir
 			</string>
 			<button label="Transferir..." label_selected="Transferir..." name="button deed" tool_tip="Los objetos compartidos por el grupo pueden ser transferidos por un oficial del grupo."/>
-			<check_box label="Permitir que cualquiera lo mueva" name="checkbox allow everyone move"/>
-			<check_box label="Permitir a cualquiera copiarlo" name="checkbox allow everyone copy"/>
+			<text name="text anyone can">
+				Cualquiera puede:
+			</text>
+			<check_box label="Moverlo" name="checkbox allow everyone move"/>
+			<check_box label="Copiarlo" name="checkbox allow everyone copy"/>
+			<check_box name="checkbox allow export" label="Exportarlo"/>			
 			<check_box label="Mostrar en la Búsqueda" name="search_check" tool_tip="Permitir que este objeto aparezca en los resultados de la búsqueda"/>
 			<check_box label="En Venta" name="checkbox for sale"/>
 			<text name="Cost">
 				Precio:  [CURRENCY]
 			</text>
+			<line_editor name="Edit Cost"/>
 			<radio_group name="sale type">
 				<radio_item name="Original">
 					Original
@@ -177,14 +189,13 @@
 			</text>
 			<check_box label="Modificarlo" name="checkbox next owner can modify"/>
 			<check_box label="Copiarlo" name="checkbox next owner can copy"/>
-			<check_box label="Revenderlo/Darlo" name="checkbox next owner can transfer"/>
+			<check_box label="Transferirlo" name="checkbox next owner can transfer"/>
 			<text name="label click action">
 				Al pulsarlo con botón izquierdo:
 			</text>
 			<combo_box name="clickaction">
-			     <!-- Do not reorder these items, the index numbers are
-					used internally. JC -->
-			<combo_item name="Touch/grab(default)">
+			     <!-- Do not reorder these items, the index numbers are used internally. JC -->
+				<combo_item name="Touch/grab(default)">
 					Tocar/Agarrar (Por Defecto)
 				</combo_item>
 				<combo_item name="Sitonobject">
@@ -210,9 +221,6 @@
       		<text name="B:">
 				B:
 			</text>
-			<text name="O:">
-				O;
-			</text>
 			<text name="G:">
 				G:
 			</text>
@@ -225,15 +233,18 @@
 			<text name="F:">
 				F:
 			</text>
-			<!-- ========================  -->
+
+			<panel mouse_opaque="false" bottom="-302" border="true" height="155" left="5" width="260"/>
+		
 			<panel name="pathfinding_attrs_panel">
 				<text name="pathfinding_attributes_label">
 					Atributos de Pathfinding:
 				</text>
 				<text name="pathfinding_attributes_value">
-					Test
+					Prueba
 				</text>
 			</panel>
+
 			<string name="text modify info 1">
 				Puedes modificar este objeto.
 			</string>
@@ -275,6 +286,8 @@
 <!-- Object sub-tab -->
 
 		<panel label="Objeto" name="Object">
+			<text name="select_single">
+			</text>
 			<button label="Enlazar" name="link_obj"  tool_tip="Él llega a la ciudad... (Enlazar seleccionados)"/>
 			<button label="Desenlazar" name="unlink_obj" tool_tip="Desenlazar el conjunto enlazado"/>
 			<check_box label="Bloqueado" name="checkbox locked" tool_tip="Previene que el objeto sea movido o borrado. Suele ser útil mientras se construye, para prevenir que se modifique sin querer."/>
@@ -409,6 +422,8 @@
 			<text name="text skew">
 				Sesgo
 			</text>
+			<spinner name="Scale 1"/>
+			<spinner name="Skew"/>
 			<text name="Hollow Shape">
 				Forma del Hueco
 			</text>
@@ -466,6 +481,8 @@
 			<text name="text revolutions">
 				Giros
 			</text>
+			<spinner name="Radius Offset"/>
+			<spinner name="Revolutions"/>
 			<texture_picker label="Textura para Sculpt" name="sculpt texture control" tool_tip="Pulsa aquí para elegir una imagen"/>
 			<check_box label="Espejar" name="sculpt mirror control" tool_tip="Girar el prim sculpt sobre el eje X."/>
 			<check_box label="Dentro-Fuera" name="sculpt invert control" tool_tip="Invertir los valores de los prims sculpted, haciendo aparecer fuera lo de dentro."/>
@@ -529,7 +546,7 @@
 			
 			<texture_picker label="" name="light texture control" tool_tip="Pulsa para escoger una proyección de imagen (sólo tiene efecto con el renderizado diferido activado"/>
 			<spinner label="Intensidad" name="Light Intensity" label_width="55"/>
-			<spinner label="CDV" name="Light FOV"/>
+			<spinner label="FOV" name="Light FOV"/>
 			<spinner label="Radio" name="Light Radius" label_width="55"/>
 			<spinner label="Visión" name="Light Focus"/>
 			<spinner label="Atenuación" name="Light Falloff" label_width="55"/>
@@ -552,9 +569,11 @@
 			<text name="color trans">
 				Transparencia %
 			</text>
+			<spinner name="ColorTrans"/>
 			<text name="glow label">
 				Brillo
 			</text>
+			<spinner name="glow"/>
 			<check_box label="Brillo Máximo" name="checkbox fullbright"/>
 			<text name="tex gen">
 				Mapeado
@@ -654,6 +673,7 @@
 			<text name="tex rotate">
 				Rotación (grados)
 			</text>
+			<spinner name="TexRot"/>
 			<string name="string repeats per meter">
 				Repetic. por Metro
 			</string>
@@ -663,27 +683,33 @@
 			<text name="rpt">
 				Repetic. por Metro
 			</text>
+			<spinner name="rptctrl"/>
 			<button label="Aplicar" label_selected="Aplicar" name="button apply"/>
 			<text name="tex offset">
 				Desplazar
 			</text>
 			<spinner label="Horizontal (U)" name="TexOffsetU"/>
 			<spinner label="Vertical (V)" name="TexOffsetV"/>
-			<text name="textbox autofix">
-				Alinear textura para Media
-(Se debe subir primero)
-			</text>
-			<button label="Alinear" label_selected="Alinear" name="button align"  left="150" width="50"/>
-			<text name="textbox params" left="195" height="40">
-				Parámetros 
-de Textura
+			<text name="textbox params" left="195" height="10">Parám. Text.
 			</text>
 			<button label="Copiar" name="copytextures" tool_tip="Copiar Parámetros de Textura al Portapapeles" left_delta="15" width="50"/>
 	  		<button label="Pegar" name="pastetextures" tool_tip="Pegar Parámetros de Textura desde el Portapapeles" width="50"/>
+			<text name="media_tex">
+				Media:
+			</text>
+			<panel name="Add_Media">
+				<button label="Añadir" name="add_media" tool_tip="Añadir Media" left="123" bottom="-25" width="52"/>
+				<button label="Borrar" name="delete_media" tool_tip="Borrar la textura del media" left="178" bottom="-25" width="50"/>
+				<button tool_tip="Editar el Media" label=">>" name="edit_media" left="228" bottom="-25" width="30"/>
+				<text left="10" bottom="-46" name="media_info" width="180" />
+				<web_browser name="title_media" start_url="about:blank" />
+				<button label="Alinear" left="166" name="button align" bottom="-48" tool_tip="Alinear la textura del media (se debe subir primero)" width="80" />
+			</panel>			
     	</panel>
     	<panel label="Contenido" name="Contents">
 			<button label="Nuevo Script" label_selected="Nuevo Script" name="button new script"/>
 			<button label="Permisos..." name="button permissions" />
+			<panel name="ContentsInventory"/>
 		</panel>
 	</tab_container>
 

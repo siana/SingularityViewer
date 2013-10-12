@@ -101,7 +101,10 @@ void AIStateMachineThreadBase::multiplex_impl(state_type run_state)
 	  break;
 	case wait_stopped:
 	  if (!mThread->isStopped())
+	  {
+		yield();
 		break;
+	  }
 	  // We're done!
 	  //
 	  // We can only get here when AIThreadImpl::done called cont(), (very

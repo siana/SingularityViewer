@@ -44,6 +44,7 @@
 #include "llnotificationsutil.h"
 #include "llviewercontrol.h"
 #include "llviewerwindow.h"
+#include "hippogridmanager.h"
 
 #include "llproxy.h"
 
@@ -73,6 +74,14 @@ BOOL LLPanelNetwork::postBuild()
 	childSetValue("http_inventory", gSavedSettings.getBOOL("UseHTTPInventory"));
 	childSetValue("connection_port_enabled", gSavedSettings.getBOOL("ConnectionPortEnabled"));
 	childSetValue("connection_port", (F32)gSavedSettings.getU32("ConnectionPort"));
+
+	// If in Avination, hide the texture bandwidth slider, Avination throttles server-side
+	if (gHippoGridManager->getConnectedGrid()->isAvination())
+	{
+		childSetVisible("text_box4", FALSE);
+		childSetVisible("tex_bandwidth", FALSE);
+		childSetVisible("text_box3", FALSE);
+	}
 
 	// Socks 5 proxy settings, commit callbacks
 	childSetCommitCallback("socks5_proxy_enabled", onCommitSocks5ProxyEnabled, this);

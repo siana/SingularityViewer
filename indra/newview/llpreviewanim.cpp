@@ -97,7 +97,7 @@ BOOL LLPreviewAnim::postBuild()
 	childSetAction("Anim audition btn",auditionAnim,this);
 
 	childSetCommitCallback("desc", LLPreview::onText, this);
-	childSetPrevalidate("desc", &LLLineEditor::prevalidatePrintableNotPipe);
+	getChild<LLLineEditor>("desc")->setPrevalidate(&LLLineEditor::prevalidatePrintableNotPipe);
 	
 	return LLPreview::postBuild();
 }
@@ -331,7 +331,7 @@ void LLPreviewAnim::copyAnimID(void *userdata)
 
 	if(item)
 	{
-		gViewerWindow->mWindow->copyTextToClipboard(utf8str_to_wstring(item->getAssetUUID().asString()));
+		gViewerWindow->getWindow()->copyTextToClipboard(utf8str_to_wstring(item->getAssetUUID().asString()));
 	}
 }
 // </edit>

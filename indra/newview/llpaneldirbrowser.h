@@ -87,7 +87,8 @@ public:
 	// default handler for clicking the search button resets the
 	// next/prev state and performs the query.
 	// Expects a pointer to an LLPanelDirBrowser object.
-	static void onClickSearchCore(void* userdata);
+	void onClickSearchCore();
+	void onKeystrokeName(LLLineEditor* line);
 
 	// query_start indicates the first result row to
 	// return, usually 0 or 100 or 200 because the searches
@@ -103,11 +104,7 @@ public:
 
 	void showEvent(const U32 event_id);
 
-	// Prev/Next page buttons
-	static void onClickNext(void* data);
-	static void onClickPrev(void* data);
-
-	static void onCommitList(LLUICtrl* ctrl, void* data);
+	void onCommitList();
 
 	static void processDirPeopleReply(LLMessageSystem* msg, void**);
 	static void processDirPlacesReply(LLMessageSystem* msg, void**);
@@ -120,14 +117,11 @@ public:
 	
 	// Logic to control maturity checkboxes in Classified/Events/Places/'Land for Sale' tabs.
 	void updateMaturityCheckbox();
-
 protected:
 	void updateResultCount();
 
 	void addClassified(LLCtrlListInterface *list, const LLUUID& classified_id, const std::string& name, const U32 creation_date, const S32 price_for_listing);
 	LLSD createLandSale(const LLUUID& parcel_id, BOOL is_auction, BOOL is_for_sale, const std::string& name, S32 *type);
-
-	static void onKeystrokeName(LLLineEditor* line, void* data);
 
 	// If this is a search for a panel like "people_panel" (and not the "all" panel)
 	// optionally show the "Next" button.  Return the actual number of

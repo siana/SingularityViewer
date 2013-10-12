@@ -116,6 +116,15 @@ void AICurlEasyRequestStateMachine::multiplex_impl(state_type run_state)
 	{
 	  set_state(AICurlEasyRequestStateMachine_waitAdded);
 	  idle();							// Wait till AICurlEasyRequestStateMachine::added_to_multi_handle() is called.
+
+	  // This is a work around for the case that this request had a bad url, in order to avoid a crash later on.
+	  bool empty_url = AICurlEasyRequest_rat(*mCurlEasyRequest)->getLowercaseServicename().empty();
+	  if (empty_url)
+	  {
+		abort();
+		break;
+	  }
+
 	  // Only AFTER going idle, add request to curl thread; this is needed because calls to set_state() are
 	  // ignored when the statemachine is not idle, and theoretically the callbacks could be called
 	  // immediately after this call.

@@ -67,6 +67,10 @@
 class AIHTTPTimeoutPolicy;
 extern AIHTTPTimeoutPolicy viewerStatsResponder_timeout;
 
+namespace AICurlInterface {
+size_t getHTTPBandwidth(void);
+}
+
 class StatAttributes
 {
 public:
@@ -210,7 +214,8 @@ LLViewerStats::LLViewerStats() :
 	mLayersKBitStat("layerskbitstat"),
 	mObjectKBitStat("objectkbitstat"),
 	mAssetKBitStat("assetkbitstat"),
-	mTextureKBitStat("texturekbitstat"),
+	mHTTPTextureKBitStat("httptexturekbitstat"),
+	mUDPTextureKBitStat("udptexturekbitstat"),
 	mMallocStat("mallocstat"),
 	mVFSPendingOperations("vfspendingoperations"),
 	mObjectsDrawnStat("objectsdrawnstat"),
@@ -300,7 +305,8 @@ void LLViewerStats::resetStats()
 	stats.mKBitStat.reset();
 	stats.mLayersKBitStat.reset();
 	stats.mObjectKBitStat.reset();
-	stats.mTextureKBitStat.reset();
+	stats.mHTTPTextureKBitStat.reset();
+	stats.mUDPTextureKBitStat.reset();
 	stats.mVFSPendingOperations.reset();
 	stats.mAssetKBitStat.reset();
 	stats.mPacketsInStat.reset();
@@ -673,13 +679,13 @@ void update_statistics()
 
 	// Only update texture stats periodically so that they are less noisy
 	{
-		static const F32 texture_stats_freq = 10.f;
+		static const F32 texture_stats_freq = 0.25f;
 		static LLFrameTimer texture_stats_timer;
 		if (texture_stats_timer.getElapsedTimeF32() >= texture_stats_freq)
 		{
-			stats.mTextureKBitStat.addValue(LLViewerTextureList::sTextureBits/1024.f);
+			stats.mHTTPTextureKBitStat.addValue(AICurlInterface::getHTTPBandwidth()/125.f);
+			stats.mUDPTextureKBitStat.addValue(LLViewerTextureList::sTextureBits/1024.f);
 			stats.mTexturePacketsStat.addValue(LLViewerTextureList::sTexturePackets);
-			LLAppViewer::getTextureFetch()->setTextureBandwidth(LLViewerTextureList::sTextureBits/1024.f/texture_stats_timer.getElapsedTimeF32());
 			gTotalTextureBytes += LLViewerTextureList::sTextureBits / 8;
 			LLViewerTextureList::sTextureBits = 0;
 			LLViewerTextureList::sTexturePackets = 0;

@@ -146,12 +146,15 @@ class AIStateMachine : public LLThreadSafeRefCount
 	typedef AIAccessConst<multiplex_state_type>	multiplex_state_type_crat;
 	typedef AIAccess<multiplex_state_type>		multiplex_state_type_rat;
 	typedef AIAccess<multiplex_state_type>		multiplex_state_type_wat;
+
+  protected:
 	// Sub state.
 	AIThreadSafeSimpleDC<sub_state_type>	mSubState;
 	typedef AIAccessConst<sub_state_type>	sub_state_type_crat;
 	typedef AIAccess<sub_state_type>		sub_state_type_rat;
 	typedef AIAccess<sub_state_type>		sub_state_type_wat;
 
+  private:
 	// Mutex protecting everything below and making sure only one thread runs the state machine at a time.
 	LLMutex mMultiplexMutex;
 	// Mutex that is locked while calling *_impl() functions and the call back.
@@ -209,7 +212,7 @@ class AIStateMachine : public LLThreadSafeRefCount
  
   public:
 	// These functions may be called directly after creation, or from within finish_impl(), or from the call back function.
-	void run(LLPointer<AIStateMachine> parent, state_type new_parent_state, bool abort_parent = true, bool on_abort_signal_parent = true, AIEngine* default_engine = &gMainThreadEngine);
+	void run(AIStateMachine* parent, state_type new_parent_state, bool abort_parent = true, bool on_abort_signal_parent = true, AIEngine* default_engine = &gMainThreadEngine);
 	void run(callback_type::signal_type::slot_type const& slot, AIEngine* default_engine = &gMainThreadEngine);
 	void run(void) { run(NULL, 0, false, true, mDefaultEngine); }
 

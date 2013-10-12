@@ -80,7 +80,7 @@ void LLAvatarName::fromLLSD(const LLSD& sd)
 	mDisplayName = sd[DISPLAY_NAME].asString();
 	mLegacyFirstName = sd[LEGACY_FIRST_NAME].asString();
 	mLegacyLastName = sd[LEGACY_LAST_NAME].asString();
-	mIsDisplayNameDefault = sd[IS_DISPLAY_NAME_DEFAULT].asBoolean();
+	mIsDisplayNameDefault = sd[IS_DISPLAY_NAME_DEFAULT].asBoolean() || mUsername == mDisplayName;
 	LLDate expires = sd[DISPLAY_NAME_EXPIRES];
 	mExpires = expires.secondsSinceEpoch();
 	LLDate next_update = sd[DISPLAY_NAME_NEXT_UPDATE];

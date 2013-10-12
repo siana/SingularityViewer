@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater
+    name="Nearby Media"
+    title="Nearby Media"
+    can_resize="true"
+    can_close="true"
+    height="208"
+    min_width="300"
+    min_height="122"
+    width="328">
+    <panel
+    name="nearby_media"
+	width="328"
+	height="190"
+	bottom="-208"
+	left="0"
+	follows="all"
+	mouse_opaque="false"
+    />
+</floater>

@@ -1098,3 +1098,12 @@ LLPermissions ll_permissions_from_sd(const LLSD& sd_perm)
 	rv.fix();
 	return rv;
 }
+
+bool LLPermissions::allowExportBy(LLUUID const& requester, ExportPolicy export_policy) const
+{
+	return !mIsGroupOwned && requester == mOwner &&                                     // Must be owner.
+	  (requester == mCreator ||                                                         // Export is allowed for all export policies when creator.
+	   (export_policy == ep_export_bit && (mMaskEveryone & PERM_EXPORT)) ||             // If not creator, only allow export when PERM_EXPORT bit is set.
+	   (export_policy == ep_full_perm && (mMaskOwner & PERM_ITEM_UNRESTRICTED) == PERM_ITEM_UNRESTRICTED)); // If not creator, only allow export when item is full perm.
+}
+

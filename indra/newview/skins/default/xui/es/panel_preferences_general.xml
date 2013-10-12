@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="General" name="general_panel">
 	<radio_group name="default_start_location" width="250">
-		<radio_item name="MyHome" tool_tip="Iniciar sesión de forma predeterminada en Mi Base.">
+		<radio_item name="home" tool_tip="Iniciar sesión de forma predeterminada en Mi Base.">
 			Mi Base
 		</radio_item>
-		<radio_item name="MyLastLocation" tool_tip="Iniciar sesión de forma predeterminada en mi última ubicación.">
+		<radio_item name="last" tool_tip="Iniciar sesión de forma predeterminada en mi última ubicación.">
 			Mi Última Ubicación
 		</radio_item>
 	</radio_group>
@@ -31,6 +31,7 @@
 			Solamente Nombres Mostrados
 		</combo_item>
 	</combo_box>
+	<check_box label="Mostrar 'Resident'" name="show_resident_checkbox" left_delta="164"/>
 	<check_box label="Nombres de Avatar en pequeño" name="small_avatar_names_checkbox"/>
 	<check_box label="Ocultar mi Nombre en mi Pantalla" name="show_my_name_checkbox"/>
 	<text name="group_titles_textbox">
@@ -41,6 +42,7 @@
 	<text name="UI Size:">
 		Tamaño Interface:
 	</text>
+	<slider name="ui_scale_slider"/>
 	<check_box label="Resolución independiente del tamaño" name="ui_auto_scale"/>
 	<check_box label="Estado Ausente al estar inactivo" name="away_when_idle_checkbox"/>	
 	<spinner label="Ausente tras:" name="afk_timeout_spinner"  label_width="71" left="236"/>
@@ -52,10 +54,10 @@
 	</text>
 	<combo_box name="maturity_desired_combobox">
 		<combo_item name="Desired_Adult">
-			PG, Mature y Adulto
+			PG, Moderado y Adulto
 		</combo_item>
 		<combo_item name="Desired_Mature">
-			PG y Mature
+			PG y Moderado
 		</combo_item>
 		<combo_item name="Desired_PG">
 			Sólo PG
@@ -151,5 +153,5 @@
 		</combo_item>
 	</combo_box>
 	<check_box label="Compartir idioma con los objetos" name="language_is_public" tool_tip="Esta opción le permite a los objetos conocer tu idioma seleccionado."/>
-	<button label="Reiniciar Configuración" name="clear_settings"/>
+	<button label="Reiniciar Configuraciones" name="clear_settings"/>
 </panel>

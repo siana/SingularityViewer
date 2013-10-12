@@ -187,6 +187,12 @@ void LLFloaterGesture::toggleVisibility()
 }
 
 // static
+bool LLFloaterGesture::instanceVisible()
+{
+	return sInstance && sInstance->getVisible();
+}
+
+// static
 void LLFloaterGesture::refreshAll()
 {
 	if (sInstance)

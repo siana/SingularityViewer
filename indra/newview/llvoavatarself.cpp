@@ -77,6 +77,9 @@
 
 LLPointer<LLVOAvatarSelf> gAgentAvatarp = NULL;
 
+BOOL object_attached(void *user_data);
+BOOL object_selected_and_point_valid(void *user_data);
+
 BOOL isAgentAvatarValid()
 {
 	return (gAgentAvatarp.notNull() && gAgentAvatarp->isValid() &&
@@ -1198,12 +1201,6 @@ const LLViewerJointAttachment *LLVOAvatarSelf::attachObject(LLViewerObject *view
 				gRlvAttachmentLocks.updateLockedHUD();
 		}
 // [/RLVa:KB]
-		bool detach_bridge = gSavedSettings.getBOOL("SGDetachBridge");
-		if (detach_bridge && RlvAttachPtLookup::getAttachPointIndex(viewer_object) == 127)
-		{
-			llinfos << "Bridge detected! detaching" << llendl;
-			LLAppearanceMgr::getInstance()->removeItemFromAvatar(attachment_id);
-		}
 
 	}
 
@@ -3192,7 +3189,7 @@ void LLVOAvatarSelf::dumpScratchTextureByteCount()
 	llinfos << "Scratch Texture GL: " << (sScratchTexBytes/1024) << "KB" << llendl;
 }
 
-void dump_visual_param(apr_file_t* file, LLVisualParam* viewer_param, F32 value);
+void dump_visual_param(LLAPRFile& file, LLVisualParam const* viewer_param, F32 value);
 
 void LLVOAvatarSelf::dumpWearableInfo(LLAPRFile& outfile)
 {
@@ -3220,7 +3217,7 @@ void LLVOAvatarSelf::dumpWearableInfo(LLAPRFile& outfile)
 				 it != v_params.end(); ++it)
 			{
 				LLVisualParam *param = *it;
-				dump_visual_param(file, param, param->getWeight());
+				dump_visual_param(outfile, param, param->getWeight());
 			}
 		}
 	}

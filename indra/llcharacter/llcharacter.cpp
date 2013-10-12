@@ -469,6 +469,7 @@ void LLCharacter::addSharedVisualParam(LLVisualParam *param)
 void LLCharacter::addVisualParam(LLVisualParam *param)
 {
 	S32 index = param->getID();
+
 	// Add Index map
 	std::pair<visual_param_index_map_t::iterator, bool> idxres;
 	idxres = mVisualParamIndexMap.insert(visual_param_index_map_t::value_type(index, param));
@@ -479,6 +480,8 @@ void LLCharacter::addVisualParam(LLVisualParam *param)
 		visual_param_index_map_t::iterator index_iter = idxres.first;
 		index_iter->second = param;
 	}
+	
+	mVisualParamSortedVector[index] = param;
 
 	if (param->getInfo())
 	{

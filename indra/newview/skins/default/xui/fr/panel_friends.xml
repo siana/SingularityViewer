@@ -17,7 +17,7 @@
 		name="friends" width="130">
 		Rechercher un(e) ami(e) :
 	</text-->
-	<search_editor bottom_delta="-40" enabled="true" follows="left|top" font="SansSerif"
+  <filter_editor bottom_delta="-40" enabled="true" follows="left|top" font="SansSerif"
 		height="18" left_delta="0" name="buddy_search_lineedit" label="Rechercher un(e) ami(e)"
 		tool_tip="Recherchez un(e) ami(e) dans la liste de noms." width="160" />
 	<button label="IM/Appel" name="im_btn" tool_tip="Envoyez un IM à ce résident."/>

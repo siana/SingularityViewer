@@ -56,12 +56,12 @@ protected:
 	virtual bool initParseCommandLine(LLCommandLineParser& clp);
 
 	virtual bool restoreErrorTrap();
-	virtual void handleCrashReporting(bool reportFreeze); 
-	virtual void handleSyncCrashTrace();
+	virtual void initCrashReporting(bool reportFreeze); 
 
 	virtual bool sendURLToOtherInstance(const std::string& url);
 
 	std::string generateSerialNumber();
+
 
 	static const std::string sWindowClass;
 

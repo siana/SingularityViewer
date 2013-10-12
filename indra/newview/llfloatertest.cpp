@@ -62,15 +62,15 @@ public:
 	LLFloaterTestImpl();
 
 private:
-	static void onClickButton(void*);
-	static void onClickText(void*);
-	static void onClickTab(void*, bool);
-	static void onCommitCheck(LLUICtrl*, void*);
-	static void onCommitCombo(LLUICtrl*, void*);
-	static void onCommitLine(LLUICtrl*, void*);
-	static void onKeyLine(LLLineEditor*, void*);
-	static void onFocusLostLine(LLFocusableElement*, void*);
-	static void onChangeRadioGroup(LLUICtrl*, void*);
+	static void onClickButton();
+	static void onClickText();
+	static void onClickTab();
+	static void onCommitCheck();
+	static void onCommitCombo(LLUICtrl* ctrl, const LLSD& value);
+	static void onCommitLine();
+	static void onKeyLine();
+	static void onFocusLostLine();
+	static void onChangeRadioGroup();
 
 	LLButton* mBtnSimple;
 	LLButton* mBtnUnicode;
@@ -83,7 +83,7 @@ private:
 	LLRadioGroup* mRadioGroup;
 	LLRadioCtrl* mRadio1;
 	LLRadioCtrl* mRadio2;
-	LLScrollableContainerView* mScroll;
+	LLScrollContainer* mScroll;
 	LLScrollListCtrl* mScrollList;
 	LLTabContainer* mTab;
 	LLTextEditor* mTextEditor;
@@ -118,7 +118,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 	btn = new LLButton(std::string("can't click"),
 		LLRect(LEFT+150, y, LEFT+150+100, y-LINE),
 		LLStringUtil::null,
-		onClickButton, this);
+		boost::bind(&LLFloaterTestImpl::onClickButton));
 	btn->setFollows(FOLLOWS_LEFT|FOLLOWS_TOP);
 	btn->setFont(LLFontGL::getFontSansSerifSmall());
 	addChild(btn);
@@ -128,7 +128,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		50,	// max_width
 		LLFontGL::getFontSansSerifSmall(),
 		TRUE);	// mouse_opaque
-	text->setClickedCallback(onClickText);
+	text->setClickedCallback(boost::bind(&onClickText));
 	text->setRect(LLRect(LEFT, y, RIGHT, y-LINE));
 	addChild(text);
 
@@ -137,7 +137,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 	btn = new LLButton(std::string("can click"),
 		LLRect(LEFT+150, y, LEFT+150+100, y-LINE),
 		LLStringUtil::null,
-		onClickButton, this);
+		boost::bind(&LLFloaterTestImpl::onClickButton));
 	btn->setFollows(FOLLOWS_LEFT|FOLLOWS_TOP);
 	btn->setFont(LLFontGL::getFontSansSerifSmall());
 	addChild(btn);
@@ -160,7 +160,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 	addChild(tab);
 	mTab = tab;
 
-	tab->setCommitCallback(boost::bind(&LLFloaterTestImpl::onClickTab,_1,_2));
+	tab->setCommitCallback(boost::bind(&LLFloaterTestImpl::onClickTab));
 
 	//-----------------------------------------------------------------------
 	// First tab container panel
@@ -194,7 +194,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		std::string("tool_zoom.tga"),
 		std::string("tool_zoom_active.tga"),
 		LLStringUtil::null,
-		onClickButton, this,
+		boost::bind(&LLFloaterTestImpl::onClickButton),
 		LLFontGL::getFontSansSerifSmall());
 	btn->setFollows(FOLLOWS_LEFT | FOLLOWS_TOP);
 	panel->addChild(btn);
@@ -205,7 +205,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		LLRect(LEFT, y, LEFT+150, y-LLCHECKBOXCTRL_HEIGHT),
 		std::string("Simple Checkbox"),
 		LLFontGL::getFontSansSerifSmall(),
-		onCommitCheck, this,
+		boost::bind(&LLFloaterTestImpl::onCommitCheck),
 		TRUE,	// initial_value
 		FALSE,	// radio_style
 		std::string("UIFloaterTestBool"));	// control_which
@@ -217,7 +217,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		LLRect(LEFT, y, LEFT+150, y-LLCHECKBOXCTRL_HEIGHT),
 		std::string("TODO: Unicode Checkbox"),
 		LLFontGL::getFontSansSerifSmall(),
-		onCommitCheck, this,
+		boost::bind(&LLFloaterTestImpl::onCommitCheck),
 		TRUE,	// initial_value
 		FALSE,	// radio_style
 		LLStringUtil::null);	// control_which
@@ -229,7 +229,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 	combo = new LLComboBox(std::string("combo"),
 		LLRect(LEFT, y, LEFT+100, y-LLCOMBOBOX_HEIGHT),
 		std::string("Combobox Label"),
-		onCommitCombo, this);
+		boost::bind(&LLFloaterTestImpl::onCommitCombo, _1,_2) );
 	combo->add(std::string("first item"));
 	combo->add(std::string("second item"));
 	combo->add(std::string("should go to the top"), ADD_TOP);
@@ -253,10 +253,9 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		std::string("test some unicode text here"),
 		LLFontGL::getFontSansSerif(),
 		200,	// max_length_bytes
-		onCommitLine,
-		onKeyLine,
-		onFocusLostLine,
-		this);
+		boost::bind(&LLFloaterTestImpl::onCommitLine),
+		boost::bind(&LLFloaterTestImpl::onKeyLine),
+		boost::bind(&LLFloaterTestImpl::onFocusLostLine));
 	line->setHandleEditKeysDirectly(true);
 	panel->addChild(line);
 
@@ -266,7 +265,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 		std::string("radio_group"),
 		LLRect(LEFT, y, LEFT+200, y - 50),
 		0,	// initial_index
-		onChangeRadioGroup, this,
+		boost::bind(&LLFloaterTestImpl::onChangeRadioGroup),
 		TRUE);	// border
 	panel->addChild(group);
 
@@ -292,7 +291,7 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 	btn = new LLButton(std::string("Simple Button"),
 		LLRect(LEFT, y, LEFT+100, y - 20),
 		LLStringUtil::null,
-		onClickButton, this);
+		boost::bind(&LLFloaterTestImpl::onClickButton));
 	btn->setFollows(FOLLOWS_TOP|FOLLOWS_LEFT);
 	panel->addChild(btn);
 	mBtnSimple = btn;
@@ -305,58 +304,56 @@ LLFloaterTestImpl::LLFloaterTestImpl()
 }
 
 // static
-void LLFloaterTestImpl::onClickButton(void*)
+void LLFloaterTestImpl::onClickButton()
 {
 	llinfos << "button clicked" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onClickText(void*)
+void LLFloaterTestImpl::onClickText()
 {
 	llinfos << "text clicked" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onClickTab(void*, bool)
+void LLFloaterTestImpl::onClickTab()
 {
 	llinfos << "click tab" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onCommitCheck(LLUICtrl*, void*)
+void LLFloaterTestImpl::onCommitCheck()
 {
 	llinfos << "commit check" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onCommitCombo(LLUICtrl* ctrl, void*)
+void LLFloaterTestImpl::onCommitCombo(LLUICtrl* ctrl, const LLSD& value)
 {
 	LLComboBox* combo = (LLComboBox*)ctrl;
-	std::string name = combo->getSimple();
-	LLSD value = combo->getValue();
-	llinfos << "commit combo name " << name << " value " << value.asString() << llendl;
+	llinfos << "commit combo name " << combo->getSimple() << " value " << value.asString() << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onCommitLine(LLUICtrl*, void*)
+void LLFloaterTestImpl::onCommitLine()
 {
 	llinfos << "commit line editor" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onKeyLine(LLLineEditor*, void*)
+void LLFloaterTestImpl::onKeyLine()
 {
 	llinfos << "keystroke line editor" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onFocusLostLine(LLFocusableElement*, void*)
+void LLFloaterTestImpl::onFocusLostLine()
 {
 	llinfos << "focus lost line editor" << llendl;
 }
 
 // static
-void LLFloaterTestImpl::onChangeRadioGroup(LLUICtrl*, void*)
+void LLFloaterTestImpl::onChangeRadioGroup()
 {
 	llinfos << "change radio group" << llendl;
 }

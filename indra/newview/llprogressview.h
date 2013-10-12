@@ -49,6 +49,7 @@ public:
 	BOOL postBuild();
 
 	/*virtual*/ void draw();
+	void drawStartTexture(F32 alpha);
 
 	/*virtual*/ BOOL handleHover(S32 x, S32 y, MASK mask);
 	/*virtual*/ BOOL handleKeyHere(KEY key, MASK mask);
@@ -60,6 +61,11 @@ public:
 	// Set it to NULL when you want to eliminate the message.
 	void setMessage(const std::string& msg);
 	
+	void revealIntroPanel();
+	void abortShowProgress();
+
+	void setStartupComplete();
+
 	void setCancelButtonVisible(BOOL b, const std::string& label);
 
 	static void onCancelButtonClicked();
@@ -70,13 +76,14 @@ protected:
 	F32 mPercentDone;
 	std::string mMessage;
 	LLButton*	mCancelBtn;
-	LLFrameTimer	mFadeTimer;
-	LLFrameTimer mProgressTimer;
+	LLFrameTimer mFadeToWorldTimer;
+	LLFrameTimer mFadeFromLoginTimer;
 	LLRect mOutlineRect;
 	bool mMouseDownInActiveArea;
+	bool mStartupComplete;
 	bool mURLInMessage;
-
 	static LLProgressView* sInstance;
+	static void onIdle(void* user_data);
 };
 
 #endif // LL_LLPROGRESSVIEW_H

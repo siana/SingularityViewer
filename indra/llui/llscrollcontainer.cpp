@@ -1,6 +1,6 @@
 /** 
  * @file llscrollcontainer.cpp
- * @brief LLScrollableContainerView base class
+ * @brief LLScrollContainer base class
  *
  * $LicenseInfo:firstyear=2001&license=viewergpl$
  * 
@@ -33,8 +33,10 @@
 
 #include "linden_common.h"
 
-#include "llrender.h"
 #include "llscrollcontainer.h"
+
+#include "llrender.h"
+#include "llcontainerview.h"
 #include "lllocalcliprect.h"
 #include "llscrollbar.h"
 #include "llui.h"
@@ -44,6 +46,7 @@
 #include "llfocusmgr.h"
 #include "llframetimer.h"
 #include "lluictrlfactory.h"
+#include "llpanel.h"
 #include "llfontgl.h"
 
 ///----------------------------------------------------------------------------
@@ -57,18 +60,18 @@ static const F32 MAX_AUTO_SCROLL_RATE = 500.f;
 static const F32 AUTO_SCROLL_RATE_ACCEL = 120.f;
 
 ///----------------------------------------------------------------------------
-/// Class LLScrollableContainerView
+/// Class LLScrollContainer
 ///----------------------------------------------------------------------------
 
-static LLRegisterWidget<LLScrollableContainerView> r("scroll_container");
+static LLRegisterWidget<LLScrollContainer> r("scroll_container");
 
 // Default constructor
-LLScrollableContainerView::LLScrollableContainerView( const std::string& name,
+LLScrollContainer::LLScrollContainer( const std::string& name,
 													  const LLRect& rect,
 													  LLView* scrolled_view,
 													  BOOL is_opaque,
 													  const LLColor4& bg_color ) :
-	LLUICtrl( name, rect, FALSE, NULL, NULL ),
+	LLUICtrl( name, rect, FALSE ),
 	mAutoScrolling( FALSE ),
 	mAutoScrollRate( 0.f ),
 	mBackgroundColor( bg_color ),
@@ -101,7 +104,7 @@ LLScrollableContainerView::LLScrollableContainerView( const std::string& name,
 											mInnerRect.getHeight(), 
 											0,
 											mInnerRect.getHeight(),
-											NULL, this,
+											NULL,
 											VERTICAL_MULTIPLE);
 	LLView::addChild( mScrollbar[VERTICAL] );
 	mScrollbar[VERTICAL]->setVisible( FALSE );
@@ -117,7 +120,7 @@ LLScrollableContainerView::LLScrollableContainerView( const std::string& name,
 											  mInnerRect.getWidth(),
 											  0,
 											  mInnerRect.getWidth(),
-											  NULL, this,
+											  NULL,
 											  HORIZONTAL_MULTIPLE);
 	LLView::addChild( mScrollbar[HORIZONTAL] );
 	mScrollbar[HORIZONTAL]->setVisible( FALSE );
@@ -128,7 +131,7 @@ LLScrollableContainerView::LLScrollableContainerView( const std::string& name,
 }
 
 // Destroys the object
-LLScrollableContainerView::~LLScrollableContainerView( void )
+LLScrollContainer::~LLScrollContainer( void )
 {
 	// mScrolledView and mScrollbar are child views, so the LLView
 	// destructor takes care of memory deallocation.
@@ -141,9 +144,9 @@ LLScrollableContainerView::~LLScrollableContainerView( void )
 
 // internal scrollbar handlers
 // virtual
-void LLScrollableContainerView::scrollHorizontal( S32 new_pos )
+void LLScrollContainer::scrollHorizontal( S32 new_pos )
 {
-	//llinfos << "LLScrollableContainerView::scrollHorizontal()" << llendl;
+	//llinfos << "LLScrollContainer::scrollHorizontal()" << llendl;
 	if( mScrolledView )
 	{
 		LLRect doc_rect = mScrolledView->getRect();
@@ -153,9 +156,9 @@ void LLScrollableContainerView::scrollHorizontal( S32 new_pos )
 }
 
 // virtual
-void LLScrollableContainerView::scrollVertical( S32 new_pos )
+void LLScrollContainer::scrollVertical( S32 new_pos )
 {
-	// llinfos << "LLScrollableContainerView::scrollVertical() " << new_pos << llendl;
+	// llinfos << "LLScrollContainer::scrollVertical() " << new_pos << llendl;
 	if( mScrolledView )
 	{
 		LLRect doc_rect = mScrolledView->getRect();
@@ -165,7 +168,7 @@ void LLScrollableContainerView::scrollVertical( S32 new_pos )
 }
 
 // LLView functionality
-void LLScrollableContainerView::reshape(S32 width, S32 height,
+void LLScrollContainer::reshape(S32 width, S32 height,
 										BOOL called_from_parent)
 {
 	LLUICtrl::reshape( width, height, called_from_parent );
@@ -192,7 +195,7 @@ void LLScrollableContainerView::reshape(S32 width, S32 height,
 	}
 }
 
-BOOL LLScrollableContainerView::handleKeyHere(KEY key, MASK mask)
+BOOL LLScrollContainer::handleKeyHere(KEY key, MASK mask)
 {
 	// allow scrolled view to handle keystrokes in case it delegated keyboard focus
 	// to the scroll container.  
@@ -215,7 +218,7 @@ BOOL LLScrollableContainerView::handleKeyHere(KEY key, MASK mask)
 	return FALSE;
 }
 
-BOOL LLScrollableContainerView::handleScrollWheel( S32 x, S32 y, S32 clicks )
+BOOL LLScrollContainer::handleScrollWheel( S32 x, S32 y, S32 clicks )
 {
 	// Give event to my child views - they may have scroll bars
 	// (Bad UI design, but technically possible.)
@@ -252,7 +255,7 @@ BOOL LLScrollableContainerView::handleScrollWheel( S32 x, S32 y, S32 clicks )
 	return FALSE;
 }
 
-BOOL LLScrollableContainerView::handleDragAndDrop(S32 x, S32 y, MASK mask,
+BOOL LLScrollContainer::handleDragAndDrop(S32 x, S32 y, MASK mask,
 												  BOOL drop,
 												  EDragAndDropType cargo_type,
 												  void* cargo_data,
@@ -273,7 +276,7 @@ BOOL LLScrollableContainerView::handleDragAndDrop(S32 x, S32 y, MASK mask,
 	return TRUE;
 }
 
-bool LLScrollableContainerView::autoScroll(S32 x, S32 y)
+bool LLScrollContainer::autoScroll(S32 x, S32 y)
 {
 	S32 scrollbar_size = SCROLLBAR_SIZE;
 
@@ -346,7 +349,7 @@ bool LLScrollableContainerView::autoScroll(S32 x, S32 y)
 }
 
 
-BOOL LLScrollableContainerView::handleToolTip(S32 x, S32 y, std::string& msg, LLRect* sticky_rect)
+BOOL LLScrollContainer::handleToolTip(S32 x, S32 y, std::string& msg, LLRect* sticky_rect)
 {
 	S32 local_x, local_y;
 	for( S32 i = 0; i < SCROLLBAR_COUNT; i++ )
@@ -373,7 +376,7 @@ BOOL LLScrollableContainerView::handleToolTip(S32 x, S32 y, std::string& msg, LL
 	return TRUE;
 }
 
-void LLScrollableContainerView::calcVisibleSize( S32 *visible_width, S32 *visible_height, BOOL* show_h_scrollbar, BOOL* show_v_scrollbar ) const
+void LLScrollContainer::calcVisibleSize( S32 *visible_width, S32 *visible_height, BOOL* show_h_scrollbar, BOOL* show_v_scrollbar ) const
 {
 	const LLRect& doc_rect = getScrolledViewRect();
 	S32 scrollbar_size = SCROLLBAR_SIZE;
@@ -410,7 +413,7 @@ void LLScrollableContainerView::calcVisibleSize( S32 *visible_width, S32 *visibl
 	}
 }
 
-void LLScrollableContainerView::draw()
+void LLScrollContainer::draw()
 {
 	S32 scrollbar_size = SCROLLBAR_SIZE;
 	if (mAutoScrolling)
@@ -503,7 +506,7 @@ void LLScrollableContainerView::draw()
 
 } // end draw
 
-bool LLScrollableContainerView::addChild(LLView* view, S32 tab_group)
+bool LLScrollContainer::addChild(LLView* view, S32 tab_group)
 {
 	if (!mScrolledView)
 	{
@@ -520,7 +523,7 @@ bool LLScrollableContainerView::addChild(LLView* view, S32 tab_group)
 	return ret_val;
 }
 
-void LLScrollableContainerView::updateScroll()
+void LLScrollContainer::updateScroll()
 {
 	if (!mScrolledView)
 	{
@@ -607,7 +610,7 @@ void LLScrollableContainerView::updateScroll()
 	mScrollbar[VERTICAL]->setPageSize( visible_height );
 } // end updateScroll
 
-void LLScrollableContainerView::setBorderVisible(BOOL b)
+void LLScrollContainer::setBorderVisible(BOOL b)
 {
 	mBorder->setVisible( b );
 	// Recompute inner rect, as border visibility changes it
@@ -615,7 +618,7 @@ void LLScrollableContainerView::setBorderVisible(BOOL b)
 	mInnerRect.stretch( -getBorderWidth() );
 }
 
-LLRect LLScrollableContainerView::getVisibleContentRect()
+LLRect LLScrollContainer::getVisibleContentRect()
 {
 	updateScroll();
 	LLRect visible_rect = getContentWindowRect();
@@ -623,7 +626,7 @@ LLRect LLScrollableContainerView::getVisibleContentRect()
 	visible_rect.translate(-contents_rect.mLeft, -contents_rect.mBottom);
 	return visible_rect;
 }
-LLRect LLScrollableContainerView::getContentWindowRect()
+LLRect LLScrollContainer::getContentWindowRect()
 {
 	updateScroll();
 	LLRect scroller_view_rect;
@@ -641,7 +644,7 @@ LLRect LLScrollableContainerView::getContentWindowRect()
 }
 
 // rect is in document coordinates, constraint is in display coordinates relative to content window rect
-void LLScrollableContainerView::scrollToShowRect(const LLRect& rect, const LLRect& constraint)
+void LLScrollContainer::scrollToShowRect(const LLRect& rect, const LLRect& constraint)
 {
 	if (!mScrolledView)
 	{
@@ -692,31 +695,31 @@ void LLScrollableContainerView::scrollToShowRect(const LLRect& rect, const LLRec
 	notifyParent(LLSD().with("scrollToShowRect",screen_rc.getValue()));
 }
 
-void LLScrollableContainerView::pageUp(S32 overlap)
+void LLScrollContainer::pageUp(S32 overlap)
 {
 	mScrollbar[VERTICAL]->pageUp(overlap);
 	updateScroll();
 }
 
-void LLScrollableContainerView::pageDown(S32 overlap)
+void LLScrollContainer::pageDown(S32 overlap)
 {
 	mScrollbar[VERTICAL]->pageDown(overlap);
 	updateScroll();
 }
 
-void LLScrollableContainerView::goToTop()
+void LLScrollContainer::goToTop()
 {
 	mScrollbar[VERTICAL]->setDocPos(0);
 	updateScroll();
 }
 
-void LLScrollableContainerView::goToBottom()
+void LLScrollContainer::goToBottom()
 {
 	mScrollbar[VERTICAL]->setDocPos(mScrollbar[VERTICAL]->getDocSize());
 	updateScroll();
 }
 
-S32 LLScrollableContainerView::getBorderWidth() const
+S32 LLScrollContainer::getBorderWidth() const
 {
 	if (mBorder && mBorder->getVisible())
 	{
@@ -727,7 +730,7 @@ S32 LLScrollableContainerView::getBorderWidth() const
 }
 
 // virtual
-LLXMLNodePtr LLScrollableContainerView::getXML(bool save_children) const
+LLXMLNodePtr LLScrollContainer::getXML(bool save_children) const
 {
 	LLXMLNodePtr node = LLUICtrl::getXML();
 
@@ -751,7 +754,7 @@ LLXMLNodePtr LLScrollableContainerView::getXML(bool save_children) const
 	return node;
 }
 
-LLView* LLScrollableContainerView::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
+LLView* LLScrollContainer::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
 	std::string name("scroll_container");
 	node->getAttributeString("name", name);
@@ -766,7 +769,7 @@ LLView* LLScrollableContainerView::fromXML(LLXMLNodePtr node, LLView *parent, LL
 	LLUICtrlFactory::getAttributeColor(node,"color", color);
 
 	// Create the scroll view
-	LLScrollableContainerView *ret = new LLScrollableContainerView(name, rect, (LLPanel*)NULL, opaque, color);
+	LLScrollContainer *ret = new LLScrollContainer(name, rect, (LLPanel*)NULL, opaque, color);
 
 	LLPanel* panelp = NULL;
 

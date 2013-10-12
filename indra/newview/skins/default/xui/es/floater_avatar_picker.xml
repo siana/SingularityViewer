@@ -12,25 +12,31 @@
 	<string name="searching">
 		Buscando...
 	</string>
-	<string label="Elegir" label_selected="Elegir" name="Select">
+	<string name="Select">
 		Seleccionar
 	</string>
 	<string name="Close">
 		Cerrar
 	</string>
 	<tab_container name="ResidentChooserTabs">
+		<!-- ========================= -->
 		<panel name="SearchPanel" label="Buscar">
 			<text name="InstructSearchResidentName">
 				Escribe parte del nombre del residente:
 			</text>
+			<line_editor name="Edit"/>			
 			<button label="Buscar" label_selected="Buscar" name="Find"/>
+			<scroll_list name="SearchResults"/>
 		</panel>
+		<!-- ========================= -->		
 		<panel name="FriendsPanel" label="Amigos">
 			<text name="InstructSelectFriend">
 				Elige a una persona:
 			</text>
 			<button label="Actualizar Lista" label_selected="Actualizar Lista" name="RefreshFriends"/>
+			<scroll_list name="Friends"/>
 		</panel>
+		<!-- ========================= -->		
 		<panel name="NearMePanel" label="Cercanos">
 			<text name="InstructSelectResident">
 				Seleccionar un residente cercano:
@@ -42,10 +48,12 @@
 			</text>
 			<scroll_list name="NearMe"/>
 		</panel>
+		<!-- ========================= -->		
 		<panel name="KeyPanel" label="Por UUID" >
 			<text name="InstructSelectResident">
 				UUID del Avatar o Grupo:
 			</text>
+			<line_editor name="EditUUID"/>
 		</panel>
 	</tab_container>
 	<button label="OK" label_selected="OK" name="Select"/>

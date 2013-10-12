@@ -67,13 +67,13 @@
 #include "llappviewer.h"				// Only for constants!
 #include "lltrans.h"
 
-#include "llglheaders.h"
-
 #include "hippogridmanager.h"
 
-// [RLVa:KB]
+// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.2.0f)
 #include "rlvhandler.h"
 // [/RLVa:KB]
+
+#include "llglheaders.h"
 
 // Basically a C++ implementation of the OCEAN_COLOR defined in mapstitcher.py 
 // Please ensure consistency between those 2 files (TODO: would be better to get that color from an asset source...)
@@ -122,7 +122,9 @@ F32 CONE_SIZE = 0.6f;
 
 std::map<std::string,std::string> LLWorldMapView::sStringsMap;
 
-F32 DRAW_TEXT_THRESHOLD = 96.f;
+// Fetch and draw info thresholds
+const F32 DRAW_TEXT_THRESHOLD = 96.f;		// Don't draw text under that resolution value (res = width region in meters)
+const S32 DRAW_SIMINFO_THRESHOLD = 3;		// Max level for which we load or display sim level information (level in LLWorldMipmap sense)
 
 const int SIM_MAP_AGENT_SCALE=32; // width in pixels, where we start drawing agents
 const int SIM_DATA_SCALE=32; // width in pixels where we start requesting sim info
@@ -310,6 +312,10 @@ void LLWorldMapView::setPan( S32 x, S32 y, BOOL snap )
 	sVisibleTilesLoaded = false;
 }
 
+bool LLWorldMapView::showRegionInfo()
+{
+	return (LLWorldMipmap::scaleToLevel(sMapScale) <= DRAW_SIMINFO_THRESHOLD ? true : false);
+}
 
 ///////////////////////////////////////////////////////////////////////////////////
 // HELPERS
@@ -493,19 +499,7 @@ void LLWorldMapView::draw()
 		{
 			LLFontGL* font = LLFontGL::getFontSansSerifSmall();
 			std::string mesg;
-		
-			//mesg = llformat("%d / %s (%s)",
-			//			info->mAgents,
-			//			info->mName.c_str(),
-			//			LLViewerRegion::accessToShortString(info->mAccess).c_str() );
-			// [RLVa:KB] - Alternate: Snowglobe-1.2.4 | Checked: 2009-07-04 (RLVa-1.0.0a)
-			if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC))
-			{
-				if(!info->getName().empty())
-					mesg = RlvStrings::getString(RLV_STRING_HIDDEN);
-			}
-			// [/RLVa:KB]
-			else if (info->isDown())
+			if (info->isDown())
 			{
 				if(info->getName().empty())
 					mesg = llformat( "(%s)", sStringsMap["offline"].c_str());
@@ -515,27 +509,16 @@ void LLWorldMapView::draw()
 			else if(!info->getName().empty()) // Online sims should have names...
 			{
 				mesg = info->getName();
-				U8 access = info->getAccess();
-				switch(access)
-				{
-				case SIM_ACCESS_MIN:
-					mesg += " (Min)";
-					break;
-				case SIM_ACCESS_PG:
-					mesg += " (PG)";
-					break;
-				case SIM_ACCESS_MATURE:
-					mesg += " (Mature)";
-					break;
-				case SIM_ACCESS_ADULT:
-					mesg += " (Adult)";
-					break;
-				default:
-					mesg += llformat(" (Access=%d)",access);
-					break;
-				}
+
+				static const LLCachedControl<bool> show_avs("LiruMapShowAvCount");
+				if (show_avs) mesg += llformat(" (%d)", info->getAgentCount());
+
+				mesg += llformat(" (%s)", info->getAccessString().c_str());
 			}
-			if (!mesg.empty())
+//			if (!mesg.empty())
+// [RLVa:KB] - Checked: 2012-02-08 (RLVa-1.4.5) | Added: RLVa-1.4.5
+			if ( (!mesg.empty()) && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) )
+// [/RLVa:KB]
 			{
 				font->renderUTF8(
 					mesg, 0,
@@ -1221,7 +1204,7 @@ void LLWorldMapView::drawAgents()
 {	
 	F32 agents_scale = (sMapScale * 0.9f) / 256.f;
 
-	LLColor4 avatar_color = gColors.getColor( "MapAvatar" );
+	LLColor4 avatar_color = gSavedSettings.getColor( "MapAvatar" );
 	//	LLColor4 friend_color = gColors.getColor( "MapFriend" );
 
 	for (handle_list_t::iterator iter = mVisibleRegions.begin(); iter != mVisibleRegions.end(); ++iter)
@@ -1238,7 +1221,7 @@ void LLWorldMapView::drawAgents()
 			// Show Individual agents (or little stacks where real agents are)
 
 			// Here's how we'd choose the color if info.mID were available but it's not being sent:
-			// LLColor4 color = (agent_count == 1 && is_agent_friend(info.mID)) ? friend_color : avatar_color;
+			// LLColor4 color = (agent_count == 1 && LLAvatarActions::isFriend(info.mID)) ? friend_color : avatar_color;
 			// Reduce the stack size as you zoom out - always display at lease one agent where there is one or more
 			S32 agent_count = (S32)(((it->getCount()-1) * agents_scale + (it->getCount()-1) * 0.1f)+.1f) + 1;
 			drawImageStack(it->getGlobalPosition(), sAvatarSmallImage, agent_count, 3.f, avatar_color);
@@ -1259,28 +1242,56 @@ void LLWorldMapView::drawFrustum()
 	F32 half_width_meters = far_clip_meters * tan( horiz_fov / 2 );
 	F32 half_width_pixels = half_width_meters * meters_to_pixels;
 	
-	F32 ctr_x = getRect().getWidth() * 0.5f + sPanX;
-	F32 ctr_y = getRect().getHeight() * 0.5f + sPanY;
+	// Compute the frustum coordinates. Take the UI scale into account.
+	static LLCachedControl<F32> ui_scale_factor("UIScaleFactor");
+	F32 ctr_x = (getLocalRect().getWidth() * 0.5f + sPanX)  * ui_scale_factor;
+	F32 ctr_y = (getLocalRect().getHeight() * 0.5f + sPanY) * ui_scale_factor;
 
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 
 	// Since we don't rotate the map, we have to rotate the frustum.
 	gGL.pushMatrix();
+	{
 		gGL.translatef( ctr_x, ctr_y, 0 );
-		gGL.rotatef( atan2( LLViewerCamera::getInstance()->getAtAxis().mV[VX], LLViewerCamera::getInstance()->getAtAxis().mV[VY] ) * RAD_TO_DEG, 0.f, 0.f, -1.f);
 
 		// Draw triangle with more alpha in far pixels to make it 
 		// fade out in distance.
 		gGL.begin( LLRender::TRIANGLES  );
+		{
+			// get camera look at and left axes
+			LLVector3 at_axis = LLViewerCamera::instance().getAtAxis();
+			LLVector3 left_axis = LLViewerCamera::instance().getLeftAxis();
+
+			// grab components along XY plane
+			LLVector2 cam_lookat(at_axis.mV[VX], at_axis.mV[VY]);
+			LLVector2 cam_left(left_axis.mV[VX], left_axis.mV[VY]);
+
+			// but, when looking near straight up or down...
+			if (is_approx_zero(cam_lookat.magVecSquared()))
+			{
+				//...just fall back to looking down the x axis
+				cam_lookat = LLVector2(1.f, 0.f); // x axis
+				cam_left = LLVector2(0.f, 1.f); // y axis
+			}
+
+			// normalize to unit length
+			cam_lookat.normVec();
+			cam_left.normVec();
+
 			gGL.color4f(1.f, 1.f, 1.f, 0.25f);
 			gGL.vertex2f( 0, 0 );
 
 			gGL.color4f(1.f, 1.f, 1.f, 0.02f);
-			gGL.vertex2f( -half_width_pixels, far_clip_pixels );
+			
+			// use 2d camera vectors to render frustum triangle
+			LLVector2 vert = cam_lookat * far_clip_pixels + cam_left * half_width_pixels;
+			gGL.vertex2f(vert.mV[VX], vert.mV[VY]);
 
-			gGL.color4f(1.f, 1.f, 1.f, 0.02f);
-			gGL.vertex2f(  half_width_pixels, far_clip_pixels );
+			vert = cam_lookat * far_clip_pixels - cam_left * half_width_pixels;
+			gGL.vertex2f(vert.mV[VX], vert.mV[VY]);
+		}
 		gGL.end();
+	}
 	gGL.popMatrix();
 }
 LLVector3 LLWorldMapView::globalPosToView( const LLVector3d& global_pos )
@@ -1341,7 +1352,7 @@ void LLWorldMapView::drawTracking(const LLVector3d& pos_global, const LLColor4& 
 	text_y = llclamp(text_y + vert_offset, TEXT_PADDING + vert_offset, getRect().getHeight() - llround(font->getLineHeight()) - TEXT_PADDING - vert_offset);
 
 	//if (label != "")
-// [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.0.0a) | Added: RLVa-1.0.0a
+// [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.4.5) | Added: RLVa-1.0.0
 	if ( (label != "") && (!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) )
 // [/RLVa:KB]
 	{
@@ -1402,12 +1413,12 @@ BOOL LLWorldMapView::handleToolTip( S32 x, S32 y, std::string& msg, LLRect* stic
 	{
 		LLViewerRegion *region = gAgent.getRegion();
 
-//		std::string message = llformat("%s (%s)", info->getName().c_str(), info->getAccessString().c_str());
-// [RLVa:KB] - Alternate: Snowglobe-1.2.4 | Checked: 2009-07-04 (RLVa-1.0.0a)
+// [RLVa:KB] - Checked: 2010-04-19 (RLVa-1.4.5) | Modified: RLVa-1.4.5
 		std::string message = llformat("%s (%s)", 
-			(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) ? info->getName().c_str() : RlvStrings::getString(RLV_STRING_HIDDEN).c_str(), 
+			(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) ? info->getName().c_str() : RlvStrings::getString(RLV_STRING_HIDDEN_REGION).c_str(),
 				info->getAccessString().c_str());
 // [/RLVa:KB]
+//		std::string message = llformat("%s (%s)", info->getName().c_str(), info->getAccessString().c_str());
 
 		if (!info->isDown())
 		{
@@ -2072,7 +2083,7 @@ BOOL LLWorldMapView::handleHover( S32 x, S32 y, MASK mask )
 	{
 		// While we're waiting for data from the tracker, we're busy. JC
 		LLVector3d pos_global = LLTracker::getTrackedPositionGlobal();
-		if (LLTracker::isTracking(NULL)
+		if (LLTracker::isTracking()
 			&& pos_global.isExactlyZero())
 		{
 			gViewerWindow->setCursor( UI_CURSOR_WAIT );
@@ -2126,6 +2137,7 @@ BOOL LLWorldMapView::handleDoubleClick( S32 x, S32 y, MASK mask )
 			}
 		default:
 			{
+				if (!gSavedSettings.getBOOL("DoubleClickTeleportMap")) return true;
 				if (LLWorldMap::getInstance()->isTracking())
 				{
 					LLWorldMap::getInstance()->setTrackingDoubleClick();

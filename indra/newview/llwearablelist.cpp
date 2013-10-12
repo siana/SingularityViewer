@@ -215,7 +215,7 @@ void LLWearableList::processGetAssetReply( const char* filename, const LLAssetID
 }
 
 
-LLViewerWearable* LLWearableList::createCopy(const LLViewerWearable* old_wearable, const std::string& new_name)
+LLViewerWearable* LLWearableList::createCopy(const LLViewerWearable* old_wearable, const std::string& new_name, const std::string& new_description)
 {
 	lldebugs << "LLWearableList::createCopy()" << llendl;
 
@@ -227,6 +227,7 @@ LLViewerWearable* LLWearableList::createCopy(const LLViewerWearable* old_wearabl
 	wearable->setPermissions(perm);
 
 	if (!new_name.empty()) wearable->setName(new_name);
+	if (!new_description.empty()) wearable->setDescription(new_description);
 
 	// Send to the dataserver
 	wearable->saveNewAsset();

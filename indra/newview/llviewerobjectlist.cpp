@@ -1714,8 +1714,8 @@ void LLViewerObjectList::renderObjectsForMap(LLNetMap &netmap)
 
 	F32 max_radius = gSavedSettings.getF32("MiniMapPrimMaxRadius");
 	
-	static const F32 MAX_ALTITUDE_ABOVE_SELF = 256.f;
-	F32 max_altitude = gAgent.getPositionGlobal()[VZ] + MAX_ALTITUDE_ABOVE_SELF;
+	const F32 agent_altitude(gAgent.getPositionGlobal()[VZ]);
+	static const LLCachedControl<U32> delta("MiniMapPrimMaxAltitudeDelta");
 
 	for (vobj_list_t::iterator iter = mMapObjects.begin(); iter != mMapObjects.end(); ++iter)
 	{
@@ -1743,6 +1743,10 @@ void LLViewerObjectList::renderObjectsForMap(LLNetMap &netmap)
 		LLColor4U color = above_water_color;
 		if( objectp->permYouOwner() )
 		{
+			static const LLCachedControl<U32> delta("MiniMapPrimMaxAltitudeDeltaOwn");
+			if (delta && static_cast<U32>(std::fabs(agent_altitude - pos[VZ])) > delta)
+				continue;
+
 			const F32 MIN_RADIUS_FOR_OWNED_OBJECTS = 2.f;
 			if( approx_radius < MIN_RADIUS_FOR_OWNED_OBJECTS )
 			{
@@ -1772,7 +1776,7 @@ void LLViewerObjectList::renderObjectsForMap(LLNetMap &netmap)
 				}
 			}
 		}
-		else if ( pos[VZ] > max_altitude )
+		else if (delta && static_cast<U32>(std::fabs(agent_altitude - pos[VZ])) > delta)
 		{
 			continue;
 		}
@@ -2164,8 +2168,9 @@ void LLViewerObjectList::findOrphans(LLViewerObject* objectp, U32 ip, U32 port)
 			if (childp->mDrawable.notNull())
 			{
 				// Make the drawable visible again and set the drawable parent
- 				childp->mDrawable->setState(LLDrawable::CLEAR_INVISIBLE);
+				childp->mDrawable->clearState(LLDrawable::FORCE_INVISIBLE);
 				childp->setDrawableParent(objectp->mDrawable); // LLViewerObjectList::findOrphans()
+				gPipeline.markRebuild( childp->mDrawable, LLDrawable::REBUILD_ALL, TRUE );
 			}
 
 			// Make certain particles, icon and HUD aren't hidden

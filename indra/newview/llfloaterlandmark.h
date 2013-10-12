@@ -47,6 +47,7 @@ class LLSearchEditor;
 class LLInventoryPanel;
 class LLSaveFolderState;
 class LLViewerTexture;
+class LLFilterEditor;
 
 // used for setting drag & drop callbacks.
 typedef BOOL (*drag_n_drop_callback)(LLUICtrl*, LLInventoryItem*, void*);
@@ -60,6 +61,8 @@ class LLFloaterLandmark: public LLFloater, public LLFloaterSingleton<LLFloaterLa
 public:
 	LLFloaterLandmark(const LLSD& data);
 	virtual ~LLFloaterLandmark();
+
+	BOOL postBuild();
 
 	// LLView overrides
 	virtual BOOL	handleDragAndDrop(S32 x, S32 y, MASK mask,
@@ -78,15 +81,15 @@ public:
 	BOOL			isDirty() const { return mIsDirty; }
 	void			setActive( BOOL active );
 
-	static void		onBtnClose( void* userdata );
-	static void		onBtnNew( void* userdata );
-	static void		onBtnEdit( void* userdata );
-	static void		onBtnDelete( void* userdata );
-	static void		onBtnNewFolder( void* userdata );
-	static void		onBtnRename( void* userdata );
-	static void		onSelectionChange(const std::deque<LLFolderViewItem*> &items, BOOL user_action, void* data);
-	static void		onShowFolders(LLUICtrl* ctrl, void* userdata);
-	static void		onSearchEdit(const std::string& search_string, void* user_data );
+	void		onBtnClose();
+	void		onBtnNew();
+	void		onBtnEdit();
+	void		onBtnDelete();
+	void		onBtnNewFolder();
+	void		onBtnRename();
+	void		onSelectionChange(const std::deque<LLFolderViewItem*> &items, BOOL user_action);
+	void		onShowFolders(LLUICtrl* ctrl);
+	void		onFilterEdit(const LLSD& value);
 
 protected:
 	LLPointer<LLViewerTexture> mLandmarkp;
@@ -104,7 +107,7 @@ protected:
 	BOOL				mIsDirty;
 	BOOL				mActive;
 
-	LLSearchEditor*		mSearchEdit;
+	LLFilterEditor*		mFilterEdit;
 	LLInventoryPanel*	mInventoryPanel;
 	PermissionMask		mImmediateFilterPermMask;
 	PermissionMask		mNonImmediateFilterPermMask;

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater name="floater customize" title="Apariencia">
 	<tab_container name="customize tab container">
+		<!-- =========================== -->	
 		<panel label="Partes del Cuerpo" name="body_parts_placeholder"/>
+		<!-- =========================== -->
 		<panel label="Forma" name="Shape">
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 			<button label="Cuerpo" label_selected="Cuerpo" name="Body"/>
@@ -47,15 +49,25 @@ una nueva y vistiéndotela.
 			<text name="Item Action Label">
 				Forma:
 			</text>
-			<button label="Crear una Nueva Forma" label_selected="Crear una Nueva Forma" name="Create New"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Crear Nueva Forma" label_selected="Crear Nueva Forma" name="Create New"/>
+			<text name="avatar_height_label">
+				Alto:
+			</text>
+			<text name="avheight">
+				[AVHEIGHT]
+			</text>
+			<text name="includes_shoes">
+				(incluye zapatos)
+			</text>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Piel" name="Skin">
 			<button label="Color de Piel" label_selected="Color de Piel" name="Skin Color"/>
-			<button label="Detalles Faciales" label_selected="Detalles Faciales" name="Face Detail"/>
+			<button label="Det. Faciales" label_selected="Det. Faciales" name="Face Detail"/>
 			<button label="Maquillaje" label_selected="Maquillaje" name="Makeup"/>
-			<button label="Detalles del Cuerpo" label_selected="Detalles del Cuerpo" name="Body Detail"/>
+			<button label="Det. Cuerpo" label_selected="Det. Cuerpo" name="Body Detail"/>
 			<text name="title">
 				[DESC]
 			</text>
@@ -82,14 +94,15 @@ una nueva y vistiéndotela.
 			<text name="Item Action Label">
 				Piel:
 			</text>
-			<texture_picker label="Tatuaje: Cabeza" name="Head Tattoos" tool_tip="Pulsa para elegir una imagen" />
-			<texture_picker label="Tatuaje: Superior" name="Upper Tattoos" tool_tip="Pulsa para elegir una imagen" />
-			<texture_picker label="Tatuaje: Inferior" name="Lower Tattoos" tool_tip="Pulsa para elegir una imagen"/>
-			<button label="Crear una Nueva Piel" label_selected="Crear una Nueva Piel" name="Create New"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<texture_picker label="Tatuaje Cabeza" name="Head Tattoos" tool_tip="Pulsa para elegir una imagen"/>
+			<texture_picker label="Tatuaje Superior" name="Upper Tattoos" tool_tip="Pulsa para elegir una imagen" width="78"/>
+			<texture_picker label="Tatuaje Inferior" name="Lower Tattoos" tool_tip="Pulsa para elegir una imagen"/>
+			<button label="Crear Nueva Piel" label_selected="Crear Nueva Piel" name="Create New"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Pelo" name="Hair">
 			<button label="Color" label_selected="Color" name="Color"/>
 			<button label="Peinado" label_selected="Peinado" name="Style"/>
@@ -122,11 +135,12 @@ uno nuevo y vistiéndotelo.
 				Pelo:
 			</text>
 			<texture_picker label="Textura" name="Texture" tool_tip="Pulsa para elegir una imagen"/>
-			<button label="Crear un Pelo Nuevo" label_selected="Crear un Pelo Nuevo" name="Create New"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Crear Pelo Nuevo" label_selected="Crear Pelo Nuevo" name="Create New"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Ojos" name="Eyes">
 			<text name="title">
 				[DESC]
@@ -156,18 +170,20 @@ uno nuevo y vistiéndotelo.
 			</text>
 			<texture_picker label="Iris" name="Iris" tool_tip="Pulsa para elegir una imagen"/>
 			<button label="Crear Ojos Nuevos" label_selected="Crear Ojos Nuevos" name="Create New"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Ropa" name="clothes_placeholder"/>
+		<!-- =========================== -->
 		<panel label="Camisa" name="Shirt">
-			<texture_picker label="Tela" name="Tela" tool_tip="Pulsa para elegir una imagen"/>
+			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
-			<button label="Crear una Camisa Nuevo" label_selected="Crear una Camisa Nuevo" name="Create New"/>
+			<button label="Crear una Camisa Nuevo" label_selected="Crear Camisa Nueva" name="Create New"/>
 			<button label="Quitarla" label_selected="Quitarla" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 			<text name="title">
 				[DESC]
@@ -196,13 +212,14 @@ una nueva y vistiéndotela.
 				Camisa:
 			</text>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Pantalones" name="Pants">
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color" />
-			<button label="Crear un Nuevo Pantalón" label_selected="Crear un Nuevo Pantalón" name="Create New"/>
+			<button label="Crear Nuevo Pantalón" label_selected="Crear Nuevo Pantalón" name="Create New"/>
 			<button label="Quitarlo" label_selected="Quitarlo" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 			<text name="title">
 				[DESC]
@@ -231,6 +248,7 @@ uno nuevo y vistiéndotelo.
 				Pantalones:
 			</text>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Zapatos" name="Shoes">
 			<text name="title">
 				[DESC]
@@ -247,6 +265,7 @@ uno nuevo y vistiéndotelo.
 			<text name="path">
 				Situados en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>
 			<text name="not worn instructions">
 				Ponte nuevos zapatos arrastrándolos desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -261,11 +280,12 @@ un par nuevo y vistiéndotelo.
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color" />
 			<button label="Crear Zapatos Nuevos" label_selected="Crear Zapatos Nuevos" name="Create New"/>
-			<button label="Quitárselos" label_selected="Quitárselos" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Quitarlos" label_selected="Quitarlos" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Medias" name="Socks">
 			<text name="title">
 				[DESC]
@@ -282,6 +302,7 @@ un par nuevo y vistiéndotelo.
 			<text name="path">
 				Situados en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>			
 			<text name="not worn instructions">
 				Ponte medias nuevas arrastrándolas desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -296,11 +317,12 @@ un par nuevo y vistiéndotelas.
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen" />
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color" />
 			<button label="Crear Medias Nuevas" label_selected="Crear Medias Nuevas" name="Create New"/>
-			<button label="Quitárselas" label_selected="Quitárselas" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Quitarlas" label_selected="Quitarlas" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Chaqueta" name="Jacket">
 			<text name="title">
 				[DESC]
@@ -317,6 +339,7 @@ un par nuevo y vistiéndotelas.
 			<text name="path">
 				Situada en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>			
 			<text name="not worn instructions">
 				Ponte una chaqueta nueva arrastrándola desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -331,12 +354,13 @@ una nueva y vistiéndotela.
 			<texture_picker label="Tela Superior" name="Upper Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<texture_picker label="Tela Inferior" name="Lower Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
-			<button label="Crear una Nueva Chaqueta" label_selected="Crear una Nueva Chaqueta" name="Create New"/>
-			<button label="Quitársela" label_selected="Quitársela" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Crear Nueva Chaqueta" label_selected="Crear Nueva Chaqueta" name="Create New"/>
+			<button label="Quitarla" label_selected="Quitarla" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Guantes" name="Gloves">
 			<text name="title">
 				[DESC]
@@ -353,6 +377,7 @@ una nueva y vistiéndotela.
 			<text name="path">
 				Situados en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>
 			<text name="not worn instructions">
 				Ponte guantes nuevos arrastrándolos desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -367,11 +392,12 @@ nuevos y vistiéndotelos.
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
 			<button label="Crear Guantes Nuevos" label_selected="Crear Guantes Nuevos" name="Create New"/>
-			<button label="Quitárselos" label_selected="Quitárselos" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Quitarlos" label_selected="Quitarlos" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Camiseta" name="Undershirt">
 			<text name="title">
 				[DESC]
@@ -388,6 +414,7 @@ nuevos y vistiéndotelos.
 			<text name="path">
 				Situada en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>
 			<text name="not worn instructions">
 				Ponte una camiseta nueva arrastrándola desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -397,16 +424,17 @@ una camiseta y vistiéndotela.
 				No tienes permiso para modificar este item.
 			</text>
 			<text name="Item Action Label">
-				Ropa Interior:
+				Camiseta:
 			</text>
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
-			<button label="Crear una Camiseta Nueva" label_selected="Crear una Camiseta Nueva" name="Create New"/>
-			<button label="Quitársela" label_selected="Quitársela" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Crear Camiseta Nueva" label_selected="Crear Camiseta Nueva" name="Create New"/>
+			<button label="Quitarla" label_selected="Quitarla" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Ropa Interior" name="Underpants">
 			<text name="title">
 				[DESC]
@@ -423,6 +451,7 @@ una camiseta y vistiéndotela.
 			<text name="path">
 				Situada en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>
 			<text name="not worn instructions">
 				Ponte ropa interior nueva arrastrándola desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -437,11 +466,12 @@ ropa interior y vistiéndotela.
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
 			<button label="Crear nueva Ropa Interior" label_selected="Crear nueva Ropa Interior" name="Create New"/>
-			<button label="Quitársela" label_selected="Quitársela" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Quitarla" label_selected="Quitarla" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Falda" name="Skirt">
 			<text name="title">
 				[DESC]
@@ -458,6 +488,7 @@ ropa interior y vistiéndotela.
 			<text name="path">
 				Situada en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>			
 			<text name="not worn instructions">
 				Ponte una falda nueva arrastrándola desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -471,12 +502,13 @@ una nueva y vistiéndotela.
 			</text>
 			<texture_picker label="Tela" name="Fabric" tool_tip="Pulsa para elegir una imagen"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color"/>
-			<button label="Crear una Nueva Falda" label_selected="Crear una Nueva Falda" name="Create New"/>
-			<button label="Quitársela" label_selected="Quitársela" name="Take Off"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Crear Falda Nueva" label_selected="Crear Falda Nueva" name="Create New"/>
+			<button label="Quitarla" label_selected="Quitarla" name="Take Off"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
+		<!-- =========================== -->
 		<panel name="Tattoo" label="Tatuaje">
 			<text name="title">
 				[DESC]
@@ -493,6 +525,7 @@ una nueva y vistiéndotela.
 			<text name="path">
 				Situada en [PATH]
 			</text>
+			<tab_container name="layer_tabs"/>
 			<text name="not worn instructions">
 				Ponte un nuevo Tatuaje arrastrándolo desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -504,16 +537,17 @@ uno nuevo y vistiéndotelo.
 			<text name="Item Action Label">
 				Tatuaje:
 			</text>
-			<texture_picker name="Head Tattoo" label="Tatuaje: Cabeza" tool_tip="Pulsa para elegir una imagen" />
-			<texture_picker name="Upper Tattoo" label="Tatuaje:Superior" tool_tip="Pulsa para elegir una imagen"/>
-			<texture_picker name="Lower Tattoo" label="Tatuaje: Inferior" tool_tip="Pulsa para elegir una imagen"/>
+			<texture_picker name="Head Tattoo" label="Tatuaje Cabeza" tool_tip="Pulsa para elegir una imagen" width="78"/>
+			<texture_picker name="Upper Tattoo" label="Tatuaje Superior" tool_tip="Pulsa para elegir una imagen" width="78"/>
+			<texture_picker name="Lower Tattoo" label="Tatuaje Inferior" tool_tip="Pulsa para elegir una imagen" width="78"/>
 			<color_swatch label="Color/Tinte" name="Color/Tint" tool_tip="Pulsa para abrir el selector de color" />
 			<button name="Create New" label="Crear Nuevo Tatuaje" label_selected="Crear Nuevo Tatuaje"/>
-			<button name="Take Off" label="Quitárselo" label_selected="Quitárselo"/>
-			<button name="Save" label="Guardar" label_selected="Guardar"/>
-			<button name="Save As" label="Guardar Como..." label_selected="Guardar Como..."/>
+			<button name="Take Off" label="Quitarlos" label_selected="Quitarlos"/>
+			<button name="Save" label="Guardar" label_selected="Guardar" width="65"/>
+			<button name="Save As" label="Guardar Como..." label_selected="Guardar Como..." left="198" width="98"/>
 			<button name="Revert" label="Restablecer" label_selected="Restablecer"/>
 		 </panel>
+		<!-- =========================== -->
 		 <panel name="Alpha" label="Alfa">
 				<text name="title">
 					[DESC]
@@ -530,6 +564,7 @@ uno nuevo y vistiéndotelo.
 				<text name="path">
 					Situado en [PATH]
 				</text>
+				<tab_container name="layer_tabs"/>
 				<text name="not worn instructions">
 					Ponte una nueva Capa Alfa arrastrándola desde tu 
 inventario hasta tu avatar. O comienza de cero creando 
@@ -552,20 +587,21 @@ una nueva y vistiéndotela.
 				<check_box name="hair alpha texture invisible"/>
 				<check_box name="eye alpha texture invisible"/>
 				<button name="Create New" label="Crear Nuevo Alfa" label_selected="Crear Nuevo Alfa"/>
-				<button name="Take Off" label="Quitárselo" label_selected="Quitárselo"/>
-				<button name="Save" label="Guardar" label_selected="Guardar"/>
-				<button name="Save As" label="Guardar Como..." label_selected="Guardar Como..."/>
+				<button name="Take Off" label="Quitarlas" label_selected="Quitarlas"/>
+				<button name="Save" label="Guardar" label_selected="Guardar" width="65"/>
+				<button name="Save As" label="Guardar Como..." label_selected="Guardar Como..." left="198" width="98"/>
 				<button name="Revert" label="Restablecer" label_selected="Restablecer"/>
 		</panel>
+		<!-- =========================== -->
 		<panel label="Física" name="Physics">
-			<button label="Rebote del Vientre" label_selected="Rebote del Vientre" name="Belly Bounce"/>
-			<button label="Rebote de Senos" label_selected="Rebote de Senos" name="Breast Bounce"/>
+			<button label="Reb. Vientre" label_selected="Reb. Vientre" name="Belly Bounce"/>
+			<button label="Reb. Senos" label_selected="Reb. Senos" name="Breast Bounce"/>
 			<button label="Escote" label_selected="Escote" name="Breast Cleavage"/>
-			<button label="Balanceo de Senos" label_selected="Balanceo de Senos" name="Breast Sway"/>
-			<button label="Rebote de Glúteos" label_selected="Rebote de Glúteos" name="Butt Bounce"/>
-			<button label="Balanceo de Glúteos" label_selected="Balanceo de Glúteos" name="Butt Sway"/>
-			<button label="Parámetros Avanzados" label_selected="Parámetros Avanzados" name="Advanced Parameters"/>
-			<button name="Take Off" label="Quitarse" label_selected="Quitarse"/>
+			<button label="Bal. Senos" label_selected="Bal. Senos" name="Breast Sway"/>
+			<button label="Reb. Glúteos" label_selected="Reb. Glúteos" name="Butt Bounce"/>
+			<button label="Bal. Glúteos" label_selected="Bal. Glúteos" name="Butt Sway"/>
+			<button label="Parám.Avanz." label_selected="Parám.Avanz." name="Advanced Parameters"/>
+			<button name="Take Off" label="Quitarla" label_selected="Quitarla"/>
 			<text name="title">
 				[DESC]
 			</text>
@@ -593,8 +629,8 @@ una nueva y vistiéndotela.
 				Física:
 			</text>
 			<button label="Crear Nueva Capa Física" label_selected="Crear Nueva Capa Física" name="Create New"/>
-			<button label="Guardar" label_selected="Guardar" name="Save"/>
-			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As"/>
+			<button label="Guardar" label_selected="Guardar" name="Save" width="65"/>
+			<button label="Guardar Como..." label_selected="Guardar Como..." name="Save As" left="198" width="98"/>
 			<button label="Restablecer" label_selected="Restablecer" name="Revert"/>
 		</panel>
 	</tab_container>
@@ -608,9 +644,13 @@ una nueva y vistiéndotela.
 	<text name="HeightTextI">
 		(imperial)
 	</text>
-	<button name="Import" label="Importar"/>
-	<button name="Export" label="Exportar"/>
+	<button name="Import" label="Importar"  tool_tip="Import to currently selected wearable; current wearable must be modifiable"/>
+	<button name="Export" label="Exportar" tool_tip="Export currently selected wearable; asset must be copy/mod/trans and you need to be the creator"/>
 	<button label="Cancelar" label_selected="Cancelar" name="Cancel"/>
 	<button label="OK" label_selected="OK" name="Ok"/>
-	<button label="Hacer un Vestuario..." label_selected="Hacer un Vestuario..." name="Make Outfit"/>
+	<button label="Hacer Vestuario..." label_selected="Hacer Vestuario..." name="Make Outfit" width="120"/>
+	<button name="Save Outfit" label="Guardar Vestuario" left="140" width="120"/>
+    <string name="Save changes to" value="Guardar cambios en [OUTFIT]"/>	
+	<string name="No Outfit" value="No hay vestuario"/>
+	<string name="Changing outfits" value="Cambiar de vestuario"/>
 </floater>

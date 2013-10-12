@@ -27,11 +27,11 @@
 			     select_on_focus="false" tab_group="1" tool_tip="Search Second Life"
 			     width="160" spell_check="true" />
       <button bottom="-26" follows="top|right" font="SansSerifSmall" height="25"
-           label="" left="230" name="back_btn" width="25" image_overlay="go-previous-4.png"/>
+           label="" left="230" name="back_btn" width="25" image_overlay="go-previous.png"/>
       <button bottom="-26" follows="top|right" font="SansSerifSmall" height="25"
-			     label="" left_delta="27" name="forward_btn" width="25" image_overlay="go-next-4.png" />
+			     label="" left_delta="27" name="forward_btn" width="25" image_overlay="go-next.png" />
       <button bottom="-26" follows="top|right" font="SansSerifSmall" height="25"
-			     label="" left_delta="27" name="reload_btn" width="25" image_overlay="view-refresh-5.png"/>
+			     label="" left_delta="27" name="reload_btn" width="25" image_overlay="go-reload.png"/>
 			<button bottom="-48" follows="top|right" font="SansSerif" height="20"
 			     label="Search" left="121" name="search_btn" width="95" />
 			<combo_box allow_text_entry="false" bottom="-46" follows="right|top" height="18"
@@ -73,7 +73,7 @@
                              halign="center" height="18" label="?" label_selected="?" left="-25"
                              mouse_opaque="true" name="?" width="18" />
 			<web_browser bottom="25" follows="top|left|bottom|right" font="SansSerifSmall" left="10"
-			     name="find_browser" right="-10" top="-60" />
+			     name="find_browser" trusted_content="true" right="-10" top="-60" />
 			<text bottom="5" follows="bottom|left" halign="left" height="16" left="10"
 			     name="status_text" width="150" />
 			<string name="loading_text">
@@ -157,9 +157,6 @@
 			<button bottom="-48" follows="right|top" font="SansSerif" halign="center" height="20"
 			     label="Search" label_selected="Search" left="121" mouse_opaque="true" name="Search"
 			     visible="false" width="95" />
-			<button bottom="-46" follows="right|top" font="SansSerif" halign="center" height="20"
-			     label="Place an Ad..." label_selected="Place an Ad..." left="630"
-			     mouse_opaque="true" name="Place an Ad..." width="145" />
 			<button bottom="-533" follows="left|bottom" font="SansSerif" halign="center"
 			     height="20" label="Delete" label_selected="Delete" left="80"
 			     mouse_opaque="true" name="Delete" width="80" />
@@ -199,7 +196,7 @@
 			</text>
 			<line_editor bevel_style="in" border_style="line" border_thickness="1" bottom="-24"
 			     follows="left|right|top" font="SansSerif" height="18" left="56"
-			     max_length="63" mouse_opaque="true" name="event_search_text" width="160" spell_check="true" />
+			     max_length="63" mouse_opaque="true" name="name" width="160" spell_check="true" />
 			<radio_group bottom="-40" draw_border="false" follows="right|top" height="40" left="560"
 			     mouse_opaque="true" name="date_mode" width="300">
 				<radio_item bottom="-20" follows="left|top" height="20" left="0" mouse_opaque="true"
@@ -318,23 +315,24 @@
         <string name="not_found_text">None Found.</string>
         <button bottom="-30" follows="top|left" font="SansSerifSmall" height="25"
           label=""
-          image_overlay="go-previous-4.png"
+          image_overlay="go-previous.png"
           left="10"
           name="back_btn" width="25" />
         <button bottom_delta="0" follows="top|left" font="SansSerifSmall" height="25"
           label=""
-          image_overlay="go-next-4.png"
+          image_overlay="go-next.png"
           left_delta="27"
           name="forward_btn" width="25" />
         <button bottom_delta="0" follows="top|left" font="SansSerifSmall" height="25"
          label=""
-         image_overlay="view-refresh-5.png"
+         image_overlay="go-reload.png"
          left_delta="27"
          name="reload_btn" width="25" />
         <!-- No mature content checkbox, showcase is all PG -->
         <web_browser name="showcase_browser"
           bottom="25"
           follows="top|left|bottom|right"
+          trusted_content="true"
           font="SansSerifSmall"
           left="10"
           right="-10"
@@ -614,7 +612,7 @@ To buy direct, visit the land and click on the place name in the title bar.
 			     label="Search" label_selected="Search" left="121" mouse_opaque="true"
 			     name="Search" width="95" />
       <scroll_list background_visible="true" bottom="-510" column_padding="0" draw_border="true"
-			     draw_heading="true" 
+			     draw_heading="true" menu_file="menu_avs_list.xml"
                                
 			     follows="left|top|right|bottom" height="450" left="4" mouse_opaque="true"
 			     multi_select="false" name="results" search_column="2" width="326">
@@ -689,15 +687,29 @@ To buy direct, visit the land and click on the place name in the title bar.
 			     mouse_opaque="true" name="result_text" v_pad="0" width="328" />
     </panel>
     <panel bottom="-549" follows="all" height="533" label="Marketplace" left="1" mouse_opaque="false" name="market_panel" width="778">
-      <button bottom="-30" follows="top|left" height="25" label="" left="10" name="back_btn" width="25" image_overlay="go-previous-4.png"/>
-      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="forward_btn" width="25" image_overlay="go-next-4.png" />
-      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="reload_btn" width="25" image_overlay="view-refresh-5.png"/>
-      <web_browser name="market_browser" bottom="25" follows="all" left="10" right="-10" top="-40"/>
+      <button bottom="-30" follows="top|left" height="25" label="" left="10" name="back_btn" width="25" image_overlay="go-previous.png"/>
+      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="forward_btn" width="25" image_overlay="go-next.png" />
+      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="reload_btn" width="25" image_overlay="go-reload.png"/>
+      <web_browser name="market_browser" trusted_content="true" bottom="25" follows="all" left="10" right="-10" top="-40"/>
       <text bottom="5" follows="bottom|left" left="10" height="16" name="status_text"/>
       <string name="loading_text">Loading...</string>
       <string name="done_text">Done</string>
       <string name="redirect_404_url">https://marketplace.secondlife.com/notfound</string>
       <string name="default_search_page">https://marketplace.secondlife.com/</string>
+    </panel>
+    <panel bottom="-549" follows="all" height="533" label="Web" left="1" mouse_opaque="false" name="web_panel" width="778">
+      <button bottom="-30" follows="top|left" height="25" label="" left="10" name="back_btn" width="25" image_overlay="go-previous.png"/>
+      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="forward_btn" width="25" image_overlay="go-next.png" />
+      <button bottom_delta="0" follows="top|left" height="25" label="" left_delta="27" name="reload_btn" width="25" image_overlay="go-reload.png"/>
+	  <button bottom_delta="0" follows="top|left" height="25" left_delta="27" width="200" label="Open Web Search Floater" name="web_search_floater_btn">
+		  <button.commit_callback function="Search.WebFloater"/>
+	  </button>
+      <web_browser name="web_search_browser" start_url="http://search.secondlife.com/" trusted_content="true" bottom="25" follows="all" left="10" right="-10" top="-40"/>
+      <text bottom="5" follows="bottom|left" left="10" height="16" name="status_text"/>
+      <string name="loading_text">Loading...</string>
+      <string name="done_text">Done</string>
+      <string name="redirect_404_url">http://search.secondlife.com/</string>
+      <string name="default_search_page">http://search.secondlife.com/</string>
     </panel>
 	</tab_container>
 	<panel bottom="-560" follows="right|top" height="470" left="340"
@@ -706,7 +718,7 @@ To buy direct, visit the land and click on the place name in the title bar.
 	     width="430" />
 	<panel bottom="-560" follows="right|top" height="470" left="340"
 	     name="event_details_panel" width="440" />
-	<panel bottom="-580" follows="right|top" height="515" left="350"
+	<panel bottom="-570" follows="right|top" height="515" left="350"
 	     name="group_details_panel_holder" width="430">
 		<panel bottom="0" follows="right|top" height="470" left="0" name="group_details_panel"
 		     width="430" />

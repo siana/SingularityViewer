@@ -39,6 +39,7 @@
 #include "llpluginmessageclasses.h"
 #include "llsdserialize.h"
 #include "aifilepicker.h"
+#include "lldir.h"
 #if LL_WINDOWS
 #include "llviewerwindow.h"
 #endif
@@ -195,9 +196,26 @@ void AIFilePicker::open(ELoadFilter filter, std::string const& default_path, std
 
 void AIFilePicker::open(std::string const& filename, ESaveFilter filter, std::string const& default_path, std::string const& context)
 {
-	mFilename = filename;
+	mFilename = LLDir::getScrubbedFileName(filename);
 	mContext = context;
 	mFolder = AIFilePicker::get_folder(default_path, context);
+	// If the basename of filename ends on "?000", then check if a file with that name exists and if so, increment the number.
+	std::string basename = gDirUtilp->getBaseFileName(filename, true);
+	size_t len = basename.size();
+	if (len >= 4 && basename.substr(len - 4) == "?000")
+	{
+	  basename = LLDir::getScrubbedFileName(basename.substr(0, len - 4));
+	  std::string extension = gDirUtilp->getExtension(mFilename);
+	  for (int n = 0;; ++n)
+	  {
+		mFilename = llformat("%s_%03u.%s", basename.c_str(), n, extension.c_str());
+	    std::string fullpath = mFolder + gDirUtilp->getDirDelimiter() + mFilename;
+		if (n == 999 || !gDirUtilp->fileExists(fullpath))
+		{
+		  break;
+		}
+	  }
+	}
 	mOpenType = save;
 	switch(filter)
 	{
@@ -311,6 +329,9 @@ void AIFilePicker::open(std::string const& filename, ESaveFilter filter, std::st
 		case FFSAVE_PHYSICS:
 			mFilter = "physics";
 			break;
+		case FFSAVE_IMAGE:
+			mFilter = "image";
+			break;
 	}
 }
 
@@ -420,6 +441,7 @@ void AIFilePicker::multiplex_impl(state_type run_state)
 			// Store folder of first filename as context.
 			AIFilePicker::store_folder(mContext, getFolder());
 			finish();
+			break;
 		}
 	}
 }

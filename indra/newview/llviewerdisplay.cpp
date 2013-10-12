@@ -214,7 +214,7 @@ void display_update_camera(bool tiling=false)
 // Write some stats to llinfos
 void display_stats()
 {
-	if (gNoRender || !gViewerWindow->mWindow->getVisible() || !gFocusMgr.getAppHasFocus())
+	if (gNoRender || !gViewerWindow->getWindow()->getVisible() || !gFocusMgr.getAppHasFocus())
 	{
 		// Do not keep FPS statistics while yielding cooperatively
 		// (i;e. when not running as foreground window)
@@ -1572,12 +1572,6 @@ void render_ui_2d()
 
 void render_disconnected_background()
 {
-	if (LLGLSLShader::sNoFixedFunction)
-	{
-		gUIProgram.bind();
-	}
-
-	gGL.color4f(1,1,1,1);
 	if (!gDisconnectedImagep && gDisconnected)
 	{
 		llinfos << "Loading last bitmap..." << llendl;
@@ -1619,7 +1613,6 @@ void render_disconnected_background()
 		raw->expandToPowerOfTwo();
 		gDisconnectedImagep = LLViewerTextureManager::getLocalTexture(raw.get(), FALSE );
 		gStartTexture = gDisconnectedImagep;
-		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 	}
 
 	// Make sure the progress view always fills the entire window.
@@ -1628,6 +1621,10 @@ void render_disconnected_background()
 
 	if (gDisconnectedImagep)
 	{
+		if (LLGLSLShader::sNoFixedFunction)
+		{
+			gUIProgram.bind();
+		}
 		LLGLSUIDefault gls_ui;
 		gViewerWindow->setup2DRender();
 		gGL.pushMatrix();
@@ -1644,14 +1641,12 @@ void render_disconnected_background()
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		}
 		gGL.popMatrix();
+		gGL.flush();
+		if (LLGLSLShader::sNoFixedFunction)
+		{
+			gUIProgram.unbind();
+		}
 	}
-	gGL.flush();
-
-	if (LLGLSLShader::sNoFixedFunction)
-	{
-		gUIProgram.unbind();
-	}
-
 }
 
 void display_cleanup()

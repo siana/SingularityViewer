@@ -93,6 +93,9 @@ public:
 	// Export result flags for textures.
 	U32 mNonExportedTextures;
 
+	// Is exporting these objects allowed
+	bool validatePerms(const LLPermissions* item_permissions);
+
 private:
 	// Static singleton stuff
 	LLObjectBackup();	
@@ -103,7 +106,6 @@ private:
 	void updateExportNumbers();
 
 	// Permissions stuff.
-	bool validatePerms(const LLPermissions* item_permissions);
 	LLUUID validateTextureID(LLUUID asset_id);
 
 	// Convert a selection list of objects to LLSD

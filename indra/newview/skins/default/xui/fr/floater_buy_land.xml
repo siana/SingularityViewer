@@ -223,10 +223,10 @@ peuvent contenir [AMOUNT2] prims
 		Ce groupe, [GROUP], aura besoin de plus de crédit pour payer les frais d'occupation de terrain avant que l'achat de cette parcelle ne soit finalisé
 	</string>
 	<string name="have_enough_lindens">
-		Vous avez [AMOUNT] L$, ce qui est suffisant pour acheter ce terrain
+		Vous avez [AMOUNT] [CURRENCY], ce qui est suffisant pour acheter ce terrain
 	</string>
 	<string name="not_enough_lindens">
-		Vous ne poss&#xE9;dez que [AMOUNT] L$. Vous avez besoin de [AMOUNT2] [CURRENCY] de plus
+		Vous ne poss&#xE9;dez que [AMOUNT] [CURRENCY]. Vous avez besoin de [AMOUNT2] [CURRENCY] de plus
 	</string>
 	<string name="balance_left">
 		Après cet achat, il vous restera [AMOUNT] [CURRENCY]

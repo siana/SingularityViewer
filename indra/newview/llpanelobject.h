@@ -95,10 +95,10 @@ public:
 
 	static void 	onCommitMaterial(		LLUICtrl* ctrl, void* userdata);
 
-	static void     onCommitSculpt(        LLUICtrl* ctrl, void* userdata);
-	static void     onCancelSculpt(        LLUICtrl* ctrl, void* userdata);
-	static void     onSelectSculpt(        LLUICtrl* ctrl, void* userdata);
-	static BOOL     onDropSculpt(          LLUICtrl* ctrl, LLInventoryItem* item, void* ud);
+	void     		onCommitSculpt(const LLSD& data);
+	void     		onCancelSculpt(const LLSD& data);
+	void     		onSelectSculpt(const LLSD& data);
+	BOOL     		onDropSculpt(LLInventoryItem* item);
 	static void     onCommitSculptType(    LLUICtrl *ctrl, void* userdata);
 
 	static void		onClickBuildConstants(void *);

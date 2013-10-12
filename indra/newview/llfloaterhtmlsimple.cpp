@@ -63,5 +63,5 @@ void LLFloaterHtmlSimple::navigateTo(const std::string &url)
 void LLFloaterHtmlSimple::setTrusted(bool trusted)
 {
 	LLMediaCtrl* web = getChild<LLMediaCtrl>("browser");
-	web->setTrusted(trusted);
+	web->setTrustedContent(trusted);
 }

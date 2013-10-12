@@ -36,6 +36,8 @@
 #include "llfloater.h"
 
 class LLButton;
+class LLComboBox;
+class LLLineEditor;
 class LLSliderCtrl;
 class LLTabContainer;
 class LLPanelPermissions;
@@ -58,13 +60,13 @@ public:
 	static LLFloaterPostProcess* instance();
 
 	/// post process callbacks
-	static void onControlChanged(LLUICtrl* ctrl, void* userData);
-	static void onLoadEffect(void* userData);
-	static void onSaveEffect(void* userData);
-	static void onChangeEffectName(LLUICtrl* ctrl, void * userData);
+	static void onControlChanged(LLUICtrl* ctrl, const LLSD& v);
+	void onLoadEffect(LLComboBox* comboBox);
+	void onSaveEffect(LLLineEditor* editBox);
+	void onChangeEffectName(LLUICtrl* ctrl);
 
 	/// prompts a user when overwriting an effect
-	static bool saveAlertCallback(const LLSD& notification, const LLSD& response);
+	bool saveAlertCallback(const LLSD& notification, const LLSD& response);
 
 	/// show off our menu
 	static void show();

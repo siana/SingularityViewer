@@ -169,6 +169,9 @@ BOOL LLVisualParamHint::render()
 {
 	LLVisualParamReset::sDirty = TRUE;
 
+	gGL.pushUIMatrix();
+	gGL.loadUIIdentity();
+
 	gGL.matrixMode(LLRender::MM_PROJECTION);
 	gGL.pushMatrix();
 	gGL.loadIdentity();
@@ -256,6 +259,7 @@ BOOL LLVisualParamHint::render()
 	gAgentAvatarp->updateVisualParams();
 	gGL.color4f(1,1,1,1);
 	mGLTexturep->setGLTextureCreated(true);
+	gGL.popUIMatrix();
 	return TRUE;
 }
 

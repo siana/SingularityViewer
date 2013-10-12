@@ -3,10 +3,9 @@
  * @brief Processes responses received for asset upload requests.
  *
  * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
+ * Second Life Viewer Source Code
  * Copyright (c) 2007-2009, Linden Research, Inc.
  * 
- * Second Life Viewer Source Code
  * The source code in this file ("Source Code") is provided by Linden Lab
  * to you under the terms of the GNU General Public License, version 2.0
  * ("GPL"), unless you have obtained a separate licensing agreement
@@ -53,7 +52,6 @@
 #include "llviewerobject.h"
 #include "llviewercontrol.h"
 #include "llviewerobjectlist.h"
-#include "llviewermenufile.h"
 #include "llviewertexlayer.h"
 #include "llviewerwindow.h"
 #include "lltrans.h"
@@ -255,6 +253,7 @@ void LLAssetUploadResponder::result(const LLSD& content)
 	lldebugs << "LLAssetUploadResponder::result from capabilities" << llendl;
 
 	std::string state = content["state"];
+
 	if (state == "upload")
 	{
 		uploadUpload(content);
@@ -343,6 +342,7 @@ void LLNewAgentInventoryResponder::error(U32 statusNum, const std::string& reaso
 	//LLImportColladaAssetCache::getInstance()->assetUploaded(mVFileID, LLUUID(), FALSE);
 }
 
+
 //virtual 
 void LLNewAgentInventoryResponder::uploadFailure(const LLSD& content)
 {
@@ -351,6 +351,7 @@ void LLNewAgentInventoryResponder::uploadFailure(const LLSD& content)
 		(*mCallBack)(false, mUserData);
 	}
 	LLAssetUploadResponder::uploadFailure(content);
+
 	//LLImportColladaAssetCache::getInstance()->assetUploaded(mVFileID, content["new_asset"], FALSE);
 }
 
@@ -397,10 +398,14 @@ void LLNewAgentInventoryResponder::uploadComplete(const LLSD& content)
 
 	// continue uploading for bulk uploads
 	
-		if (!gUploadQueue.empty())
+	/* Singu Note: sUploadQueue was never getting populated, anywhere! Therefore, this entire block never was reached.
+	** I have condensed it to here in the hopes it may one day see use.  Apparently, it came in with Siana's prep work
+	** for mesh upload (697dd7e9298282590f8cf858a58335f70302532b), but we never needed it.
+	static std::deque<std::string> sUploadQueue;
+	if (!sUploadQueue.empty())
 	{
-		std::string next_file = gUploadQueue.front();
-		gUploadQueue.pop_front();
+		std::string next_file = sUploadQueue.front();
+		sUploadQueue.pop_front();
 		if (next_file.empty()) return;
 		std::string name = gDirUtilp->getBaseFileName(next_file, true);
 
@@ -448,6 +453,7 @@ void LLNewAgentInventoryResponder::uploadComplete(const LLSD& content)
 			expected_upload_cost,
 			userdata);
 	}
+	*/
 }
 
 LLSendTexLayerResponder::LLSendTexLayerResponder(const LLSD& post_data,
@@ -677,7 +683,7 @@ void LLUpdateTaskInventoryResponder::uploadComplete(const LLSD& content)
 			}
 			else
 			{
-				LLLiveLSLEditor* preview = LLLiveLSLEditor::find(item_id, task_id);
+				LLLiveLSLEditor* preview = static_cast<LLLiveLSLEditor*>(LLPreview::find(item_id));
 				if (preview)
 				{
 					// Bytecode save completed
@@ -697,6 +703,7 @@ void LLUpdateTaskInventoryResponder::uploadComplete(const LLSD& content)
 			break;
 	}
 }
+
 
 /////////////////////////////////////////////////////
 // LLNewAgentInventoryVariablePriceResponder::Impl //
@@ -1165,3 +1172,4 @@ void LLNewAgentInventoryVariablePriceResponder::showConfirmationDialog(
 				boost::intrusive_ptr<LLNewAgentInventoryVariablePriceResponder>(this)));
 	}
 }
+

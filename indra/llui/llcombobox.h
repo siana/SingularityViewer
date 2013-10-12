@@ -2,31 +2,25 @@
  * @file llcombobox.h
  * @brief LLComboBox base class
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -39,15 +33,12 @@
 #include "llbutton.h"
 #include "lluictrl.h"
 #include "llctrlselectioninterface.h"
-#include "llimagegl.h"
 #include "llrect.h"
+#include "llscrolllistctrl.h"
 
 // Classes
 
 class LLFontGL;
-class LLButton;
-class LLSquareButton;
-class LLScrollListCtrl;
 class LLLineEditor;
 class LLViewBorder;
 
@@ -64,15 +55,14 @@ public:
 		BELOW
 	} EPreferredPosition;
 
-	LLComboBox(
-		const std::string& name, 
-		const LLRect &rect,
-		const std::string& label,
-		void (*commit_callback)(LLUICtrl*, void*) = NULL,
-		void *callback_userdata = NULL
-		);
 	virtual ~LLComboBox(); 
+protected:
+	friend class LLFloaterTestImpl;
+	friend class LLUICtrlFactory;
+	LLComboBox(const std::string& name, const LLRect& rect, const std::string& label, commit_callback_t commit_callback = NULL);
+	void	prearrangeList(std::string filter = "");
 
+public:
 	// LLView interface
 
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
@@ -121,6 +111,7 @@ public:
 	LLScrollListItem*	addSeparator(EAddPosition pos = ADD_BOTTOM);
 	BOOL			remove( S32 index );	// remove item by index, return TRUE if found and removed
 	void			removeall() { clearRows(); }
+	bool			itemExists(const std::string& name);
 
 	void			sortByName(BOOL ascending = TRUE); // Sort the entries in the combobox by name
 
@@ -129,11 +120,14 @@ public:
 	// Get name of current item. Returns an empty string if not found.
 	const std::string	getSimple() const;
 	// Get contents of column x of selected row
-	const std::string getSelectedItemLabel(S32 column = 0) const;
+	virtual const std::string getSelectedItemLabel(S32 column = 0) const;
 
 	// Sets the label, which doesn't have to exist in the label.
 	// This is probably a UI abuse.
 	void			setLabel(const LLStringExplicit& name);
+
+	// Updates the combobox label to match the selected list item.
+	void			updateLabel();
 
 	BOOL			remove(const std::string& name);	// remove item "name", return TRUE if found and removed
 	
@@ -176,15 +170,16 @@ public:
 	
 	void*			getCurrentUserdata();
 
-	void			setPrearrangeCallback( void (*cb)(LLUICtrl*,void*) ) { mPrearrangeCallback = cb; }
-	void			setTextEntryCallback( void (*cb)(LLLineEditor*, void*) ) { mTextEntryCallback = cb; }
+	void			setPrearrangeCallback( commit_callback_t cb ) { mPrearrangeCallback = cb; }
+	void			setTextEntryCallback( commit_callback_t cb ) { mTextEntryCallback = cb; }
+
 
 	void			setButtonVisible(BOOL visible);
 
-	static void		onButtonDown(void *userdata);
-	static void		onItemSelected(LLUICtrl* item, void *userdata);
-	static void		onTextEntry(LLLineEditor* line_editor, void* user_data);
-	static void		onTextCommit(LLUICtrl* caller, void* user_data);
+	void			onButtonMouseDown();
+	void			onListMouseUp();
+	void			onItemSelected(const LLSD& data);
+	void			onTextCommit(const LLSD& data);
 
 	void			setSuppressTentative(bool suppress);
 	void			setSuppressAutoComplete(bool suppress);
@@ -193,57 +188,29 @@ public:
 	virtual void	showList();
 	virtual void	hideList();
 
+	virtual void	onTextEntry(LLLineEditor* line_editor);
+	
 protected:
 	LLButton*			mButton;
+	LLLineEditor*		mTextEntry;
 	LLScrollListCtrl*	mList;
 	EPreferredPosition	mListPosition;
 	LLPointer<LLUIImage>	mArrowImage;
 	std::string			mLabel;
+	BOOL				mHasAutocompletedText;
 	LLColor4				mListColor;
 
 private:
-	S32					mButtonPadding;
-	LLLineEditor*		mTextEntry;
 	BOOL				mAllowTextEntry;
+	BOOL				mAllowNewValues;
 	S32					mMaxChars;
 	BOOL				mTextEntryTentative;
 	bool				mSuppressAutoComplete;
 	bool				mSuppressTentative;
-	void				(*mPrearrangeCallback)(LLUICtrl*,void*);
-	void				(*mTextEntryCallback)(LLLineEditor*, void*);
+	commit_callback_t	mPrearrangeCallback;
+	commit_callback_t	mTextEntryCallback;
 	boost::signals2::connection mTopLostSignalConnection;
-};
-
-class LLFlyoutButton : public LLComboBox
-{
-public:
-	LLFlyoutButton(
-		const std::string& name, 
-		const LLRect &rect,
-		const std::string& label,
-		void (*commit_callback)(LLUICtrl*, void*) = NULL,
-		void *callback_userdata = NULL);
-
-	virtual void	updateLayout();
-	virtual void	draw();
-	virtual void	setEnabled(BOOL enabled);
-
-	void setToggleState(BOOL state);
-
-	virtual LLXMLNodePtr getXML(bool save_children = true) const;
-	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
-	static void		onActionButtonClick(void *userdata);
-	static void		onSelectAction(LLUICtrl* ctrl, void *userdata);
-
-protected:
-	LLButton*				mActionButton;
-	LLPointer<LLUIImage>	mActionButtonImage;
-	LLPointer<LLUIImage>	mExpanderButtonImage;
-	LLPointer<LLUIImage>	mActionButtonImageSelected;
-	LLPointer<LLUIImage>	mExpanderButtonImageSelected;
-	LLPointer<LLUIImage>	mActionButtonImageDisabled;
-	LLPointer<LLUIImage>	mExpanderButtonImageDisabled;
-	BOOL					mToggleState;
+	S32                 mLastSelectedIndex;
 };
 
 #endif

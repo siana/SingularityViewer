@@ -910,7 +910,6 @@ void LLAgentCamera::cameraZoomIn(const F32 fraction)
 	}
 
 
-	LLVector3d	camera_offset(mCameraFocusOffsetTarget);
 	LLVector3d	camera_offset_unit(mCameraFocusOffsetTarget);
 	F32 min_zoom = 0.f;//LAND_MIN_ZOOM;
 	F32 current_distance = (F32)camera_offset_unit.normalize();
@@ -988,7 +987,6 @@ void LLAgentCamera::cameraOrbitIn(const F32 meters)
 	}
 	else
 	{
-		LLVector3d	camera_offset(mCameraFocusOffsetTarget);
 		LLVector3d	camera_offset_unit(mCameraFocusOffsetTarget);
 		F32 current_distance = (F32)camera_offset_unit.normalize();
 		F32 new_distance = current_distance - meters;
@@ -1476,7 +1474,7 @@ void LLAgentCamera::updateCamera()
 		LLVector3 torso_scale = torso_joint->getScale();
 		LLVector3 chest_scale = chest_joint->getScale();
 
-		// shorten avatar skeleton to avoid foot interpenetration
+		/*// shorten avatar skeleton to avoid foot interpenetration
 		if (!gAgentAvatarp->mInAir)
 		{
 			LLVector3 chest_offset = LLVector3(0.f, 0.f, chest_joint->getPosition().mV[VZ]) * torso_joint->getWorldRotation();
@@ -1489,13 +1487,13 @@ void LLAgentCamera::updateCamera()
 			scale_factor = llclamp(1.f - ((z_compensate * 0.5f) / neck_offset.mV[VZ]), 0.5f, 1.2f);
 			chest_joint->setScale(LLVector3(1.f, 1.f, scale_factor));
 			diff.mV[VZ] = 0.f;
-		}
+		}*/
 
 		gAgentAvatarp->mPelvisp->setPosition(gAgentAvatarp->mPelvisp->getPosition() + diff);
 
 		gAgentAvatarp->mRoot->updateWorldMatrixChildren();
 
-		for (LLVOAvatar::attachment_map_t::iterator iter = gAgentAvatarp->mAttachmentPoints.begin(); 
+		/*for (LLVOAvatar::attachment_map_t::iterator iter = gAgentAvatarp->mAttachmentPoints.begin();  //Can be an array.
 			 iter != gAgentAvatarp->mAttachmentPoints.end(); )
 		{
 			LLVOAvatar::attachment_map_t::iterator curiter = iter++;
@@ -1504,7 +1502,11 @@ void LLAgentCamera::updateCamera()
 				 attachment_iter != attachment->mAttachedObjects.end();
 				 ++attachment_iter)
 			{
-				LLViewerObject *attached_object = (*attachment_iter);
+				LLViewerObject *attached_object = (*attachment_iter);*/
+		std::vector<std::pair<LLViewerObject*,LLViewerJointAttachment*> >::iterator attachment_iter = gAgentAvatarp->mAttachedObjectsVector.begin();
+		for(;attachment_iter!=gAgentAvatarp->mAttachedObjectsVector.end();++attachment_iter)
+		{{
+				LLViewerObject* attached_object = attachment_iter->first;
 				if (attached_object && !attached_object->isDead() && attached_object->mDrawable.notNull())
 				{
 					// clear any existing "early" movements of attachment

@@ -70,6 +70,9 @@
 #include "llviewertexturelist.h"
 //#include "lltoolobjpicker.h"
 #include "llhudmanager.h"	// HACK for creating flex obj's
+#include "llviewermenu.h"
+#include "llviewermedia.h"
+#include "llmediaentry.h"
 
 #include "llhudmanager.h" // For testing effects
 #include "llhudeffect.h"
@@ -294,201 +297,257 @@ void LLHoverView::updateText()
 			//
 			BOOL suppressObjectHoverDisplay = !gSavedSettings.getBOOL("ShowAllObjectHoverTip");			
 			
-			LLSelectNode *nodep = LLSelectMgr::getInstance()->getHoverNode();;
+			LLSelectNode *nodep = LLSelectMgr::getInstance()->getHoverNode();
 			if (nodep)
 			{
 				line.clear();
-				if (nodep->mName.empty())
-				{
-					line.append(LLTrans::getString("TooltipNoName"));
-				}
-				else
-				{
-					line.append( nodep->mName );
-				}
-				mText.push_back(line);
 
-				if (!nodep->mDescription.empty()
-					&& nodep->mDescription != DEFAULT_DESC)
+				bool for_copy = nodep->mValid && nodep->mPermissions->getMaskEveryone() & PERM_COPY && hit_object && hit_object->permCopy();
+				bool for_sale = nodep->mValid && for_sale_selection(nodep);
+				
+				bool has_media = false;
+				bool is_time_based_media = false;
+				bool is_web_based_media = false;
+				bool is_media_playing = false;
+				bool is_media_displaying = false;
+			
+				// Does this face have media?
+				const LLTextureEntry* tep = hit_object ? hit_object->getTE(mLastPickInfo.mObjectFace) : NULL;
+			
+				if(tep)
 				{
-					mText.push_back( nodep->mDescription );
-				}
-
-				// Line: "Owner: James Linden"
-				line.clear();
-				line.append(LLTrans::getString("TooltipOwner") + " ");
-
-				if (nodep->mValid)
-				{
-					LLUUID owner;
-					std::string name;
-					if (!nodep->mPermissions->isGroupOwned())
+					has_media = tep->hasMedia();
+					const LLMediaEntry* mep = has_media ? tep->getMediaData() : NULL;
+					if (mep)
 					{
-						owner = nodep->mPermissions->getOwner();
-						if (LLUUID::null == owner)
+						viewer_media_t media_impl = LLViewerMedia::getMediaImplFromTextureID(mep->getMediaID());
+						LLPluginClassMedia* media_plugin = NULL;
+					
+						if (media_impl.notNull() && (media_impl->hasMedia()))
 						{
-							line.append(LLTrans::getString("TooltipPublic"));
-						}
-						else if(LLAvatarNameCache::getPNSName(owner, name))
-						{
-// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
-							if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
-							{
-								name = RlvStrings::getAnonym(name);
+							is_media_displaying = true;
+							//LLStringUtil::format_map_t args;
+						
+							media_plugin = media_impl->getMediaPlugin();
+							if(media_plugin)
+							{	
+								if(media_plugin->pluginSupportsMediaTime())
+								{
+									is_time_based_media = true;
+									is_web_based_media = false;
+									//args["[CurrentURL]"] =  media_impl->getMediaURL();
+									is_media_playing = media_impl->isMediaPlaying();
+								}
+								else
+								{
+									is_time_based_media = false;
+									is_web_based_media = true;
+									//args["[CurrentURL]"] =  media_plugin->getLocation();
+								}
+								//tooltip_msg.append(LLTrans::getString("CurrentURL", args));
 							}
-// [/RLVa:KB]
+						}
+					}
+				}
 
-							line.append(name);
+				
+				// Avoid showing tip over media that's displaying unless it's for sale
+				// also check the primary node since sometimes it can have an action even though
+				// the root node doesn't
+
+				if(!suppressObjectHoverDisplay || !is_media_displaying || for_sale)
+				{
+					if (nodep->mName.empty())
+					{
+						line.append(LLTrans::getString("TooltipNoName"));
+					}
+					else
+					{
+						line.append( nodep->mName );
+					}
+
+					mText.push_back(line);
+
+					if (!nodep->mDescription.empty()
+						&& nodep->mDescription != DEFAULT_DESC)
+					{
+						mText.push_back( nodep->mDescription );
+					}
+
+					// Line: "Owner: James Linden"
+					line.clear();
+					line.append(LLTrans::getString("TooltipOwner") + " ");
+
+					if (nodep->mValid)
+					{
+						LLUUID owner;
+						std::string name;
+						if (!nodep->mPermissions->isGroupOwned())
+						{
+							owner = nodep->mPermissions->getOwner();
+							if (LLUUID::null == owner)
+							{
+								line.append(LLTrans::getString("TooltipPublic"));
+							}
+							else if(LLAvatarNameCache::getPNSName(owner, name))
+							{
+	// [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
+								if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES))
+								{
+									name = RlvStrings::getAnonym(name);
+								}
+	// [/RLVa:KB]
+
+								line.append(name);
+							}
+							else
+							{
+								line.append(LLTrans::getString("RetrievingData"));
+							}
 						}
 						else
 						{
-							line.append(LLTrans::getString("RetrievingData"));
+							std::string name;
+							owner = nodep->mPermissions->getGroup();
+							if (gCacheName->getGroupName(owner, name))
+							{
+								line.append(name);
+								line.append(LLTrans::getString("TooltipIsGroup"));
+							}
+							else
+							{
+								line.append(LLTrans::getString("RetrievingData"));
+							}
 						}
 					}
 					else
 					{
-						std::string name;
-						owner = nodep->mPermissions->getGroup();
-						if (gCacheName->getGroupName(owner, name))
-						{
-							line.append(name);
-							line.append(LLTrans::getString("TooltipIsGroup"));
-						}
-						else
-						{
-							line.append(LLTrans::getString("RetrievingData"));
-						}
-					}
-				}
-				else
-				{
-					line.append(LLTrans::getString("RetrievingData"));
-				}
-				mText.push_back(line);
-
-				// Build a line describing any special properties of this object.
-				LLViewerObject *object = hit_object;
-				LLViewerObject *parent = (LLViewerObject *)object->getParent();
-
-				if (object &&
-					(object->flagUsePhysics() ||
-					 object->flagScripted() || 
-					 object->flagHandleTouch() || (parent && parent->flagHandleTouch()) ||
-					 object->flagTakesMoney() || (parent && parent->flagTakesMoney()) ||
-					 object->flagAllowInventoryAdd() ||
-					 object->flagTemporary() ||
-					 object->flagPhantom()) )
-				{
-					line.clear();
-					if (object->flagScripted())
-					{
-						
-						line.append(LLTrans::getString("TooltipFlagScript") + " ");
-					}
-
-					if (object->flagUsePhysics())
-					{
-						line.append(LLTrans::getString("TooltipFlagPhysics") + " ");
-					}
-
-					if (object->flagHandleTouch() || (parent && parent->flagHandleTouch()) )
-					{
-						line.append(LLTrans::getString("TooltipFlagTouch") + " ");
-						suppressObjectHoverDisplay = FALSE;		//  Show tip
-					}
-
-					if (object->flagTakesMoney() || (parent && parent->flagTakesMoney()) )
-					{
-						line.append(gHippoGridManager->getConnectedGrid()->getCurrencySymbol() + " ");
-						suppressObjectHoverDisplay = FALSE;		//  Show tip
-					}
-
-					if (object->flagAllowInventoryAdd())
-					{
-						line.append(LLTrans::getString("TooltipFlagDropInventory") + " ");
-						suppressObjectHoverDisplay = FALSE;		//  Show tip
-					}
-
-					if (object->flagPhantom())
-					{
-						line.append(LLTrans::getString("TooltipFlagPhantom") + " ");
-					}
-
-					if (object->flagTemporary())
-					{
-						line.append(LLTrans::getString("TooltipFlagTemporary") + " ");
-					}
-
-					if (object->flagUsePhysics() || 
-						object->flagHandleTouch() ||
-						(parent && parent->flagHandleTouch()) )
-					{
-						line.append(LLTrans::getString("TooltipFlagRightClickMenu") + " ");
+						line.append(LLTrans::getString("RetrievingData"));
 					}
 					mText.push_back(line);
-				}
 
-				// Free to copy / For Sale: L$
-				line.clear();
-				if (nodep->mValid)
-				{
-					BOOL for_copy = nodep->mPermissions->getMaskEveryone() & PERM_COPY && object->permCopy();
-					BOOL for_sale = nodep->mSaleInfo.isForSale() &&
-									nodep->mPermissions->getMaskOwner() & PERM_TRANSFER &&
-									(nodep->mPermissions->getMaskOwner() & PERM_COPY ||
-									 nodep->mSaleInfo.getSaleType() != LLSaleInfo::FS_COPY);
-					if (for_copy)
+					// Build a line describing any special properties of this object.
+					LLViewerObject *object = hit_object;
+					LLViewerObject *parent = (LLViewerObject *)object->getParent();
+
+					if (object &&
+						(object->flagUsePhysics() ||
+						 object->flagScripted() || 
+						 object->flagHandleTouch() || (parent && parent->flagHandleTouch()) ||
+						 object->flagTakesMoney() || (parent && parent->flagTakesMoney()) ||
+						 object->flagAllowInventoryAdd() ||
+						 object->flagTemporary() ||
+						 object->flagPhantom()) )
 					{
-						line.append(LLTrans::getString("TooltipFreeToCopy"));
-						suppressObjectHoverDisplay = FALSE;		//  Show tip
+						line.clear();
+						if (object->flagScripted())
+						{
+						
+							line.append(LLTrans::getString("TooltipFlagScript") + " ");
+						}
+
+						if (object->flagUsePhysics())
+						{
+							line.append(LLTrans::getString("TooltipFlagPhysics") + " ");
+						}
+
+						if (object->flagHandleTouch() || (parent && parent->flagHandleTouch()) )
+						{
+							line.append(LLTrans::getString("TooltipFlagTouch") + " ");
+							suppressObjectHoverDisplay = FALSE;		//  Show tip
+						}
+
+						if (object->flagTakesMoney() || (parent && parent->flagTakesMoney()) )
+						{
+							line.append(gHippoGridManager->getConnectedGrid()->getCurrencySymbol() + " ");
+							suppressObjectHoverDisplay = FALSE;		//  Show tip
+						}
+
+						if (object->flagAllowInventoryAdd())
+						{
+							line.append(LLTrans::getString("TooltipFlagDropInventory") + " ");
+							suppressObjectHoverDisplay = FALSE;		//  Show tip
+						}
+
+						if (object->flagPhantom())
+						{
+							line.append(LLTrans::getString("TooltipFlagPhantom") + " ");
+						}
+
+						if (object->flagTemporary())
+						{
+							line.append(LLTrans::getString("TooltipFlagTemporary") + " ");
+						}
+
+						if (object->flagUsePhysics() || 
+							object->flagHandleTouch() ||
+							(parent && parent->flagHandleTouch()) )
+						{
+							line.append(LLTrans::getString("TooltipFlagRightClickMenu") + " ");
+						}
+						mText.push_back(line);
 					}
-					else if (for_sale)
+
+					// Free to copy / For Sale: L$
+					line.clear();
+					if (nodep->mValid)
 					{
-						LLStringUtil::format_map_t args;
-						args["[AMOUNT]"] = llformat("%d", nodep->mSaleInfo.getSalePrice());
-						line.append(LLTrans::getString("TooltipForSaleL$", args));
-						suppressObjectHoverDisplay = FALSE;		//  Show tip
+						if (for_copy)
+						{
+							line.append(LLTrans::getString("TooltipFreeToCopy"));
+							suppressObjectHoverDisplay = FALSE;		//  Show tip
+						}
+						else if (for_sale)
+						{
+							LLStringUtil::format_map_t args;
+							args["[AMOUNT]"] = llformat("%d", nodep->mSaleInfo.getSalePrice());
+							line.append(LLTrans::getString("TooltipForSaleL$", args));
+							suppressObjectHoverDisplay = FALSE;		//  Show tip
+						}
+						else
+						{
+							// Nothing if not for sale
+							// line.append("Not for sale");
+						}
 					}
 					else
 					{
-						// Nothing if not for sale
-						// line.append("Not for sale");
+						LLStringUtil::format_map_t args;
+						args["[MESSAGE]"] = LLTrans::getString("RetrievingData");
+						line.append(LLTrans::getString("TooltipForSaleMsg", args));
 					}
+					mText.push_back(line);
+					line.clear();
+					S32 prim_count = LLSelectMgr::getInstance()->getHoverObjects()->getObjectCount();
+					line.append(llformat("Prims: %d", prim_count));
+					mText.push_back(line);
+
+					line.clear();
+					line.append("Position: ");
+
+					LLViewerRegion *region = gAgent.getRegion();
+					LLVector3 position = region->getPosRegionFromGlobal(hit_object->getPositionGlobal());//regionp->getOriginAgent();
+					LLVector3 mypos = region->getPosRegionFromGlobal(gAgent.getPositionGlobal());
+			
+
+					LLVector3 delta = position - mypos;
+					F32 distance = (F32)delta.magVec();
+
+					line.append(llformat("<%.02f,%.02f,%.02f>",position.mV[0],position.mV[1],position.mV[2]));
+					mText.push_back(line);
+					line.clear();
+					line.append(llformat("Distance: %.02fm",distance));
+					mText.push_back(line);
 				}
 				else
 				{
-					LLStringUtil::format_map_t args;
-					args["[MESSAGE]"] = LLTrans::getString("RetrievingData");
-					line.append(LLTrans::getString("TooltipForSaleMsg", args));
+					suppressObjectHoverDisplay = TRUE;
 				}
-				mText.push_back(line);
-			}
-			line.clear();
-			S32 prim_count = LLSelectMgr::getInstance()->getHoverObjects()->getObjectCount();
-			line.append(llformat("Prims: %d", prim_count));
-			mText.push_back(line);
-
-			line.clear();
-			line.append("Position: ");
-
-			LLViewerRegion *region = gAgent.getRegion();
-			LLVector3 position = region->getPosRegionFromGlobal(hit_object->getPositionGlobal());//regionp->getOriginAgent();
-			LLVector3 mypos = region->getPosRegionFromGlobal(gAgent.getPositionGlobal());
-			
-
-			LLVector3 delta = position - mypos;
-			F32 distance = (F32)delta.magVec();
-
-			line.append(llformat("<%.02f,%.02f,%.02f>",position.mV[0],position.mV[1],position.mV[2]));
-			mText.push_back(line);
-			line.clear();
-			line.append(llformat("Distance: %.02fm",distance));
-			mText.push_back(line);
-			
-			//  If the hover tip shouldn't be shown, delete all the object text
-			if (suppressObjectHoverDisplay)
-			{
-				mText.clear();
+				//  If the hover tip shouldn't be shown, delete all the object text
+				if (suppressObjectHoverDisplay)
+				{
+					mText.clear();
+				}
 			}
 		}
 	}

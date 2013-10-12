@@ -51,7 +51,7 @@
 		Toucher
 	</string>
 	<string name="TooltipFlagL$">
-		L$
+		[CURRENCY]
 	</string>
 	<string name="TooltipFlagDropInventory">
 		Laisser tomber l&apos;inventaire
@@ -69,7 +69,7 @@
 		Copie autoris&#xE9;e
 	</string>
 	<string name="TooltipForSaleL$">
-		A vendre : [AMOUNT] L$
+		A vendre : [AMOUNT] [CUURENCY]
 	</string>
 	<string name="TooltipForSaleMsg">
 		A vendre : [MESSAGE]
@@ -386,6 +386,20 @@
 	<string name="shout">
 		crie :
 	</string>
+	<string name="ScriptQuestionCautionChatGranted">'[OBJECTNAME]', un objet appartenant à [OWNERNAME], situé dans [REGIONNAME] à [REGIONPOS], a reçu le droit de: [PERMISSIONS].</string>
+	<string name="ScriptQuestionCautionChatDenied">'[OBJECTNAME]', un objet appartenant à [OWNERNAME], situé dans [REGIONNAME] à [REGIONPOS], n'a pas reçu le droit de: [PERMISSIONS].</string>
+	<string name="ScriptTakeMoney">Débiter vos ([CURRENCY])</string>
+	<string name="ActOnControlInputs">Utiliser vos touches de commandes</string>
+	<string name="RemapControlInputs">Reconfigurer vos touches de commandes</string>
+	<string name="AnimateYourAvatar">Animer votre avatar</string>
+	<string name="AttachToYourAvatar">Attacher à votre avatar</string>
+	<string name="ReleaseOwnership">Passer l'objet dans le domaine public (sans propriétaire)</string>
+	<string name="LinkAndDelink">Lier et délier d'autres objets</string>
+	<string name="AddAndRemoveJoints">Créer et supprimer des liens avec d'autres objets</string>
+	<string name="ChangePermissions">Modifier ses droits</string>
+	<string name="TrackYourCamera">Suivre votre caméra</string>
+	<string name="ControlYourCamera">Contrôler votre caméra</string>
+	<string name="TeleportYourAgent">Vous téléporter</string>
 	<string name="SIM_ACCESS_PG">
 		PG
 	</string>
@@ -454,5 +468,49 @@
 	</string>
 	<string name="choose_the_directory">
 		Choisir le r&#xE9;pertoire
+	</string>
+	<string name="InventoryNoTexture">
+		Vous n&apos;avez pas de copie de cette texture dans votre inventaire
+	</string>
+	<string name="GroupsNone">
+		aucun
+	</string>
+	<string name="Group" value=" (groupe)"/>
+	<string name="Unknown">
+		(Inconnu)
+	</string>
+	<string name="SummaryForTheWeek" value="Récapitulatif de la semaine, début le "/>
+	<string name="NextStipendDay" value=". Prochaine prime le "/>
+	<string name="GroupPlanningDate">
+		[day,datetime,utc]/[mthnum,datetime,utc]/[year,datetime,utc]
+	</string>
+	<string name="GroupIndividualShare" value="                      Groupe    Part individuelle"/>
+	<string name="GroupColumn" value="Groupe"/>
+	<string name="Balance">
+		Solde
+	</string>
+	<string name="Credits">
+		Crédits
+	</string>
+	<string name="Debits">
+		Débits
+	</string>
+	<string name="Total">
+		Total
+	</string>
+	<string name="NoGroupDataFound">
+		Aucune donnée trouvée pour le groupe
+	</string>
+	<string name="conference-title">
+		Chat à plusieurs
+	</string>
+	<string name="MultiPreviewTitle">
+		Prévisualiser
+	</string>
+	<string name="MultiPropertiesTitle">
+		Propriétés
+	</string>
+	<string name="Command_Profile_Label">
+		Profil
 	</string>
 </strings>

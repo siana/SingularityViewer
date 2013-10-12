@@ -37,36 +37,30 @@
 #include "llfloater.h"
 
 class LLScrollListCtrl;
-class LLButton;
 
-class SLFloaterMediaFilter : public LLFloater
+class SLFloaterMediaFilter : public LLFloater, public LLFloaterSingleton<SLFloaterMediaFilter>
 {
+	friend class LLUISingleton<SLFloaterMediaFilter, VisibilityPolicy<LLFloater> >;
 public:
-	SLFloaterMediaFilter();
+	SLFloaterMediaFilter(const LLSD& key = LLSD());
 	BOOL postBuild();
 	virtual void draw();
 	virtual ~SLFloaterMediaFilter();
 
-	static void setDirty();
-	static BOOL instanceVisible();
-	static void toggleInstance();
+	void setDirty();
 
-	static void onClearLists(void*);
-	static void onShowIPs(void*);
-	static void onWhitelistAdd(void*);
-	static void onWhitelistRemove(void*);
-	static void onBlacklistAdd(void*);
-	static void onBlacklistRemove(void*);
-	static void onCommitDomain(void*);
+	void onShowIPs();
+	void onWhitelistAdd();
+	void onWhitelistRemove();
+	void onBlacklistAdd();
+	void onBlacklistRemove();
+	void onCommitDomain();
 
 private:
-	static bool sIsWhitelist;
-	static bool sShowIPs;
+	bool mIsWhitelist;
+	bool mShowIPs;
 	LLScrollListCtrl* mWhitelistSLC;
 	LLScrollListCtrl* mBlacklistSLC;
 	bool mIsDirty;
-
-	static SLFloaterMediaFilter* sInstance;
-
 };
 #endif

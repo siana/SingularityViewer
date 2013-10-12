@@ -39,8 +39,10 @@ class LLTextureView : public LLContainerView
 	friend class LLTextureBar;
 	friend class LLGLTexMemBar;
 	friend class LLAvatarTexBar;
+protected:
+	LLTextureView(const Params&);
+	friend class LLUICtrlFactory;
 public:
-	LLTextureView(const std::string& name, const LLRect& rect);
 	~LLTextureView();
 
 	/*virtual*/ void draw();
@@ -76,7 +78,19 @@ class LLGLTexSizeBar;
 class LLTextureSizeView : public LLContainerView
 {
 public:
-	LLTextureSizeView(const std::string& name);
+	struct Params : public LLInitParam::Block<Params, LLContainerView::Params>
+	{
+		Mandatory<S32> type;
+		Params() :
+		type("type")
+		{
+			changeDefault(visible, false);
+			changeDefault(follows.flags, FOLLOWS_BOTTOM | FOLLOWS_LEFT);
+		}
+	};
+
+
+	LLTextureSizeView(const Params& p);
 	~LLTextureSizeView();
 
 	/*virtual*/ void draw();

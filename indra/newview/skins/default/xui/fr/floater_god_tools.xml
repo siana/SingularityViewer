@@ -44,7 +44,7 @@
 			</text>
 			<spinner left="320" name="land cost" width="70" />
 			<text name="land cost text" left_delta="-120">
-				L$ par m² :
+				[CURRENCY] par m² :
 			</text>
 			<button label="Rafraîchir" label_selected="Rafraîchir" name="Refresh" tool_tip="rafraîchit les informations ci-dessus."/>
 			<button label="Appliquer" label_selected="Appliquer" name="Apply" tool_tip="Applique les modifications effectuées ci-dessus."/>

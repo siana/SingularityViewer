@@ -46,6 +46,7 @@
 
 #include "llagent.h"
 #include "llbutton.h"
+#include "llcallbacklist.h"
 #include "llfocusmgr.h"
 #include "llprogressbar.h"
 #include "llstartup.h"
@@ -55,28 +56,28 @@
 #include "llappviewer.h"
 #include "llweb.h"
 #include "lluictrlfactory.h"
+#include "llpanellogin.h"
 
 LLProgressView* LLProgressView::sInstance = NULL;
 
 S32 gStartImageWidth = 1;
 S32 gStartImageHeight = 1;
-const F32 FADE_IN_TIME = 1.f;
-
-const std::string ANIMATION_FILENAME = "Login Sequence ";
-const std::string ANIMATION_SUFFIX = ".jpg";
-const F32 TOTAL_LOGIN_TIME = 10.f;	// seconds, wild guess at time from GL context to actual world view
-S32 gLastStartAnimationFrame = 0;	// human-style indexing, first image = 1
-const S32 ANIMATION_FRAMES = 1; //13;
+const F32 FADE_TO_WORLD_TIME = 1.0f;
 
 // XUI:translate
 LLProgressView::LLProgressView(const std::string& name, const LLRect &rect) 
 :	LLPanel(name, rect, FALSE),
 	mPercentDone( 0.f ),
 	mURLInMessage(false),
-	mMouseDownInActiveArea( false )
+	mMouseDownInActiveArea( false ),
+	mFadeToWorldTimer(),
+	mFadeFromLoginTimer(),
+	mStartupComplete(false)
 {
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_progress.xml");
 	reshape(rect.getWidth(), rect.getHeight());
+	mFadeToWorldTimer.stop();
+	mFadeFromLoginTimer.stop();
 }
 
 BOOL LLProgressView::postBuild()
@@ -85,12 +86,13 @@ BOOL LLProgressView::postBuild()
 
 	mCancelBtn = getChild<LLButton>("cancel_btn");
 	mCancelBtn->setClickedCallback( boost::bind(&LLProgressView::onCancelButtonClicked) );
-	mFadeTimer.stop();
 
 	getChild<LLTextBox>("title_text")->setText(LLStringExplicit(LLAppViewer::instance()->getSecondLifeTitle()));
 
-	getChild<LLTextBox>("message_text")->setClickedCallback(onClickMessage, this);
+	getChild<LLTextBox>("message_text")->setClickedCallback(boost::bind(&LLProgressView::onClickMessage, this));
 
+	// hidden initially, until we need it
+	setVisible(FALSE);
 	sInstance = this;
 	return TRUE;
 }
@@ -98,6 +100,9 @@ BOOL LLProgressView::postBuild()
 
 LLProgressView::~LLProgressView()
 {
+	// Just in case something went wrong, make sure we deregister our idle callback.
+	gIdleCallbacks.deleteFunction(onIdle, this);
+
 	gFocusMgr.releaseFocusIfNeeded( this );
 
 	sInstance = NULL;
@@ -123,34 +128,52 @@ BOOL LLProgressView::handleKeyHere(KEY key, MASK mask)
 	return TRUE;
 }
 
+void LLProgressView::revealIntroPanel()
+{
+	getParent()->sendChildToFront(this);
+	mFadeFromLoginTimer.start();
+	gIdleCallbacks.addFunction(onIdle, this);
+}
+
+void LLProgressView::abortShowProgress()
+{
+	mFadeFromLoginTimer.stop();
+	LLPanelLogin::close();
+	gIdleCallbacks.deleteFunction(onIdle, this);
+}
+
+void LLProgressView::setStartupComplete()
+{
+	mStartupComplete = true;
+
+	mFadeFromLoginTimer.stop();
+	mFadeToWorldTimer.start();
+}
 void LLProgressView::setVisible(BOOL visible)
 {
+	// hiding progress view
 	if (getVisible() && !visible)
 	{
-		mFadeTimer.start();
+		LLPanel::setVisible(FALSE);
 	}
-	else if (!getVisible() && visible)
+	// showing progress view
+	else if (visible && (!getVisible() || mFadeToWorldTimer.getStarted()))
 	{
-		gFocusMgr.setTopCtrl(this);
 		setFocus(TRUE);
-		mFadeTimer.stop();
-		mProgressTimer.start();
-		LLPanel::setVisible(visible);
-	}
+		mFadeToWorldTimer.stop();
+		LLPanel::setVisible(TRUE);
+	} 
 }
 
 
-void LLProgressView::draw()
+void LLProgressView::drawStartTexture(F32 alpha)
 {
-	static LLTimer timer;
-
-	// Paint bitmap if we've got one
 	gGL.pushMatrix();	
 	if (gStartTexture)
 	{
 		LLGLSUIDefault gls_ui;
-		gGL.getTexUnit(0)->bind(gStartTexture);
-		gGL.color4f(1.f, 1.f, 1.f, mFadeTimer.getStarted() ? clamp_rescale(mFadeTimer.getElapsedTimeF32(), 0.f, FADE_IN_TIME, 1.f, 0.f) : 1.f);
+		gGL.getTexUnit(0)->bind(gStartTexture.get());
+		gGL.color4f(1.f, 1.f, 1.f, alpha);
 		F32 image_aspect = (F32)gStartImageWidth / (F32)gStartImageHeight;
 		S32 width = getRect().getWidth();
 		S32 height = getRect().getHeight();
@@ -176,20 +199,51 @@ void LLProgressView::draw()
 		gl_rect_2d(getRect());
 	}
 	gGL.popMatrix();
+}
 
-	// Handle fade-in animation
-	if (mFadeTimer.getStarted())
+
+void LLProgressView::draw()
+{
+	static LLTimer timer;
+
+	if (mFadeFromLoginTimer.getStarted())
 	{
+		F32 alpha = clamp_rescale(mFadeFromLoginTimer.getElapsedTimeF32(), 0.f, FADE_TO_WORLD_TIME, 0.f, 1.f);
+		LLViewDrawContext context(alpha);
+
+		drawStartTexture(alpha);
+		
 		LLPanel::draw();
-		if (mFadeTimer.getElapsedTimeF32() > FADE_IN_TIME)
+		return;
+	}
+
+	// handle fade out to world view when we're asked to
+	if (mFadeToWorldTimer.getStarted())
+	{
+		// draw fading panel
+		F32 alpha = clamp_rescale(mFadeToWorldTimer.getElapsedTimeF32(), 0.f, FADE_TO_WORLD_TIME, 1.f, 0.f);
+		LLViewDrawContext context(alpha);
+				
+		drawStartTexture(alpha);
+		LLPanel::draw();
+
+		// faded out completely - remove panel and reveal world
+		if (mFadeToWorldTimer.getElapsedTimeF32() > FADE_TO_WORLD_TIME )
 		{
-			gFocusMgr.removeTopCtrlWithoutCallback(this);
-			LLPanel::setVisible(FALSE);
+			mFadeToWorldTimer.stop();
+
+			// Fade is complete, release focus
+			gFocusMgr.releaseFocusIfNeeded( this );
+
+			// turn off panel that hosts intro so we see the world
+			setVisible(FALSE);
+
 			gStartTexture = NULL;
 		}
 		return;
 	}
 
+	drawStartTexture(1.0f);
 	// draw children
 	LLPanel::draw();
 }
@@ -226,7 +280,10 @@ void LLProgressView::setCancelButtonVisible(BOOL b, const std::string& label)
 // static
 void LLProgressView::onCancelButtonClicked()
 {
-	if (gAgent.getTeleportState() == LLAgent::TELEPORT_NONE)
+	// Quitting viewer here should happen only when "Quit" button is pressed while starting up.
+	// Check for startup state is used here instead of teleport state to avoid quitting when
+	// cancel is pressed while teleporting inside region (EXT-4911)
+	if (LLStartUp::getStartupState() < STATE_STARTED)
 	{
 		LLAppViewer::instance()->requestQuit();
 	}
@@ -263,5 +320,23 @@ void LLProgressView::onClickMessage(void* data)
 
 			LLWeb::loadURLExternal( url_to_open );
 		}
+	}
+}
+
+
+// static
+void LLProgressView::onIdle(void* user_data)
+{
+	LLProgressView* self = (LLProgressView*) user_data;
+
+	// Close login panel on mFadeToWorldTimer expiration.
+	if (self->mFadeFromLoginTimer.getStarted() &&
+		self->mFadeFromLoginTimer.getElapsedTimeF32() > FADE_TO_WORLD_TIME)
+	{
+		self->mFadeFromLoginTimer.stop();
+		LLPanelLogin::close();
+
+		// Nothing to do anymore.
+		gIdleCallbacks.deleteFunction(onIdle, user_data);
 	}
 }

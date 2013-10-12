@@ -38,7 +38,6 @@ this feature is still a work in progress.
 
 /* basic headers */
 #include "llviewerprecompiledheaders.h"
-#include "lluictrlfactory.h"
 
 /* own class header && upload floater header */
 #include "floaterlocalassetbrowse.h"
@@ -50,6 +49,12 @@ this feature is still a work in progress.
 #include "llimagejpeg.h"
 #include "llimagepng.h"
 
+/* llui headers */
+#include "llcheckboxctrl.h"
+#include "llcombobox.h"
+#include "llscrolllistitem.h"
+#include "lluictrlfactory.h"
+
 /* misc headers */
 #include <time.h>
 #include <ctime>
@@ -60,13 +65,7 @@ this feature is still a work in progress.
 #include "llfloaterimagepreview.h"
 #include "llfile.h"
 
-/* repeated in header */
-#include "lltexturectrl.h"   
-#include "llscrolllistctrl.h"
-#include "llviewercontrol.h"
-
 /* including to force rebakes when needed */
-#include "llagent.h"
 #include "llvoavatarself.h"
 
 /* sculpt refresh */

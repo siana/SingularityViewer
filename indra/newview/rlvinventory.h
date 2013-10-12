@@ -26,8 +26,6 @@
 #include "rlvhelper.h"
 #include "rlvlocks.h"
 
-struct LLOfferInfo;
-
 // ============================================================================
 // RlvInventory class declaration
 //
@@ -63,8 +61,6 @@ public:
 	std::string					getSharedPath(const LLViewerInventoryCategory* pFolder) const;
 	// Returns TRUE if the supplied folder is a descendent of the #RLV folder
 	bool						isSharedFolder(const LLUUID& idFolder);
-	// Returns TRUE if the inventory offer is a "give to #RLV" offer
-	bool						isGiveToRLVOffer(const LLOfferInfo& offerInfo);
 
 	/*
 	 * Inventory fetching

@@ -53,6 +53,8 @@
 #include "llface.h"
 #include "llinventorymodel.h" //Perms check for texture params
 #include "lllineeditor.h"
+#include "llmediaentry.h"
+#include "llnotificationsutil.h"
 #include "llresmgr.h"
 #include "llselectmgr.h"
 #include "llspinctrl.h"
@@ -66,8 +68,10 @@
 #include "llviewerobject.h"
 #include "llviewerregion.h"
 #include "llviewerstats.h"
+#include "llvovolume.h"
 #include "lluictrlfactory.h"
 #include "llpluginclassmedia.h"
+#include "llviewertexturelist.h"
 
 //
 // Methods
@@ -75,6 +79,22 @@
 
 BOOL	LLPanelFace::postBuild()
 {
+	childSetCommitCallback("combobox shininess",&LLPanelFace::onCommitShiny,this);
+	childSetCommitCallback("combobox bumpiness",&LLPanelFace::onCommitBump,this);
+	
+	childSetCommitCallback("TexScaleU",&LLPanelFace::onCommitTextureInfo, this);
+	childSetCommitCallback("checkbox flip s",&LLPanelFace::onCommitTextureInfo, this);
+	childSetCommitCallback("TexScaleV",&LLPanelFace::onCommitTextureInfo, this);
+	childSetCommitCallback("checkbox flip t",&LLPanelFace::onCommitTextureInfo, this);
+	childSetCommitCallback("TexRot",&LLPanelFace::onCommitTextureInfo, this);
+	childSetAction("button apply",&LLPanelFace::onClickApply,this);
+	childSetCommitCallback("checkbox planar align",&LLPanelFace::onCommitPlanarAlign, this);
+	childSetCommitCallback("TexOffsetU",LLPanelFace::onCommitTextureInfo, this);
+	childSetCommitCallback("TexOffsetV",LLPanelFace::onCommitTextureInfo, this);
+	childSetAction("button align",&LLPanelFace::onClickAutoFix,this);
+	childSetAction("copytextures",&LLPanelFace::onClickCopy,this);
+	childSetAction("pastetextures",&LLPanelFace::onClickPaste,this);
+	
 	LLTextureCtrl*	mTextureCtrl;
 	LLColorSwatchCtrl*	mColorSwatch;
 
@@ -92,11 +112,10 @@ BOOL	LLPanelFace::postBuild()
 	if(mTextureCtrl)
 	{
 		mTextureCtrl->setDefaultImageAssetID(LLUUID( gSavedSettings.getString( "DefaultObjectTexture" )));
-		mTextureCtrl->setCommitCallback( LLPanelFace::onCommitTexture );
-		mTextureCtrl->setOnCancelCallback( LLPanelFace::onCancelTexture );
-		mTextureCtrl->setOnSelectCallback( LLPanelFace::onSelectTexture );
-		mTextureCtrl->setDragCallback(LLPanelFace::onDragTexture);
-		mTextureCtrl->setCallbackUserData( this );
+		mTextureCtrl->setCommitCallback( boost::bind(&LLPanelFace::onCommitTexture, this, _2) );
+		mTextureCtrl->setOnCancelCallback( boost::bind(&LLPanelFace::onCancelTexture, this, _2) );
+		mTextureCtrl->setOnSelectCallback( boost::bind(&LLPanelFace::onSelectTexture, this, _2) );
+		mTextureCtrl->setDragCallback(boost::bind(&LLPanelFace::onDragTexture, this, _2));
 		mTextureCtrl->setFollowsTop();
 		mTextureCtrl->setFollowsLeft();
 		// Don't allow (no copy) or (no transfer) textures to be selected during immediate mode
@@ -123,10 +142,9 @@ BOOL	LLPanelFace::postBuild()
 	mColorSwatch = getChild<LLColorSwatchCtrl>("colorswatch");
 	if(mColorSwatch)
 	{
-		mColorSwatch->setCommitCallback(LLPanelFace::onCommitColor);
-		mColorSwatch->setOnCancelCallback(LLPanelFace::onCancelColor);
-		mColorSwatch->setOnSelectCallback(LLPanelFace::onSelectColor);
-		mColorSwatch->setCallbackUserData( this );
+		mColorSwatch->setCommitCallback(boost::bind(&LLPanelFace::onCommitColor, this, _2));
+		mColorSwatch->setOnCancelCallback(boost::bind(&LLPanelFace::onCancelColor, this, _2));
+		mColorSwatch->setOnSelectCallback(boost::bind(&LLPanelFace::onSelectColor, this, _2));
 		mColorSwatch->setFollowsTop();
 		mColorSwatch->setFollowsLeft();
 		mColorSwatch->setCanApplyImmediately(TRUE);
@@ -142,8 +160,7 @@ BOOL	LLPanelFace::postBuild()
 	mCtrlColorTransp = getChild<LLSpinCtrl>("ColorTrans");
 	if(mCtrlColorTransp)
 	{
-		mCtrlColorTransp->setCommitCallback(LLPanelFace::onCommitAlpha);
-		mCtrlColorTransp->setCallbackUserData(this);
+		mCtrlColorTransp->setCommitCallback(boost::bind(&LLPanelFace::onCommitAlpha, this, _2));
 		mCtrlColorTransp->setPrecision(0);
 		mCtrlColorTransp->setFollowsTop();
 		mCtrlColorTransp->setFollowsLeft();
@@ -152,39 +169,22 @@ BOOL	LLPanelFace::postBuild()
 	mCheckFullbright = getChild<LLCheckBoxCtrl>("checkbox fullbright");
 	if (mCheckFullbright)
 	{
-		mCheckFullbright->setCommitCallback(LLPanelFace::onCommitFullbright);
-		mCheckFullbright->setCallbackUserData( this );
+		mCheckFullbright->setCommitCallback(LLPanelFace::onCommitFullbright, this);
 	}
 
 	mComboTexGen = getChild<LLComboBox>("combobox texgen");
 	if(mComboTexGen)
 	{
-		mComboTexGen->setCommitCallback(LLPanelFace::onCommitTexGen);
+		mComboTexGen->setCommitCallback(LLPanelFace::onCommitTexGen, this);
 		mComboTexGen->setFollows(FOLLOWS_LEFT | FOLLOWS_TOP);	
-		mComboTexGen->setCallbackUserData( this );
 	}
 
 	mCtrlGlow = getChild<LLSpinCtrl>("glow");
 	if(mCtrlGlow)
 	{
-		mCtrlGlow->setCommitCallback(LLPanelFace::onCommitGlow);
-		mCtrlGlow->setCallbackUserData(this);
+		mCtrlGlow->setCommitCallback(LLPanelFace::onCommitGlow, this);
 	}
 	
-	childSetCommitCallback("combobox shininess",&LLPanelFace::onCommitShiny,this);
-	childSetCommitCallback("combobox bumpiness",&LLPanelFace::onCommitBump,this);
-	childSetCommitCallback("checkbox planar align",&LLPanelFace::onCommitPlanarAlign, this);
-	childSetCommitCallback("TexScaleU",&LLPanelFace::onCommitTextureInfo, this);
-	childSetCommitCallback("checkbox flip s",&LLPanelFace::onCommitTextureInfo, this);
-	childSetCommitCallback("TexScaleV",&LLPanelFace::onCommitTextureInfo, this);
-	childSetCommitCallback("checkbox flip t",&LLPanelFace::onCommitTextureInfo, this);
-	childSetCommitCallback("TexRot",&LLPanelFace::onCommitTextureInfo, this);
-	childSetAction("button apply",&onClickApply,this);
-	childSetCommitCallback("TexOffsetU",LLPanelFace::onCommitTextureInfo, this);
-	childSetCommitCallback("TexOffsetV",LLPanelFace::onCommitTextureInfo, this);
-	childSetAction("button align",onClickAutoFix,this);
-	childSetAction("copytextures",onClickCopy,this);
-	childSetAction("pastetextures",onClickPaste,this);
 
 	clearCtrls();
 
@@ -491,7 +491,7 @@ void LLPanelFace::sendTextureInfo()
 				return (object->mDrawable) ? object->mDrawable->getFace(te): NULL;
 			}
 		} get_last_face_func;
-		LLFace* last_face;
+		LLFace* last_face(NULL);
 		LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue(&get_last_face_func, last_face);
 
 		LLPanelFaceSetAlignedTEFunctor setfunc(this, last_face);
@@ -517,12 +517,8 @@ void LLPanelFace::getState()
 	{
 		BOOL editable = objectp->permModify() && !objectp->isPermanentEnforced();
 
-
 		// only turn on auto-adjust button if there is a media renderer and the media is loaded
-		childSetEnabled("textbox autofix",FALSE);
-		//mLabelTexAutoFix->setEnabled ( FALSE );
-		childSetEnabled("button align",FALSE);
-		//mBtnAutoFix->setEnabled ( FALSE );
+		getChildView("button align")->setEnabled(editable);
 		
 		//if ( LLMediaEngine::getInstance()->getMediaRenderer () )
 		//	if ( LLMediaEngine::getInstance()->getMediaRenderer ()->isLoaded () )
@@ -539,7 +535,7 @@ void LLPanelFace::getState()
 		childSetEnabled("copytextures", single_volume && editable);
 		childSetEnabled("pastetextures", single_volume && editable);
 		childSetEnabled("textbox params", single_volume && editable);
-		childSetEnabled("button apply",editable);
+		getChildView("button apply")->setEnabled(editable);
 
 		bool identical;
 		LLTextureCtrl*	texture_ctrl = getChild<LLTextureCtrl>("texture control");
@@ -549,20 +545,42 @@ void LLPanelFace::getState()
 			LLUUID id;
 			struct f1 : public LLSelectedTEGetFunctor<LLUUID>
 			{
-				LLUUID get(LLViewerObject* object, S32 te)
+				LLUUID get(LLViewerObject* object, S32 te_index)
 				{
+					LLUUID id;
 					//LLViewerTexture* image = object->getTEImage(te);
-					LLTextureEntry* image = object->getTE(te);	//Singu Note: Use this instead of the above.
-																//The above actually returns LLViewerFetchedTexture::sDefaultImagep when
-																//the texture id is null, which gives us IMG_DEFAULT, not LLUUID::null
-																//Such behavior prevents the 'None' button from ever greying out in the face panel.
-					return image ? image->getID() : LLUUID::null;
+					LLTextureEntry* image = object->getTE(te_index);	//Singu Note: Use this instead of the above.
+																		//The above actually returns LLViewerFetchedTexture::sDefaultImagep when
+																		//the texture id is null, which gives us IMG_DEFAULT, not LLUUID::null
+																		//Such behavior prevents the 'None' button from ever greying out in the face panel.
+					if (image) id = image->getID();
 					
-					
+					if (!id.isNull() && LLViewerMedia::textureHasMedia(id))
+					{
+						LLTextureEntry *te = object->getTE(te_index);
+						if (te)
+						{
+							LLViewerTexture* tex = te->getID().notNull() ? gTextureList.findImage(te->getID()) : NULL ;
+							if(!tex)
+							{
+								tex = LLViewerFetchedTexture::sDefaultImagep;
+							}
+							if (tex)
+							{
+								id = tex->getID();
+							}
+						}
+					}
+					return id;
 				}
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, id );
 
+			if(LLViewerMedia::textureHasMedia(id))
+			{
+				getChildView("button align")->setEnabled(editable);
+			}
+			
 			if (identical)
 			{
 				// All selected have the same texture
@@ -593,13 +611,6 @@ void LLPanelFace::getState()
 					}
 				}
 			}
-
-			if(LLViewerMedia::textureHasMedia(id))
-			{
-				childSetEnabled("textbox autofix",editable);
-				childSetEnabled("button align",editable);
-			}
-
 		}
 
 		
@@ -654,7 +665,7 @@ void LLPanelFace::getState()
 						return (object->mDrawable) ? object->mDrawable->getFace(te): NULL;
 					}
 				} get_te_face_func;
-				LLFace* last_face;
+				LLFace* last_face(NULL);
 				LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue(&get_te_face_func, last_face);
 				LLPanelFaceGetIsAlignedTEFunctor get_is_aligend_func(last_face);
 				// this will determine if the texture param controls are tentative:
@@ -664,7 +675,7 @@ void LLPanelFace::getState()
 		
 		// Texture scale
 		{
-			childSetEnabled("tex scale",editable);
+			getChildView("tex scale")->setEnabled(editable);
 			//mLabelTexScale->setEnabled( editable );
 			F32 scale_s = 1.f;
 			struct f2 : public LLSelectedTEGetFunctor<F32>
@@ -676,12 +687,12 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, scale_s );
 			identical = align_planar ? identical_planar_aligned : identical;
-			childSetValue("TexScaleU",editable ? llabs(scale_s) : 0);
-			childSetTentative("TexScaleU",LLSD((BOOL)(!identical)));
-			childSetEnabled("TexScaleU",editable);
-			childSetValue("checkbox flip s",LLSD((BOOL)(scale_s < 0 ? TRUE : FALSE )));
-			childSetTentative("checkbox flip s",LLSD((BOOL)((!identical) ? TRUE : FALSE )));
-			childSetEnabled("checkbox flip s",editable);
+			getChild<LLUICtrl>("TexScaleU")->setValue(editable ? llabs(scale_s) : 0);
+			getChild<LLUICtrl>("TexScaleU")->setTentative(LLSD((BOOL)(!identical)));
+			getChildView("TexScaleU")->setEnabled(editable);
+			getChild<LLUICtrl>("checkbox flip s")->setValue(LLSD((BOOL)(scale_s < 0 ? TRUE : FALSE )));
+			getChild<LLUICtrl>("checkbox flip s")->setTentative(LLSD((BOOL)((!identical) ? TRUE : FALSE )));
+			getChildView("checkbox flip s")->setEnabled(editable);
 		}
 
 		{
@@ -696,17 +707,17 @@ void LLPanelFace::getState()
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, scale_t );
 			identical = align_planar ? identical_planar_aligned : identical;
 
-			childSetValue("TexScaleV",llabs(editable ? llabs(scale_t) : 0));
-			childSetTentative("TexScaleV",LLSD((BOOL)(!identical)));
-			childSetEnabled("TexScaleV",editable);
-			childSetValue("checkbox flip t",LLSD((BOOL)(scale_t< 0 ? TRUE : FALSE )));
-			childSetTentative("checkbox flip t",LLSD((BOOL)((!identical) ? TRUE : FALSE )));
-			childSetEnabled("checkbox flip t",editable);
+			getChild<LLUICtrl>("TexScaleV")->setValue(llabs(editable ? llabs(scale_t) : 0));
+			getChild<LLUICtrl>("TexScaleV")->setTentative(LLSD((BOOL)(!identical)));
+			getChildView("TexScaleV")->setEnabled(editable);
+			getChild<LLUICtrl>("checkbox flip t")->setValue(LLSD((BOOL)(scale_t< 0 ? TRUE : FALSE )));
+			getChild<LLUICtrl>("checkbox flip t")->setTentative(LLSD((BOOL)((!identical) ? TRUE : FALSE )));
+			getChildView("checkbox flip t")->setEnabled(editable);
 		}
 
 		// Texture offset
 		{
-			childSetEnabled("tex offset",editable);
+			getChildView("tex offset")->setEnabled(editable);
 			F32 offset_s = 0.f;
 			struct f4 : public LLSelectedTEGetFunctor<F32>
 			{
@@ -717,9 +728,9 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, offset_s );
 			identical = align_planar ? identical_planar_aligned : identical;
-			childSetValue("TexOffsetU", editable ? offset_s : 0);
-			childSetTentative("TexOffsetU",!identical);
-			childSetEnabled("TexOffsetU",editable);
+			getChild<LLUICtrl>("TexOffsetU")->setValue(editable ? offset_s : 0);
+			getChild<LLUICtrl>("TexOffsetU")->setTentative(!identical);
+			getChildView("TexOffsetU")->setEnabled(editable);
 		}
 
 		{
@@ -733,14 +744,14 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, offset_t );
 			identical = align_planar ? identical_planar_aligned : identical;
-			childSetValue("TexOffsetV", editable ? offset_t : 0);
-			childSetTentative("TexOffsetV",!identical);
-			childSetEnabled("TexOffsetV",editable);
+			getChild<LLUICtrl>("TexOffsetV")->setValue(editable ? offset_t : 0);
+			getChild<LLUICtrl>("TexOffsetV")->setTentative(!identical);
+			getChildView("TexOffsetV")->setEnabled(editable);
 		}
 
 		// Texture rotation
 		{
-			childSetEnabled("tex rotate",editable);
+			getChildView("tex rotate")->setEnabled(editable);
 			F32 rotation = 0.f;
 			struct f6 : public LLSelectedTEGetFunctor<F32>
 			{
@@ -751,9 +762,9 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, rotation );
 			identical = align_planar ? identical_planar_aligned : identical;
-			childSetValue("TexRot", editable ? rotation * RAD_TO_DEG : 0);
-			childSetTentative("TexRot",!identical);
-			childSetEnabled("TexRot",editable);
+			getChild<LLUICtrl>("TexRot")->setValue(editable ? rotation * RAD_TO_DEG : 0);
+			getChild<LLUICtrl>("TexRot")->setTentative(!identical);
+			getChildView("TexRot")->setEnabled(editable);
 		}
 
 		// Color swatch
@@ -779,13 +790,13 @@ void LLPanelFace::getState()
 		}
 		// Color transparency
 		{
-			childSetEnabled("color trans",editable);
+			getChildView("color trans")->setEnabled(editable);
 		}
 
 		F32 transparency = (1.f - color.mV[VALPHA]) * 100.f;
 		{
-			childSetValue("ColorTrans", editable ? transparency : 0);
-			childSetEnabled("ColorTrans",editable);
+			getChild<LLUICtrl>("ColorTrans")->setValue(editable ? transparency : 0);
+			getChildView("ColorTrans")->setEnabled(editable);
 		}
 
 		{
@@ -799,10 +810,10 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, glow );
 
-			childSetValue("glow",glow);
-			childSetEnabled("glow",editable);
-			childSetTentative("glow",!identical);
-			childSetEnabled("glow label",editable);
+			getChild<LLUICtrl>("glow")->setValue(glow);
+			getChildView("glow")->setEnabled(editable);
+			getChild<LLUICtrl>("glow")->setTentative(!identical);
+			getChildView("glow label")->setEnabled(editable);
 
 		}
 
@@ -827,9 +838,9 @@ void LLPanelFace::getState()
 			{
 				llwarns << "failed childGetSelectionInterface for 'combobox shininess'" << llendl;
 			}
-			childSetEnabled("combobox shininess",editable);
-			childSetTentative("combobox shininess",!identical);
-			childSetEnabled("label shininess",editable);
+			getChildView("combobox shininess")->setEnabled(editable);
+			getChild<LLUICtrl>("combobox shininess")->setTentative(!identical);
+			getChildView("label shininess")->setEnabled(editable);
 		}
 
 		{
@@ -852,9 +863,9 @@ void LLPanelFace::getState()
 			{
 				llwarns << "failed childGetSelectionInterface for 'combobox bumpiness'" << llendl;
 			}
-			childSetEnabled("combobox bumpiness",editable);
-			childSetTentative("combobox bumpiness",!identical);
-			childSetEnabled("label bumpiness",editable);
+			getChildView("combobox bumpiness")->setEnabled(editable);
+			getChild<LLUICtrl>("combobox bumpiness")->setTentative(!identical);
+			getChildView("label bumpiness")->setEnabled(editable);
 		}
 
 		{
@@ -878,19 +889,21 @@ void LLPanelFace::getState()
 			{
 				llwarns << "failed childGetSelectionInterface for 'combobox texgen'" << llendl;
 			}
-			childSetEnabled("combobox texgen",editable);
-			childSetTentative("combobox texgen",!identical);
-			childSetEnabled("tex gen",editable);
+			getChildView("combobox texgen")->setEnabled(editable);
+			getChild<LLUICtrl>("combobox texgen")->setTentative(!identical);
+			getChildView("tex gen")->setEnabled(editable);
 
 			if (selected_texgen == 1)
 			{
-				childSetText("tex scale",getString("string repeats per meter"));
-				childSetValue("TexScaleU", 2.0f * childGetValue("TexScaleU").asReal() );
-				childSetValue("TexScaleV", 2.0f * childGetValue("TexScaleV").asReal() );
+				getChild<LLUICtrl>("TexScaleU")->setValue(2.0f * getChild<LLUICtrl>("TexScaleU")->getValue().asReal() );
+				getChild<LLUICtrl>("TexScaleV")->setValue(2.0f * getChild<LLUICtrl>("TexScaleV")->getValue().asReal() );
+
+				// EXP-1507 (change label based on the mapping mode)
+				getChild<LLUICtrl>("tex scale")->setValue(getString("string repeats per meter"));
 			}
 			else
 			{
-				childSetText("tex scale",getString("string repeats per face"));
+				getChild<LLUICtrl>("tex scale")->setValue(getString("string repeats per face"));
 			}
 
 		}
@@ -906,14 +919,14 @@ void LLPanelFace::getState()
 			} func;
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, fullbrightf );
 
-			childSetValue("checkbox fullbright",(S32)fullbrightf);
-			childSetEnabled("checkbox fullbright",editable);
-			childSetTentative("checkbox fullbright",!identical);
+			getChild<LLUICtrl>("checkbox fullbright")->setValue((S32)fullbrightf);
+			getChildView("checkbox fullbright")->setEnabled(editable);
+			getChild<LLUICtrl>("checkbox fullbright")->setTentative(!identical);
 		}
 		
 		// Repeats per meter label
 		{
-			childSetEnabled("rpt",editable);
+			getChildView("rpt")->setEnabled(editable);
 		}
 
 		// Repeats per meter
@@ -933,14 +946,14 @@ void LLPanelFace::getState()
 			} func;			
 			identical = LLSelectMgr::getInstance()->getSelection()->getSelectedTEValue( &func, repeats );
 			
-			childSetValue("rptctrl", editable ? repeats : 0);
-			childSetTentative("rptctrl",!identical);
+			getChild<LLUICtrl>("rptctrl")->setValue(editable ? repeats : 0);
+			getChild<LLUICtrl>("rptctrl")->setTentative(!identical);
 			LLComboBox*	mComboTexGen = getChild<LLComboBox>("combobox texgen");
 			if (mComboTexGen)
 			{
 				BOOL enabled = editable && (!mComboTexGen || mComboTexGen->getCurrentIndex() != 1);
-				childSetEnabled("rptctrl",enabled);
-				childSetEnabled("button apply",enabled);
+				getChildView("rptctrl")->setEnabled(enabled);
+				getChildView("button apply")->setEnabled(enabled);
 			}
 		}
 
@@ -974,19 +987,18 @@ void LLPanelFace::getState()
 			mColorSwatch->setFallbackImageName("locked_image.j2c" );
 			mColorSwatch->setValid(FALSE);
 		}
-		childSetEnabled("color trans",FALSE);
-		childSetEnabled("rpt",FALSE);
-		childSetEnabled("tex scale",FALSE);
-		childSetEnabled("tex offset",FALSE);
-		childSetEnabled("tex rotate",FALSE);
-		childSetEnabled("tex gen",FALSE);
-		childSetEnabled("label shininess",FALSE);
-		childSetEnabled("label bumpiness",FALSE);
-
-		childSetEnabled("textbox autofix",FALSE);
-
-		childSetEnabled("button align",FALSE);
-		childSetEnabled("button apply",FALSE);
+		getChildView("color trans")->setEnabled(FALSE);
+		getChildView("rpt")->setEnabled(FALSE);
+		getChildView("tex scale")->setEnabled(FALSE);
+		getChildView("tex offset")->setEnabled(FALSE);
+		getChildView("tex rotate")->setEnabled(FALSE);
+		getChildView("tex gen")->setEnabled(FALSE);
+		getChildView("label shininess")->setEnabled(FALSE);
+		getChildView("label bumpiness")->setEnabled(FALSE);
+		getChildView("button align")->setEnabled(FALSE);
+		getChildView("button apply")->setEnabled(FALSE);
+		//getChildView("has media")->setEnabled(FALSE);
+		//getChildView("media info set")->setEnabled(FALSE);
 
 
 		// Set variable values for numeric expressions
@@ -1017,32 +1029,25 @@ F32 LLPanelFace::valueGlow(LLViewerObject* object, S32 face)
 }
 
 
-// static
-void LLPanelFace::onCommitColor(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onCommitColor(const LLSD& data)
 {
-	LLPanelFace* self = (LLPanelFace*) userdata;
-	self->sendColor();
+	sendColor();
 }
 
-// static
-void LLPanelFace::onCommitAlpha(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onCommitAlpha(const LLSD& data)
 {
-	LLPanelFace* self = (LLPanelFace*) userdata;
-	self->sendAlpha();
+	sendAlpha();
 }
 
-// static
-void LLPanelFace::onCancelColor(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onCancelColor(const LLSD& data)
 {
 	LLSelectMgr::getInstance()->selectionRevertColors();
 }
 
-// static
-void LLPanelFace::onSelectColor(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onSelectColor(const LLSD& data)
 {
-	LLPanelFace* self = (LLPanelFace*) userdata;
 	LLSelectMgr::getInstance()->saveSelectedObjectColors();
-	self->sendColor();
+	sendColor();
 }
 
 // static
@@ -1081,7 +1086,7 @@ void LLPanelFace::onCommitGlow(LLUICtrl* ctrl, void* userdata)
 }
 
 // static
-BOOL LLPanelFace::onDragTexture(LLUICtrl*, LLInventoryItem* item, void*)
+BOOL LLPanelFace::onDragTexture(LLUICtrl*, LLInventoryItem* item)
 {
 	BOOL accept = TRUE;
 	for (LLObjectSelection::root_iterator iter = LLSelectMgr::getInstance()->getSelection()->root_begin();
@@ -1098,28 +1103,21 @@ BOOL LLPanelFace::onDragTexture(LLUICtrl*, LLInventoryItem* item, void*)
 	return accept;
 }
 
-// static
-void LLPanelFace::onCommitTexture( LLUICtrl* ctrl, void* userdata )
+void LLPanelFace::onCommitTexture( const LLSD& data )
 {
-	LLPanelFace* self = (LLPanelFace*) userdata;
-
 	LLViewerStats::getInstance()->incStat(LLViewerStats::ST_EDIT_TEXTURE_COUNT );
-	
-	self->sendTexture();
+	sendTexture();
 }
 
-// static
-void LLPanelFace::onCancelTexture(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onCancelTexture(const LLSD& data)
 {
 	LLSelectMgr::getInstance()->selectionRevertTextures();
 }
 
-// static
-void LLPanelFace::onSelectTexture(LLUICtrl* ctrl, void* userdata)
+void LLPanelFace::onSelectTexture(const LLSD& data)
 {
-	LLPanelFace* self = (LLPanelFace*) userdata;
 	LLSelectMgr::getInstance()->saveSelectedObjectTextures();
-	self->sendTexture();
+	sendTexture();
 }
 
 
@@ -1139,19 +1137,29 @@ void LLPanelFace::onClickApply(void* userdata)
 	gFocusMgr.setKeyboardFocus( NULL );
 
 	//F32 repeats_per_meter = self->mCtrlRepeatsPerMeter->get();
-	F32 repeats_per_meter = (F32)self->childGetValue( "rptctrl" ).asReal();//self->mCtrlRepeatsPerMeter->get();
+	F32 repeats_per_meter = (F32)self->getChild<LLUICtrl>("rptctrl")->getValue().asReal();//self->mCtrlRepeatsPerMeter->get();
 	LLSelectMgr::getInstance()->selectionTexScaleAutofit( repeats_per_meter );
 }
-
-// commit the fit media texture to prim button
 
 struct LLPanelFaceSetMediaFunctor : public LLSelectedTEFunctor
 {
 	virtual bool apply(LLViewerObject* object, S32 te)
 	{
-		// TODO: the media impl pointer should actually be stored by the texture
-		viewer_media_t pMediaImpl = LLViewerMedia::getMediaImplFromTextureID(object->getTE ( te )->getID());
-		// only do this if it's a media texture
+		viewer_media_t pMediaImpl;
+				
+		const LLTextureEntry* tep = object->getTE(te);
+		const LLMediaEntry* mep = tep->hasMedia() ? tep->getMediaData() : NULL;
+		if ( mep )
+		{
+			pMediaImpl = LLViewerMedia::getMediaImplFromTextureID(mep->getMediaID());
+		}
+		
+		if ( pMediaImpl.isNull())
+		{
+			// If we didn't find face media for this face, check whether this face is showing parcel media.
+			pMediaImpl = LLViewerMedia::getMediaImplFromTextureID(tep->getID());
+		}
+		
 		if ( pMediaImpl.notNull())
 		{
 			LLPluginClassMedia *media = pMediaImpl->getMediaPlugin();
@@ -1183,6 +1191,17 @@ void LLPanelFace::onClickAutoFix(void* userdata)
 	LLPanelFaceSendFunctor sendfunc;
 	LLSelectMgr::getInstance()->getSelection()->applyToObjects(&sendfunc);
 }
+
+
+
+// TODO: I don't know who put these in or what these are for???
+void LLPanelFace::setMediaURL(const std::string& url)
+{
+}
+void LLPanelFace::setMediaType(const std::string& mime_type)
+{
+}
+
 // static
 void LLPanelFace::onCommitPlanarAlign(LLUICtrl* ctrl, void* userdata)
 {

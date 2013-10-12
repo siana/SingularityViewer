@@ -66,6 +66,7 @@ extern const LLUUID ANIM_AGENT_PELVIS_FIX;
 extern const LLUUID ANIM_AGENT_TARGET;
 extern const LLUUID ANIM_AGENT_WALK_ADJUST;
 
+class LLAPRFile;
 class LLViewerWearable;
 class LLVoiceVisualizer;
 class LLHUDNameTag;
@@ -200,22 +201,22 @@ public:
 	/*virtual*/ void   	 	 	updateRegion(LLViewerRegion *regionp);
 	/*virtual*/ void   	 	 	updateSpatialExtents(LLVector4a& newMin, LLVector4a &newMax);
 	/*virtual*/ void   	 	 	getSpatialExtents(LLVector4a& newMin, LLVector4a& newMax);
-	/*virtual*/ BOOL   	 	 	lineSegmentIntersect(const LLVector3& start, const LLVector3& end,
+	/*virtual*/ BOOL   	 	 	lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end,
 												 S32 face = -1,                    // which face to check, -1 = ALL_SIDES
 												 BOOL pick_transparent = FALSE,
 												 S32* face_hit = NULL,             // which face was hit
-												 LLVector3* intersection = NULL,   // return the intersection point
+												 LLVector4a* intersection = NULL,   // return the intersection point
 												 LLVector2* tex_coord = NULL,      // return the texture coordinates of the intersection point
-												 LLVector3* normal = NULL,         // return the surface normal at the intersection point
-												 LLVector3* bi_normal = NULL);     // return the surface bi-normal at the intersection point
-	LLViewerObject*	lineSegmentIntersectRiggedAttachments(const LLVector3& start, const LLVector3& end,
+												 LLVector4a* normal = NULL,         // return the surface normal at the intersection point
+												 LLVector4a* tangent = NULL);     // return the surface tangent at the intersection point
+	LLViewerObject*	lineSegmentIntersectRiggedAttachments(const LLVector4a& start, const LLVector4a& end,
 												 S32 face = -1,                    // which face to check, -1 = ALL_SIDES
 												 BOOL pick_transparent = FALSE,
 												 S32* face_hit = NULL,             // which face was hit
-												 LLVector3* intersection = NULL,   // return the intersection point
+												 LLVector4a* intersection = NULL,   // return the intersection point
 												 LLVector2* tex_coord = NULL,      // return the texture coordinates of the intersection point
-												 LLVector3* normal = NULL,         // return the surface normal at the intersection point
-												 LLVector3* bi_normal = NULL);     // return the surface bi-normal at the intersection point
+												 LLVector4a* normal = NULL,         // return the surface normal at the intersection point
+												 LLVector4a* tangent = NULL);     // return the surface tangent at the intersection point
 
 	//--------------------------------------------------------------------
 	// LLCharacter interface and related
@@ -336,7 +337,6 @@ public:
 
 	S32				mLastRezzedStatus;
 
-	
 	void 			startPhase(const std::string& phase_name);
 	void 			stopPhase(const std::string& phase_name, bool err_check = true);
 	void			clearPhases();
@@ -371,6 +371,7 @@ protected:
 /**                    State
  **                                                                            **
  *******************************************************************************/
+
 /********************************************************************************
  **                                                                            **
  **                    SKELETON
@@ -745,9 +746,11 @@ protected:
 	//--------------------------------------------------------------------
 public:
 	S32 				getAttachmentCount(); // Warning: order(N) not order(1) // currently used only by -self
-	typedef std::map<S32, LLViewerJointAttachment*> attachment_map_t;
+	//typedef std::map<S32, LLViewerJointAttachment*> attachment_map_t;
+	typedef LLSortedVector<S32, LLViewerJointAttachment*> attachment_map_t;
 	attachment_map_t 								mAttachmentPoints;
 	std::vector<LLPointer<LLViewerObject> > 		mPendingAttachment;
+	std::vector<std::pair<LLViewerObject*,LLViewerJointAttachment*> >	mAttachedObjectsVector;	//A vector of all current attachments for fast iteration.
 
 	//--------------------------------------------------------------------
 	// HUD functions
@@ -755,7 +758,6 @@ public:
 public:
 	BOOL 				hasHUDAttachment() const;
 	LLBBox 				getHUDBBox() const;
-	void 				rebuildHUD();
 	void 				resetHUDAttachments();
 	BOOL				canAttachMoreObjects() const;
 	BOOL				canAttachMoreObjects(U32 n) const;
@@ -767,17 +769,10 @@ protected:
 	//--------------------------------------------------------------------
 public:
 	BOOL 			isWearingAttachment( const LLUUID& inv_item_id );
-	// <edit> testzone attachpt
-	BOOL 			isWearingUnsupportedAttachment( const LLUUID& inv_item_id );
-	// </edit>
 	LLViewerObject* getWornAttachment( const LLUUID& inv_item_id );
 
 	const std::string getAttachedPointName(const LLUUID& inv_item_id);
 
-	// <edit>
-	std::map<S32, std::pair<LLUUID/*inv*/,LLUUID/*object*/> > mUnsupportedAttachmentPoints;
-	// </edit>
-	
 /**                    Wearables
  **                                                                            **
  *******************************************************************************/
@@ -822,6 +817,7 @@ public:
 	void			stopTyping() { mTyping = FALSE; mIdleTimer.reset();}
 private:
 	BOOL			mVisibleChat;
+	bool			mVisibleTyping;
 
 	//--------------------------------------------------------------------
 	// Lip synch morphs
@@ -991,7 +987,10 @@ private:
 	// General
 	//--------------------------------------------------------------------
 public:
+	static void			dumpArchetypeXML_header(LLAPRFile& file, std::string const& archetype_name = "???");
+	static void			dumpArchetypeXML_footer(LLAPRFile& file);
 	void				dumpArchetypeXML(const std::string& prefix, bool group_by_wearables = false);
+	void				dumpArchetypeXML_cont(std::string const& fullpath, bool group_by_wearables);
 	void 				dumpAppearanceMsgParams( const std::string& dump_prefix,
 												 const std::vector<F32>& paramsForDump,
 												 const LLTEContents& tec);

@@ -53,7 +53,7 @@ public:
 	void updateControl();
 
 	// updates control filter to display in the controls list on keystroke
-	static void onUpdateFilter(const std::string& searchTerm, void*);
+	void onUpdateFilter(const LLSD& value);
 	void updateFilter(std::string searchTerm);
 
 	void onSettingSelect();

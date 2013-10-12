@@ -133,6 +133,26 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 
 	parameters.cp_reduce = base.getRawDiscardLevel();
 
+	if(parameters.cp_reduce == 0 && *(U16*)(base.getData() + base.getDataSize() - 2) != 0xD9FF)
+	{
+		bool failed = true;
+		for(S32 i = base.getDataSize()-1; i > 42; --i)
+		{
+			if(base.getData()[i] != 0x00)
+			{
+				failed = *(U16*)(base.getData()+i-1) != 0xD9FF;
+				break;
+			}
+		}
+		if(failed)
+		{
+			opj_image_destroy(image);
+			base.decodeFailed();
+			return TRUE;
+		}
+	}
+
+
 	/* decode the code-stream */
 	/* ---------------------- */
 
@@ -212,7 +232,7 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 	
 	if(image->numcomps <= first_channel)
 	{
-		llwarns << "trying to decode more channels than are present in image: numcomps: " << image->numcomps << " first_channel: " << first_channel << llendl;
+		LL_WARNS("Texture") << "trying to decode more channels than are present in image: numcomps: " << image->numcomps << " first_channel: " << first_channel << llendl;
 		if (image)
 		{
 			opj_image_destroy(image);

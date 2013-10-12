@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="floater_web_content" title="Web Browser" initial_mime_type="text/html">
+  <layout_stack name="stack1">
+    <layout_panel name="nav_controls">
+      <button tool_tip="Rückwärts" name="back"/>
+        <button tool_tip="Vorwärts" name="forward"/>
+      <button tool_tip="Navigation stoppen" name="stop"/>
+      <button tool_tip="Seite neu laden" name="reload"/>
+      <combo_box name="address" tool_tip="URL hier eingeben"/>
+      <icon name="media_secure_lock_flag" tool_tip="Sicheres Browsen"/>
+      <button tool_tip="Aktuelle URL im Desktop-Browser öffnen" name="popexternal"/>
+    </layout_panel>
+    
+    <layout_panel name="status_bar">
+      
+      <progress_bar color_bar="0.3 1.0 0.3 1" name="statusbarprogress"/>
+    </layout_panel>
+  </layout_stack>
+</floater>

@@ -57,7 +57,6 @@ extern AIHTTPTimeoutPolicy iamHereVoice_timeout;
 
 FloaterVoiceLicense::FloaterVoiceLicense(const LLSD& key)
 :	LLModalDialog( std::string(" "), 100, 100 ),
-	mWebBrowserWindowId( 0 ),
 	mLoadCompleteCount( 0 )
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_voice_license.xml");
@@ -104,7 +103,7 @@ class LLIamHereVoice : public LLHTTPClient::ResponderWithResult
 		};
 
 		/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return iamHereVoice_timeout; }
-		/*virtual*/ bool redirect_status_ok(void) const { return true; }
+		/*virtual*/ bool pass_redirect_status(void) const { return true; }
 		/*virtual*/ char const* getName(void) const { return "LLIamHereVoice"; }
 };
 

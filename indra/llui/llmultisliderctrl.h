@@ -64,8 +64,6 @@ public:
 		S32 text_left,
 		BOOL show_text,
 		BOOL can_edit_text,
-		void (*commit_callback)(LLUICtrl*, void*),
-		void* callback_userdata,
 		F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 		S32 max_sliders, BOOL allow_overlap, BOOL draw_track,
 		BOOL use_triangle,
@@ -123,10 +121,9 @@ public:
 	virtual void		setControlName(const std::string& control_name, LLView* context);
 	virtual std::string 	getControlName() const;
 	
-	static void		onSliderCommit(LLUICtrl* caller, void* userdata);
+	void		onSliderCommit(const LLSD& value);
 	
-	static void		onEditorCommit(LLUICtrl* ctrl, void* userdata);
-	static void		onEditorChangeFocus(LLUICtrl* caller, S32 direction, void *userdata);
+	void		onEditorCommit(const LLSD& value);
 
 private:
 	void			updateText();

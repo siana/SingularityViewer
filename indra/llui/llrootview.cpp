@@ -33,8 +33,7 @@
 
 #include "llrootview.h"
 
-LLRootView::LLRootView(const std::string& name, const LLRect& rect, BOOL mouse_opaque, U32 follows)
-: LLView(name,rect,mouse_opaque,follows) 
-{ }
-
+LLRootView::LLRootView(const Params& p)
+	:	LLView(p)
+	{}
 // pretty exciting file, eh?

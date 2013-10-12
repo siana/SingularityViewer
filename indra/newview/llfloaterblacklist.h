@@ -11,6 +11,8 @@ public:
 	LLFloaterBlacklist();
 	~LLFloaterBlacklist();
 	static void show();
+	static void toggle();
+	static BOOL visible();
 	BOOL postBuild();
 	void refresh();
 	static LLFloaterBlacklist* getInstance() { return sInstance; };

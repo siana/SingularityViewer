@@ -92,7 +92,6 @@
 			</combo_box>
 			<button label="Procura" label_selected="Procura" name="Browse"/>
 			<button label="Buscar" label_selected="Buscar" name="Search"/>
-			<button label="Colocar Anúncio..." label_selected="Colocar Anúncio..." name="Place an Ad..."/>
 			<button label="Apagar" label_selected="Apagar" name="Delete"/>
 			<scroll_list name="results">
 				<column label="Nome" name="name"/>
@@ -111,7 +110,7 @@
 			<text name="text2" width="60">
 				Encontrar:
 			</text>
-			<line_editor left="69" name="event_search_text" width="150" />
+			<line_editor left="69" name="name" width="150" />
 			<radio_group name="date_mode">
 				<radio_item name="current">
 					Em progresso e processando

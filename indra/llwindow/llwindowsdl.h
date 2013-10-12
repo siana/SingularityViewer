@@ -63,7 +63,8 @@ public:
 	/*virtual*/ BOOL getSize(LLCoordScreen *size);
 	/*virtual*/ BOOL getSize(LLCoordWindow *size);
 	/*virtual*/ BOOL setPosition(LLCoordScreen position);
-	/*virtual*/ BOOL setSize(LLCoordScreen size);
+	/*virtual*/ BOOL setSizeImpl(LLCoordScreen size);
+	/*virtual*/ BOOL setSizeImpl(LLCoordWindow size);
 	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, BOOL disable_vsync, const LLCoordScreen * const posp = NULL);
 	/*virtual*/ BOOL setCursorPosition(LLCoordWindow position);
 	/*virtual*/ BOOL getCursorPosition(LLCoordWindow *position);
@@ -76,6 +77,7 @@ public:
 	/*virtual*/ void captureMouse();
 	/*virtual*/ void releaseMouse();
 	/*virtual*/ void setMouseClipping( BOOL b );
+	/*virtual*/	void setMinSize(U32 min_width, U32 min_height, bool enforce_immediately = true);
 
 	/*virtual*/ BOOL isClipboardTextAvailable();
 	/*virtual*/ BOOL pasteTextFromClipboard(LLWString &dst);
@@ -147,7 +149,7 @@ public:
 protected:
 	LLWindowSDL(LLWindowCallbacks* callbacks,
 		const std::string& title, int x, int y, int width, int height, U32 flags,
-		BOOL fullscreen, BOOL clearBg, BOOL disable_vsync, BOOL use_gl,
+		BOOL fullscreen, BOOL clearBg, BOOL disable_vsync,
 		BOOL ignore_pixel_depth, U32 fsaa_samples);
 	~LLWindowSDL();
 

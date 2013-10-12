@@ -38,7 +38,7 @@
 
 class LLContainerView;
 class LLStatView;
-class LLScrollableContainerView;
+class LLScrollContainer;
 
 class LLFloaterStats
 : public LLFloater,
@@ -58,7 +58,7 @@ class LLFloaterStats
  private:
 	void buildStats();
 	LLContainerView* mStatsContainer;
-	LLScrollableContainerView* mScrollContainer;
+	LLScrollContainer* mScrollContainer;
 };
 
 #endif

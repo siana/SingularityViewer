@@ -1,44 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<floater name="top_objects" title="En cours de chargement">
-	<text name="title_text">
-		Chargement...
-	</text>
-	<scroll_list name="objects_list">
-		<column label="Score" name="score"/>
-		<column label="Nom" name="name"/>
-		<column label="Propriétaire" name="owner"/>
-		<column label="Lieu" name="location"/>
-		<column label="Heure" name="time"/>
-		<column label="Heure Mono" name="mono_time"/>
-	</scroll_list>
-	<text name="id_text">
-		ID de l'objet:
-	</text>
-	<button label="Afficher balise" name="show_beacon_btn"/>
-	<text name="obj_name_text">
-		Objet:
-	</text>
-	<button label="Filtre" name="filter_object_btn"/>
-	<text name="owner_name_text">
-		Propriétaire:
-	</text>
-	<button label="Filtre" name="filter_owner_btn"/>
-	<button label="Renvoyer" name="return_selected_btn"/>
-	<button label="Tout renvoyer" name="return_all_btn"/>
-	<button label="Désactiver" name="disable_selected_btn"/>
-	<button label="Tout désactiver" name="disable_all_btn"/>
-	<button label="Rafraîchir" name="refresh_btn"/>
+<floater name="top_objects" title="Objets les plus consommateurs">
 	<string name="top_scripts_title">
-		Scripts principaux
+		Scripts les plus consommateurs
 	</string>
 	<string name="top_scripts_text">
 		[COUNT] scripts prenant un total de [TIME] ms
 	</string>
 	<string name="scripts_score_label">
-		Heure
-	</string>
-	<string name="scripts_mono_time_label">
-		Heure Mono
+		Temps
 	</string>
 	<string name="top_colliders_title">
 		Collisions les plus consommatrices
@@ -50,6 +19,40 @@
 		Score
 	</string>
 	<string name="none_descriptor">
-		Aucun résultat
+		Aucun résultat.
 	</string>
+	<text name="title_text">
+		Chargement...
+	</text>
+	<scroll_list name="objects_list">
+		<column label="Score" name="score"/>
+		<column label="Nom" name="name"/>
+		<column label="Propriétaire" name="owner"/>
+		<column label="Lieu" name="location"/>
+		<column label="Parcelle" name="parcel"/>
+		<column label="Temps" name="time"/>
+		<column label="URL" name="URLs"/>
+		<column label="Mémoire (Ko)" name="memory"/>
+	</scroll_list>
+	<text name="id_text">
+		ID de l&apos;objet :
+	</text>
+	<button label="Afficher balise" name="show_beacon_btn"/>
+	<text name="obj_name_text">
+		Nom :
+	</text>
+	<button label="Filtrer" name="filter_object_btn"/>
+	<text name="owner_name_text">
+		Propriétaire:
+	</text>
+	<button label="Filtrer" name="filter_owner_btn"/>
+	<text name="parcel_name_text">
+		Parcelle :
+	</text>
+	<button label="Filtrer" name="filter_parcel_btn"/>
+	<button label="Rafraîchir" name="refresh_btn"/>
+	<button label="Renvoyer" name="return_selected_btn"/>
+	<button label="Tout renvoyer" name="return_all_btn"/>
+	<button label="Désactiver" name="disable_selected_btn"/>
+	<button label="Tout désactiver" name="disable_all_btn"/>
 </floater>

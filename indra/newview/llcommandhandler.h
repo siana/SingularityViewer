@@ -4,35 +4,31 @@
  * which manipulate user interface.  For example, the command
  * "agent (uuid) about" will open the UI for an avatar's profile.
  *
- * $LicenseInfo:firstyear=2007&license=viewergpl$
- * 
- * Copyright (c) 2007-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2007&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 #ifndef LLCOMMANDHANDLER_H
 #define LLCOMMANDHANDLER_H
+
+#include "llsd.h"
 
 /* Example:  secondlife:///app/foo/<uuid>
    Command "foo" that takes one parameter, a UUID.
@@ -43,7 +39,7 @@ public:
     // Inform the system you handle commands starting
 	// with "foo" and they are only allowed from
 	// "trusted" (pointed at Linden content) browsers
-	LLFooHandler() : LLCommandHandler("foo", true) { }
+	LLFooHandler() : LLCommandHandler("foo", UNTRUSTED_BLOCK) { }
 
     // Your code here
 	bool handle(const LLSD& tokens, const LLSD& query_map,
@@ -65,7 +61,14 @@ class LLMediaCtrl;
 class LLCommandHandler
 {
 public:
-	LLCommandHandler(const char* command, bool allow_from_untrusted_browser);
+	enum EUntrustedAccess
+	{
+		UNTRUSTED_ALLOW,       // allow commands from untrusted browsers
+		UNTRUSTED_BLOCK,       // ignore commands from untrusted browsers
+		UNTRUSTED_THROTTLE     // allow untrusted, but only a few per min.
+	};
+
+	LLCommandHandler(const char* command, EUntrustedAccess untrusted_access);
 		// Automatically registers object to get called when 
 		// command is executed.  All commands can be processed
 		// in links from LLMediaCtrl, but some (like teleport)
@@ -92,10 +95,14 @@ public:
 						 const LLSD& params,
 						 const LLSD& query_map,
 						 LLMediaCtrl* web,
+						 const std::string& nav_type,
 						 bool trusted_browser);
 		// Execute a command registered via the above mechanism,
 		// passing string parameters.
 		// Returns true if command was found and executed correctly.
+	/// Return an LLSD::Map of registered LLCommandHandlers and associated
+	/// info (e.g. EUntrustedAccess).
+	static LLSD enumerate();
 };
 
 #endif

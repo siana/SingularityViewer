@@ -111,7 +111,7 @@ void LLPanelAudioPrefs::refreshValues()
 	mPreviousHealthThreshold = gSavedSettings.getF32("UISndHealthReductionThreshold");
 
 	mPreviousStreamingMusic = gSavedSettings.getBOOL("AudioStreamingMusic");
-	mPreviousStreamingVideo = gSavedSettings.getBOOL("AudioStreamingVideo");
+	mPreviousStreamingVideo = gSavedSettings.getBOOL("AudioStreamingMedia");
 
 	mPreviousMuteAudio = gSavedSettings.getBOOL("MuteAudio");
 	mPreviousMuteWhenMinimized = gSavedSettings.getBOOL("MuteWhenMinimized");
@@ -133,7 +133,7 @@ void LLPanelAudioPrefs::cancel()
 	gSavedSettings.setF32("UISndHealthReductionThreshold", mPreviousHealthThreshold );
 
 	gSavedSettings.setBOOL("AudioStreamingMusic", mPreviousStreamingMusic );
-	gSavedSettings.setBOOL("AudioStreamingVideo", mPreviousStreamingVideo );
+	gSavedSettings.setBOOL("AudioStreamingMedia", mPreviousStreamingVideo );
 
 	
 	gSavedSettings.setBOOL("MuteAudio", mPreviousMuteAudio );

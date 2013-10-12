@@ -1344,7 +1344,7 @@ void LLManipScale::renderGuidelinesPart( const LLBBox& bbox )
 
 	guideline_end -= guideline_start;
 	guideline_end.normVec();
-	guideline_end *= LLWorld::getInstance()->getRegionWidthInMeters();
+	guideline_end *= gAgent.getRegion()->getWidth();
 	guideline_end += guideline_start;
 
 	{
@@ -2012,36 +2012,34 @@ LLVector3 LLManipScale::nearestAxis( const LLVector3& v ) const
 	// Note: yes, this is a slow but easy implementation
 	// assumes v is normalized
 
-	F32 coords[][3] =
+	static LLVector3 coords[] =
 		{
-			{ 1.f, 0.f, 0.f },
-			{ 0.f, 1.f, 0.f },
-			{ 0.f, 0.f, 1.f },
-			{-1.f, 0.f, 0.f },
-			{ 0.f,-1.f, 0.f },
-			{ 0.f, 0.f,-1.f }
+			LLVector3( 1.f, 0.f, 0.f ),
+			LLVector3( 0.f, 1.f, 0.f ),
+			LLVector3( 0.f, 0.f, 1.f ),
+			LLVector3(-1.f, 0.f, 0.f ),
+			LLVector3( 0.f,-1.f, 0.f ),
+			LLVector3( 0.f, 0.f,-1.f )
 		};
 
 	F32 cosine[6];
-	cosine[0] = v * LLVector3( coords[0] );
-	cosine[1] = v * LLVector3( coords[1] );
-	cosine[2] = v * LLVector3( coords[2] );
+	cosine[0] = v * coords[0];
+	cosine[1] = v * coords[1];
+	cosine[2] = v * coords[2];
 	cosine[3] = -cosine[0];
 	cosine[4] = -cosine[1];
 	cosine[5] = -cosine[2];
 
-	F32 greatest_cos = cosine[0];
 	S32 greatest_index = 0;
 	for( S32 i=1; i<6; i++ )
 	{
-		if( greatest_cos < cosine[i] )
+		if( cosine[greatest_index] < cosine[i] )
 		{
-			greatest_cos = cosine[i];
 			greatest_index = i;
 		}
 	}
 
-	return LLVector3( coords[greatest_index] );
+	return coords[greatest_index];
 }
 
 // virtual

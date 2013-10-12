@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel border="false" bottom="0" enabled="true" height="240" left="8"
+     mouse_opaque="true" name="device_settings_panel" width="404">
+    <string
+      name="default_text">
+        Default
+    </string>
+    <string
+     name="name_no_device">
+        No Device
+    </string>
+    <string
+     name="name_default_system_device">
+        Default System Device
+    </string>
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom_delta="-22" drop_shadow_visible="true" enabled="true"
+	     follows="left|top" font="SansSerifSmall" h_pad="0" halign="left"
+	     height="16" left="20" mouse_opaque="true" name="Input"
+	     v_pad="0" width="200">
+		Input (microphone):
+	</text>
+	<combo_box control_name="VoiceInputAudioDevice" allow_text_entry="false" bottom_delta="-20" enabled="true" follows="left|top"
+	     height="18" left_delta="0" max_chars="128" mouse_opaque="true"
+	     name="voice_input_device" width="225" />
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom_delta="-54" drop_shadow_visible="true" enabled="true"
+	     follows="left|top" font="SansSerifSmall" h_pad="0" halign="left"
+	     height="16" left_delta="0" mouse_opaque="true"
+	     name="Output" v_pad="0" width="200">
+		Output (speakers):
+	</text>
+	<combo_box control_name="VoiceOutputAudioDevice" allow_text_entry="false" bottom_delta="-20" enabled="true" follows="left|top"
+	     height="18" left_delta="0" max_chars="128" mouse_opaque="true"
+	     name="voice_output_device" width="225" />
+	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	     bottom_delta="52" drop_shadow_visible="true" enabled="true"
+	     follows="left|top" font="SansSerifSmall" h_pad="0" halign="left"
+	     height="16" mouse_opaque="true" name="My volume label" v_pad="0"
+	     width="200">
+		Input Level:
+	</text>
+	<volume_slider control_name="AudioLevelMic" bottom_delta="-12" left_delta="-6" follows="left|top" height="17"
+	     increment="0.05" initial_val="1.0" max_val="2" min_val="0"
+	     mouse_opaque="true" name="mic_volume_slider"
+	     tool_tip="Change the volume using this slider" width="120" />
+	<text bottom_delta="-4" follows="left|top" height="20" left_delta="120"
+	     name="wait_text" width="200">
+		Please wait
+	</text>
+	<locate bottom_delta="40" height="20" left_delta="0" name="bar0" width="20" />
+	<locate bottom_delta="0" height="20" left_delta="22" name="bar1" width="20" />
+	<locate bottom_delta="0" height="20" left_delta="22" name="bar2" width="20" />
+	<locate bottom_delta="0" height="20" left_delta="22" name="bar3" width="20" />
+	<locate bottom_delta="0" height="20" left_delta="22" name="bar4" width="20" />
+</panel>

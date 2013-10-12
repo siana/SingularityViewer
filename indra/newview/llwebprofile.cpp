@@ -120,7 +120,6 @@ public:
 
 protected:
 	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return webProfileResponders_timeout; }
-	/*virtual*/ bool followRedir(void) const { return true; }
 	/*virtual*/ char const* getName(void) const { return "LLWebProfileResponders::ConfigResponder"; }
 
 private:
@@ -157,7 +156,6 @@ public:
 	}
 
 protected:
-	/*virtual*/ bool followRedir(void) const { return true; }
 	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return webProfileResponders_timeout; }
 	/*virtual*/ char const* getName(void) const { return "LLWebProfileResponders::PostImageRedirectResponder"; }
 
@@ -181,7 +179,7 @@ public:
 		// the just uploaded data, which fails
 		// (CURLE_SEND_FAIL_REWIND: Send failed since rewinding of the data stream failed).
 		// Handle it manually.
-		if (status == 303)
+		if (status == HTTP_SEE_OTHER)
 		{
 			AIHTTPHeaders headers;
 			headers.addHeader("Accept", "*/*");
@@ -208,7 +206,7 @@ public:
 	}
 
 protected:
-	/*virtual*/ bool redirect_status_ok(void) const { return true; }
+	/*virtual*/ bool pass_redirect_status(void) const { return true; }
 	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return webProfileResponders_timeout; }
 	/*virtual*/ char const* getName(void) const { return "LLWebProfileResponders::PostImageResponder"; }
 };

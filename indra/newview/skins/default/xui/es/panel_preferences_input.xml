@@ -27,6 +27,7 @@
 	<check_box label="Reorientar la cámara el editar" name="edit_camera_movement" tool_tip="Posicionar la Cámara automáticamente al entrar y salir del modo de Edición"/>
 	<check_box label="Reorientar la cámara el editar la apariencia" name="appearance_camera_movement" tool_tip="Posicionar la Cámara automáticamente mientras se esté en modo edición del avatar"/>
 	<check_box label="Levantar el avatar al reiniciar la cámara" name="unsit_on_camera_reset" tool_tip="Levanta al avatar automárticamente cuando presiones la tecla ESC y la cámara cambie a modo de vista en tercera persona"/>
-	<check_box label="Deshabilitar Restricciones de Cámara" name="DisableCameraConstraints" tool_tip="Prevenir el zoom automático de la cámara cuando estes muy cerca de paredes, objetos, etc.."/>	
+	<check_box label="Deshabilitar Restricciones de Cámara" name="DisableCameraConstraints" tool_tip="Prevenir el zoom automático de la cámara cuando estes muy cerca de paredes, objetos, etc.."/>
+	<check_box label="Limitar Distancia de Selección" name="Limit Select Distance" tool_tip="Limita la distancia en la cual un objeto puede ser editado."/>	
 	<button label="Configuración Joystick" name="joystick_setup_button"/>
 </panel>

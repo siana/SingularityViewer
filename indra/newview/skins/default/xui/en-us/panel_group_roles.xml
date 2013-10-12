@@ -61,18 +61,18 @@ execute the Ability.
 	     name="roles_tab_container" tab_position="top" width="406">
 		<panel border="true" bottom="0" height="164" label="Members" left="1"
 		     name="members_sub_tab" select="true" tool_tip="Members" width="406">
-			<line_editor bevel_style="in" border_style="line"
+      <string name="donation_area">
+        [AREA] m²
+      </string>
+			<filter_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
 			     height="16" is_unicode="false" left="4" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
+			     name="filter_input" width="100" />
 			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
 			     label="Search" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Show All" left_delta="65" name="show_all_button"
-			     width="80" />
 			<name_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-121"
 			     column_padding="0" draw_border="true" draw_heading="true"
-			     heading_font="SansSerifSmall"
+			     heading_font="SansSerifSmall" menu_file="menu_avs_list.xml"
 			     heading_height="14" height="120" left="4" multi_select="true"
 			     name="member_list" width="396">
 				<column label="Member Name" name="name" width="136" />
@@ -88,19 +88,14 @@ execute the Ability.
 Select multiple Members by holding the Ctrl key and
 clicking on their names.
 			</string>
-			<icon image_name="inv_folder_plain_closed.tga" name="power_folder_icon" width="16" height="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
+      <string name="power_folder_icon">inv_folder_plain_closed.tga</string>
 		</panel>
 		<panel border="true" bottom="0" height="164" label="Roles"
 		     left="1" name="roles_sub_tab" width="398">
-			<line_editor bevel_style="in" border_style="line"
+			<filter_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
 			     height="16" is_unicode="false" left="4" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
-			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
-			     label="Search" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Show All" left_delta="65" name="show_all_button"
-			     width="80" />
+			     name="filter_input" width="100" />
 			<scroll_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-120"
 			     column_padding="0" draw_border="true" draw_heading="true" enabled="true"
 			     follows="left|top"
@@ -123,24 +118,16 @@ including the Everyone and Owner Roles.
 			<string name="cant_delete_role">
 				The &apos;Everyone&apos; and &apos;Owners&apos; Roles are special and cannot be deleted.
 			</string>
-			<icon height="16" image_name="inv_folder_plain_closed.tga" name="power_folder_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
-			<icon height="16" image_name="checkbox_enabled_true.tga" name="power_all_have_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
-			<icon height="16" image_name="checkbox_enabled_false.tga" name="power_partial_icon"
-			     width="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
+      <string name="power_folder_icon">inv_folder_plain_closed.tga</string>
+      <string name="power_all_have_icon">checkbox_enabled_true.tga</string>
+      <string name="power_partial_icon">checkbox_enabled_false.tga</string>
 		</panel>
 		<panel border="true" bottom="0"
 		     height="164" label="Abilities" left="1" name="actions_sub_tab" width="398">
-			<line_editor bevel_style="in" border_style="line"
+			<filter_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="143" follows="left|top" font="SansSerifSmall"
 			     height="16" is_unicode="false" left="6" max_length="63" mouse_opaque="true"
-			     name="search_text" width="100" />
-			<button bottom_delta="-2" font="SansSerifSmall" halign="center" height="20"
-			     label="Search" left_delta="105" name="search_button" width="60" />
-			<button bottom_delta="0" enabled="false" font="SansSerifSmall" halign="center"
-			     height="20" label="Show All" left_delta="65" name="show_all_button"
-			     width="80" />
+			     name="filter_input" width="100" />
 			<scroll_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-134"
 			     column_padding="0" draw_border="true" draw_heading="false"
 			     draw_stripes="false"
@@ -155,7 +142,7 @@ including the Everyone and Owner Roles.
 				Abilities allow Members in Roles to do specific
 things in this group. There&apos;s a broad variety of Abilities.
 			</string>
-			<icon image_name="inv_folder_plain_closed.tga" name="power_folder_icon" width="16" height="16" visible="false"/> <!-- Hiding this until we can figure out why it's not showing up in the right place. -BG -->
+      <string name="power_folder_icon">inv_folder_plain_closed.tga</string>
 		</panel>
 	</tab_container>
 	<panel border="false" bottom_delta="-235" height="215" left="7" name="members_footer"
@@ -234,8 +221,8 @@ things in this group. There&apos;s a broad variety of Abilities.
 			Allowed Abilities
 		</text>
 		<name_list bottom_delta="-105" draw_border="true" draw_stripes="false" enabled="false"
-		     height="105" left="0" multi_select="false" name="role_assigned_members"
-		     width="145" />
+		     height="105" left="0" multi_select="true" name="role_assigned_members"
+		     width="145" menu_file="menu_avs_list.xml"/>
 		<check_box bottom_delta="-20" follows="left|top" font="SansSerifSmall" height="16"
 		     initial_value="false" label="Members are visible" left="0"
 		     mouse_opaque="true" name="role_visible_in_list" radio_style="false"
@@ -274,8 +261,8 @@ things in this group. There&apos;s a broad variety of Abilities.
 		<scroll_list bottom_delta="-125" draw_border="true" enabled="false" height="125" left="0"
 		     multi_select="false" name="action_roles" width="145" />
 		<name_list background_opaque="true" background_visible="true" bg_alpha_color="blue"
-		     bg_opaque_color="grey" bottom_delta="0" draw_border="true" enabled="false"
-		     height="125" left="150" multi_select="false" name="action_members"
-		     width="254" />
+		     bg_opaque_color="grey" bottom_delta="0" draw_border="true"
+		     height="125" left="150" multi_select="true" name="action_members"
+		     width="254" menu_file="menu_avs_list.xml"/>
 	</panel>
 </panel>

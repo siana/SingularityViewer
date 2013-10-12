@@ -56,6 +56,7 @@ bool LLPluginClassMedia::init_impl(void)
 {
 	// Queue up the media init message -- it will be sent after all the currently queued messages.
 	LLPluginMessage message(LLPLUGIN_MESSAGE_CLASS_MEDIA, "init");
+	message.setValue("target", mTarget);
 	sendMessage(message);
 
 	return true;
@@ -127,7 +128,7 @@ void LLPluginClassMedia::reset_impl(void)
 
 void LLPluginClassMedia::idle_impl(void)
 {
-	if((mMediaWidth == -1) || (!mTextureParamsReceived) || (mPlugin == NULL) || (mPlugin->isBlocked()))
+	if((mMediaWidth == -1) || (!mTextureParamsReceived) || (mPlugin == NULL) || (mPlugin->isBlocked()) || (mOwner == NULL))
 	{
 		// Can't process a size change at this time
 	}
@@ -246,16 +247,18 @@ unsigned char* LLPluginClassMedia::getBitsData()
 
 void LLPluginClassMedia::setSize(int width, int height)
 {
-    if (width <= 0 || height <= 0)
-	{
-		width = height = -1;
-	}
-	if (mSetMediaWidth != width || mSetMediaHeight != height)
+	if((width > 0) && (height > 0))
 	{
 		mSetMediaWidth = width;
 		mSetMediaHeight = height;
-		setSizeInternal();
 	}
+	else
+	{
+		mSetMediaWidth = -1;
+		mSetMediaHeight = -1;
+	}
+
+	setSizeInternal();
 }
 
 void LLPluginClassMedia::setSizeInternal(void)

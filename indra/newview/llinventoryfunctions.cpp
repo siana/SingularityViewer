@@ -111,6 +111,37 @@ void append_path(const LLUUID& id, std::string& path)
 	path.append(temp);
 }
 
+// Path should already end on '/' if it is not empty.
+void append_path_short(LLUUID const& id, std::string& path)
+{
+	LLInventoryObject const* obj = gInventory.getObject(id);
+	if (!obj) return;
+
+	LLUUID const root_id = gInventory.getRootFolderID();
+	std::string const forward_slash("/");
+
+	std::string result;
+	while(1)
+	{
+		LLUUID parent_id = obj->getParentUUID();
+		if (parent_id == root_id ||
+			!(obj = gInventory.getCategory(parent_id)))
+		{
+			break;
+		}
+		std::string temp;
+		temp.swap(result);
+		result = obj->getName();
+		if (!temp.empty())
+		{
+			result.append(forward_slash);
+			result.append(temp);
+		}
+	}
+
+	path.append(result);
+}
+
 void rename_category(LLInventoryModel* model, const LLUUID& cat_id, const std::string& new_name)
 {
 	LLViewerInventoryCategory* cat;
@@ -409,10 +440,12 @@ BOOL get_is_category_removable(const LLInventoryModel* model, const LLUUID& id)
 
 	const LLFolderType::EType folder_type = category->getPreferredType();
 	
+#ifndef DELETE_SYSTEM_FOLDERS
 	if (LLFolderType::lookupIsProtectedType(folder_type))
 	{
 		return FALSE;
 	}
+#endif
 
 	// Can't delete the outfit that is currently being worn.
 	if (folder_type == LLFolderType::FT_OUTFIT)

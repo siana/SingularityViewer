@@ -35,95 +35,27 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llfloateravatarinfo.h"
-#include "llavatarnamecache.h"
-
-// viewer project includes
-#include "llagentdata.h"
-#include "llcommandhandler.h"
 #include "llpanelavatar.h"
 #include "lluictrlfactory.h"
-#include "llweb.h"
-
-// linden library includes
-#include "llinventory.h"
-#include "lluuid.h"
-#include "message.h"
-
-
-const char FLOATER_TITLE[] = "Profile";
-const LLRect FAI_RECT(0, 530, 420, 0);
-
-//-----------------------------------------------------------------------------
-// Globals
-//-----------------------------------------------------------------------------
-
-class LLAgentHandler : public LLCommandHandler
-{
-public:
-	// requires trusted browser to trigger
-	LLAgentHandler() : LLCommandHandler("agent", true) { }
-
-	bool handle(const LLSD& params, const LLSD& query_map,
-				LLMediaCtrl* web)
-	{
-		if (params.size() < 2) return false;
-		LLUUID agent_id;
-		if (!agent_id.set(params[0], FALSE))
-		{
-			return false;
-		}
-
-		if (params[1].asString() == "about")
-		{
-			LLFloaterAvatarInfo::show(agent_id);
-			return true;
-		}
-		return false;
-	}
-};
-LLAgentHandler gAgentHandler;
-
-//-----------------------------------------------------------------------------
-// Member functions
-//-----------------------------------------------------------------------------
-
-//----------------------------------------------------------------------------
 
 void*	LLFloaterAvatarInfo::createPanelAvatar(void*	data)
 {
 	LLFloaterAvatarInfo* self = (LLFloaterAvatarInfo*)data;
 	self->mPanelAvatarp = new LLPanelAvatar("PanelAv", LLRect(), TRUE); // allow edit self
+	self->mPanelAvatarp->setAvatarID(self->mAvatarID);
 	return self->mPanelAvatarp;
 }
 
-//----------------------------------------------------------------------------
-
-
-BOOL	LLFloaterAvatarInfo::postBuild()
+LLFloaterAvatarInfo::LLFloaterAvatarInfo(const std::string& name, const LLUUID &avatar_id)
+:	LLFloater(name), LLInstanceTracker<LLFloaterAvatarInfo, LLUUID>(avatar_id),
+	mAvatarID(avatar_id)
 {
-	return TRUE;
-}
-
-LLFloaterAvatarInfo::LLFloaterAvatarInfo(const std::string& name, const LLRect &rect, const LLUUID &avatar_id)
-:	LLPreview(name, rect, FLOATER_TITLE, LLUUID::null, LLUUID::null), LLInstanceTracker<LLFloaterAvatarInfo, LLUUID>(avatar_id),
-	mAvatarID( avatar_id ),
-	mSuggestedOnlineStatus(ONLINE_STATUS_NO)
-{
-	setAutoFocus(TRUE);
+	setAutoFocus(true);
 
 	LLCallbackMap::map_t factory_map;
-
 	factory_map["Panel Avatar"] = LLCallbackMap(createPanelAvatar, this);
-	
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_profile.xml", &factory_map);
-
-	if(mPanelAvatarp)
-	{
-		mPanelAvatarp->selectTab(0);
-	}
-
-	//gCacheName->get(avatar_id, FALSE, callbackLoadAvatarName);
-	LLAvatarNameCache::get(avatar_id, boost::bind(&LLFloaterAvatarInfo::callbackLoadAvatarName, this, _1, _2));
+	setTitle(name);
 }
 
 // virtual
@@ -133,131 +65,11 @@ LLFloaterAvatarInfo::~LLFloaterAvatarInfo()
 
 void LLFloaterAvatarInfo::resetGroupList()
 {
-	// only get these updates asynchronously via the group floater, which works on the agent only
-	if (mAvatarID != gAgentID)
-	{
-		return;
-	}
-
 	mPanelAvatarp->resetGroupList();
-}
-
-// static
-LLFloaterAvatarInfo* LLFloaterAvatarInfo::show(const LLUUID &avatar_id)
-{
-	if (avatar_id.isNull())
-	{
-		return NULL;
-	}
-
-	LLFloaterAvatarInfo *floater = LLFloaterAvatarInfo::getInstance(avatar_id);
-	if(!floater)
-	{
-		floater =  new LLFloaterAvatarInfo("avatarinfo", FAI_RECT, avatar_id );
-		floater->center();
-	}
-
-	// ...bring that window to front
-	floater->open();	/*Flawfinder: ignore*/
-	return floater;
-}
-
-// Open profile to a certain tab.
-// static
-void LLFloaterAvatarInfo::showFromObject(const LLUUID& avatar_id,std::string tab_name)
-{
-	LLFloaterAvatarInfo *floater = show(avatar_id);
-	if (floater)
-	{
-		floater->mPanelAvatarp->setAvatarID(avatar_id, LLStringUtil::null, ONLINE_STATUS_NO);
-		floater->mPanelAvatarp->selectTabByName(tab_name);
-	}
-}
-
-// static
-void LLFloaterAvatarInfo::showFromDirectory(const LLUUID &avatar_id)
-{
-	LLFloaterAvatarInfo *floater = show(avatar_id);
-	if (floater)
-	{
-		floater->mPanelAvatarp->setAvatarID(avatar_id, LLStringUtil::null, ONLINE_STATUS_NO);
-	}
-}
-
-
-// static
-void LLFloaterAvatarInfo::showFromFriend(const LLUUID& agent_id, BOOL online)
-{
-	LLFloaterAvatarInfo *floater = show(agent_id);
-	if (floater)
-	{
-		floater->mSuggestedOnlineStatus = online ? ONLINE_STATUS_YES : ONLINE_STATUS_NO;
-	}
-}
-
-
-// static
-void LLFloaterAvatarInfo::showFromProfile(const LLUUID &avatar_id, LLRect rect)
-{
-	if (avatar_id.isNull())
-	{
-		return;
-	}
-
-	LLFloaterAvatarInfo *floater = LLFloaterAvatarInfo::getInstance(avatar_id);
-	if(!floater)
-	{
-		floater =  new LLFloaterAvatarInfo("avatarinfo", FAI_RECT, avatar_id);
-		floater->translate(rect.mLeft - floater->getRect().mLeft + 16,
-						   rect.mTop - floater->getRect().mTop - 16);
-		floater->mPanelAvatarp->setAvatarID(avatar_id, LLStringUtil::null, ONLINE_STATUS_NO);
-	}
-	floater->open();
-}
-
-void LLFloaterAvatarInfo::showProfileCallback(S32 option, void *userdata)
-{
-	if (option == 0)
-	{
-		showFromObject(gAgentID);
-	}
-}
-
-void LLFloaterAvatarInfo::callbackLoadAvatarName(const LLUUID& id, const LLAvatarName& av_name)
-{
-	// Build a new title including the avatar name.
-	std::ostringstream title;
-	//title << first << " " << last << " - " << floater->getTitle();
-	title << av_name.getCompleteName()<< " - " << getTitle();
-	setTitle(title.str());
-}
-
-//// virtual
-void LLFloaterAvatarInfo::draw()
-{
-	// skip LLPreview::draw()
-	LLFloater::draw();
 }
 
 // virtual
 BOOL LLFloaterAvatarInfo::canClose()
 {
 	return mPanelAvatarp && mPanelAvatarp->canClose();
-}
-
-void LLFloaterAvatarInfo::loadAsset()
-{
-	if (mPanelAvatarp) {
-		mPanelAvatarp->setAvatarID(mAvatarID, LLStringUtil::null, mSuggestedOnlineStatus);
-		mAssetStatus = PREVIEW_ASSET_LOADING;
-	}
-}
-
-LLPreview::EAssetStatus LLFloaterAvatarInfo::getAssetStatus()
-{
-	if (mPanelAvatarp && mPanelAvatarp->haveData())
-	{
-		mAssetStatus = PREVIEW_ASSET_LOADED;
-	}
-	return mAssetStatus;
 }

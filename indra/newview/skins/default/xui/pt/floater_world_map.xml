@@ -33,7 +33,7 @@
 			Landmarks
 		</combo_item>
 	</combo_box>
-	<line_editor label="Procurar por nome de região" name="location" tool_tip="Digite o nome de uma Região"/>
+  <search_editor label="Procurar por nome de região" name="location" tool_tip="Digite o nome de uma Região"/>
 	<button label="Procurar" name="DoSearch" tool_tip="Procurar por região"/>
 	<text name="search_label">
 		Resultados da Procura:

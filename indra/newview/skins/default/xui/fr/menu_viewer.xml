@@ -8,13 +8,14 @@
     <menu_item_call label="Import  multiples ([UPLOADFEE] par fichier)" name="Bulk Upload"/>
 	<menu_item_call label="Import XML" name="Import"/>
 	<menu_item_call label="Import avec textures" name="Import2"/>
+	<menu_item_call label="Changer les textures locales" name="Change Local Textures"/>
     <menu_item_separator/>
     <menu_item_call label="Définir les droits par défaut " name="perm prefs"/>
 		<menu_item_separator/>
-		<menu_item_call label="Enregistrer la texture sur le disque dur en TGA" name="Save Preview As..."/>
-		<menu_item_call label="Enregistrer la texture sur le disque dur en PNG" name="Save Preview AsPNG..."/>
+		<menu_item_call label="Enregistrer la texture sur le disque" name="Save Preview As..."/>
 
 		<menu_item_separator/>
+		<menu_item_call label="Minimiser toutes les fenêtres" name="Minimize All Windows"/>
 		<menu_item_call label="Fermer la fenêtre" name="Close Window"/>
 		<menu_item_call label="Fermer toutes les fenêtres" name="Close All Windows"/>
 		<menu_item_separator label="-----------" name="separator3"/>

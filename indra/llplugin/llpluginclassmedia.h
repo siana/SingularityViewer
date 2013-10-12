@@ -34,7 +34,9 @@
 #include "llrect.h"
 #include "v4color.h"
 
-class LLPluginClassMedia : public LLPluginClassBasic
+#include <boost/signals2.hpp>
+
+class LLPluginClassMedia : public LLPluginClassBasic, public boost::signals2::trackable
 {
 	LOG_CLASS(LLPluginClassMedia);
 

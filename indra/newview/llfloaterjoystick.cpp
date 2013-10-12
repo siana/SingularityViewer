@@ -99,8 +99,13 @@ BOOL LLFloaterJoystick::postBuild()
 		rect = LLRect(350, r.mTop, r.mRight + 200, 0);
 	}
 
-	mAxisStatsView = new LLStatView("axis values", joystick, "", rect);
-	mAxisStatsView->setDisplayChildren(TRUE);
+
+	LLStatView::Params params;
+	params.name("axis values");
+	params.rect(rect);
+	params.show_label(true);
+	params.label(joystick);
+	mAxisStatsView = LLUICtrlFactory::create<LLStatView>(params);
 
 	for (U32 i = 0; i < 6; i++)
 	{

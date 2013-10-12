@@ -123,7 +123,7 @@ void LLFloaterDayCycle::onClickHelp(void* data)
 	LLFloaterDayCycle* self = LLFloaterDayCycle::instance();
 
 	std::string xml_alert = *(std::string *) data;
-	LLNotifications::instance().add(self->contextualNotification(xml_alert));
+	self->addContextualNotification(xml_alert);
 }
 
 void LLFloaterDayCycle::initHelpBtn(const std::string& name, const std::string& xml_alert)

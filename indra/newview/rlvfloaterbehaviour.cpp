@@ -58,6 +58,7 @@ bool rlvGetShowException(ERlvBehaviour eBhvr)
 		case RLV_BHVR_RECVEMOTE:
 		case RLV_BHVR_SENDIM:
 		case RLV_BHVR_RECVIM:
+		case RLV_BHVR_STARTIM:
 		case RLV_BHVR_TPLURE:
 		case RLV_BHVR_ACCEPTTP:
 			return true;

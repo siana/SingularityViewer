@@ -147,7 +147,7 @@ public:
 					  const LLVector3d &pos_global = LLVector3d::zero,
 					  const LLUUID source_object = LLUUID::null);
 					  // </edit>
-	bool preloadSound(const LLUUID &id);
+	bool preloadSound(const LLUUID &id);	//Preloads sounds without requiring a source.
 
 	void addAudioSource(LLAudioSource *asp);
 	void cleanupAudioSource(LLAudioSource *asp);
@@ -179,8 +179,6 @@ public:
 	bool hasDecodedFile(const LLUUID &uuid);
 	bool hasLocalFile(const LLUUID &uuid);
 
-	bool updateBufferForData(LLAudioData *adp, const LLUUID &audio_uuid = LLUUID::null);
-
 	void setAllowLargeSounds(bool allow) { mAllowLargeSounds = allow ;}
 	bool getAllowLargeSounds() const {return mAllowLargeSounds;}
 
@@ -189,6 +187,8 @@ public:
 	static void assetCallback(LLVFS *vfs, const LLUUID &uuid, LLAssetType::EType type, void *user_data, S32 result_code, LLExtStat ext_status);
 
 	friend class LLPipeline; // For debugging
+
+	void checkStates();
 public:
 	F32 mMaxWindGain; // Hack.  Public to set before fade in?
 
@@ -242,6 +242,7 @@ public://Jay: IDGAF
 	source_map mAllSources;
 protected:
 	data_map mAllData;
+	std::list<LLUUID> mPreloadSystemList;
 	LLAudioChannel *mChannels[MAX_CHANNELS];
 
 	// Buffers needs to change into a different data structure, as the number of buffers
@@ -285,9 +286,7 @@ public:
 	virtual void update();						// Update this audio source
 	void updatePriority();
 
-	void preload(const LLUUID &audio_id); // Only used for preloading UI sounds, now.
-
-	void addAudioData(LLAudioData *adp, bool set_current = TRUE);
+	void preload(const LLUUID &audio_id);
 
 	void setAmbient(const bool ambient)						{ mAmbient = ambient; }
 	bool isAmbient() const									{ return mAmbient; }
@@ -447,12 +446,11 @@ public:
 protected:
 	virtual void play() = 0;
 	virtual void playSynced(LLAudioChannel *channelp) = 0;
-	virtual void cleanup() = 0;
-	void setWaiting(bool waiting)               { mWaiting = waiting; }
+	virtual void cleanup();
 
 public:
 	virtual bool isPlaying() = 0;
-	bool isWaiting() const						{ return mWaiting; }
+	bool isFree() const							{ return mCurrentSourcep==NULL; }
 
 protected:
 	virtual bool updateBuffer(); // Check to see if the buffer associated with the source changed, and update if necessary.
@@ -463,7 +461,6 @@ protected:
 	LLAudioSource	*mCurrentSourcep;
 	LLAudioBuffer	*mCurrentBufferp;
 	bool			mLoopedThisFrame;
-	bool			mWaiting;	// Waiting for sync.
 	F32             mSecondaryGain;
 };
 
@@ -478,6 +475,7 @@ protected:
 class LLAudioBuffer
 {
 public:
+	LLAudioBuffer() : mInUse(true), mAudioDatap(NULL) { mLastUseTimer.reset(); }
 	virtual ~LLAudioBuffer() {};
 	virtual bool loadWAV(const std::string& filename) = 0;
 	virtual U32 getLength() = 0;

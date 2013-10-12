@@ -44,11 +44,10 @@
 #include "lltransactiontypes.h"
 #include "llstatusbar.h"
 #include "lleconomy.h"
-#include "llviewercontrol.h"
 #include "llviewerregion.h"
 #include "llviewerwindow.h"
 #include "llfloaterdirectory.h"
-#include "llfloatergroupinfo.h"
+#include "llgroupactions.h"
 #include "llnotificationsutil.h"
 #include "lluictrlfactory.h"
 #include "lltrans.h"
@@ -66,7 +65,7 @@
 #pragma warning(pop)   // Restore all warnings to the previous state
 #endif
 
-const U32 MAX_CACHED_GROUPS = 10;
+const U32 MAX_CACHED_GROUPS = 20;
 
 //
 // LLRoleActionSet
@@ -236,8 +235,15 @@ LLGroupMgrGroupData::LLGroupMgrGroupData(const LLUUID& id) :
 	mRoleDataComplete(FALSE),
 	mRoleMemberDataComplete(FALSE),
 	mGroupPropertiesDataComplete(FALSE),
-	mPendingRoleMemberRequest(FALSE)
+	mPendingRoleMemberRequest(FALSE),
+	mAccessTime(0.0f)
 {
+	mMemberVersion.generate();
+}
+
+void LLGroupMgrGroupData::setAccessed()
+{
+	mAccessTime = (F32)LLFrameTimer::getTotalSeconds();
 }
 
 BOOL LLGroupMgrGroupData::getRoleData(const LLUUID& role_id, LLRoleData& role_data)
@@ -419,6 +425,7 @@ void LLGroupMgrGroupData::removeMemberData()
 	}
 	mMembers.clear();
 	mMemberDataComplete = FALSE;
+	mMemberVersion.generate();
 }
 
 void LLGroupMgrGroupData::removeRoleData()
@@ -919,13 +926,18 @@ LLGroupMgrGroupData* LLGroupMgr::getGroupData(const LLUUID& id)
 // so that the sorter can sort by year before month before day.
 static void formatDateString(std::string &date_string)
 {
-	tm t;
-	if (sscanf(date_string.c_str(), "%u/%u/%u", &t.tm_mon, &t.tm_mday, &t.tm_year) == 3 && t.tm_year > 1900)
+	using namespace boost;
+	cmatch result;
+	const regex expression("([0-9]{1,2})/([0-9]{1,2})/([0-9]{4})");
+	if (regex_match(date_string.c_str(), result, expression))
 	{
-		t.tm_year -= 1900;
-		t.tm_mon--;
-		t.tm_hour = t.tm_min = t.tm_sec = 0;
-		timeStructToFormattedString(&t, gSavedSettings.getString("ShortDateFormat"), date_string);
+		// convert matches to integers so that we can pad them with zeroes on Linux
+		S32 year	= boost::lexical_cast<S32>(result[3]);
+		S32 month	= boost::lexical_cast<S32>(result[1]);
+		S32 day		= boost::lexical_cast<S32>(result[2]);
+
+		// ISO 8601 date format
+		date_string = llformat("%04d-%02d-%02dT00:00:00Z", year, month, day);
 	}
 }
 
@@ -947,7 +959,7 @@ void LLGroupMgr::processGroupMembersReply(LLMessageSystem* msg, void** data)
 	LLUUID request_id;
 	msg->getUUIDFast(_PREHASH_GroupData, _PREHASH_RequestID, request_id);
 
-	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->createGroupData(group_id);
+	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->getGroupData(group_id);
 	if (!group_datap || (group_datap->mMemberRequestID != request_id))
 	{
 		llwarns << "processGroupMembersReply: Received incorrect (stale?) group or request id" << llendl;
@@ -1016,6 +1028,8 @@ void LLGroupMgr::processGroupMembersReply(LLMessageSystem* msg, void** data)
 			LLGroupMgr::getInstance()->sendGroupTitlesRequest(group_id);
 		}
 	}
+
+	group_datap->mMemberVersion.generate();
 
 	if (group_datap->mMembers.size() ==  (U32)group_datap->mMemberCount)
 	{
@@ -1118,7 +1132,7 @@ void LLGroupMgr::processGroupRoleDataReply(LLMessageSystem* msg, void** data)
 	LLUUID request_id;
 	msg->getUUIDFast(_PREHASH_GroupData, _PREHASH_RequestID, request_id);
 
-	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->createGroupData(group_id);
+	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->getGroupData(group_id);
 	if (!group_datap || (group_datap->mRoleDataRequestID != request_id))
 	{
 		llwarns << "processGroupPropertiesReply: Received incorrect (stale?) group or request id" << llendl;
@@ -1207,7 +1221,7 @@ void LLGroupMgr::processGroupRoleMembersReply(LLMessageSystem* msg, void** data)
 	U32 total_pairs;
 	msg->getU32(_PREHASH_AgentData, "TotalPairs", total_pairs);
 
-	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->createGroupData(group_id);
+	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->getGroupData(group_id);
 	if (!group_datap || (group_datap->mRoleMembersRequestID != request_id))
 	{
 		llwarns << "processGroupRoleMembersReply: Received incorrect (stale?) group or request id" << llendl;
@@ -1311,7 +1325,7 @@ void LLGroupMgr::processGroupTitlesReply(LLMessageSystem* msg, void** data)
 	LLUUID request_id;
 	msg->getUUIDFast(_PREHASH_AgentData, _PREHASH_RequestID, request_id);
 
-	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->createGroupData(group_id);
+	LLGroupMgrGroupData* group_datap = LLGroupMgr::getInstance()->getGroupData(group_id);
 	if (!group_datap || (group_datap->mTitlesRequestID != request_id))
 	{
 		llwarns << "processGroupTitlesReply: Received incorrect (stale?) group" << llendl;
@@ -1351,7 +1365,7 @@ void LLGroupMgr::processEjectGroupMemberReply(LLMessageSystem* msg, void ** data
 	// If we had a failure, the group panel needs to be updated.
 	if (!success)
 	{
-		LLFloaterGroupInfo::refreshGroup(group_id);
+		LLGroupActions::refresh(group_id);
 	}
 }
 
@@ -1371,7 +1385,7 @@ void LLGroupMgr::processJoinGroupReply(LLMessageSystem* msg, void ** data)
 
 		LLGroupMgr::getInstance()->clearGroupData(group_id);
 		// refresh the floater for this group, if any.
-		LLFloaterGroupInfo::refreshGroup(group_id);
+		LLGroupActions::refresh(group_id);
 		// refresh the group panel of the search window, if necessary.
 		LLFloaterDirectory::refreshGroup(group_id);
 	}
@@ -1393,7 +1407,7 @@ void LLGroupMgr::processLeaveGroupReply(LLMessageSystem* msg, void ** data)
 
 		LLGroupMgr::getInstance()->clearGroupData(group_id);
 		// close the floater for this group, if any.
-		LLFloaterGroupInfo::closeGroup(group_id);
+		LLGroupActions::closeGroup(group_id);
 		// refresh the group panel of the search window, if necessary.
 		LLFloaterDirectory::refreshGroup(group_id);
 	}
@@ -1429,8 +1443,8 @@ void LLGroupMgr::processCreateGroupReply(LLMessageSystem* msg, void ** data)
 
 		gAgent.mGroups.push_back(gd);
 
-		LLFloaterGroupInfo::closeCreateGroup();
-		LLFloaterGroupInfo::showFromUUID(group_id,"roles_tab");
+		LLGroupActions::closeGroup(LLUUID::null);
+		LLGroupActions::showTab(group_id, "roles_tab");
 	}
 	else
 	{
@@ -1443,7 +1457,7 @@ void LLGroupMgr::processCreateGroupReply(LLMessageSystem* msg, void ** data)
 
 LLGroupMgrGroupData* LLGroupMgr::createGroupData(const LLUUID& id)
 {
-	LLGroupMgrGroupData* group_datap;
+	LLGroupMgrGroupData* group_datap = NULL;
 
 	group_map_t::iterator existing_group = LLGroupMgr::getInstance()->mGroups.find(id);
 	if (existing_group == LLGroupMgr::getInstance()->mGroups.end())
@@ -1454,6 +1468,11 @@ LLGroupMgrGroupData* LLGroupMgr::createGroupData(const LLUUID& id)
 	else
 	{
 		group_datap = existing_group->second;
+	}
+
+	if (group_datap)
+	{
+		group_datap->setAccessed();
 	}
 
 	return group_datap;
@@ -1496,25 +1515,41 @@ void LLGroupMgr::notifyObservers(LLGroupChange gc)
 
 void LLGroupMgr::addGroup(LLGroupMgrGroupData* group_datap)
 {
-	if (mGroups.size() > MAX_CACHED_GROUPS)
+	while (mGroups.size() >= MAX_CACHED_GROUPS)
 	{
-		// get rid of groups that aren't observed
-		for (group_map_t::iterator gi = mGroups.begin(); gi != mGroups.end() && mGroups.size() > MAX_CACHED_GROUPS / 2; )
+		// LRU: Remove the oldest un-observed group from cache until group size is small enough
+
+		F32 oldest_access = LLFrameTimer::getTotalSeconds();
+		group_map_t::iterator oldest_gi = mGroups.end();
+
+		for (group_map_t::iterator gi = mGroups.begin(); gi != mGroups.end(); ++gi )
 		{
 			observer_multimap_t::iterator oi = mObservers.find(gi->first);
 			if (oi == mObservers.end())
 			{
-				// not observed
-				LLGroupMgrGroupData* unobserved_groupp = gi->second;
-				delete unobserved_groupp;
-				mGroups.erase(gi++);
-			}
-			else
-			{
-				++gi;
+				if (gi->second 
+						&& (gi->second->getAccessTime() < oldest_access))
+				{
+					oldest_access = gi->second->getAccessTime();
+					oldest_gi = gi;
+				}
 			}
 		}
+		
+		if (oldest_gi != mGroups.end())
+		{
+			delete oldest_gi->second;
+			mGroups.erase(oldest_gi);
+		}
+		else
+		{
+			// All groups must be currently open, none to remove.
+			// Just add the new group anyway, but get out of this loop as it 
+			// will never drop below max_cached_groups.
+			break;
+		}
 	}
+
 	mGroups[group_datap->getID()] = group_datap;
 }
 
@@ -1886,6 +1921,8 @@ void LLGroupMgr::sendGroupMemberEjects(const LLUUID& group_id,
 	{
 		gAgent.sendReliableMessage();
 	}
+
+	group_datap->mMemberVersion.generate();
 }
 
 
@@ -2047,8 +2084,10 @@ void LLGroupMgr::processCapGroupMembersRequest(const LLSD& content)
 		group_datap->mMembers[member_id] = data;
 	}
 
+	group_datap->mMemberVersion.generate();
+
 	// Technically, we have this data, but to prevent completely overhauling
-	// this entire system (it would be nice, but I don't have the time),
+	// this entire system (it would be nice, but I don't have the time), 
 	// I'm going to be dumb and just call services I most likely don't need
 	// with the thought being that the system might need it to be done.
 	//

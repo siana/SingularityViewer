@@ -104,6 +104,8 @@ void LLViewBorder::draw()
 
 void LLViewBorder::drawOnePixelLines()
 {
+	F32 alpha = getDrawContext().mAlpha;
+
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 
 	LLColor4 top_color = mHighlightLight;
@@ -137,6 +139,9 @@ void LLViewBorder::drawOnePixelLines()
 	S32 top		= getRect().getHeight();
 	S32 right	= getRect().getWidth();
 	S32 bottom	= 0;
+
+	top_color %= alpha;
+	bottom_color %= alpha;
 
 	gGL.color4fv( top_color.mV );
 	gl_line_2d(left, bottom, left, top);

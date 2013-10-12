@@ -46,21 +46,18 @@
 #include "message.h"
 
 #include "llagent.h"
-#include "llalertdialog.h"
+#include "llavataractions.h"
 #include "llbutton.h"
 #include "llcheckboxctrl.h"
 #include "llclassifiedflags.h"
 #include "llclassifiedstatsresponder.h"
 #include "llcommandhandler.h" // for classified HTML detail page click tracking
-#include "llviewercontrol.h"
 #include "lllineeditor.h"
-#include "llfloateravatarinfo.h"
 #include "llfloaterclassified.h"
 #include "lltextbox.h"
 #include "llcombobox.h"
 #include "llviewertexteditor.h"
 #include "lltexturectrl.h"
-#include "lluiconstants.h"
 #include "llurldispatcher.h"	// for classified HTML detail click teleports
 #include "lluictrlfactory.h"
 #include "llviewerparcelmgr.h"
@@ -247,40 +244,37 @@ void LLPanelClassified::reset()
 BOOL LLPanelClassified::postBuild()
 {
     mSnapshotCtrl = getChild<LLTextureCtrl>("snapshot_ctrl");
-	mSnapshotCtrl->setCommitCallback(onCommitAny);
-	mSnapshotCtrl->setCallbackUserData(this);
+	mSnapshotCtrl->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 	mSnapshotSize = mSnapshotCtrl->getRect();
 
     mNameEditor = getChild<LLLineEditor>("given_name_editor");
 	mNameEditor->setMaxTextLength(DB_PARCEL_NAME_LEN);
 	mNameEditor->setCommitOnFocusLost(TRUE);
-	mNameEditor->setFocusReceivedCallback(boost::bind(focusReceived, _1, this));
-	mNameEditor->setCommitCallback(onCommitAny);
-	mNameEditor->setCallbackUserData(this);
+	mNameEditor->setFocusReceivedCallback(boost::bind(&LLPanelClassified::checkDirty, this));
+	mNameEditor->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 	mNameEditor->setPrevalidate( LLLineEditor::prevalidateASCII );
 
     mDescEditor = getChild<LLTextEditor>("desc_editor");
 	mDescEditor->setCommitOnFocusLost(TRUE);
-	mDescEditor->setFocusReceivedCallback(boost::bind(focusReceived, _1, this));
-	mDescEditor->setCommitCallback(onCommitAny);
-	mDescEditor->setCallbackUserData(this);
+	mDescEditor->setFocusReceivedCallback(boost::bind(&LLPanelClassified::checkDirty, this));
+	mDescEditor->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 	mDescEditor->setTabsToNextField(TRUE);
 
     mLocationEditor = getChild<LLLineEditor>("location_editor");
 
     mSetBtn = getChild<LLButton>( "set_location_btn");
-    mSetBtn->setClickedCallback(boost::bind(&LLPanelClassified::onClickSet, this));
+	mSetBtn->setCommitCallback(boost::bind(&LLPanelClassified::onClickSet, this));
 
     mTeleportBtn = getChild<LLButton>( "classified_teleport_btn");
-    mTeleportBtn->setClickedCallback(boost::bind(&LLPanelClassified::onClickTeleport, this));
+	mTeleportBtn->setCommitCallback(boost::bind(&LLPanelClassified::onClickTeleport, this));
 
     mMapBtn = getChild<LLButton>( "classified_map_btn");
-    mMapBtn->setClickedCallback(boost::bind(&LLPanelClassified::onClickMap, this));
+	mMapBtn->setCommitCallback(boost::bind(&LLPanelClassified::onClickMap, this));
 
 	if(mInFinder)
 	{
 		mProfileBtn  = getChild<LLButton>( "classified_profile_btn");
-		mProfileBtn->setClickedCallback(boost::bind(&LLPanelClassified::onClickProfile, this));
+		mProfileBtn->setCommitCallback(boost::bind(&LLPanelClassified::onClickProfile, this));
 	}
 
 	mCategoryCombo = getChild<LLComboBox>( "classified_category_combo");
@@ -292,13 +286,11 @@ BOOL LLPanelClassified::postBuild()
 		mCategoryCombo->add(iter->second, (void *)((intptr_t)iter->first), ADD_BOTTOM);
 	}
 	mCategoryCombo->setCurrentByIndex(0);
-	mCategoryCombo->setCommitCallback(onCommitAny);
-	mCategoryCombo->setCallbackUserData(this);
+	mCategoryCombo->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 
 	mMatureCombo = getChild<LLComboBox>( "classified_mature_check");
 	mMatureCombo->setCurrentByIndex(0);
-	mMatureCombo->setCommitCallback(onCommitAny);
-	mMatureCombo->setCallbackUserData(this);
+	mMatureCombo->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 	if (gAgent.wantsPGOnly())
 	{
 		// Teens don't get to set mature flag. JC
@@ -309,13 +301,11 @@ BOOL LLPanelClassified::postBuild()
 	if (!mInFinder)
 	{
 		mAutoRenewCheck = getChild<LLCheckBoxCtrl>( "auto_renew_check");
-		mAutoRenewCheck->setCommitCallback(onCommitAny);
-		mAutoRenewCheck->setCallbackUserData(this);
+		mAutoRenewCheck->setCommitCallback(boost::bind(&LLPanelClassified::checkDirty, this));
 	}
 
 	mUpdateBtn = getChild<LLButton>("classified_update_btn");
-    mUpdateBtn->setClickedCallback(boost::bind(&LLPanelClassified::onClickUpdate, this));
-    mUpdateBtn->setCallbackUserData(this);
+	mUpdateBtn->setCommitCallback(boost::bind(&LLPanelClassified::onClickUpdate, this));
 
 	if (!mInFinder)
 	{
@@ -394,9 +384,6 @@ void LLPanelClassified::processProperties(void* data, EAvatarProcessorType type)
 
 			mUpdateBtn->setLabel(getString("update_txt"));
 
-			resetDirty();
-
-			// I don't know if a second call is deliberate or a bad merge, so I'm leaving it here. 
 			resetDirty();
 		}
     }
@@ -499,7 +486,7 @@ void LLPanelClassified::initNewClassified()
 	mUpdateBtn->setLabel(getString("publish_txt"));
 	
 	// simulate clicking the "location" button
-	LLPanelClassified::onClickSet(this);
+	onClickSet();
 }
 
 
@@ -716,33 +703,28 @@ void LLPanelClassified::refresh()
 	}
 }
 
-// static
-void LLPanelClassified::onClickUpdate(void* data)
+void LLPanelClassified::onClickUpdate()
 {
-	LLPanelClassified* self = (LLPanelClassified*)data;
-
-	if(self == NULL) return;
-
 	// Disallow leading spaces, punctuation, etc. that screw up
 	// sort order.
-	if ( ! self->titleIsValid() )
+	if (!titleIsValid())
 	{
 		return;
-	};
+	}
 
 	// If user has not set mature, do not allow publish
-	if(self->mMatureCombo->getCurrentIndex() == DECLINE_TO_STATE)
+	if (mMatureCombo->getCurrentIndex() == DECLINE_TO_STATE)
 	{
 		// Tell user about it
 		LLNotificationsUtil::add("SetClassifiedMature", 
 				LLSD(), 
 				LLSD(), 
-				boost::bind(&LLPanelClassified::confirmMature, self, _1, _2));
+				boost::bind(&LLPanelClassified::confirmMature, this, _1, _2));
 		return;
 	}
 
 	// Mature content flag is set, proceed
-	self->gotMature();
+	gotMature();
 }
 
 // Callback from a dialog indicating response to mature notification
@@ -784,38 +766,30 @@ void LLPanelClassified::gotMature()
 	else
 	{
 		// Ask the user how much they want to pay
-		LLFloaterPriceForListing::show( callbackGotPriceForListing, this );
+		new LLFloaterPriceForListing(boost::bind(&LLPanelClassified::callbackGotPriceForListing, this, _1));
 	}
 }
 
-// static
-void LLPanelClassified::callbackGotPriceForListing(S32 option, std::string text, void* data)
+void LLPanelClassified::callbackGotPriceForListing(const std::string& text)
 {
-	LLPanelClassified* self = (LLPanelClassified*)data;
-
-	// Only do something if user hits publish
-	if (option != 0) return;
-
 	S32 price_for_listing = strtol(text.c_str(), NULL, 10);
 	if (price_for_listing < MINIMUM_PRICE_FOR_LISTING)
 	{
 		LLSD args;
-		std::string price_text = llformat("%d", MINIMUM_PRICE_FOR_LISTING);
-		args["MIN_PRICE"] = price_text;
-			
+		args["MIN_PRICE"] = llformat("%d", MINIMUM_PRICE_FOR_LISTING);
 		LLNotificationsUtil::add("MinClassifiedPrice", args);
 		return;
 	}
 
 	// price is acceptable, put it in the dialog for later read by 
 	// update send
-	self->mPriceForListing = price_for_listing;
+	mPriceForListing = price_for_listing;
 
 	LLSD args;
 	args["AMOUNT"] = llformat("%d", price_for_listing);
 	args["CURRENCY"] = gHippoGridManager->getConnectedGrid()->getCurrencySymbol();
 	LLNotificationsUtil::add("PublishClassified", args, LLSD(), 
-									boost::bind(&LLPanelClassified::confirmPublish, self, _1, _2));
+									boost::bind(&LLPanelClassified::confirmPublish, this, _1, _2));
 }
 
 void LLPanelClassified::resetDirty()
@@ -865,51 +839,39 @@ bool LLPanelClassified::confirmPublish(const LLSD& notification, const LLSD& res
 	return false;
 }
 
-
-// static
-void LLPanelClassified::onClickTeleport(void* data)
+void LLPanelClassified::onClickTeleport()
 {
-    LLPanelClassified* self = (LLPanelClassified*)data;
-
-    if (!self->mPosGlobal.isExactlyZero())
+	if (!mPosGlobal.isExactlyZero())
     {
-        gAgent.teleportViaLocation(self->mPosGlobal);
-        gFloaterWorldMap->trackLocation(self->mPosGlobal);
+		gAgent.teleportViaLocation(mPosGlobal);
+		gFloaterWorldMap->trackLocation(mPosGlobal);
 
-		self->sendClassifiedClickMessage("teleport");
+		sendClassifiedClickMessage("teleport");
     }
 }
 
-
-// static
-void LLPanelClassified::onClickMap(void* data)
+void LLPanelClassified::onClickMap()
 {
-	LLPanelClassified* self = (LLPanelClassified*)data;
-	gFloaterWorldMap->trackLocation(self->mPosGlobal);
-	LLFloaterWorldMap::show(NULL, TRUE);
+	gFloaterWorldMap->trackLocation(mPosGlobal);
+	LLFloaterWorldMap::show(true);
 
-	self->sendClassifiedClickMessage("map");
+	sendClassifiedClickMessage("map");
 }
 
-// static
-void LLPanelClassified::onClickProfile(void* data)
+void LLPanelClassified::onClickProfile()
 {
-	LLPanelClassified* self = (LLPanelClassified*)data;
-	LLFloaterAvatarInfo::showFromDirectory(self->mCreatorID);
-	self->sendClassifiedClickMessage("profile");
+	LLAvatarActions::showProfile(mCreatorID);
+	sendClassifiedClickMessage("profile");
 }
 
-// static
 /*
-void LLPanelClassified::onClickLandmark(void* data)
+void LLPanelClassified::onClickLandmark()
 {
-    LLPanelClassified* self = (LLPanelClassified*)data;
-	create_landmark(self->mNameEditor->getText(), "", self->mPosGlobal);
+	create_landmark(mNameEditor->getText(), "", mPosGlobal);
 }
 */
 
-// static
-void LLPanelClassified::onClickSet(void* data)
+void LLPanelClassified::onClickSet()
 {
 // [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.0.0a)
 	if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC))
@@ -917,10 +879,9 @@ void LLPanelClassified::onClickSet(void* data)
 		return;
 	}
 // [/RLVa:KB]
-    LLPanelClassified* self = (LLPanelClassified*)data;
 
 	// Save location for later.
-	self->mPosGlobal = gAgent.getPositionGlobal();
+	mPosGlobal = gAgent.getPositionGlobal();
 
 	std::string location_text;
 	std::string regionName = "(will update after publish)";
@@ -932,22 +893,22 @@ void LLPanelClassified::onClickSet(void* data)
 	location_text.assign(regionName);
 	location_text.append(", ");
 
-    S32 region_x = llround((F32)self->mPosGlobal.mdV[VX]) % REGION_WIDTH_UNITS;
-    S32 region_y = llround((F32)self->mPosGlobal.mdV[VY]) % REGION_WIDTH_UNITS;
-	S32 region_z = llround((F32)self->mPosGlobal.mdV[VZ]);
+	S32 region_x = llround((F32)mPosGlobal.mdV[VX]) % REGION_WIDTH_UNITS;
+	S32 region_y = llround((F32)mPosGlobal.mdV[VY]) % REGION_WIDTH_UNITS;
+	S32 region_z = llround((F32)mPosGlobal.mdV[VZ]);
    
-	location_text.append(self->mSimName);
+	location_text.append(mSimName);
     location_text.append(llformat(" (%d, %d, %d)", region_x, region_y, region_z));
 
-	self->mLocationEditor->setText(location_text);
-	self->mLocationChanged = true;
+	mLocationEditor->setText(location_text);
+	mLocationChanged = true;
 	
-	self->setDefaultAccessCombo();	
+	setDefaultAccessCombo();
 
 	// Set this to null so it updates on the next save.
-	self->mParcelID.setNull();
+	mParcelID.setNull();
 
-	onCommitAny(NULL, data);
+	checkDirty();
 }
 
 
@@ -964,23 +925,6 @@ BOOL LLPanelClassified::checkDirty()
 	if	( mAutoRenewCheck )			mDirty |= mAutoRenewCheck->isDirty();
 
 	return mDirty;
-}
-
-// static
-void LLPanelClassified::onCommitAny(LLUICtrl* ctrl, void* data)
-{
-	LLPanelClassified* self = (LLPanelClassified*)data;
-	if (self)
-	{
-		self->checkDirty();
-	}
-}
-
-// static
-void LLPanelClassified::focusReceived(LLFocusableElement* ctrl, void* data)
-{
-	// allow the data to be saved
-	onCommitAny((LLUICtrl*)ctrl, data);
 }
 
 
@@ -1003,15 +947,22 @@ void LLPanelClassified::sendClassifiedClickMessage(const std::string& type)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-LLFloaterPriceForListing::LLFloaterPriceForListing()
+LLFloaterPriceForListing::LLFloaterPriceForListing(const signal_t::slot_type& cb)
 :	LLFloater(std::string("PriceForListing")),
-	mCallback(NULL),
-	mUserData(NULL)
-{ }
+	mSignal(new signal_t)
+{
+	// Builds and adds to gFloaterView
+	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_price_for_listing.xml");
+	center();
+
+	mSignal->connect(cb);
+}
 
 //virtual
 LLFloaterPriceForListing::~LLFloaterPriceForListing()
-{ }
+{
+	delete mSignal;
+}
 
 //virtual
 BOOL LLFloaterPriceForListing::postBuild()
@@ -1026,50 +977,18 @@ BOOL LLFloaterPriceForListing::postBuild()
 		edit->setFocus(TRUE);
 	}
 
-	childSetAction("set_price_btn", onClickSetPrice, this);
+	getChild<LLUICtrl>("set_price_btn")->setCommitCallback(boost::bind(&LLFloaterPriceForListing::buttonCore, this));
 
-	childSetAction("cancel_btn", onClickCancel, this);
+	getChild<LLUICtrl>("cancel_btn")->setCommitCallback(boost::bind(&LLFloater::close, this, false));
 
 	setDefaultBtn("set_price_btn");
 	return TRUE;
 }
 
-//static
-void LLFloaterPriceForListing::show( void (*callback)(S32, std::string, void*), void* userdata)
+void LLFloaterPriceForListing::buttonCore()
 {
-	LLFloaterPriceForListing *self = new LLFloaterPriceForListing();
-
-	// Builds and adds to gFloaterView
-	LLUICtrlFactory::getInstance()->buildFloater(self, "floater_price_for_listing.xml");
-	self->center();
-
-	self->mCallback = callback;
-	self->mUserData = userdata;
-}
-
-//static
-void LLFloaterPriceForListing::onClickSetPrice(void* data)
-{
-	buttonCore(0, data);
-}
-
-//static
-void LLFloaterPriceForListing::onClickCancel(void* data)
-{
-	buttonCore(1, data);
-}
-
-//static
-void LLFloaterPriceForListing::buttonCore(S32 button, void* data)
-{
-	LLFloaterPriceForListing* self = (LLFloaterPriceForListing*)data;
-
-	if (self->mCallback)
-	{
-		std::string text = self->childGetText("price_edit");
-		self->mCallback(button, text, self->mUserData);
-		self->close();
-	}
+	(*mSignal)(childGetText("price_edit"));
+	close();
 }
 
 void LLPanelClassified::setDefaultAccessCombo()

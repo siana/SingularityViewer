@@ -409,10 +409,7 @@ Seules les parcelles de grande taille peuvent apparaître dans la recherche.
 			<text name="allow_label5">
 				
 			</text>
-			<check_box label="See Avatars" name="SeeAvatarsCheck" tool_tip="Communication et visuel possible avec les parcelles autres que celle-ci."/>
-			<string name="see_avs_text">
-				Voir et discuter avec les autres residents sur cette parcelle.
-			</string>
+			<check_box label="Voir et discuter avec les autres residents sur cette parcelle." name="SeeAvatarsCheck" tool_tip="Communication et visuel possible avec les parcelles autres que celle-ci."/>
 			<text name="Snapshot:">
 				Photo:
 			</text>

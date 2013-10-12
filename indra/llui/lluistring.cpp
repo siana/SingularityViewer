@@ -33,31 +33,35 @@
 #include "linden_common.h"
 #include "lluistring.h"
 #include "llsd.h"
+#include "lltrans.h"
 
-const LLStringUtil::format_map_t LLUIString::sNullArgs;
+LLFastTimer::DeclareTimer FTM_UI_STRING("UI String");
 
 
 LLUIString::LLUIString(const std::string& instring, const LLStringUtil::format_map_t& args)
-	: mOrig(instring),
-	  mArgs(args)
+:	mOrig(instring),
+	mArgs(new LLStringUtil::format_map_t(args))
 {
-	format();
+	dirty();
 }
 
 void LLUIString::assign(const std::string& s)
 {
 	mOrig = s;
-	format();
+	dirty();
 }
 
 void LLUIString::setArgList(const LLStringUtil::format_map_t& args)
+
 {
-	mArgs = args;
-	format();
+	getArgs() = args;
+	dirty();
 }
 
 void LLUIString::setArgs(const LLSD& sd)
 {
+	LLFastTimer timer(FTM_UI_STRING);
+	
 	if (!sd.isMap()) return;
 	for(LLSD::map_const_iterator sd_it = sd.beginMap();
 		sd_it != sd.endMap();
@@ -65,40 +69,40 @@ void LLUIString::setArgs(const LLSD& sd)
 	{
 		setArg(sd_it->first, sd_it->second.asString());
 	}
-	format();
+	dirty();
 }
 
 void LLUIString::setArg(const std::string& key, const std::string& replacement)
 {
-	mArgs[key] = replacement;
-	format();
+	getArgs()[key] = replacement;
+	dirty();
 }
 
 void LLUIString::truncate(S32 maxchars)
 {
-	if (mWResult.size() > (size_t)maxchars)
+	if (getUpdatedWResult().size() > (size_t)maxchars)
 	{
-		LLWStringUtil::truncate(mWResult, maxchars);
-		mResult = wstring_to_utf8str(mWResult);
+		LLWStringUtil::truncate(getUpdatedWResult(), maxchars);
+		mResult = wstring_to_utf8str(getUpdatedWResult());
 	}
 }
 
 void LLUIString::erase(S32 charidx, S32 len)
 {
-	mWResult.erase(charidx, len);
-	mResult = wstring_to_utf8str(mWResult);
+	getUpdatedWResult().erase(charidx, len);
+	mResult = wstring_to_utf8str(getUpdatedWResult());
 }
 
 void LLUIString::insert(S32 charidx, const LLWString& wchars)
 {
-	mWResult.insert(charidx, wchars);
-	mResult = wstring_to_utf8str(mWResult);
+	getUpdatedWResult().insert(charidx, wchars);
+	mResult = wstring_to_utf8str(getUpdatedWResult());
 }
 
 void LLUIString::replace(S32 charidx, llwchar wc)
 {
-	mWResult[charidx] = wc;
-	mResult = wstring_to_utf8str(mWResult);
+	getUpdatedWResult()[charidx] = wc;
+	mResult = wstring_to_utf8str(getUpdatedWResult());
 }
 
 void LLUIString::clear()
@@ -109,9 +113,48 @@ void LLUIString::clear()
 	mWResult.clear();
 }
 
-void LLUIString::format()
+void LLUIString::dirty()
 {
+	mNeedsResult = true;
+	mNeedsWResult = true;
+}
+
+void LLUIString::updateResult() const
+{
+	mNeedsResult = false;
+
+	LLFastTimer timer(FTM_UI_STRING);
+	
+	// optimize for empty strings (don't attempt string replacement)
+	if (mOrig.empty())
+	{
+		mResult.clear();
+		mWResult.clear();
+		return;
+	}
 	mResult = mOrig;
-	LLStringUtil::format(mResult, mArgs);
-	mWResult = utf8str_to_wstring(mResult);
+	
+	// get the default args + local args
+	LLStringUtil::format_map_t combined_args = LLTrans::getDefaultArgs();
+	if (mArgs && !mArgs->empty())
+	{
+		combined_args.insert(mArgs->begin(), mArgs->end());
+	}
+	LLStringUtil::format(mResult, combined_args);
+}
+
+void LLUIString::updateWResult() const
+{
+	mNeedsWResult = false;
+
+	mWResult = utf8str_to_wstring(getUpdatedResult());
+}
+
+LLStringUtil::format_map_t& LLUIString::getArgs()
+{
+	if (!mArgs)
+	{
+		mArgs = new LLStringUtil::format_map_t;
+	}
+	return *mArgs;
 }

@@ -8,23 +8,23 @@
       <check_box label="Compenser la cible du TP" tool_tip="Essaye de cibler le TP pour que vos pieds atterrissent au point vis&#xE9;" name="offset_teleport_check"/>
       <check_box name="fly_after_tp" label="Toujours voler apres un TP" tool_tip="Comme ça on reste pas bloqué sur le teston des gens !!!!."/>
       <check_box name="continue_flying" label="Voleter quand on se lève" tool_tip="vous voletez quand vous faites stand, pratique pour les avi d'oiseaux, de fées etc..."/>
-      <check_box label="Preview animations on the avatar - Test temporaire d&#x27;une animation" tool_tip="L&#x27;animation est jou&#xE9;e avec votre avatar avant d&#x27;&#xEA;tre t&#xE9;l&#xE9;charg&#xE9;e." name="preview_anim_in_world_check"/>
+      <check_box label="Preview animations on the avatar - Test temporaire d'une animation" tool_tip="L'animation est jou&#xE9;e avec votre avatar avant d'&#xEA;tre t&#xE9;l&#xE9;charg&#xE9;e." name="preview_anim_in_world_check"/>
       <check_box label="Enregistrer les scripts syst&#xE9;matiquement en Mono" tool_tip="Compile les scripts en Mono quand cela est possible." name="save_scripts_as_mono_check"/>
       <check_box label="Rezzer les objets avec le groupe du terrain quand cela est possible" tool_tip="Rez les objets avec le m&#xEA;me groupe que le terrain, ind&#xE9;pendamment de votre tag actif." name="always_rez_in_group_check"/>
-      <check_box label="Toujours montrer le bouton construire activ&#xE9;" tool_tip="Permet d&#x27;acc&#xE9;der &#xE0; au bouton construire en permanence, sans pour autant avoir le droit de construire." name="always_build_check"/>
+      <check_box label="Toujours montrer le bouton construire activ&#xE9;" tool_tip="Permet d'acc&#xE9;der &#xE0; au bouton construire en permanence, sans pour autant avoir le droit de construire." name="always_build_check"/>
       <check_box label="Toujours permettre le mode vol (Fly)" tool_tip="Permet de voler quelques soient les droits de la sim, &#xE0; vos risques et p&#xE9;rils." name="always_fly_check"/>
       <check_box label="D&#xE9;sactiver la distance minimum de la cam&#xE9;ra" tool_tip="La cam&#xE9;ra zoome de tr&#xE9;s pr&#xE8;s." name="disable_camera_zoom_check"/>
       <check_box label="Activer les fonctions Power User - &#xE0; vos risques et p&#xE9;rils !" tool_tip="Ajoute des fonctions consid&#xE9;r&#xE9;es trop dangereuses pour une utilisation normale. Ces fonctions peuvent faire des ravages si employ&#xE9;es improprement." name="power_user_check"/>
       <check_box label="Confirmer les fonctions Power User" tool_tip="Confirme les fonctions Power User. A vos risques et p&#xE9;rils. Singularity n'est pas responsable de cette utilisation." name="power_user_confirm_check"/>
-      <check_box label="Activer l&#x27;Ascent System Inventory (Red&#xE9;marrage n&#xE9;cessaire)" tool_tip="Cr&#xE9;e un nouveau dossier dans l&#x27;inventaire afin de stocker les fichiers de settings et les assets non permanents." name="system_folder_check"/>
-      <check_box label="Les t&#xE9;l&#xE9;chargements temporaires vont dans le dossier : System Inventory &#x3E; Assets" tool_tip="Place les t&#xE9;l&#xE9;chargements temporaires dans le dossier : System Inventory &#x3E; Assets ce qui permet de les retrouver plus ais&#xE9;ment" name="temp_in_system_check"/>
-      <check_box label="Pr&#xE9;charger l&#x27;inventaire &#xE0; la connection" tool_tip="R&#xE9;duit l&#x27;attente lors de votre recherche initiale dans l&#x27;inventaire" name="fetch_inventory_on_login_check"/>
+      <check_box label="Pr&#xE9;charger l'inventaire &#xE0; la connection" tool_tip="R&#xE9;duit l'attente lors de votre recherche initiale dans l'inventaire" name="fetch_inventory_on_login_check"/>
       <check_box label="Activer les effets de vent" name="enable_wind"/>
       <check_box label="Activer les nuages" name="enable_clouds"/>
       <check_box label="Activer les nuages classiques" name="enable_classic_clouds"/>
       <check_box label="Activer le rezz rapide par rapport &#xE0; une distance progressive" name="speed_rez_check" tool_tip="Active, cette fonction charge progressivement les textures du plus pr&#xE8;s au plus loin"/>
       <spinner label="Intervalle distance/affichage:" name="speed_rez_interval"/>
       <text name="speed_rez_seconds">secondes</text>
+      <check_box name="use_web_profiles" label="Utiliser le profil web par défaut" tool_tip="Affiche les profils comme une page web plutôt que comme une fenêtre style v1"/>
+      <check_box name="use_web_search" label="Utiliser la Recherche web : style V2 au lieu de la traditionnelle : style V1" tool_tip="Ne fontionnera pas sur toutes les grilles"/>
     </panel>
 
     <panel label="Commandes Texte" name="Command Line">
@@ -64,30 +64,30 @@
 
     <panel label="S&#xE9;curit&#xE9;" name="Security">
       <check_box label="Emettre les effets du viewer (Excluant les rayons)" name="broadcast_viewer_effects"/>
-      <check_box label="D&#xE9;sactiver le &#x22;Pointer vers&#x22; &#xE0; l&#x22;&#xE9;dition d&#x27;un objet" tool_tip="Masque le pointeur sur l&#x27;objet  &#xE9;dit&#xE9;" name="disable_point_at_and_beams_check"/>
+      <check_box label="D&#xE9;sactiver le &#x22;Pointer vers&#x22; &#xE0; l&#x22;&#xE9;dition d'un objet" tool_tip="Masque le pointeur sur l'objet  &#xE9;dit&#xE9;" name="disable_point_at_and_beams_check"/>
       <check_box label="Ne pas &#x22;Regarder vers&#x22;" tool_tip="Supprime les mouvements de t&#xEA;te, et le &#x22;Regarder vers&#x22; pour soi-m&#xEA;me" name="private_look_at_check"/>
       <check_box label="Voir quand les autres &#x22;Regardent vers&#x22;" tool_tip="Montre o&#xF9; les autres regardent." name="show_look_at_check"/>
       <check_box label="Détache automatiquement ce rodjudju de LSL Bridge" tool_tip="détache le LSL Bridge de Phoenix et/ou Firestorm viewer." name="detach_bridge"/>
-      <check_box label="Prendre discr&#xE8;tement un photo, sur votre disque dur" tool_tip="Permet de prendre une photo en mode &#x22;espionnage&#x22;, sans bruit d&#x27;appareil, ni mouvement de cam&#xE9;ra, ni gesture. (Uniquement vers le disque dur)." name="quiet_snapshots_check"/>
-      <check_box label="En vous levant, annule les permissions que l&#x27;objet a sur votre avatar" tool_tip="Evite que l&#x27;objet garde le contr&#xF4;le de votre avatar, comme par exemple les animations." name="revoke_perms_on_stand_up_check"/>
-      <check_box label="D&#xE9;sactive le &#x22;Click to sit&#x22; automatique" tool_tip="D&#xE9;sactive llSitTarget. Vous devrez s&#xE9;lectionner vous m&#xEA;me la fonction &#x22;sit&#x22; sur l&#x27;objet." name="disable_click_sit_check"/>
+      <check_box label="Prendre discr&#xE8;tement un photo, sur votre disque dur" tool_tip="Permet de prendre une photo en mode &#x22;espionnage&#x22;, sans bruit d'appareil, ni mouvement de cam&#xE9;ra, ni gesture. (Uniquement vers le disque dur)." name="quiet_snapshots_check"/>
+      <check_box label="En vous levant, annule les permissions que l'objet a sur votre avatar" tool_tip="Evite que l'objet garde le contr&#xF4;le de votre avatar, comme par exemple les animations." name="revoke_perms_on_stand_up_check"/>
+      <check_box label="D&#xE9;sactive le &#x22;Click to sit&#x22; automatique" tool_tip="D&#xE9;sactive llSitTarget. Vous devrez s&#xE9;lectionner vous m&#xEA;me la fonction &#x22;sit&#x22; sur l'objet." name="disable_click_sit_check"/>
+      <check_box left_delta="210" label="Sur les objets qui ne sont pas a vous" tool_tip="" name="disable_click_sit_own_check"/>
       <check_box label="Affiche les changements de d&#xE9;comptes de scripts de la r&#xE9;gion." name="totalscriptjumps" tool_tip="D&#xE9;pendant du seuil que vous choisissez dans la fen&#xEA;tre &#xE0; droite."/>
-      <spinner left_delta="350" name="ScriptJumpCount" tool_tip="Threshold for the script jump message [Default: 100]"/>
+      <spinner left_delta="350" name="ScriptJumpCount"/>
+      <check_box label="RLVa (Restrained Love API)" name="RestrainedLove" tool_tip="Active le RLVa"/>
     </panel>
 
     <panel label="Build/Cr&#xE9;ation" name="Building">
       <text name="text_box6">Point de Pivot</text>
-      <check_box label="Valeurs en %" name="EmPivotPercToggle"/>
-      <check_box label="Active les &#x22;Highlights&#x22; sur les prims s&#xE9;lectionn&#xE9;s" name="EmBuildPrefsRenderHighlight_toggle"/>
-      <check_box label="Axe sur le Root Prim" name="EmBuildPrefsActualRoot_toggle"/>
       <text name="text_box7">Permissions :</text>
-      <check_box label="Phantom" name="EmPhantomToggle"/>
-      <check_box label="Physical" name="EmPhysicalToggle"/>
       <check_box label="Temporaire" name="EmTemporaryToggle"/>
       <color_swatch label="    Couleur" name="colorswatch"/>
       <check_box label="Lumineux" name="EmFBToggle"/>
+      <check_box label="Valeurs en %" name="EmPivotPercToggle"/>
       <check_box name="EmeraldBuildPrefsEmbedItem" label="Mettre un &#xE9;l&#xE9;ment dans l'object"/>
-        <text name="Give inventory">Glissez l'&#xE9;l&#xE9;ment ICI</text>
+      <drop_target name="build_item_add_disp_rect" tool_tip="Glissez l'&#xE9;l&#xE9;ment ICI"/>
+      <check_box label="Active les &#x22;Highlights&#x22; sur les prims s&#xE9;lectionn&#xE9;s" name="EmBuildPrefsRenderHighlight_toggle"/>
+      <check_box label="Axe sur le Root Prim" name="EmBuildPrefsActualRoot_toggle"/>
     </panel>
 
   </tab_container>

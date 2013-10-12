@@ -47,8 +47,6 @@ realizarla.
 	</panel>
 	<tab_container name="roles_tab_container">
 		<panel label="Miembros" name="members_sub_tab" tool_tip="Miembros">
-			<button label="Buscar" name="search_button"/>
-			<button label="Mostrar Todos" name="show_all_button"/>
 			<name_list name="member_list">
 				<column label="Nombre" name="name"/>
 				<column label="Cuotas Donadas" name="donated"/>
@@ -62,8 +60,6 @@ Selecciona varios nombres manteniendo pulsada la tecla Ctrl y pulsando en cada u
 			</string>
 		</panel>
 		<panel label="Roles" name="roles_sub_tab" width="398">
-			<button label="Buscar" name="search_button"/>
-			<button label="Mostrar Todos" name="show_all_button"/>
 			<scroll_list name="role_list">
 				<column label="Nombre del Rol" name="name"/>
 				<column label="Título" name="title"/>
@@ -79,8 +75,6 @@ Selecciona varios nombres manteniendo pulsada la tecla Ctrl y pulsando en cada u
 			</string>
 		</panel>
 		<panel label="Capacidades" name="actions_sub_tab">
-			<button label="Buscar" name="search_button"/>
-			<button label="Mostrar Todas" name="show_all_button"/>
 			<scroll_list name="action_list" tool_tip="Selecciona una capacidad para verla más en detalle.">
 				<column label="" name="icon" />
 				<column label="" name="action"/>

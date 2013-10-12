@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Red" name="network">
 	<text name="text_box">
-		Ancho de banda Máximo:
+		Ancho de banda UDP Máximo:
 	</text>
-	<text name="text_box2">
+	<slider left_delta="160" name="max_bandwidth"/>	
+	<text name="text_box2" left_delta="186" >
 		kbps (kilobits por segundo)
 	</text>
-	<text name="cache_size_label_l">
-		Tamaño de Caché de Disco (MB):
+	<text name="text_box3">
+		Ancho de Banda para Texturas:
 	</text>
+	<slider left_delta="160" name="tex_bandwidth"/>
+	<text name="text_box4">
+		kbps (kilobits por segundo)
+	</text>
+	<text bottom_delta="-25" follows="top" height="10" left="12" name="use_http_for">
+		Usar HTTP para:
+	</text>
+	<check_box bottom_delta="-5" follows="top" left_delta="90" label="Texturas" name="http_textures"/>
+	<check_box bottom_delta="0" follows="top" left_delta="90" label="Inventario" name="http_inventory"/>	
+	<text name="cache_size_label_l">
+		Tamaño de Caché en Disco (MB):
+	</text>
+	<slider left_delta="160" name="cache_size"/>	
 	<text name="text_box5">
 		MB
 	</text>
@@ -17,7 +31,7 @@
 		Ubicación del Caché en Disco:
 	</text>
 	<button label="Establecer" label_selected="Establecer" name="set_cache"/>
-	<button label="Reiniciar" label_selected="Reiniciar" name="reset_cache"/>
+	<button label="Restablecer" label_selected="Restablecer" name="reset_cache"/>
 	<check_box label="Puerto de Conexión Personalizado" name="connection_port_enabled"/>
 	<spinner label="Puerto Número:" name="connection_port"/>
 	<text name="socks5_auth_label">

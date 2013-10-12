@@ -39,6 +39,7 @@
 #include "llviewercontrol.h"
 #include "llviewerregion.h"
 #include "llinventoryobserver.h"
+#include "llinventoryfunctions.h"
 
 using namespace LLAvatarAppearanceDefines;
 
@@ -133,6 +134,33 @@ LLWearable::EImportResult LLViewerWearable::importStream( std::istream& input_st
 	return result;
 }
 
+extern void dump_visual_param(LLAPRFile& file, LLVisualParam const* viewer_param, F32 value);
+
+void LLViewerWearable::archetypeExport(LLAPRFile& file) const
+{
+	apr_file_t* fp = file.getFileHandle();
+
+	std::string path;
+	append_path_short(mItemID, path);
+	apr_file_printf(fp,   "    <meta path=\"%s\" name=\"%s\" description=\"%s\"/>\n",
+		LLXMLNode::escapeXML(path).c_str(),
+		LLXMLNode::escapeXML(mName).c_str(),
+		LLXMLNode::escapeXML(mDescription).c_str());
+
+	for (visual_param_index_map_t::const_iterator iter = mVisualParamIndexMap.begin(); iter != mVisualParamIndexMap.end(); ++iter)
+	{
+		LLVisualParam const* param = iter->second;
+		dump_visual_param(file, param, param->getWeight());
+	}
+	for (te_map_t::const_iterator iter = mTEMap.begin(); iter != mTEMap.end(); ++iter)
+	{
+		S32 te = iter->first;
+		LLUUID const& image_id = iter->second->getID();
+		apr_file_printf(fp,   "    <texture te=\"%i\" uuid=\"%s\"/>\n", te, image_id.asString().c_str());
+	}
+
+	apr_file_printf(fp, "\n");
+}
 
 // Avatar parameter and texture definitions can change over time.
 // This function returns true if parameters or textures have been added or removed
@@ -554,13 +582,14 @@ void LLViewerWearable::setUpdated() const
 	gInventory.addChangedMask(LLInventoryObserver::LABEL, getItemID());
 }
 
-void LLViewerWearable::refreshName()
+void LLViewerWearable::refreshNameAndDescription()
 {
 	LLUUID item_id = getItemID();
 	LLInventoryItem* item = gInventory.getItem(item_id);
 	if( item )
 	{
 		mName = item->getName();
+		mDescription = item->getDescription();
 	}
 }
 

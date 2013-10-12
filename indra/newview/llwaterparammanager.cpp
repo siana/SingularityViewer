@@ -521,7 +521,7 @@ bool LLWaterParamManager::removeParamSet(const std::string& name, bool delete_fr
 bool LLWaterParamManager::isSystemPreset(const std::string& preset_name) const
 {
 	// *TODO: file system access is excessive here.
-	return gDirUtilp->fileExists(getSysDir() + LLWeb::curlEscape(preset_name) + ".xml");
+	return gDirUtilp->fileExists(getSysDir() + LLURI::escape(preset_name) + ".xml");
 }
 
 void LLWaterParamManager::getPresetNames(preset_name_list_t& presets) const

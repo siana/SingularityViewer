@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater label="Nuevo MI" name="New IM" title="Nuevo MI">
-	<button label="Iniciar" label_selected="Iniciar" name="start_btn"/>
-	<button label="Cerrar" label_selected="Cerrar" name="close_btn"/>
-	<string name="online_descriptor">
-		(en línea)
-	</string>
-</floater>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<floater name="mute floater" short_title="Stummschalten-Liste" title="Stummgeschaltete Einwohner und Objekte">
+  <name_list name="mutes" tool_tip="Namen stummgeschalter Objekte/Avatare">
+      
+      <column label="Name" name="name" tool_tip="Name"/>
+  </name_list>
+	<button label="Einwohner stummschalten..." label_selected="Einwohner stummschalten..." name="Mute resident..." tool_tip="Wählen Sie einen Einwohner, um ihn stumm zu schalten"/>
+	<button label="Objekt nach Name stummschalten..." label_selected="Objekt nach Name stummschalten..." name="Mute object by name..."/>
+	<button label="Stummschaltung aufheben" label_selected="Stummschaltung aufheben" name="Unmute" tool_tip="Einwohner oder Objekt von der Stummgeschaltet-Liste entfernen"/>
+</floater>

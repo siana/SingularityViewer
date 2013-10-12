@@ -1,20 +1,48 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel background_opaque="true" background_visible="true" bottom="0" can_close="true" can_minimize="false" can_resize="false" follows="left|right|bottom" height="28" name="toolbar" width="1024">    
   <string name="Redock Windows">Redock Windows</string>
+  <string name="IMs">[COUNT] IMs</string>
+  <string name="IM">1 IM</string>
   <panel bottom="0" filename="panel_bg_toolbar.xml" height="28" left="0" width="1024"/>
-  <layout_stack name="toolbar_stack" follows="left|right|bottom|top" bottom="2" left="1" width="1022" height="26" min_width="200" min_height="26"  orientation="horizontal" border_size="0">
-    <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0" left="0" />
-    <button bottom="0" height="24" image_selected="btn_chatbar_selected.tga" scale_image="true" image_unselected="btn_chatbar.tga" label="" left="2" name="chat_btn" image_overlay="icn_chatbar.tga" tool_tip="Show Chat Bar. (Enter)" width="50" auto_resize="false" follows="left|right" user_resize="false"/>
-    <icon image_name="spacer24.tga" left_delta="2" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0"/>
-    <flyout_button bottom="0" font="SansSerif" height="24" label="Communicate" left="0" name="communicate_btn" tool_tip="Communicate with your Friends and Groups.(Ctrl-T)" list_position="above" width="50" follows="left|right" user_resize="false"/>
-    <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0"/>
-    <button bottom="0" height="24" label="Radar" image_overlay="icn_toolbar_radar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Radar" name="radar_list_btn" tool_tip="View a list of nearby avatars.(Ctrl-Shift-A)" width="50" follows="left|right" user_resize="false"/>
-	<button bottom="0" height="24" label="Fly" image_overlay="icn_toolbar_fly.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Flying" name="fly_btn" tool_tip="Start flying(F or Home). Use E/C or PgUp/PgDn to fly up and down." width="50" follows="left|right" user_resize="false"/>
-	<button bottom="0" height="24" label="Snapshot" image_overlay="icn_toolbar_snapshot.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="snapshot_btn" tool_tip="Save a screen shot to disk or inventory.(Ctrl-Shift-S for floater, Ctrl-`(~) takes snapshot w/o floater)" width="50" follows="left|right" user_resize="false"/>
-    <button bottom="0" height="24" label="Search" image_overlay="icn_toolbar_search.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="directory_btn" tool_tip="Search for places, events, people, and more.(Ctrl-F)" width="50" follows="left|right" user_resize="false"/>
-    <button bottom="0" height="24" label="Build" name="build_btn" image_overlay="icn_toolbar_build.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Create new objects. (B)" width="50" follows="left|right" user_resize="false"/>
-    <button bottom="0" height="24" label="Map" name="map_btn" image_overlay="icn_toolbar_map.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Map of the world. (Ctrl-M)" width="50" follows="left|right" user_resize="false"/>
-    <button bottom="0" height="24" label="Mini-Map" image_overlay="icn_toolbar_minimap.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="radar_btn" tool_tip="Map of the area around you. (Ctrl-Shift-M)" width="50" follows="left|right" user_resize="false"/>
-    <button bottom="0" height="24" label="Inventory" image_overlay="icn_toolbar_inventory.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="inventory_btn" tool_tip="Your items. (Ctrl-I)" width="50" follows="left|right" user_resize="false"/>
+  <layout_stack name="toolbar_stack" follows="left|right|bottom|top" bottom="2" left="1" width="1022" height="26" min_width="200" orientation="horizontal" border_size="0">
+	  <layout_panel name="panel1" height="2" width="2" auto_resize="false" user_resize="false">
+		  <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0" left="0" />
+	  </layout_panel>
+    <layout_panel name="panel2" height="24" width="50" auto_resize="false" user_resize="false">
+		  <button bottom="0" height="24" image_selected="btn_chatbar_selected.tga" scale_image="true" image_unselected="btn_chatbar.tga" label="" left="2" name="chat_btn" image_overlay="icn_chatbar.tga" tool_tip="Show Chat Bar. (Enter)" width="50" follows="left|right" />
+	  </layout_panel>
+	  <layout_panel name="panel3" height="2" width="2" auto_resize="false" user_resize="false">
+		  <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0"/>
+	  </layout_panel>
+	  <layout_panel name="panel4" height="24" width="50" user_resize="false">
+		  <flyout_button bottom="0" font="SansSerif" height="24" label="Communicate" left="0" name="communicate_btn" tool_tip="Communicate with your Friends and Groups.(Ctrl-T)" list_position="above" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel5" height="2" width="2" auto_resize="false" user_resize="false">
+		  <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0"/>
+	  </layout_panel>
+	  <layout_panel name="panel6" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Radar" image_overlay="icn_toolbar_radar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Radar" name="radar_list_btn" tool_tip="View a list of nearby avatars.(Ctrl-Shift-A)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel7" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Fly" image_overlay="icn_toolbar_fly.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Flying" name="fly_btn" tool_tip="Start flying(F or Home). Use E/C or PgUp/PgDn to fly up and down." width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel8" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Snapshot" image_overlay="icn_toolbar_snapshot.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="snapshot_btn" tool_tip="Save a screen shot to disk or inventory.(Ctrl-Shift-S for floater, Ctrl-`(~) takes snapshot w/o floater)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel9" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Search" image_overlay="icn_toolbar_search.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="directory_btn" tool_tip="Search for places, events, people, and more.(Ctrl-F)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel10" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Build" name="build_btn" image_overlay="icn_toolbar_build.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Create new objects. (B)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel11" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Map" name="map_btn" image_overlay="icn_toolbar_map.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Map of the world. (Ctrl-M)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel12" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Mini-Map" image_overlay="icn_toolbar_minimap.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="radar_btn" tool_tip="Map of the area around you. (Ctrl-Shift-M)" width="50" follows="left|right"/>
+	  </layout_panel>
+	  <layout_panel name="panel13" height="24" width="50" user_resize="false">
+		  <button bottom="0" height="24" label="Inventory" image_overlay="icn_toolbar_inventory.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="inventory_btn" tool_tip="Your items. (Ctrl-I)" width="50" follows="left|right"/>
+	  </layout_panel>
   </layout_stack>
 </panel>

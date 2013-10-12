@@ -13,7 +13,7 @@
 	<button label="Nenhum" label_selected="Nenhum" name="None"/>
 	<button label="Branco" label_selected="Branco" name="Blank"/>
 	<check_box label="Mostrar Pastas" name="show_folders_check"/>
-	<search_editor label="Clique aqui para buscar" name="inventory search editor"/>
+  <filter_editor label="Clique aqui para buscar" name="inventory search editor"/>
 	<check_box label="Aplicar Imediatamente" name="apply_immediate_check"/>
 	<button label="Cancelar" label_selected="Cancelar" name="Cancel"/>
 	<button label="Selecionar" label_selected="Selecionar" name="Select"/>

@@ -56,14 +56,7 @@ LLShaderMgr::LLShaderMgr()
 {
 	{
 		const std::string dumpdir = gDirUtilp->getExpandedFilename(LL_PATH_LOGS,"shader_dump")+gDirUtilp->getDirDelimiter();
-		try 
-		{
-			boost::filesystem::remove_all(dumpdir);
-		}
-		catch(const boost::filesystem::filesystem_error& e)
-		{
-			llinfos << "boost::filesystem::remove_all(\""+dumpdir+"\") failed: '" + e.code().message() + "'" << llendl;
-		}
+		gDirUtilp->deleteDirAndContents(dumpdir);
 	}
 }
 
@@ -858,14 +851,25 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 					{ //dump every 128 lines
 
 						LL_WARNS("ShaderLoading") << "\n" << ostr.str() << llendl;
-						ostr.str("");
-						ostr.clear();
+						ostr = std::stringstream();
 					}
 
 				}
 
 				LL_WARNS("ShaderLoading") << "\n" << ostr.str() << llendl;
-#endif // LL_WINDOWS
+#else
+				std::string str;
+				
+				for (GLuint i = 0; i < count; i++) {
+					str.append(text[i]);
+					
+					if (i % 128 == 0)
+					{
+						LL_WARNS("ShaderLoading") << str << llendl;
+						str = "";
+					}
+				}
+#endif
 				glDeleteObjectARB(ret); //no longer need handle
 				ret = 0;
 			}	
@@ -1024,7 +1028,7 @@ void LLShaderMgr::initAttribsAndUniforms()
 	mReservedAttribs.push_back("texcoord3");
 	mReservedAttribs.push_back("diffuse_color");
 	mReservedAttribs.push_back("emissive");
-	mReservedAttribs.push_back("binormal");
+	mReservedAttribs.push_back("tangent");
 	mReservedAttribs.push_back("weight");
 	mReservedAttribs.push_back("weight4");
 	mReservedAttribs.push_back("clothing");

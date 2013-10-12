@@ -61,8 +61,8 @@ S32 BTN_HEIGHT		= 0;
 S32 BTN_GRID		= 12;
 S32 BORDER_SIZE = 1;
 
-LLButton::LLButton(	const std::string& name, const LLRect& rect, const std::string& control_name, void (*click_callback)(void*), void *callback_data)
-:	LLUICtrl(name, rect, TRUE, NULL, NULL),
+LLButton::LLButton(	const std::string& name, const LLRect& rect, const std::string& control_name, commit_callback_t commit_callback)
+:	LLUICtrl(name, rect, TRUE, commit_callback),
 	
 	mMouseDownFrame( 0 ),
 	mMouseHeldDownCount(0),
@@ -120,7 +120,7 @@ LLButton::LLButton(	const std::string& name, const LLRect& rect, const std::stri
 	mButtonFlashRate(LLUI::sConfigGroup->getF32("ButtonFlashRate")),
 	mAlpha(1.f)
 {
-	init(click_callback, callback_data, control_name);
+	init(control_name);
 }
 
 
@@ -128,12 +128,11 @@ LLButton::LLButton(const std::string& name, const LLRect& rect,
 				   const std::string &unselected_image_name, 
 				   const std::string &selected_image_name, 
 				   const std::string& control_name,
-				   void (*click_callback)(void*),
-				   void *callback_data,
+				   commit_callback_t commit_callback,
 				   const LLFontGL *font,
 				   const std::string& unselected_label, 
 				   const std::string& selected_label )
-:	LLUICtrl(name, rect, TRUE, NULL, NULL),
+:	LLUICtrl(name, rect, TRUE, commit_callback),
 	mMouseDownFrame( 0 ),
 	mMouseHeldDownCount(0),
 	mBorderEnabled( FALSE ),
@@ -215,10 +214,10 @@ LLButton::LLButton(const std::string& name, const LLRect& rect,
 		mImagePressed = mImageSelected;
 	}
 
-	init(click_callback, callback_data, control_name);
+	init(control_name);
 }
 
-void LLButton::init(void (*click_callback)(void*), void *callback_data, const std::string& control_name)
+void LLButton::init(const std::string& control_name)
 {
 	// Hack to make sure there is space for at least one character
 	if (getRect().getWidth() - (mRightHPad + mLeftHPad) < mGLFont->getWidth(std::string(" ")))
@@ -230,11 +229,7 @@ void LLButton::init(void (*click_callback)(void*), void *callback_data, const st
 	
 	mMouseDownTimer.stop();
 	
-	if(click_callback)
-		setClickedCallback(click_callback, callback_data);
-	
 	setControlName(control_name, NULL);
-
 }
 
 
@@ -549,7 +544,7 @@ void LLButton::getOverlayImageSize(S32& overlay_width, S32& overlay_height)
 // virtual
 void LLButton::draw()
 {
-	F32 alpha = mAlpha;
+	F32 alpha = mAlpha * getDrawContext().mAlpha;
 	bool flash = FALSE;
 	if( mFlashing )
 	{
@@ -1219,7 +1214,6 @@ LLView* LLButton::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *fa
 			image_selected,
 			LLStringUtil::null, 
 			NULL, 
-			parent,
 			font,
 			label,
 			label_selected);

@@ -3,17 +3,48 @@
 	<string name="Redock Windows">
 		Reacoplar Ventana
 	</string>
-	<panel filename="panel_bg_toolbar.xml"/>
-	<layout_stack name="toolbar_stack" >
-		<button label="" name="chat_btn" tool_tip="Mostrar Barra de Chat. (Intro)"/>
-		<flyout_button label="Comunicación" name="communicate_btn" tool_tip="Comunícate con tus amigos o grupos.(Ctrl-T)" />
-		<button label="Radar" name="radar_list_btn" tool_tip="Ver lista de avatares cercanos.(Ctrl-Shift-A)"/>
-		<button label="Volar" label_selected="Stop Flying" name="fly_btn" tool_tip="Despegar(F o Inicio). Usa E/C o AvPáa/RePág para ascender o descender"/>
-		<button label="Foto" name="snapshot_btn" tool_tip="Guardar una captura de pantalla al disco o al inventario.(Ctrl-Shift-S para abrir el flotante, Ctrl-`(~) toma la captura sin el flotante)"/>
-		<button label="Buscar" name="directory_btn" tool_tip="Buscar lugares, eventos, personas, y más.(Ctrl-F)"/>
-		<button label="Construir" name="build_btn" tool_tip="Crear nuevos objetos. (B)"/>
-		<button label="Mapa" name="map_btn" tool_tip="Mapa del Mundo. (Ctrl-M)"/>
-		<button label="MiniMapa" name="radar_btn" tool_tip="Mapa del área a tu alrededor. (Ctrl-Shift-M)"/>
-		<button label="Inventario" name="inventory_btn" tool_tip="Tus items. (Ctrl-I)"/>
+	<string name="IMs">[COUNT] MIs</string>
+	<string name="IM">1 MI</string>
+	<panel bottom="0" filename="panel_bg_toolbar.xml" height="28" left="0" width="1024"/>
+	<layout_stack name="toolbar_stack">
+		<layout_panel name="panel1">
+			<icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0" left="0" />
+		</layout_panel>
+		<layout_panel name="panel2" >
+			<button label="" name="chat_btn" tool_tip="Mostrar Barra de Chat. (Intro)"/>
+		</layout_panel>
+		<layout_panel name="panel3" >
+			<icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0"/>
+		</layout_panel>
+		<layout_panel name="panel4">
+		  <flyout_button label="Comunicación" name="communicate_btn" tool_tip="Comunícate con tus amigos o grupos.(Ctrl-T)" />
+		</layout_panel>
+		<layout_panel name="panel5">
+			<icon image_name="spacer24.tga" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0"/>
+	  </layout_panel>
+		<layout_panel name="panel6">
+			<button label="Radar" name="radar_list_btn" tool_tip="Ver lista de avatares cercanos.(Ctrl-Shift-A)"/>
+		</layout_panel>
+		<layout_panel name="panel7">
+			<button label="Volar" label_selected="Stop Flying" name="fly_btn" tool_tip="Despegar(F o Inicio). Usa E/C o AvPág/RePág para ascender o descender"/>
+		</layout_panel>
+		<layout_panel name="panel8">
+			<button label="Foto" name="snapshot_btn" tool_tip="Guardar una captura de pantalla al disco o al inventario.(Ctrl-Shift-S para abrir el flotante, Ctrl-`(~) toma la captura sin el flotante)"/>
+		</layout_panel>
+		<layout_panel name="panel9">
+			<button label="Buscar" name="directory_btn" tool_tip="Buscar lugares, eventos, personas, y más.(Ctrl-F)"/>
+		</layout_panel>
+		<layout_panel name="panel10">
+			<button label="Construir" name="build_btn" tool_tip="Crear nuevos objetos. (B)"/>
+		</layout_panel>
+		<layout_panel name="panel11">
+			<button label="Mapa" name="map_btn" tool_tip="Mapa del Mundo. (Ctrl-M)"/>
+		</layout_panel>
+		<layout_panel name="panel12">
+			<button label="MiniMapa" name="radar_btn" tool_tip="Mapa del área a tu alrededor. (Ctrl-Shift-M)"/>
+		</layout_panel>
+		<layout_panel name="panel13">
+			<button label="Inventario" name="inventory_btn" tool_tip="Tus items. (Ctrl-I)"/>
+		</layout_panel>
 	</layout_stack>
 </panel>

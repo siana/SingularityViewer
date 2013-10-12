@@ -52,50 +52,22 @@ HippoGridInfo::HippoGridInfo(const std::string& gridName) :
 	mXmlState(XML_VOID),
 	mVoiceConnector("SLVoice"),
 	mIsInProductionGrid(false),
+	mIsInAvination(false),
 	mRenderCompat(true),
 	mInvLinks(false),
 	mAutoUpdate(false),
 	mMaxAgentGroups(-1),
 	mCurrencySymbol("OS$"),
+	mCurrencyText("OS Dollars"),
 	mRealCurrencySymbol("US$"),
-	mDirectoryFee(30)
+	mDirectoryFee(30),
+	mUPCSupported(false)
 {
 }
 
 
 // ********************************************************************
 // Getters
-
-HippoGridInfo::Platform HippoGridInfo::getPlatform()
-{
-	return mPlatform;
-}
-
-bool HippoGridInfo::isOpenSimulator() const
-{
-	return (mPlatform == HippoGridInfo::PLATFORM_OPENSIM || mPlatform == HippoGridInfo::PLATFORM_AURORA);
-}
-
-bool HippoGridInfo::isAurora() const
-{
-	return (mPlatform == HippoGridInfo::PLATFORM_AURORA);
-}
-
-bool HippoGridInfo::isSecondLife() const
-{
-	return (mPlatform == HippoGridInfo::PLATFORM_SECONDLIFE);
-}
-
-bool HippoGridInfo::isInProductionGrid() const
-{
-	llassert(mPlatform == HippoGridInfo::PLATFORM_SECONDLIFE);
-	return mIsInProductionGrid;
-}
-
-const std::string& HippoGridInfo::getGridName() const
-{
-	return mGridName;
-}
 
 const std::string& HippoGridInfo::getGridOwner() const
 {
@@ -110,68 +82,6 @@ const std::string& HippoGridInfo::getGridOwner() const
 	}	
 }
 
-const std::string& HippoGridInfo::getLoginUri() const
-{
-	return mLoginUri;
-}
-
-const std::string& HippoGridInfo::getLoginPage() const
-{
-	return mLoginPage;
-}
-
-const std::string& HippoGridInfo::getHelperUri() const
-{
-	return mHelperUri;
-}
-
-const std::string& HippoGridInfo::getWebSite() const
-{
-	return mWebSite;
-}
-
-const std::string& HippoGridInfo::getSupportUrl() const
-{
-	return mSupportUrl;
-}
-
-const std::string& HippoGridInfo::getRegisterUrl() const
-{
-	return mRegisterUrl;
-}
-
-const std::string& HippoGridInfo::getPasswordUrl() const
-{
-	return mPasswordUrl;
-}
-
-const std::string& HippoGridInfo::getSearchUrl() const
-{
-	return mSearchUrl;
-}
-
-const std::string& HippoGridInfo::getGridMessage() const
-{
-	return mGridMessage;
-}
-
-bool HippoGridInfo::isRenderCompat() const
-{
-	return mRenderCompat;
-}
-
-const std::string& HippoGridInfo::getCurrencySymbol() const
-{
-	return mCurrencySymbol;
-}
-
-const std::string& HippoGridInfo::getRealCurrencySymbol() const
-{
-	return mRealCurrencySymbol;
-}
-
-
-
 // ********************************************************************
 // Setters
 
@@ -181,6 +91,7 @@ void HippoGridInfo::setPlatform(Platform platform)
 	if (mPlatform == PLATFORM_SECONDLIFE)
 	{
 		mCurrencySymbol = "L$";
+		mCurrencyText = "Linden Dollars";
 	}
 }
 
@@ -240,6 +151,10 @@ void HippoGridInfo::setGridNick(std::string gridNick)
 	{
 		mIsInProductionGrid = true;
 	}
+	if(gridNick == "avination")
+	{
+		mIsInAvination = true;
+	}
 }
 
 void HippoGridInfo::setLoginUri(const std::string& loginUri)
@@ -249,6 +164,11 @@ void HippoGridInfo::setLoginUri(const std::string& loginUri)
 	if (utf8str_tolower(LLURI(uri).hostName()) == "login.agni.lindenlab.com")
 	{
 		mIsInProductionGrid = true;
+	}
+	if (utf8str_tolower(LLURI(uri).hostName()) == "login.avination.com" ||
+		utf8str_tolower(LLURI(uri).hostName()) == "login.avination.net")
+	{
+		mIsInAvination = true;
 	}
 }
 
@@ -301,6 +221,11 @@ void HippoGridInfo::setRenderCompat(bool compat)
 void HippoGridInfo::setCurrencySymbol(const std::string& sym)
 {
 	mCurrencySymbol = sym.substr(0, 3);
+}
+
+void HippoGridInfo::setCurrencyText(const std::string& text)
+{
+	mCurrencyText = text;
 }
 
 void HippoGridInfo::setRealCurrencySymbol(const std::string& sym)
@@ -456,8 +381,11 @@ void HippoGridInfo::onXmlCharacterData(void* userData, const XML_Char* s, int le
 	{
 		case XML_GRIDNICK:
 		{
-			if (self->mGridNick == "") self->mGridNick.assign(s, len);
-			self->mGridNick = sanitizeGridNick(self->mGridNick);
+			if (self->mGridNick == "")
+			{
+			  self->mGridNick.assign(s, len);
+			  self->mGridNick = sanitizeGridNick(self->mGridNick);
+			}
 			break;
 		}
 
@@ -489,7 +417,15 @@ void HippoGridInfo::onXmlCharacterData(void* userData, const XML_Char* s, int le
 			break;
 		}
 
-		case XML_GRIDNAME: self->mGridName.assign(s, len); break;
+		case XML_GRIDNAME:
+		{
+		  if (self->mGridName == "")
+		  {
+			self->mGridName.assign(s, len);
+		  }
+		  break;
+		}
+
 		case XML_LOGINPAGE: self->mLoginPage.assign(s, len); break;
 		case XML_WEBSITE: self->mWebSite.assign(s, len); break;
 		case XML_SUPPORT: self->mSupportUrl.assign(s, len); break;
@@ -570,7 +506,7 @@ void HippoGridInfo::formatFee(std::string &fee, int cost, bool showFree) const
 }
 
 //static
-std::string HippoGridInfo::sanitizeGridNick(std::string &gridnick)
+std::string HippoGridInfo::sanitizeGridNick(const std::string &gridnick)
 {
 	std::string tmp;
 	int size = gridnick.size();
@@ -593,7 +529,7 @@ std::string HippoGridInfo::sanitizeGridNick(std::string &gridnick)
 }
 
 
-std::string HippoGridInfo::getGridNick()
+std::string HippoGridInfo::getGridNick() const
 {
 	if(!mGridNick.empty())
 	{
@@ -676,6 +612,19 @@ void HippoGridInfo::setAutoUpdate(bool b)
 	mAutoUpdate = b;
 }
 
+bool HippoGridInfo::getUPCSupported()
+{
+	if(isSecondLife())
+		return false;
+	else
+		return mUPCSupported;
+}
+
+void HippoGridInfo::setUPCSupported(bool b)
+{
+	mUPCSupported = b;
+}
+
 // ********************************************************************
 // ********************************************************************
 // HippoGridManager
@@ -690,13 +639,16 @@ HippoGridManager::HippoGridManager() :
 	mConnectedGrid(0),
 	mDefaultGridsVersion(0),
 	mCurrentGrid("Local Host"),
-	mDefaultGrid("Local Host")
+	mDefaultGrid("Local Host"),
+	mCurrentGridChangeSignal(NULL)
 {
 }
 
 HippoGridManager::~HippoGridManager()
 {
 	cleanup();
+	if(mCurrentGridChangeSignal)
+		delete mCurrentGridChangeSignal;
 }
 
 
@@ -735,49 +687,57 @@ void HippoGridManager::discardAndReload()
 
 HippoGridInfo* HippoGridManager::getGrid(const std::string& grid) const
 {
+	if(grid.empty())
+		return NULL;
+
 	std::map<std::string, HippoGridInfo*>::const_iterator it;
 	it = mGridInfo.find(grid);
+
+	//The grids are keyed by 'name' which equates to something like "Second Life"
+	//Try to match such first.
 	if (it != mGridInfo.end()) 
 	{
 		return it->second;
 	} 
-	else 
+	else //Fall back to nick short names. (so something like "secondlife" will work)
 	{
-		return 0;
+		for(it = mGridInfo.begin(); it != mGridInfo.end(); ++it)
+		{
+			if(it->second && LLStringUtil::compareInsensitive(it->second->getGridNick(), grid)==0)
+				return it->second;
+		}
 	}
+	return NULL;
 }
-
-
-HippoGridInfo* HippoGridManager::getConnectedGrid() const
-{
-	return (mConnectedGrid)? mConnectedGrid: getCurrentGrid();
-}
-
 
 HippoGridInfo* HippoGridManager::getCurrentGrid() const
 {
 	HippoGridInfo* grid = getGrid(mCurrentGrid);
-	if (grid) 
+	if(!grid) 
 	{
-		return grid;
-	} 
-	else 
-	{
-		return &HippoGridInfo::FALLBACK_GRIDINFO;
+		grid = getGrid(mDefaultGrid);
 	}
+	return grid ? grid : &HippoGridInfo::FALLBACK_GRIDINFO;
 }
 
-const std::string& HippoGridManager::getDefaultGridNick() const
+std::string HippoGridManager::getDefaultGridNick() const
+{
+	HippoGridInfo* grid = getGrid(mDefaultGrid);
+	return grid ? grid->getGridNick() : HippoGridInfo::FALLBACK_GRIDINFO.getGridNick();
+}
+
+std::string HippoGridManager::getCurrentGridNick() const
+{
+	return getCurrentGrid()->getGridNick();
+}
+
+const std::string& HippoGridManager::getDefaultGridName() const
 {
 	return mDefaultGrid;
 }
 
-const std::string& HippoGridManager::getCurrentGridNick() const
+const std::string& HippoGridManager::getCurrentGridName() const
 {
-	if (mCurrentGrid.empty())
-	{
-		return mDefaultGrid;
-	}
 	return mCurrentGrid;
 }
 
@@ -848,6 +808,7 @@ void HippoGridManager::setDefaultGrid(const std::string& grid)
 
 void HippoGridManager::setCurrentGrid(const std::string& grid)
 {
+	HippoGridInfo* prevGrid = getGrid(mCurrentGrid);
 	GridIterator it = mGridInfo.find(grid);
 	if (it != mGridInfo.end()) 
 	{
@@ -858,6 +819,8 @@ void HippoGridManager::setCurrentGrid(const std::string& grid)
 		llwarns << "Unknown grid '" << grid << "'. Setting to default grid." << llendl;
 	    mCurrentGrid = mDefaultGrid;
 	}
+	if(mCurrentGridChangeSignal)
+		(*mCurrentGridChangeSignal)(getGrid(mCurrentGrid),prevGrid);
 }
 
 

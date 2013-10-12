@@ -31,6 +31,10 @@
 #include "v3math.h"
 #include "llvector4a.h"
 #include <vector>
+#ifdef TIME_UTC
+//Singu note: TIME_UTC is defined as '1' in time.h, and boost thread (1.49) tries to use it as an enum member.
+#undef TIME_UTC
+#endif
 #include <boost/pool/pool.hpp>
 
 #if LL_RELEASE_WITH_DEBUG_INFO || LL_DEBUG
@@ -619,6 +623,9 @@ public:
 				child->insert(data);
 			}
 		}
+// Singu note: now that we allow wider range in octree, discard them here
+// if they fall out of range
+#if 0
 		else 
 		{
 			//it's not in here, give it to the root
@@ -632,8 +639,12 @@ public:
 				parent = node->getOctParent();
 			}
 
-			node->insert(data);
+			if(node != this)
+			{
+				node->insert(data);
+			}
 		}
+#endif
 
 		return false;
 	}
@@ -1003,7 +1014,7 @@ public:
 		}
 		
 		LLVector4a MAX_MAG;
-		MAX_MAG.splat(1024.f*1024.f);
+		MAX_MAG.splat(1024.f * 1024.f);
 
 		const LLVector4a& v = data->getPositionGroup();
 

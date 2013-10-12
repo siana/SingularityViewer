@@ -473,6 +473,8 @@ const std::string LLTexLayerSet::getBodyRegionName() const
 // virtual
 void LLTexLayerSet::asLLSD(LLSD& sd) const
 {
+	llassert_always(false); // broken function
+#if 0
 	sd["visible"] = LLSD::Boolean(isVisible());
 	LLSD layer_list_sd;
 	layer_list_t::const_iterator layer_iter = mLayerList.begin();
@@ -492,6 +494,7 @@ void LLTexLayerSet::asLLSD(LLSD& sd) const
 	sd["layers"] = layer_list_sd;
 	sd["masks"] = mask_list_sd;
 	sd["info"] = info_sd;
+#endif
 }
 
 

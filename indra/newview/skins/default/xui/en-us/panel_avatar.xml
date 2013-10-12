@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel bottom="-600" height="525" left="350" name="Panel Avatar" width="430">
-	<tab_container bottom="-486" height="490" left="0" mouse_opaque="false" name="tab"
+	<tab_container bottom="-498" height="498" left="0" mouse_opaque="false" name="tab"
 	     tab_min_width="50" tab_position="top" width="420">
 		<panel border="true" bottom="-580" follows="left|top|right|bottom" height="525"
 		     label="2nd Life" left="1" mouse_opaque="true" name="2nd Life" width="418">
@@ -9,62 +9,24 @@
 [PAYMENTINFO]
 [AGEVERIFICATION]
 			</string>
-			<string name="AcctTypeResident">
-				Resident
-			</string>
-			<string name="AcctTypeTrial">
-				Trial
-			</string>
-			<string name="AcctTypeCharterMember">
-				Charter Member
-			</string>
-			<string name="AcctTypeEmployee">
-				Linden Lab Employee
-			</string>
-			<string name="PaymentInfoUsed">
-				Payment Info Used
-			</string>
-			<string name="PaymentInfoOnFile">
-				Payment Info On File
-			</string>
-			<string name="NoPaymentInfoOnFile">
-				No Payment Info On File
-			</string>
-			<string name="AgeVerified">
-				Age-verified
-			</string>
-			<string name="NotAgeVerified">
-				Not Age-verified
-			</string>
-      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-24" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="4"
-			     mouse_opaque="true" name="Key:" v_pad="0" width="70">
-        Key:
-      </text>
+      <button bottom="-24" follows="left|top" halign="right" height="16" label="Copy Key:" left="4" font="SansSerifSmall" tool_tip="Copy key to clipboard" name="copy_key" width="70"/>
       <name_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="-24" enabled="false" follows="left|top"
 			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="75"
 			     max_length="36" mouse_opaque="false" name="avatar_key"
-			     width="256" />
-	  <button bottom="-24" follows="left|top" halign="center"
-				height="16" label="Copy" left_delta="256"
-				tool_tip="Copy key to clipboard" 
-				mouse_opaque="true" name="copy_key" width="70" />
+			     width="204" />
+      <button bottom="-24" height="16" width="106" left_delta="204" name="web_profile" label="Web Profile">
+         <button.commit_callback function="Profile.Web"/>
+      </button>
       <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-48" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="4"
 			     mouse_opaque="true" name="Name:" v_pad="0" width="70">
         Name:
       </text>
-      <name_editor bevel_style="in" border_style="line"
-			     border_thickness="1" bottom="-48" enabled="false" follows="left|top"
-			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="75"
-			     max_length="254" mouse_opaque="false" name="name"
-			     width="180" visible="false" />
 			<line_editor bevel_style="in" border_style="line"
 				 border_thickness="1" bottom="-48" enabled="false" follows="left|top"
-				 font="SansSerifSmall" height="16" is_unicode="false" left_delta="0"
+				 font="SansSerifSmall" height="16" is_unicode="false" left_delta="75"
 				 max_length="254" mouse_opaque="false" name="dnname"
 				 width="180" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
@@ -129,7 +91,7 @@
 			     default_image_name="None" follows="left|top" height="151" label=""
 			     left="79" mouse_opaque="true" name="img"
 			     tool_tip="Click to choose a picture" width="180" />
-			<button bottom_delta="-37" follows="bottom|left" font="SansSerif" halign="center"
+			<button bottom="-230" follows="bottom|left" font="SansSerif" halign="center"
 			     height="32" label="" left_delta="-40"  width="32"  scale_image="true"
 			 image_selected="tool_zoom.tga" 
 			 image_unselected="tool_zoom.tga" 
@@ -169,20 +131,8 @@
 			     mouse_opaque="true" name="Give item:" v_pad="0" width="75">
 				Give item:
 			</text>
-			<view_border blevel_style="in" border_thickness="0" bottom="-490" follows="left|top"
-			     height="466" left_delta="4" mouse_opaque="false" name="drop_target_rect"
-			     width="409" />
-			<view_border blevel_style="in" bottom="-427" follows="left|top" height="16" left_delta="75"
-			     mouse_opaque="false" name="drop_target_rect_vis" width="321" />
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom_delta="0" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="center" height="16" left_delta="0"
-			     mouse_opaque="true" name="Give inventory"
-			     tool_tip="Drop inventory items here to give them to this person." v_pad="2"
-			     width="321">
-				Drop inventory item here.
-			</text>
-			<check_box bottom_delta="-20" follows="left|top" font="SansSerifSmall" height="16"
+			<drop_target bottom="-427" height="17" left_delta="79" width="321" fill_parent="true" name="drop_target_rect" label="Drop inventory item here." tool_tip="Drop inventory items here to give them to this person."/>
+			<check_box bottom="-447" follows="left|top" font="SansSerifSmall" height="16"
 			     initial_value="false" label="Show in search" left="75" mouse_opaque="true"
 			     name="allow_publish"
 			     tool_tip="Publish extra profile information such as description and image in Search."
@@ -199,17 +149,17 @@
 			<button bottom="-452" font="SansSerif" halign="center" height="20"
 			     label="Add Friend..." label_selected="Add Friend..." left_delta="142"
 			     mouse_opaque="true" name="Add Friend..." width="130" />
-			<button bottom_delta="-70" font="SansSerif" halign="center" height="20" label="Pay..."
+			<button bottom="-470" font="SansSerif" halign="center" height="20" label="Pay..."
 			     label_selected="Pay..." left="24" mouse_opaque="true" name="Pay..."
 			     width="70" />
-			<button bottom_delta="0" font="SansSerif" halign="center" height="20"
+			<button bottom="-470" font="SansSerif" halign="center" height="20"
 			     label="Instant Message..." label_selected="Instant Message..."
 			     left_delta="71" mouse_opaque="true" name="Instant Message..."
 			     tool_tip="Instant Message (IM)" width="140" />
-			<button bottom_delta="0" font="SansSerif" halign="center" height="20" label="Mute"
-			     label_selected="Mute" left_delta="141" mouse_opaque="true" name="Mute"
+			<button bottom="-470" font="SansSerifSmall" halign="center" height="20" label="(Un)Mute"
+			     left_delta="141" mouse_opaque="true" name="Mute"
 			     width="60" />
-			<button bottom_delta="0" font="SansSerif" halign="center" height="20" label="Invite to Group"
+			<button bottom="-470" font="SansSerif" halign="center" height="20" label="Invite to Group"
 			     label_selected="Invite to Group" left_delta="61" mouse_opaque="true"
 			     name="GroupInvite_Button" width="100" />
 		</panel>
@@ -232,11 +182,12 @@
 			     mouse_opaque="true" name="web_profile_help" width="18" />
 			<check_box bottom_delta="0" follows="right|top" font="SansSerifSmall" height="16"
 			     initial_value="false" label="Automatically load web profiles"
-			     left_delta="90" mouse_opaque="true" name="auto_load"
+			     left_delta="90" mouse_opaque="true" name="auto_load" control_name="AutoLoadWebProfiles"
 			     tool_tip="Automatically load ALL profile webpages without asking first."
 			     width="127" />
 			<web_browser border_visible="false" bottom="-444" follows="top|left|right" height="400"
-			     ignore_ui_scale="false" left="10" name="profile_html" start_url=""
+			     left="10" name="profile_html" start_url=""
+           trusted_content="true"
 			     width="400" />
 			<text bottom="5" follows="bottom|left|right" left="15" name="status_text" right="-70"
 			     top="25" />

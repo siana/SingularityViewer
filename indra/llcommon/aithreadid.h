@@ -33,7 +33,7 @@
 
 #include <apr_portable.h>	// apr_os_thread_t, apr_os_thread_current(), apr_os_thread_equal().
 #include <iosfwd>			// std::ostream.
-#include "llpreprocessor.h"	// LL_COMMON_API, LL_COMMON_API_TLS
+#include "llpreprocessor.h"	// LL_COMMON_API, LL_COMMON_API_TLS, LL_UNLIKELY
 
 // Lightweight wrapper around apr_os_thread_t.
 // This class introduces no extra assembly code after optimization; it's only intend is to provide type-safety.
@@ -86,6 +86,16 @@ public:
 	static apr_os_thread_t getCurrentThread_inline(void) { return apr_os_thread_current(); }
 #endif
 };
+
+// Debugging function.
+inline bool is_single_threaded(AIThreadID& thread_id)
+{
+  if (LL_UNLIKELY(thread_id.is_no_thread()))
+  {
+	thread_id.reset();
+  }
+  return thread_id.equals_current_thread();
+}
 
 // Legacy function.
 inline bool is_main_thread(void)

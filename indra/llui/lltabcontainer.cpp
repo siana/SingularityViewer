@@ -318,15 +318,15 @@ void LLTabContainer::draw()
 		if( mIsVertical && has_scroll_arrows )
 		{
 			// Redraw the arrows so that they appears on top.
-			gGL.pushMatrix();
-			gGL.translatef((F32)mPrevArrowBtn->getRect().mLeft, (F32)mPrevArrowBtn->getRect().mBottom, 0.f);
+			gGL.pushUIMatrix();
+			gGL.translateUI((F32)mPrevArrowBtn->getRect().mLeft, (F32)mPrevArrowBtn->getRect().mBottom, 0.f);
 			mPrevArrowBtn->draw();
-			gGL.popMatrix();
+			gGL.popUIMatrix();
 
-			gGL.pushMatrix();
-			gGL.translatef((F32)mNextArrowBtn->getRect().mLeft, (F32)mNextArrowBtn->getRect().mBottom, 0.f);
+			gGL.pushUIMatrix();
+			gGL.translateUI((F32)mNextArrowBtn->getRect().mLeft, (F32)mNextArrowBtn->getRect().mBottom, 0.f);
 			mNextArrowBtn->draw();
-			gGL.popMatrix();
+			gGL.popUIMatrix();
 		}
 	}
 
@@ -817,7 +817,7 @@ void LLTabContainer::addTabPanel(LLPanel* child,
 		btn_rect.translate(0, -LLBUTTON_V_PAD-2);
 		textbox = new LLTextBox(trimmed_label, btn_rect, trimmed_label, font);
 		
-		btn = new LLButton(LLStringUtil::null, LLRect(0,0,0,0));
+		btn = new LLButton(LLStringUtil::null);
 	}
 	else
 	{
@@ -828,7 +828,7 @@ void LLTabContainer::addTabPanel(LLPanel* child,
 							   LLStringUtil::null,
 							   LLStringUtil::null, 
 							   LLStringUtil::null, 
-							   NULL, NULL,
+							   NULL,
 							   font,
 							   trimmed_label, trimmed_label);
 			btn->setImages(std::string("tab_left.tga"), std::string("tab_left_selected.tga"));
@@ -850,7 +850,7 @@ void LLTabContainer::addTabPanel(LLPanel* child,
 			btn = new LLButton(std::string(child->getName()) + " tab",
 							   btn_rect, 
 							   LLStringUtil::null, LLStringUtil::null, LLStringUtil::null,
-							   NULL, NULL, // set userdata below
+							   NULL, // set userdata below
 							   font,
 							   trimmed_label, trimmed_label );
 			btn->setVisible( FALSE );
@@ -1646,19 +1646,17 @@ void LLTabContainer::initButtons()
 		out_id = "UIImgBtnScrollUpOutUUID";
 		in_id = "UIImgBtnScrollUpInUUID";
 		mPrevArrowBtn = new LLButton(std::string("Up Arrow"), up_arrow_btn_rect,
-									 out_id, in_id, LLStringUtil::null, NULL );
+									 out_id, in_id, LLStringUtil::null, boost::bind(&LLTabContainer::onPrevBtn,this,_2));
 		mPrevArrowBtn->setFollowsTop();
 		mPrevArrowBtn->setFollowsLeft();
-		mPrevArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onPrevBtn,this,_2));
 		mPrevArrowBtn->setHeldDownCallback(boost::bind(&LLTabContainer::onPrevBtnHeld, this, _2));
 		
 		out_id = "UIImgBtnScrollDownOutUUID";
 		in_id = "UIImgBtnScrollDownInUUID";
 		mNextArrowBtn = new LLButton(std::string("Down Arrow"), down_arrow_btn_rect,
-									 out_id, in_id, LLStringUtil::null, NULL );
+									 out_id, in_id, LLStringUtil::null, boost::bind(&LLTabContainer::onNextBtn,this,_2) );
 		mNextArrowBtn->setFollowsBottom();
 		mNextArrowBtn->setFollowsLeft();
-		mNextArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onNextBtn,this,_2));
 		mNextArrowBtn->setHeldDownCallback(boost::bind(&LLTabContainer::onNextBtnHeld, this, _2));
 	}
 	else // Horizontal
@@ -1697,17 +1695,14 @@ void LLTabContainer::initButtons()
 		in_id = "UIImgBtnJumpLeftInUUID";
 		mJumpPrevArrowBtn = new LLButton(std::string("Jump Left Arrow"), jump_left_arrow_btn_rect,
 										 out_id, in_id, LLStringUtil::null,
-										 NULL, NULL, LLFontGL::getFontSansSerif() );
-		mJumpPrevArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onJumpFirstBtn, this, _2));
+										boost::bind(&LLTabContainer::onJumpFirstBtn, this, _2), LLFontGL::getFontSansSerif() );
 		mJumpPrevArrowBtn->setFollowsLeft();
 
 		out_id = "UIImgBtnScrollLeftOutUUID";
 		in_id = "UIImgBtnScrollLeftInUUID";
 		mPrevArrowBtn = new LLButton(std::string("Left Arrow"), left_arrow_btn_rect,
 									 out_id, in_id, LLStringUtil::null,
-									 NULL, NULL, LLFontGL::getFontSansSerif() );
-		
-		mPrevArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onPrevBtn, this, _2));
+									 boost::bind(&LLTabContainer::onPrevBtn, this, _2), LLFontGL::getFontSansSerif() );
 		mPrevArrowBtn->setHeldDownCallback(boost::bind(&LLTabContainer::onPrevBtnHeld, this, _2));
 		mPrevArrowBtn->setFollowsLeft();
 	
@@ -1715,16 +1710,14 @@ void LLTabContainer::initButtons()
 		in_id = "UIImgBtnJumpRightInUUID";
 		mJumpNextArrowBtn = new LLButton(std::string("Jump Right Arrow"), jump_right_arrow_btn_rect,
 										 out_id, in_id, LLStringUtil::null,
-										 NULL, NULL, LLFontGL::getFontSansSerif());
-		mJumpNextArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onJumpLastBtn, this, _2));
+										 boost::bind(&LLTabContainer::onJumpLastBtn, this, _2), LLFontGL::getFontSansSerif());
 		mJumpNextArrowBtn->setFollowsRight();
 
 		out_id = "UIImgBtnScrollRightOutUUID";
 		in_id = "UIImgBtnScrollRightInUUID";
 		mNextArrowBtn = new LLButton(std::string("Right Arrow"), right_arrow_btn_rect,
 									 out_id, in_id, LLStringUtil::null,
-									 NULL, NULL, LLFontGL::getFontSansSerif());
-		mNextArrowBtn->setCommitCallback(boost::bind(&LLTabContainer::onNextBtn, this, _2));
+									 boost::bind(&LLTabContainer::onNextBtn, this, _2), LLFontGL::getFontSansSerif());
 		mNextArrowBtn->setHeldDownCallback(boost::bind(&LLTabContainer::onNextBtnHeld, this, _2));
 		mNextArrowBtn->setFollowsRight();
 

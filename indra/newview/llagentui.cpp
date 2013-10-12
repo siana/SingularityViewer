@@ -37,6 +37,7 @@
 #include "llviewerregion.h"
 #include "llviewerparcelmgr.h"
 #include "llvoavatarself.h"
+#include "llslurl.h"
 // [RLVa:KB] - Checked: 2010-04-04 (RLVa-1.2.0d)
 #include "rlvhandler.h"
 // [/RLVa:KB]
@@ -48,18 +49,18 @@ void LLAgentUI::buildFullname(std::string& name)
 		name = gAgentAvatarp->getFullname();
 }
 
-/*
 //static
-void LLAgentUI::buildSLURL(LLSLURL& slurl, const bool escaped /= true/ )
+void LLAgentUI::buildSLURL(LLSLURL& slurl, const bool escaped /*= true*/)
 {
       LLSLURL return_slurl;
       LLViewerRegion *regionp = gAgent.getRegion();
       if (regionp)
       {
-		  return_slurl = LLSLURL(regionp->getName(), gAgent.getPositionGlobal());
+		// Singu Note: Not Global, get correct SLURL for Variable Regions
+		return_slurl = LLSLURL(regionp->getName(), gAgent.getPositionAgent());
       }
 	slurl = return_slurl;
-}*/
+}
 
 //static
 BOOL LLAgentUI::checkAgentDistance(const LLVector3& pole, F32 radius)

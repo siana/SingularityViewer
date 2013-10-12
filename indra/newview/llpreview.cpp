@@ -54,6 +54,7 @@
 #include "llagent.h"
 #include "llvoavatarself.h"
 #include "llselectmgr.h"
+#include "lltrans.h"
 #include "llviewerinventory.h"
 #include "llviewerassettype.h"
 
@@ -550,7 +551,7 @@ void LLPreview::handleReshape(const LLRect& new_rect, bool by_user)
 // LLMultiPreview
 //
 
-LLMultiPreview::LLMultiPreview(const LLRect& rect) : LLMultiFloater(std::string("Preview"), rect)
+LLMultiPreview::LLMultiPreview(const LLRect& rect) : LLMultiFloater(LLTrans::getString("MultiPreviewTitle"), rect)
 {
 	setCanResize(TRUE);
 }
@@ -558,7 +559,7 @@ LLMultiPreview::LLMultiPreview(const LLRect& rect) : LLMultiFloater(std::string(
 void LLMultiPreview::open()		/*Flawfinder: ignore*/
 {
 	LLMultiFloater::open();		/*Flawfinder: ignore*/
-	LLPreview* frontmost_preview = (LLPreview*)mTabContainer->getCurrentPanel();
+	LLPreview* frontmost_preview = dynamic_cast<LLPreview*>(mTabContainer->getCurrentPanel());
 	if (frontmost_preview && frontmost_preview->getAssetStatus() == LLPreview::PREVIEW_ASSET_UNLOADED)
 	{
 		frontmost_preview->loadAsset();
@@ -571,7 +572,7 @@ void LLMultiPreview::handleReshape(const LLRect& new_rect, bool by_user)
 {
 	if(new_rect.getWidth() != getRect().getWidth() || new_rect.getHeight() != getRect().getHeight())
 	{
-		LLPreview* frontmost_preview = (LLPreview*)mTabContainer->getCurrentPanel();
+		LLPreview* frontmost_preview = dynamic_cast<LLPreview*>(mTabContainer->getCurrentPanel());
 		if (frontmost_preview) frontmost_preview->userResized();
 	}
 	LLFloater::handleReshape(new_rect, by_user);
@@ -580,7 +581,7 @@ void LLMultiPreview::handleReshape(const LLRect& new_rect, bool by_user)
 
 void LLMultiPreview::tabOpen(LLFloater* opened_floater)
 {
-	LLPreview* opened_preview = (LLPreview*)opened_floater;
+	LLPreview* opened_preview = dynamic_cast<LLPreview*>(opened_floater);
 	if (opened_preview && opened_preview->getAssetStatus() == LLPreview::PREVIEW_ASSET_UNLOADED)
 	{
 		opened_preview->loadAsset();

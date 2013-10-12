@@ -47,7 +47,6 @@
 	<menu_item_call name="Properties" label="Propriétés"/>
 	<menu_item_call name="Rename" label="Renommer"/>
 	<menu_item_call name="Copy Asset UUID" label="Copier l'UUID (identifiant universel unique)"/>
-	<menu_item_call name="Reupload..." label="Reupload..."/>
 	<menu_item_call name="Acquire Asset ID" label="Acquérir Asset ID"/>
 	<menu_item_call name="Copy" label="Copier"/>
 	<menu_item_call name="Paste" label="Coller"/>
@@ -55,6 +54,7 @@
 	<menu_item_call name="Restore to Last Position" label="Remettre au dernier emplacement"/>
 	<menu_item_call name="Remove Link" label="Supprimer Lien"/>
 	<menu_item_call name="Delete" label="Supprimer"/>
+	<menu_item_call name="Delete System Folder" label="Supprimer le dossier système"/>
 	<menu_item_call name="Wear Items" label="Porter l'ensemble"/>
 	<menu_item_call name="Add To Outfit" label="Ajouter à l'ensemble"/>
 	<menu_item_call name="Replace Outfit" label="Remplacer l'ensemble"/>
@@ -69,6 +69,7 @@
 	<menu_item_call name="Conference Chat" label="Démarrer le chat conférence"/>
 	<menu_item_call name="Activate" label="Activer"/>
 	<menu_item_call name="Deactivate" label="Désactiver"/>
+	<menu_item_call name="Save As" label="Enregistrer sous"/>
 	<menu_item_call name="Wearable And Object Wear" label="Porter"/>
 	<menu_item_call name="Wearable Add" label="Ajouter"/>
 	<menu_item_call name="Wearable Move Forward" label="&#9650; Haut"/>

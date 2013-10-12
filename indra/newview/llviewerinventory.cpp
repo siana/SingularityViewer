@@ -63,11 +63,140 @@
 #include "llfloatercustomize.h"
 // <edit>
 #include "llappviewer.h" // System Folders
+// </edit>
 
 // Two do-nothing ops for use in callbacks.
 void no_op_inventory_func(const LLUUID&) {} 
 void no_op() {}
-// </edit>
+
+///----------------------------------------------------------------------------
+/// Helper class to store special inventory item names and their localized values.
+///----------------------------------------------------------------------------
+class LLLocalizedInventoryItemsDictionary : public LLSingleton<LLLocalizedInventoryItemsDictionary>
+{
+public:
+	std::map<std::string, std::string> mInventoryItemsDict;
+
+	LLLocalizedInventoryItemsDictionary()
+	{
+		mInventoryItemsDict["New Shape"]		= LLTrans::getString("New Shape");
+		mInventoryItemsDict["New Skin"]			= LLTrans::getString("New Skin");
+		mInventoryItemsDict["New Hair"]			= LLTrans::getString("New Hair");
+		mInventoryItemsDict["New Eyes"]			= LLTrans::getString("New Eyes");
+		mInventoryItemsDict["New Shirt"]		= LLTrans::getString("New Shirt");
+		mInventoryItemsDict["New Pants"]		= LLTrans::getString("New Pants");
+		mInventoryItemsDict["New Shoes"]		= LLTrans::getString("New Shoes");
+		mInventoryItemsDict["New Socks"]		= LLTrans::getString("New Socks");
+		mInventoryItemsDict["New Jacket"]		= LLTrans::getString("New Jacket");
+		mInventoryItemsDict["New Gloves"]		= LLTrans::getString("New Gloves");
+		mInventoryItemsDict["New Undershirt"]	= LLTrans::getString("New Undershirt");
+		mInventoryItemsDict["New Underpants"]	= LLTrans::getString("New Underpants");
+		mInventoryItemsDict["New Skirt"]		= LLTrans::getString("New Skirt");
+		mInventoryItemsDict["New Alpha"]		= LLTrans::getString("New Alpha");
+		mInventoryItemsDict["New Tattoo"]		= LLTrans::getString("New Tattoo");
+		mInventoryItemsDict["New Physics"]		= LLTrans::getString("New Physics");
+		mInventoryItemsDict["Invalid Wearable"] = LLTrans::getString("Invalid Wearable");
+
+		mInventoryItemsDict["New Gesture"]		= LLTrans::getString("New Gesture");
+		mInventoryItemsDict["New Script"]		= LLTrans::getString("New Script");
+		mInventoryItemsDict["New Folder"]		= LLTrans::getString("New Folder");
+		mInventoryItemsDict["New Note"]			= LLTrans::getString("New Note");
+		mInventoryItemsDict["Contents"]			= LLTrans::getString("Contents");
+
+		mInventoryItemsDict["Gesture"]			= LLTrans::getString("Gesture");
+		mInventoryItemsDict["Male Gestures"]	= LLTrans::getString("Male Gestures");
+		mInventoryItemsDict["Female Gestures"]	= LLTrans::getString("Female Gestures");
+		mInventoryItemsDict["Other Gestures"]	= LLTrans::getString("Other Gestures");
+		mInventoryItemsDict["Speech Gestures"]	= LLTrans::getString("Speech Gestures");
+		mInventoryItemsDict["Common Gestures"]	= LLTrans::getString("Common Gestures");
+
+		//predefined gestures
+
+		//male
+		mInventoryItemsDict["Male - Excuse me"]			= LLTrans::getString("Male - Excuse me");
+		mInventoryItemsDict["Male  - Get lost"]			= LLTrans::getString("Male - Get lost"); // double space after Male. EXT-8319
+		mInventoryItemsDict["Male - Blow kiss"]			= LLTrans::getString("Male - Blow kiss");
+		mInventoryItemsDict["Male - Boo"]				= LLTrans::getString("Male - Boo");
+		mInventoryItemsDict["Male - Bored"]				= LLTrans::getString("Male - Bored");
+		mInventoryItemsDict["Male - Hey"]				= LLTrans::getString("Male - Hey");
+		mInventoryItemsDict["Male - Laugh"]				= LLTrans::getString("Male - Laugh");
+		mInventoryItemsDict["Male - Repulsed"]			= LLTrans::getString("Male - Repulsed");
+		mInventoryItemsDict["Male - Shrug"]				= LLTrans::getString("Male - Shrug");
+		mInventoryItemsDict["Male - Stick tougue out"]	= LLTrans::getString("Male - Stick tougue out");
+		mInventoryItemsDict["Male - Wow"]				= LLTrans::getString("Male - Wow");
+
+		//female
+		mInventoryItemsDict["Female - Chuckle"]			= LLTrans::getString("Female - Chuckle");
+		mInventoryItemsDict["Female - Cry"]				= LLTrans::getString("Female - Cry");
+		mInventoryItemsDict["Female - Embarrassed"]		= LLTrans::getString("Female - Embarrassed");
+		mInventoryItemsDict["Female - Excuse me"]		= LLTrans::getString("Female - Excuse me");
+		mInventoryItemsDict["Female  - Get lost"]		= LLTrans::getString("Female - Get lost"); // double space after Female. EXT-8319
+		mInventoryItemsDict["Female - Blow kiss"]		= LLTrans::getString("Female - Blow kiss");
+		mInventoryItemsDict["Female - Boo"]				= LLTrans::getString("Female - Boo");
+		mInventoryItemsDict["Female - Bored"]			= LLTrans::getString("Female - Bored");
+		mInventoryItemsDict["Female - Hey"]				= LLTrans::getString("Female - Hey");
+		mInventoryItemsDict["Female - Hey baby"]		= LLTrans::getString("Female - Hey baby");
+		mInventoryItemsDict["Female - Laugh"]			= LLTrans::getString("Female - Laugh");
+		mInventoryItemsDict["Female - Looking good"]	= LLTrans::getString("Female - Looking good");
+		mInventoryItemsDict["Female - Over here"]		= LLTrans::getString("Female - Over here");
+		mInventoryItemsDict["Female - Please"]			= LLTrans::getString("Female - Please");
+		mInventoryItemsDict["Female - Repulsed"]		= LLTrans::getString("Female - Repulsed");
+		mInventoryItemsDict["Female - Shrug"]			= LLTrans::getString("Female - Shrug");
+		mInventoryItemsDict["Female - Stick tougue out"]= LLTrans::getString("Female - Stick tougue out");
+		mInventoryItemsDict["Female - Wow"]				= LLTrans::getString("Female - Wow");
+
+		//common
+		mInventoryItemsDict["/bow"]						= LLTrans::getString("/bow");
+		mInventoryItemsDict["/clap"]					= LLTrans::getString("/clap");
+		mInventoryItemsDict["/count"]					= LLTrans::getString("/count");
+		mInventoryItemsDict["/extinguish"]				= LLTrans::getString("/extinguish");
+		mInventoryItemsDict["/kmb"]						= LLTrans::getString("/kmb");
+		mInventoryItemsDict["/muscle"]					= LLTrans::getString("/muscle");
+		mInventoryItemsDict["/no"]						= LLTrans::getString("/no");
+		mInventoryItemsDict["/no!"]						= LLTrans::getString("/no!");
+		mInventoryItemsDict["/paper"]					= LLTrans::getString("/paper");
+		mInventoryItemsDict["/pointme"]					= LLTrans::getString("/pointme");
+		mInventoryItemsDict["/pointyou"]				= LLTrans::getString("/pointyou");
+		mInventoryItemsDict["/rock"]					= LLTrans::getString("/rock");
+		mInventoryItemsDict["/scissor"]					= LLTrans::getString("/scissor");
+		mInventoryItemsDict["/smoke"]					= LLTrans::getString("/smoke");
+		mInventoryItemsDict["/stretch"]					= LLTrans::getString("/stretch");
+		mInventoryItemsDict["/whistle"]					= LLTrans::getString("/whistle");
+		mInventoryItemsDict["/yes"]						= LLTrans::getString("/yes");
+		mInventoryItemsDict["/yes!"]					= LLTrans::getString("/yes!");
+		mInventoryItemsDict["afk"]						= LLTrans::getString("afk");
+		mInventoryItemsDict["dance1"]					= LLTrans::getString("dance1");
+		mInventoryItemsDict["dance2"]					= LLTrans::getString("dance2");
+		mInventoryItemsDict["dance3"]					= LLTrans::getString("dance3");
+		mInventoryItemsDict["dance4"]					= LLTrans::getString("dance4");
+		mInventoryItemsDict["dance5"]					= LLTrans::getString("dance5");
+		mInventoryItemsDict["dance6"]					= LLTrans::getString("dance6");
+		mInventoryItemsDict["dance7"]					= LLTrans::getString("dance7");
+		mInventoryItemsDict["dance8"]					= LLTrans::getString("dance8");
+	}
+
+	/**
+	 * Finds passed name in dictionary and replaces it with found localized value.
+	 *
+	 * @param object_name - string to be localized.
+	 * @return true if passed name was found and localized, false otherwise.
+	 */
+	bool localizeInventoryObjectName(std::string& object_name)
+	{
+		LL_DEBUGS("InventoryLocalize") << "Searching for localization: " << object_name << LL_ENDL;
+
+		std::map<std::string, std::string>::const_iterator dictionary_iter = mInventoryItemsDict.find(object_name);
+
+		bool found = dictionary_iter != mInventoryItemsDict.end();
+		if(found)
+		{
+			object_name = dictionary_iter->second;
+			LL_DEBUGS("InventoryLocalize") << "Found, new name is: " << object_name << LL_ENDL;
+		}
+		return found;
+	}
+};
+
 
 ///----------------------------------------------------------------------------
 /// Local function declarations, constants, enums, and typedefs
@@ -164,14 +293,8 @@ void LLViewerInventoryItem::cloneViewerItem(LLPointer<LLViewerInventoryItem>& ne
 
 void LLViewerInventoryItem::removeFromServer()
 {
-	// <edit> this check is ghetto
-	if((mParentUUID == gSystemFolderRoot) || (gInventory.isObjectDescendentOf(mUUID, gSystemFolderRoot)))
-	{
-		return;
-	}
-	// </edit>
-	llinfos << "Removing inventory item " << mUUID << " from server."
-			<< llendl;
+	lldebugs << "Removing inventory item " << mUUID << " from server."
+			 << llendl;
 
 	LLInventoryModel::LLCategoryUpdate up(mParentUUID, -1);
 	gInventory.accountForUpdate(up);
@@ -188,15 +311,10 @@ void LLViewerInventoryItem::removeFromServer()
 
 void LLViewerInventoryItem::updateServer(BOOL is_new) const
 {
-	// <edit>
-	//if(gAgent.getID() != mPermissions.getOwner())
-	//{
-	//	// *FIX: deal with this better.
-	//	llwarns << "LLViewerInventoryItem::updateServer() - for unowned item"
-	//			<< llendl;
-	if((mParentUUID == gSystemFolderRoot) || (gInventory.isObjectDescendentOf(mUUID, gSystemFolderRoot)))
+	if(getWearableType() == LLWearableType::WT_UNKNOWN)
 	{
-	// </edit>
+		llwarns << "LLViewerInventoryItem::updateServer() - for item with unknown wearable type"
+				<< llendl;
 		return;
 	}
 	if(!mIsComplete)
@@ -204,7 +322,7 @@ void LLViewerInventoryItem::updateServer(BOOL is_new) const
 		// *FIX: deal with this better.
 		llwarns << "LLViewerInventoryItem::updateServer() - for incomplete item"
 			   << llendl;
-	 	LLNotificationsUtil::add("IncompleteInventoryItem");
+		LLNotificationsUtil::add("IncompleteInventoryItem");
 		return;
 	}
 	if(gAgent.getID() != mPermissions.getOwner())
@@ -235,22 +353,25 @@ void LLViewerInventoryItem::fetchFromServer(void) const
 	{
 		std::string url; 
 
-		LLViewerRegion* region = gAgent.getRegion();
-		// we have to check region. It can be null after region was destroyed. See EXT-245
-		if (region)
+		if (gSavedSettings.getBOOL("UseHTTPInventory"))
 		{
-		  if(gAgent.getID() != mPermissions.getOwner())
-		    {
-		      url = region->getCapability("FetchLib2");
-		    }
-		  else
-		    {	
-		      url = region->getCapability("FetchInventory2");
-		    }
-		}
-		else
-		{
-			llwarns << "Agent Region is absent" << llendl;
+			LLViewerRegion* region = gAgent.getRegion();
+			// we have to check region. It can be null after region was destroyed. See EXT-245
+			if (region)
+			{
+				if(gAgent.getID() != mPermissions.getOwner())
+				{
+					url = region->getCapability("FetchLib2");
+				}
+				else
+				{
+					url = region->getCapability("FetchInventory2");
+				}
+			}
+			else
+			{
+				llwarns << "Agent Region is absent" << llendl;
+			}
 		}
 
 		if (!url.empty())
@@ -286,6 +407,9 @@ void LLViewerInventoryItem::fetchFromServer(void) const
 BOOL LLViewerInventoryItem::unpackMessage(LLSD item)
 {
 	BOOL rv = LLInventoryItem::fromLLSD(item);
+
+	LLLocalizedInventoryItemsDictionary::getInstance()->localizeInventoryObjectName(mName);
+
 	mIsComplete = TRUE;
 	return rv;
 }
@@ -294,6 +418,9 @@ BOOL LLViewerInventoryItem::unpackMessage(LLSD item)
 BOOL LLViewerInventoryItem::unpackMessage(LLMessageSystem* msg, const char* block, S32 block_num)
 {
 	BOOL rv = LLInventoryItem::unpackMessage(msg, block, block_num);
+
+	LLLocalizedInventoryItemsDictionary::getInstance()->localizeInventoryObjectName(mName);
+
 	mIsComplete = TRUE;
 	return rv;
 }
@@ -365,9 +492,6 @@ bool LLViewerInventoryItem::exportFileLocal(LLFILE* fp) const
 
 void LLViewerInventoryItem::updateParentOnServer(BOOL restamp) const
 {
-	// <edit>
-	if(gInventory.isObjectDescendentOf(mUUID, gSystemFolderRoot)) return;
-	// </edit>
 	LLMessageSystem* msg = gMessageSystem;
 	msg->newMessageFast(_PREHASH_MoveInventoryItem);
 	msg->nextBlockFast(_PREHASH_AgentData);
@@ -429,7 +553,7 @@ void LLViewerInventoryCategory::copyViewerCategory(const LLViewerInventoryCatego
 {
 	copyCategory(other);
 	mOwnerID = other->mOwnerID;
-	mVersion = other->mVersion;
+	setVersion(other->getVersion());
 	mDescendentCount = other->mDescendentCount;
 	mDescendentsRequested = other->mDescendentsRequested;
 }
@@ -437,9 +561,6 @@ void LLViewerInventoryCategory::copyViewerCategory(const LLViewerInventoryCatego
 
 void LLViewerInventoryCategory::updateParentOnServer(BOOL restamp) const
 {
-	// <edit>
-	if(gInventory.isObjectDescendentOf(mUUID, gSystemFolderRoot)) return;
-	// </edit>
 	LLMessageSystem* msg = gMessageSystem;
 	msg->newMessageFast(_PREHASH_MoveInventoryFolder);
 	msg->nextBlockFast(_PREHASH_AgentData);
@@ -481,11 +602,13 @@ void LLViewerInventoryCategory::removeFromServer( void )
 	llinfos << "Removing inventory category " << mUUID << " from server."
 			<< llendl;
 	// communicate that change with the server.
+#ifndef DELETE_SYSTEM_FOLDERS
 	if(LLFolderType::lookupIsProtectedType(mPreferredType))
 	{
 		LLNotificationsUtil::add("CannotRemoveProtectedCategories");
 		return;
 	}
+#endif
 
 	LLInventoryModel::LLCategoryUpdate up(mParentUUID, -1);
 	gInventory.accountForUpdate(up);
@@ -502,10 +625,7 @@ void LLViewerInventoryCategory::removeFromServer( void )
 
 bool LLViewerInventoryCategory::fetch()
 {
-	// <edit>
-	if((mUUID == gSystemFolderRoot) || (gInventory.isObjectDescendentOf(mUUID, gSystemFolderRoot))) return false;
-	// </edit>
-	if((VERSION_UNKNOWN == mVersion) &&
+	if((VERSION_UNKNOWN == getVersion()) &&
 		(!mDescendentsRequested.getStarted() ||
 		mDescendentsRequested.hasExpired()))	//Expired check prevents multiple downloads.
 	{
@@ -720,6 +840,12 @@ void LLViewerInventoryCategory::changeType(LLFolderType::EType new_folder_type)
 	setPreferredType(new_folder_type);
 	gInventory.addChangedMask(LLInventoryObserver::LABEL, folder_id);
 }
+
+void LLViewerInventoryCategory::localizeName()
+{
+	LLLocalizedInventoryItemsDictionary::getInstance()->localizeInventoryObjectName(mName);
+}
+
 ///----------------------------------------------------------------------------
 /// Local function definitions
 ///----------------------------------------------------------------------------
@@ -858,6 +984,25 @@ void create_inventory_item(const LLUUID& agent_id, const LLUUID& session_id,
 						   U32 next_owner_perm,
 						   LLPointer<LLInventoryCallback> cb)
 {
+	//check if name is equal to one of special inventory items names
+	//EXT-5839
+	std::string server_name = name;
+
+	{
+		std::map<std::string, std::string>::const_iterator dictionary_iter;
+
+		for (dictionary_iter = LLLocalizedInventoryItemsDictionary::getInstance()->mInventoryItemsDict.begin();
+			 dictionary_iter != LLLocalizedInventoryItemsDictionary::getInstance()->mInventoryItemsDict.end();
+			 dictionary_iter++)
+		{
+			const std::string& localized_name = dictionary_iter->second;
+			if(localized_name == name)
+			{
+				server_name = dictionary_iter->first;
+			}
+		}
+	}
+
 	LLMessageSystem* msg = gMessageSystem;
 	msg->newMessageFast(_PREHASH_CreateInventoryItem);
 	msg->nextBlock(_PREHASH_AgentData);
@@ -871,7 +1016,7 @@ void create_inventory_item(const LLUUID& agent_id, const LLUUID& session_id,
 	msg->addS8Fast(_PREHASH_Type, (S8)asset_type);
 	msg->addS8Fast(_PREHASH_InvType, (S8)inv_type);
 	msg->addU8Fast(_PREHASH_WearableType, (U8)wtype);
-	msg->addStringFast(_PREHASH_Name, name);
+	msg->addStringFast(_PREHASH_Name, server_name);
 	msg->addStringFast(_PREHASH_Description, desc);
 	
 	gAgent.sendReliableMessage();
@@ -1638,6 +1783,15 @@ LLWearableType::EType LLViewerInventoryItem::getWearableType() const
 	return LLWearableType::EType(getFlags() & LLInventoryItemFlags::II_FLAGS_WEARABLES_MASK);
 }
 
+void LLViewerInventoryItem::setWearableType(LLWearableType::EType type)
+{
+	if (getWearableType() != LLWearableType::WT_UNKNOWN)
+	{
+		llwarns << "Calling LLViewerInventoryItem::setWearableType for item that does not have an unknown wearable type!?" << llendl;
+		return;
+	}
+	mFlags = (mFlags & ~LLInventoryItemFlags::II_FLAGS_WEARABLES_MASK) | type;
+}
 
 time_t LLViewerInventoryItem::getCreationDate() const
 {

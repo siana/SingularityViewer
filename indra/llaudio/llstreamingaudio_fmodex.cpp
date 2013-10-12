@@ -107,10 +107,18 @@ void LLStreamingAudio_FMODEX::start(const std::string& url)
 
 	if (!url.empty())
 	{
-		llinfos << "Starting internet stream: " << url << llendl;
-		mCurrentInternetStreamp = new LLAudioStreamManagerFMODEX(mSystem,url);
-		mURL = url;
-		mMetaData = new LLSD;
+		if(mDeadStreams.empty())
+		{
+			llinfos << "Starting internet stream: " << url << llendl;
+			mCurrentInternetStreamp = new LLAudioStreamManagerFMODEX(mSystem,url);
+			mURL = url;
+			mMetaData = new LLSD;
+		}
+		else
+		{
+			llinfos << "Deferring stream load until buffer release: " << url << llendl;
+			mPendingURL = url;
+		}
 	}
 	else
 	{
@@ -137,6 +145,22 @@ void LLStreamingAudio_FMODEX::update()
 		{
 			iter++;
 		}
+	}
+
+	if(!mDeadStreams.empty())
+	{
+		llassert_always(mCurrentInternetStreamp == NULL);
+		return;
+	}
+
+	if(!mPendingURL.empty())
+	{
+		llassert_always(mCurrentInternetStreamp == NULL);
+		llinfos << "Starting internet stream: " << mPendingURL << llendl;
+		mCurrentInternetStreamp = new LLAudioStreamManagerFMODEX(mSystem,mPendingURL);
+		mURL = mPendingURL;
+		mMetaData = new LLSD;
+		mPendingURL.clear();
 	}
 
 	// Don't do anything if there are no streams playing
@@ -269,6 +293,8 @@ void LLStreamingAudio_FMODEX::update()
 
 void LLStreamingAudio_FMODEX::stop()
 {
+	mPendingURL.clear();
+
 	if(mMetaData)
 	{
 		delete mMetaData;
@@ -327,7 +353,7 @@ int LLStreamingAudio_FMODEX::isPlaying()
 	{
 		return 1; // Active and playing
 	}
-	else if (!mURL.empty())
+	else if (!mURL.empty() || !mPendingURL.empty())
 	{
 		return 2; // "Paused"
 	}
@@ -439,8 +465,6 @@ bool LLAudioStreamManagerFMODEX::stopStream()
 {
 	if (mInternetStream)
 	{
-
-
 		bool close = true;
 		switch (getOpenState())
 		{
@@ -455,9 +479,8 @@ bool LLAudioStreamManagerFMODEX::stopStream()
 			close = true;
 		}
 
-		if (close)
+		if (close && mInternetStream->release() == FMOD_OK)
 		{
-			mInternetStream->release();
 			mStreamChannel = NULL;
 			mInternetStream = NULL;
 			return true;

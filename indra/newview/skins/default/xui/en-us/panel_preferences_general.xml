@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel border="true" bottom="-409" height="408" label="General" left="102" name="general_panel" width="517">
   <radio_group bottom="-44" height="40" left="109" name="default_start_location" width="199">
-    <radio_item bottom="-20" height="20" name="MyHome" tool_tip="Log into my home location by default.">My Home</radio_item>
-    <radio_item bottom="-20" height="20" left="93" name="MyLastLocation" tool_tip="Log into my last location by default.">My Last Location</radio_item>
+    <radio_item bottom="-20" height="20" name="home" tool_tip="Log into my home location by default.">My Home</radio_item>
+    <radio_item bottom="-20" height="20" left="93" name="last" tool_tip="Log into my last location by default.">My Last Location</radio_item>
   </radio_group>
   <check_box bottom="-42" height="16" initial_value="true" label="Show Start Location on Login Screen" name="show_location_checkbox"/>
 	<combo_box bottom_delta="-27" follows="top" height="18" left="103" name="fade_out_combobox" width="111">
@@ -15,6 +15,7 @@
 		<combo_item name="Display Names (with Username)" value="Display Names (with Username)">Display Names(w/Username)</combo_item>
 		<combo_item name="Display Names only" value="Display Names only">Display Names only</combo_item>
 	</combo_box>
+	<check_box bottom_delta="0" follows="top" height="16" label="Show Resident" left_delta="174" name="show_resident_checkbox"/>
 	<check_box bottom_delta="-25" follows="top" height="16" initial_value="true" label="Small Avatar Names" left="101" name="small_avatar_names_checkbox"/>
 	<check_box bottom_delta="-18" follows="top" height="16" initial_value="false" label="Hide My Name On My Screen" name="show_my_name_checkbox"/>
 	<text bottom_delta="-24" follows="top" height="16" left="10" name="group_titles_textbox">Group Titles:</text>

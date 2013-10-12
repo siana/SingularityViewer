@@ -28,12 +28,11 @@ Hover your mouse over the options for more help.
 	<text font="SansSerifSmall" name="prepend_founded_by">
 		Founded by
 	</text>
-	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="-6" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="63"
-	     mouse_opaque="true" name="founder_name" v_pad="0" width="200">
-		(waiting)
-	</text>
+	     mouse_opaque="true" name="founder_name" v_pad="0" width="200" initial_value="Loading..."
+  />
 	<text font="SansSerifSmall" name="group_key_text" follows="left|top" left="7" bottom="-50">
 		Group Key:
 	</text>
@@ -41,7 +40,10 @@ Hover your mouse over the options for more help.
 			     border_thickness="1" bottom="-55" enabled="false" follows="left|top"
 			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="65"
 			     max_length="254" mouse_opaque="false" name="group_key"
-			     width="256" />
+			     width="240" />
+    <button bottom_delta="0" height="16" width="100" left_delta="240" name="copy_uri" label="Copy URI">
+      <button.commit_callback function="Group.CopyURI"/>
+    </button>
 	<text bottom_delta="-20" font="SansSerifSmall" halign="left" height="16"
 	     name="group_charter_label" right="410" width="265">
 		Group Charter
@@ -72,9 +74,9 @@ Hover your mouse over the options for more help.
 		(Owners are shown in bold)
 	</text>
 	<name_list allow_calling_card_drop="false" background_visible="true" bottom_delta="-88"
-	     column_padding="0" draw_border="true" draw_heading="true"
+	     column_padding="0" draw_border="true" draw_heading="true" multi_select="true"
 	     follows="left|top" heading_font="SansSerifSmall" heading_height="14"
-	     height="80" left="7" mouse_opaque="true" multi_select="false"
+	     height="80" left="7" mouse_opaque="true" menu_file="menu_avs_list.xml"
 	     name="visible_members" width="404">
 		<column label="Member Name" name="name" relwidth="0.45" />
 		<column label="Title" name="title" relwidth="0.30" />

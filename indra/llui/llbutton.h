@@ -75,15 +75,14 @@ class LLButton
 {
 public:
 	// simple button with text label
-	LLButton(const std::string& name, const LLRect &rect, const std::string& control_name = std::string(), 
-			 void (*on_click)(void*) = NULL, void *data = NULL);
+	LLButton(const std::string& name, const LLRect &rect = LLRect(), const std::string& control_name = std::string(), 
+			 commit_callback_t commit_callback = NULL);
 
 	LLButton(const std::string& name, const LLRect& rect, 
 			 const std::string &unselected_image,
 			 const std::string &selected_image,
 			 const std::string& control_name,	
-			 void (*click_callback)(void*),
-			 void *callback_data = NULL,
+			 commit_callback_t commit_callback,
 			 const LLFontGL* mGLFont = NULL,
 			 const std::string& unselected_label = LLStringUtil::null,
 			 const std::string& selected_label = LLStringUtil::null );
@@ -94,7 +93,7 @@ public:
 	typedef boost::function<void(void*)> button_callback_t;
 
 	void			addImageAttributeToXML(LLXMLNodePtr node, const LLPointer<LLUIImage>, const std::string& xmlTagName) const;
-	void 			init(void (*click_callback)(void*), void *callback_data, const std::string& control_name);
+	void 			init(const std::string& control_name);
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
 	static LLView* 	fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 

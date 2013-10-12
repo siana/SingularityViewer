@@ -28,7 +28,7 @@
   <string name="character_owner_loading">[Loading]</string>
   <string name="character_owner_unknown">[Unknown]</string>
   <string name="character_owner_group">[group]</string>
-  <panel
+  <panel name="pathfinding_chars_main"
       border="false"
       bevel_style="none"
       follows="left|top|right|bottom"
@@ -126,7 +126,7 @@
       left="18"
       bottom_delta="10"
       width="600"/>
-  <panel
+  <panel name="pathfinding_chars_actions"
       border="false"
       bevel_style="none"
       follows="left|right|bottom"

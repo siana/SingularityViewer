@@ -1,36 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<floater name="top_objects" title="Carregando...">
-	<text name="title_text">
-		Carregando...
-	</text>
-	<scroll_list name="objects_list">
-		<column label="Placar" name="score"/>
-		<column label="Nome" name="name"/>
-		<column label="Proprietário" name="owner"/>
-		<column label="Local" name="location"/>
-		<column label="Tempo" name="time"/>
-		<column label="Hora Mono" name="mono_time"/>
-	</scroll_list>
-	<text name="id_text">
-		ID do Objeto:
-	</text>
-	<button label="Mostrar Avisos" name="show_beacon_btn"/>
-	<text name="obj_name_text">
-		Nome do Objeto:
-	</text>
-	<button label="Filtro" name="filter_object_btn"/>
-	<text name="owner_name_text" width="130">
-		Nome do Proprietário:
-	</text>
-	<line_editor font="SansSerifSmall" left="140" name="id_editor" width="280"/>
-	<line_editor font="SansSerifSmall" left="140" name="object_name_editor" width="280"/>
-	<line_editor font="SansSerifSmall" left="140" name="owner_name_editor" width="280"/>
-	<button label="Filtro" name="filter_owner_btn"/>
-	<button label="Retornar Selecionado" name="return_selected_btn" width="170"/>
-	<button label="Retornar Tudo" name="return_all_btn" left="190"/>
-	<button label="Desabilitar Selecionado" name="disable_selected_btn" width="170"/>
-	<button label="Desabilitar Tudo" name="disable_all_btn" left="190"/>
-	<button label="Atualizar" name="refresh_btn"/>
+<floater name="top_objects" title="Principais objetos:">
 	<string name="top_scripts_title">
 		Principais Scripts
 	</string>
@@ -39,9 +8,6 @@
 	</string>
 	<string name="scripts_score_label">
 		Tempo
-	</string>
-	<string name="scripts_mono_time_label">
-		Hora Mono
 	</string>
 	<string name="top_colliders_title">
 		Principais Colidentes
@@ -55,4 +21,38 @@
 	<string name="none_descriptor">
 		Nenhum encontrado.
 	</string>
+	<text name="title_text">
+		Carregando...
+	</text>
+	<scroll_list name="objects_list">
+		<column label="Placar" name="score"/>
+		<column label="Nome" name="name"/>
+		<column label="Proprietário" name="owner"/>
+		<column label="Local" name="location"/>
+		<column label="Lote" name="parcel"/>
+		<column label="Tempo" name="time"/>
+		<column label="URLs" name="URLs"/>
+		<column label="Memória (KB)" name="memory"/>
+	</scroll_list>
+	<text name="id_text">
+		ID do Objeto:
+	</text>
+	<button label="Mostrar Avisos" name="show_beacon_btn"/>
+	<text name="obj_name_text">
+		Nome do objeto:
+	</text>
+	<button label="Filtro" name="filter_object_btn"/>
+	<text name="owner_name_text">
+		Proprietário:
+	</text>
+	<button label="Filtro" name="filter_owner_btn"/>
+	<text name="parcel_name_text">
+		Lote:
+	</text>
+	<button label="Filtrar" name="filter_parcel_btn"/>
+	<button label="Atualizar" name="refresh_btn"/>
+	<button label="Retornar Selecionado" name="return_selected_btn" width="190"/>
+	<button label="Retornar Tudo" left_delta="190" name="return_all_btn"/>
+	<button label="Desabilitar Selecionado" name="disable_selected_btn" width="190"/>
+	<button label="Desabilitar Tudo" left_delta="190" name="disable_all_btn"/>
 </floater>

@@ -11,75 +11,135 @@
 	    image_disabled="tool_zoom.tga" image_disabled_selected="tool_zoom_active.tga"
 	    image_selected="tool_zoom_active.tga" image_unselected="tool_zoom.tga"
 	    label="" label_selected="" left="4" mouse_opaque="true" name="button focus"
-	    tool_tip="Focus" width="32" />
+	    tool_tip="Focus" width="32" >
+	  <button.commit_callback
+	     function="BuildTool.setTool"
+	     parameter="Focus" />
+	</button>
 	<button bottom="-34" follows="left|top" font="SansSerif" halign="center" height="32"
 	    image_disabled="UIImgGrabUUID" image_disabled_selected="UIImgGrabSelectedUUID"
 	    image_selected="UIImgGrabSelectedUUID" image_unselected="UIImgGrabUUID"
 	    label="" label_selected="" left="40" mouse_opaque="true" name="button move"
-	    tool_tip="Move" width="32" />
+	    tool_tip="Move" width="32" >
+	  <button.commit_callback
+	     function="BuildTool.setTool"
+	     parameter="Move" />
+	</button>
 	<button bottom="-34" follows="left|top" font="SansSerif" halign="center" height="32"
 	    image_disabled="UIImgFaceUUID" image_disabled_selected="UIImgFaceSelectedUUID"
 	    image_selected="UIImgFaceSelectedUUID" image_unselected="UIImgFaceUUID"
 	    label="" label_selected="" left="76" mouse_opaque="true" name="button edit"
-	    tool_tip="Edit" width="32" />
+	    tool_tip="Edit" width="32" >
+	  <button.commit_callback
+	     function="BuildTool.setTool"
+	     parameter="Edit" />
+	</button>
 	<button bottom="-34" follows="left|top" font="SansSerif" halign="center" height="32"
 	    image_disabled="UIImgCreateUUID" image_disabled_selected="UIImgCreateSelectedUUID"
 	    image_selected="UIImgCreateSelectedUUID" image_unselected="UIImgCreateUUID"
 	    label="" label_selected="" left="112" mouse_opaque="true"
-	    name="button create" tool_tip="Create" width="32" />
+	    name="button create" tool_tip="Create" width="32" >
+	  <button.commit_callback
+	     function="BuildTool.setTool"
+	     parameter="Create" />
+	</button>
 	<button bottom="-34" follows="left|top" font="SansSerif" halign="center" height="32"
 	    image_disabled="tool_dozer.tga" image_disabled_selected="tool_dozer_active.tga"
 	    image_selected="tool_dozer_active.tga" image_unselected="tool_dozer.tga"
 	    label="" label_selected="" left="148" mouse_opaque="true"
-	    name="button land" tool_tip="Land" width="32" />
+	    name="button land" tool_tip="Land" width="32" >
+	  <button.commit_callback
+	     function="BuildTool.setTool"
+	     parameter="Land" />
+	</button>
 
 <!-- Focus panel -->
 
 	<check_box bottom="-70" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Zoom" left="4" mouse_opaque="true"
-	    name="radio zoom" radio_style="true" width="114" />
+	    name="radio zoom" radio_style="true" width="114" >
+	    <check_box.commit_callback
+	     function="BuildTool.commitRadioFocus"/>
+	</check_box>
+	     
 	<volume_slider bottom="-69" follows="left|top" height="14" increment="0.01"
 	    initial_val="0.125" left="114" max_val="0.5" min_val="0"
-	    mouse_opaque="true" name="slider zoom" width="134" />
+	    mouse_opaque="true" name="slider zoom" width="134" >
+	 <volume_slider.commit_callback
+	     function="BuildTool.commitZoom"/>
+	</volume_slider>
 	<check_box bottom="-84" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Orbit (Ctrl)" left="4" mouse_opaque="true"
-	    name="radio orbit" radio_style="true" width="114" />
+	    name="radio orbit" radio_style="true" width="114" >
+	    <check_box.commit_callback
+	     function="BuildTool.commitRadioFocus"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Pan (Ctrl-Shift)" left="4"
-	    mouse_opaque="true" name="radio pan" radio_style="true" width="114" />
+	    mouse_opaque="true" name="radio pan" radio_style="true" width="114" >
+	    <check_box.commit_callback
+	     function="BuildTool.commitRadioFocus"/>
+	</check_box>
 
 <!-- Move panel -->
 
 	<check_box bottom="-70" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Move" left="4" mouse_opaque="true"
-	    name="radio move" radio_style="true" width="114" />
+	    name="radio move" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioMove"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Lift (Ctrl)" left="4" mouse_opaque="true"
-	    name="radio lift" radio_style="true" width="114" />
+	    name="radio lift" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioMove"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Spin (Ctrl-Shift)" left="4"
-	    mouse_opaque="true" name="radio spin" radio_style="true" width="114" />
+	    mouse_opaque="true" name="radio spin" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioMove"/>
+	</check_box>
 
 <!-- Edit panel -->
 	<check_box bottom="-70" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Position" left="4" mouse_opaque="true"
-	    name="radio position" radio_style="true" width="114" />
+	    name="radio position" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioEdit"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Rotate (Ctrl)" left="4" mouse_opaque="true"
-	    name="radio rotate" radio_style="true" width="114" />
+	    name="radio rotate" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioEdit"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Stretch (Ctrl-Shift)" left="4"
-	    mouse_opaque="true" name="radio stretch" radio_style="true" width="123" />
+	    mouse_opaque="true" name="radio stretch" radio_style="true" width="123" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioEdit"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Select Texture" left="4" mouse_opaque="true"
-	    name="radio select face" radio_style="true" width="114" />
+	    name="radio select face" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioEdit"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	    initial_value="false" label="Align (Ctrl-A)" left="4" mouse_opaque="true"
-	    name="radio align" radio_style="true" width="114" />
+	    name="radio align" radio_style="true" width="114" >
+	    <check_box.commit_callback
+			function="BuildTool.commitRadioEdit"/>
+	</check_box>
 	<check_box bottom_delta="-15" control_name="EditLinkedParts" follows="left|top"
 	    font="SansSerifSmall" height="16" initial_value="false"
 	    label="Edit linked parts" left="4" mouse_opaque="true"
-	    name="checkbox edit linked parts" width="114" />
+	    name="checkbox edit linked parts" width="114">
+	    <check_box.commit_callback
+			function="BuildTool.selectComponent"/>
+	</check_box>
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	    bottom_delta="-17" drop_shadow_visible="true" follows="left|top"
 	    font="SansSerifSmall" h_pad="0" halign="left" height="14" left="6"
@@ -98,6 +158,8 @@
 		<combo_item name="Reference" value="Reference">
 			Reference
 		</combo_item>
+	    	<combo_box.commit_callback
+			function="BuildTool.gridMode"/>
 	</combo_box>
 	<check_box bottom="-67" control_name="ScaleUniform" follows="left|top"
 	    font="SansSerifSmall" height="15" initial_value="false"
@@ -120,7 +182,10 @@
 	    left_delta="0" mouse_opaque="true" name="checkbox snap to grid" width="134" />
 	<button bottom_delta="0" follows="left|top" font="SansSerifSmall" halign="center"
 		valign="center" height="18" label="Options..." label_selected="Options..."
-		left_delta="64" mouse_opaque="true" name="Options..." scale_image="TRUE" width="75" />
+		left_delta="64" mouse_opaque="true" name="Options..." scale_image="TRUE" width="75" >
+	 	<button.commit_callback
+	     		function="BuildTool.gridOptions"/>
+	</button>
 
 <!-- Help text -->
 
@@ -229,6 +294,9 @@
 	     image_unselected="object_grass.tga" label="" label_selected=""
 	     left_delta="23" mouse_opaque="true" name="ToolGrass" scale_image="TRUE"
 	     tool_tip="Grass" width="24" />
+	<text name="tree_grass_label" bottom="-106" follows="left|top" height="16" width="135" right="-5"/>
+	<combo_box name="trees_grass" bottom="-120" follows="left|top" height="18" width="135" right="-5"/>
+	<string name="Random">Random</string>
 	<check_box bottom="-117" control_name="CreateToolKeepSelected" follows="left|top"
 	     font="SansSerifSmall" height="16" initial_value="false"
 	     label="Keep selected" left="4" mouse_opaque="true"
@@ -249,29 +317,53 @@
 
 	<check_box bottom="-69" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Select Land" left="4" mouse_opaque="true"
-	     name="radio select land" radio_style="true" width="114" />
+	     name="radio select land" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Flatten" left="4" mouse_opaque="true"
-	     name="radio flatten" radio_style="true" width="114" />
+	     name="radio flatten" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Raise" left="4" mouse_opaque="true"
-	     name="radio raise" radio_style="true" width="114" />
+	     name="radio raise" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Lower" left="4" mouse_opaque="true"
-	     name="radio lower" radio_style="true" width="114" />
+	     name="radio lower" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Smooth" left="4" mouse_opaque="true"
-	     name="radio smooth" radio_style="true" width="114" />
+	     name="radio smooth" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Roughen" left="4" mouse_opaque="true"
-	     name="radio noise" radio_style="true" width="114" />
+	     name="radio noise" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<check_box bottom_delta="-15" follows="left|top" font="SansSerifSmall" height="16"
 	     initial_value="false" label="Revert" left="4" mouse_opaque="true"
-	     name="radio revert" radio_style="true" width="114" />
+	     name="radio revert" radio_style="true" width="114" >
+	     <check_box.commit_callback
+	     	function="BuildTool.commitRadioLand"/>
+	</check_box>
 	<button bottom="-72" follows="left|top" font="SansSerifSmall" halign="center"
 	     height="20" label="Apply" label_selected="Apply"
 	     left="116" mouse_opaque="true" name="button apply to selection"
-	     scale_image="TRUE" tool_tip="Modify Selected Land" width="78" />
+	     scale_image="TRUE" tool_tip="Modify Selected Land" width="78" >
+	     <button.commit_callback
+	     	function="BuildTool.applyToSelection"/>
+    	</button>
 	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false"
 	     border_visible="false" bottom_delta="-16" drop_shadow_visible="true" enabled="true"
 	     follows="left|top" font="SansSerifSmall" h_pad="0" halign="left" height="12" left="118"
@@ -286,7 +378,10 @@
 	</text>
 	<volume_slider bottom_delta="-4" follows="left|top" height="16" hidden="false"
          increment="0.1" initial_val="2.0" left="178" max_val="11.0" min_val="1.0"
-	     mouse_opaque="true" name="slider brush size" width="80" />	
+	     mouse_opaque="true" name="slider brush size" width="80" >
+	     <volume_slider.commit_callback
+	     	function="BuildTool.commitDozerSize"/>
+    	</volume_slider>
 	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false"
 	     border_visible="false" bottom_delta="-18" drop_shadow_visible="true" enabled="true"
 	     follows="left|top" font="SansSerifSmall" h_pad="0" halign="left" height="12" left="132"
@@ -295,7 +390,10 @@
 	</text>
 	<volume_slider bottom_delta="-4" follows="left|top" height="16" hidden="false"
 	     increment="0.1" initial_val="0.00" left="178" max_val="2.0" min_val="-1.0"
-	     mouse_opaque="true" name="slider force" width="80" />
+	     mouse_opaque="true" name="slider force" width="80" >
+	     <volume_slider.commit_callback
+	     	function="BuildTool.LandBrushForce"/>
+    	</volume_slider>
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
          bottom="-160" left="118" drop_shadow_visible="true" follows="left|top"
          font="SansSerifSmall" h_pad="0" halign="right" height="16" visible="false" 
@@ -388,13 +486,14 @@
 				mouse_opaque="true" name="Group:" v_pad="0" width="78">
 				Group:
 			</text>
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			    bottom="-126" drop_shadow_visible="true" follows="left|top"
-			    font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-			    mouse_opaque="true" name="Group Name Proxy" v_pad="0" visible="false"
-			    width="88">
-				The Lindens
-			</text>
+			<name_box
+			    follows="left|top"
+			    height="16" 
+			    initial_value="Loading..."
+			    bottom="-126" 
+			    left_delta="78"
+			    name="Group Name Proxy"
+			    width="142"/>
 			<button bottom="-126" follows="top|right" font="SansSerifSmall" halign="center"
 			    height="16" label="Set" label_selected="Set..." left_delta="94"
 			    mouse_opaque="true" name="button set group" scale_image="TRUE" width="30" />
@@ -670,7 +769,7 @@
 			     text_enabled_color="0, 100, 40, 255" width="87" />
 			<spinner bottom_delta="-18" decimal_digits="4" follows="left|top" height="16"
 			     increment="0.01" initial_val="0" label="Z" label_width="10" left_delta="0"
-			     max_val="4096" min_val="-3.5" mouse_opaque="true" name="Pos Z"
+			     min_val="-3.5" mouse_opaque="true" name="Pos Z"
 			     text_enabled_color="0, 67, 132, 255" width="87" />
 			<button bottom_delta="35" follows="top|right" font="SansSerifSmall" halign="center"
 				 height="18" label="C" left_delta="90" mouse_opaque="true" name="copypos" enabled="true"
@@ -1415,12 +1514,12 @@
 			     initial_value="false" label="Flip" left_delta="170" mouse_opaque="true"
 			     name="checkbox flip t" width="70" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-228" drop_shadow_visible="true" follows="left|top"
+			     bottom="-208" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="10" left="10"
 			     mouse_opaque="true" name="tex rotate" v_pad="0" width="102">
 				Rotation (degrees)
 			</text>
-			<spinner bottom="-234" decimal_digits="2" follows="left|top" height="16" increment="1"
+			<spinner bottom="-214" decimal_digits="2" follows="left|top" height="16" increment="1"
 			     initial_val="0" left="112" max_val="9999" min_val="-9999"
 			     mouse_opaque="true" name="TexRot" width="68" />
 			<string name="string repeats per meter">
@@ -1430,40 +1529,127 @@
 				Repeats Per Face
 			</string>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-250" drop_shadow_visible="true" follows="left|top"
+			     bottom="-226" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="10" left="10"
 			     mouse_opaque="true" name="rpt" v_pad="0" width="160">
 				Repeats Per Meter
 			</text>
-			<spinner bottom="-256" decimal_digits="1" follows="left|top" height="16" increment="0.1"
+			<spinner bottom="-232" decimal_digits="1" follows="left|top" height="16" increment="0.1"
 			     initial_val="1" left="112" max_val="10" min_val="0.1" mouse_opaque="true"
 			     name="rptctrl" width="68" />
-			<button bottom="-256" follows="left|top" font="SansSerifSmall" halign="center"
+			<button bottom="-232" follows="left|top" font="SansSerifSmall" halign="center"
 			     height="20" label="Apply" label_selected="Apply" left_delta="78"
-			     mouse_opaque="true" name="button apply" scale_image="TRUE" width="75" />
+			     mouse_opaque="true" name="button apply" scale_image="TRUE" width="68" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-288" drop_shadow_visible="true" follows="left|top"
+			     bottom="-244" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="10" left="10"
 			     mouse_opaque="true" name="tex offset" v_pad="0" width="160">
 				Offset
 			</text>
-			<spinner bottom="-308" decimal_digits="4" follows="top" height="16" increment="0.01" initial_val="0" label="Horizontal (U)" label_width="90" left="20"
+			<spinner bottom="-264" decimal_digits="4" follows="top" height="16" increment="0.01" initial_val="0" label="Horizontal (U)" label_width="90" left="20"
 			     max_val="1" min_val="-1" mouse_opaque="true" name="TexOffsetU" width="160"/>
 			<spinner bottom_delta="-18" decimal_digits="4" follows="top" height="16" increment="0.01" initial_val="0" label="Vertical (V)" label_width="90"
 			     left="20" max_val="1" min_val="-1" name="TexOffsetV"
 			     width="160"/>
-			<text bottom="-352" height="20" left="10" name="textbox autofix" v_pad="0" width="160">Align media texture
-(must load first)</text>
-			<button bottom="-360" follows="left|top" font="SansSerifSmall" halign="center"
-			     height="20" label="Align" label_selected="Align" left="112"
-			     mouse_opaque="true" name="button align" scale_image="TRUE" width="68" />
-			<text bottom="-322" drop_shadow_visible="true" follows="left|top" height="20" left="185" name="textbox params">Texture Params</text>
-			<button bottom_delta="-18" follows="top|right" font="SansSerifSmall" halign="center"
+			<text bottom="-244" v_pad="0" drop_shadow_visible="true" follows="left|top" height="10" left="185" width="85" name="textbox params">Texture Params</text>
+			<button bottom_delta="-24" follows="top|right" font="SansSerifSmall" halign="center"
 			     height="20" label="Copy" left_delta="5" mouse_opaque="true" name="copytextures"  enabled="true"
-			     tool_tip="Copy Testure Params from Clipboard"  width="68" />
+			     tool_tip="Copy Texture Params from Clipboard"  width="68" />
 	  		<button bottom_delta="-20" follows="top" height="20" label="Paste" name="pastetextures" tool_tip="Paste Texture Params from Clipboard"  width="68" />
-    	</panel>
-    	<panel border="true" bottom="-383" follows="left|top|right|bottom" height="367"
+        
+	<text
+             type="string"
+             length="1"
+             follows="left|top"
+             height="18"
+	     bottom="-307"
+             left="10"
+             top_pad="3"
+             name="media_tex"
+             width="190">
+              Media:
+	</text>
+	<panel
+         border="true"
+         follows="left|top"
+         mouse_opaque="false"
+         background_visible="false"
+         name="Add_Media"
+         left="5"
+	 bottom="-358"
+         height="54"
+         width="260">
+			<button
+			 follows="top|left"
+			 height="20"
+			 label="Add"
+			 name="add_media"
+			 tab_stop="false"
+			 top_delta="0"
+			 tool_tip="Add Media"
+			 left="153"
+			 bottom="-25"
+			 width="35">
+				<button.commit_callback
+				function="BuildTool.AddMedia"/>
+			</button>
+			<button
+			 follows="top|left"
+			 height="20"
+			 label="Rem"
+			 name="delete_media"
+			 tool_tip="Delete this media texture"
+			 left="188"
+			 bottom="-25"
+			 width="40">
+				<button.commit_callback
+				function="BuildTool.DeleteMedia"/>
+			</button>
+			<button
+			 follows="top|left"
+			 tool_tip="Edit this Media"
+			 height="20"
+			 label=">>"
+			 name="edit_media"
+			 left="228"
+			 bottom="-25"
+			 width="30">
+				<button.commit_callback
+				function="BuildTool.EditMedia"/>
+			</button>
+      <text
+			 follows="left|top|right"
+			 height="18"
+			 left="10"
+			 bottom="-46"
+                         use_ellipses="true"
+			 read_only="true"
+			 name="media_info"
+			 width="180" />
+      <web_browser
+        visible="false"
+        enabled="false"
+        border_visible="true"
+        bottom_delta="0"
+        follows="top|left"
+        bottom="-5"
+        name="title_media"
+        width="4"
+        height="4"
+        start_url="about:blank"
+        decouple_texture_size="true" />
+     <button
+			 follows="right|top"
+			 height="20"
+			 label="Align"
+			 left="166"
+			 name="button align"
+			 bottom="-48"
+			 tool_tip="Align media texture (must load first)"
+			 width="80" />
+		</panel>
+	   </panel>
+       <panel border="true" bottom="-383" follows="left|top|right|bottom" height="367"
 		     label="Content" left="1" mouse_opaque="false" name="Contents" width="270">
       		<button bottom="-30" follows="left|top" font="SansSerif" halign="center" height="20" label="New Script" label_selected="New Script" left="10" name="button new script" scale_image="TRUE" width="100"/>
       <button bottom_delta="0" left_delta="110" width="100" height="20" follows="left|top"

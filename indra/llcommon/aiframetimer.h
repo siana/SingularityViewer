@@ -67,7 +67,7 @@ class LL_COMMON_API AIFrameTimer
 		mutable Signal* mCallback;			// Pointer to callback struct, or NULL when the object wasn't added to sTimerList yet.
 
 	  public:
-		AIRunningFrameTimer(F64 expiration, AIFrameTimer* timer) : mExpire(LLFrameTimer::getElapsedSeconds() + expiration), mCallback(NULL), mTimer(timer) { }
+		AIRunningFrameTimer(F64 expiration, AIFrameTimer* timer) : mExpire(LLFrameTimer::getElapsedSeconds() + expiration), mTimer(timer), mCallback(NULL) { }
 		~AIRunningFrameTimer() { delete mCallback; }
 
 		// This function is called after the final object was added to sTimerList (where it is initialized in-place).
@@ -89,7 +89,7 @@ class LL_COMMON_API AIFrameTimer
 #if LL_DEBUG
 		// May not copy this object after it was initialized.
 		AIRunningFrameTimer(AIRunningFrameTimer const& running_frame_timer) :
-			mExpire(running_frame_timer.mExpire), mCallback(running_frame_timer.mCallback), mTimer(running_frame_timer.mTimer)
+			mExpire(running_frame_timer.mExpire), mTimer(running_frame_timer.mTimer), mCallback(running_frame_timer.mCallback)
 			{ llassert(!mCallback); }
 #endif
 	};

@@ -403,11 +403,15 @@
   <texture name="media_panel_divider.png"/>
   <texture name="media_panel_scrollbg.png"/>
   
-  <texture name="go-previous-4.png"/>
-  <texture name="go-next-4.png"/>
-  <texture name="view-refresh-5.png"/>
-  <texture name="go-home-4.png"/>
-
+  <texture name="Parcel_Exp_Color.png" file_name="Parcel_Exp_Color.png" preload="false" />
+  <texture name="Flag.png" file_name="Flag.png" preload="false" />
+  <texture name="go-previous.png"/>
+  <texture name="go-next.png"/>
+  <texture name="go-reload.png"/>
+  <texture name="go-home.png"/>
+  <texture name="go-media-play.png"/>
+  <texture name="go-media-stop.png"/>
+  
   <texture name="Inv_WindLight.png" preload="true"/>
   <texture name="Inv_WaterLight.png" preload="true"/>
 

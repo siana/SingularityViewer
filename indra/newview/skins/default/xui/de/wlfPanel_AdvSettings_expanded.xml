@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="Adv_Settings">
+	
+	<slider label="Draw Dist.:" name="DrawDistance" tool_tip="Legt die Entfernung fest, bis zu der Objekte dargestellt werden."/>
+	<slider label="Partikel:" name="MaxParticleCount" tool_tip="Die maximale Anzahl an Partikel, die dargestellt werden sollen."/>
+	<slider label="Max Avatars:" name="RenderAvatarMaxVisible" tool_tip="Anzahl der vollständig gerenderten Avatare auf dem Bildschirm. Herabsetzen führt zu stark verbesserter Performanz in gedrängten Situationen. Vereinfachte Avatar Darstellugn muss dazu eingeschalten sein. [Default: 35]"/>
+	<slider label="Obj. Detail:" name="Object Detail" tool_tip="Controls level of detail of primitives (multiplier for current screen area when calculated level of detail[0.5 to 2.0 is stable])"/>
+	<button name="EnvAdvancedSkyButton" tool_tip="Himmel (erweitert)"/>
+	<combo_box name="WLSkyPresetsCombo" tool_tip="WindLight Einstellungen für deinen Himmel."/>
+	<button label="&lt;" name="WLprev"/>
+	<button label="&gt;" name="WLnext"/>
+	<button name="EnvAdvancedWaterButton" tool_tip="Wasser (erweitert)"/>
+	<combo_box name="WLWaterPresetsCombo" tool_tip="WindLight Einstellungen für dein Wasser."/>
+	<button label="&lt;" name="WWprev"/>
+	<button label="&gt;" name="WWnext"/>
+	<check_box label="Region WL" name="use_estate_wl" tool_tip="Benutze Regionsvoreinstellungen für Windlight wenn möglich."/>
+<!--check_box bottom_delta="0" left_delta="125" label="Always?" control_name="UseEnvironmentFromRegionAlways" height="16" name="Always" tool_tip="Always use region/parcel settings when they exist, automatically."/-->
+	<check_box label="Überblenden?" name="Crossfade" tool_tip="Wenn abgewählt, Sky Windlight Einstellungen werden sofort übernommen, ohne Verzögerungen oder Animationen."/>
+	
+	
+	<button name="expand" tool_tip="Verstecke Einstellungsdialog"/>
+</panel>

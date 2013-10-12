@@ -58,8 +58,7 @@ public:
 		BOOL show_text,
 		BOOL can_edit_text,
 		BOOL volume, //TODO: create a "volume" slider sub-class or just use image art, no?  -MG
-		void (*commit_callback)(LLUICtrl*, void*),
-		void* callback_userdata,
+		commit_callback_t commit_callback,
 		F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 		const std::string& control_which = LLStringUtil::null );
 
@@ -114,10 +113,9 @@ public:
 
 	virtual std::string getControlName() const { return mSlider->getControlName(); }
 	
-	static void		onSliderCommit(LLUICtrl* caller, void* userdata);
+	static void		onSliderCommit(LLUICtrl* ctrl, const LLSD& userdata);
 
-	static void		onEditorCommit(LLUICtrl* caller, void* userdata);
-	static void		onEditorChangeFocus(LLUICtrl* caller, S32 direction, void *userdata);
+	static void		onEditorCommit(LLUICtrl* ctrl, const LLSD& userdata);
 
 private:
 	void			updateText();

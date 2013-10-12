@@ -4,14 +4,18 @@
 		Búsqueda por Nombre:
 	</text>
 	<text name="desc_label">
-		Búsqueda por Descrición:
+		Búsqueda por Descripción:
 	</text>
+	<filter_editor name="Name query chunk" tool_tip=""/>
+	<filter_editor name="Description query chunk" tool_tip=""/>	
 	<text name="owner_label">
 		Búsqueda por Propietario:
 	</text>
 	<text name="group_label">
 		Búsqueda por Grupo:
 	</text>
+	<filter_editor name="Owner query chunk" tool_tip=""/>
+	<filter_editor name="Group query chunk" tool_tip=""/>	
 	<scroll_list name="result_list">
 		<column name="Name" label="Nombre" tool_tip="Haz doble click en cualquier resultado para marcar su posición"/>
 		<column name="Description" label="Descripción" tool_tip="Haz doble click en cualquier resultado para marcar su posición"/>

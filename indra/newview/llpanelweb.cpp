@@ -44,17 +44,6 @@
 #include "llviewerwindow.h"
 #include "llpluginclassmedia.h"
 
-// helper functions for getting/freeing the web browser media
-// if creating/destroying these is too slow, we'll need to create
-// a static member and update all our static callbacks
-viewer_media_t get_web_media()
-{
-
-	viewer_media_t media_source = LLViewerMedia::newMediaImpl("", LLUUID::null, 0, 0, 0, 0, "text/html");
-
-	return media_source;
-}
-
 LLPanelWeb::LLPanelWeb()
 {
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_preferences_web.xml");
@@ -98,15 +87,14 @@ void LLPanelWeb::apply()
 	bool value = childGetValue("use_external_browser").asString() == "external" ? true : false;
 	gSavedSettings.setBOOL("UseExternalBrowser", value);
 	
-	viewer_media_t media_source = get_web_media();
-	if (media_source && media_source->hasMedia())
-	{
-		media_source->getMediaPlugin()->enable_cookies(childGetValue("cookies_enabled"));
+	LLViewerMedia::setCookiesEnabled(getChild<LLUICtrl>("cookies_enabled")->getValue());
 
-		bool proxy_enable = childGetValue("web_proxy_enabled");
-		std::string proxy_address = childGetValue("web_proxy_editor");
-		int proxy_port = childGetValue("web_proxy_port");
-		media_source->getMediaPlugin()->proxy_setup(proxy_enable, proxy_address, proxy_port);
+	if (hasChild("web_proxy_enabled") && hasChild("web_proxy_editor") && hasChild("web_proxy_port"))
+	{
+		bool proxy_enable = getChild<LLUICtrl>("web_proxy_enabled")->getValue();
+		std::string proxy_address = getChild<LLUICtrl>("web_proxy_editor")->getValue();
+		int proxy_port = getChild<LLUICtrl>("web_proxy_port")->getValue();
+		LLViewerMedia::setProxyConfig(proxy_enable, proxy_address, proxy_port);
 	}
 }
 
@@ -126,9 +114,7 @@ bool LLPanelWeb::callback_clear_browser_cache(const LLSD& notification, const LL
 	S32 option = LLNotification::getSelectedOption(notification, response);
 	if ( option == 0 ) // YES
 	{
-		viewer_media_t media_source = get_web_media();
-		if (media_source && media_source->hasMedia())
-			media_source->getMediaPlugin()->clear_cache();
+		LLViewerMedia::clearAllCaches();
 	}
 	return false;
 }
@@ -145,25 +131,11 @@ bool LLPanelWeb::callback_clear_cookies(const LLSD& notification, const LLSD& re
 	S32 option = LLNotification::getSelectedOption(notification, response);
 	if ( option == 0 ) // YES
 	{
-		viewer_media_t media_source = get_web_media();
-		if (media_source && media_source->hasMedia())
-			media_source->getMediaPlugin()->clear_cookies();
+		LLViewerMedia::clearAllCookies();
 	}
 	return false;
 }
 
-// static
-void LLPanelWeb::onCommitCookies(LLUICtrl* ctrl, void* data)
-{
-  LLPanelWeb* self = (LLPanelWeb*)data;
-  LLCheckBoxCtrl* check = (LLCheckBoxCtrl*)ctrl;
-
-  if (!self || !check) return;
-
-  viewer_media_t media_source = get_web_media();
-		if (media_source && media_source->hasMedia())
-	  media_source->getMediaPlugin()->enable_cookies(check->get());
-}
 // static
 void LLPanelWeb::onCommitWebProxyEnabled(LLUICtrl* ctrl, void* data)
 {
@@ -174,6 +146,4 @@ void LLPanelWeb::onCommitWebProxyEnabled(LLUICtrl* ctrl, void* data)
 	self->childSetEnabled("web_proxy_editor", check->get());
 	self->childSetEnabled("web_proxy_port", check->get());
 	self->childSetEnabled("proxy_text_label", check->get());
-
-
 }

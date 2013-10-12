@@ -159,3 +159,23 @@ MACRO(ADD_VIEWER_COMM_BUILD_TEST name parent wrapper)
 ##  MESSAGE(STATUS "ADD_VIEWER_COMM_BUILD_TEST ${name} wrapper = ${wrapper}")
     ADD_COMM_BUILD_TEST("${name}" "${parent}" "${wrapper}" llviewerprecompiledheaders.cpp)
 ENDMACRO(ADD_VIEWER_COMM_BUILD_TEST name parent wrapper)
+MACRO(SET_TEST_PATH LISTVAR)
+  IF(WINDOWS)
+    # We typically build/package only Release variants of third-party
+    # libraries, so append the Release staging dir in case the library being
+    # sought doesn't have a debug variant.
+    set(${LISTVAR} ${SHARED_LIB_STAGING_DIR}/${CMAKE_CFG_INTDIR} ${SHARED_LIB_STAGING_DIR}/Release)
+  ELSEIF(DARWIN)
+    # We typically build/package only Release variants of third-party
+    # libraries, so append the Release staging dir in case the library being
+    # sought doesn't have a debug variant.
+    set(${LISTVAR} ${SHARED_LIB_STAGING_DIR}/${CMAKE_CFG_INTDIR}/Resources ${SHARED_LIB_STAGING_DIR}/Release/Resources /usr/lib)
+  ELSE(WINDOWS)
+    # Linux uses a single staging directory anyway.
+    IF (STANDALONE)
+      set(${LISTVAR} ${CMAKE_BINARY_DIR}/llcommon /usr/lib /usr/local/lib)
+    ELSE (STANDALONE)
+      set(${LISTVAR} ${SHARED_LIB_STAGING_DIR} /usr/lib)
+    ENDIF (STANDALONE)
+  ENDIF(WINDOWS)
+ENDMACRO(SET_TEST_PATH)

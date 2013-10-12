@@ -63,8 +63,7 @@ public:
 	virtual void		draw();
 
 	virtual BOOL		canSaveAs() const;
-	virtual void		saveAs(){ saveAsType(false); }
-	void				saveAsType(BOOL png);
+	virtual void		saveAs();
 	void				saveAs_continued(LLViewerInventoryItem const* item, AIFilePicker* filepicker);
 	virtual LLUUID		getItemID();
 	virtual std::string	getItemCreatorName();

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="Anim Preview" title="Subir Animación">
+	<text name="name_label">
+		Nombre:
+	</text>
+	<line_editor name="name_form"/>
+	<text name="description_label">
+		Descripción:
+    </text>
+	<line_editor name="description_form"/>
+	<button label="Subir ([UPLOADFEE])" name="ok_btn"/>
+	<button label="Cancelar" label_selected="Cancelar" name="cancel_btn"/>
+</floater>
+

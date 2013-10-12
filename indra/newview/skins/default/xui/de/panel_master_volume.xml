@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<panel name="master_volume">
+	<button name="volume" tool_tip="Master-Lautstärkeregler, zur Einstellung der Lautstärke klicken"/>
+	<volume_slider name="volume_slider" tool_tip="Lautstärke mit diesem Regler ändern"/>
+	
+</panel>
