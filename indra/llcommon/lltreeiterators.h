@@ -63,10 +63,6 @@
 #include <vector>
 #include <deque>
 #include <boost/iterator/iterator_facade.hpp>
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
 #include <boost/static_assert.hpp>
 
 namespace LLTreeIter
@@ -96,7 +92,7 @@ protected:
     typedef typename LLPtrTo<NODE>::type ptr_type;
     /// function that advances from this node to next accepts a node pointer
     /// and returns another
-    typedef boost::function<ptr_type(const ptr_type&)> func_type;
+    typedef std::function<ptr_type(const ptr_type&)> func_type;
     typedef SELFTYPE self_type;
 };
 
@@ -333,7 +329,7 @@ protected:
     typedef typename super::ptr_type ptr_type;
     // The func_type is different for this: from a NODE pointer, we must
     // obtain a CHILDITER.
-    typedef boost::function<CHILDITER(const ptr_type&)> func_type;
+    typedef std::function<CHILDITER(const ptr_type&)> func_type;
 private:
     typedef std::vector<ptr_type> list_type;
 public:
@@ -438,7 +434,7 @@ protected:
     typedef typename super::ptr_type ptr_type;
     // The func_type is different for this: from a NODE pointer, we must
     // obtain a CHILDITER.
-    typedef boost::function<CHILDITER(const ptr_type&)> func_type;
+    typedef std::function<CHILDITER(const ptr_type&)> func_type;
 private:
     // Upon reaching a given node in our pending list, we need to know whether
     // we've already pushed that node's children, so we must associate a bool
@@ -503,14 +499,17 @@ private:
         // Once we've popped the last node, this becomes a no-op.
         if (mPending.empty())
             return;
+
+		auto& pending = mPending.back();
+
         // Here mPending.back() holds the node pointer we're proposing to
         // dereference next. Have we pushed that node's children yet?
-        if (mPending.back().second)
+        if (pending.second)
             return;                 // if so, it's okay to visit this node now
         // We haven't yet pushed this node's children. Do so now. Remember
         // that we did -- while the node in question is still back().
-        mPending.back().second = true;
-        addChildren(mPending.back().first);
+		pending.second = true;
+        addChildren(pending.first);
         // Now, because we've just changed mPending.back(), make that new node
         // current.
         makeCurrent();
@@ -577,7 +576,7 @@ protected:
     typedef typename super::ptr_type ptr_type;
     // The func_type is different for this: from a NODE pointer, we must
     // obtain a CHILDITER.
-    typedef boost::function<CHILDITER(const ptr_type&)> func_type;
+    typedef std::function<CHILDITER(const ptr_type&)> func_type;
 private:
     // We need a FIFO queue rather than a LIFO stack. Use a deque rather than
     // a vector, since vector can't implement pop_front() efficiently.

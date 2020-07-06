@@ -45,14 +45,16 @@ public:
 		LOG_LINE,
 		LOG_END
 	};
+	static void initializeIDMap();
 	static std::string timestamp(bool withdate = false);
-	static std::string makeLogFileName(std::string filename);
-	static void saveHistory(std::string const& filename, std::string line);
-	static void loadHistory(std::string const& filename, 
-		                    void (*callback)(ELogLineType,std::string,void*), 
-							void* userdata);
+	static std::string makeLogFileName(const std::string& name, const LLUUID& id);
+	static void saveHistory(const std::string& name, const LLUUID& id, const std::string& line);
+	static void loadHistory(const std::string& name, const LLUUID& id,
+		                    std::function<void (ELogLineType, const std::string&)> callback);
 private:
-	static std::string cleanFileName(std::string filename);
+	static std::string makeLogFileNameInternal(std::string filename);
+	static bool migrateFile(const std::string& old_name, const std::string& filename);
+	static void cleanFileName(std::string& filename);
 };
 
 #endif

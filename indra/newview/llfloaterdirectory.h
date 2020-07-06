@@ -33,7 +33,7 @@
 #ifndef LL_LLFLOATERDIRECTORY_H
 #define LL_LLFLOATERDIRECTORY_H
 
-#include "llfloater.h"
+#include "llfloatersearch.h"
 #include "lltabcontainer.h"
 
 class LLDirectoryCore;
@@ -71,8 +71,7 @@ public:
 
 	// Outside UI widgets can spawn this floater with various tabs
 	// selected.
-	static void searchInAll(const std::string& search_text);
-	static void showFindAll(const std::string& search_text);
+	static void search(const LLFloaterSearch::SearchQuery& search);
 	static void showClassified(const LLUUID& classified_id);
 	static void showClassified(const std::string& search_text = "");
 	static void showEvents(S32 event_id);
@@ -102,7 +101,6 @@ private:
 private:
 	// Some special "showByID" functions use these cached pointers.
 	// They could be replaced by getPanelByName(), perhaps. JC
-	LLPanelDirFindAll* mFindAllPanel;
 	LLPanelDirClassified* mClassifiedPanel;
 	LLPanelDirEvents* mEventsPanel;
 	LLPanelDirLand* mLandPanel;
@@ -143,7 +141,5 @@ private:
 	bool mMinimizing;	// HACK: see reshape() for details
 	static LLFloaterDirectory	*sInstance;
 };
-
-extern BOOL gDisplayEventHack;
 
 #endif  // LL_LLDIRECTORYFLOATER_H

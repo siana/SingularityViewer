@@ -157,6 +157,7 @@ public:
 
 	void getInfo(LLSD& info);
 
+	void clearAllVisibleObjects();
 public:
 	typedef std::list<LLViewerRegion*> region_list_t;
 	const region_list_t& getRegionList() const { return mActiveRegionList; }

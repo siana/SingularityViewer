@@ -125,6 +125,9 @@
 	<string name="TooltipMapUrl">Klicken, um diese Position auf der Karte anzuzeigen</string>
 	<string name="TooltipSLAPP">Anklicken, um Befehl secondlife:// auszuführen</string>
 	<string name="CurrentURL" value=" CurrentURL: [CurrentURL]"/>
+	<string name="TooltipEmail">
+		Klicken, um eine E-Mail zu verfassen
+	</string>
 
 	<!-- text for SLURL labels -->
 	<string name="SLurlLabelTeleport">Teleportieren zu</string>
@@ -137,6 +140,33 @@
 	<string name="SLappAgentPay">Bezahlen</string>
 	<string name="SLappAgentOfferTeleport">Teleportangebot an</string>
 	<string name="SLappAgentRequestFriend">Freundschaftsangebot</string>
+	<string name="SLappAgentRemoveFriend">
+		Entfernen von Freunden
+	</string>
+	<string name="BUTTON_CLOSE_DARWIN">
+		Schließen (⌘W)
+	</string>
+	<string name="BUTTON_CLOSE_WIN">
+		Schließen (Strg+W)
+	</string>
+	<string name="BUTTON_CLOSE_CHROME">
+		Schließen
+	</string>
+	<string name="BUTTON_RESTORE">
+		Wiederherstellen
+	</string>
+	<string name="BUTTON_MINIMIZE">
+		Minimieren
+	</string>
+	<string name="BUTTON_TEAR_OFF">
+		Abnehmen
+	</string>
+	<string name="BUTTON_DOCK">
+		Andocken
+	</string>
+	<string name="BUTTON_HELP">
+		Hilfe anzeigen
+	</string>
 
 	<!-- searching - generic -->
 	<string name="Searching">Suchen...</string>
@@ -322,7 +352,6 @@
 	<string name="RemapControlInputs">Steuerung neu zuweisen</string>
 	<string name="AnimateYourAvatar">Avatar animieren</string>
 	<string name="AttachToYourAvatar">An Avatar anhängen</string>
-	<string name="AGroupMemberNamed">A group member named</string>
 	<string name="ReleaseOwnership">Eigentum aufgeben und öffentlich machen</string>
 	<string name="LinkAndDelink">Mit Objekten verknüpfen und davon trennen</string>
 	<string name="AddAndRemoveJoints">Verbindungen zu anderen Objekten hinzufügen und entfernen</string>
@@ -1261,8 +1290,8 @@ Sets the given permission mask to the new value on the root object the task is a
     Please keep LL-LSL above this section
     ** DATA SOURCES **
        OpenSim OS Functions:      \OpenSim\Region\ScriptEngine\Shared\Api\Interface\IOSSL_Api.cs
-       Aurora-Sim AA Functions:   \Aurora\AuroraDotNetEngine\APIs\AA_API.cs
-       Aurora-Sim BOT Functions:  \Aurora\BotManager\Bot_API.cs
+       WhiteCore AA Functions:    \WhiteCore\ScriptEngine\DotNetEngine\APIs\AA\AA_API.cs
+       WhiteCore BOT Functions:   \WhiteCore\BotManager\Bot_API.cs
 -->
 
 	<string name="LSLTipText_osSetDynamicTextureURL">osSetDynamicTextureURL(key dynamicID, string contentType, string url, string extraParams, integer timer )
@@ -1592,199 +1621,139 @@ Set the current WindLight scene directed at a specific avatar. Estate managers a
 	<string name="LSLTipText_lsGetWindlightScene">list lsGetWindlightScene(list rules)
 Get the current WindLight settings.
 (Reguires LightShare Enabled Viewer)</string>
-<!-- Aurora-Sim OSSL-Functions  (unique to Aurora Only)  'osReturnObject', 'osReturnObjects', 'osShutDown', 'osaddAgentToGroup', 'osRezObject',
-   Aurora-Sim aaFunctions (\Aurora\AuroraDotNetEngine\APIs\IAA_Api.cs)
-   Aurora-Sim botFunctions (\Aurora\BotManager\IBot_Api.cs) 
+<!-- WhiteCore OSSL-Functions  (unique to WhiteCore Only)  'osReturnObject', 'osReturnObjects', 'osShutDown', 'osaddAgentToGroup', 'osRezObject',
+   WhiteCore aaFunctions (\WhiteCore\ScriptEngine\DotNetEngine\APIs\AA\AA_Api.cs)
+   WhiteCore botFunctions (\WhiteCore\BotManager\Bot_Api.cs)
 -->
 	<string name="LSLTipText_osReturnObject">osReturnObject(key userID)
-Returns object to specified avatars UUID.
-(Aurora-Sim only)</string>
+Returns object to specified avatars UUID.</string>
 	<string name="LSLTipText_osReturnObjects">osReturnObjects(float Parameter)
-Returns group of objects. Parameter's are numeric, values are owner objects = 0, everyone except owner objects = 1, group objects = 2.
-(Aurora-Sim only)</string>
+Returns group of objects. Parameter's are numeric, values are owner objects = 0, everyone except owner objects = 1, group objects = 2.</string>
 	<string name="LSLTipText_osShutDown">osShutDown()
-Shut's down current Simulator.  Authorized Admin Only by config.
-(Aurora-Sim only)</string>
+Shut's down current Simulator.  Authorized Admin Only by config.</string>
 	<string name="LSLTipText_osAddAgentToGroup">osAddAgentToGroup(key avatarID, string group_name, string role_name)
-Adds an avatar to a group.  Where group_name = name of the target group, role_name = role to assign within the group.
-(Aurora-Sim only)</string>
+Adds an avatar to a group.  Where group_name = name of the target group, role_name = role to assign within the group.</string>
 	<string name="LSLTipText_osRezObject">osRezObject(string inventory, vector position, vector velocity, rotation rot, integer param, integer isRezAtRoot, integer doRecoil, integer SetDieAtEdge, integer CheckPos)
 Where inventory = object to rez.  Position = vector to rez object.  Velocity = initial velocity.  Rot = initial rotation.  Param = onrez event.
 IzAtRoot = TRUE/FALSE flag changes llRezAtRoot to llRezObject.  doRecoil =TRUE/FALSE to push avatar.  SetDieAtEdge = TRUE/FALSE for rezzed object to die at edge of region.
-CheckPos = TRUE/FALSE enable/disable 10m rez limit.
-(Aurora-Sim only)</string>
+CheckPos = TRUE/FALSE enable/disable 10m rez limit.</string>
 	<string name="LSLTipText_aaSetCloudDensity">aaSetCloudDensity(float density)
-AaSetCloudDensity(0.5)  Where float density values are 0.0 =  no cloud to 1.0 = 100% cloud.
-(Aurora-Sim only)</string>
+AaSetCloudDensity(0.5)  Where float density values are 0.0 =  no cloud to 1.0 = 100% cloud.</string>
 	<string name="LSLTipText_aaUpdateDatabase">aUpdateDatabase(string Key, string value, string token)
-Where Key = database field name, xmlDataToPutIntoTheDatabase = serialized XML data,  Token = data-password
-(Aurora-Sim only)</string>
+Where Key = database field name, xmlDataToPutIntoTheDatabase = serialized XML data,  Token = data-password</string>
 	<string name="LSLTipText_aaQueryDatabase">aaQueryDatabase(string Key, string Token)
 Returns a list with first value is the token, the second the Key, and the third the value
-Where Key = database field name, Token = data-password
-(Aurora-Sim only)</string>
+Where Key = database field name, Token = data-password</string>
 	<string name="LSLTipText_aaDeserializeXMLValues">aaDeserializeXMLValues(string xmlData)
-Returns a list of Values from XML data. Where xmlData = xml formatted data Values.
-(Aurora-Sim only)</string>
+Returns a list of Values from XML data. Where xmlData = xml formatted data Values.</string>
 	<string name="LSLTipText_aaDeserializeXMLKeys">aaDeserializeXMLKeys(string xmlData)
-Returns a list of keys from XML data. Where xmlData = xml formatted data keys.
-(Aurora-Sim only)</string>
+Returns a list of keys from XML data. Where xmlData = xml formatted data keys.</string>
 	<string name="LSLTipText_aaSetConeOfSilence">aaSetConeOfSilence(float radius)
-Where radius = metres radius from centre of scripted item.  This creates an area that sounds can only be heard by the people within the area(radius) and not heard outside and visa-versa.
-(Aurora-Sim only)</string>
+Where radius = metres radius from centre of scripted item.  This creates an area that sounds can only be heard by the people within the area(radius) and not heard outside and visa-versa.</string>
 	<string name="LSLTipText_aaSerializeXML">aaSerializeXML(list keys, list values)
-Returns xml formatted string of the keys and values.  Where keys = list of keys in the database, values = fields to retrieve from database.
-(Aurora-Sim only)</string>
+Returns xml formatted string of the keys and values.  Where keys = list of keys in the database, values = fields to retrieve from database.</string>
 	<string name="LSLTipText_aaGetTeam">aaGetTeam(key uuid)
-Returns a string of avatars team name.  Where uuid = avatar key.
-(Aurora-Sim only)</string>
+Returns a string of avatars team name.  Where uuid = avatar key.</string>
 	<string name="LSLTipText_aaGetHealth">aaGetHealth(key uuid)
-Returns float value (0.0 to 100.0) of current health.  Where uuid = avatar key.
-(Aurora-Sim only)</string>
+Returns float value (0.0 to 100.0) of current health.  Where uuid = avatar key.</string>
 	<string name="LSLTipText_aaJoinCombat">aaJoinCombat(key uuid)
-Where uuid = avatar key.  If (PERMISSION_COMBAT == PERMISSION_COMBAT) and permission is granted then join combat.
-(Aurora-Sim only)</string>
+Where uuid = avatar key.  If (PERMISSION_COMBAT == PERMISSION_COMBAT) and permission is granted then join combat.</string>
 	<string name="LSLTipText_aaLeaveCombat">aaLeaveCombat(key uuid)
-Where uuid = avatar key.
-(Aurora-Sim only)</string>
+Where uuid = avatar key.</string>
 	<string name="LSLTipText_aaJoinCombatTeam">aaJoinCombatTeam(key uuid, string team)
-Where uuid = key of avatar, team = string of the team name.
-(Aurora-Sim only)</string>
+Where uuid = key of avatar, team = string of the team name.</string>
 	<string name="LSLTipText_aaRequestCombatPermission">aaRequestCombatPermission(key ID)
 Where ID = avatar uuid.  Requests target avatar for Permissions to enter into combat mode.
-Raises a run_time_permissions event. (PERMISSION_COMBAT == PERMISSION_COMBAT).
-(Aurora-Sim only)</string>
+Raises a run_time_permissions event. (PERMISSION_COMBAT == PERMISSION_COMBAT).</string>
 	<string name="LSLTipText_aaThawAvatar">aaThawAvatar(key ID)
-Where ID = avatar uuid. If combat permission are granted then avatar can be un-frozen (movement re-enabled).
-(Aurora-Sim only)</string>
+Where ID = avatar uuid. If combat permission are granted then avatar can be un-frozen (movement re-enabled).</string>
 	<string name="LSLTipText_aaFreezeAvatar">aaFreezeAvatar(key ID)
-Where ID = avatar uuid. If combat permission are granted then avatar can be frozen (no movement).
-(Aurora-Sim only)</string>
+Where ID = avatar uuid. If combat permission are granted then avatar can be frozen (no movement).</string>
 	<string name="LSLTipText_aaGetTeamMembers">aaGetTeamMembers(string team)
-Return a list of team members.  Where team = string of team name.
-(Aurora-Sim only)</string>
+Return a list of team members.  Where team = string of team name.</string>
 	<string name="LSLTipText_aaGetLastOwner">POLYMORPHIC FUNCTION.
 aaGetLastOwner(string PrimID)  returns last owner UUID of PrimID where PrimID = uuid of prim.
-AaGetLastOwner()  returns last owner uuid of prim containg script.
-(Aurora-Sim only)</string>
+AaGetLastOwner()  returns last owner uuid of prim containg script.</string>
 	<string name="LSLTipText_aaSayDistance">aaSayDistance(integer channelID, float Distance, string text)
-Where channelID = channel to say on, Distance = float in meters  for distance to say, text = string to say.
-(Aurora-Sim only)</string>
+Where channelID = channel to say on, Distance = float in meters  for distance to say, text = string to say.</string>
 	<string name="LSLTipText_aaSayTo">aaSayTo(key userID, string text)
-Where userID = avatar key, text = string msg.  Similar to llOwnerSay but can be directly targeted to an avatar.
-(Aurora-Sim only)</string>
+Where userID = avatar key, text = string msg.  Similar to llOwnerSay but can be directly targeted to an avatar.</string>
 	<string name="LSLTipText_aaGetWalkDisabled">aaGetWalkDisabled(key ID)
-Returns integer of TRUE or FALSE for specifid ID.  Where ID = avatar uuid.
-(Aurora-Sim only)</string>
+Returns integer of TRUE or FALSE for specifid ID.  Where ID = avatar uuid.</string>
 	<string name="LSLTipText_aaSetWalkDisabled">aaSetWalkDisabled(key ID, integer Value)
-Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables walk, forcing avatar to fly.
-(Aurora-Sim only)</string>
+Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables walk, forcing avatar to fly.</string>
 	<string name="LSLTipText_aaGetFlyDisabled">aaGetFlyDisabled(key ID)
-Returns integer of TRUE or FALSE for specifid ID. Where ID = avatar uuid.
-(Aurora-Sim only)</string>
+Returns integer of TRUE or FALSE for specifid ID. Where ID = avatar uuid.</string>
 	<string name="LSLTipText_aaSetFlyDisabled">aaSetFlyDisabled(key ID, integer Value)
-Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables flying, forcing avatar to walk.
-(Aurora-Sim only)</string>
+Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables flying, forcing avatar to walk.</string>
 	<string name="LSLTipText_aaAvatarFullName2Key">aaAvatarFullName2Key(string FullName)
-Returns the avatar uuid from their fullname.  Where FullName = "Firstname Lastname”.
-(Aurora-Sim only)</string>
+Returns the avatar uuid from their fullname.  Where FullName = "Firstname Lastname”.</string>
 	<string name="LSLTipText_aaRaiseError">aaRaiseError(string message)
-Allows you to have errors that end the execution of the event and fire another event in the script.
-(Aurora-Sim only)</string>
+Allows you to have errors that end the execution of the event and fire another event in the script.</string>
 	<string name="LSLTipText_aaGetText">aaGetText()
-Returns a string of the hover text of an object.
-(Aurora-Sim only)</string>
+Returns a string of the hover text of an object.</string>
 	<string name="LSLTipText_aaGetTextColor">aaGetTextColor()
-Returns the hovertext color in rotation. Use Ex: rotation color = aaGetTextColor() to separate color.x, color.y, color.z, color.s  Where s = value of alpha in llSetText.
-(Aurora-Sim only)</string>
+Returns the hovertext color in rotation. Use Ex: rotation color = aaGetTextColor() to separate color.x, color.y, color.z, color.s  Where s = value of alpha in llSetText.</string>
 	<string name="LSLTipText_aaSetEnv">aaSetEnv(string EnvName, list Value)
 Sets environment values.  Where EnvName = ENABLE_GRAVITY, GRAVITY_FORCE_X, GRAVITY_FORCE_Y, GRAVITY_FORCE_Z, ADD_GRAVITY_POINT, ADD_GRAVITY_FORCE, START_TIME_REVERSAL_SAVING,
-STOP_TIME_REVERSAL_SAVING, START_TIME_REVERSAL, STOP_TIME_REVERSAL.
-(Aurora-Sim only)</string>
+STOP_TIME_REVERSAL_SAVING, START_TIME_REVERSAL, STOP_TIME_REVERSAL.</string>
 	<string name="LSLTipText_aaGetIsInfiniteRegion">aaGetIsInfiniteRegion()
-Returns TRUE or FALSE if region is an infinite region.
-(Aurora-Sim only)</string>
+Returns TRUE or FALSE if region is an infinite region.</string>
 	<string name="LSLTipText_aaSetCharacterStat">aaSetCharacterStat( ID, StatName, statValue)
-Sets Character Stats.  Where ID = avatar uuid, StatName = stat to change, statValue the value to change it to.
-(Aurora-Sim only)</string>
-	<string name="LSLTipText_aaAllRegionInstanceSay">aaAllRegionInstanceSay(integer channelID, string text)
-(Aurora-Sim only)</string>
+Sets Character Stats.  Where ID = avatar uuid, StatName = stat to change, statValue the value to change it to.</string>
+	<string name="LSLTipText_aaAllRegionInstanceSay">aaAllRegionInstanceSay(integer channelID, string text)</string>
 	<string name="LSLTipText_aaWindlightGetDayCycle">aaWindlightGetDayCycle()
-Returns a List of settings
-(Aurora-Sim only)</string>
+Returns a List of settings</string>
 	<string name="LSLTipText_aaWindlightAddDayCycleFrame">aaWindlightAddDayCycleFrame(float dayCyclePosition, integer dayCycleFrameToCopy)
-Returns TRUE / FALSE on success status
-(Aurora-Sim only)</string>
+Returns TRUE / FALSE on success status</string>
 	<string name="LSLTipText_aaWindlightRemoveDayCycleFrame">aaWindlightRemoveDayCycleFrame(int dayCycleFrame)
-Returns TRUE / FALSE on success status
-(Aurora-Sim only)</string>
+Returns TRUE / FALSE on success status</string>
 	<string name="LSLTipText_aaWindlightSetScene">aaWindlightSetScene(list list)
 aaWindlightSetScene(integer dayCycleIndex, list list)
-Returns TRUE/FALSE on success
-(Aurora-Sim only)</string>
+Returns TRUE/FALSE on success</string>
 	<string name="LSLTipText_aaWindlightGetScene">aaWindlightGetScene(list rules)
 aaWindlightGetScene(integer dayCycleKeyFrame, list rules)
-Returns a list
-(Aurora-Sim only)</string>
+Returns a list</string>
 	<string name="LSLTipText_aaWindlightGetSceneIsStatic">aaWindlightGetSceneIsStatic()
-Returns TRUE / FALSE
-(Aurora-Sim only)</string>
+Returns TRUE / FALSE</string>
 	<string name="LSLTipText_aaWindlightGetSceneDayCycleKeyFrameCount">aaWindlightGetSceneDayCycleKeyFrameCount()
-Returns integer value
-(Aurora-Sim only)</string>
+Returns integer value</string>
 	<string name="LSLTipText_botGetWaitingTime">botGetWaitingTime(integer waitTime)
-Returns waitTime as vector.
-(Aurora-Sim only)</string>
+Returns waitTime as vector.</string>
 	<string name="LSLTipText_botSetMap">botSetMap(key keyOfBot, list positions, list movementType, integer flags)
 keyOfBot = bot uuid, positions = list of position vectors, movementType = corresponding list of move modes:  0 – walk, 1 – fly,
-flags = BOT_FOLLOW_FLAG_NONE and BOT_FOLLOW_FLAG_INDEFINITELY.
-(Aurora-Sim only)</string>
+flags = BOT_FOLLOW_FLAG_NONE and BOT_FOLLOW_FLAG_INDEFINITELY.</string>
 	<string name="LSLTipText_botCreateBot">botCreateBot(string FirstName, string LastName, key idToClone, vector startPos)
-Where FirstName and LastName = strings for new bot name.  idToClone = uuid of prebuild avatar to clone OR another existing avatar.  startPos = vector of starting position on region.
-(Aurora-Sim only)</string>
+Where FirstName and LastName = strings for new bot name.  idToClone = uuid of prebuild avatar to clone OR another existing avatar.  startPos = vector of starting position on region.</string>
 	<string name="LSLTipText_botRemoveBot">botRemoveBot(key botID)
-Where botID = uuid of bot.  Removes bot identified by botID.
-(Aurora-Sim only)</string>
+Where botID = uuid of bot.  Removes bot identified by botID.</string>
 	<string name="LSLTipText_botPauseMovement">botPauseMovement(key botID)
-Where botID = bot uuid.  Pauses bot at current position.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  Pauses bot at current position.</string>
 	<string name="LSLTipText_botResumeMovement">botResumeMovement(key botID)
-Where botID = bot uuid.  Resumes bot movement.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  Resumes bot movement.</string>
 	<string name="LSLTipText_botFollowAvatar">botFollowAvatar(key botID, string avName, float startFollowDistance, float endFollowDistance)
-Where botID = bot uuid.  AvName = sting of avatar name OR avatar uuid.  StartFollowDistance = distance to start following from.  EndFollowDistance = distance to stop following avatar.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  AvName = sting of avatar name OR avatar uuid.  StartFollowDistance = distance to start following from.  EndFollowDistance = distance to stop following avatar.</string>
 	<string name="LSLTipText_botStopFollowAvatar">botStopFollowAvatar(key botID)
-Where botID = bot uuid.  Stops bot from following an avatar.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  Stops bot from following an avatar.</string>
 	<string name="LSLTipText_botSendChatMessage">botSendChatMessage(key botID, string message, integer channel, integer sayType)
-Where  botID = bot uuid.  Message = string msg.  Channel = channel to speak on.  SayType = (0=whisper, 1=say, 2=shout).
-(Aurora-Sim only)</string>
+Where  botID = bot uuid.  Message = string msg.  Channel = channel to speak on.  SayType = (0=whisper, 1=say, 2=shout).</string>
 	<string name="LSLTipText_botSendIM">botSendIM(string bot, string user, string message)
-Send IM to bot.
-(Aurora-Sim only)</string>
+Send IM to bot.</string>
 	<string name="LSLTipText_botSetShouldFly">botSetShouldFly(key botID, integer ShouldFly)
-Where botID = bot uuid.  ShouldFly = TRUE/FALSE.  Enables or disables flight mode.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  ShouldFly = TRUE/FALSE.  Enables or disables flight mode.</string>
 	<string name="LSLTipText_botSitObject">botSitObject(key botID, key objectID, vector offset)
-Where botID = bot uuid,  objectID = uuid of object to sit on,  offset = Vector for sit position (note that VECTOR_ZERO = default sit pos).
-(Aurora-Sim only)</string>
+Where botID = bot uuid,  objectID = uuid of object to sit on,  offset = Vector for sit position (note that VECTOR_ZERO = default sit pos).</string>
 	<string name="LSLTipText_botStandUp">botStandUp(key botID)
-Where botID = bot uuid.  Command bot to stand up.
-(Aurora-Sim only)</string>
+Where botID = bot uuid.  Command bot to stand up.</string>
 	<string name="LSLTipText_botTouchObject">botTouchObject(key botID, key objectID)
-Where botID = bot uuid,  objectID = object uuid.  Causes bot to touch object identified.
-(Aurora-Sim only)</string>
+Where botID = bot uuid,  objectID = object uuid.  Causes bot to touch object identified.</string>
 	<string name="LSLTipText_botAddTag">botAddTag(key botID, string tag)
-Where botID = bot uuid,  tag = string tag over bot.
-(Aurora-Sim only)</string>
+Where botID = bot uuid,  tag = string tag over bot.</string>
 	<string name="LSLTipText_botGetBotsWithTag">botGetBotsWithTag(string tag)
-Where tag = tag string to match.  Return a list of bot UUID's in region with the matching tag.
-(Aurora-Sim only)</string>
+Where tag = tag string to match.  Return a list of bot UUID's in region with the matching tag.</string>
 	<string name="LSLTipText_botRemoveBotsWithTag">botRemoveBotsWithTag(string tag)
-Where tag = tag string to match.  Removes bot's matching the tag.
-(Aurora-Sim only)</string>
-<!-- *** END OF OpenSimulator & Aurora-Sim syntax section *** -->
+Where tag = tag string to match.  Removes bot's matching the tag.</string>
+<!-- *** END OF OpenSimulator & WhiteCore syntax section *** -->
 
 	<!-- Strings needed by drop targets -->
 	<string name="CurrentlyNotSet">Currently not set</string>
@@ -1821,9 +1790,11 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<!-- used in the construction of a Group Notice blue dialog box, buttons, tooltip etc. Seems to be no longer utilized by code in Viewer 2.0 -->
 	<string name="next">Vor</string>
 	<string name="ok">OK</string>
-	<string name="GroupNotifyGroupNotice">Gruppenmitteilung</string>
 	<string name="GroupNotifyGroupNotices">Gruppenmitteilungen</string>
-	<string name="GroupNotifySentBy">Gesendet von</string>
+	<string name="GroupNotifyBy">
+von [NAME]
+im [GROUP]
+	</string>
 	<string name="GroupNotifyAttached">Im Anhang:</string>
 	<string name="GroupNotifyViewPastNotices">Alte Mitteilungen anzeigen oder hier Auswahl treffen, um keine Mitteilungen mehr zu erhalten.</string>
 	<string name="GroupNotifyOpenAttachment">Anhang öffnen</string>
@@ -1836,6 +1807,8 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="BodyPartsLeftLeg">Linkes Bein</string>
 	<string name="BodyPartsTorso">Oberkörper</string>
 	<string name="BodyPartsRightLeg">Rechtes Bein</string>
+	<string name="BodyPartsEnhancedSkeleton">Erweitertes Skelett</string>
+	<string name="BodyPartsWaist">Taille</string>
 
 	<!-- mouselook -->
 	<string name="LeaveMouselook">ESC drücken, um zur Normalansicht zurückzukehren</string>
@@ -1963,8 +1936,23 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="Stomach">Bauch</string>
 	<string name="Left Pec">Linke Brust</string>
 	<string name="Right Pec">Rechts</string>
-    <string name="Neck">Hals</string>
-    <string name="Avatar Center">Basis</string>
+	<string name="Neck">Hals</string>
+	<string name="Avatar Center">Basis</string>
+	<string name="Left Ring Finger">Ringfinger links</string>
+	<string name="Right Ring Finger">Ringfinger rechts</string>
+	<string name="Tail Base">Schwanzwurzel</string>
+	<string name="Tail Tip">Schwanzspitze</string>
+	<string name="Left Wing">Flügel links</string>
+	<string name="Right Wing">Flügel rechts</string>
+	<string name="Jaw">Kiefer</string>
+	<string name="Alt Left Ear">Alt Ohr links</string>
+	<string name="Alt Right Ear">Alt Ohr rechts</string>
+	<string name="Alt Left Eye">Alt Auge links</string>
+	<string name="Alt Right Eye">Alt Auge rechts</string>
+	<string name="Tongue">Zunge</string>
+	<string name="Groin">Leiste</string>
+	<string name="Left Hind Foot">Hinterfuß links</string>
+	<string name="Right Hind Foot">Hinterfuß rechts</string>
 	<string name="Invalid Attachment">Ungültige Stelle für Anhang</string>
 
   <!-- HUD Position -->
@@ -2075,8 +2063,8 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="ATTACH_LULEG">Linker Oberschenkel</string>
 	<string name="ATTACH_LLLEG">Linker Unterschenkel</string>
 	<string name="ATTACH_BELLY">Bauch</string>
-	<string name="ATTACH_RPEC">Rechts</string>
-	<string name="ATTACH_LPEC">Linke Brust</string>
+	<string name="ATTACH_RIGHT_PEC">Rechte Brust</string>
+	<string name="ATTACH_LEFT_PEC">Linke Brust</string>
 	<string name="ATTACH_HUD_CENTER_2">HUD Mitte 2</string>
 	<string name="ATTACH_HUD_TOP_RIGHT">HUD oben rechts</string>
 	<string name="ATTACH_HUD_TOP_CENTER">HUD oben Mitte</string>
@@ -2087,6 +2075,21 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="ATTACH_HUD_BOTTOM_RIGHT">HUD unten rechts</string>
 	<string name="ATTACH_NECK">Hals</string>
 	<string name="ATTACH_AVATAR_CENTER">Basis</string>
+	<string name="ATTACH_LHAND_RING1">Ringfinger links</string>
+	<string name="ATTACH_RHAND_RING1">Ringfinger rechts</string>
+	<string name="ATTACH_TAIL_BASE">Schwanzwurzel</string>
+	<string name="ATTACH_TAIL_TIP">Schwanzspitze</string>
+	<string name="ATTACH_LWING">Flügel links</string>
+	<string name="ATTACH_RWING">Flügel rechts</string>
+	<string name="ATTACH_FACE_JAW">Kiefer</string>
+	<string name="ATTACH_FACE_LEAR">Alt Ohr links</string>
+	<string name="ATTACH_FACE_REAR">Alt Ohr rechts</string>
+	<string name="ATTACH_FACE_LEYE">Alt Auge links</string>
+	<string name="ATTACH_FACE_REYE">Alt Auge rechts</string>
+	<string name="ATTACH_FACE_TONGUE">Zunge</string>
+	<string name="ATTACH_GROIN">Leiste</string>
+	<string name="ATTACH_HIND_LFOOT">Hinterfuß links</string>
+	<string name="ATTACH_HIND_RFOOT">Hinterfuß rechts</string>
 
 	<!-- panel contents -->
 	<string name="PanelContentsNewScript">Neues Skript</string>
@@ -2148,6 +2151,10 @@ Gültige Formate: .wav, .tga, .bmp, .jpg, .jpeg oder .bvh</string>
 	<string name="accel-win-control">Strg-</string>
 	<string name="accel-win-alt">Alt-</string>
 	<string name="accel-win-shift">Umschalt-</string>
+
+        <!-- Tab Containers -->
+        <string name="tab_tooltip_prev">[ALT]Linke Pfeiltaste zum vorherigen Tab.</string>
+        <string name="tab_tooltip_next">[ALT]Rechte Pfeiltaste zum nächsten Tab.</string>
 
 	<!-- Previews -->
 	<string name="FileSaved">Datei wurde gespeichert</string>

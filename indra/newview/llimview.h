@@ -42,7 +42,7 @@
 class LLFloaterChatterBox;
 class LLFloaterIMPanel;
 
-class LLIMMgr : public LLSingleton<LLIMMgr>
+class LLIMMgr final : public LLSingleton<LLIMMgr>
 {
 public:
 	enum EInvitationType
@@ -92,7 +92,7 @@ public:
 	LLUUID addSession(const std::string& name,
 					  EInstantMessage dialog,
 					  const LLUUID& other_participant_id,
-					  const std::vector<LLUUID>& ids);
+					  const uuid_vec_t& ids);
 
 	// Creates a P2P session with the requisite handle for responding to voice calls
 	LLUUID addP2PSession(const std::string& name,
@@ -121,8 +121,8 @@ public:
 	void updateFloaterSessionID(const LLUUID& old_session_id,
 								const LLUUID& new_session_id);
 
-	void processIMTypingStart(const LLIMInfo* im_info);
-	void processIMTypingStop(const LLIMInfo* im_info);
+	void processIMTypingStart(const LLUUID& from_id, const EInstantMessage im_type);
+	void processIMTypingStop(const LLUUID& from_id, const EInstantMessage im_type);
 
 	void clearNewIMNotification();
 
@@ -188,6 +188,8 @@ public:
 
 	bool isNonFriendSessionNotified(const LLUUID& session_id);
 
+	static std::string getOfflineMessage(const LLUUID& id);
+
 private:
 	// create a panel and update internal representation for
 	// consistency. Returns the pointer, caller (the class instance
@@ -197,19 +199,17 @@ private:
 									const LLUUID& target_id,
 									const std::string& name,
 									const EInstantMessage& dialog,
-									const std::vector<LLUUID>& ids = std::vector<LLUUID>(),
+									const uuid_vec_t& ids = uuid_vec_t(),
 									bool user_initiated = false);
 
 	// This simple method just iterates through all of the ids, and
 	// prints a simple message if they are not online. Used to help
 	// reduce 'hello' messages to the linden employees unlucky enough
 	// to have their calling card in the default inventory.
-	void noteOfflineUsers(LLFloaterIMPanel* panel, const std::vector<LLUUID>& ids);
-	void noteMutedUsers(LLFloaterIMPanel* panel, const std::vector<LLUUID>& ids);
+	void noteOfflineUsers(LLFloaterIMPanel* panel, const uuid_vec_t& ids);
+	void noteMutedUsers(LLFloaterIMPanel* panel, const uuid_vec_t& ids);
 
-	void processIMTypingCore(const LLIMInfo* im_info, BOOL typing);
-
-	static void onInviteNameLookup(const LLUUID& id, const std::string& full_name, bool is_group, LLSD payload);
+	void processIMTypingCore(const LLUUID& from_id, const EInstantMessage im_type, BOOL typing);
 
 private:
 	std::set<LLHandle<LLFloater> > mFloaters;
@@ -219,7 +219,7 @@ private:
 	// the user should be notified that to be able to see this message the option should be OFF.
 	// This set stores session IDs in which user was notified. Need to store this IDs so that the user
 	// be notified only one time per session with non-friend.
-	typedef std::set<LLUUID> notified_non_friend_sessions_t;
+	typedef uuid_set_t notified_non_friend_sessions_t;
 	notified_non_friend_sessions_t mNotifiedNonFriendSessions;
 
 	// An IM has been received that you haven't seen yet.

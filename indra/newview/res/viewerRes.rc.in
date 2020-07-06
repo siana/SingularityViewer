@@ -2,19 +2,12 @@
 //
 #include "resource.h"
 
-#ifdef IDC_STATIC
-#undef IDC_STATIC
-#endif
-#define IDC_STATIC (-1)
-#include "winresrc.h"
-
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-// Commented out because it only compiles if you have MFC installed.
-//#include "winres.h"
+#include "windows.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
@@ -41,7 +34,7 @@ END
 
 2 TEXTINCLUDE
 BEGIN
-    "#include ""winres.h""\r\n"
+    "#include ""windows.h""\r\n"
     "\0"
 END
 
@@ -61,8 +54,8 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_LL_ICON             ICON                    "${VIEWER_BRANDING_ID}_icon.ico"
-IDI_LCD_LL_ICON         ICON                    "${VIEWER_BRANDING_ID}_icon.ico"
+IDI_LL_ICON             ICON                    "viewer_icon.ico"
+IDI_LCD_LL_ICON         ICON                    "viewer_icon.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -74,7 +67,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_VISIBLE
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDI_LL_ICON,IDC_STATIC,7,7,20,20
-    LTEXT           "Loading ${VIEWER_CHANNEL}...",666,36,13,91,8
+    LTEXT           "Loading ${VIEWER_CHANNEL} Viewer...",666,36,13,91,8
 END
 
 
@@ -123,14 +116,14 @@ TOOLPICKOBJECT3         CURSOR                  "toolpickobject3.cur"
 ARROWCOPY               CURSOR                  "arrowcop.cur"
 ARROWDRAGMULTI          CURSOR                  "llarrowdragmulti.cur"
 ARROWCOPYMULTI          CURSOR                  "arrowcopmulti.cur"
-TOOLSIT                 CURSOR                  "toolsit.cur"
-TOOLBUY                 CURSOR                  "toolbuy.cur"
-TOOLPAY                 CURSOR                  "toolpay.cur"
-TOOLOPEN                CURSOR                  "toolopen.cur"
 TOOLPIPETTE             CURSOR                  "toolpipette.cur"
 TOOLPLAY                CURSOR                  "toolplay.cur"
 TOOLPAUSE               CURSOR                  "toolpause.cur"
 TOOLMEDIAOPEN           CURSOR                  "toolmediaopen.cur"
+TOOLBUY                 CURSOR                  "toolbuy.cur"
+TOOLPAY                 CURSOR                  "toolpay.cur"
+TOOLOPEN                CURSOR                  "toolopen.cur"
+TOOLSIT                 CURSOR                  "toolsit.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -138,8 +131,8 @@ TOOLMEDIAOPEN           CURSOR                  "toolmediaopen.cur"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION ${vMAJOR},${vMINOR},${vPATCH},${vBUILD}
- PRODUCTVERSION ${vMAJOR},${vMINOR},${vPATCH},${vBUILD}
+ FILEVERSION ${VIEWER_VERSION_MAJOR},${VIEWER_VERSION_MINOR},${VIEWER_VERSION_PATCH},${VIEWER_VERSION_REVISION}
+ PRODUCTVERSION ${VIEWER_VERSION_MAJOR},${VIEWER_VERSION_MINOR},${VIEWER_VERSION_PATCH},${VIEWER_VERSION_REVISION}
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -155,13 +148,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "Siana Gearz"
-            VALUE "FileDescription", "Singularity Viewer"
-            VALUE "FileVersion", "${vMAJOR}.${vMINOR}.${vPATCH}.${vBUILD}"
+            VALUE "FileDescription", "${VIEWER_CHANNEL} Viewer"
+            VALUE "FileVersion", "${VIEWER_VERSION_MAJOR}.${VIEWER_VERSION_MINOR}.${VIEWER_VERSION_PATCH}.${VIEWER_VERSION_REVISION}"
             VALUE "InternalName", "Second Life"
             VALUE "LegalCopyright", "Copyright © 2001-2010, Linden Research, Inc., Copyright 2010 Siana Gearz"
             VALUE "OriginalFilename", "SingularityViewer.exe"
-            VALUE "ProductName", "Singularity Viewer"
-            VALUE "ProductVersion", "${vMAJOR}.${vMINOR}.${vPATCH}.${vBUILD}"
+            VALUE "ProductName", "${VIEWER_CHANNEL} Viewer"
+            VALUE "ProductVersion", "${VIEWER_VERSION_MAJOR}.${VIEWER_VERSION_MINOR}.${VIEWER_VERSION_PATCH}.${VIEWER_VERSION_REVISION}"
         END
     END
     BLOCK "VarFileInfo"
@@ -169,12 +162,6 @@ BEGIN
         VALUE "Translation", 0x409, 1200
     END
 END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Bitmap
-//
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////

@@ -34,6 +34,7 @@
 #include "aistatemachine.h"
 #include "llthread.h"
 #include "aithreadsafe.h"
+#include <boost/format.hpp>
 
 #ifdef EXAMPLE_CODE	// undefined
 
@@ -235,7 +236,7 @@ class AIStateMachineThread : public AIStateMachineThreadBase {
 	/*virtual*/ const char* getName() const
 	{
 #define STRIZE(arg) #arg
-		return "AIStateMachineThread<"STRIZE(THREAD_IMPL)">";
+		return (boost::format("%1%%2%%3%") % "AIStateMachineThread<" % STRIZE(THREAD_IMPL) % ">").str().c_str();
 #undef STRIZE
 	}
 

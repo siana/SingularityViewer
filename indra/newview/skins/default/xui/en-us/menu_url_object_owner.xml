@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu label="Owner" name="Object Owner Submenu">
+  <menu_item_call label="Send IM..." name="send_im">
+    <on_click function="List.StartIM" userdata=""/>
+  </menu_item_call>
+  <menu name="Actions" label="Actions">
+    <menu_item_call label="Profile" name="Profile">
+      <on_click function="List.ShowProfile" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Web Profile" name="Web Profile">
+      <on_click function="List.ShowWebProfile" userdata=""/>
+      <on_visible function="List.VisibleWebProfile" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Pay" name="Pay">
+      <on_click function="List.Pay" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Call" name="Call">
+      <on_click function="List.StartCall" userdata=""/>
+      <on_visible function="List.EnableCall" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Add Friend" name="Add Friend">
+      <on_click function="List.RequestFriendship" userdata=""/>
+      <on_visible function="List.EnableIsNotFriend" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Remove Friend" name="Remove Friend">
+      <on_click function="List.RemoveFriend" userdata=""/>
+      <on_visible function="List.EnableIsFriend" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Invite To Group" name="Invite To Group">
+      <on_click function="List.InviteToGroup" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Follow" name="Follow">
+      <on_click function="List.Follow" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Move To" name="Move To">
+      <on_click function="List.GoTo" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Offer Teleport" name="Offer Teleport">
+      <on_click function="List.OfferTeleport" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Teleport To" name="Teleport To">
+      <on_click function="List.TeleportTo" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Request Teleport" name="Request Teleport">
+      <on_click function="List.RequestTeleport" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Find on Map" name="Find on Map">
+      <on_click function="List.Stalk" userdata=""/>
+      <on_visible function="List.Stalkable" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Share" name="Share">
+      <on_click function="List.Share" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Chat History" name="Chat History">
+      <on_click function="List.ShowLog" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Track/Untrack" name="Track/Untrack">
+      <on_click function="List.Track" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Focus" name="Focus">
+      <on_click function="Radar.Focus" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+  </menu>
+  <menu name="Copy">
+  <menu_item_call label="Name" name="copy_name">
+    <on_click function="List.CopyNames" userdata=""/>
+  </menu_item_call>
+  <menu_item_call label="SLURL" name="url_copy">
+    <on_click function="List.CopySLURL" userdata=""/>
+  </menu_item_call>
+  <menu_item_call label="Key" name="key_copy">
+    <menu_item_call.on_click function="List.CopyUUIDs" userdata=""/>
+  </menu_item_call>
+  </menu>
+  <menu label="Moderation" name="Moderation" create_jump_keys="">
+    <menu_item_call label="Mute" name="Mute">
+      <on_click function="List.ToggleMute" userdata=""/>
+      <on_visible function="List.EnableMute" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Unmute" name="Unmute">
+      <on_click function="List.ToggleMute" userdata=""/>
+      <on_visible function="List.EnableUnmute" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Ban From Group" name="Ban From Group">
+      <on_click function="List.BanFromGroup" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Report Abuse" name="Report Abuse">
+      <on_click function="List.AbuseReport" userdata=""/>
+    </menu_item_call>
+    <menu_item_separator/>
+    <menu_item_call label="Freeze" name="Freeze">
+      <on_click function="List.Freeze" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Eject/Ban from Parcel" name="Eject/Ban from Parcel">
+      <on_click function="List.ParcelEject" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Eject from estate" name="Eject from estate">
+      <on_click function="List.EstateEject" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+    <menu_item_call label="Eject and ban from estate" name="Eject and ban from estate">
+      <on_click function="List.EstateBan" userdata=""/>
+      <on_visible function="List.IsNearby" userdata=""/>
+    </menu_item_call>
+  </menu>
+</context_menu>

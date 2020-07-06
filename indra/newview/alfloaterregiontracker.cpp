@@ -48,17 +48,11 @@
 #include "llworldmap.h"
 #include "llworldmapmessage.h"
 
-#include <boost/foreach.hpp>
-
 const std::string TRACKER_FILE = "tracked_regions.json";
 
 ALFloaterRegionTracker::ALFloaterRegionTracker(const LLSD&)
 	: LLFloater(),
-	  LLEventTimer(5.f),
-	  mRefreshRegionListBtn(NULL),
-	  mRemoveRegionBtn(NULL),
-	  mOpenMapBtn(NULL),
-	  mRegionScrollList(NULL)
+	  LLEventTimer(5.f)
 {
 	LLUICtrlFactory::instance().buildFloater(this, "floater_region_tracker.xml");
 	loadFromJSON();
@@ -119,10 +113,13 @@ void ALFloaterRegionTracker::refresh()
 	}
 
 	std::vector<std::string> saved_selected_values;
-	BOOST_FOREACH(const LLScrollListItem* item, mRegionScrollList->getAllSelected())
+	for(const auto* item : mRegionScrollList->getAllSelected())
 	{
 		saved_selected_values.push_back(item->getValue().asString());
 	}
+	S32 saved_scroll_pos = mRegionScrollList->getScrollPos();
+	auto sort_column_name = mRegionScrollList->getSortColumnName();
+	auto sort_asending = mRegionScrollList->getSortAscending();
 	mRegionScrollList->deleteAllItems();
 
 	const std::string& cur_region_name = gAgent.getRegion()->getName();
@@ -178,8 +175,11 @@ void ALFloaterRegionTracker::refresh()
 			mRegionScrollList->addRow(row);
 		}
 	}
+
+	mRegionScrollList->sortByColumn(sort_column_name, sort_asending);
 	if (!saved_selected_values.empty())
 		mRegionScrollList->selectMultiple(saved_selected_values);
+	mRegionScrollList->setScrollPos(saved_scroll_pos);
 }
 
 BOOL ALFloaterRegionTracker::tick()
@@ -195,7 +195,7 @@ void ALFloaterRegionTracker::requestRegionData()
 
 	for (LLSD::map_const_iterator it = mRegionMap.beginMap(); it != mRegionMap.endMap(); it++)
 	{
-		const std::string& name = it->first;
+		const auto& name = it->first;
 		if (LLSimInfo* info = LLWorldMap::getInstance()->simInfoFromName(name))
 		{
 			info->updateAgentCount(LLTimer::getElapsedSeconds());
@@ -210,7 +210,7 @@ void ALFloaterRegionTracker::requestRegionData()
 
 void ALFloaterRegionTracker::removeRegions()
 {
-	BOOST_FOREACH(const LLScrollListItem* item, mRegionScrollList->getAllSelected())
+	for (const auto* item : mRegionScrollList->getAllSelected())
 	{
 		mRegionMap.erase(item->getValue().asString());
 	}

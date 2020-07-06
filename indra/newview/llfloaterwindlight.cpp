@@ -302,6 +302,10 @@ void LLFloaterWindLight::syncMenu()
 	// blue horizon
 	param_mgr->mBlueHorizon = cur_params.getVector(param_mgr->mBlueHorizon.mName, err);
 	//setColorSwatch("WLBlueHorizon", param_mgr->mBlueHorizon, WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueHorizonR", param_mgr->mBlueHorizon.r / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueHorizonG", param_mgr->mBlueHorizon.g / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueHorizonB", param_mgr->mBlueHorizon.b / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueHorizonI", param_mgr->mBlueHorizon.i / WL_BLUE_HORIZON_DENSITY_SCALE);
 
 	// haze density, horizon, mult, and altitude
 	param_mgr->mHazeDensity = cur_params.getFloat(param_mgr->mHazeDensity.mName, err);
@@ -316,12 +320,20 @@ void LLFloaterWindLight::syncMenu()
 	// blue density
 	param_mgr->mBlueDensity = cur_params.getVector(param_mgr->mBlueDensity.mName, err);
 	//setColorSwatch("WLBlueDensity", param_mgr->mBlueDensity, WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueDensityR", param_mgr->mBlueDensity.r / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueDensityG", param_mgr->mBlueDensity.g / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueDensityB", param_mgr->mBlueDensity.b / WL_BLUE_HORIZON_DENSITY_SCALE);
+	childSetValue("WLBlueDensityI", param_mgr->mBlueDensity.i / WL_BLUE_HORIZON_DENSITY_SCALE);
 
 	// Lighting
 
 	// sunlight
 	param_mgr->mSunlight = cur_params.getVector(param_mgr->mSunlight.mName, err);
 	//setColorSwatch("WLSunlight", param_mgr->mSunlight, WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLSunlightR", param_mgr->mSunlight.r / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLSunlightG", param_mgr->mSunlight.g / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLSunlightB", param_mgr->mSunlight.b / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLSunlightI", param_mgr->mSunlight.i / WL_SUN_AMBIENT_SLIDER_SCALE);
 
 	// glow
 	param_mgr->mGlow = cur_params.getVector(param_mgr->mGlow.mName, err);
@@ -331,6 +343,10 @@ void LLFloaterWindLight::syncMenu()
 	// ambient
 	param_mgr->mAmbient = cur_params.getVector(param_mgr->mAmbient.mName, err);
 	//setColorSwatch("WLAmbient", param_mgr->mAmbient, WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLAmbientR", param_mgr->mAmbient.r / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLAmbientG", param_mgr->mAmbient.g / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLAmbientB", param_mgr->mAmbient.b / WL_SUN_AMBIENT_SLIDER_SCALE);
+	childSetValue("WLAmbientI", param_mgr->mAmbient.i / WL_SUN_AMBIENT_SLIDER_SCALE);
 
 	childSetValue("WLSunAngle", param_mgr->mCurParams.getFloat("sun_angle",err) / F_TWO_PI);
 	childSetValue("WLEastAngle", param_mgr->mCurParams.getFloat("east_angle",err) / F_TWO_PI);
@@ -340,6 +356,10 @@ void LLFloaterWindLight::syncMenu()
 	// Cloud Color
 	param_mgr->mCloudColor = cur_params.getVector(param_mgr->mCloudColor.mName, err);
 	//setColorSwatch("WLCloudColor", param_mgr->mCloudColor, WL_CLOUD_SLIDER_SCALE);
+	childSetValue("WLCloudColorR", param_mgr->mCloudColor.r / WL_CLOUD_SLIDER_SCALE);
+	childSetValue("WLCloudColorG", param_mgr->mCloudColor.g / WL_CLOUD_SLIDER_SCALE);
+	childSetValue("WLCloudColorB", param_mgr->mCloudColor.b / WL_CLOUD_SLIDER_SCALE);
+	childSetValue("WLCloudColorI", param_mgr->mCloudColor.i / WL_CLOUD_SLIDER_SCALE);
 
 	// Cloud
 	param_mgr->mCloudMain = cur_params.getVector(param_mgr->mCloudMain.mName, err);
@@ -493,18 +513,7 @@ void LLFloaterWindLight::onColorControlRMoved(LLUICtrl* ctrl, void* userdata)
 		std::string name = color_ctrl->mSliderName;
 		name.append("I");
 
-		if (color_ctrl->isSunOrAmbientColor)
-		{
-			childSetValue(name, color_ctrl->r / WL_SUN_AMBIENT_SLIDER_SCALE);
-		}
-		else if	(color_ctrl->isBlueHorizonOrDensity)
-		{
-			childSetValue(name, color_ctrl->r / WL_BLUE_HORIZON_DENSITY_SCALE);
-		}
-		else
-		{
-			childSetValue(name, color_ctrl->r);
-		}
+		childSetValue(name, sldr_ctrl->getValueF32());
 	}
 
 	color_ctrl->update(LLWLParamManager::getInstance()->mCurParams);

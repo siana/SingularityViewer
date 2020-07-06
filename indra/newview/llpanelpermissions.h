@@ -58,11 +58,7 @@ protected:
 	// statics
 	static void onClickClaim(void*);
 	static void onClickRelease(void*);
-	void onClickCreator();
-	void onClickOwner();
-	void onClickLastOwner();
 	void onClickGroup();
-	static void onClickOpenGroup();
 		   void cbGroupID(LLUUID group_id);
 	static void onClickDeedToGroup(void*);
 	static void onClickCopyObjKey();

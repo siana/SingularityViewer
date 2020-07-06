@@ -44,11 +44,10 @@ bool LLCrossParcelFunctor::apply(LLViewerObject* obj)
 	mBoundingBox.addBBoxAgent(LLBBox(obj->getPositionRegion(), obj->getRotationRegion(), obj->getScale() * -0.5f, obj->getScale() * 0.5f).getAxisAligned());
 
 	// Extend the bounding box across all the children.
-	LLViewerObject::const_child_list_t children = obj->getChildren();
-	for (LLViewerObject::const_child_list_t::const_iterator iter = children.begin();
-		 iter != children.end(); iter++)
+	LLViewerObject::const_child_list_t const& children = obj->getChildren();
+	for (const auto& iter : children)
 	{
-		LLViewerObject* child = *iter;
+		LLViewerObject* child = iter;
 		mBoundingBox.addBBoxAgent(LLBBox(child->getPositionRegion(), child->getRotationRegion(), child->getScale() * -0.5f, child->getScale() * 0.5f).getAxisAligned());
 	}
 
@@ -67,16 +66,16 @@ bool LLCrossParcelFunctor::apply(LLViewerObject* obj)
 
 LLFloaterObjectWeights::LLFloaterObjectWeights(const LLSD& key)
 :	LLFloater(key),
-	mSelectedObjects(NULL),
-	mSelectedPrims(NULL),
-	mSelectedDownloadWeight(NULL),
-	mSelectedPhysicsWeight(NULL),
-	mSelectedServerWeight(NULL),
-	mSelectedDisplayWeight(NULL),
-	mSelectedOnLand(NULL),
-	mRezzedOnLand(NULL),
-	mRemainingCapacity(NULL),
-	mTotalCapacity(NULL)
+	mSelectedObjects(nullptr),
+	mSelectedPrims(nullptr),
+	mSelectedDownloadWeight(nullptr),
+	mSelectedPhysicsWeight(nullptr),
+	mSelectedServerWeight(nullptr),
+	mSelectedDisplayWeight(nullptr),
+	mSelectedOnLand(nullptr),
+	mRezzedOnLand(nullptr),
+	mRemainingCapacity(nullptr),
+	mTotalCapacity(nullptr)
 {
 	//buildFromFile("floater_tools.xml");
 	LLUICtrlFactory::getInstance()->buildFloater(this,"floater_object_weights.xml", NULL, false);
@@ -142,7 +141,8 @@ void LLFloaterObjectWeights::setErrorStatus(U32 status, const std::string& reaso
 
 void LLFloaterObjectWeights::updateLandImpacts(const LLParcel* parcel)
 {
-	if (!parcel || LLSelectMgr::getInstance()->getSelection()->isEmpty())
+	auto selection = LLSelectMgr::instance().getSelection();
+	if (!parcel || !selection || selection->isEmpty())
 	{
 		updateIfNothingSelected();
 	}
@@ -161,24 +161,24 @@ void LLFloaterObjectWeights::updateLandImpacts(const LLParcel* parcel)
 
 void LLFloaterObjectWeights::refresh()
 {
-	LLSelectMgr* sel_mgr = LLSelectMgr::getInstance();
+	auto selection = LLSelectMgr::instance().getSelection();
 
-	if (sel_mgr->getSelection()->isEmpty())
+	if (!selection || selection->isEmpty())
 	{
 		updateIfNothingSelected();
 	}
 	else
 	{
-		S32 prim_count = sel_mgr->getSelection()->getObjectCount();
-		S32 link_count = sel_mgr->getSelection()->getRootObjectCount();
-		F32 prim_equiv = sel_mgr->getSelection()->getSelectedLinksetCost();
+		S32 prim_count = selection->getObjectCount();
+		S32 link_count = selection->getRootObjectCount();
+		F32 prim_equiv = selection->getSelectedLinksetCost();
 
 		mSelectedObjects->setText(llformat("%d", link_count));
 		mSelectedPrims->setText(llformat("%d", prim_count));
 		mSelectedOnLand->setText(llformat("%.1d", (S32)prim_equiv));
 
 		LLCrossParcelFunctor func;
-		if (sel_mgr->getSelection()->applyToRootObjects(&func, true))
+		if (selection->applyToRootObjects(&func, true))
 		{
 			// Some of the selected objects cross parcel bounds.
 			// We don't display object weights and land impacts in this case.
@@ -194,8 +194,8 @@ void LLFloaterObjectWeights::refresh()
 		LLViewerRegion* region = gAgent.getRegion();
 		if (region && region->capabilitiesReceived())
 		{
-			for (LLObjectSelection::valid_root_iterator iter = sel_mgr->getSelection()->valid_root_begin();
-					iter != sel_mgr->getSelection()->valid_root_end(); ++iter)
+			for (LLObjectSelection::valid_root_iterator iter = selection->valid_root_begin();
+					iter != selection->valid_root_end(); ++iter)
 			{
 				LLAccountingCostManager::getInstance()->addObject((*iter)->getObject()->getID());
 			}
@@ -212,7 +212,6 @@ void LLFloaterObjectWeights::refresh()
 		}
 		else
 		{
-			//LL_WARNS() << "Failed to get region capabilities" << LL_ENDL;
 			LL_WARNS() << "Failed to get region capabilities" << LL_ENDL;
 		}
 	}

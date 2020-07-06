@@ -22,24 +22,24 @@
 			<menu_item_call label="Falda" name="Skirt"/>
 		</pie_menu>
 		<pie_menu label="HUD" name="Object Detach HUD"/>
-		<menu_item_separator />
 		<pie_menu label="Quitar" name="Object Detach" />
-		<menu_item_separator />
+		<pie_menu label="Quitar, mas" name="Object Detach More" />
 		<menu_item_call label="Quitar todo" name="Detach All"/>
-	</pie_menu>
-	<pie_menu label="Herramientas" name="Tools">
-		<menu_item_call label="Recargar" name="Reload Textures"/> 
-		<menu_item_call label="Animaciones..." name="Anims..."/>
-		<menu_item_call label="Contar Scripts" name="ScriptCount"/>
-	   <menu_item_call label="Info de Script" name="Script Info"/>
-		<menu_item_call label="Depurar..." name="Debug Layers"/>
-		<menu_item_call label="Copiar UUID" name="CopyUUID"/>
-		<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
 	</pie_menu>
 	<menu_item_call label="Pararse" name="Stand Up Self">
 		<on_click function="Self.SitOrStand"/>
 		<on_enable function="Self.EnableSitOrStand" userdata="Sentarse,Pararse"/>
 	</menu_item_call>	
 	<menu_item_call label="Gestos..." name="Gestures..."/>
+	<pie_menu label="Herramientas" name="Tools">
+		<menu_item_call label="Recargar" name="Reload Textures"/>
+		<menu_item_call label="Reiniciar Esqueleto" name="Reset Skeleton"/>
+		<menu_item_call label="Reiniciar Animaciones" name="Reset Skeleton And Animations"/>
+		<menu_item_call label="Animaciones..." name="Anims..."/>
+		<menu_item_call label="Contar Scripts" name="ScriptCount"/>
+	   <menu_item_call label="Info de Script" name="Script Info"/>
+		<menu_item_call label="Copiar UUID" name="CopyUUID"/>
+		<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
+	</pie_menu>
 	<menu_item_call label="Apariencia..." name="Appearance..."/>
 </pie_menu>

@@ -661,7 +661,7 @@ void LLJoystickCameraRotate::drawRotatedImage( LLTexture* image, S32 rotations )
 
 	gGL.color4fv(UI_VERTEX_COLOR.mV);
 	
-	gGL.begin(LLRender::QUADS);
+	gGL.begin(LLRender::TRIANGLE_STRIP);
 	{
 		gGL.texCoord2fv( uv[ (rotations + 0) % 4]);
 		gGL.vertex2i(width, height );
@@ -669,11 +669,11 @@ void LLJoystickCameraRotate::drawRotatedImage( LLTexture* image, S32 rotations )
 		gGL.texCoord2fv( uv[ (rotations + 1) % 4]);
 		gGL.vertex2i(0, height );
 
-		gGL.texCoord2fv( uv[ (rotations + 2) % 4]);
-		gGL.vertex2i(0, 0);
-
 		gGL.texCoord2fv( uv[ (rotations + 3) % 4]);
 		gGL.vertex2i(width, 0);
+
+		gGL.texCoord2fv( uv[ (rotations + 2) % 4]);
+		gGL.vertex2i(0, 0);
 	}
 	gGL.end();
 }

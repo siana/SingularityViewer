@@ -21,7 +21,8 @@
 	<string name="default_text_label">
 		Pulsa aquí para un Mensaje Instantáneo.
 	</string>
-	<button label="Historial" name="history_btn"/>
+	<flyout_button label="Historial" name="instant_message_flyout" width="180" />
+	<flyout_button_item label="Añadir a la Conferencia" name="conference"/>
 	<button name="ding_btn" label="Timbre"/>
 	<button label="Llamar" name="start_call_btn"/>
 	<button label="Colgar" name="end_call_btn" width="90"/>

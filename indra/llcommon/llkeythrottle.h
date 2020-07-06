@@ -88,7 +88,7 @@ protected:
 	}
 	static U64 getFrame()		// Return the current frame number
 	{
-		return (U64) LLFrameTimer::getFrameCount();
+		return LLFrameTimer::getFrameCount();
 	}
 };
 

@@ -137,11 +137,6 @@ struct LocalTextureData
 	LLTextureEntry *mTexEntry;
 };
 
-// TODO - this class doesn't really do anything, could just use a base
-// class responder if nothing else gets added.
-// Singu Note: Okay, sure, it's a responder ignore then!
-typedef LLHTTPClient::ResponderIgnore LLHoverHeightResponder;
-
 //-----------------------------------------------------------------------------
 // Callback data
 //-----------------------------------------------------------------------------
@@ -152,15 +147,6 @@ typedef LLHTTPClient::ResponderIgnore LLHoverHeightResponder;
  ** End LLVOAvatarSelf Support classes
  **                                                                             **
  *********************************************************************************/
-
-
-//-----------------------------------------------------------------------------
-// Static Data
-//-----------------------------------------------------------------------------
-S32 LLVOAvatarSelf::sScratchTexBytes = 0;
-LLMap< LLGLenum, LLGLuint*> LLVOAvatarSelf::sScratchTexNames;
-LLMap< LLGLenum, F32*> LLVOAvatarSelf::sScratchTexLastBindTime;
-
 
 /*********************************************************************************
  **                                                                             **
@@ -178,7 +164,7 @@ LLVOAvatarSelf::LLVOAvatarSelf(const LLUUID& id,
 	mScreenp(NULL),
 	mLastRegionHandle(0),
 	mRegionCrossingCount(0),
-	mInitialBakesLoaded(false),
+	//mInitialBakesLoaded(false),
 	// Value outside legal range, so will always be a mismatch the
 	// first time through.
 	mLastHoverOffsetSent(LLVector3(0.0f, 0.0f, -999.0f))
@@ -274,9 +260,11 @@ void LLVOAvatarSelf::initInstance()
 	doPeriodically(update_avatar_rez_metrics, 5.0);
 	doPeriodically(check_for_unsupported_baked_appearance, 120.0);
 	doPeriodically(boost::bind(&LLVOAvatarSelf::checkStuckAppearance, this), 30.0);
+
+	mInitFlags |= 1<<2;
 }
 
-void LLVOAvatarSelf::setHoverIfRegionEnabled()
+void LLVOAvatarSelf::setHoverIfRegionEnabled(bool send_update)
 {
 	LLViewerRegion* region = getRegion();
 	if (region && region->simulatorFeaturesReceived())
@@ -342,7 +330,7 @@ void LLVOAvatarSelf::markDead()
 {
 	BOOL success = LLVOAvatar::loadAvatar();
 
-	// set all parameters sotred directly in the avatar to have
+	// set all parameters stored directly in the avatar to have
 	// the isSelfParam to be TRUE - this is used to prevent
 	// them from being animated or trigger accidental rebakes
 	// when we copy params from the wearable to the base avatar.
@@ -393,8 +381,6 @@ BOOL LLVOAvatarSelf::buildMenus()
 	//-------------------------------------------------------------------------
 	// build the attach and detach menus
 	//-------------------------------------------------------------------------
-	if(gNoRender)
-		return TRUE;
 	buildContextMenus();
 
 	init_meshes_and_morphs_menu();
@@ -410,130 +396,121 @@ static LLContextMenu* make_part_menu(const std::string& label, bool context)
 
 void LLVOAvatarSelf::buildContextMenus()
 {
-	gAttachBodyPartPieMenus[0] = gDetachBodyPartPieMenus[0] = NULL;
-
 	bool context(gSavedSettings.getBOOL("LiruUseContextMenus"));
-	std::string label = LLTrans::getString("BodyPartsRightArm");
-	gAttachBodyPartPieMenus[1] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[1] = make_part_menu(label, context);
 
-	label = LLTrans::getString("BodyPartsHead");
-	gAttachBodyPartPieMenus[2] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[2] = make_part_menu(label, context);
-
-	label = LLTrans::getString("BodyPartsLeftArm");
-	gAttachBodyPartPieMenus[3] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[3] = make_part_menu(label, context);
-
-	gAttachBodyPartPieMenus[4] = gDetachBodyPartPieMenus[4] = NULL;
-
-	label = LLTrans::getString("BodyPartsLeftLeg");
-	gAttachBodyPartPieMenus[5] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[5] = make_part_menu(label, context);
-
-	label = LLTrans::getString("BodyPartsTorso");
-	gAttachBodyPartPieMenus[6] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[6] = make_part_menu(label, context);
-
-	label = LLTrans::getString("BodyPartsRightLeg");
-	gAttachBodyPartPieMenus[7] = make_part_menu(label, context);
-	gDetachBodyPartPieMenus[7] = make_part_menu(label, context);
-
-	for (S32 i = 0; i < 8; i++)
+	struct EntryData
 	{
-		if (gAttachBodyPartPieMenus[i])
+		const char * subMenu;
+		LLContextMenu* attachMenu;
+		LLContextMenu* detachMenu;
+	} entries[NUM_ATTACHMENT_GROUPS] = {
+		{ nullptr,					gAttachPieMenu,		gDetachPieMenu }, //Group 0 = Right Hand
+		{ "BodyPartsRightArm",		gAttachPieMenu,		gDetachPieMenu },
+		{ "BodyPartsHead",			gAttachPieMenu,		gDetachPieMenu },
+		{ "BodyPartsLeftArm",		gAttachPieMenu,		gDetachPieMenu },
+		{ nullptr,					gAttachPieMenu,		gDetachPieMenu }, //Group 4 = Left Hand
+		{ "BodyPartsLeftLeg",		gAttachPieMenu,		gDetachPieMenu },
+		{ "BodyPartsTorso",			gAttachPieMenu,		gDetachPieMenu },
+		{ "BodyPartsRightLeg",		gAttachPieMenu,		gDetachPieMenu },
+
+		// BENTO
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 8 = Right Ring Finger
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 9 = Right Wing
+		{ "BodyPartsHead",			gAttachPieMenu2,	gDetachPieMenu2 },
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 11 = Left Wing
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 12 = Left Ring Finger
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 13 = Left Hind Foot
+		{ "BodyPartsWaist",			gAttachPieMenu2,	gDetachPieMenu2 },
+		{ nullptr,					gAttachPieMenu2,	gDetachPieMenu2 }, // Group 15 = Right Hind Foot
+
+		// HUD
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 16 = Center 2
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 17 = Top Right
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 18 = Top
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 19 = Top Left
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 20 = Center
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 21 = Bottom Left
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu }, // Group 22 = Bottom
+		{ nullptr,					gAttachScreenPieMenu,	gDetachScreenPieMenu } // Group 23 = Bottom Right
+	};
+
+	for (S32 group = 0; group < NUM_ATTACHMENT_GROUPS; group++)
+	{
+		LLContextMenu* attach_menu = entries[group].attachMenu;
+		LLContextMenu* detach_menu = entries[group].detachMenu;
+
+		if (attach_menu && detach_menu)
 		{
-			gAttachPieMenu->appendContextSubMenu( gAttachBodyPartPieMenus[i] );
-		}
-		else
-		{
-			BOOL attachment_found = FALSE;
-			for (attachment_map_t::iterator iter = mAttachmentPoints.begin(); 
-				 iter != mAttachmentPoints.end();
-				 ++iter)
+			if (entries[group].subMenu != nullptr)
+			{
+				std::string label = LLTrans::getString(entries[group].subMenu);
+				LLContextMenu* new_menu = make_part_menu(label, context); // Attach
+				attach_menu->appendContextSubMenu(new_menu);
+				attach_menu = new_menu;
+				new_menu = make_part_menu(label, context); // Detach
+				detach_menu->appendContextSubMenu(new_menu);
+				detach_menu = new_menu;
+			}
+
+			if (!attach_menu || !detach_menu)
+			{
+				continue;
+			}
+
+			std::multimap<S32, S32> attachment_pie_menu_map;
+
+			// gather up all attachment points assigned to this group, and throw into map sorted by pie slice number
+			for (attachment_map_t::iterator iter = mAttachmentPoints.begin();
+				iter != mAttachmentPoints.end();
+				++iter)
 			{
 				LLViewerJointAttachment* attachment = iter->second;
-				if (attachment->getGroup() == i)
+				if (attachment && attachment->getGroup() == group)
 				{
-					LLMenuItemCallGL* item;
-// [RLVa:KB] - Checked: 2009-07-06 (RLVa-1.0.0c)
-					// We need the userdata param to disable options in this pie menu later on (Left Hand / Right Hand option)
-					item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-												NULL, 
-												object_selected_and_point_valid, attachment);
-// [/RLVa:KB]
-//						item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-//													NULL, 
-//													object_selected_and_point_valid);
-					item->addListener(gMenuHolder->getListenerByName("Object.AttachToAvatar"), "on_click", iter->first);
-					
-					gAttachPieMenu->addChild(item);
-
-					attachment_found = TRUE;
-					break;
-
+					// use multimap to provide a partial order off of the pie slice key
+					S32 pie_index = attachment->getPieSlice();
+					attachment_pie_menu_map.insert(std::make_pair(pie_index, iter->first));
 				}
 			}
 
-			if (!context && !attachment_found)
+			// add in requested order to pie menu, inserting separators as necessary
+			for (std::multimap<S32, S32>::iterator attach_it = attachment_pie_menu_map.begin();
+				attach_it != attachment_pie_menu_map.end(); ++attach_it)
 			{
-				gAttachPieMenu->addSeparator();
-			}
-		}
-
-		if (gDetachBodyPartPieMenus[i])
-		{
-			gDetachPieMenu->appendContextSubMenu( gDetachBodyPartPieMenus[i] );
-		}
-		else
-		{
-			BOOL attachment_found = FALSE;
-			for (attachment_map_t::iterator iter = mAttachmentPoints.begin(); 
-				 iter != mAttachmentPoints.end();
-				 ++iter)
-			{
-				LLViewerJointAttachment* attachment = iter->second;
-				if (attachment->getGroup() == i)
+				if (!context) // Singu Note: Separators are only needed to keep slices of pies from moving
 				{
-					gDetachPieMenu->addChild(new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-						&handle_detach_from_avatar, object_attached, attachment));
-
-					attachment_found = TRUE;
-					break;
+					S32 requested_pie_slice = attach_it->first;
+					while ((S32)attach_menu->getItemCount() < requested_pie_slice)
+					{
+						attach_menu->addSeparator();
+						detach_menu->addSeparator();
+					}
 				}
-			}
+				S32 attach_index = attach_it->second;
 
-			if (!context && !attachment_found)
-			{
-				gDetachPieMenu->addSeparator();
+				LLViewerJointAttachment* attachment = get_if_there(mAttachmentPoints, attach_index, (LLViewerJointAttachment*)NULL);
+				if (attachment)
+				{
+					// [RLVa:KB] - Checked: 2009-07-06 (RLVa-1.0.0c)
+					// We need the userdata param to disable options in this pie menu later on
+					LLMenuItemCallGL* item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
+						NULL, object_selected_and_point_valid, attachment);
+					// [/RLVa:KB]
+					//					LLMenuItemCallGL* item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
+					//																  NULL, object_selected_and_point_valid);
+					attach_menu->addChild(item);
+					item->addListener(gMenuHolder->getListenerByName("Object.AttachToAvatar"), "on_click", attach_index);
+					detach_menu->addChild(new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
+						&handle_detach_from_avatar,
+						object_attached, attachment));
+				}
 			}
 		}
 	}
 
-	// add screen attachments
-	for (attachment_map_t::iterator iter = mAttachmentPoints.begin();
-		 iter != mAttachmentPoints.end();
-		 ++iter)
-	{
-		LLViewerJointAttachment* attachment = iter->second;
-		if (attachment->getGroup() == 8)
-		{
-			LLMenuItemCallGL* item;
-// [RLVa:KB] - Checked: 2009-07-06 (RLVa-1.0.0c)
-			// We need the userdata param to disable options in this pie menu later on
-			item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-										NULL, 
-										object_selected_and_point_valid, attachment);
-// [/RLVa:KB]
-//				item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-//											NULL, 
-//											object_selected_and_point_valid);
-			item->addListener(gMenuHolder->getListenerByName("Object.AttachToAvatar"), "on_click", iter->first);
-			gAttachScreenPieMenu->addChild(item);
-			gDetachScreenPieMenu->addChild(new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-						&handle_detach_from_avatar, object_attached, attachment));
-		}
-	}
+	//buildContextMenus can be called whenever "LiruUseContextMenus" setting changes. Clear out Edit->Attach/Detach menus before (re)populating them.
+	gAttachSubMenu->empty();
+	gDetachSubMenu->empty();
 
 	for (S32 pass = 0; pass < 2; pass++)
 	{
@@ -567,67 +544,6 @@ void LLVOAvatarSelf::buildContextMenus()
 			// put separator between non-hud and hud attachments
 			gAttachSubMenu->addSeparator();
 			gDetachSubMenu->addSeparator();
-		}
-	}
-
-	for (S32 group = 0; group < 8; group++)
-	{
-		// skip over groups that don't have sub menus
-		if (!gAttachBodyPartPieMenus[group] || !gDetachBodyPartPieMenus[group])
-		{
-			continue;
-		}
-
-		std::multimap<S32, S32> attachment_pie_menu_map;
-
-		// gather up all attachment points assigned to this group, and throw into map sorted by pie slice number
-		for (attachment_map_t::iterator iter = mAttachmentPoints.begin(); 
-			 iter != mAttachmentPoints.end();
-			 ++iter)
-		{
-			LLViewerJointAttachment* attachment = iter->second;
-			if(attachment->getGroup() == group)
-			{
-				// use multimap to provide a partial order off of the pie slice key
-				S32 pie_index = attachment->getPieSlice();
-				attachment_pie_menu_map.insert(std::make_pair(pie_index, iter->first));
-			}
-		}
-
-		// add in requested order to pie menu, inserting separators as necessary
-		S32 cur_pie_slice = 0;
-		for (std::multimap<S32, S32>::iterator attach_it = attachment_pie_menu_map.begin();
-			 attach_it != attachment_pie_menu_map.end(); ++attach_it)
-		{
-			if (!context) // Singu Note: Separators are only needed to keep slices of pies from moving
-			{
-				S32 requested_pie_slice = attach_it->first;
-				while (cur_pie_slice < requested_pie_slice)
-				{
-					gAttachBodyPartPieMenus[group]->addSeparator();
-					gDetachBodyPartPieMenus[group]->addSeparator();
-					cur_pie_slice++;
-				}
-			}
-			S32 attach_index = attach_it->second;
-
-			LLViewerJointAttachment* attachment = get_if_there(mAttachmentPoints, attach_index, (LLViewerJointAttachment*)NULL);
-			if (attachment)
-			{
-// [RLVa:KB] - Checked: 2009-07-06 (RLVa-1.0.0c)
-				// We need the userdata param to disable options in this pie menu later on
-				LLMenuItemCallGL* item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-															  NULL, object_selected_and_point_valid, attachment);
-// [/RLVa:KB]
-//					LLMenuItemCallGL* item = new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-//																  NULL, object_selected_and_point_valid);
-				gAttachBodyPartPieMenus[group]->addChild(item);
-				item->addListener(gMenuHolder->getListenerByName("Object.AttachToAvatar"), "on_click", attach_index);
-				gDetachBodyPartPieMenus[group]->addChild(new LLMenuItemCallGL(LLTrans::getString(attachment->getName()),
-																			&handle_detach_from_avatar,
-																			object_attached, attachment));
-				if (!context) cur_pie_slice++;
-			}
 		}
 	}
 }
@@ -695,6 +611,13 @@ LLJoint *LLVOAvatarSelf::getJoint(const std::string &name)
 	if (!jointp && mScreenp)
 	{
 		jointp = mScreenp->findJoint(name);
+		if (jointp)
+		{
+			joint_map_t::value_type entry;
+			strncpy(entry.first, name.c_str(), sizeof(entry.first));
+			entry.second = jointp;
+			mJointMap.emplace_back(entry);
+		}
 	}
 	return jointp;
 
@@ -767,7 +690,7 @@ void LLVOAvatarSelf::updateVisualParams()
 
 void LLVOAvatarSelf::writeWearablesToAvatar()
 {
-for (U32 type = 0; type < LLWearableType::WT_COUNT; type++)
+	for (U32 type = 0; type < LLWearableType::WT_COUNT; type++)
 	{
 		LLWearable *wearable = gAgentWearables.getTopWearable((LLWearableType::EType)type);
 		if (wearable)
@@ -799,6 +722,13 @@ void LLVOAvatarSelf::requestStopMotion(LLMotion* motion)
 
 	// Notify agent that motion has stopped
 	gAgent.requestStopMotion(motion);
+}
+
+// virtual
+bool LLVOAvatarSelf::hasMotionFromSource(const LLUUID& source_id)
+{
+	AnimSourceIterator motion_it = mAnimationSources.find(source_id);
+	return motion_it != mAnimationSources.end();
 }
 
 // virtual
@@ -939,6 +869,7 @@ void LLVOAvatarSelf::updateRegion(LLViewerRegion *regionp)
 	}
 	mRegionCrossingTimer.reset();
 	LLViewerObject::updateRegion(regionp);
+	gAgent.setIsCrossingRegion(false); // Attachments getting lost on TP
 }
 
 //--------------------------------------------------------------------
@@ -1115,13 +1046,6 @@ void LLVOAvatarSelf::wearableUpdated( LLWearableType::EType type, BOOL upload_re
 			}
 		}
 	}
-
-	// Physics type has no associated baked textures, but change of params needs to be sent to
-	// other avatars.
-	if (type == LLWearableType::WT_PHYSICS)
-	{
-		gAgent.sendAgentSetAppearance();
-	}
 }
 
 //-----------------------------------------------------------------------------
@@ -1141,44 +1065,6 @@ BOOL LLVOAvatarSelf::isWearingAttachment(const LLUUID& inv_item_id) const
 		}
 	}
 	return FALSE;
-}
-
-//-----------------------------------------------------------------------------
-BOOL LLVOAvatarSelf::attachmentWasRequested(const LLUUID& inv_item_id) const
-{
-	const F32 REQUEST_EXPIRATION_SECONDS = 5.0;  // any request older than this is ignored/removed.
-	std::map<LLUUID,LLTimer>::iterator it = mAttachmentRequests.find(inv_item_id);
-	if (it != mAttachmentRequests.end())
-	{
-		const LLTimer& request_time = it->second;
-		F32 request_time_elapsed = request_time.getElapsedTimeF32();
-		if (request_time_elapsed > REQUEST_EXPIRATION_SECONDS)
-		{
-			mAttachmentRequests.erase(it);
-			return FALSE;
-		}
-		else
-		{
-			return TRUE;
-		}
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-//-----------------------------------------------------------------------------
-void LLVOAvatarSelf::addAttachmentRequest(const LLUUID& inv_item_id)
-{
-	LLTimer current_time;
-	mAttachmentRequests[inv_item_id] = current_time;
-}
-
-//-----------------------------------------------------------------------------
-void LLVOAvatarSelf::removeAttachmentRequest(const LLUUID& inv_item_id)
-{
-	mAttachmentRequests.erase(inv_item_id);
 }
 
 //-----------------------------------------------------------------------------
@@ -1269,8 +1155,6 @@ const LLViewerJointAttachment *LLVOAvatarSelf::attachObject(LLViewerObject *view
 	{
 		const LLUUID& attachment_id = viewer_object->getAttachmentItemID();
 		LLAppearanceMgr::instance().registerAttachment(attachment_id);
-		// Clear any pending requests once the attachment arrives.
-		removeAttachmentRequest(attachment_id);
 		updateLODRiggedAttachments();		
 
 // [RLVa:KB] - Checked: 2010-08-22 (RLVa-1.2.1a) | Modified: RLVa-1.2.1a
@@ -2685,13 +2569,9 @@ void LLVOAvatarSelf::addLocalTextureStats( ETextureIndex type, LLViewerFetchedTe
 			{
 				F32 desired_pixels;
 				desired_pixels = llmin(mPixelArea, (F32)getTexImageArea());
-	
-				// DRANO what priority should wearable-based textures have?
-				if (isUsingLocalAppearance())
-				{
-					imagep->setBoostLevel(getAvatarBoostLevel());
-					imagep->setAdditionalDecodePriority(SELF_ADDITIONAL_PRI) ;
-				}
+
+				imagep->setBoostLevel(getAvatarBoostLevel());
+				imagep->setAdditionalDecodePriority(SELF_ADDITIONAL_PRI) ;
 				imagep->resetTextureStats();
 				imagep->setMaxVirtualSizeResetInterval(MAX_TEXTURE_VIRTUAL_SIZE_RESET_INTERVAL);
 				imagep->addTextureStats( desired_pixels / texel_area_ratio );
@@ -2755,7 +2635,7 @@ void LLVOAvatarSelf::setNewBakedTexture( ETextureIndex te, const LLUUID& uuid )
 {
 	// Baked textures live on other sims.
 	LLHost target_host = getObjectHost();	
-	setTEImage( te, LLViewerTextureManager::getFetchedTextureFromHost( uuid, target_host ) );
+	setTEImage( te, LLViewerTextureManager::getFetchedTextureFromHost( uuid, FTT_HOST_BAKE, target_host ) );
 	updateMeshTextures();
 	dirtyMesh();
 
@@ -3013,6 +2893,8 @@ void LLVOAvatarSelf::requestLayerSetUpdate(ETextureIndex index )
 			if( mUpperBodyLayerSet )
 				mUpperBodyLayerSet->requestUpdate(); */
 	const LLAvatarAppearanceDictionary::TextureEntry *texture_dict = LLAvatarAppearanceDictionary::getInstance()->getTexture(index);
+	if (!texture_dict)
+		return;
 	if (!texture_dict->mIsLocalTexture || !texture_dict->mIsUsedByBakedTexture)
 		return;
 	const EBakedTextureIndex baked_index = texture_dict->mBakedTextureIndex;
@@ -3029,7 +2911,7 @@ LLViewerTexLayerSet* LLVOAvatarSelf::getLayerSet(ETextureIndex index) const
                case TEX_HEAD_BODYPAINT:
                        return mHeadLayerSet; */
        const LLAvatarAppearanceDictionary::TextureEntry *texture_dict = LLAvatarAppearanceDictionary::getInstance()->getTexture(index);
-       if (texture_dict->mIsUsedByBakedTexture)
+       if (texture_dict && texture_dict->mIsUsedByBakedTexture)
        {
                const EBakedTextureIndex baked_index = texture_dict->mBakedTextureIndex;
                return getLayerSet(baked_index);
@@ -3110,6 +2992,12 @@ void LLVOAvatarSelf::onCustomizeEnd(bool disable_camera_switch)
 	}
 }
 
+// virtual
+bool LLVOAvatarSelf::shouldRenderRigged() const
+{
+	return gAgent.needsRenderAvatar(); 
+}
+
 // HACK: this will null out the avatar's local texture IDs before the TE message is sent
 //       to ensure local texture IDs are not sent to other clients in the area.
 //       this is a short-term solution. The long term solution will be to not set the texture
@@ -3169,7 +3057,11 @@ void LLVOAvatarSelf::sendHoverHeight() const
 		update["hover_height"] = hover_offset[2];
 
 		LL_DEBUGS("Avatar") << avString() << "sending hover height value " << hover_offset[2] << LL_ENDL;
-		LLHTTPClient::post(url, update, new LLHoverHeightResponder);
+
+		// *TODO: - this class doesn't really do anything, could just use a base
+		// class responder if nothing else gets added.
+		// (comment from removed Responder)
+		LLHTTPClient::post(url, update, new LLHTTPClient::ResponderIgnore);
 
 		mLastHoverOffsetSent = hover_offset;
 	}
@@ -3194,10 +3086,6 @@ void LLVOAvatarSelf::setHoverOffset(const LLVector3& hover_offset, bool send_upd
 //------------------------------------------------------------------------
 BOOL LLVOAvatarSelf::needsRenderBeam()
 {
-	if (gNoRender)
-	{
-		return FALSE;
-	}
 	LLTool *tool = LLToolMgr::getInstance()->getCurrentTool();
 
 	BOOL is_touching_or_grabbing = (tool == LLToolGrab::getInstance() && LLToolGrab::getInstance()->isEditing());
@@ -3207,81 +3095,10 @@ BOOL LLVOAvatarSelf::needsRenderBeam()
 		// don't render selection beam on hud objects
 		is_touching_or_grabbing = FALSE;
 	}
-	return is_touching_or_grabbing || (mState & AGENT_STATE_EDITING && LLSelectMgr::getInstance()->shouldShowSelection());
+	return is_touching_or_grabbing || (getAttachmentState()  & AGENT_STATE_EDITING && LLSelectMgr::getInstance()->shouldShowSelection());
 }
 
-// static
-void LLVOAvatarSelf::deleteScratchTextures()
-{
-	if(gAuditTexture)
-	{
-		S32 total_tex_size = sScratchTexBytes ;
-		S32 tex_size = SCRATCH_TEX_WIDTH * SCRATCH_TEX_HEIGHT ;
-
-		if( sScratchTexNames.checkData( GL_LUMINANCE ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 1, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= tex_size ;
-		}
-		if( sScratchTexNames.checkData( GL_ALPHA ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 1, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= tex_size ;
-		}
-		if( sScratchTexNames.checkData( GL_COLOR_INDEX ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 1, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= tex_size ;
-		}
-		if( sScratchTexNames.checkData( LLRender::sGLCoreProfile ? GL_RG : GL_LUMINANCE_ALPHA ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 2, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= 2 * tex_size ;
-		}
-		if( sScratchTexNames.checkData( GL_RGB ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 3, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= 3 * tex_size ;
-		}
-		if( sScratchTexNames.checkData( GL_RGBA ) )
-		{
-			LLImageGL::decTextureCounter(tex_size, 4, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= 4 * tex_size ;
-		}
-		//others
-		while(total_tex_size > 0)
-		{
-			LLImageGL::decTextureCounter(tex_size, 4, LLViewerTexture::AVATAR_SCRATCH_TEX) ;
-			total_tex_size -= 4 * tex_size ;
-		}
-	}
-
-	for( LLGLuint* namep = sScratchTexNames.getFirstData(); 
-		 namep; 
-		 namep = sScratchTexNames.getNextData() )
-	{
-		LLImageGL::deleteTextures(1, (U32 *)namep );
-		stop_glerror();
-	}
-
-	if( sScratchTexBytes )
-	{
-		LL_DEBUGS() << "Clearing Scratch Textures " << (sScratchTexBytes/1024) << "KB" << LL_ENDL;
-
-		sScratchTexNames.deleteAllData();
-		sScratchTexLastBindTime.deleteAllData();
-		LLImageGL::sGlobalTextureMemoryInBytes -= sScratchTexBytes;
-		sScratchTexBytes = 0;
-	}
-}
-
-// static 
-void LLVOAvatarSelf::dumpScratchTextureByteCount()
-{
-	LL_INFOS() << "Scratch Texture GL: " << (sScratchTexBytes/1024) << "KB" << LL_ENDL;
-}
-
-void dump_visual_param(LLAPRFile& file, LLVisualParam const* viewer_param, F32 value);
+void dump_visual_param(apr_file_t* file, LLVisualParam const* viewer_param, F32 value);
 
 void LLVOAvatarSelf::dumpWearableInfo(LLAPRFile& outfile)
 {
@@ -3309,7 +3126,7 @@ void LLVOAvatarSelf::dumpWearableInfo(LLAPRFile& outfile)
 				 it != v_params.end(); ++it)
 			{
 				LLVisualParam *param = *it;
-				dump_visual_param(outfile, param, param->getWeight());
+				dump_visual_param(file, param, param->getWeight());
 			}
 		}
 	}

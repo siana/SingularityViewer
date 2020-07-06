@@ -194,7 +194,7 @@ void LLConsole::draw()
 	// draw remaining lines
 	F32 y_pos = 0.f;
 
-	LLUIImagePtr imagep = LLUI::getUIImage("rounded_square.tga");
+	LLUIImagePtr imagep = LLUI::getUIImage("Rounded_Square");
 
 	static const LLCachedControl<F32> console_background_opacity("ConsoleBackgroundOpacity");
 	F32 console_opacity = llclamp(console_background_opacity.get(), 0.f, 1.f);

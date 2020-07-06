@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+	<menu label="Propietario" name="Object Owner Submenu">
+		<menu_item_call label="Perfil" name="Profile"/>
+		<menu name="Actions" label="Acciones">
+			<menu_item_call label="Perfil Web" name="Web Profile"/>
+			<menu_item_call label="Pagar" name="Pay"/>
+			<menu_item_call label="Mensaje Instantáneo" name="Instant Message"/>
+			<menu_item_call label="Conferencia" name="Conference Chat"/>
+			<menu_item_call label="Llamar" name="Call"/>
+			<menu_item_call label="Llamar Conferencia" name="Conference Call"/>
+			<menu_item_call label="Ofrecer Amistad" name="Add Friend"/>
+			<menu_item_call label="Quitar Amistad" name="Remove Friend"/>
+			<menu_item_call label="Invitar a un Grupo" name="Invite To Group"/>
+			<menu_item_call label="Seguir" name="Follow"/>
+			<menu_item_call label="Mover A" name="Move To"/>
+			<menu_item_call label="Ofrecer Teleporte" name="Offer Teleport"/>
+			<menu_item_call label="Teleportar A" name="Teleport To"/>
+			<menu_item_call label="Solicitar Teleporte" name="Request Teleport"/>
+			<menu_item_call label="Encontrar en el Mapa" name="Find on Map"/>
+			<menu_item_call label="Compartir" name="Share"/>
+			<menu_item_call label="Historial de Chat" name="Chat History"/>
+			<menu_item_call label="Rastrear/No Rastrear" name="Track/Untrack"/>
+		</menu>
+		<menu name="Copy" label="Copiar">
+			<menu_item_call label="UUID" name="Copy Key"/>
+			<menu_item_call label="Nombre" name="Copy Name"/>
+			<menu_item_call label="SLURL" name="Copy SLURL"/>
+		</menu>
+		<menu_item_call label="Enfocar" name="Focus"/>
+		<menu label="Moderación" name="Moderation" create_jump_keys="">
+			<menu_item_call label="Silenciar" name="Mute"/>
+			<menu_item_call label="Quitar Silenciar" name="Unmute"/>
+			<menu_item_call label="Prohibir en el Grupo" name="Ban From Group"/>
+			<menu_item_call label="Denunciar Infracción" name="Report Abuse"/>
+			<menu_item_call label="Congelar" name="Freeze"/>
+			<menu_item_call label="Expulsar/Prohibir en la parcela" name="Eject/Ban from Parcel"/>
+			<menu_item_call label="Expulsar del Estado" name="Eject from estate"/>
+			<menu_item_call label="Expulsar y prohibir en el estado" name="Eject and ban from estate"/>
+		</menu>
+	</menu>

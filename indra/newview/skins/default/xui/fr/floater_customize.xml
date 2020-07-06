@@ -44,9 +44,6 @@ et la porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Silhouette:
-			</text>
 			<button label="Créer une silhouette" label_selected="Créer une silhouette" name="Create New"/>
 			<button label="Enregistrer" label_selected="Enregistrer" name="Save" left="100" width="82"/>
 			<button label="Enregistrer sous" label_selected="Enregistrer sous" name="Save As" left="188" width="111"/>
@@ -77,9 +74,6 @@ Vous pouvez aussi en créer une nouvelle et la porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92">
-				Peau:
 			</text>
 			<texture_picker label="Tatouages tête" name="Head Tattoos" tool_tip="Cliquer pour sélectionner une image" width="78"/>
 			<texture_picker label="Tatouages haut" name="Upper Tattoos" tool_tip="Cliquer pour sélectionner une image" width="78"/>
@@ -117,9 +111,6 @@ et la porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Cheveux:
-			</text>
 			<texture_picker label="Texture" name="Texture" tool_tip="Cliquer pour sélectionner une image"/>
 			<button label="Créer des cheveux" label_selected="Créer des cheveux" name="Create New"/>
 			<button label="Enregistrer" label_selected="Enregistrer" name="Save" left="100"/>
@@ -148,9 +139,6 @@ votre avatar. Vous pouvez aussi en créer de nouveaux et les porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92">
-				Yeux:
 			</text>
 			<texture_picker label="Iris" name="Iris" tool_tip="Cliquer pour sélectionner une image"/>
 			<button label="Créer des yeux" label_selected="Créer des yeux" name="Create New"/>
@@ -189,9 +177,6 @@ jusqu'à votre avatar. Vous pouvez aussi en créer une nouvelle et la porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Chemise:
-			</text>
 		</panel>
 		<panel label="Pantalon" name="Pants">
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
@@ -223,9 +208,6 @@ jusqu'à votre avatar. Vous pouvez aussi en créer un nouveau et le porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Pantalon:
-			</text>
 		</panel>
 		<panel label="Chaussures" name="Shoes">
 			<text name="title">
@@ -250,9 +232,6 @@ nouvelle paire et la porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92">
-				Chaussures:
 			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>
@@ -286,9 +265,6 @@ nouvelle paire et la porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Chaussettes:
-			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>
 			<button label="Créer des chaussettes" label_selected="Créer des chaussettes" name="Create New"/>
@@ -319,9 +295,6 @@ jusqu'à votre avatar. Vous pouvez aussi en créer une nouvelle et la porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92">
-				Veste:
 			</text>
 			<texture_picker label="Tissu (dessus)" name="Upper Fabric" tool_tip="Cliquer pour sélectionner une image" width="81"/>
 			<texture_picker label="Tissu (dessous)" name="Lower Fabric" tool_tip="Cliquer pour sélectionner une image" width="81"/>
@@ -355,9 +328,6 @@ inventaire. Vous pouvez aussi en créer une nouvelle paire et la porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92">
-				Gants:
-			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>
 			<button label="Créer des gants" label_selected="Créer des gants" name="Create New"/>
@@ -388,10 +358,6 @@ votre inventaire. Vous pouvez aussi en créer des nouveaux et les porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92" bottom="-470">
-				Sous-vêtements
-(haut):
 			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>
@@ -424,10 +390,6 @@ votre inventaire. Vous pouvez aussi en créer des nouveaux et les porter.
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
 			</text>
-			<text name="Item Action Label" right="92" bottom="-470">
-				Sous-vêtements
-(bas):
-			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>
 			<button label="Créer des sous-vêtements" label_selected="Créer des sous-vêtements" name="Create New"/>
@@ -458,9 +420,6 @@ inventaire. Vous pouvez aussi en créer une nouvelle et la porter.
 			</text>
 			<text name="no modify instructions">
 				Vous n'avez pas la permission de modifier cet objet.
-			</text>
-			<text name="Item Action Label" right="92">
-				Jupe:
 			</text>
 			<texture_picker label="Tissu" name="Fabric" tool_tip="Cliquer pour sélectionner une image" width="74"/>
 			<color_swatch label="Couleur/Teinte" name="Color/Tint" tool_tip="Cliquer pour ouvrir le sélecteur de couleurs" width="74"/>

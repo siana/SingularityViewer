@@ -33,12 +33,6 @@
 #include "llparcelselection.h"
 #include "llui.h"
 
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
-#include <boost/signals2.hpp>
-
 class LLUUID;
 class LLMessageSystem;
 class LLParcel;
@@ -78,26 +72,24 @@ public:
 
 class LLViewerParcelMgr : public LLSingleton<LLViewerParcelMgr>
 {
-
-public:
-	typedef boost::function<void (const LLVector3d&)> teleport_finished_callback_t;
-	typedef boost::signals2::signal<void (const LLVector3d&)> teleport_finished_signal_t;
-	typedef boost::function<void()> parcel_changed_callback_t;
-	typedef boost::signals2::signal<void()> parcel_changed_signal_t;
-
+	friend class LLSingleton<LLViewerParcelMgr>;
 	LLViewerParcelMgr();
 	~LLViewerParcelMgr();
 
-// <FS:CR> Aurora Sim
+public:
+	typedef std::function<void (const LLVector3d&)> teleport_finished_callback_t;
+	typedef boost::signals2::signal<void (const LLVector3d&)> teleport_finished_signal_t;
+	typedef std::function<void()> parcel_changed_callback_t;
+	typedef boost::signals2::signal<void()> parcel_changed_signal_t;
+
 	void init(F32 region_size);
-// </FS:CR> Aurora Sim
 	static void cleanupGlobals();
 
 	BOOL	selectionEmpty() const;
 	F32		getSelectionWidth() const	{ return F32(mEastNorth.mdV[VX] - mWestSouth.mdV[VX]); }
 	F32		getSelectionHeight() const	{ return F32(mEastNorth.mdV[VY] - mWestSouth.mdV[VY]); }
 	BOOL	getSelection(LLVector3d &min, LLVector3d &max) { min = mWestSouth; max = mEastNorth; return !selectionEmpty();}
-	LLViewerRegion* getSelectionRegion();
+	LLViewerRegion* getSelectionRegion() const;
 	F32		getDwelling() const { return mSelectedDwell;}
 
 	void	getDisplayInfo(S32* area, S32* claim, S32* rent, BOOL* for_sale, F32* dwell);
@@ -168,14 +160,13 @@ public:
 	LLParcel*	getHoverParcel() const;
 
 	LLParcel*	getCollisionParcel() const;
-// [SL:KB] - Patch: World-MinimapOverlay | Checked: 2012-06-20 (Catznip-3.3.0)
+
 	const U8*	getCollisionBitmap() const { return mCollisionBitmap; }
 	size_t		getCollisionBitmapSize() const { return mParcelsPerEdge * mParcelsPerEdge / 8; }
 	U64			getCollisionRegionHandle() const { return mCollisionRegionHandle; }
 
 	typedef boost::signals2::signal<void (const LLViewerRegion*)> collision_update_signal_t;
 	boost::signals2::connection setCollisionUpdateCallback(const collision_update_signal_t::slot_type & cb);
-// [/SL:KB]
 
 	// Can this agent build on the parcel he is on?
 	// Used for parcel property icons in nav bar.
@@ -304,6 +295,8 @@ public:
 	static BOOL isParcelModifiableByAgent(const LLParcel* parcelp, U64 group_proxy_power);
 
 private:
+	static void sendParcelAccessListUpdate(U32 flags, const std::map<LLUUID, class LLAccessEntry>& entries, LLViewerRegion* region, S32 parcel_local_id);
+	static void sendParcelExperienceUpdate( const U32 flags, uuid_vec_t experience_ids, LLViewerRegion* region, S32 parcel_local_id );
 	static bool releaseAlertCB(const LLSD& notification, const LLSD& response);
 
 	// If the user is claiming land and the current selection 
@@ -368,11 +361,9 @@ private:
 	// Watch for pending collisions with a parcel you can't access.
 	// If it's coming, draw the parcel's boundaries.
 	LLParcel*					mCollisionParcel;
-// [SL:KB] - Patch: World-MinimapOverlay | Checked: 2012-06-20 (Catznip-3.3.0)
 	U8*							mCollisionBitmap;
 	U64							mCollisionRegionHandle;
 	collision_update_signal_t*	mCollisionUpdateSignal;
-// [/SL:KB]
 	U8*							mCollisionSegments;
 	BOOL						mRenderCollision; 
 	BOOL						mRenderSelection;

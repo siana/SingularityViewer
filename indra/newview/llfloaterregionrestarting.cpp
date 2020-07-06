@@ -39,8 +39,11 @@
 #include "lllandmarklist.h"
 #include "llviewerregion.h"
 #include "llworldmap.h"
-void emergency_teleport()
+void emergency_teleport(const U32& seconds)
 {
+	static const LLCachedControl<U32> time(gSavedSettings, "EmergencyTeleportSeconds");
+	if (seconds > time) return;
+
 	static const LLCachedControl<std::string> landmark(gSavedPerAccountSettings, "EmergencyTeleportLandmark");
 	if (landmark().empty()) return;
 	LLUUID id(landmark);
@@ -97,12 +100,12 @@ LLFloaterRegionRestarting::LLFloaterRegionRestarting(const LLSD& key) :
 	LLEventTimer(1)
 ,	mRestartSeconds(NULL)
 ,	mSeconds(key["SECONDS"].asInteger())
+,	mName(key.has("NAME") ? key["NAME"].asString() : gAgent.getRegion()->getName()) // <alchemy/>
 ,	mShakeIterations()
 ,	mShakeMagnitude()
 {
 	//buildFromFile("floater_region_restarting.xml");
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_region_restarting.xml");
-	mName = key.has("NAME") ? key["NAME"].asString() : gAgent.getRegion()->getName(); // <alchemy/>
 	center();
 
 }
@@ -120,7 +123,7 @@ LLFloaterRegionRestarting::~LLFloaterRegionRestarting()
 BOOL LLFloaterRegionRestarting::postBuild()
 {
 	mRegionChangedConnection = gAgent.addRegionChangedCallback(boost::bind(&LLFloaterRegionRestarting::regionChange, this));
-	if (mSeconds <= 20) emergency_teleport(); // <singu/> For emergency teleports
+	emergency_teleport(mSeconds); // <singu/> For emergency teleports
 
 	LLStringUtil::format_map_t args;
 	std::string text;
@@ -158,7 +161,7 @@ void LLFloaterRegionRestarting::refresh()
 	args["[SECONDS]"] = llformat("%d", mSeconds);
 	mRestartSeconds->setValue(getString("RestartSeconds", args));
 
-	if (mSeconds == 20) emergency_teleport(); // <singu/> For emergency teleports
+	emergency_teleport(mSeconds); // <singu/> For emergency teleports
 	if (!mSeconds) return; // Zero means we're done.
 	--mSeconds;
 }
@@ -233,6 +236,6 @@ void LLFloaterRegionRestarting::draw()
 void LLFloaterRegionRestarting::updateTime(const U32& time)
 {
 	mSeconds = time;
-	if (mSeconds <= 20) emergency_teleport(); // <singu/> For emergency teleports
+	emergency_teleport(mSeconds); // <singu/> For emergency teleports
 	sShakeState = SHAKE_START;
 }

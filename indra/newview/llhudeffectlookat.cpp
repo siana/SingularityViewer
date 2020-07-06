@@ -572,7 +572,7 @@ void LLHUDEffectLookAt::render()
 			offset.normalize();
 			LLVector3 shadow_offset = offset * 0.49f;
 			offset *= 0.5f;
-			LLGLEnable gl_blend(GL_BLEND);
+			LLGLEnable<GL_BLEND> gl_blend;
 
 			const LLFontGL* fontp = LLFontGL::getFontSansSerif();
 			gGL.pushMatrix();

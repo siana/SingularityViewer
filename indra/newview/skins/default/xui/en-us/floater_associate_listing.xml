@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater
+ legacy_header_height="18"
+ can_minimize="false"
+ height="100"
+ layout="topleft"
+ name="associate listing"
+ help_topic="associate_listing"
+ title="Associate Listing"
+ width="375">
+    <text
+     type="string"
+     length="1"
+     follows="top|left"
+     font="SansSerifLarge"
+     height="16"
+     layout="topleft"
+     left="10"
+     bottom="-35"
+     name="message">
+        Listing ID:
+    </text>
+    <line_editor
+     type="string"
+     max_length="1000"
+     enabled="true"
+     follows="top|right"
+     font="SansSerif"
+     height="20"
+     layout="topleft"
+     left_delta="0"
+     name="listing_id"
+     bottom_delta="-26"
+     width="350">
+        Type ID Number here
+    </line_editor>
+    <button
+     follows="bottom|left"
+     height="23"
+     label="OK"
+     layout="topleft"
+     left="155"
+     name="OK"
+     bottom_delta="-30"
+     width="100" />
+    <button
+     follows="bottom|right"
+     height="23"
+     label="Cancel"
+     layout="topleft"
+     bottom_delta="0"
+     left_delta="105"
+     name="Cancel"
+     width="100" />
+</floater>

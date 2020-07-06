@@ -40,6 +40,7 @@
 #include "llimagej2c.h"
 
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llbutton.h"
 #include "llcombobox.h"
 #include "lldrawable.h"
@@ -96,7 +97,8 @@ BOOL LLFloaterImagePreview::postBuild()
 		return FALSE;
 	}
 
-	childSetLabelArg("ok_btn", "[UPLOADFEE]", gHippoGridManager->getConnectedGrid()->getUploadFee());
+	auto& grid = *gHippoGridManager->getConnectedGrid();
+	childSetLabelArg("ok_btn", "[UPLOADFEE]", grid.formatFee(LLAgentBenefitsMgr::current().getTextureUploadCost()));
 
 	LLCtrlSelectionInterface* iface = childGetSelectionInterface("clothing_type_combo");
 	if (iface)
@@ -126,7 +128,11 @@ BOOL LLFloaterImagePreview::postBuild()
 
 		// <edit>
 		gSavedSettings.setBOOL("TemporaryUpload",FALSE);
-		childSetValue("temp_check",FALSE);
+		auto child = getChildView("temp_check");
+		if (grid.isSecondLife())
+			child->setVisible(false);
+		else
+			child->setValue(false);
 		// </edit>
 	}
 	else
@@ -252,7 +258,7 @@ void LLFloaterImagePreview::draw()
 		if (selected <= 0)
 		{
 			gl_rect_2d_checkerboard( calcScreenRect(), mPreviewRect);
-			LLGLDisable gls_alpha(GL_ALPHA_TEST);
+			LLGLDisable<GL_ALPHA_TEST> gls_alpha;
 
 			if(mImagep.notNull())
 			{
@@ -277,16 +283,16 @@ void LLFloaterImagePreview::draw()
 			}
 
 			gGL.color3f(1.f, 1.f, 1.f);
-			gGL.begin( LLRender::QUADS );
+			gGL.begin( LLRender::TRIANGLE_STRIP );
 			{
 				gGL.texCoord2f(mPreviewImageRect.mLeft, mPreviewImageRect.mTop);
 				gGL.vertex2i(PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
 				gGL.texCoord2f(mPreviewImageRect.mLeft, mPreviewImageRect.mBottom);
 				gGL.vertex2i(PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
-				gGL.texCoord2f(mPreviewImageRect.mRight, mPreviewImageRect.mBottom);
-				gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 				gGL.texCoord2f(mPreviewImageRect.mRight, mPreviewImageRect.mTop);
 				gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
+				gGL.texCoord2f(mPreviewImageRect.mRight, mPreviewImageRect.mBottom);
+				gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 			}
 			gGL.end();
 
@@ -309,16 +315,16 @@ void LLFloaterImagePreview::draw()
 					gGL.getTexUnit(0)->bind(mAvatarPreview);
 				}
 
-				gGL.begin( LLRender::QUADS );
+				gGL.begin( LLRender::TRIANGLE_STRIP );
 				{
 					gGL.texCoord2f(0.f, 1.f);
 					gGL.vertex2i(PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
 					gGL.texCoord2f(0.f, 0.f);
 					gGL.vertex2i(PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
-					gGL.texCoord2f(1.f, 0.f);
-					gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 					gGL.texCoord2f(1.f, 1.f);
 					gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
+					gGL.texCoord2f(1.f, 0.f);
+					gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 				}
 				gGL.end();
 
@@ -621,15 +627,8 @@ LLImagePreviewAvatar::LLImagePreviewAvatar(S32 width, S32 height) : LLViewerDyna
 	mCameraPitch = 0.f;
 	mCameraZoom = 1.f;
 
-	mDummyAvatar = (LLVOAvatar*)gObjectList.createObjectViewer(LL_PCODE_LEGACY_AVATAR, gAgent.getRegion());
-	mDummyAvatar->createDrawable(&gPipeline);
-	mDummyAvatar->mIsDummy = TRUE;
+	mDummyAvatar = (LLVOAvatar*)gObjectList.createObjectViewer(LL_PCODE_LEGACY_AVATAR, gAgent.getRegion(), LLViewerObject::CO_FLAG_UI_AVATAR);
 	mDummyAvatar->mSpecialRenderMode = 2;
-	mDummyAvatar->setPositionAgent(LLVector3::zero);
-	mDummyAvatar->slamPosition();
-	mDummyAvatar->updateJointLODs();
-	mDummyAvatar->updateGeometry(mDummyAvatar->mDrawable);
-	// gPipeline.markVisible(mDummyAvatar->mDrawable, *LLViewerCamera::getInstance());
 
 	mTextureName = 0;
 }
@@ -757,13 +756,14 @@ BOOL LLImagePreviewAvatar::render()
 	{
 		LLGLDepthTest gls_depth(GL_TRUE, GL_TRUE);
 		// make sure alpha=0 shows avatar material color
-		LLGLDisable no_blend(GL_BLEND);
+		LLGLDisable<GL_BLEND> no_blend;
 
 		LLFace* face = avatarp->mDrawable->getFace(0);
 		if (face)
 		{
 			LLDrawPoolAvatar *avatarPoolp = (LLDrawPoolAvatar *)face->getPool();
-			gPipeline.enableLightsPreview();
+			LLGLState<GL_LIGHTING> light_state;
+			gPipeline.enableLightsPreview(light_state);
 			avatarPoolp->renderAvatars(avatarp);  // renders only one avatar
 		}
 	}
@@ -848,7 +848,7 @@ void LLImagePreviewSculpted::setPreviewTarget(LLImageRaw* imagep, F32 distance)
 
 	if (imagep)
 	{
-		mVolume->sculpt(imagep->getWidth(), imagep->getHeight(), imagep->getComponents(), imagep->getData(), 0);
+		mVolume->sculpt(imagep->getWidth(), imagep->getHeight(), imagep->getComponents(), imagep->getData(), 0, false);
 	}
 
 	const LLVolumeFace &vf = mVolume->getVolumeFace(0);
@@ -900,8 +900,8 @@ BOOL LLImagePreviewSculpted::render()
 {
 	mNeedsUpdate = FALSE;
 	LLGLSUIDefault def;
-	LLGLDisable no_blend(GL_BLEND);
-	LLGLEnable cull(GL_CULL_FACE);
+	LLGLDisable<GL_BLEND> no_blend;
+	LLGLEnable<GL_CULL_FACE> cull;
 	LLGLDepthTest depth(GL_TRUE);
 
 	gGL.matrixMode(LLRender::MM_PROJECTION);
@@ -928,6 +928,7 @@ BOOL LLImagePreviewSculpted::render()
 	gGL.matrixMode(LLRender::MM_MODELVIEW);
 	gGL.popMatrix();
 
+	gGL.syncContextState();
 	glClear(GL_DEPTH_BUFFER_BIT);
 	
 	LLVector3 target_pos(0, 0, 0);
@@ -950,13 +951,14 @@ BOOL LLImagePreviewSculpted::render()
 	const LLVolumeFace &vf = mVolume->getVolumeFace(0);
 	U32 num_indices = vf.mNumIndices;
 	
-	gPipeline.enableLightsAvatar();
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.enableLightsAvatar(light_state);
 
 	if (LLGLSLShader::sNoFixedFunction)
 	{
 		gObjectPreviewProgram.bind();
 	}
-	gPipeline.enableLightsPreview();
+	gPipeline.enableLightsPreview(light_state);
 
 	gGL.pushMatrix();
 	const F32 SCALE = 1.25f;

@@ -58,7 +58,6 @@ public:
 // [SL:KB] - Patch: Appearance-MixedViewers | Checked: 2010-04-02 (Catznip-3.0.0a) | Added: Catznip-2.0.0a
 	void updateAppearanceFromInitialWearables(LLInventoryObject::const_object_list_t& initial_items);
 // [/SL:KB]
-	bool needToSaveCOF();
 	void updateCOF(const LLUUID& category, bool append = false);
 // [RLVa:KB] - Checked: 2010-03-05 (RLVa-1.2.0a) | Added: RLVa-1.2.0a
 	void updateCOF(LLInventoryModel::item_array_t& body_items_new, LLInventoryModel::item_array_t& wear_items_new,
@@ -115,7 +114,6 @@ public:
 	// Copy all items in a category.
 	void shallowCopyCategoryContents(const LLUUID& src_id, const LLUUID& dst_id,
 									 LLPointer<LLInventoryCallback> cb);
-	void copyItems(const LLUUID& dst_id, LLInventoryModel::item_array_t* items, LLPointer<LLInventoryCallback> cb);
 
 	// Find the Current Outfit folder.
 	const LLUUID getCOF() const;
@@ -156,6 +154,9 @@ public:
 	// Attachment link management
 	void unregisterAttachment(const LLUUID& item_id);
 	void registerAttachment(const LLUUID& item_id);
+// [SL:KB] - Patch: Appearance-SyncAttach | Checked: 2015-06-24 (Catznip-3.7)
+	bool getAttachmentInvLinkEnable() { return mAttachmentInvLinkEnabled; }
+// [/SL:KB]
 	void setAttachmentInvLinkEnable(bool val);
 
 	// Add COF link to individual item.
@@ -246,13 +247,6 @@ public:
 
 	void requestServerAppearanceUpdate();
 
-	void incrementCofVersion(LLHTTPClient::ResponderPtr responder_ptr = NULL);
-
-	U32 getNumAttachmentsInCOF();
-
-	// *HACK Remove this after server side texture baking is deployed on all sims.
-	void incrementCofVersionLegacy();
-
 	void setAppearanceServiceURL(const std::string& url) { mAppearanceServiceURL = url; }
 	std::string getAppearanceServiceURL() const;
 
@@ -279,10 +273,7 @@ private:
 								   LLInventoryModel::item_array_t& gest_items,
 								   bool follow_folder_links = false);
 
-	void purgeCategory(const LLUUID& category, bool keep_outfit_links);
-
 	static void onOutfitRename(const LLSD& notification, const LLSD& response);
-
 
 	bool mAttachmentInvLinkEnabled;
 	bool mOutfitIsDirty;
@@ -299,19 +290,10 @@ private:
 	std::auto_ptr<LLOutfitUnLockTimer> mUnlockOutfitTimer;
 
 	// Set of temp attachment UUIDs that should be removed
-	typedef std::set<LLUUID> doomed_temp_attachments_t;
+	typedef uuid_set_t doomed_temp_attachments_t;
 	doomed_temp_attachments_t	mDoomedTempAttachmentIDs;
 
 	void addDoomedTempAttachment(const LLUUID& id_to_remove);
-
-// [SL:KB] - Patch: Appearance-SyncAttach | Checked: 2010-09-18 (Catznip-2.1)
-public:
-	void linkPendingAttachments();
-	void clearPendingAttachment(const LLUUID& idItem);
-	void onRegisterAttachmentComplete(const LLUUID& idAttachItem);
-private:
-	uuid_vec_t mPendingAttachLinks;
-// [/SL:KB]
 
 	//////////////////////////////////////////////////////////////////////////////////
 	// Item-specific convenience functions 
@@ -320,11 +302,6 @@ public:
 	BOOL getIsInCOF(const LLUUID& obj_id) const;
 	// Is this in the COF and can the user delete it from the COF?
 	BOOL getIsProtectedCOFItem(const LLUUID& obj_id) const;
-
-	/**
-	 * Checks if COF contains link to specified object.
-	 */
-	static bool isLinkInCOF(const LLUUID& obj_id);
 };
 
 class LLUpdateAppearanceOnDestroy: public LLInventoryCallback
@@ -345,21 +322,29 @@ private:
 };
 
 // [SL:KB] - Patch: Appearance-SyncAttach | Checked: 2010-08-31 (Catznip-2.1)
-class LLRegisterAttachmentCallback : public LLInventoryCallback
+class LLUpdateAppearanceAndEditWearableOnDestroy: public LLInventoryCallback
 {
 public:
-	LLRegisterAttachmentCallback(const LLUUID& idAttachItem) : m_idAttachItem(idAttachItem) {}
-	/*virtual*/ void fire(const LLUUID&)
-	{
-		// NOTE: AISCommand::getResponseUUID() currently returns false so the passed UUID is NULL and hence useless
-		LLAppearanceMgr::instance().onRegisterAttachmentComplete(m_idAttachItem);
-	}
-protected:
-	LLUUID m_idAttachItem;
-};
-// [/SL:KB]
-void edit_wearable_and_customize_avatar(LLUUID item_id);
+	LLUpdateAppearanceAndEditWearableOnDestroy(const LLUUID& item_id);
 
+	/* virtual */ void fire(const LLUUID& item_id) {}
+
+	~LLUpdateAppearanceAndEditWearableOnDestroy();
+	
+private:
+	LLUUID mItemID;
+};
+
+class LLRequestServerAppearanceUpdateOnDestroy: public LLInventoryCallback
+{
+public:
+	LLRequestServerAppearanceUpdateOnDestroy() {}
+	~LLRequestServerAppearanceUpdateOnDestroy();
+
+	/* virtual */ void fire(const LLUUID& item_id) {}
+};
+
+void edit_wearable_and_customize_avatar(LLUUID item_id);
 
 LLUUID findDescendentCategoryIDByName(const LLUUID& parent_id,const std::string& name);
 

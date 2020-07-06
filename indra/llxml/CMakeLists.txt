@@ -37,8 +37,10 @@ set_source_files_properties(${llxml_HEADER_FILES}
 list(APPEND llxml_SOURCE_FILES ${llxml_HEADER_FILES})
 
 add_library (llxml ${llxml_SOURCE_FILES})
-add_dependencies(llxml prepare)
+
 target_link_libraries(
     llxml
+    PUBLIC
+    llcommon
     ${EXPAT_LIBRARIES}
     )

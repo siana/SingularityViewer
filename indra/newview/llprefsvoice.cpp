@@ -35,8 +35,8 @@
 
 #include "llprefsvoice.h"
 
-#include "floatervoicelicense.h"
 #include "llcheckboxctrl.h"
+#include "llfloatertos.h"
 #include "llfocusmgr.h"
 #include "llkeyboard.h"
 #include "llmodaldialog.h"
@@ -158,8 +158,9 @@ void LLPrefsVoice::apply()
 	if (enable_voice && !gSavedSettings.getBOOL("VivoxLicenseAccepted"))
 	{
 		// This window enables voice chat if license is accepted
-		FloaterVoiceLicense::getInstance()->open();
-		FloaterVoiceLicense::getInstance()->center();
+		auto inst = LLFloaterTOS::show(LLFloaterTOS::TOS_VOICE);
+		inst->open();
+		inst->center();
 	}
 	else
 	{

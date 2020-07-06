@@ -5,7 +5,7 @@
  * $License$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -13,7 +13,7 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect tex0;
+uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform float brightMult;
 uniform float noiseStrength;
@@ -32,7 +32,7 @@ float luminance(vec3 color)
 void main(void) 
 {
 	/// Get scene color
-	vec3 color = vec3(texture2DRect(tex0, vary_texcoord0));
+	vec3 color = vec3(texture2D(tex0, vary_texcoord0));
 	
 	/// Extract luminance and scale up by night vision brightness
 	float lum = luminance(color) * brightMult;

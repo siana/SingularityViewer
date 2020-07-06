@@ -4,7 +4,6 @@
      For example, the strings used in avatar chat bubbles, and strings
      that are returned from one component and may appear in many places-->
 <strings>
-	
 	<string name="hippo_label_free">libre</string>
 	<string name="hippo_label_week">semana</string>
 	<string name="TeleportOfferMaturity">[NAME] te ofrece un TP a [DESTINATION]</string>
@@ -20,18 +19,18 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="GridInfoParseError">Error de análisis XML: [XML_ERROR]</string>
 
 	<!-- Default Args - these arguments will be replaced in all strings -->
-	<string name="SECOND_LIFE">Second Life</string>
 	<string name="SECOND_LIFE_GRID">Grid Second Life</string>
 	<string name="SUPPORT_SITE">Portal de Soporte de Second Life</string>
-	
-	<string name="CURRENCY">L$</string>
-	<string name="GRID_OWNER">Linden Lab</string>
 	
 	<!-- starting up -->
 	<string name="StartupDetectingHardware">Detectando hardware...</string>
 	<string name="StartupLoading">Cargando [APP_NAME]...</string>
 	<string name="StartupClearingCache">Limpiando caché...</string>
-	<string name="StartupInitializingTextureCache">Inicializando Caché de Texturas...</string>
+	<string name="StartupInitializingTextureCache0">Borrando el caché de texturas...</string>
+    <string name="StartupInitializingTextureCache1">Reagrupando el volcado de pixel...</string>
+    <string name="StartupInitializingTextureCache2">Preparando el fundido de texturas...</string>
+    <string name="StartupInitializingTextureCache3">Booping snoot, texturally...</string>
+    <string name="StartupInitializingTextureCache4">Waking lumbering giant...</string>	
 	<string name="StartupInitializingVFS">Inicializando VFS...</string>
 	<string name="StartupRequireDriverUpdate">¡Ha fallado la inicialización gráfica. Por favor, actualiza los controladores gráficos!</string>
 	
@@ -64,7 +63,140 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	
 	<string name="LoginFailed">Inicio de sesión fallido.</string>
 	<string name="Quit">Salir</string>
-	
+	<string name="LoginFailedViewerNotPermitted">
+		Ya no puedes acceder a Second Life con el visor que estás utilizando. Visita la siguiente página para descargar un nuevo visor:
+http://secondlife.com/download.
+
+Si deseas obtener más información, consulta las preguntas frecuentes que aparecen a continuación:
+http://secondlife.com/viewer-access-faq
+	</string>
+	<string name="LoginIntermediateOptionalUpdateAvailable">
+		Actualización opcional del visor disponible: [VERSION]
+	</string>
+	<string name="LoginFailedRequiredUpdate">
+		Actualización necesaria del visor: [VERSION]
+	</string>
+	<string name="LoginFailedAlreadyLoggedIn">
+		El agente ya ha iniciado sesión.
+	</string>
+	<string name="LoginFailedAuthenticationFailed">
+		Lo sentimos. No ha sido posible iniciar sesión.
+Comprueba si has introducido correctamente
+    * El nombre de usuario (como juangarcia12 o estrella.polar)
+    * Contraseña
+Asimismo, asegúrate de que la tecla Mayús esté desactivada.
+	</string>
+	<string name="LoginFailedPasswordChanged">
+		Como precaución de seguridad, se ha modificado tu contraseña.
+Dirígete a la página de tu cuenta en http://secondlife.com/password
+y responde a la pregunta de seguridad para restablecer la contraseña.
+Lamentamos las molestias.
+	</string>
+	<string name="LoginFailedPasswordReset">
+		Hemos realizado unos cambios en nuestro sistema, por lo que deberás restablecer la contraseña.
+Dirígete a la página de tu cuenta en http://secondlife.com/password
+y responde a la pregunta de seguridad para restablecer la contraseña.
+Lamentamos las molestias.
+	</string>
+	<string name="LoginFailedEmployeesOnly">
+		Second Life no está disponible temporalmente debido a tareas de mantenimiento.
+Actualmente, solo se permite iniciar sesión a los empleados.
+Consulta www.secondlife.com/status si deseas obtener actualizaciones.
+	</string>
+	<string name="LoginFailedPremiumOnly">
+		Las conexiones a Second Life se han restringido provisionalmente para garantizar que los usuarios que ya están conectados tengan la mejor experiencia posible.
+
+Durante este tiempo, las personas con cuentas gratuitas no podrán acceder a Second Life, ya que tienen prioridad los usuarios con una cuenta de pago.
+	</string>
+	<string name="LoginFailedComputerProhibited">
+		No se puede acceder a Second Life desde este ordenador.
+Si crees que se trata de un error, ponte en contacto con
+support@secondlife.com.
+	</string>
+	<string name="LoginFailedAcountSuspended">
+		No se podrá acceder a tu cuenta hasta las
+[HORA] (horario de la costa del Pacífico).
+	</string>
+	<string name="LoginFailedAccountDisabled">
+		En este momento no podemos completar la solicitud.
+Por favor solicita ayuda al personal de asistencia de Second Life en http://support.secondlife.com.
+	</string>
+	<string name="LoginFailedTransformError">
+		Se han detectado datos incorrectos en el inicio de sesión.
+Ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LoginFailedAccountMaintenance">
+		Se están realizando tareas rutinarias de mantenimiento en tu cuenta.
+No se podrá acceder a tu cuenta hasta las
+[HORA] (horario de la costa del Pacífico).
+Si crees que se trata de un error, ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LoginFailedPendingLogoutFault">
+		La solicitud de cierre de sesión ha obtenido como resultado un error del simulador.
+	</string>
+	<string name="LoginFailedPendingLogout">
+		El sistema te desconectará.
+Por favor, aguarda un momento antes de intentar conectarte nuevamente.
+	</string>
+	<string name="LoginFailedUnableToCreateSession">
+		No se ha podido crear una sesión válida.
+	</string>
+	<string name="LoginFailedUnableToConnectToSimulator">
+		No se ha podido establecer la conexión con un simulador.
+	</string>
+	<string name="LoginFailedRestrictedHours">
+		Tu cuenta solo puede acceder a Second Life
+entre las [INICIO] y las [FIN] (horario de la costa del Pacífico).
+Inténtalo de nuevo durante ese horario.
+Si crees que se trata de un error, ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LoginFailedIncorrectParameters">
+		Parámetros incorrectos.
+Si crees que se trata de un error, ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LoginFailedFirstNameNotAlphanumeric">
+		El parámetro correspondiente al nombre debe contener caracteres alfanuméricos.
+Si crees que se trata de un error, ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LoginFailedLastNameNotAlphanumeric">
+		El parámetro correspondiente al apellido debe contener caracteres alfanuméricos.
+Si crees que se trata de un error, ponte en contacto con support@secondlife.com.
+	</string>
+	<string name="LogoutFailedRegionGoingOffline">
+		La región se está desconectando.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutFailedAgentNotInRegion">
+		El agente no se encuentra en la región.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutFailedPendingLogin">
+		A esta región ya se ha accedido en otra sesión.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutFailedLoggingOut">
+		Se ha salido de la región en la sesión anterior.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutFailedStillLoggingOut">
+		La región aún está cerrando la sesión anterior.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutSucceeded">
+		Se ha salido de la región en la última sesión.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LogoutFailedLogoutBegun">
+		La región ha comenzado el proceso de cierre de sesión.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+	<string name="LoginFailedLoggingOutSession">
+		El sistema ha comenzado a cerrar la última sesión.
+Intenta iniciar sesión de nuevo en unos instantes.
+	</string>
+
+	<string name="ViewerDownloadURL">https://www.singularityviewer.org/</string>	
+
 	<!-- Disconnection -->
 	<string name="AgentLostConnection">Esta región está experimentando problemas.  Revisa por favor tu conexión a Internet.</string>
 	<string name="SavingSettings">Guardando tus configuraciones...</string>
@@ -101,11 +233,17 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="TooltipLand">Terreno:</string>
 	<string name="TooltipMustSingleDrop">Sólo un único item puede ser arrastrado aquí</string>
 	
-	<string name="TooltipOutboxDragToWorld">No puedes soltar ítems en tu Merchant Outbox</string>
+	<string name="TooltipOutboxDragToWorld">No puedes soltar ítems de tu carpeta Artículos del Mercado</string>
+	<string name="TooltipOutboxWorn">Los artículos que tienes vestidos no se pueden colocar en la carpeta Artículos del mercado</string>
+	<string name="TooltipOutboxFolderLevels">La profundidad de carpetas anidadas excede de [AMOUNT]. Disminuye la profundidad de las carpetas anidadas; si es necesario, agrupa los artículos.</string>
+	<string name="TooltipOutboxTooManyFolders">La cantidad de subcarpetas excede de [AMOUNT]. Disminuye la cantidad de carpetas de tu lista de artículos; si es necesario, agrupa los artículos.</string>
+	<string name="TooltipOutboxTooManyObjects">La cantidad de artículos excede de [AMOUNT]. 
+Para vender más de [AMOUNT] artículos en la misma lista, debes agrupar algunos.</string>
+	<string name="TooltipOutboxTooManyStockItems">La cantidad de artículos en stock excede de [AMOUNT].</string>
+	<string name="TooltipOutboxCannotDropOnRoot">Solo se pueden soltar artículos o carpetas en las pestañas TODOS o SIN ASOCIAR. Selecciona una de estas pestañas y mueve otra vez los artículos o carpetas.</string>
 	<string name="TooltipOutboxNoTransfer">Uno o más de estos objetos no pueden ser vendidos o transferidos.</string>
-	<string name="TooltipOutboxNotInInventory">Tu Merchant Outbox solo puede aceptar ítems de tu inventario</string>
-	<string name="TooltipOutboxWorn">No puedes colocar ítems que tienes vestidos en tu Merchant Outbox</string>
-	<string name="TooltipOutboxCallingCard">No puedes colocar Tarjetas de LLamada en tu Merchant OutBox</string>
+	<string name="TooltipOutboxNotInInventory">Tu Buzón de Comerciante solo puede aceptar ítems de tu inventario</string>
+	<string name="TooltipOutboxCallingCard">No puedes colocar Tarjetas de LLamada en tu Buzón de Comerciante</string>
 	<string name="TooltipOutboxFolderLevels">La profundidad de carpetas anidades es superior a 3</string>
 	<string name="TooltipOutboxTooManyFolders">El recuento de subcarpetas en el nivel superior supera las 20</string>
 	<string name="TooltipOutboxTooManyObjects">El recuento de items en la carpeta de nivel superior supera los 200</string>
@@ -117,7 +255,7 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="TooltipHttpUrl">Pulsa para ver esta página web</string>
 	<string name="TooltipSLURL">Pulsa para ver la información de esta ubicación</string>
 	<string name="TooltipAgentUrl">Pulsa para ver el perfil de este Residente</string>
-	<string name="TooltipAgentInspect">Conoce mas a este Residente</string>
+	<string name="TooltipAgentInspect">Conoce mas de este Residente</string>
 	<string name="TooltipAgentMute">Pulsa para ignorar a este Residente</string>
 	<string name="TooltipAgentUnmute">Pulsa para dejar de ignorar a este Residente</string>
 	<string name="TooltipAgentIM">Pulsa para enviar un MI a este Residente</string>
@@ -133,6 +271,7 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="TooltipMapUrl">Pulsa para ver esta ubicación en el mapa</string>
 	<string name="TooltipSLAPP">Pulsa para ejecutar el comando secondlife://</string>
 	<string name="CurrentURL" value=" CurrentURL: [CurrentURL]" />
+	<string name="TooltipEmail">Haz clic para redactar un correo electrónico</string>
 
 	<!-- text for SLURL labels -->
 	<string name="SLurlLabelTeleport">Teleportar a</string>
@@ -145,6 +284,18 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="SLappAgentPay">Pagar</string>
 	<string name="SLappAgentOfferTeleport">Ofrecer Teleporte a</string>
 	<string name="SLappAgentRequestFriend">Ofrecer Amistad</string>
+	<string name="SLappAgentRemoveFriend">Eliminación de amigos</string>
+	
+	<!-- ButtonToolTips, llfloater.cpp -->
+	<string name="BUTTON_CLOSE_DARWIN">Cerrar (⌘W)</string>
+	<string name="BUTTON_CLOSE_WIN">Cerrar (Ctrl+W)</string>
+	<string name="BUTTON_CLOSE_CHROME">Cerrar</string>
+	<string name="BUTTON_RESTORE">Maximizar</string>
+	<string name="BUTTON_MINIMIZE">Minimizar</string>
+	<string name="BUTTON_TEAR_OFF">Separar la ventana</string>
+	<string name="BUTTON_DOCK">Fijar</string>
+	<string name="BUTTON_HELP">Ver la Ayuda</string>
+	<string name="BUTTON_EDIT">Editar</string>
 	
 	<!-- searching - generic -->
 	<string name="Searching">Buscando...</string>
@@ -185,12 +336,21 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="AssetErrorPriceMismatch">El Visor y el Servidor no coinciden con el precio</string>
 	<string name="AssetErrorUnknownStatus">Estado desconocido</string>
 
+	<!-- Asset upload errors. -->
+	<string name="AssetUploadServerUnreacheble">El servicio no está disponible.</string>
+	<string name="AssetUploadServerDifficulties">Se detectaron errores inesperados en el servidor.</string>
+	<string name="AssetUploadServerUnavaliable">El servicio no está disponible o se alcanzó el tiempo de carga máxima.</string>
+	<string name="AssetUploadRequestInvalid">
+		Error en la solicitud de carga. Por favor, ingresa a
+http://secondlife.com/support para obtener ayuda sobre cómo solucionar este problema.
+	</string>
+
 	<!-- Asset Type human readable names:  these will replace variable [TYPE] in notification FailedToFindWearable* -->
 	<!-- Will also replace [OBJECTTYPE] in notifications: UserGiveItem, ObjectGiveItem -->
 	<!-- Also used by AntiSpamBlock notification for [TYPE], since this looks like a good place. -->
 	<string name="texture">textura</string>
 	<string name="sound">sonido</string>
-	<string name="calling card">Tarjeta de Visita</string>
+	<string name="calling card">tarjeta de Visita</string>
 	<string name="Inventory">inventario</string>
 	<string name="Instant Message">mensaje instantáneo</string>
 	<string name="Script Dialog">diálogo de script</string>
@@ -321,20 +481,21 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="Ok">OK</string>
 	
 	<!-- Chat -->
-	<string name="whisper">Susurra:</string>
-	<string name="shout">Grita:</string>
+	<string name="whisper">Susurros:</string>
+	<string name="shout">Gritos:</string>
 	<string name="ringing">Conectando al Chat de Voz...</string>
 	<string name="connected">Conectado</string>
 	<string name="unavailable">Chat de Voz no disponible en esta ubicación</string>
 	<string name="hang_up">Desconectado del Chat de Voz</string>
 	<string name="ScriptQuestionCautionChatGranted">'[OBJECTNAME]', al objeto propiedad de '[OWNERNAME]', ubicado en [REGIONNAME]: [REGIONPOS], se le ha concedido permisos para: [PERMISSIONS].</string>
 	<string name="ScriptQuestionCautionChatDenied">'[OBJECTNAME]', al objeto propiedad de '[OWNERNAME]', ubicado en [REGIONNAME]: [REGIONPOS], se le ha denegado permisos para: [PERMISSIONS].</string>
+	<string name="AdditionalPermissionsRequestHeader">Si autorizas el acceso a tu cuenta, también permitirás al objeto:</string>
 	<string name="ScriptTakeMoney">Transferir moneda de tu cuenta</string>
 	<string name="ActOnControlInputs">Actuar en tus controles de entrada</string>
 	<string name="RemapControlInputs">Reconfigurar tus controles de entrada</string>
 	<string name="AnimateYourAvatar">Animar tu avatar</string>
 	<string name="AttachToYourAvatar">Anexar a tu avatar</string>
-	<string name="AGroupMemberNamed">un miembro del grupo de nombre</string>	
+	<string name="AGroupMemberNamed">un miembro del secondlife:///app/group/[GROUP_ID]/about de nombre secondlife:///app/agent/[FROM_ID]/about</string>
 	<string name="ReleaseOwnership">Liberar propiedad y hacer público</string>
 	<string name="LinkAndDelink">Enlazar y desenlazar de otros objetos</string>
 	<string name="AddAndRemoveJoints">Agregar o remover uniones con otros objetos</string>
@@ -342,6 +503,13 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="TrackYourCamera">Seguir tu cámara</string>
 	<string name="ControlYourCamera">Controlar tu cámara</string>
 	<string name="TeleportYourAgent">Teleportarte</string>	
+	<string name="ManageEstateSilently">Gestiona tus propiedades en silencio</string>
+	<string name="ChangeYourDefaultAnimations">Cambiar tus animaciones por defecto</string>
+	<string name="ForceSitAvatar">Forzar que el avatar se siente</string>
+	
+	<string name="NotConnected">No Conectado</string>
+	<string name="AgentNameSubst">(Tu)</string> <!-- Substitution for agent name -->
+	
 	<string name="JoinAnExperience">Unirse a una experiencia</string> <!-- not used -->
 	<string name="SilentlyManageEstateAccess">Suprimir alertas cuando administras listas de acceso del Estado</string>
 	<string name="OverrideYourAnimations">Reemplazar tus animaciones predeterminadas</string>
@@ -380,6 +548,10 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="load_file_verb">Cargar</string>
 	<string name="targa_image_files">Imágenes Targa</string>
 	<string name="bitmap_image_files">Imágenes de Mapa de Bits</string>
+	<string name="png_image_files">Imágenes PNG</string>
+	<string name="jpg_image_files">Imáenes JPEG</string>
+	<string name="j2c_image_files">Imágenes Jpeg2000</string>
+	<string name="save_texture_image_files">Imágenes Targa, PNG, JPEG, Jpeg2000, o Bitmap</string>
 	<string name="avi_movie_file">Película AVI</string>
 	<string name="xaf_animation_file">Animación XAF</string>
 	<string name="xml_file">Archivo XML</string>
@@ -387,7 +559,9 @@ Asegurate que has ingresado el URI de inicio de sesión correcto. Un ejemplo de 
 	<string name="compressed_image_files">Imágenes Comprimidas</string>
 	<string name="load_files">Cargar Archivos</string>
 	<string name="choose_the_directory">Seleccionar Directorio</string>
-	
+	<string name="script_files">Scripts</string>
+	<string name="dictionary_files">Diccionarios</string>
+    <string name="zip_files">Archivos Zip</string>
 	<string name="Sound: ">Sonido: </string>
 	
   <!-- LSL Usage Hover Tips -->
@@ -497,18 +671,20 @@ Grita el texto del mensaje en el canal
 	</string>
 	<string name="LSLTipText_llListen">
 integer llListen(integer channel, string name, key id, string msg)
-Sets a callback for msg on channel from name and id (name, id, and/or msg can be empty) and returns an identifier that can be used to deactivate or remove the listen
+Establece una devolución de llamada para el mensaje en el canal -channel- desde el nombre -name- y la identificación -id- (el nombre, la identificación y/o el mensaje pueden estar vacíos) y devuelve un identificador que se puede usar para desactivar o eliminar la escucha
 	</string>
 	<string name="LSLTipText_llListenControl">
 llListenControl(integer number, integer active)
-Makes a listen event callback active or inactive
+Crea un evento de escucha activo o inactivo de devolución de llamada
 	</string>
 	<string name="LSLTipText_llListenRemove">
 llListenRemove(integer number)
-Removes listen event callback number
+Remueve el evento "number" de escucha de devolución de llamada
 	</string>
 	<string name="LSLTipText_llSensor">
 llSensor(string name, key id, integer type, float range, float arc)
+Realiza una exploración única para el nombre -name- y la identificación -id- con el tipo -type- (AGENT, ACTIVE, PASSIVE y/o SCRIPT) dentro de los medidores de alcance y radiantes de arco del vector directo (el nombre, la identificación y / o el tipo de clave pueden estar vacíos o 0)
+
 Performs a single scan for name and id with type (AGENT, ACTIVE, PASSIVE, and/or SCRIPTED) within range meters and arc radians of forward vector (name, id, and/or keytype can be empty or 0)
 	</string>
 	<string name="LSLTipText_llSensorRepeat">
@@ -2136,8 +2312,8 @@ Sets the given permission mask to the new value on the root object the task is a
     Please keep LL-LSL above this section
     ** DATA SOURCES **
        OpenSim OS Functions:      \OpenSim\Region\ScriptEngine\Shared\Api\Interface\IOSSL_Api.cs
-       Aurora-Sim AA Functions:   \Aurora\AuroraDotNetEngine\APIs\AA_API.cs
-       Aurora-Sim BOT Functions:  \Aurora\BotManager\Bot_API.cs
+       WhiteCore AA Functions:    \WhiteCore\ScriptEngine\DotNetEngine\APIs\AA\AA_API.cs
+       WhiteCore BOT Functions:   \WhiteCore\BotManager\Bot_API.cs
 -->
 
 	<string name="LSLTipText_osSetDynamicTextureURL">
@@ -2766,319 +2942,259 @@ list lsGetWindlightScene(list rules)
 Get the current WindLight settings.
 (Reguires LightShare Enabled Viewer)
 	</string>
-<!-- Aurora-Sim OSSL-Functions  (unique to Aurora Only)  'osReturnObject', 'osReturnObjects', 'osShutDown', 'osaddAgentToGroup', 'osRezObject',
-   Aurora-Sim aaFunctions (\Aurora\AuroraDotNetEngine\APIs\IAA_Api.cs)
-   Aurora-Sim botFunctions (\Aurora\BotManager\IBot_Api.cs) 
+<!-- WhiteCore OSSL-Functions  (unique to WhiteCore Only)  'osReturnObject', 'osReturnObjects', 'osShutDown', 'osaddAgentToGroup', 'osRezObject',
+   WhiteCore aaFunctions (\WhiteCore\ScriptEngine\DotNetEngine\APIs\AA\AA_Api.cs)
+   WhiteCore botFunctions (\WhiteCore\BotManager\Bot_Api.cs)
 -->
 	<string name="LSLTipText_osReturnObject">
 osReturnObject(key userID)
 Returns object to specified avatars UUID.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_osReturnObjects">
 osReturnObjects(float Parameter)
 Returns group of objects. Parameter's are numeric, values are owner objects = 0, everyone except owner objects = 1, group objects = 2.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_osShutDown">
 osShutDown()
 Shut's down current Simulator.  Authorized Admin Only by config.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_osAddAgentToGroup">
 osAddAgentToGroup(key avatarID, string group_name, string role_name)
 Adds an avatar to a group.  Where group_name = name of the target group, role_name = role to assign within the group.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_osRezObject">
 osRezObject(string inventory, vector position, vector velocity, rotation rot, integer param, integer isRezAtRoot, integer doRecoil, integer SetDieAtEdge, integer CheckPos)
 Where inventory = object to rez.  Position = vector to rez object.  Velocity = initial velocity.  Rot = initial rotation.  Param = onrez event.
 IzAtRoot = TRUE/FALSE flag changes llRezAtRoot to llRezObject.  doRecoil =TRUE/FALSE to push avatar.  SetDieAtEdge = TRUE/FALSE for rezzed object to die at edge of region.
 CheckPos = TRUE/FALSE enable/disable 10m rez limit.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetCloudDensity">
 aaSetCloudDensity(float density)
 AaSetCloudDensity(0.5)  Where float density values are 0.0 =  no cloud to 1.0 = 100% cloud.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaUpdateDatabase">
 aUpdateDatabase(string Key, string value, string token)
 Where Key = database field name, xmlDataToPutIntoTheDatabase = serialized XML data,  Token = data-password
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaQueryDatabase">
 aaQueryDatabase(string Key, string Token)
 Returns a list with first value is the token, the second the Key, and the third the value
 Where Key = database field name, Token = data-password
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaDeserializeXMLValues">
 aaDeserializeXMLValues(string xmlData)
 Returns a list of Values from XML data. Where xmlData = xml formatted data Values.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaDeserializeXMLKeys">
 aaDeserializeXMLKeys(string xmlData)
 Returns a list of keys from XML data. Where xmlData = xml formatted data keys.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetConeOfSilence">
 aaSetConeOfSilence(float radius)
 Where radius = metres radius from centre of scripted item.  This creates an area that sounds can only be heard by the people within the area(radius) and not heard outside and visa-versa.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSerializeXML">
 aaSerializeXML(list keys, list values)
 Returns xml formatted string of the keys and values.  Where keys = list of keys in the database, values = fields to retrieve from database.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetTeam">
 aaGetTeam(key uuid)
 Returns a string of avatars team name.  Where uuid = avatar key.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetHealth">
 aaGetHealth(key uuid)
 Returns float value (0.0 to 100.0) of current health.  Where uuid = avatar key.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaJoinCombat">
 aaJoinCombat(key uuid)
 Where uuid = avatar key.  If (PERMISSION_COMBAT == PERMISSION_COMBAT) and permission is granted then join combat.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaLeaveCombat">
 aaLeaveCombat(key uuid)
 Where uuid = avatar key.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaJoinCombatTeam">
 aaJoinCombatTeam(key uuid, string team)
 Where uuid = key of avatar, team = string of the team name.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaRequestCombatPermission">
 aaRequestCombatPermission(key ID)
 Where ID = avatar uuid.  Requests target avatar for Permissions to enter into combat mode.
 Raises a run_time_permissions event. (PERMISSION_COMBAT == PERMISSION_COMBAT).
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaThawAvatar">
 aaThawAvatar(key ID)
 Where ID = avatar uuid. If combat permission are granted then avatar can be un-frozen (movement re-enabled).
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaFreezeAvatar">
 aaFreezeAvatar(key ID)
 Where ID = avatar uuid. If combat permission are granted then avatar can be frozen (no movement).
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetTeamMembers">
 aaGetTeamMembers(string team)
 Return a list of team members.  Where team = string of team name.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetLastOwner">
     POLYMORPHIC FUNCTION.
 aaGetLastOwner(string PrimID)  returns last owner UUID of PrimID where PrimID = uuid of prim.
 AaGetLastOwner()  returns last owner uuid of prim containg script.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSayDistance">
 aaSayDistance(integer channelID, float Distance, string text)
 Where channelID = channel to say on, Distance = float in meters  for distance to say, text = string to say.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSayTo">
 aaSayTo(key userID, string text)
 Where userID = avatar key, text = string msg.  Similar to llOwnerSay but can be directly targeted to an avatar.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetWalkDisabled">
 aaGetWalkDisabled(key ID)
 Returns integer of TRUE or FALSE for specifid ID.  Where ID = avatar uuid.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetWalkDisabled">
 aaSetWalkDisabled(key ID, integer Value)
 Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables walk, forcing avatar to fly.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetFlyDisabled">
 aaGetFlyDisabled(key ID)
 Returns integer of TRUE or FALSE for specifid ID. Where ID = avatar uuid.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetFlyDisabled">
 aaSetFlyDisabled(key ID, integer Value)
 Where ID = avatar uuid, Value = TRUE or FALSE. If PERMISSION_COMBAT is accepted, this disables flying, forcing avatar to walk.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaAvatarFullName2Key">
 aaAvatarFullName2Key(string FullName)
 Returns the avatar uuid from their fullname.  Where FullName = "Firstname Lastname”.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaRaiseError">
 aaRaiseError(string message)
 Allows you to have errors that end the execution of the event and fire another event in the script.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetText">
 aaGetText()
 Returns a string of the hover text of an object.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetTextColor">
 aaGetTextColor()
 Returns the hovertext color in rotation. Use Ex: rotation color = aaGetTextColor() to separate color.x, color.y, color.z, color.s  Where s = value of alpha in llSetText.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetEnv">
 aaSetEnv(string EnvName, list Value)
 Sets environment values.  Where EnvName = ENABLE_GRAVITY, GRAVITY_FORCE_X, GRAVITY_FORCE_Y, GRAVITY_FORCE_Z, ADD_GRAVITY_POINT, ADD_GRAVITY_FORCE, START_TIME_REVERSAL_SAVING,
 STOP_TIME_REVERSAL_SAVING, START_TIME_REVERSAL, STOP_TIME_REVERSAL.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaGetIsInfiniteRegion">
 aaGetIsInfiniteRegion()
 Returns TRUE or FALSE if region is an infinite region.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaSetCharacterStat">
 aaSetCharacterStat( ID, StatName, statValue)
 Sets Character Stats.  Where ID = avatar uuid, StatName = stat to change, statValue the value to change it to.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaAllRegionInstanceSay">
 aaAllRegionInstanceSay(integer channelID, string text)
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightGetDayCycle">
 aaWindlightGetDayCycle()
 Returns a List of settings
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightAddDayCycleFrame">
 aaWindlightAddDayCycleFrame(float dayCyclePosition, integer dayCycleFrameToCopy)
 Returns TRUE / FALSE on success status
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightRemoveDayCycleFrame">
 aaWindlightRemoveDayCycleFrame(int dayCycleFrame)
 Returns TRUE / FALSE on success status
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightSetScene">
 aaWindlightSetScene(list list)
 aaWindlightSetScene(integer dayCycleIndex, list list)
 Returns TRUE/FALSE on success
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightGetScene">
 aaWindlightGetScene(list rules)
 aaWindlightGetScene(integer dayCycleKeyFrame, list rules)
 Returns a list
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightGetSceneIsStatic">
 aaWindlightGetSceneIsStatic()
 Returns TRUE / FALSE
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_aaWindlightGetSceneDayCycleKeyFrameCount">
 aaWindlightGetSceneDayCycleKeyFrameCount()
 Returns integer value
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botGetWaitingTime">
 botGetWaitingTime(integer waitTime)
 Returns waitTime as vector.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botSetMap">
 botSetMap(key keyOfBot, list positions, list movementType, integer flags)
 keyOfBot = bot uuid, positions = list of position vectors, movementType = corresponding list of move modes:  0 – walk, 1 – fly,
 flags = BOT_FOLLOW_FLAG_NONE and BOT_FOLLOW_FLAG_INDEFINITELY.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botCreateBot">
 botCreateBot(string FirstName, string LastName, key idToClone, vector startPos)
 Where FirstName and LastName = strings for new bot name.  idToClone = uuid of prebuild avatar to clone OR another existing avatar.  startPos = vector of starting position on region.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botRemoveBot">
 botRemoveBot(key botID)
 Where botID = uuid of bot.  Removes bot identified by botID.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botPauseMovement">
 botPauseMovement(key botID)
 Where botID = bot uuid.  Pauses bot at current position.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botResumeMovement">
 botResumeMovement(key botID)
 Where botID = bot uuid.  Resumes bot movement.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botFollowAvatar">
 botFollowAvatar(key botID, string avName, float startFollowDistance, float endFollowDistance)
 Where botID = bot uuid.  AvName = sting of avatar name OR avatar uuid.  StartFollowDistance = distance to start following from.  EndFollowDistance = distance to stop following avatar.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botStopFollowAvatar">
 botStopFollowAvatar(key botID)
 Where botID = bot uuid.  Stops bot from following an avatar.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botSendChatMessage">
 botSendChatMessage(key botID, string message, integer channel, integer sayType)
 Where  botID = bot uuid.  Message = string msg.  Channel = channel to speak on.  SayType = (0=whisper, 1=say, 2=shout).
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botSendIM">
 botSendIM(string bot, string user, string message)
 Send IM to bot.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botSetShouldFly">
 botSetShouldFly(key botID, integer ShouldFly)
 Where botID = bot uuid.  ShouldFly = TRUE/FALSE.  Enables or disables flight mode.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botSitObject">
 botSitObject(key botID, key objectID, vector offset)
 Where botID = bot uuid,  objectID = uuid of object to sit on,  offset = Vector for sit position (note that VECTOR_ZERO = default sit pos).
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botStandUp">
 botStandUp(key botID)
 Where botID = bot uuid.  Command bot to stand up.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botTouchObject">
 botTouchObject(key botID, key objectID)
 Where botID = bot uuid,  objectID = object uuid.  Causes bot to touch object identified.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botAddTag">
 botAddTag(key botID, string tag)
 Where botID = bot uuid,  tag = string tag over bot.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botGetBotsWithTag">
 botGetBotsWithTag(string tag)
 Where tag = tag string to match.  Return a list of bot UUID's in region with the matching tag.
-(Aurora-Sim only)
 	</string>
 	<string name="LSLTipText_botRemoveBotsWithTag">
 botRemoveBotsWithTag(string tag)
 Where tag = tag string to match.  Removes bot's matching the tag.
-(Aurora-Sim only)
 	</string>
-<!-- *** END OF OpenSimulator & Aurora-Sim syntax section *** -->
+<!-- *** END OF OpenSimulator & WhiteCore syntax section *** -->
 
 	<!-- Strings needed by drop targets -->
 	<string name="CurrentlyNotSet">No definido actualmente </string>
@@ -3092,12 +3208,15 @@ Where tag = tag string to match.  Removes bot's matching the tag.
     <string name="ScriptCountObject">Contados [SCRIPTS] scripts en [OBJECTS] objetos. ([RUNNING] ejecutándose, [MONO] mono.)</string>
     <string name="ScriptDeleteObject">Borrados [SCRIPTS] scripts en [OBJECTS] objetos.</string>
     <string name="took_a_snapshot">ha tomado una fotografía</string>
+	
     <!-- Radar Alert Strings -->
     <string name="radar_alert_template">[NAME] [ACTION] [RANGE].</string>
     <!-- [ACTION] -->
     <string name="has_triggered_your_avatar_age_alert">ha disparado el Alerta de Edad de Avatar</string>
     <string name="has_entered">ha entrado en</string>
+	<string name="has_entered_flood">detectado en</string>
     <string name="has_left">se ha retirado de</string>
+	<string name="has_left_flood">fuera del radar para</string>
     <!-- [RANGE] -->
     <string name="the_sim">este sim</string>
     <string name="draw_distance">la distancia de dibujo</string>
@@ -3110,13 +3229,80 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="AvatarSetNotBusy">No Ocupado</string>
 	<string name="AvatarSetBusy">Ocupado</string>
 
+	<!-- Wearable List-->
+	<string name="NewWearable">Nueva/o [WEARABLE_ITEM]</string>
+  
+	<!-- Wearable Types -->
+	<string name="shape">Forma</string>
+	<string name="skin">Piel</string>
+	<string name="hair">Pelo</string>
+	<string name="eyes">Ojos</string>
+	<string name="shirt">Camisa</string>
+	<string name="pants">Pantalones</string>
+	<string name="shoes">Zapatos</string>
+	<string name="socks">Medias</string>
+	<string name="jacket">Chaqueta</string>
+	<string name="gloves">Guantes</string>
+	<string name="undershirt">Camiseta</string>
+	<string name="underpants">Ropa Interior</string>
+	<string name="skirt">Falda</string>
+	<string name="alpha">Alfa</string>
+	<string name="tattoo">Tatuaje</string>
+	<string name="universal">Universal</string>	
+	<string name="physics">Física</string>
+	<string name="invalid">inválido</string>
+	<string name="unknown">Desconocido</string>
+	<string name="none">ninguno</string>
+
+	<!-- Not Worn Wearable Types -->
+	<string name="shirt_not_worn">Camisa no puesta</string>
+	<string name="pants_not_worn">Pantalones no puestos</string>
+	<string name="shoes_not_worn">Zapatos no puestos</string>
+	<string name="socks_not_worn">Medias no puestas</string>
+	<string name="jacket_not_worn">Chaqueta no puesta</string>
+	<string name="gloves_not_worn">Guantes no puestos</string>
+	<string name="undershirt_not_worn">Camiseta no puesta</string>
+	<string name="underpants_not_worn">Ropa Interior no puesta</string>
+	<string name="skirt_not_worn">Falda no puesta</string>
+	<string name="alpha_not_worn">Alfa no puesta</string>
+	<string name="tattoo_not_worn">Tatuaje no puesto</string>
+	<string name="universal_not_worn">Universal no puesta</string>
+	<string name="physics_not_worn">Física no puesta</string>
+	<string name="invalid_not_worn">inválido</string>
+
+	<!-- Create new wearable of the specified type -->
+	<string name="create_new_shape">Crear nueva forma</string>
+	<string name="create_new_skin">Crear nueva piel</string>
+	<string name="create_new_hair">Crear nuevo pelo</string>
+	<string name="create_new_eyes">Crear nuevos ojos</string>
+	<string name="create_new_shirt">Crear nueva camisa</string>
+	<string name="create_new_pants">Crear nuevos pantalones</string>
+	<string name="create_new_shoes">Crear nuevos zapatos</string>
+	<string name="create_new_socks">Crear nuevas medias</string>
+	<string name="create_new_jacket">Crear nueva chaqueta</string>
+	<string name="create_new_gloves">Crear nuevos guantes</string>
+	<string name="create_new_undershirt">Crear nueva ropa interior</string>
+	<string name="create_new_underpants">Create new underpants</string>
+	<string name="create_new_skirt">Crear nueva falda</string>
+	<string name="create_new_alpha">Crear nueva capa alfa</string>
+	<string name="create_new_tattoo">Crear nuevo tatuaje</string>
+	<string name="create_new_universal">Crear nueva capa universal</string>
+	<string name="create_new_physics">Crear nueva física</string>
+	<string name="create_new_invalid">inválido</string>
+
+  <!-- Wearable List-->
+  <string name="NewWearable">Nueva/o [WEARABLE_ITEM]</string>
+
+
 	<!-- LLGroupNotify -->
 	<!-- used in the construction of a Group Notice blue dialog box, buttons, tooltip etc. Seems to be no longer utilized by code in Viewer 2.0 -->
 	<string name="next">Siguiente</string>
 	<string name="ok">OK</string>
-	<string name="GroupNotifyGroupNotice">Aviso de Grupo</string>
 	<string name="GroupNotifyGroupNotices">Avisos de Grupo</string>
-	<string name="GroupNotifySentBy">Enviado por</string>
+	<string name="GroupNotifyBy">
+por [NAME]
+en [GROUP]
+</string>
 	<string name="GroupNotifyAttached">Anexado:</string>
 	<string name="GroupNotifyViewPastNotices">Ver noticias anteriores o bien optar por no recibir estos mensajes aquí.</string>
 	<string name="GroupNotifyOpenAttachment">Abrir Adjunto</string>
@@ -3129,12 +3315,15 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="BodyPartsLeftLeg">Pierna Izqquierda</string>
 	<string name="BodyPartsTorso">Torso</string>
 	<string name="BodyPartsRightLeg">Pierna Derecha</string>
+	<string name="BodyPartsEnhancedSkeleton">Esqueleto mejorado</string>
+	<string name="BodyPartsWaist">Cintura</string>
 
 	<!-- mouselook -->
 	<string name="LeaveMouselook">Pulsa ESC para regresar a la vista del mundo</string>
 
 	<!-- inventory -->
 	<string name="InventoryNoMatchingItems">Elementos no hallados en el inventario.</string>
+	<string name="MarketplaceNoMatchingItems">No se han encontrado artículos. Comprueba si has escrito correctamente la cadena de búsqueda y vuelve a intentarlo.</string>
 	<string name="InventoryNoTexture">No tienes en tu inventario una copia de esta textura</string>
 	<string name="MarketplaceURL">https://marketplace.[MARKETPLACE_DOMAIN_NAME]/</string>
 	<string name="MarketplaceURL_CreateStore">http://community.secondlife.com/t5/English-Knowledge-Base/Selling-in-the-Marketplace/ta-p/700193#Section_.3</string>
@@ -3143,24 +3332,56 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="MarketplaceURL_LearnMore">https://marketplace.[MARKETPLACE_DOMAIN_NAME]/learn_more</string>
 	<string name="InventoryOutboxNotMerchantTitle">Cualquiera puede vender ítems en el Mercado.</string>
 	<string name="InventoryOutboxNotMerchantTooltip"></string>
-	<string name="InventoryOutboxNotMerchant">Si quieres convertirte en un comerciante, tendrás que</string>
-    <string name="InventoryOutboxNotMerchantSubs">crear una tienda en el Mercado.</string>
-	<string name="InventoryOutboxNotMerchant2">.</string>	 
+	<string name="InventoryOutboxNotMerchant">Si quieres convertirte en un comerciante, tendrás que [[MARKETPLACE_CREATE_STORE_URL] crear una tienda en el Mercado].</string>
 	<string name="InventoryOutboxNoItemsTitle">Tu Buzón de Salida está vacío.</string>
 	<string name="InventoryOutboxNoItemsTooltip"></string>
-	<string name="InventoryOutboxNoItems">Arrastra carpetas a esta zona y pulsa "Enviar al Mercado" para listarlos y ponerlos en venta</string>
-    <string name="InventoryOutboxNoItemsSubs">Mercado.</string>
-	<string name="InventoryOutboxNoItems2">.</string>
+	<string name="InventoryOutboxNoItems">Arrastra carpetas a esta zona y pulsa "Enviar al Mercado" para listarlos y ponerlos en venta en el [[MARKETPLACE_DASHBOARD_URL] mercado]</string>
 	<string name="InventoryOutboxInitializingTitle">Inicializando el Mercado en Línea.</string>
 	<string name="InventoryOutboxInitializingTooltip"></string>
-	<string name="InventoryOutboxInitializing">Estamos accediendo a tu cuenta en</string>
-	<string name="InventoryOutboxInitializingSubs">Tienda en el Mercado en Línea</string>
-	<string name="InventoryOutboxInitializing2">.</string>
-	<string name="InventoryOutboxErrorTitle">Error del Mercado en Línea.</string>
+	<string name="InventoryOutboxInitializing">Estamos accediendo a tu cuenta en la [[MARKETPLACE_CREATE_STORE_URL] Tienda del Mercado].</string>
+	<string name="InventoryOutboxErrorTitle">Errores del Mercado en Línea.</string>
 	<string name="InventoryOutboxErrorTooltip"></string>
-	<string name="InventoryOutboxError">La</string>
-	<string name="InventoryOutboxErrorSubs">Tienda de Mercado en Línea</string>
-	<string name="InventoryOutboxError2">está devolviendo errores.</string>	 
+	<string name="InventoryOutboxError">La [[MARKETPLACE_CREATE_STORE_URL] Tienda en el Mercado] está retornando errores</string>
+	<string name="InventoryMarketplaceError">
+		Se ha producido un error al abrir Artículos del Mercado.
+Si sigues recibiendo el mismo mensaje, solicita ayuda al personal de asistencia de Second Life en http://support.secondlife.com
+	</string>
+	<string name="InventoryMarketplaceListingsNoItemsTitle">Tu carpeta Artículos del mercado está vacía.</string>
+	<string name="InventoryMarketplaceListingsNoItemsTooltip"></string>
+	<string name="InventoryMarketplaceListingsNoItems">
+		Arrastra carpetas a esta sección para incluirlas en la lista de venta del [[MARKETPLACE_DASHBOARD_URL] Mercado].
+	</string>
+
+	<string name="Marketplace Validation Log"></string>
+	<string name="Marketplace Validation Warning Stock">La carpeta de stock debe estar contenida en una carpeta de versión</string>
+	<string name="Marketplace Validation Error Mixed Stock">: Error: todos los artículos de una carpeta de stock deben ser del mismo tipo y que no se puedan copiar</string>
+	<string name="Marketplace Validation Error Subfolder In Stock">: Error: la carpeta de stock no puede contener subcarpetas</string>
+	<string name="Marketplace Validation Warning Empty">: Atención: la carpeta no contiene ningún artículo</string>
+	<string name="Marketplace Validation Warning Create Stock">: Atención: creando carpeta de stock</string>
+	<string name="Marketplace Validation Warning Create Version">: Atención: creando la carpeta de versión</string>
+	<string name="Marketplace Validation Warning Move">: Atención: moviendo artículos</string>
+	<string name="Marketplace Validation Warning Delete">: Atención: se ha transferido el contenido de la carpeta a la carpeta de stock, y se eliminará la carpeta vacía</string>
+	<string name="Marketplace Validation Error Stock Item">: Error: los artículos que no se pueden copiar deben estar contenidos en una carpeta de stock</string>
+	<string name="Marketplace Validation Warning Unwrapped Item">: Atención: los artículos deben estar contenidos en una carpeta de versión</string>
+	<string name="Marketplace Validation Error">: Error: </string>
+	<string name="Marketplace Validation Warning">: Atención: </string>
+	<string name="Marketplace Validation Error Empty Version">: Atención: la carpeta de versión debe contener al menos un artículo</string>
+	<string name="Marketplace Validation Error Empty Stock">: Atención: la carpeta de stock debe contener al menos un artículo</string>
+
+	<string name="Marketplace Validation No Error">No se han producido errores ni advertencias</string>
+	<string name="Marketplace Error None">Sin errores</string>
+	<string name="Marketplace Error Prefix">Error: </string>
+	<string name="Marketplace Error Not Merchant">Para poder enviar objetos al mercado, debes registrarte como comerciante (es gratis).</string>
+	<string name="Marketplace Error Not Accepted">No se puede mover el artículo a esa carpeta.</string>
+	<string name="Marketplace Error Unsellable Item">Este artículo no se puede vender en el Mercado.</string>
+
+	<string name="MarketplaceNoID">no Mkt ID</string>
+	<string name="MarketplaceLive">en la lista</string>
+	<string name="MarketplaceActive">activa</string>
+	<string name="MarketplaceMax">máx</string>
+	<string name="MarketplaceStock">stock</string>
+	<string name="MarketplaceNoStock">existencias agotadas</string>
+	<string name="MarketplaceUpdating">actualizando...</string>
 	 
 	<!-- use value="" because they have preceding spaces -->
 	<string name="no_transfer" value=" (no transferible)"/>
@@ -3259,13 +3480,31 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="Right Pec">Pectoral Derecho</string>
     <string name="Neck">Cuello</string>
     <string name="Avatar Center">Base</string>
+    <string name="Left Ring Finger">Anillo dedo Izquierdo</string>
+    <string name="Right Ring Finger">Anillo dedo Derecho</string>
+    <string name="Tail Base">Base de la cola</string>
+    <string name="Tail Tip">Punta de la cola</string>
+    <string name="Left Wing">Ala Izquierda</string>
+    <string name="Right Wing">Ala Derecha</string>
+    <string name="Jaw">Mandíbula</string>
+    <string name="Alt Left Ear">Oreja Izquierda Alterna</string>
+    <string name="Alt Right Ear">Oreja Derecha Alterna</string>
+    <string name="Alt Left Eye">Ojo Izquierda Alterno</string>
+    <string name="Alt Right Eye">Ojo Derecho Alterno</string>
+    <string name="Tongue">Lengua</string>
+    <string name="Groin">Pelvis</string>
+    <string name="Left Hind Foot">Pata trasera Izquierda</string>
+    <string name="Right Hind Foot">Pata trasera Derecha</string>
     <string name="Invalid Attachment">Punto de anexión inválido</string>
+	<string name="ATTACHMENT_MISSING_ITEM">Error: ítem desaparecido</string>
+	<string name="ATTACHMENT_MISSING_BASE_ITEM">Error: ítem base desaparecido</string>
+	<string name="ATTACHMENT_NOT_ATTACHED">Error: el objeto está en el vestuario actual pero anexado</string>
 
   <!-- Account types, see LLAvatarPropertiesProcessor -->
 	<string name="AcctTypeResident">Residente</string>
 	<string name="AcctTypeTrial">Prueba</string>
 	<string name="AcctTypeCharterMember">Miembro Fundador</string>
-	<string name="AcctTypeEmployee">Empleado de Linden Lab</string>
+	<string name="AcctTypeEmployee">Empleado de [GRID_OWNER]</string>
 	<string name="PaymentInfoUsed">Información de Pago utilizada</string>
 	<string name="PaymentInfoOnFile">Información de Pago en Archivo</string>
 	<string name="NoPaymentInfoOnFile">Sin Información de Pago</string>
@@ -3284,6 +3523,7 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 
 	<!-- compile queue-->
 	<string name="CompileQueueDownloadedCompiling">Descargado, compilando</string>
+	<string name="CompileQueueServiceUnavailable">El servicio de compilación de scripts no está disponible</string>
 	<string name="CompileQueueScriptNotFound">El Script no ha sido hallado en el servidor.</string>
 	<string name="CompileQueueProblemDownloading">Problema al descargar</string>
 	<string name="CompileQueueProblemUploading">El Sim carece de capacidades UpdateScriptTask. No se puede pedir la recompilación</string>	
@@ -3291,6 +3531,7 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="CompileQueueInsufficientPermDownload">Permisos insuficientes para descargar un script.</string>
 	<string name="CompileQueueInsufficientPermFor">Permisos insuficientes para</string>
 	<string name="CompileQueueUnknownFailure">Fallo desconocido en la descarga</string>
+	<string name="CompileNoExperiencePerm">Omitiendo el script [SCRIPT] con la experiencia [EXPERIENCE].</string>
 	<string name="CompileQueueTitle">Progreso de Recompilación</string>
 	<string name="CompileQueueStart">recompilar</string>
 	<string name="ResetQueueTitle">Progeso de Reinicio</string>
@@ -3299,12 +3540,17 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="RunQueueStart">Definir ejecutando</string>
 	<string name="NotRunQueueTitle">Definir no ejecutando en progreso</string>
 	<string name="NotRunQueueStart">Definir no ejecutando</string>
+	<string name="DeleteQueueTitle">Configurar sin ejecutar</string>
+	<string name="DeleteQueueStart">Configurando sin ejecutarlo
+</string>
 
 	<!-- compile comment text-->
-	<string name="CompileSuccessful">¡Compilación satisfactoria!</string>
+	<string name="CompileSuccessful">¡Compilación correcta!</string>
 	<string name="CompileSuccessfulSaving">Compilación satisfactoria, guardando...</string>
 	<string name="SaveComplete">Guardado completado.</string>
+	<string name="UploadFailed">Error al subir el archivo: </string>
 	<string name="ObjectOutOfRange">Script (objeto fuera de rango)</string>
+	<string name="ScriptWasDeleted">Script (eliminado del inventario)</string>
 
 	<!-- god tools -->
 	<string name="GodToolsObjectOwnedBy">Objeto [OBJECT] propiedad de [OWNER]</string>
@@ -3317,6 +3563,10 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="NextStipendDay"       value="Siguiente día de estipendio es "/>
 	<string name="GroupIndividualShare" value="                      Grupo       Participación Individual"/>
 	<string name="GroupColumn"          value="                      Grupo"/>
+	<string name="Balance">Saldo</string>
+	<string name="Credits">Créditos</string>
+	<string name="Debits">Débitos</string>
+	<string name="Total">Total</string>
 	<string name="NoGroupDataFound">Información no hallada para el grupo </string>
 
 	<!-- floater IM bonus_info: When a Linden with Admin/god status receives a new IM this displays the estate (Mainland vs. teen grid) of the source avatar.
@@ -3340,7 +3590,10 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="RegionInfoBannedResidents">Residentes Prohibidos: ([BANNEDAGENTS], máx [MAXBANNED])</string>
 	<string name="RegionInfoListTypeAllowedAgents">Residentes Permitidos</string>
 	<string name="RegionInfoListTypeBannedAgents">Residentes Prohibidos</string>
-
+	<string name="RegionInfoAllEstates">todos los estados</string>
+	<string name="RegionInfoManagedEstates">estados administrados</string>
+	<string name="RegionInfoThisEstate">este estado</string>
+	<string name="AndNMore">y [EXTRA_COUNT] más</string>
 
 	<!-- script limits floater -->
 	<string name="ScriptLimitsParcelScriptMemory">Memoria de Scripts en la Parcela</string>
@@ -3397,7 +3650,25 @@ Where tag = tag string to match.  Removes bot's matching the tag.
 	<string name="ATTACH_HUD_BOTTOM_RIGHT">HUD Inferior Derecho</string>
 	<string name="ATTACH_NECK">Cuello</string>
 	<string name="ATTACH_AVATAR_CENTER">Base</string>
+    <string name="ATTACH_LHAND_RING1">Anillo Dedo Izquierdo</string>
+    <string name="ATTACH_RHAND_RING1">Anillo Dedo Derechoa</string>
+    <string name="ATTACH_TAIL_BASE">Base de la Cola</string>
+    <string name="ATTACH_TAIL_TIP">Punta de la Cola</string>
+    <string name="ATTACH_LWING">Ala Izquierda</string>
+    <string name="ATTACH_RWING">Ala DerechaRight </string>
+    <string name="ATTACH_FACE_JAW">Mandíbula</string>
+    <string name="ATTACH_FACE_LEAR">Oreja Izquierda Alterna</string>
+    <string name="ATTACH_FACE_REAR">Oreja Derecha Alterna</string>
+    <string name="ATTACH_FACE_LEYE">Ojo Izquierdo Alterno</string>
+    <string name="ATTACH_FACE_REYE">Ojo Derecho Alterno</string>
+    <string name="ATTACH_FACE_TONGUE">Lengua</string>
+    <string name="ATTACH_GROIN">Ingle</string>
+    <string name="ATTACH_HIND_LFOOT">Pata Trasera Izquierda</string>
+    <string name="ATTACH_HIND_RFOOT">Pata Trasera Derecha</string>
 
+	<!-- script editor -->
+	<string name="CursorPos">Línea [LINE], Columna [COLUMN]</string>
+	
 	<!-- panel contents -->
 	<string name="PanelContentsNewScript">Nuevo Script</string>
 
@@ -3464,10 +3735,14 @@ Se espera .wav, .tga, .bmp, .jpg, .jpeg, o .bvh
 	<string name="accel-mac-control">Ctrl-</string>
 	<string name="accel-mac-command">Cmd-</string>
 	<string name="accel-mac-option">Opt-</string>
-	<string name="accel-mac-shift">Mayús</string>
+	<string name="accel-mac-shift">Mayús-</string>
 	<string name="accel-win-control">Ctrl-</string>
 	<string name="accel-win-alt">Alt-</string>
-	<string name="accel-win-shift">Mayús</string>
+	<string name="accel-win-shift">Mayús-</string>
+	
+	<!-- Tab Containers -->
+	<string name="tab_tooltip_prev">[ALT]Flecha Izq. para pestaña previa</string>
+	<string name="tab_tooltip_next">[ALT]Flecha Der. para pestaña siguiente</string>
 
 	<!-- Previews -->
 	<string name="FileSaved">Archivo Guardado</string>
@@ -4138,6 +4413,7 @@ Si continuas recibiendo este mensaje, contacta con [SUPPORT_SITE].
 	<string name="Unnamed">(Sin nombre)</string>
 	<string name="inventory_item_offered_to">Ofrecido ítem de inventario a</string>	
 	<string name="Saved_message">(Guardado [LONG_TIMESTAMP]) </string>
+	<string name="IM_unblock_only_groups_friends">Para ver ese mensaje debes desmarcar&apos;Aceptar MIs solo de los amigos&apos; en Preferencias/Chat Avanzado/Chat-MI.</string>
 	<string name="StartPointSet">Definir Punto Inicial</string>
 	<string name="EndPointSet">Definir Punto Final</string>
 	<string name="MeasuredDistance">Distancia: [DIST]</string>	
@@ -4150,7 +4426,11 @@ Si continuas recibiendo este mensaje, contacta con [SUPPORT_SITE].
 	<string name="PowerUser5">Explotar Objetos - Convierte un objeto Físico en temporal y desenlaza sus partes.</string>
 	<string name="OnlineStatus">Conectado</string>
   <string name="OfflineStatus">Desconectado</string>
+	<string name="not_online_msg">El usuario no está conectado: el mensaje se almacenará para entregárselo más tarde.</string>
+	<string name="not_online_inventory">El usuario no está conectado: el inventario se ha guardado.</string>
 
+	<string name="ReceivedGift">'Has recibido un regalo! [USER] te ha enviado "[PRODUCT]", y dice "[MESSAGE]". Puedes encontrar tu regalo en la carpeta Received Items.</string>
+	<string name="ReceivedPurchase">Tu compra de [PRODUCT] ha sido enviada a tu carpeta Received Items.</string>
 
 	<!-- voice calls -->
 
@@ -4166,7 +4446,7 @@ Si continuas recibiendo este mensaje, contacta con [SUPPORT_SITE].
 	<string name="only_user_message">eres el único usuario en esta sesión.</string>
 	<string name="offline_message">[NAME] está desconectado.</string>
 	<string name="invite_message">Pulsa el Botón [BUTTON NAME] para aceptar/conectar a este chat de voz.</string>
-	<string name="muted_message">Tiene Ignorado a este residente. Enviándole un mensaje hará que dejes de ignorarlo automáticamente.</string>
+	<string name="muted_message">Tienes Ignorado a este residente. Enviándole un mensaje hará que dejes de ignorarlo automáticamente.</string>
   <!--Sometimes string name is gotten from the body of server response.
   For ex.: from gIMMgr::showSessionStartError in the LLViewerChatterBoxSessionStartReply::post.
   In case of the EXT-3115 issue 'generic' is passed into the gIMMgr::showSessionStartError as a string name.
@@ -4207,12 +4487,15 @@ Si continuas recibiendo este mensaje, contacta con [SUPPORT_SITE].
 
 <!-- Financial operations strings -->
 	<string name="paid_you_ldollars">[NAME] te ha pagado [CURRENCY][AMOUNT] [REASON].</string>
+	<string name="paid_you_ldollars_gift">[NAME] te ha pagado [CURRENCY][AMOUNT]: [REASON]</string>
 	<string name="paid_you_ldollars_no_reason">[NAME] te ha pagado [CURRENCY][AMOUNT].</string>
 	<string name="you_paid_ldollars">Has pagado a [NAME] [CURRENCY][AMOUNT] [REASON].</string>
+	<string name="you_paid_ldollars_gift">Has pagado a [NAME] [CURRENCY][AMOUNT]: [REASON]</string>
 	<string name="you_paid_ldollars_no_info">Has pagado [CURRENCY][AMOUNT].</string>
 	<string name="you_paid_ldollars_no_reason">Has pagado a [NAME] [CURRENCY][AMOUNT].</string>
 	<string name="you_paid_ldollars_no_name">Has pagado [CURRENCY][AMOUNT] [REASON].</string>
-	<string name="you_paid_failure_ldollars">Ha fallado tu pago [NAME] [CURRENCY][AMOUNT] [REASON].</string>
+	<string name="you_paid_failure_ldollars">Ha fallado tu pago a [NAME] [CURRENCY][AMOUNT] [REASON].</string>
+	<string name="you_paid_failure_ldollars_gift">Ha fallado tu pago a [NAME] [CURRENCY][AMOUNT]: [REASON]</string>
 	<string name="you_paid_failure_ldollars_no_info">Ha fallado tu pago de [CURRENCY][AMOUNT].</string>
 	<string name="you_paid_failure_ldollars_no_reason">Ha fallado tu pago a [NAME] [CURRENCY][AMOUNT].</string>
 	<string name="you_paid_failure_ldollars_no_name">Ha fallado tu pago de [CURRENCY][AMOUNT] [REASON].</string>
@@ -4255,6 +4538,7 @@ Denuncia</string>
 	<string name="New Skirt">Nueva Falda</string>
 	<string name="New Alpha">Nueva Capa Alfa</string>
 	<string name="New Tattoo">Nuevo Tatuaje</string>
+	<string name="New Universal">Nueva Capa Universal</string>
 	<string name="New Physics">Nueva Capa Física</string>
 	<string name="Invalid Wearable">Vestimenta Inválida</string>
 	<string name="New Gesture">Nuevo Gesto</string>
@@ -4264,7 +4548,7 @@ Denuncia</string>
 	<string name="Contents">Contenido</string>
 	<string name="Gesture">Gesto</string>
 	<string name="Male Gestures">Gestos Masculinos</string>
-	<string name="Female Gestures">Gestos FemeninosFemale Gestures</string>
+	<string name="Female Gestures">Gestos Femeninos</string>
 	<string name="Other Gestures">Otros Gestos</string>
 	<string name="Speech Gestures">Gestos orales</string>
 	<string name="Common Gestures">Gestos comunes</string>
@@ -4342,6 +4626,10 @@ Intenta entrecomillando el camino al editor.
 (P.ej. "/Camino al/editor" "%s")</string>
 	<string name="ExternalEditorCommandParseError">Error analizando el comando del editor externo.</string>
 	<string name="ExternalEditorFailedToRun">El Editor extreno ha fallado al ejecutarse.</string>
+
+	<!--  Machine translation of chat messahes -->
+	<string name="TranslationFailed">Error al traducir: [REASON]</string>
+	<string name="TranslationResponseParseError">Error al analizar la respuesta de la traducción.</string>
  
    <string name="Left">Izquierda</string>
 	<string name="Right">Derecha</string>
@@ -4364,6 +4652,38 @@ Intenta entrecomillando el camino al editor.
 	<string name="Pathfinding_Object_Attr_Character">Personaje</string>
 	<string name="Pathfinding_Object_Attr_MultiSelect">(Múltiple)</string>
 
+  <!-- Experience Tools strings -->
+  <string name="experience_tools_experience">Experiencia</string>
+  <string name="ExperienceNameNull">(sin experiencia)</string>
+  <string name="ExperienceNameUntitled">(experiencia sin título)</string>
+  <string name="Land-Scope">Activa en el terreno</string>
+  <string name="Grid-Scope">Activa en el Grid</string>
+  <string name="Allowed_Experiences_Tab">Permitido</string>
+  <string name="Blocked_Experiences_Tab">Bloqueado</string>
+  <string name="Contrib_Experiences_Tab">Colaborador</string>
+  <string name="Admin_Experiences_Tab">Administrador</string>
+  <string name="Recent_Experiences_Tab">Reciente</string>
+  <string name="Owned_Experiences_Tab">Propietario</string>
+  <string name="ExperiencesCounter">([EXPERIENCES], máx. [MAXEXPERIENCES])</string>
+  <string name="ExperiencePermission1">hacerte con tus controles</string>
+  <string name="ExperiencePermission3">activar animaciones en tu avatar</string>
+  <string name="ExperiencePermission4">anexar a tu avatar</string>
+  <string name="ExperiencePermission9">seguimiento de la cámara</string>
+  <string name="ExperiencePermission10">controlar tu cámara</string>
+  <string name="ExperiencePermission11">teleportarte</string>
+  <string name="ExperiencePermission12">aceptar automáticamente permisos de experiencias</string>
+  <string name="ExperiencePermissionShortUnknown">realizar una operación desconocida: [Permission]</string>
+  <string name="ExperiencePermissionShort1">Tomar controles</string>
+  <string name="ExperiencePermissionShort3">Activar Animaciones</string>
+  <string name="ExperiencePermissionShort4">Anexar</string>
+  <string name="ExperiencePermissionShort9">Seguir la Cámara</string>
+  <string name="ExperiencePermissionShort10">Controlar la Cámara</string>
+  <string name="ExperiencePermissionShort11">Teleporte</string>
+  <string name="ExperiencePermissionShort12">Otorgar permisos</string>
+  <string name="ExperiencePermissionShortUnknown">Desconocido: [Permission]</string>
+
+  <!-- Statistics -->
+  <string name="na">n/a</string>
 	<!-- teleport_strings.xml's strings we need -->
 	<string name="completed_from">Teleporte completado desde</string>
 

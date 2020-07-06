@@ -166,7 +166,6 @@
 <FocusColor value="238, 156, 0, 255" /> 		<!-- Color of the glow around UI controls with keyboard focus -->
 <FloaterButtonImageColor value="239, 156, 0, 255" /> 	<!-- The floater buttons (like the close box) are white images that receive this color. -->
 <ButtonCautionImageColor value="255, 255,  255, 255" />	<!-- Match the caution dialog buttons to the default -->
-<HealthTextColor value="255, 255, 255, 255" />
 <MapAutopilotColor value="255, 128, 0, 255" />
 <ContextSilhouetteColor value="239, 156, 0, 255" />	<!-- For "context" highlighting, i.e. pie menu -->
 <ScriptBgReadOnlyColor value="100, 100, 100, 255" />

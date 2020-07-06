@@ -11,8 +11,6 @@
       <check_box label="Turn around when walking backwards" tool_tip="Certain AOs may turn you around even with this disabled." name="turn_around"/>
       <check_box label="Announce when someone takes a snapshot" tool_tip="Won't announce for people who hide the fact that they are taking a snapshot." name="announce_snapshots"/>
       <check_box label="Announce music stream's metadata in local chat when tuned in" tool_tip="When a new song comes on, a message will be displayed in local chat with available information about the track." name="announce_stream_metadata"/>
-      <check_box label="Make unfocused floaters opaque (requires refocusing each floater to take effect)" tool_tip="When a floater loses focus, it won't turn transparent with this enabled.  This may conflict with some skins." name="unfocused_floaters_opaque"/>
-      <check_box label="Zeige komplette Namen (Display Namen und Benutzernamen) in Profilen" tool_tip="Disregards the global name display settings, will not work if display names are switched off." name="complete_name_profiles"/>
       <check_box label="Let scripts steal focus when they can't compile due to errors" name="script_errors_steal_focus"/>
     </panel>
     <panel label="Tags/Colors" name="TagsColors">

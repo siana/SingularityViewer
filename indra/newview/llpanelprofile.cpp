@@ -41,7 +41,11 @@
 #include "lltabcontainer.h"
 #include "llviewercontrol.h"
 #include "llviewernetwork.h"
+#include "llmutelist.h"
+#endif
+#include "llfloatermute.h"
 
+#ifdef AI_UNUSED
 static const std::string PANEL_PICKS = "panel_picks";
 #endif // AI_UNUSED
 
@@ -55,19 +59,19 @@ std::string getProfileURL(const std::string& agent_name)
 	llassert(!url.empty());
 	LLSD subs;
 	subs["AGENT_NAME"] = agent_name;
-	url = LLWeb::expandURLSubstitutions(url,subs);
+	url = LLWeb::expandURLSubstitutions(url, subs);
 	LLStringUtil::toLower(url);
 	return url;
 }
 
-class LLProfileHandler : public LLCommandHandler
+class LLProfileHandler final : public LLCommandHandler
 {
 public:
 	// requires trusted browser to trigger
 	LLProfileHandler() : LLCommandHandler("profile", UNTRUSTED_THROTTLE) { }
 
 	bool handle(const LLSD& params, const LLSD& query_map,
-		LLMediaCtrl* web)
+		LLMediaCtrl* web) override
 	{
 		if (params.size() < 1) return false;
 		std::string agent_name = params[0];
@@ -80,14 +84,14 @@ public:
 };
 LLProfileHandler gProfileHandler;
 
-class LLAgentHandler : public LLCommandHandler
+class LLAgentHandler final : public LLCommandHandler
 {
 public:
 	// requires trusted browser to trigger
 	LLAgentHandler() : LLCommandHandler("agent", UNTRUSTED_THROTTLE) { }
 
 	bool handle(const LLSD& params, const LLSD& query_map,
-		LLMediaCtrl* web)
+		LLMediaCtrl* web) override
 	{
 		if (params.size() < 2) return false;
 		LLUUID avatar_id;
@@ -97,14 +101,8 @@ public:
 		}
 
 		std::string verb = params[1].asString();
-#if LL_WINDOWS // C++11
-		while (!verb.empty() && std::ispunct(verb.back()))
-			verb.pop_back();
-#else
-		for (size_t i = verb.size()-1; i >= 0 && std::ispunct(verb[i]); --i)
-			verb.erase(i);
-#endif
-		if (verb == "about")
+		for (; !verb.empty() && std::ispunct(verb.back()); verb.pop_back());
+		if (verb == "about" || verb == "completename" || verb == "displayname" || verb == "username")
 		{
 			LLAvatarActions::showProfile(avatar_id);
 			return true;
@@ -150,6 +148,12 @@ public:
 			return true;
 		}
 
+		if (verb == "removefriend")
+		{
+			LLAvatarActions::removeFriendDialog(avatar_id);
+			return true;
+		}
+
 		if (verb == "mute")
 		{
 			if (! LLAvatarActions::isBlocked(avatar_id))
@@ -168,6 +172,28 @@ public:
 			return true;
 		}
 
+		if (verb == "block")
+		{
+			if (params.size() > 2)
+			{
+				const std::string object_name = LLURI::unescape(params[2].asString());
+				LLMute mute(avatar_id, object_name, LLMute::OBJECT);
+				LLMuteList::getInstance()->add(mute);
+				LLFloaterMute::showInstance()->selectMute(mute.mID);
+			}
+			return true;
+		}
+
+		if (verb == "unblock")
+		{
+			if (params.size() > 2)
+			{
+				const std::string object_name = params[2].asString();
+				LLMute mute(avatar_id, object_name, LLMute::OBJECT);
+				LLMuteList::getInstance()->remove(mute);
+			}
+			return true;
+		}
 		return false;
 	}
 };
@@ -177,13 +203,13 @@ LLAgentHandler gAgentHandler;
 #ifdef AI_UNUSED
 //-- LLPanelProfile::ChildStack begins ----------------------------------------
 LLPanelProfile::ChildStack::ChildStack()
-:	mParent(NULL)
+:	mParent(nullptr)
 {
 }
 
 LLPanelProfile::ChildStack::~ChildStack()
 {
-	while (mStack.size() != 0)
+	while (!mStack.empty())
 	{
 		view_list_t& top = mStack.back();
 		for (view_list_t::const_iterator it = top.begin(); it != top.end(); ++it)
@@ -223,7 +249,7 @@ bool LLPanelProfile::ChildStack::push()
 /// Restore saved children (adding them back to the child list).
 bool LLPanelProfile::ChildStack::pop()
 {
-	if (mStack.size() == 0)
+	if (mStack.empty())
 	{
 		LL_WARNS() << "Empty stack" << LL_ENDL;
 		llassert(mStack.size() == 0);
@@ -246,7 +272,7 @@ bool LLPanelProfile::ChildStack::pop()
 void LLPanelProfile::ChildStack::preParentReshape()
 {
 	mSavedStack = mStack;
-	while(mStack.size() > 0)
+	while(!mStack.empty())
 	{
 		pop();
 	}
@@ -261,9 +287,8 @@ void LLPanelProfile::ChildStack::postParentReshape()
 	for (stack_t::const_iterator stack_it = mStack.begin(); stack_it != mStack.end(); ++stack_it)
 	{
 		const view_list_t& vlist = (*stack_it);
-		for (view_list_t::const_iterator list_it = vlist.begin(); list_it != vlist.end(); ++list_it)
+		for (auto viewp : vlist)
 		{
-			LLView* viewp = *list_it;
 			LL_DEBUGS() << "removing " << viewp->getName() << LL_ENDL;
 			mParent->removeChild(viewp);
 		}
@@ -279,9 +304,9 @@ void LLPanelProfile::ChildStack::dump()
 		std::ostringstream dbg_line;
 		dbg_line << "lvl #" << lvl << ":";
 		const view_list_t& vlist = (*stack_it);
-		for (view_list_t::const_iterator list_it = vlist.begin(); list_it != vlist.end(); ++list_it)
+		for (auto list_it : vlist)
 		{
-			dbg_line << " " << (*list_it)->getName();
+			dbg_line << " " << list_it->getName();
 		}
 		LL_DEBUGS() << dbg_line.str() << LL_ENDL;
 	}
@@ -378,7 +403,7 @@ void LLPanelProfile::onOpen()
 void LLPanelProfile::onTabSelected(const LLSD& param)
 {
 	std::string tab_name = param.asString();
-	if (NULL != getTabContainer()[tab_name])
+	if (nullptr != getTabContainer()[tab_name])
 	{
 		getTabContainer()[tab_name]->onOpen(getAvatarId());
 	}
@@ -422,7 +447,7 @@ void LLPanelProfile::closePanel(LLPanel* panel)
 
 		// Prevent losing focus by the floater
 		const child_list_t* child_list = getChildList();
-		if (child_list->size() > 0)
+		if (!child_list->empty())
 		{
 			child_list->front()->setFocus(TRUE);
 		}

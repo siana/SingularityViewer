@@ -27,7 +27,7 @@
 #ifndef LL_LLMULTIGESTURE_H
 #define LL_LLMULTIGESTURE_H
 
-#include <set>
+#include <boost/unordered_set.hpp>
 #include <string>
 #include <vector>
 
@@ -46,8 +46,8 @@ public:
 	// Maximum number of bytes this could hold once serialized.
 	S32 getMaxSerialSize() const;
 
-	BOOL serialize(LLDataPacker& dp) const;
-	BOOL deserialize(LLDataPacker& dp);
+	bool serialize(LLDataPacker& dp) const;
+	bool deserialize(LLDataPacker& dp);
 
 	void dump();
 
@@ -77,7 +77,7 @@ public:
 	std::vector<LLGestureStep*> mSteps;
 
 	// Is the gesture currently playing?
-	BOOL mPlaying;
+	bool mPlaying;
 
 	// Is the gesture to be played locally?
 	bool mLocal;
@@ -86,25 +86,25 @@ public:
 	S32 mCurrentStep;
 
 	// We're waiting for triggered animations to stop playing
-	BOOL mWaitingAnimations;
+	bool mWaitingAnimations;
 
 	// We're waiting a fixed amount of time
-	BOOL mWaitingTimer;
+	bool mWaitingTimer;
 
 	// Waiting after the last step played for all animations to complete
-	BOOL mWaitingAtEnd;
+	bool mWaitingAtEnd;
 
 	// Timer for waiting
 	LLFrameTimer mWaitTimer;
 
-	boost::function<void (LLMultiGesture*)> mDoneCallback;
+	std::function<void (LLMultiGesture*)> mDoneCallback;
 
 	// Animations that we requested to start
-	std::set<LLUUID> mRequestedAnimIDs;
+	uuid_set_t mRequestedAnimIDs;
 
 	// Once the animation starts playing (sim says to start playing)
 	// the ID is moved from mRequestedAnimIDs to here.
-	std::set<LLUUID> mPlayingAnimIDs;
+	uuid_set_t mPlayingAnimIDs;
 };
 
 
@@ -127,14 +127,14 @@ public:
 	LLGestureStep() {}
 	virtual ~LLGestureStep() {}
 
-	virtual EStepType getType() = 0;
+	virtual EStepType getType() const = 0;
 
 	// Return a user-readable label for this step
 	virtual std::vector<std::string> getLabel() const = 0;
 
 	virtual S32 getMaxSerialSize() const = 0;
-	virtual BOOL serialize(LLDataPacker& dp) const = 0;
-	virtual BOOL deserialize(LLDataPacker& dp) = 0;
+	virtual bool serialize(LLDataPacker& dp) const = 0;
+	virtual bool deserialize(LLDataPacker& dp) = 0;
 
 	virtual void dump() = 0;
 };
@@ -142,7 +142,7 @@ public:
 
 // By default, animation steps start animations.
 // If the least significant bit is 1, it will stop animations.
-const U32 ANIM_FLAG_STOP = 0x01;
+constexpr U32 ANIM_FLAG_STOP = 0x01;
 
 class LLGestureStepAnimation : public LLGestureStep
 {
@@ -150,15 +150,15 @@ public:
 	LLGestureStepAnimation();
 	virtual ~LLGestureStepAnimation();
 
-	virtual EStepType getType() { return STEP_ANIMATION; }
+	EStepType getType() const override { return STEP_ANIMATION; }
 
-	virtual std::vector<std::string> getLabel() const;
+	std::vector<std::string> getLabel() const override;
 
-	virtual S32 getMaxSerialSize() const;
-	virtual BOOL serialize(LLDataPacker& dp) const;
-	virtual BOOL deserialize(LLDataPacker& dp);
+	S32 getMaxSerialSize() const override;
+	bool serialize(LLDataPacker& dp) const override;
+	bool deserialize(LLDataPacker& dp) override;
 
-	virtual void dump();
+	void dump() override;
 
 public:
 	std::string mAnimName;
@@ -173,15 +173,15 @@ public:
 	LLGestureStepSound();
 	virtual ~LLGestureStepSound();
 
-	virtual EStepType getType() { return STEP_SOUND; }
+	EStepType getType() const override { return STEP_SOUND; }
 
-	virtual std::vector<std::string> getLabel() const;
+	std::vector<std::string> getLabel() const override;
 
-	virtual S32 getMaxSerialSize() const;
-	virtual BOOL serialize(LLDataPacker& dp) const;
-	virtual BOOL deserialize(LLDataPacker& dp);
+	S32 getMaxSerialSize() const override;
+	bool serialize(LLDataPacker& dp) const override;
+	bool deserialize(LLDataPacker& dp) override;
 
-	virtual void dump();
+	void dump() override;
 
 public:
 	std::string mSoundName;
@@ -196,15 +196,15 @@ public:
 	LLGestureStepChat();
 	virtual ~LLGestureStepChat();
 
-	virtual EStepType getType() { return STEP_CHAT; }
+	EStepType getType() const override { return STEP_CHAT; }
 
-	virtual std::vector<std::string> getLabel() const;
+	std::vector<std::string> getLabel() const override;
 
-	virtual S32 getMaxSerialSize() const;
-	virtual BOOL serialize(LLDataPacker& dp) const;
-	virtual BOOL deserialize(LLDataPacker& dp);
+	S32 getMaxSerialSize() const override;
+	bool serialize(LLDataPacker& dp) const override;
+	bool deserialize(LLDataPacker& dp) override;
 
-	virtual void dump();
+	void dump() override;
 
 public:
 	std::string mChatText;
@@ -212,8 +212,8 @@ public:
 };
 
 
-const U32 WAIT_FLAG_TIME		= 0x01;
-const U32 WAIT_FLAG_ALL_ANIM	= 0x02;
+constexpr U32 WAIT_FLAG_TIME		= 0x01;
+constexpr U32 WAIT_FLAG_ALL_ANIM	= 0x02;
 
 class LLGestureStepWait : public LLGestureStep
 {
@@ -221,15 +221,15 @@ public:
 	LLGestureStepWait();
 	virtual ~LLGestureStepWait();
 
-	virtual EStepType getType() { return STEP_WAIT; }
+	EStepType getType() const override { return STEP_WAIT; }
 
-	virtual std::vector<std::string> getLabel() const;
+	std::vector<std::string> getLabel() const override;
 
-	virtual S32 getMaxSerialSize() const;
-	virtual BOOL serialize(LLDataPacker& dp) const;
-	virtual BOOL deserialize(LLDataPacker& dp);
+	S32 getMaxSerialSize() const override;
+	bool serialize(LLDataPacker& dp) const override;
+	bool deserialize(LLDataPacker& dp) override;
 
-	virtual void dump();
+	void dump() override;
 
 public:
 	F32 mWaitSeconds;

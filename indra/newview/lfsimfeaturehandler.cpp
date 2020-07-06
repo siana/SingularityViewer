@@ -34,7 +34,7 @@ LFSimFeatureHandler::LFSimFeatureHandler()
 {
 	if (!gHippoGridManager->getCurrentGrid()->isSecondLife()) // Remove this line if we ever handle SecondLife sim features
 		gAgent.addRegionChangedCallback(boost::bind(&LFSimFeatureHandler::handleRegionChange, this));
-	LLMuteList::instance().mGodLastNames.insert("Linden");
+	LLMuteList::instance().mGodLastNames = { "Linden", "ProductEngine" };
 }
 
 ExportPolicy LFSimFeatureHandler::exportPolicy() const
@@ -92,6 +92,7 @@ void LFSimFeatureHandler::setSupportedFeatures()
 					mGridName = gHippoGridManager->getConnectedGrid()->getGridName() != grid_name ? grid_name : LLStringUtil::null;
 				}
 			}
+			has_feature_or_default(mEventsURL, extras, "EventsURL");
 			has_feature_or_default(mSayRange, extras, "say-range");
 			has_feature_or_default(mShoutRange, extras, "shout-range");
 			has_feature_or_default(mWhisperRange, extras, "whisper-range");
@@ -105,6 +106,7 @@ void LFSimFeatureHandler::setSupportedFeatures()
 				mMapServerURL = LLStringUtil::null;
 				mSearchURL.reset();
 				mGridName.reset();
+				mEventsURL.reset();
 			}
 			mSayRange.reset();
 			mShoutRange.reset();
@@ -136,7 +138,7 @@ void LFSimFeatureHandler::setSupportedFeatures()
 		}
 		else
 		{
-			mute_list.mGodLastNames.insert("Linden");
+			mute_list.mGodLastNames = { "Linden", "ProductEngine" };
 		}
 	}
 }

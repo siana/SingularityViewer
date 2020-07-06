@@ -8,7 +8,6 @@ class HippoLimits
 public:
 	HippoLimits();
 
-	int   getMaxAgentGroups() const { return mMaxAgentGroups; }
 	float getMaxHeight()      const { return mMaxHeight;      }
 	float getMinHoleSize()    const { return mMinHoleSize;    }
 	float getMaxHollow()      const { return mMaxHollow;      }
@@ -18,7 +17,6 @@ public:
 	void setLimits();
 
 private:
-	int   mMaxAgentGroups;
 	float mMaxHeight;
 	float mMinHoleSize;
 	float mMaxHollow;
@@ -26,7 +24,7 @@ private:
 	float mMinPrimScale;
 
 	void setOpenSimLimits();
-	void setAuroraLimits();
+	void setWhiteCoreLimits();
 	void setSecondLifeLimits();
 };
 

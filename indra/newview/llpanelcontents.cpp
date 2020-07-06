@@ -100,7 +100,7 @@ void LLPanelContents::getState(LLViewerObject *objectp )
 	}
 
 	LLUUID group_id;			// used for SL-23488
-	LLSelectMgr::getInstance()->selectGetGroup(group_id);  // sets group_id as a side effect SL-23488
+	(void)LLSelectMgr::getInstance()->selectGetGroup(group_id);  // sets group_id as a side effect SL-23488
 
 	// BUG? Check for all objects being editable?
 	bool editable = gAgent.isGodlike()

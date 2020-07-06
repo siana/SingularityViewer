@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater can_close="true" can_drag_on_left="false" can_minimize="true"
-     can_resize="false" height="340" min_height="100" min_width="100"
+     can_resize="false" height="360" min_height="100" min_width="100"
      name="item properties" rect_control="PropertiesRect"
      title="Inventory Item Properties" width="350">
 	<icon bottom="-21" follows="top|right" height="16" image_name="icon_lock.tga"
@@ -31,45 +31,36 @@
 	     mouse_opaque="true" name="LabelCreatorTitle" v_pad="0" width="78">
 		Creator:
 	</text>
-	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="0" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-	     mouse_opaque="true" name="LabelCreatorName" v_pad="0" width="200">
+	     mouse_opaque="true" name="LabelCreatorName" v_pad="0" rlv_sensitive="true">
 		Nicole Linden
-	</text>
-	<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-	     height="16" label="Profile..." label_selected="" left_delta="174"
-	     mouse_opaque="true" name="BtnCreator" width="78" />
+	</name_box>
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
 	     mouse_opaque="true" name="LabelOwnerTitle" v_pad="0" width="78">
 		Owner:
 	</text>
-	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="0" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-	     mouse_opaque="true" name="LabelOwnerName" v_pad="0" width="200">
+	     mouse_opaque="true" name="LabelOwnerName" v_pad="0" rlv_sensitive="true">
 		Thrax Linden
-	</text>
-	<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-	     height="16" label="Profile..." label_selected="" left_delta="174"
-	     mouse_opaque="true" name="BtnOwner" width="78" />
+	</name_box>
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
 	     mouse_opaque="true" name="LabelLastOwnerTitle" v_pad="0" width="78">
 		Last Owner:
 	</text>
-	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="0" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-	     mouse_opaque="true" name="LabelLastOwnerName" v_pad="0" width="200">
+	     mouse_opaque="true" name="LabelLastOwnerName" v_pad="0" rlv_sensitive="true">
 		OnceUponA Linden
-	</text>
-	<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-	     height="16" label="Profile..." label_selected="" left_delta="174"
-	     mouse_opaque="true" name="BtnLastOwner" width="78" />
+	</name_box>
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="-16" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
@@ -82,8 +73,34 @@
 	     mouse_opaque="true" name="LabelAcquiredDate" v_pad="0" width="252">
 		Wed May 24 12:50:46 2006
 	</text>
+      <text
+        type="string"
+        length="1"
+        follows="left|top"
+        height="10"
+        layout="topleft"
+        left="10"
+        name="LabelItemExperienceTitle"
+        bottom_delta="-10"
+        width="78"
+        visible="true">
+        Experience:
+      </text>
+      <name_box
+        type="string"
+        length="1"
+        follows="left|top|right"
+        height="10"
+        layout="topleft"
+        left_delta="78"
+        name="LabelItemExperience"
+        bottom_delta="0"
+        width="210"
+        id_type="3"
+        visible="true"
+        />
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-	     bottom_delta="-10" drop_shadow_visible="true" follows="left|top"
+	     bottom_delta="-16" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="10" left="10"
 	     mouse_opaque="true" name="OwnerLabel" v_pad="0" width="78">
 		You can:
@@ -203,6 +220,7 @@
 	     enabled="true" follows="left|top|right" font="SansSerifSmall" height="16"
 	     is_unicode="false" left_delta="56" max_length="25" mouse_opaque="true"
 	     name="Edit Cost" width="242" />
+    <floater.string name="loading_experience">(loading)</floater.string>
 	<string name="unknown">
 		(unknown)
 	</string>

@@ -21,9 +21,9 @@
 	<text name="estate_owner_label" width="105" right="565">
 		Dono da propriedade:
 	</text>
-	<text name="estate_owner_text" left="560" >
+	<name_box name="estate_owner_text" left="560" >
 		(desconhecido)
-	</text>
+	</name_box>
 	<text name="resellable_changeable_label">
 		Adquiriu um terreno nesta região:
 	</text>

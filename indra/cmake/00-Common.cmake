@@ -5,8 +5,8 @@
 if(NOT DEFINED ${CMAKE_CURRENT_LIST_FILE}_INCLUDED)
 set(${CMAKE_CURRENT_LIST_FILE}_INCLUDED "YES")
 
+include(CheckCCompilerFlag)
 include(Variables)
-
 
 # Portable compilation flags.
 
@@ -18,44 +18,12 @@ set(CMAKE_C_FLAGS_RELEASE
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO 
     "-DLL_RELEASE=1 -D_SECURE_SCL=0 -DNDEBUG -DLL_RELEASE_WITH_DEBUG_INFO=1")
 
-# Configure crash reporting
-set(RELEASE_CRASH_REPORTING OFF CACHE BOOL "Enable use of crash reporting in release builds")
-set(NON_RELEASE_CRASH_REPORTING OFF CACHE BOOL "Enable use of crash reporting in developer builds")
-
-if(RELEASE_CRASH_REPORTING)
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DLL_SEND_CRASH_REPORTS=1")
-endif()
-
-if(NON_RELEASE_CRASH_REPORTING)
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DLL_SEND_CRASH_REPORTS=1")
-  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DLL_SEND_CRASH_REPORTS=1")
-endif()
-
-
 # Don't bother with a MinSizeRel build.
-
 set(CMAKE_CONFIGURATION_TYPES "RelWithDebInfo;Release;Debug" CACHE STRING
     "Supported build types." FORCE)
 
 # Platform-specific compilation flags.
-
 if (WINDOWS)
-  # Various libs are compiler specific, generate some variables here we can just use
-  # when we require them instead of reimplementing the test each time.
-  if (MSVC10)
-    set(MSVC_DIR 10.0)
-    set(MSVC_SUFFIX 100)
-  elseif (MSVC12)
-    set(MSVC_DIR 12.0)
-    set(MSVC_SUFFIX 120)
-  endif (MSVC10)
-
-  # Remove default /Zm1000 flag that cmake inserts
-  string (REPLACE "/Zm1000" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-
-  # Always use /Zm140
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zm140")
-
   # Don't build DLLs.
   set(BUILD_SHARED_LIBS OFF)
 
@@ -65,61 +33,88 @@ if (WINDOWS)
       "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /Od /Zi /MD /MP"
       CACHE STRING "C++ compiler release-with-debug options" FORCE)
   set(CMAKE_CXX_FLAGS_RELEASE
-      "${CMAKE_CXX_FLAGS_RELEASE} ${LL_CXX_FLAGS} /O2 /Zi /MD /MP /fp:fast -D_SECURE_STL=0 -D_HAS_ITERATOR_DEBUGGING=0"
+      "${CMAKE_CXX_FLAGS_RELEASE} ${LL_CXX_FLAGS} /O2 /Zi /Zo /MD /MP /Ob2 /Zc:inline /fp:fast -D_ITERATOR_DEBUG_LEVEL=0"
       CACHE STRING "C++ compiler release options" FORCE)
   set(CMAKE_C_FLAGS_RELEASE
       "${CMAKE_C_FLAGS_RELEASE} ${LL_C_FLAGS} /O2 /Zi /MD /MP /fp:fast"
       CACHE STRING "C compiler release options" FORCE)
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+
+  if (ADDRESS_SIZE EQUAL 32)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LARGEADDRESSAWARE")
+  endif (ADDRESS_SIZE EQUAL 32)
+
+  if (FULL_DEBUG_SYMS OR USE_CRASHPAD)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG:FULL")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEBUG:FULL")
+  else ()
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /DEBUG:FASTLINK")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /DEBUG:FASTLINK")
+  endif ()
+
+  if (USE_LTO)
+    if(INCREMENTAL_LINK)
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG:INCREMENTAL")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG:INCREMENTAL")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /LTCG:INCREMENTAL")
+    else(INCREMENTAL_LINK)
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /LTCG")
+      set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /LTCG")
+    endif(INCREMENTAL_LINK)
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /OPT:REF /OPT:ICF /LTCG")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /OPT:ICF /LTCG")
+    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} /LTCG")
+  elseif (INCREMENTAL_LINK)
+    set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS} /INCREMENTAL /VERBOSE:INCR")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /INCREMENTAL /VERBOSE:INCR")
+  else ()
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /OPT:REF /INCREMENTAL:NO")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /OPT:REF /INCREMENTAL:NO")
+  endif ()
 
   set(CMAKE_CXX_STANDARD_LIBRARIES "")
   set(CMAKE_C_STANDARD_LIBRARIES "")
 
   add_definitions(
       /DLL_WINDOWS=1
+      /DNOMINMAX
       /DUNICODE
-      /D_UNICODE 
+      /D_UNICODE
+      /DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
       /GS
       /TP
       /W3
       /c
+      /Zc:__cplusplus
       /Zc:forScope
-      /Zc:wchar_t-
+      /Zc:rvalueCast
+      /Zc:wchar_t
       /nologo
       /Oy-
+      /Zm140
+      /wd4267
+      /wd4244
       )
-  
-  # SSE2 is implied on win64
-  if(WORD_SIZE EQUAL 32)
-    add_definitions(/arch:SSE2 /D_ATL_XP_TARGETING)
-  else(WORD_SIZE EQUAL 32)
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /wd4267 /wd4250 /wd4244")
-  endif(WORD_SIZE EQUAL 32)
 
-  if (WORD_SIZE EQUAL 32)
-    # configure win32 API for windows XP+ compatibility
-    set(WINVER "0x0501" CACHE STRING "Win32 API Target version (see http://msdn.microsoft.com/en-us/library/aa383745%28v=VS.85%29.aspx)")
-    add_definitions("/DWINVER=${WINVER}" "/D_WIN32_WINNT=${WINVER}")
-  else (WORD_SIZE EQUAL 32)
-    # configure win32 API for windows vista+ compatibility
-    set(WINVER "0x0600" CACHE STRING "Win32 API Target version (see http://msdn.microsoft.com/en-us/library/aa383745%28v=VS.85%29.aspx)")
-    add_definitions("/DWINVER=${WINVER}" "/D_WIN32_WINNT=${WINVER}")
-  endif (WORD_SIZE EQUAL 32)
+  if (USE_LTO)
+    add_compile_options(
+        /GL
+        /Gy
+        /Gw
+        )
+  endif (USE_LTO)
 
-  # Use special XP-compatible toolchain on 32-bit builds
-  if (MSVC12 AND (WORD_SIZE EQUAL 32))
-    set(CMAKE_GENERATOR_TOOLSET "v120xp")
-  endif (MSVC12 AND (WORD_SIZE EQUAL 32))
+  if (ADDRESS_SIZE EQUAL 32)
+    add_compile_options(/arch:SSE2)
+  endif (ADDRESS_SIZE EQUAL 32)
 
-  # Are we using the crummy Visual Studio KDU build workaround?
   if (NOT DISABLE_FATAL_WARNINGS)
     add_definitions(/WX)
   endif (NOT DISABLE_FATAL_WARNINGS)
 
-  SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /MANIFEST:NO")
-  SET(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /MANIFEST:NO")
-  SET(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /MANIFEST:NO")
-
+  # configure win32 API for windows Vista+ compatibility
+  set(WINVER "0x0600" CACHE STRING "Win32 API Target version (see http://msdn.microsoft.com/en-us/library/aa383745%28v=VS.85%29.aspx)")
+  add_definitions("/DWINVER=${WINVER}" "/D_WIN32_WINNT=${WINVER}")
 endif (WINDOWS)
 
 set (GCC_EXTRA_OPTIMIZATIONS "-ffast-math")
@@ -127,20 +122,26 @@ set (GCC_EXTRA_OPTIMIZATIONS "-ffast-math")
 if (LINUX)
   set(CMAKE_SKIP_RPATH TRUE)
 
-  add_definitions(
-      -DLL_LINUX=1
-      -DAPPID=secondlife
-      -D_REENTRANT
-      -fexceptions
-      -fno-math-errno
-      -fno-strict-aliasing
-      -fsigned-char
-      -fvisibility=hidden
-      -g
-      -pthread
-      )
+  add_compile_options(
+    -fvisibility=hidden
+    -fexceptions
+    -fno-math-errno
+    -fno-strict-aliasing
+    -fsigned-char
+    -g
+    -pthread
+    )
 
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 ")
+  add_definitions(
+    -DLL_LINUX=1
+    -DAPPID=secondlife
+    -D_REENTRANT
+  )
+
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2")
 
   # Don't catch SIGCHLD in our base application class for the viewer
   # some of our 3rd party libs may need their *own* SIGCHLD handler to work.  Sigh!
@@ -195,50 +196,40 @@ if (LINUX)
 
     # End of hacks.
 
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
+    CHECK_C_COMPILER_FLAG(-fstack-protector-strong HAS_STRONG_STACK_PROTECTOR)
+    if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+      if(HAS_STRONG_STACK_PROTECTOR)
+        add_compile_options(-fstack-protector-strong)
+      endif(HAS_STRONG_STACK_PROTECTOR)
+    endif (${CMAKE_BUILD_TYPE} STREQUAL "Release")
 
-    if (NOT STANDALONE)
-      # this stops us requiring a really recent glibc at runtime
-      add_definitions(-fno-stack-protector)
-    endif (NOT STANDALONE)
     if (${ARCH} STREQUAL "x86_64")
-      add_definitions(-DLINUX64=1 -pipe)
-      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fomit-frame-pointer -ffast-math -funroll-loops")
-      set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -fomit-frame-pointer -ffast-math -funroll-loops")
+      add_definitions(-pipe)
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
+      set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -ffast-math")
       set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -ffast-math")
       set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} -ffast-math")
     else (${ARCH} STREQUAL "x86_64")
       if (NOT STANDALONE)
         set(MARCH_FLAG " -march=pentium4")
       endif (NOT STANDALONE)
-      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse2")
-      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse2")
-      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
-      set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
-      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
-      set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse2 ${GCC_EXTRA_OPTIMIZATIONS}")
+      set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse3")
+      set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse3")
+      set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}${MARCH_FLAG} -mfpmath=sse,387 -msse3 ${GCC_EXTRA_OPTIMIZATIONS}")
+      set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}${MARCH_FLAG} -mfpmath=sse,387 -msse3 ${GCC_EXTRA_OPTIMIZATIONS}")
+      set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse3 ${GCC_EXTRA_OPTIMIZATIONS}")
+      set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -mfpmath=sse,387 -msse3 ${GCC_EXTRA_OPTIMIZATIONS}")
     endif (${ARCH} STREQUAL "x86_64")
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    if (NOT STANDALONE)
-      # this stops us requiring a really recent glibc at runtime
-      add_definitions(-fno-stack-protector)
-    endif (NOT STANDALONE)
-
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse2")
-    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse2")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}${MARCH_FLAG} -msse2")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}${MARCH_FLAG} -msse2")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse2")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse2")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse3")
+    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline -msse3")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}${MARCH_FLAG} -msse3")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}${MARCH_FLAG} -msse3")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse3")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO}${MARCH_FLAG} -msse3")
   elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
-
     if (NOT STANDALONE)
-      # this stops us requiring a really recent glibc at runtime
-      add_definitions(-fno-stack-protector)
-    endif (NOT STANDALONE)
-
-    if (NOT STANDALONE)
-      set(MARCH_FLAG " -axsse4.1 -msse2")
+      set(MARCH_FLAG " -axsse4.1 -msse3")
     endif (NOT STANDALONE)
 
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}${MARCH_FLAG} -fno-inline-functions")
@@ -302,27 +293,35 @@ if (LINUX OR DARWIN)
 
   set(CMAKE_C_FLAGS "${UNIX_WARNINGS} ${CMAKE_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${UNIX_CXX_WARNINGS} ${CMAKE_CXX_FLAGS}")
-  if (WORD_SIZE EQUAL 32)
+  if (ADDRESS_SIZE EQUAL 32)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
-  elseif (WORD_SIZE EQUAL 64)
+  elseif (ADDRESS_SIZE EQUAL 64)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
-  endif (WORD_SIZE EQUAL 32)
+  endif (ADDRESS_SIZE EQUAL 32)
 endif (LINUX OR DARWIN)
 
 
 if (STANDALONE)
   add_definitions(-DLL_STANDALONE=1)
 else (STANDALONE)
+  #Enforce compile-time correctness for fmt strings
+  add_definitions(-DFMT_STRING_ALIAS=1)
+
+  if(USE_CRASHPAD)
+    add_definitions(-DUSE_CRASHPAD=1 -DCRASHPAD_URL="${CRASHPAD_URL}")
+  endif()
+
   set(${ARCH}_linux_INCLUDES
-      ELFIO
       atk-1.0
+      cairo
       glib-2.0
+      gdk-pixbuf-2.0
       gstreamer-0.10
       gtk-2.0
-      freetype2
       pango-1.0
+      pixman-1
       )
 endif (STANDALONE)
 

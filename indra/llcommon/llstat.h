@@ -80,9 +80,10 @@ public:
 
 	
 private:
-	BOOL mUseFrameTimer;
+	const BOOL mUseFrameTimer;
+	const U32 mNumBins;
+
 	U32 mNumValues;
-	U32 mNumBins;
 
 	struct ValueEntry
 	{
@@ -101,7 +102,7 @@ private:
 	S32 mCurBin;
 	S32 mNextBin;
 	
-	std::string mName;
+	const std::string mName;
 
 	static LLTimer sTimer;
 	static LLFrameTimer sFrameTimer;

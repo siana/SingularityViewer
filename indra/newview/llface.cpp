@@ -59,6 +59,7 @@
 #include "llviewershadermgr.h"
 #include "llviewertexture.h"
 #include "llvoavatar.h"
+#include "llsculptidsize.h"
 
 #define LL_MAX_INDICES_COUNT 1000000
 
@@ -330,6 +331,8 @@ void LLFace::dirtyTexture()
 				if (vobj)
 				{
 					vobj->mLODChanged = TRUE;
+
+					vobj->updateVisualComplexity(); // Animmesh+
 				}
 				gPipeline.markRebuild(drawablep, LLDrawable::REBUILD_VOLUME, FALSE);
 			}
@@ -337,6 +340,34 @@ void LLFace::dirtyTexture()
 	}
 			
 	gPipeline.markTextured(drawablep);
+}
+
+void LLFace::notifyAboutCreatingTexture(LLViewerTexture *texture)
+{
+	LLDrawable* drawablep = getDrawable();
+	if(mVObjp.notNull() && mVObjp->getVolume())
+	{
+		LLVOVolume *vobj = drawablep->getVOVolume();
+		if(vobj && vobj->notifyAboutCreatingTexture(texture))
+		{
+			gPipeline.markTextured(drawablep);
+			gPipeline.markRebuild(drawablep, LLDrawable::REBUILD_VOLUME);
+		}
+	}
+}
+
+void LLFace::notifyAboutMissingAsset(LLViewerTexture *texture)
+{
+	LLDrawable* drawablep = getDrawable();
+	if(mVObjp.notNull() && mVObjp->getVolume())
+	{
+		LLVOVolume *vobj = drawablep->getVOVolume();
+		if(vobj && vobj->notifyAboutMissingAsset(texture))
+		{
+			gPipeline.markTextured(drawablep);
+			gPipeline.markRebuild(drawablep, LLDrawable::REBUILD_VOLUME);
+		}
+	}
 }
 
 void LLFace::switchTexture(U32 ch, LLViewerTexture* new_texture)
@@ -548,8 +579,8 @@ void LLFace::renderSelected(LLViewerTexture *imagep, const LLColor4& color)
 				LLRiggedVolume* rigged = volume->getRiggedVolume();
 				if (rigged)
 				{
-					LLGLEnable offset(GL_POLYGON_OFFSET_FILL);
-					glPolygonOffset(-1.f, -1.f);
+					LLGLEnable<GL_POLYGON_OFFSET_FILL> offset;
+					gGL.setPolygonOffset(-1.f, -1.f);
 					gGL.multMatrix(volume->getRelativeXform());
 					const LLVolumeFace& vol_face = rigged->getVolumeFace(getTEOffset());
 
@@ -579,7 +610,7 @@ void LLFace::renderSelected(LLViewerTexture *imagep, const LLColor4& color)
 
 					gGL.diffuseColor4fv(color.mV);
 
-					LLVertexBuffer::drawElements(LLRender::TRIANGLES, vol_face.mPositions, vol_face.mTexCoords, vol_face.mNumIndices, vol_face.mIndices);
+					LLVertexBuffer::drawElements(LLRender::TRIANGLES, vol_face.mNumVertices, vol_face.mPositions, vol_face.mTexCoords, vol_face.mNumIndices, vol_face.mIndices);
 					
 					if(prev_shader)
 					{
@@ -592,8 +623,8 @@ void LLFace::renderSelected(LLViewerTexture *imagep, const LLColor4& color)
 		else
 		{
 			gGL.diffuseColor4fv(color.mV);
-			LLGLEnable poly_offset(GL_POLYGON_OFFSET_FILL);
-			glPolygonOffset(-1.f,-1.f);
+			LLGLEnable<GL_POLYGON_OFFSET_FILL> poly_offset;
+			gGL.setPolygonOffset(-1.f,-1.f);
 			// Singu Note: Disable per-vertex color to prevent fixed-function pipeline from using it. We want glColor color, not vertex color!
 			mVertexBuffer->setBuffer(mVertexBuffer->getTypeMask() & ~(LLVertexBuffer::MAP_COLOR));
 			mVertexBuffer->draw(LLRender::TRIANGLES, mIndicesCount, mIndicesIndex);
@@ -765,9 +796,6 @@ static void xform4a(LLVector4a &tex_coord, const LLVector4a& trans, const LLVect
 	// Texture transforms are done about the center of the face.
 	st.setAdd(tex_coord, trans);
 	
-	// Handle rotation
-	LLVector4a rot_st;
-		
 	// <s0 * cosAng, s0*-sinAng, s1*cosAng, s1*-sinAng>
 	LLVector4a s0;
 	s0.splat(st, 0);
@@ -823,12 +851,6 @@ BOOL LLFace::genVolumeBBoxes(const LLVolume &volume, S32 f,
 	//get bounding box
 	if (mDrawablep->isState(LLDrawable::REBUILD_VOLUME | LLDrawable::REBUILD_POSITION | LLDrawable::REBUILD_RIGGED))
 	{
-		//VECTORIZE THIS
-		const LLMatrix4a& mat_vert = mat_vert_in;
-		//mat_vert.loadu(mat_vert_in);
-
-		LLVector4a min,max;
-	
 		if (f >= volume.getNumVolumeFaces())
 		{
 			LL_WARNS() << "Generating bounding box for invalid face index!" << LL_ENDL;
@@ -836,77 +858,41 @@ BOOL LLFace::genVolumeBBoxes(const LLVolume &volume, S32 f,
 		}
 
 		const LLVolumeFace &face = volume.getVolumeFace(f);
-		min = face.mExtents[0];
-		max = face.mExtents[1];
 		
-		llassert(less_than_max_mag(min));
-		llassert(less_than_max_mag(max));
 
-		//min, max are in volume space, convert to drawable render space
-
-		//get 8 corners of bounding box
-		LLVector4Logical mask[6];
-
-		for (U32 i = 0; i < 6; ++i)
+		// MAINT-8264 - stray vertices, especially in low LODs, cause bounding box errors.
+		if (face.mNumVertices < 3) 
 		{
-			mask[i].clear();
+			LL_DEBUGS("RiggedBox") << "skipping face " << f << ", bad num vertices " 
+									<< face.mNumVertices << " " << face.mNumIndices << " " << face.mWeights << LL_ENDL;
+			return FALSE;
 		}
 
-		mask[0].setElement<2>(); //001
-		mask[1].setElement<1>(); //010
-		mask[2].setElement<1>(); //011
-		mask[2].setElement<2>();
-		mask[3].setElement<0>(); //100
-		mask[4].setElement<0>(); //101
-		mask[4].setElement<2>();
-		mask[5].setElement<0>(); //110
-		mask[5].setElement<1>();
-		
-		LLVector4a v[8];
+		//VECTORIZE THIS
+		LLMatrix4a mat_vert = mat_vert_in;
 
-		v[6] = min;
-		v[7] = max;
+		llassert(less_than_max_mag(face.mExtents[0]));
+		llassert(less_than_max_mag(face.mExtents[1]));
 
-		for (U32 i = 0; i < 6; ++i)
-		{
-			v[i].setSelectWithMask(mask[i], min, max);
-		}
-
-		LLVector4a tv[8];
-
-		//transform bounding box into drawable space
-		for (U32 i = 0; i < 8; ++i)
-		{
-			mat_vert.affineTransform(v[i], tv[i]);
-		}
-	
-		//find bounding box
-		LLVector4a& newMin = mExtents[0];
-		LLVector4a& newMax = mExtents[1];
-
-		newMin = newMax = tv[0];
-
-		for (U32 i = 1; i < 8; ++i)
-		{
-			newMin.setMin(newMin, tv[i]);
-			newMax.setMax(newMax, tv[i]);
-		}
+		matMulBoundBox(mat_vert, face.mExtents, mExtents);
 
 		if (!mDrawablep->isActive())
 		{	// Shift position for region
 			LLVector4a offset;
 			offset.load3(mDrawablep->getRegion()->getOriginAgent().mV);
-			newMin.add(offset);
-			newMax.add(offset);
+			mExtents[0].add(offset);
+			mExtents[1].add(offset);
+			LL_DEBUGS("RiggedBox") << "updating extents for face " << f 
+									<< " not active, added offset " << offset << LL_ENDL;
 		}
 
 		LLVector4a t;
-		t.setAdd(newMin,newMax);
+		t.setAdd(mExtents[0],mExtents[1]);
 		t.mul(0.5f);
 
 		mCenterLocal.set(t.getF32ptr());
 
-		t.setSub(newMax,newMin);
+		t.setSub(mExtents[1],mExtents[0]);
 		mBoundingSphereRadius = t.getLength3().getF32()*0.5f;
 
 		updateCenterAgent();
@@ -987,6 +973,10 @@ void LLFace::getPlanarProjectedParams(LLQuaternion* face_rot, LLVector3* face_po
 {
 	const LLMatrix4a& vol_mat = getWorldMatrix();
 	const LLVolumeFace& vf = getViewerObject()->getVolume()->getVolumeFace(mTEOffset);
+	if (!vf.mTangents)
+	{
+		return;
+	}
 	const LLVector4a& normal = vf.mNormals[0];
 	const LLVector4a& tangent = vf.mTangents[0];
 
@@ -1094,9 +1084,10 @@ bool LLFace::canRenderAsMask()
 
 	static const LLCachedControl<bool> use_rmse_auto_mask("SHUseRMSEAutoMask",false);
 	static const LLCachedControl<F32> auto_mask_max_rmse("SHAutoMaskMaxRMSE",.09f);
+	static const LLCachedControl<F32> auto_mask_max_mid("SHAutoMaskMaxMid", .25f);
 	if ((te->getColor().mV[3] == 1.0f) && // can't treat as mask if we have face alpha
 		(te->getGlow() == 0.f) && // glowing masks are hard to implement - don't mask
-		(getTexture()->getIsAlphaMask((!getViewerObject()->isAttachment() && use_rmse_auto_mask) ? auto_mask_max_rmse : -1.f))) // texture actually qualifies for masking (lazily recalculated but expensive)
+		(getTexture()->getIsAlphaMask((!getViewerObject()->isAttachment() && use_rmse_auto_mask) ? auto_mask_max_rmse : -1.f, auto_mask_max_mid))) // texture actually qualifies for masking (lazily recalculated but expensive)
 	{
 		if (LLPipeline::sRenderDeferred)
 		{
@@ -1119,12 +1110,12 @@ bool LLFace::canRenderAsMask()
 }
 
 
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_VOLUME("Volume VB Cache");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_VOLUME("Volume VB Cache");
 
 //static 
 void LLFace::cacheFaceInVRAM(const LLVolumeFace& vf)
 {
-	LLFastTimer t(FTM_FACE_GEOM_VOLUME);
+	LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_VOLUME);
 	U32 mask = LLVertexBuffer::MAP_VERTEX | LLVertexBuffer::MAP_TEXCOORD0 |
 				LLVertexBuffer::MAP_TANGENT | LLVertexBuffer::MAP_NORMAL;
 	
@@ -1185,33 +1176,33 @@ void push_for_transform(LLVertexBuffer* buff, U32 source_count, U32 dest_count)
 		gPipeline.mTransformFeedbackPrimitives += dest_count;
 	}
 }
-static LLFastTimer::DeclareTimer FTM_FACE_GET_GEOM("Face Geom");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_POSITION("Position");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_NORMAL("Normal");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_TEXTURE("Texture");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_COLOR("Color");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_EMISSIVE("Emissive");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_WEIGHTS("Weights");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_TANGENT("Binormal");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GET_GEOM("Face Geom");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_POSITION("Position");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_NORMAL("Normal");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_TEXTURE("Texture");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_COLOR("Color");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_EMISSIVE("Emissive");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_WEIGHTS("Weights");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_TANGENT("Binormal");
 
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK("Face Feedback");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_POSITION("Feedback Position");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_NORMAL("Feedback  Normal");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_TEXTURE("Feedback  Texture");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_COLOR("Feedback  Color");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_EMISSIVE("Feedback  Emissive");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_FEEDBACK_BINORMAL("Feedback Binormal");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK("Face Feedback");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_POSITION("Feedback Position");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_NORMAL("Feedback  Normal");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_TEXTURE("Feedback  Texture");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_COLOR("Feedback  Color");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_EMISSIVE("Feedback  Emissive");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_FEEDBACK_BINORMAL("Feedback Binormal");
 
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_INDEX("Index");
-static LLFastTimer::DeclareTimer FTM_FACE_GEOM_INDEX_TAIL("Tail");
-static LLFastTimer::DeclareTimer FTM_FACE_POSITION_STORE("Pos");
-static LLFastTimer::DeclareTimer FTM_FACE_TEXTURE_INDEX_STORE("TexIdx");
-static LLFastTimer::DeclareTimer FTM_FACE_POSITION_PAD("Pad");
-static LLFastTimer::DeclareTimer FTM_FACE_TEX_DEFAULT("Default");
-static LLFastTimer::DeclareTimer FTM_FACE_TEX_QUICK("Quick");
-static LLFastTimer::DeclareTimer FTM_FACE_TEX_QUICK_NO_XFORM("No Xform");
-static LLFastTimer::DeclareTimer FTM_FACE_TEX_QUICK_XFORM("Xform");
-static LLFastTimer::DeclareTimer FTM_FACE_TEX_QUICK_PLANAR("Quick Planar");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_INDEX("Index");
+static LLTrace::BlockTimerStatHandle FTM_FACE_GEOM_INDEX_TAIL("Tail");
+static LLTrace::BlockTimerStatHandle FTM_FACE_POSITION_STORE("Pos");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEXTURE_INDEX_STORE("TexIdx");
+static LLTrace::BlockTimerStatHandle FTM_FACE_POSITION_PAD("Pad");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEX_DEFAULT("Default");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEX_QUICK("Quick");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEX_QUICK_NO_XFORM("No Xform");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEX_QUICK_XFORM("Xform");
+static LLTrace::BlockTimerStatHandle FTM_FACE_TEX_QUICK_PLANAR("Quick Planar");
 
 BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 							   const S32 &f,
@@ -1219,7 +1210,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 								const U16 &index_offset,
 								bool force_rebuild)
 {
-	LLFastTimer t(FTM_FACE_GET_GEOM);
+	LL_RECORD_BLOCK_TIME(FTM_FACE_GET_GEOM);
 	llassert(verify());
 	const LLVolumeFace &vf = volume.getVolumeFace(f);
 	S32 num_vertices = (S32)vf.mNumVertices;
@@ -1294,6 +1285,13 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 	const LLTextureEntry *tep = mVObjp->getTE(f);
 	const U8 bump_code = tep ? tep->getBumpmap() : 0;
 
+	if ( bump_code && rebuild_tcoord && mVertexBuffer->hasDataType(LLVertexBuffer::TYPE_TANGENT) )
+	{
+		LLMaterial* mat = tep->getMaterialParams().get();
+		if( !mat || mat->getNormalID().isNull() )
+			rebuild_tangent = true;
+	}
+
 	BOOL is_static = mDrawablep->isStatic();
 	BOOL is_global = is_static;
 
@@ -1315,23 +1313,17 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 
 		if(mShinyInAlpha)
 		{
-			GLfloat alpha[4] =
-				{
-					0.00f,
-					0.25f,
-					0.5f,
-					0.75f
-				};
-			
+			// Singu Note: Avoid casing. Store as LLColor4U.
+			static const LLColor4U shine_steps(LLColor4(0.f, .25f, .5f, 7.5f));
 			llassert(tep->getShiny() <= 3);
-			color.mV[3] = U8 (alpha[tep->getShiny()] * 255);
+			color.mV[3] = shine_steps.mV[tep->getShiny()];
 		}
 	}
 
 	// INDICES
 	if (full_rebuild)
 	{
-		LLFastTimer t(FTM_FACE_GEOM_INDEX);
+		LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_INDEX);
 		mVertexBuffer->getIndexStrider(indicesp, mIndicesIndex, mIndicesCount, map_range);
 
 		volatile __m128i* dst = (__m128i*) indicesp.get();
@@ -1347,7 +1339,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 		}
 
 		{
-			LLFastTimer t(FTM_FACE_GEOM_INDEX_TAIL);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_INDEX_TAIL);
 			U16* idx = (U16*) dst;
 
 			for (S32 i = end*8; i < num_indices; ++i)
@@ -1399,152 +1391,6 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 	}
 	
 	static LLCachedControl<bool> use_transform_feedback("RenderUseTransformFeedback", false);
-
-#ifdef GL_TRANSFORM_FEEDBACK_BUFFER
-	if (use_transform_feedback &&
-		gTransformPositionProgram.mProgramObject && //transform shaders are loaded
-		mVertexBuffer->useVBOs() && //target buffer is in VRAM
-		!rebuild_weights && //TODO: add support for weights
-		!volume.isUnique()) //source volume is NOT flexi
-	{ //use transform feedback to pack vertex buffer
-		LLFastTimer t(FTM_FACE_GEOM_FEEDBACK);
-		LLGLEnable discard(GL_RASTERIZER_DISCARD);
-		LLVertexBuffer* buff = (LLVertexBuffer*) vf.mVertexBuffer.get();
-
-		if (vf.mVertexBuffer.isNull() || buff->getNumVerts() != vf.mNumVertices)
-		{
-			mVObjp->getVolume()->genTangents(f);
-			LLFace::cacheFaceInVRAM(vf);
-			buff = (LLVertexBuffer*) vf.mVertexBuffer.get();
-		}		
-
-		LLGLSLShader* cur_shader = LLGLSLShader::sCurBoundShaderPtr;
-		
-		gGL.pushMatrix();
-		gGL.loadMatrix(mat_vert_in);
-
-		if (rebuild_pos)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_FEEDBACK_POSITION);
-			gTransformPositionProgram.bind();
-
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_VERTEX, mGeomIndex, mGeomCount);
-
-			U8 index = mTextureIndex < 255 ? mTextureIndex : 0;
-
-			S32 val = 0;
-			U8* vp = (U8*) &val;
-			vp[0] = index;
-			vp[1] = 0;
-			vp[2] = 0;
-			vp[3] = 0;
-			
-			gTransformPositionProgram.uniform1i(sTextureIndexIn, val);
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_VERTEX);
-
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-
-			glEndTransformFeedback();
-		}
-
-		if (rebuild_color)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_FEEDBACK_COLOR);
-			gTransformColorProgram.bind();
-			
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_COLOR, mGeomIndex, mGeomCount);
-
-			S32 val = *((S32*) color.mV);
-
-			gTransformColorProgram.uniform1i(sColorIn, val);
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_VERTEX);
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-			glEndTransformFeedback();
-		}
-
-		if (rebuild_emissive)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_FEEDBACK_EMISSIVE);
-			gTransformColorProgram.bind();
-			
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_EMISSIVE, mGeomIndex, mGeomCount);
-
-			U8 glow = (U8) llclamp((S32) (getTextureEntry()->getGlow()*255), 0, 255);
-
-			S32 glow32 = glow |
-						 (glow << 8) |
-						 (glow << 16) |
-						 (glow << 24);
-
-			gTransformColorProgram.uniform1i(sColorIn, glow32);
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_VERTEX);
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-			glEndTransformFeedback();
-		}
-
-		if (rebuild_normal)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_FEEDBACK_NORMAL);
-			gTransformNormalProgram.bind();
-			
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_NORMAL, mGeomIndex, mGeomCount);
-						
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_NORMAL);
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-			glEndTransformFeedback();
-		}
-
-		if (rebuild_tangent)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_TANGENT);
-			gTransformTangentProgram.bind();
-			
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_TANGENT, mGeomIndex, mGeomCount);
-						
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_TANGENT);
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-			glEndTransformFeedback();
-		}
-
-		if (rebuild_tcoord)
-		{
-			LLFastTimer t(FTM_FACE_GEOM_FEEDBACK_TEXTURE);
-			gTransformTexCoordProgram.bind();
-			
-			mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_TEXCOORD0, mGeomIndex, mGeomCount);
-						
-			glBeginTransformFeedback(GL_POINTS);
-			buff->setBuffer(LLVertexBuffer::MAP_TEXCOORD0);
-			push_for_transform(buff, vf.mNumVertices, mGeomCount);
-			glEndTransformFeedback();
-
-			bool do_bump = bump_code && mVertexBuffer->hasDataType(LLVertexBuffer::TYPE_TEXCOORD1);
-
-			if (do_bump)
-			{
-				mVertexBuffer->bindForFeedback(0, LLVertexBuffer::TYPE_TEXCOORD1, mGeomIndex, mGeomCount);
-				glBeginTransformFeedback(GL_POINTS);
-				buff->setBuffer(LLVertexBuffer::MAP_TEXCOORD0);
-				push_for_transform(buff, vf.mNumVertices, mGeomCount);
-				glEndTransformFeedback();
-			}				
-		}
-
-		glBindBufferARB(GL_TRANSFORM_FEEDBACK_BUFFER, 0);
-		gGL.popMatrix();
-
-		if (cur_shader)
-		{
-			cur_shader->bind();
-		}
-	}
-	else
-#endif
 	{
 		//if it's not fullbright and has no normals, bake sunlight based on face normal
 		//bool bake_sunlight = !getTextureEntry()->getFullbright() &&
@@ -1552,7 +1398,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 
 		if (rebuild_tcoord)
 		{
-			LLFastTimer t(FTM_FACE_GEOM_TEXTURE);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_TEXTURE);
 									
 			//bump setup
 			LLVector4a binormal_dir( -sin_ang, cos_ang, 0.f );
@@ -1560,57 +1406,61 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			LLVector4a bump_t_primary_light_ray(0.f, 0.f, 0.f);
 
 			LLQuaternion bump_quat;
-			if (mDrawablep->isActive())
+
+			if (!LLPipeline::sRenderDeferred)
 			{
-				bump_quat = LLQuaternion(LLMatrix4(mDrawablep->getRenderMatrix().getF32ptr()));
-			}
-		
-			if (bump_code)
-			{
-				mVObjp->getVolume()->genTangents(f);
-				F32 offset_multiple; 
-				switch( bump_code )
+				if (mDrawablep->isActive())
 				{
+					bump_quat = LLQuaternion(LLMatrix4(mDrawablep->getRenderMatrix().getF32ptr()));
+				}
+
+				if (bump_code)
+				{
+					mVObjp->getVolume()->genTangents(f);
+					F32 offset_multiple;
+					switch (bump_code)
+					{
 					case BE_NO_BUMP:
-					offset_multiple = 0.f;
-					break;
+						offset_multiple = 0.f;
+						break;
 					case BE_BRIGHTNESS:
 					case BE_DARKNESS:
-					if( mTexture[LLRender::DIFFUSE_MAP].notNull() && mTexture[LLRender::DIFFUSE_MAP]->hasGLTexture())
-					{
-						// Offset by approximately one texel
-						S32 cur_discard = mTexture[LLRender::DIFFUSE_MAP]->getDiscardLevel();
-						S32 max_size = llmax( mTexture[LLRender::DIFFUSE_MAP]->getWidth(), mTexture[LLRender::DIFFUSE_MAP]->getHeight() );
-						max_size <<= cur_discard;
-						const F32 ARTIFICIAL_OFFSET = 2.f;
-						offset_multiple = ARTIFICIAL_OFFSET / (F32)max_size;
-					}
-					else
-					{
-						offset_multiple = 1.f/256;
-					}
-					break;
+						if (mTexture[LLRender::DIFFUSE_MAP].notNull() && mTexture[LLRender::DIFFUSE_MAP]->hasGLTexture())
+						{
+							// Offset by approximately one texel
+							S32 cur_discard = mTexture[LLRender::DIFFUSE_MAP]->getDiscardLevel();
+							S32 max_size = llmax(mTexture[LLRender::DIFFUSE_MAP]->getWidth(), mTexture[LLRender::DIFFUSE_MAP]->getHeight());
+							max_size <<= cur_discard;
+							const F32 ARTIFICIAL_OFFSET = 2.f;
+							offset_multiple = ARTIFICIAL_OFFSET / (F32)max_size;
+						}
+						else
+						{
+							offset_multiple = 1.f / 256;
+						}
+						break;
 
 					default:  // Standard bumpmap textures.  Assumed to be 256x256
-					offset_multiple = 1.f / 256;
-					break;
-				}
+						offset_multiple = 1.f / 256;
+						break;
+					}
 
-				F32 s_scale = 1.f;
-				F32 t_scale = 1.f;
-				if( tep )
-				{
-					tep->getScale( &s_scale, &t_scale );
-				}
-				// Use the nudged south when coming from above sun angle, such
-				// that emboss mapping always shows up on the upward faces of cubes when 
-				// it's noon (since a lot of builders build with the sun forced to noon).
-				LLVector3   sun_ray  = gSky.mVOSkyp->mBumpSunDir;
-				LLVector3   moon_ray = gSky.getMoonDirection();
-				LLVector3& primary_light_ray = (sun_ray.mV[VZ] > 0) ? sun_ray : moon_ray;
+					F32 s_scale = 1.f;
+					F32 t_scale = 1.f;
+					if (tep)
+					{
+						tep->getScale(&s_scale, &t_scale);
+					}
+					// Use the nudged south when coming from above sun angle, such
+					// that emboss mapping always shows up on the upward faces of cubes when 
+					// it's noon (since a lot of builders build with the sun forced to noon).
+					LLVector3   sun_ray = gSky.mVOSkyp->mBumpSunDir;
+					LLVector3   moon_ray = gSky.getMoonDirection();
+					LLVector3& primary_light_ray = (sun_ray.mV[VZ] > 0) ? sun_ray : moon_ray;
 
-				bump_s_primary_light_ray.load3((offset_multiple * s_scale * primary_light_ray).mV);
-				bump_t_primary_light_ray.load3((offset_multiple * t_scale * primary_light_ray).mV);
+					bump_s_primary_light_ray.load3((offset_multiple * s_scale * primary_light_ray).mV);
+					bump_t_primary_light_ray.load3((offset_multiple * t_scale * primary_light_ray).mV);
+				}
 			}
 
 			U8 texgen = getTextureEntry()->getTexGen();
@@ -1648,7 +1498,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 					do_xform = false;
 				}
 
-				if (getVirtualSize() >= MIN_TEX_ANIM_SIZE)
+				if (getVirtualSize() >= MIN_TEX_ANIM_SIZE || isState(LLFace::RIGGED))
 				{ //don't override texture transform during tc bake
 					tex_mode = 0;
 				}
@@ -1675,18 +1525,18 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 
 				if (texgen != LLTextureEntry::TEX_GEN_PLANAR)
 				{
-					LLFastTimer t(FTM_FACE_TEX_QUICK);
+					LL_RECORD_BLOCK_TIME(FTM_FACE_TEX_QUICK);
 					if (!do_tex_mat)
 					{
 						if (!do_xform)
 						{
-							LLFastTimer t(FTM_FACE_TEX_QUICK_NO_XFORM);
+							LL_RECORD_BLOCK_TIME(FTM_FACE_TEX_QUICK_NO_XFORM);
 							S32 tc_size = (num_vertices*2*sizeof(F32)+0xF) & ~0xF;
 							LLVector4a::memcpyNonAliased16((F32*) tex_coords0.get(), (F32*) vf.mTexCoords, tc_size);
 						}
 						else
 						{
-							LLFastTimer t(FTM_FACE_TEX_QUICK_XFORM);
+							LL_RECORD_BLOCK_TIME(FTM_FACE_TEX_QUICK_XFORM);
 							F32* dst = (F32*) tex_coords0.get();
 							LLVector4a* src = (LLVector4a*) vf.mTexCoords;
 
@@ -1735,7 +1585,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 				}
 				else
 				{ //no bump, no atlas, tex gen planar
-					LLFastTimer t(FTM_FACE_TEX_QUICK_PLANAR);
+					LL_RECORD_BLOCK_TIME(FTM_FACE_TEX_QUICK_PLANAR);
 					if (do_tex_mat)
 					{
 						for (S32 i = 0; i < num_vertices; i++)
@@ -1777,7 +1627,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			}
 			else
 			{ //either bump mapped or in atlas, just do the whole expensive loop
-				LLFastTimer t(FTM_FACE_TEX_DEFAULT);
+				LL_RECORD_BLOCK_TIME(FTM_FACE_TEX_DEFAULT);
 
 				std::vector<LLVector2> bump_tc;
 
@@ -1881,7 +1731,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 					mVertexBuffer->flush();
 				}
 
-				if (!mat && do_bump)
+				if ( !LLPipeline::sRenderDeferred && do_bump )
 				{
 					mVertexBuffer->getTexCoord1Strider(tex_coords1, mGeomIndex, mGeomCount, map_range);
 		
@@ -1934,7 +1784,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			LLVector4a* end = src+num_vertices;
 			//LLVector4a* end_64 = end-4;
 
-			//LLFastTimer t(FTM_FACE_GEOM_POSITION);
+			//LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_POSITION);
 			llassert(num_vertices > 0);
 		
 			mVertexBuffer->getVertexStrider(vert, mGeomIndex, mGeomCount, map_range);
@@ -1971,7 +1821,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			LLVector4a tmp;
 
 			{
-				//LLFastTimer t2(FTM_FACE_POSITION_STORE);
+				//LL_RECORD_BLOCK_TIME(FTM_FACE_POSITION_STORE);
 
 				/*if (num_vertices > 4)
 				{ //more than 64 bytes
@@ -2011,7 +1861,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			}
 
 			{
-				//LLFastTimer t(FTM_FACE_POSITION_PAD);
+				//LL_RECORD_BLOCK_TIME(FTM_FACE_POSITION_PAD);
 				while (dst < end_f32)
 				{
 					res0.store4a((F32*) dst);
@@ -2028,7 +1878,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 		
 		if (rebuild_normal)
 		{
-			//LLFastTimer t(FTM_FACE_GEOM_NORMAL);
+			//LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_NORMAL);
 			mVertexBuffer->getNormalStrider(norm, mGeomIndex, mGeomCount, map_range);
 			F32* normals = (F32*) norm.get();
 			LLVector4a* src = vf.mNormals;
@@ -2050,7 +1900,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 		
 		if (rebuild_tangent)
 		{
-			LLFastTimer t(FTM_FACE_GEOM_TANGENT);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_TANGENT);
 			mVertexBuffer->getTangentStrider(tangent, mGeomIndex, mGeomCount, map_range);
 			F32* tangents = (F32*) tangent.get();
 			
@@ -2058,11 +1908,21 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 			
 			LLVector4a* src = vf.mTangents;
 			LLVector4a* end = vf.mTangents+num_vertices;
+			LLVector4a* src2 = vf.mNormals;
+			LLVector4a* end2 = vf.mNormals+num_vertices;
+
+			LLMaterial* mat = tep->getMaterialParams().get();
+			F32 rot = RAD_TO_DEG * ( (mat && mat->getNormalID().notNull()) ? mat->getNormalRotation() : r);
+			bool rotate_tangent = src2 && !is_approx_equal(rot, 360.f) && !is_approx_zero(rot);
 
 			while (src < end)
 			{
-				LLVector4a tangent_out;
-				mat_normal.rotate(*src, tangent_out);
+				LLVector4a tangent_out = *src;
+				if (rotate_tangent && src2 < end2)
+				{
+					gGL.genRot(rot, *src2++).rotate(tangent_out, tangent_out);
+				}
+				mat_normal.rotate(tangent_out, tangent_out);
 				tangent_out.normalize3fast();
 				tangent_out.copyComponent<3>(*src);
 				tangent_out.store4a(tangents);
@@ -2079,7 +1939,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 	
 		if (rebuild_weights && vf.mWeights)
 		{
-			LLFastTimer t(FTM_FACE_GEOM_WEIGHTS);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_WEIGHTS);
 			mVertexBuffer->getWeight4Strider(wght, mGeomIndex, mGeomCount, map_range);
 			for(S32 i=0;i<num_vertices;++i)
 			{
@@ -2093,7 +1953,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 
 		if (rebuild_color && mVertexBuffer->hasDataType(LLVertexBuffer::TYPE_COLOR) )
 		{
-			LLFastTimer t(FTM_FACE_GEOM_COLOR);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_COLOR);
 			mVertexBuffer->getColorStrider(colors, mGeomIndex, mGeomCount, map_range);
 
 			LLVector4a src;
@@ -2124,7 +1984,7 @@ BOOL LLFace::getGeometryVolume(const LLVolume& volume,
 
 		if (rebuild_emissive)
 		{
-			LLFastTimer t(FTM_FACE_GEOM_EMISSIVE);
+			LL_RECORD_BLOCK_TIME(FTM_FACE_GEOM_EMISSIVE);
 			LLStrider<LLColor4U> emissive;
 			mVertexBuffer->getEmissiveStrider(emissive, mGeomIndex, mGeomCount, map_range);
 
@@ -2619,12 +2479,25 @@ LLViewerTexture* LLFace::getTexture(U32 ch) const
 
 void LLFace::setVertexBuffer(LLVertexBuffer* buffer)
 {
+	if (buffer)
+	{
+		LLSculptIDSize::instance().inc(mDrawablep, buffer->getSize() + buffer->getIndicesSize());
+	}
+
+	if (mVertexBuffer)
+	{
+		LLSculptIDSize::instance().dec(mDrawablep);
+	}
 	mVertexBuffer = buffer;
 	llassert(verify());
 }
 
 void LLFace::clearVertexBuffer()
 {
+	if (mVertexBuffer)
+	{
+		LLSculptIDSize::instance().dec(mDrawablep);
+	}
 	mVertexBuffer = NULL;
 }
 

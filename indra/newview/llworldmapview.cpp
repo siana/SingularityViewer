@@ -149,10 +149,10 @@ void LLWorldMapView::initClass()
 	sHomeImage =			LLUI::getUIImage("map_home.tga");
 	sTelehubImage = 		LLUI::getUIImage("map_telehub.tga");
 	sInfohubImage = 		LLUI::getUIImage("map_infohub.tga");
-	sEventImage =			LLUI::getUIImage("map_event.tga");
-	sEventMatureImage =		LLUI::getUIImage("map_event_mature.tga");
+	sEventImage =			LLUI::getUIImage("Parcel_PG_Light");
+	sEventMatureImage =		LLUI::getUIImage("Parcel_M_Light");
 	// To Do: update the image resource for adult events.
-	sEventAdultImage =		LLUI::getUIImage("map_event_adult.tga");
+	sEventAdultImage =		LLUI::getUIImage("Parcel_R_Light");
 
 	sTrackCircleImage =		LLUI::getUIImage("map_track_16.tga");
 	sTrackArrowImage =		LLUI::getUIImage("direction_arrow.tga");
@@ -337,8 +337,8 @@ void LLWorldMapView::draw()
 	mVisibleRegions.clear();
 	
 	// animate pan if necessary
-	sPanX = lerp(sPanX, sTargetPanX, LLCriticalDamp::getInterpolant(0.1f));
-	sPanY = lerp(sPanY, sTargetPanY, LLCriticalDamp::getInterpolant(0.1f));
+	sPanX = lerp(sPanX, sTargetPanX, LLSmoothInterpolation::getInterpolant(0.1f));
+	sPanY = lerp(sPanY, sTargetPanY, LLSmoothInterpolation::getInterpolant(0.1f));
 
 	const S32 width = getRect().getWidth();
 	const S32 height = getRect().getHeight();
@@ -433,11 +433,11 @@ void LLWorldMapView::draw()
 			gGL.color4f(0.2f, 0.0f, 0.0f, 0.4f);
 
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-			gGL.begin(LLRender::QUADS);
+			gGL.begin(LLRender::TRIANGLE_STRIP);
 				gGL.vertex2f(left, top);
 				gGL.vertex2f(left, bottom);
-				gGL.vertex2f(right, bottom);
 				gGL.vertex2f(right, top);
+				gGL.vertex2f(right, bottom);
 			gGL.end();
 			gGL.blendFunc(LLRender::BF_SOURCE_ALPHA, LLRender::BF_ONE_MINUS_SOURCE_ALPHA);
 		}
@@ -475,15 +475,15 @@ void LLWorldMapView::draw()
 				{
 					gGL.getTexUnit(0)->bind(overlayimage);
 					gGL.color4f(1.f, 1.f, 1.f, alpha);
-					gGL.begin(LLRender::QUADS);
+					gGL.begin(LLRender::TRIANGLE_STRIP);
 						gGL.texCoord2f(0.f, 1.f);
 						gGL.vertex3f(left, top, -0.5f);
 						gGL.texCoord2f(0.f, 0.f);
 						gGL.vertex3f(left, bottom, -0.5f);
-						gGL.texCoord2f(1.f, 0.f);
-						gGL.vertex3f(right, bottom, -0.5f);
 						gGL.texCoord2f(1.f, 1.f);
 						gGL.vertex3f(right, top, -0.5f);
+						gGL.texCoord2f(1.f, 0.f);
+						gGL.vertex3f(right, bottom, -0.5f);
 					gGL.end();
 				}
 			}
@@ -582,11 +582,11 @@ void LLWorldMapView::draw()
 					gGL.color4f(0.5f, 0.0f, 0.0f, 0.4f);
 				else
 					gGL.color4f(0.2f, .2f, 0.2f, 0.4f);
-				gGL.begin(LLRender::QUADS);
+				gGL.begin(LLRender::TRIANGLE_STRIP);
 					gGL.vertex2f(base_left+padding, base_top-padding);
 					gGL.vertex2f(base_left+padding, base_bottom+padding);
+					gGL.vertex2f(base_right - padding, base_top - padding);
 					gGL.vertex2f(base_right-padding, base_bottom+padding);
-					gGL.vertex2f(base_right-padding, base_top-padding);
 				gGL.end();
 				if(it != LLWorldMap::getInstance()->getMapBlockEnd(SIM_LAYER_OVERLAY))
 				{
@@ -610,11 +610,11 @@ void LLWorldMapView::draw()
 								gGL.color4f(0.0f, 0.5f, 0.0f, 0.4f);
 							else
 								gGL.color4f(0.4f, 0.0f, 0.0f, 0.4f);
-							gGL.begin(LLRender::QUADS);
+							gGL.begin(LLRender::TRIANGLE_STRIP);
 								gGL.vertex2f(block_left+padding, block_top-padding);
 								gGL.vertex2f(block_left+padding, block_bottom+padding);
+								gGL.vertex2f(block_right - padding, block_top - padding);
 								gGL.vertex2f(block_right-padding, block_bottom+padding);
-								gGL.vertex2f(block_right-padding, block_top-padding);
 							gGL.end();
 
 							for(U32 sim_x=0;sim_x<MAP_BLOCK_SIZE;++sim_x)
@@ -632,11 +632,11 @@ void LLWorldMapView::draw()
 										const F32 sim_right = block_left + sim_x*sMapScale + sMapScale - (sim_x<(MAP_BLOCK_SIZE-1) ? 0 : padding);
 
 										gGL.color4f(0.0f, 0.0f, 0.4f, 0.4f);
-										gGL.begin(LLRender::QUADS);
+										gGL.begin(LLRender::TRIANGLE_STRIP);
 											gGL.vertex2f(sim_left, sim_top);
 											gGL.vertex2f(sim_left, sim_bottom);
-											gGL.vertex2f(sim_right, sim_bottom);
 											gGL.vertex2f(sim_right, sim_top);
+											gGL.vertex2f(sim_right, sim_bottom);
 										gGL.end();
 									}
 								}
@@ -741,7 +741,7 @@ void LLWorldMapView::draw()
 	}
 	
 	// turn off the scissor
-	LLGLDisable no_scissor(GL_SCISSOR_TEST);
+	LLGLDisable<GL_SCISSOR_TEST> no_scissor;
 	
 	updateDirections();
 
@@ -840,29 +840,29 @@ void LLWorldMapView::drawLegacyBackgroundLayers(S32 width, S32 height) {
 		// Draw map image into RGB
 		gGL.setColorMask(true, false);
 		gGL.color4f(1.f, 1.f, 1.f, 1.f);
-		gGL.begin(LLRender::QUADS);
+		gGL.begin(LLRender::TRIANGLE_STRIP);
 			gGL.texCoord2f(0.0f, 1.0f);
 			gGL.vertex3f(left, top, -1.0f);
 			gGL.texCoord2f(0.0f, 0.0f);
 			gGL.vertex3f(left, bottom, -1.0f);
-			gGL.texCoord2f(1.0f, 0.0f);
-			gGL.vertex3f(right, bottom, -1.0f);
 			gGL.texCoord2f(1.0f, 1.0f);
 			gGL.vertex3f(right, top, -1.0f);
+			gGL.texCoord2f(1.0f, 0.0f);
+			gGL.vertex3f(right, bottom, -1.0f);
 		gGL.end();
         // draw an alpha of 1 where the sims are visible
 		gGL.setColorMask(false, true);
 		gGL.color4f(1.f, 1.f, 1.f, 1.f);
 
-		gGL.begin(LLRender::QUADS);
+		gGL.begin(LLRender::TRIANGLE_STRIP);
 			gGL.texCoord2f(0.0f, 1.0f);
 			gGL.vertex2f(left, top);
 			gGL.texCoord2f(0.0f, 0.0f);
 			gGL.vertex2f(left, bottom);
-			gGL.texCoord2f(1.0f, 0.0f);
-			gGL.vertex2f(right, bottom);
 			gGL.texCoord2f(1.0f, 1.0f);
 			gGL.vertex2f(right, top);
+			gGL.texCoord2f(1.0f, 0.0f);
+			gGL.vertex2f(right, bottom);
 		gGL.end();
 
 		gGL.setColorMask(true, true);
@@ -890,7 +890,7 @@ F32 LLWorldMapView::drawLegacySimTile(LLSimInfo& sim_info, S32 left, S32 top, S3
 				 (textures_requested_this_tick < MAX_REQUEST_PER_TICK)))
 			{
 				textures_requested_this_tick++;
-				simimage = sim_info.mLayerImage[SIM_LAYER_COMPOSITE] = LLViewerTextureManager::getFetchedTexture(sim_info.mMapImageID[SIM_LAYER_COMPOSITE], MIPMAP_TRUE, LLGLTexture::BOOST_MAP, LLViewerTexture::LOD_TEXTURE);
+				simimage = sim_info.mLayerImage[SIM_LAYER_COMPOSITE] = LLViewerTextureManager::getFetchedTexture(sim_info.mMapImageID[SIM_LAYER_COMPOSITE], FTT_MAP_TILE, MIPMAP_TRUE, LLGLTexture::BOOST_MAP, LLViewerTexture::LOD_TEXTURE);
 	            simimage->setAddressMode(LLTexUnit::TAM_CLAMP);
 			}
 		}
@@ -905,7 +905,7 @@ F32 LLWorldMapView::drawLegacySimTile(LLSimInfo& sim_info, S32 left, S32 top, S3
 	if (!sim_drawable || sim_fetching)
 		sim_info.setAlpha( 0.f );
 	else if (llabs(sim_info.getAlpha() - fade_target) > ALPHA_CUTOFF) //This gives us a nice fade when a visible sims texture finishes loading, or visiblity has changed.
-		sim_info.setAlpha(lerp(sim_info.getAlpha(), fade_target, LLCriticalDamp::getInterpolant(0.15f)));
+		sim_info.setAlpha(lerp(sim_info.getAlpha(), fade_target, LLSmoothInterpolation::getInterpolant(0.15f)));
 	F32 alpha = sim_info.getAlpha();
 	
 	//call setKnownDrawSize if image is still loading, or its actually being drawn.
@@ -919,15 +919,15 @@ F32 LLWorldMapView::drawLegacySimTile(LLSimInfo& sim_info, S32 left, S32 top, S3
 		{
 			gGL.getTexUnit(0)->bind(simimage);
 			gGL.color4f(1.f, 1.f, 1.f, alpha);
-			gGL.begin(LLRender::QUADS);
+			gGL.begin(LLRender::TRIANGLE_STRIP);
 				gGL.texCoord2f(0.f, 1.f);
 				gGL.vertex2f(left, top);
 				gGL.texCoord2f(0.f, 0.f);
 				gGL.vertex2f(left, bottom);
-				gGL.texCoord2f(1.f, 0.f);
-				gGL.vertex2f(right, bottom);
 				gGL.texCoord2f(1.f, 1.f);
 				gGL.vertex2f(right, top);
+				gGL.texCoord2f(1.f, 0.f);
+				gGL.vertex2f(right, bottom);
 			gGL.end();
 		}
 	}
@@ -1045,15 +1045,15 @@ bool LLWorldMapView::drawMipmapLevel(S32 width, S32 height, S32 level, bool load
 					gGL.getTexUnit(0)->bind(simimage.get());
 					simimage->setAddressMode(LLTexUnit::TAM_CLAMP);
 					gGL.color4f(1.f, 1.0f, 1.0f, 1.0f);
-					gGL.begin(LLRender::QUADS);
+					gGL.begin(LLRender::TRIANGLE_STRIP);
 						gGL.texCoord2f(0.f, 1.f);
 						gGL.vertex3f(left, top, 0.f);
 						gGL.texCoord2f(0.f, 0.f);
 						gGL.vertex3f(left, bottom, 0.f);
-						gGL.texCoord2f(1.f, 0.f);
-						gGL.vertex3f(right, bottom, 0.f);
 						gGL.texCoord2f(1.f, 1.f);
 						gGL.vertex3f(right, top, 0.f);
+						gGL.texCoord2f(1.f, 0.f);
+						gGL.vertex3f(right, bottom, 0.f);
 					gGL.end();
 #if DEBUG_DRAW_TILE
 					drawTileOutline(level, top, left, bottom, right);
@@ -1250,9 +1250,9 @@ void LLWorldMapView::drawFrustum()
 	F32 half_width_pixels = half_width_meters * meters_to_pixels;
 	
 	// Compute the frustum coordinates. Take the UI scale into account.
-	static LLCachedControl<F32> ui_scale_factor("UIScaleFactor");
-	F32 ctr_x = (getLocalRect().getWidth() * 0.5f + sPanX)  * ui_scale_factor;
-	F32 ctr_y = (getLocalRect().getHeight() * 0.5f + sPanY) * ui_scale_factor;
+	LLVector2 ui_scale_factor = gViewerWindow->getUIScale();
+	F32 ctr_x = (getLocalRect().getWidth() * 0.5f + sPanX)  * ui_scale_factor.mV[VX];
+	F32 ctr_y = (getLocalRect().getHeight() * 0.5f + sPanY) * ui_scale_factor.mV[VY];
 
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 
@@ -1688,12 +1688,10 @@ void LLWorldMapView::drawTrackingCircle( const LLRect& rect, S32 x, S32 y, const
 		end_theta -= angle_adjust_y;
 	}
 
-	gGL.matrixMode(LLRender::MM_MODELVIEW);
-	gGL.pushMatrix();
-	gGL.translatef((F32)x, (F32)y, 0.f);
+	gGL.pushUIMatrix();
+	gGL.translateUI(x, y, 0.f);
 	gl_washer_segment_2d(inner_radius, outer_radius, start_theta, end_theta, 40, color, color);
-	gGL.popMatrix();
-
+	gGL.popUIMatrix();
 }
 
 // static

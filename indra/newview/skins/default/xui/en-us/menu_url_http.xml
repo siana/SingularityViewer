@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu
+ layout="topleft"
+ label="URL"
+ name="Url Popup">
+    <menu_item_call
+     label="Open Web Page"
+     layout="topleft"
+     name="url_open">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Open" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Open in Internal Browser"
+     layout="topleft"
+     name="url_open_internal">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="OpenInternal" />
+    </menu_item_call>
+    <menu_item_call
+     label="Open in External Browser"
+     layout="topleft"
+     name="url_open_external">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="OpenExternal" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Copy URL to clipboard"
+     layout="topleft"
+     name="url_copy">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyUrl" />
+    </menu_item_call>
+  <menu_item_call label="Select All" name="Select All">
+    <on_click function="Text" userdata="SelectAll"/>
+  </menu_item_call>
+</context_menu>

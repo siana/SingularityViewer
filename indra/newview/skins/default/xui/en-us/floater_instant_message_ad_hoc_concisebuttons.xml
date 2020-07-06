@@ -8,7 +8,9 @@
 	<string name="typing_start_string">[NAME] is typing...</string>
 	<string name="session_start_string">Starting session with [NAME], please wait.</string>
 	<string name="default_text_label">Click here to instant message.</string>
-    <button bottom="-20" follows="right|top" height="20" label="History" right="-210" name="history_btn" width="80"/>
+    <flyout_button bottom="-20" follows="right|top" halign="center" height="20" label="History" right="-210" name="instant_message_flyout" width="80" list_position="below">
+      <flyout_button_item label="Add to Conference" name="conference" value="-4"/>
+    </flyout_button>
     <button bottom_delta="0" follows="right|top" height="20" left_delta="80" width="50" toggle="true" name="ding_btn" label="Ding">
       <button.commit_callback function="FlipDing"/>
     </button>

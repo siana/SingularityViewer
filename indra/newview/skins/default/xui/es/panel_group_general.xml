@@ -12,9 +12,9 @@ Coloca el cursor sobre las opciones para más información.
 	</string>
 	<button label="?" label_selected="?" name="help_button"/>
 	<line_editor label="Escribe aquí el nombre de tu nuevo grupo" name="group_name_editor"/>
-	<text name="group_name">
+	<name_box name="group_name">
 		Escribe aquí el nombre de tu nuevo grupo
-	</text>
+	</name_box>
 	<text name="prepend_founded_by">
 		Creado por
 	</text>

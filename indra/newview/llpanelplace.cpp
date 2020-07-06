@@ -125,7 +125,7 @@ BOOL LLPanelPlace::postBuild()
 void LLPanelPlace::displayItemInfo(const LLInventoryItem* pItem)
 {
 	mNameEditor->setText(pItem->getName());
-	mDescEditor->setText(pItem->getDescription());
+	mDescEditor->setText(pItem->getDescription(), false);
 }
 
 // Use this for search directory clicks, because we are totally
@@ -248,7 +248,7 @@ void LLPanelPlace::processParcelInfo(const LLParcelData& parcel_data)
 	if( !parcel_data.desc.empty()
 		&& mDescEditor && mDescEditor->getText().empty())
 	{
-		mDescEditor->setText(parcel_data.desc);
+		mDescEditor->setText(parcel_data.desc, false);
 	}
 
 	std::string info_text;

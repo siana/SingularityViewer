@@ -66,6 +66,7 @@
 #include "llviewerparcelmgr.h"
 #include "llviewerregion.h"
 #include "llviewerwindow.h"
+#include "llvoavatarself.h"
 #include "llglheaders.h"
 #include "llviewertexturelist.h"
 //#include "lltoolobjpicker.h"
@@ -271,7 +272,7 @@ void LLHoverView::updateText()
 		line.clear();
 		if (hit_object->isAvatar())
 		{
-			if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS))
+			if (gAgentAvatarp != hit_object && gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS))
 				return; // No tag, no tip.
 			LLNameValue* title = hit_object->getNVPair("Title");
 			LLNameValue* firstname = hit_object->getNVPair("FirstName");
@@ -306,6 +307,8 @@ void LLHoverView::updateText()
 				line.append(LLTrans::getString("TooltipPerson"));
 			}
 			mText.push_back(line);
+
+			mText.push_back(LLTrans::getString("Complexity", LLSD().with("NUM", static_cast<LLSD::Integer>(hit_object->asAvatar()->getVisualComplexity()))));
 		}
 		else
 		{
@@ -542,10 +545,15 @@ void LLHoverView::updateText()
 						line.append(LLTrans::getString("TooltipForSaleMsg", args));
 					}
 					mText.push_back(line);
+
+					auto objects = LLSelectMgr::getInstance()->getHoverObjects();
+
 					line.clear();
-					S32 prim_count = LLSelectMgr::getInstance()->getHoverObjects()->getObjectCount();
+					S32 prim_count = objects->getObjectCount();
 					line.append(llformat("Prims: %d", prim_count));
 					mText.push_back(line);
+
+					mText.push_back(llformat("LI: %.2f", objects->getSelectedLinksetCost()));
 
 					line.clear();
 					line.append("Position: ");
@@ -803,8 +811,8 @@ void LLHoverView::draw()
 		return;
 	}
 
-	LLUIImagePtr box_imagep = LLUI::getUIImage("rounded_square.tga");
-	LLUIImagePtr shadow_imagep = LLUI::getUIImage("rounded_square_soft.tga");
+	LLUIImagePtr box_imagep = LLUI::getUIImage("Rounded_Square");
+	LLUIImagePtr shadow_imagep = LLUI::getUIImage("Rounded_Square_Soft");
 
 	const LLFontGL* fontp = LLResMgr::getInstance()->getRes(LLFONT_SANSSERIF_SMALL);
 

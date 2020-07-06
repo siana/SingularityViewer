@@ -74,7 +74,9 @@ private:
 	void onDisableAll();
 	void onDisableSelected();
 
+	LLVector3d getSelectedPosition() const;
 	void onTeleportToObject();
+	void onCamToObject();
 	void onKick();
 	void onProfile();
 

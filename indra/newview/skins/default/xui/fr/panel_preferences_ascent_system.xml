@@ -3,7 +3,8 @@
   <tab_container label="System" name="Ascent System">
 
     <panel label="G&#xE9;n&#xE9;ral" name="User Interface">
-      <check_box label="Activer le TP avec le double-clic" tool_tip="Activer le TP sur un objet/une personne avec le double-clic" name="double_click_teleport_check"/>
+      <text name="double_click_text" value="Activer le double-clic pour"/>
+      <check_box left_delta="135" label="le TP" tool_tip="Activer le TP sur un objet/une personne avec le double-clic" name="double_click_teleport_check"/>
       <check_box label="R&#xE9;initialiser la cam&#xE9;ra apr&#xE8;s le TP" tool_tip="Centre la cam&#xE9;ra derri&#xE8;re vous apr&#xE8;s un TP." name="center_after_teleport_check"/>
       <check_box label="Compenser la cible du TP" tool_tip="Essaye de cibler le TP pour que vos pieds atterrissent au point vis&#xE9;" name="offset_teleport_check"/>
       <check_box name="clear_beacon_after_tp" label="Effacer la balise rouge de destination après un TP"/>
@@ -88,10 +89,8 @@
       <check_box label="Affiche les changements de d&#xE9;comptes de scripts de la r&#xE9;gion." name="totalscriptjumps" tool_tip="D&#xE9;pendant du seuil que vous choisissez dans la fen&#xEA;tre &#xE0; droite."/>
       <spinner left_delta="350" name="ScriptJumpCount"/>
       <check_box label="RLVa (Restrained Love API)" name="RestrainedLove" tool_tip="Active le RLVa"/>
-      <check_box label="Reduit automatiquement la notice de redémarrage de la sim" name="region_restart_minimized"/>
       <text name="EmergencyTeleportDesc">Glissez un landmark ci dessous pour y être téléporté 20 sec avant le redémarrage de la sim</text>
       <text name="EmergencyTeleportBackupDesc">Glissez ci dessous un second landmark de 'secours'</text>
-      <text name="UISndRestartText">Alerte sonore du redémarrage:</text>
    </panel>
 
     <panel label="Build/Cr&#xE9;ation" name="Building">

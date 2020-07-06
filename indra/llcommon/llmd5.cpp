@@ -102,37 +102,37 @@ void LLMD5::update (const uint1 *input, const uint4 input_length) {
   uint4 input_index, buffer_index;
   uint4 buffer_space;                // how much space is left in buffer
 
-  if (finalized){  // so we can't update!
+  if (mFinalized){  // so we can't update!
 	  std::cerr << "LLMD5::update:  Can't update a finalized digest!" << std::endl;
     return;
   }
 
   // Compute number of bytes mod 64
-  buffer_index = (unsigned int)((count[0] >> 3) & 0x3F);
+  buffer_index = (unsigned int)((mCount[0] >> 3) & 0x3F);
 
   // Update number of bits
-  if (  (count[0] += ((uint4) input_length << 3))<((uint4) input_length << 3) )
-    count[1]++;
+  if (  (mCount[0] += ((uint4) input_length << 3))<((uint4) input_length << 3) )
+	  mCount[1]++;
 
-  count[1] += ((uint4)input_length >> 29);
+  mCount[1] += ((uint4)input_length >> 29);
 
 
   buffer_space = 64 - buffer_index;  // how much space is left in buffer
+
+  // now, transform each 64-byte piece of the input, bypassing the buffer
+  if (input == NULL || input_length == 0){
+	  std::cerr << "LLMD5::update:  Invalid input!" << std::endl;
+	  return;
+  }
 
   // Transform as many times as possible.
   if (input_length >= buffer_space) { // ie. we have enough to fill the buffer
     // fill the rest of the buffer and transform
     memcpy(	/* Flawfinder: ignore */
-		buffer + buffer_index,
+		mBuffer + buffer_index,
 		input,
 		buffer_space);
-    transform (buffer);
-
-    // now, transform each 64-byte piece of the input, bypassing the buffer
-  if (input == NULL || input_length == 0){
-	std::cerr << "LLMD5::update:  Invalid input!" << std::endl;
-	return;
-  }
+    transform (mBuffer);
 
     for (input_index = buffer_space; input_index + 63 < input_length; 
 	 input_index += 64)
@@ -145,7 +145,7 @@ void LLMD5::update (const uint1 *input, const uint4 input_length) {
 
 
   // and here we do the buffering:
-  memcpy(buffer+buffer_index, input+input_index, input_length-input_index);		/* Flawfinder: ignore */
+  memcpy(mBuffer+buffer_index, input+input_index, input_length-input_index);		/* Flawfinder: ignore */
 }
 
 
@@ -200,16 +200,16 @@ void LLMD5::finalize (){
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     };
 
-  if (finalized){
+  if (mFinalized){
     std::cerr << "LLMD5::finalize:  Already finalized this digest!" << std::endl;
     return;
   }
 
   // Save number of bits
-  encode (bits, count, 8);
+  encode (bits, mCount, 8);
 
   // Pad out to 56 mod 64.
-  index = (uint4) ((count[0] >> 3) & 0x3f);
+  index = (uint4) ((mCount[0] >> 3) & 0x3f);
   padLen = (index < 56) ? (56 - index) : (120 - index);
   update (PADDING, padLen);
 
@@ -217,12 +217,12 @@ void LLMD5::finalize (){
   update (bits, 8);
 
   // Store state in digest
-  encode (digest, state, 16);
+  encode (mDigest, mState, 16);
 
   // Zeroize sensitive information
-  memset (buffer, 0, sizeof(*buffer));
+  memset (mBuffer, 0, sizeof(mBuffer));
 
-  finalized=1;
+  mFinalized=true;
 
 }
 
@@ -269,7 +269,7 @@ LLMD5::LLMD5(const unsigned char *s)
 
 void LLMD5::raw_digest(unsigned char *s) const
 {
-	if (!finalized)
+	if (!mFinalized)
 	{
 		std::cerr << "LLMD5::raw_digest:  Can't get digest if you haven't "<<
 			"finalized the digest!" << std::endl;
@@ -277,22 +277,22 @@ void LLMD5::raw_digest(unsigned char *s) const
 		return;
 	}
 
-	memcpy(s, digest, 16);		/* Flawfinder: ignore */
+	memcpy(s, mDigest, 16);		/* Flawfinder: ignore */
 	return;
 }
 
 //Singu extension: the inverse of LLMD5::raw_digest.
 void LLMD5::clone(unsigned char const* s)
 {
-	memcpy(digest, s, 16);
-	finalized = 1;
+	memcpy(mDigest, s, 16);
+	mFinalized = true;
 }
 
 void LLMD5::hex_digest(char *s) const
 {
 	int i;
 
-	if (!finalized)
+	if (!mFinalized)
 	{
 		std::cerr << "LLMD5::hex_digest:  Can't get digest if you haven't "<<
 		  "finalized the digest!" <<std::endl;
@@ -302,7 +302,7 @@ void LLMD5::hex_digest(char *s) const
 
 	for (i=0; i<16; i++)
 	{
-		sprintf(s+i*2, "%02x", digest[i]);		/* Flawfinder: ignore */
+		sprintf(s+i*2, "%02x", mDigest[i]);		/* Flawfinder: ignore */
 	}
 
 	s[32]='\0';
@@ -322,9 +322,9 @@ void LLMD5::clone(std::string const& hash_str)
 	  unsigned char  nibble = (c >= '0' && c <= '9') ? c - '0' : c - 'a' + 10;
 	  byte += nibble << ((1 - j) << 2);
 	}
-	digest[i] = byte;
+	mDigest[i] = byte;
   }
-  finalized = 1;
+  mFinalized = 1;
 }
 
 
@@ -340,17 +340,17 @@ std::ostream& operator<<(std::ostream &stream, LLMD5 const& context)
 // PRIVATE METHODS:
 
 void LLMD5::init(){
-  finalized=0;  // we just started!
+  mFinalized=false;  // we just started!
 
   // Nothing counted, so count=0
-  count[0] = 0;
-  count[1] = 0;
+  mCount[0] = 0;
+  mCount[1] = 0;
 
   // Load magic initialization constants.
-  state[0] = 0x67452301;
-  state[1] = 0xefcdab89;
-  state[2] = 0x98badcfe;
-  state[3] = 0x10325476;
+  mState[0] = 0x67452301;
+  mState[1] = 0xefcdab89;
+  mState[2] = 0x98badcfe;
+  mState[3] = 0x10325476;
 }
 
 
@@ -419,11 +419,11 @@ Rotation is separate from addition to prevent recomputation.
 // LLMD5 basic transformation. Transforms state based on block.
 void LLMD5::transform (const U8 block[64]){
 
-  uint4 a = state[0], b = state[1], c = state[2], d = state[3], x[16];
+  uint4 a = mState[0], b = mState[1], c = mState[2], d = mState[3], x[16];
 
   decode (x, block, 64);
 
-  assert(!finalized);  // not just a user error, since the method is private
+  assert(!mFinalized);  // not just a user error, since the method is private
 
   /* Round 1 */
   FF (a, b, c, d, x[ 0], S11, 0xd76aa478); /* 1 */
@@ -497,10 +497,10 @@ void LLMD5::transform (const U8 block[64]){
   II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb); /* 63 */
   II (b, c, d, a, x[ 9], S44, 0xeb86d391); /* 64 */
 
-  state[0] += a;
-  state[1] += b;
-  state[2] += c;
-  state[3] += d;
+  mState[0] += a;
+  mState[1] += b;
+  mState[2] += c;
+  mState[3] += d;
 
   // Zeroize sensitive information.
   memset ( (uint1 *) x, 0, sizeof(x));

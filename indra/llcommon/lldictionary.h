@@ -65,7 +65,7 @@ public:
 	{
 		for (const_iterator_t dictionary_iter = map_t::begin();
 			 dictionary_iter != map_t::end();
-			 dictionary_iter++)
+			 ++dictionary_iter)
 		{
 			const Entry *entry = dictionary_iter->second;
 			if (entry->mName == name)

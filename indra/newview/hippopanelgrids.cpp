@@ -130,6 +130,7 @@ BOOL HippoPanelGridsImpl::postBuild()
 	requires<LLLineEditor>("website");
 	requires<LLLineEditor>("support");
 	requires<LLLineEditor>("register");
+	requires<LLLineEditor>("partner");
 	requires<LLLineEditor>("password");
 	requires<LLLineEditor>("search");
 	requires<LLButton>("btn_delete");
@@ -172,7 +173,7 @@ void HippoPanelGridsImpl::refresh()
 	LLComboBox *grids = getChild<LLComboBox>("grid_selector");
 	S32 selectIndex = -1, i = 0;
 	grids->removeall();
-	if (defaultGrid != "") {
+	if (!defaultGrid.empty()) {
 		grids->add(defaultGrid);
 		selectIndex = i++;
 	}
@@ -192,10 +193,10 @@ void HippoPanelGridsImpl::refresh()
 	if (selectIndex >= 0) {
 		grids->setCurrentByIndex(selectIndex);
 	} else {
-		grids->setLabel(LLStringExplicit(""));  // LLComboBox::removeall() does not clear the label
+		grids->setLabel(LLStringUtil::null);  // LLComboBox::removeall() does not clear the label
 	}
 
-	childSetTextArg("default_grid", "[DEFAULT]", (defaultGrid != "")? defaultGrid: " ");
+	childSetTextArg("default_grid", "[DEFAULT]", !defaultGrid.empty() ? defaultGrid : " ");
 
 	childSetEnabled("btn_delete", (selectIndex >= 0) && mIsEditable );
 	childSetEnabled("btn_copy", (mState == NORMAL) && (selectIndex >= 0));
@@ -244,11 +245,12 @@ void HippoPanelGridsImpl::loadCurGrid()
 		childSetText("support", gridInfo->getSupportUrl());
 		childSetText("search", gridInfo->getSearchUrl());
 		childSetText("register", gridInfo->getRegisterUrl());
+		childSetText("partner", gridInfo->getPartnerUrl());
 		childSetText("password", gridInfo->getPasswordUrl());
 		childSetValue("render_compat", gridInfo->isRenderCompat());
 		enableEditing(!gridInfo->getLocked());
 	} else {
-		std::string empty = "";
+		const std::string& empty = LLStringUtil::null;
 		LLComboBox *platform = getChild<LLComboBox>("platform");
 		if (platform) platform->setCurrentByIndex(HippoGridInfo::PLATFORM_OTHER);
 		childSetText("gridname", empty);
@@ -259,6 +261,7 @@ void HippoPanelGridsImpl::loadCurGrid()
 		childSetText("support", empty);
 		childSetText("search", empty);
 		childSetText("register", empty);
+		childSetText("partner", empty);
 		childSetText("password", empty);
 		childSetValue("render_compat", true);
 		enableEditing(true);
@@ -288,9 +291,9 @@ bool HippoPanelGridsImpl::saveCurGrid()
 	refresh();
 	
 	std::string gridname = childGetValue("gridname");
-	if (gridname == "<required>") gridname = "";
+	if (gridname == "<required>") gridname.clear();
 	std::string loginuri = childGetValue("loginuri");
-	if (loginuri == "<required>") loginuri = "";
+	if (loginuri == "<required>") loginuri.clear();
 	
 	if (gridname.empty() && !loginuri.empty())
 		this->retrieveGridInfo();
@@ -299,8 +302,8 @@ bool HippoPanelGridsImpl::saveCurGrid()
 		
 		// check nickname
 		std::string gridname = childGetValue("gridname");
-		childSetValue("gridname", (gridname != "")? gridname: "<required>");
-		if (gridname == "") {
+		childSetValue("gridname", !gridname.empty() ? gridname : "<required>");
+		if (gridname.empty()) {
 			LLNotificationsUtil::add("GridsNoNick");
 			return false;
 		}
@@ -312,7 +315,7 @@ bool HippoPanelGridsImpl::saveCurGrid()
 		}
 		
 		// check login URI
-		if (loginuri == "") {
+		if (loginuri.empty()) {
 			LLSD args;
 			args["NAME"] = gridname;
 			LLNotificationsUtil::add("GridsNoLoginUri", args);
@@ -361,6 +364,7 @@ bool HippoPanelGridsImpl::saveCurGrid()
 	gridInfo->setWebSite(childGetValue("website"));
 	gridInfo->setSupportUrl(childGetValue("support"));
 	gridInfo->setRegisterUrl(childGetValue("register"));
+	gridInfo->setPartnerUrl(childGetValue("partner"));
 	gridInfo->setPasswordUrl(childGetValue("password"));
 	gridInfo->setSearchUrl(childGetValue("search"));
 	gridInfo->setRenderCompat(childGetValue("render_compat"));
@@ -384,7 +388,7 @@ void HippoPanelGridsImpl::reset()
 void HippoPanelGridsImpl::retrieveGridInfo()
 {
 	std::string loginuri = childGetValue("loginuri");
-	if ((loginuri == "") || (loginuri == "<required>")) {
+	if ((loginuri.empty()) || (loginuri == "<required>")) {
 		LLNotificationsUtil::add("GridInfoNoLoginUri");
 		return;
 	}
@@ -394,7 +398,7 @@ void HippoPanelGridsImpl::retrieveGridInfo()
 	if (mState == NORMAL) {
 		grid = gHippoGridManager->getGrid(mCurGrid);
 	} else if ((mState == ADD_NEW) || (mState == ADD_COPY)) {
-		grid = new HippoGridInfo("");
+		grid = new HippoGridInfo(LLStringUtil::null);
 		cleanupGrid = true;
 	} else {
 		LL_ERRS() << "Illegal state " << mState << '.' << LL_ENDL;
@@ -412,16 +416,17 @@ void HippoPanelGridsImpl::retrieveGridInfo()
 
 		if (grid->getPlatform() != HippoGridInfo::PLATFORM_OTHER)
 			getChild<LLComboBox>("platform")->setCurrentByIndex(grid->getPlatform());
-		if (grid->getGridName() != "") childSetText("gridname", grid->getGridName());
-		if (grid->getLoginUri() != "") childSetText("loginuri", grid->getLoginUri());
-		if (grid->getLoginPage() != "") childSetText("loginpage", grid->getLoginPage());
-		if (grid->getHelperUri() != "") childSetText("helperuri", grid->getHelperUri());
-		if (grid->getWebSite() != "") childSetText("website", grid->getWebSite());
-		if (grid->getSupportUrl() != "") childSetText("support", grid->getSupportUrl());
-		if (grid->getRegisterUrl() != "") childSetText("register", grid->getRegisterUrl());
-		if (grid->getPasswordUrl() != "") childSetText("password", grid->getPasswordUrl());
-		if (grid->getSearchUrl() != "") childSetText("search", grid->getSearchUrl());
-		if (grid->getGridMessage() != "") childSetText("gridmessage", grid->getGridMessage());
+		if (!grid->getGridName().empty()) childSetText("gridname", grid->getGridName());
+		if (!grid->getLoginUri().empty()) childSetText("loginuri", grid->getLoginUri());
+		if (!grid->getLoginPage().empty()) childSetText("loginpage", grid->getLoginPage());
+		if (!grid->getHelperUri().empty()) childSetText("helperuri", grid->getHelperUri());
+		if (!grid->getWebSite().empty()) childSetText("website", grid->getWebSite());
+		if (!grid->getSupportUrl().empty()) childSetText("support", grid->getSupportUrl());
+		if (!grid->getRegisterUrl().empty()) childSetText("register", grid->getRegisterUrl());
+		if (!grid->getPartnerUrl().empty()) childSetText("partner", grid->getPartnerUrl());
+		if (!grid->getPasswordUrl().empty()) childSetText("password", grid->getPasswordUrl());
+		if (!grid->getSearchUrl().empty()) childSetText("search", grid->getSearchUrl());
+		if (!grid->getGridMessage().empty()) childSetText("gridmessage", grid->getGridMessage());
 	}
 	catch(AIAlert::ErrorCode const& error)
 	{
@@ -532,6 +537,8 @@ void HippoPanelGridsImpl::onClickAdvanced(void *data)
 		self->childSetVisible("support", false);
 		self->childSetVisible("register_label", false);
 		self->childSetVisible("register", false);
+		self->childSetVisible("partner_label", false);
+		self->childSetVisible("partner", false);
 		self->childSetVisible("password_label", false);
 		self->childSetVisible("password", false);
 		self->childSetVisible("search_label", false);
@@ -551,6 +558,8 @@ void HippoPanelGridsImpl::onClickAdvanced(void *data)
 		self->childSetVisible("support", true);
 		self->childSetVisible("register_label", true);
 		self->childSetVisible("register", true);
+		self->childSetVisible("partner_label", true);
+		self->childSetVisible("partner", true);
 		self->childSetVisible("password_label", true);
 		self->childSetVisible("password", true);
 		self->childSetVisible("search_label", true);
@@ -578,6 +587,7 @@ void HippoPanelGridsImpl::enableEditing(bool b)
 		"website",
 		"support",
 		"register",
+		"partner",
 		"password",
 		"search",
 		"btn_delete",

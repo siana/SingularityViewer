@@ -75,9 +75,6 @@ LLDrawPool *LLDrawPool::createPool(const U32 type, LLViewerTexture *tex0)
 	case POOL_FULLBRIGHT:
 		poolp = new LLDrawPoolFullbright();
 		break;
-	case POOL_INVISIBLE:
-		poolp = new LLDrawPoolInvisible();
-		break;
 	case POOL_GLOW:
 		poolp = new LLDrawPoolGlow();
 		break;

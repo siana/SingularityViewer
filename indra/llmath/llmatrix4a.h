@@ -50,13 +50,22 @@ public:
 		return ll_aligned_malloc_16(size);
 	}
 
+	void* operator new[](size_t size)
+	{
+		return ll_aligned_malloc_16(size);
+	}
+
 	void operator delete(void* ptr)
 	{
 		ll_aligned_free_16(ptr);
 	}
 
-	LLMatrix4a()
-	{}
+	void operator delete[](void* ptr)
+	{
+		ll_aligned_free_16(ptr);
+	}
+
+	LLMatrix4a() = default;
 	LLMatrix4a(const LLQuad& q1,const LLQuad& q2,const LLQuad& q3,const LLQuad& q4)
 	{
 		mMatrix[0] = q1;
@@ -263,10 +272,11 @@ public:
 
 	inline void setMul(const LLMatrix4a& m, const F32 s)
 	{
-		mMatrix[0].setMul(m.mMatrix[0], s);
-		mMatrix[1].setMul(m.mMatrix[1], s);
-		mMatrix[2].setMul(m.mMatrix[2], s);
-		mMatrix[3].setMul(m.mMatrix[3], s);
+		const LLVector4a ssss(s);
+		mMatrix[0].setMul(m.mMatrix[0], ssss);
+		mMatrix[1].setMul(m.mMatrix[1], ssss);
+		mMatrix[2].setMul(m.mMatrix[2], ssss);
+		mMatrix[3].setMul(m.mMatrix[3], ssss);
 	}
 
 	inline void setMul(const LLMatrix4a& m0, const LLMatrix4a& m1)
@@ -287,10 +297,11 @@ public:
 
 		// this = a + d*w
 		
-		d0.mul(w);
-		d1.mul(w);
-		d2.mul(w);
-		d3.mul(w);
+		const LLVector4a wwww(w);
+		d0.mul(wwww);
+		d1.mul(wwww);
+		d2.mul(wwww);
+		d3.mul(wwww);
 
 		mMatrix[0].setAdd(a.mMatrix[0],d0);
 		mMatrix[1].setAdd(a.mMatrix[1],d1);
@@ -698,4 +709,17 @@ public:
 	}
 } LL_ALIGN_POSTFIX(16);
 
+
+inline std::ostream& operator<<(std::ostream& s, const LLMatrix4a& m)
+{
+    s << "[" << m.getF32ptr()[0] << ", " << m.getF32ptr()[1] << ", " << m.getF32ptr()[2] << ", " << m.getF32ptr()[3] << "]";
+    return s;
+} 
+
+void matMulBoundBox(const LLMatrix4a &a, const LLVector4a *in_extents, LLVector4a *out_extents);
+
+#if !defined(LL_DEBUG)
+static_assert(std::is_trivial<LLMatrix4a>::value, "LLMatrix4a must be a trivial type");
+static_assert(std::is_standard_layout<LLMatrix4a>::value, "LLMatrix4a must be a standard layout type");
+#endif
 #endif

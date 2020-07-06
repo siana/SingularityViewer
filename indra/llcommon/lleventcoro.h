@@ -412,7 +412,7 @@ public:
         std::runtime_error(what),
         mData(data)
     {}
-    virtual ~LLErrorEvent() throw() {}
+    virtual ~LLErrorEvent() noexcept {}
 
     LLSD getData() const { return mData; }
 

@@ -1,28 +1,39 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <pie_menu name="Attachment Pie">
-	<menu_item_call label="Profil..." name="Profile..."/>
-	<menu_item_call label="Drop" name="Drop"/>
-	<menu_item_call label="Berühren" name="Attachment Object Touch"/>
-	<menu_item_call label="Aufstehen" name="Stand Up"/>
-	<menu_item_call label="Abnehmen" name="Detach"/>
-	<pie_menu label="Werkzeuge" name="Tools">
-        <pie_menu label="Skripte" name="ScriptsMenu">
-          <menu_item_call label="Erzeuge Mono" name="CompileMono"/>
-          <menu_item_call label="Erzeuge LSL" name="CompileLSL"/>
-          <menu_item_call label="Zurücksetzen" name="Reset Scripts"/>
-          <menu_item_call label="Start" name="Object Set Scripts to Running"/>
-          <menu_item_call label="Stop" name="Object Set Scripts to Not Running"/>
-          <menu_item_call label="Entfernen" name="Remove Scripts From Selection"/>
-          <menu_item_call label="Zählen" name="ScriptCount"/>
-          <menu_item_call label="Skript-Info" name="Script Info"/>
-        </pie_menu>
-		<menu_item_call label="Untersuchen" name="Object Inspect"/>
-		<menu_item_call label="Daten" name="Data"/>
-		<menu_item_call label="Nicht anzeigen" name="Derender"/>
+  <menu_item_call label="Profil..." name="Profile..."/>
+  <menu_item_call label="Drop" name="Drop"/>
+  <menu_item_call label="Berühren" name="Attachment Object Touch"/>
+  <menu_item_call label="Aufstehen" name="Stand Up"/>
+  <menu_item_call label="Abnehmen" name="Detach"/>
+  <pie_menu label="Werkzeuge" name="Tools">
+    <pie_menu label="Skripte" name="ScriptsMenu">
+      <menu_item_call label="Erzeuge Mono" name="CompileMono"/>
+      <menu_item_call label="Erzeuge LSL" name="CompileLSL"/>
+      <menu_item_call label="Zurücksetzen" name="Reset Scripts"/>
+      <menu_item_call label="Start" name="Object Set Scripts to Running"/>
+      <menu_item_call label="Stop" name="Object Set Scripts to Not Running"/>
+      <menu_item_call label="Entfernen" name="Remove Scripts From Selection"/>
+      <menu_item_call label="Zählen" name="ScriptCount"/>
+      <menu_item_call label="Skript-Info" name="Script Info"/>
+    </pie_menu>
+    <menu_item_call label="Untersuchen" name="Object Inspect"/>
+    <menu_item_call label="Daten" name="Data"/>
+    <menu_item_call label="Nicht anzeigen" name="Derender"/>
     <menu_item_call label="Neu laden" name="Reload Textures"/>
+    <pie_menu label="Avatar" name="Avatar Tools">
+      <menu_item_call label="Neu laden" name="Reload Textures"/>
+      <menu_item_call label="Skelett reset" name="Reset Skeleton"/>
+      <menu_item_call label="Anim. reset" name="Reset Skeleton And Animations"/>
+      <menu_item_call label="Animationen..." name="Anims..."/>
+      <menu_item_call label="S. Count" name="ScriptCount"/>
+      <menu_item_call label="Skript-Info" name="Script Info"/>
+      <!--menu_item_call label="Debug" name="Debug Layers"/-->
+      <menu_item_call label="UUID kopieren" name="CopyUUID"/>
+      <menu_item_call label="Save OBJ..." name="Save OBJ..."/>
+    </pie_menu>
     <menu_item_call label="Save OBJ..." name="Save OBJ..."/>
     <menu_item_call label="Save DAE..." name="Save DAE..."/>
-	</pie_menu>
-	<menu_item_call label="Aussehen..." name="Appearance..."/>
-	<menu_item_call label="Bearbeiten..." name="Edit..."/>
+  </pie_menu>
+  <menu_item_call label="Aussehen..." name="Appearance..."/>
+  <menu_item_call label="Bearbeiten..." name="Edit..."/>
 </pie_menu>

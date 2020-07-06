@@ -32,12 +32,6 @@
 
 #include "llviewerprecompiledheaders.h"
 
-#if defined(_DEBUG)
-# if _MSC_VER >= 1400 // Visual C++ 2005 or later
-#	define WINDOWS_CRT_MEM_CHECKS 1
-# endif
-#endif
-
 #include "llwindowwin32.h" // *FIX: for setting gIconResource.
 
 #include "llappviewerwin32.h"
@@ -47,7 +41,6 @@
 
 #include <fcntl.h>		//_O_APPEND
 #include <io.h>			//_open_osfhandle()
-#include <errorrep.h>	// for AddERExcludedApplicationA()
 #include <process.h>	// _spawnl()
 #include <tchar.h>		// For TCHAR support
 #include <Werapi.h>
@@ -55,8 +48,10 @@
 #include "llviewercontrol.h"
 #include "lldxhardware.h"
 
+#ifdef USE_NVAPI
 #include "nvapi/nvapi.h"
 #include "nvapi/NvApiDriverSettings.h"
+#endif
 
 #include <stdlib.h>
 
@@ -72,34 +67,7 @@
 #include "llcommandlineparser.h"
 #include "lltrans.h"
 
-// *FIX:Mani - This hack is to fix a linker issue with libndofdev.lib
-// The lib was compiled under VS2005 - in VS2003 we need to remap assert
-#ifdef LL_DEBUG
-#ifdef LL_MSVC7 
-extern "C" {
-    void _wassert(const wchar_t * _Message, const wchar_t *_File, unsigned _Line)
-    {
-        LL_ERRS() << _Message << LL_ENDL;
-    }
-}
-#endif
-#endif
-
 const std::string LLAppViewerWin32::sWindowClass = "Second Life";
-
-/*
-    This function is used to print to the command line a text message 
-    describing the nvapi error and quits
-*/
-void nvapi_error(NvAPI_Status status)
-{
-    NvAPI_ShortString szDesc = {0};
-	NvAPI_GetErrorMessage(status, szDesc);
-	LL_WARNS() << szDesc << LL_ENDL;
-
-	//should always trigger when asserts are enabled
-	//llassert(status == NVAPI_OK);
-}
 
 // Create app mutex creates a unique global windows object. 
 // If the object can be created it returns true, otherwise
@@ -114,12 +82,29 @@ bool create_app_mutex()
 	bool result = true;
 	LPCWSTR unique_mutex_name = L"SecondLifeAppMutex";
 	HANDLE hMutex;
-	hMutex = CreateMutex(NULL, TRUE, unique_mutex_name); 
+	hMutex = CreateMutex(nullptr, TRUE, unique_mutex_name); 
 	if(GetLastError() == ERROR_ALREADY_EXISTS) 
 	{     
 		result = false;
 	}
 	return result;
+}
+
+#ifdef USE_NVAPI
+#define NVAPI_APPNAME L"Second Life"
+
+/*
+This function is used to print to the command line a text message
+describing the nvapi error and quits
+*/
+void nvapi_error(NvAPI_Status status)
+{
+	NvAPI_ShortString szDesc = { 0 };
+	NvAPI_GetErrorMessage(status, szDesc);
+	LL_WARNS() << szDesc << LL_ENDL;
+
+	//should always trigger when asserts are enabled
+	//llassert(status == NVAPI_OK);
 }
 
 void ll_nvapi_init(NvDRSSessionHandle hSession)
@@ -132,12 +117,9 @@ void ll_nvapi_init(NvDRSSessionHandle hSession)
 		return;
 	}
 
-	NvAPI_UnicodeString profile_name;
-	//std::string app_name = LLTrans::getString("APP_NAME");
-	std::string app_name("Second Life"); // <alchemy/>
-	llutf16string w_app_name = utf8str_to_utf16str(app_name);
-	wsprintf(profile_name, L"%s", w_app_name.c_str());
-	status = NvAPI_DRS_SetCurrentGlobalProfile(hSession, profile_name);
+	NvAPI_UnicodeString wsz = { 0 };
+	memcpy_s(wsz, sizeof(wsz), NVAPI_APPNAME, sizeof(NVAPI_APPNAME));
+	status = NvAPI_DRS_SetCurrentGlobalProfile(hSession, wsz);
 	if (status != NVAPI_OK)
 	{
 		nvapi_error(status);
@@ -194,6 +176,7 @@ void ll_nvapi_init(NvDRSSessionHandle hSession)
 		return;
 	}
 }
+#endif
 
 //#define DEBUGGING_SEH_FILTER 1
 #if DEBUGGING_SEH_FILTER
@@ -238,7 +221,9 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 
 	LLAppViewerWin32* viewer_app_ptr = new LLAppViewerWin32(lpCmdLine);
 	
+#if !defined(USE_CRASHPAD)
 	viewer_app_ptr->setErrorHandler(LLAppViewer::handleViewerCrash);
+#endif
 
 	// Set a debug info flag to indicate if multiple instances are running.
 	bool found_other_instance = !create_app_mutex();
@@ -251,6 +236,7 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 		return -1;
 	}
 	
+#ifdef USE_NVAPI
 	NvAPI_Status status;
     
 	// Initialize NVAPI
@@ -271,6 +257,7 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 			ll_nvapi_init(hSession);
 		}
 	}
+#endif
 
 	// Have to wait until after logging is initialized to display LFH info
 	if (num_heaps > 0)
@@ -328,7 +315,7 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 	 
 	}
 	delete viewer_app_ptr;
-	viewer_app_ptr = NULL;
+	viewer_app_ptr = nullptr;
 
 	//start updater
 	if(LLAppViewer::sUpdaterInfo)
@@ -339,14 +326,14 @@ int APIENTRY WINMAIN(HINSTANCE hInstance,
 		LLAppViewer::sUpdaterInfo = NULL ;
 	}
 
-
-
+#ifdef USE_NVAPI
 	// (NVAPI) (6) We clean up. This is analogous to doing a free()
 	if (hSession)
 	{
 		NvAPI_DRS_DestroySession(hSession);
 		hSession = 0;
 	}
+#endif
 	
 	return 0;
 }
@@ -374,102 +361,48 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 void LLAppViewerWin32::disableWinErrorReporting()
 {
-	const char win_xp_string[] = "Microsoft Windows XP";
-	BOOL is_win_xp = ( getOSInfo().getOSString().substr(0, strlen(win_xp_string) ) == win_xp_string );		/* Flawfinder: ignore*/
-	if( is_win_xp )
+	std::string const& executable_name = gDirUtilp->getExecutableFilename();
+
+	if( S_OK == WerAddExcludedApplication( utf8str_to_utf16str(executable_name).c_str(), FALSE ) )
 	{
-		// Note: we need to use run-time dynamic linking, because load-time dynamic linking will fail
-		// on systems that don't have the library installed (all non-Windows XP systems)
-		HINSTANCE fault_rep_dll_handle = LoadLibrary(L"faultrep.dll");		/* Flawfinder: ignore */
-		if( fault_rep_dll_handle )
-		{
-			pfn_ADDEREXCLUDEDAPPLICATIONA pAddERExcludedApplicationA  = (pfn_ADDEREXCLUDEDAPPLICATIONA) GetProcAddress(fault_rep_dll_handle, "AddERExcludedApplicationA");
-			if( pAddERExcludedApplicationA )
-			{
-
-				// Strip the path off the name
-				const char* executable_name = gDirUtilp->getExecutableFilename().c_str();
-
-				if( 0 == pAddERExcludedApplicationA( executable_name ) )
-				{
-					U32 error_code = GetLastError();
-					LL_INFOS() << "AddERExcludedApplication() failed with error code " << error_code << LL_ENDL;
-				}
-				else
-				{
-					LL_INFOS() << "AddERExcludedApplication() success for " << executable_name << LL_ENDL;
-				}
-			}
-			FreeLibrary( fault_rep_dll_handle );
-		}
+		LL_INFOS() << "WerAddExcludedApplication() succeeded for " << executable_name << LL_ENDL;
+	}
+	else
+	{
+		LL_INFOS() << "WerAddExcludedApplication() failed for " << executable_name << LL_ENDL;
 	}
 }
 
 const S32 MAX_CONSOLE_LINES = 500;
 
-void create_console()
+static bool create_console()
 {
-	int h_con_handle;
-	long l_std_handle;
 
 	CONSOLE_SCREEN_BUFFER_INFO coninfo;
-	FILE *fp;
 
 	// allocate a console for this app
-	AllocConsole();
+	const bool isConsoleAllocated = AllocConsole();
 
 	// set the screen buffer to be big enough to let us scroll text
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &coninfo);
 	coninfo.dwSize.Y = MAX_CONSOLE_LINES;
 	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), coninfo.dwSize);
 
-	// redirect unbuffered STDOUT to the console
-	l_std_handle = (long)GetStdHandle(STD_OUTPUT_HANDLE);
-	h_con_handle = _open_osfhandle(l_std_handle, _O_TEXT);
-	if (h_con_handle == -1)
-	{
-		LL_WARNS() << "create_console() failed to open stdout handle" << LL_ENDL;
-	}
-	else
-	{
-		fp = _fdopen( h_con_handle, "w" );
-		*stdout = *fp;
-		setvbuf( stdout, NULL, _IONBF, 0 );
-	}
+	// Redirect the CRT standard input, output, and error handles to the console
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
 
-	// redirect unbuffered STDIN to the console
-	l_std_handle = (long)GetStdHandle(STD_INPUT_HANDLE);
-	h_con_handle = _open_osfhandle(l_std_handle, _O_TEXT);
-	if (h_con_handle == -1)
-	{
-		LL_WARNS() << "create_console() failed to open stdin handle" << LL_ENDL;
-	}
-	else
-	{
-		fp = _fdopen( h_con_handle, "r" );
-		*stdin = *fp;
-		setvbuf( stdin, NULL, _IONBF, 0 );
-	}
+	setvbuf( stdin, nullptr, _IONBF, 0 );
+	setvbuf( stdout, nullptr, _IONBF, 0 );
+	setvbuf( stderr, nullptr, _IONBF, 0 );
 
-	// redirect unbuffered STDERR to the console
-	l_std_handle = (long)GetStdHandle(STD_ERROR_HANDLE);
-	h_con_handle = _open_osfhandle(l_std_handle, _O_TEXT);
-	if (h_con_handle == -1)
-	{
-		LL_WARNS() << "create_console() failed to open stderr handle" << LL_ENDL;
-	}
-	else
-	{
-		fp = _fdopen( h_con_handle, "w" );
-		*stderr = *fp;
-		setvbuf( stderr, NULL, _IOFBF, 1024 );  //Assigning a buffer improves speed a LOT, esp on vista/win7
-												//_IOLBF is borked.
-	}
+    return isConsoleAllocated;
 }
 
-
 LLAppViewerWin32::LLAppViewerWin32(const char* cmd_line) :
-    mCmdLine(cmd_line)
+	mCmdLine(cmd_line),
+	mIsConsoleAllocated(false)
 {
 }
 
@@ -481,7 +414,7 @@ bool LLAppViewerWin32::init()
 {
 	// Platform specific initialization.
 	
-	// Turn off Windows XP Error Reporting
+	// Turn off Windows Error Reporting
 	// (Don't send our data to Microsoft--at least until we are Logo approved and have a way
 	// of getting the data back from them.)
 	//
@@ -490,15 +423,6 @@ bool LLAppViewerWin32::init()
 
 #ifndef LL_RELEASE_FOR_DOWNLOAD
 	LLWinDebug::instance().init();
-#endif
-
-#if LL_WINDOWS
-#if LL_SEND_CRASH_REPORTS
-
-	LLAppViewer* pApp = LLAppViewer::instance();
-	pApp->initCrashReporting();
-
-#endif
 #endif
 
 	bool success = LLAppViewer::init();
@@ -512,18 +436,24 @@ bool LLAppViewerWin32::cleanup()
 
 	gDXHardware.cleanup();
 
+	if (mIsConsoleAllocated)
+	{
+		FreeConsole();
+		mIsConsoleAllocated = false;
+	}
+
 	return result;
 }
 
-bool LLAppViewerWin32::initLogging()
+void LLAppViewerWin32::initLoggingAndGetLastDuration()
 {
-	return LLAppViewer::initLogging();
+	LLAppViewer::initLoggingAndGetLastDuration();
 }
 
 void LLAppViewerWin32::initConsole()
 {
 	// pop up debug console
-	create_console();
+	mIsConsoleAllocated = create_console();
 	return LLAppViewer::initConsole();
 }
 
@@ -557,7 +487,10 @@ bool LLAppViewerWin32::initHardwareTest()
 
 		LL_DEBUGS("AppInit") << "Attempting to poll DirectX for hardware info" << LL_ENDL;
 		gDXHardware.setWriteDebugFunc(write_debug_dx);
-		BOOL probe_ok = gDXHardware.getInfo(vram_only);
+
+		S32Megabytes system_ram = gSysMemory.getPhysicalMemoryKB();
+
+		BOOL probe_ok = gDXHardware.getInfo(vram_only, system_ram);
 
 		if (!probe_ok
 			&& gSavedSettings.getWarning("AboutDirectX9"))
@@ -602,6 +535,7 @@ bool LLAppViewerWin32::initHardwareTest()
 	if (gGLManager.mVRAM == 0)
 	{
 		gGLManager.mVRAM = gDXHardware.getVRAM();
+		LL_WARNS("AppInit") << "gGLManager.mVRAM: " << gGLManager.mVRAM << LL_ENDL;
 	}
 
 	LL_INFOS("AppInit") << "Detected VRAM: " << gGLManager.mVRAM << LL_ENDL;
@@ -617,7 +551,7 @@ bool LLAppViewerWin32::initParseCommandLine(LLCommandLineParser& clp)
 	}
 
 	// Find the system language.
-	FL_Locale *locale = NULL;
+	FL_Locale *locale = nullptr;
 	FL_Success success = FL_FindLocale(&locale, FL_MESSAGES);
 	if (success != 0)
 	{
@@ -641,12 +575,6 @@ bool LLAppViewerWin32::initParseCommandLine(LLCommandLineParser& clp)
 bool LLAppViewerWin32::restoreErrorTrap()
 {	
 	return true;
-	//return LLWinDebug::checkExceptionHandler();
-}
-
-void LLAppViewerWin32::initCrashReporting(bool reportFreeze)
-{
-	// Singu Note: we don't fork the crash logger on start
 }
 
 //virtual
@@ -656,9 +584,9 @@ bool LLAppViewerWin32::sendURLToOtherInstance(const std::string& url)
 	mbstowcs(window_class, sWindowClass.c_str(), 255);
 	window_class[255] = 0;
 	// Use the class instead of the window name.
-	HWND other_window = FindWindow(window_class, NULL);
+	HWND other_window = FindWindow(window_class, nullptr);
 
-	if (other_window != NULL)
+	if (other_window != nullptr)
 	{
 		LL_DEBUGS() << "Found other window with the name '" << getWindowTitle() << "'" << LL_ENDL;
 		COPYDATASTRUCT cds;
@@ -684,13 +612,13 @@ std::string LLAppViewerWin32::generateSerialNumber()
 	DWORD serial = 0;
 	DWORD flags = 0;
 	BOOL success = GetVolumeInformation(
-			L"C:\\",
-			NULL,		// volume name buffer
+			TEXT("C:\\"),
+			nullptr,		// volume name buffer
 			0,			// volume name buffer size
 			&serial,	// volume serial
-			NULL,		// max component length
+			nullptr,		// max component length
 			&flags,		// file system flags
-			NULL,		// file system name buffer
+			nullptr,		// file system name buffer
 			0);			// file system name buffer size
 	if (success)
 	{

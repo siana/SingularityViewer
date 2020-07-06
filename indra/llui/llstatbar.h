@@ -47,33 +47,60 @@ class LLStatBar : public LLView
 	};
 	
 public:
-	LLStatBar(const std::string& name, const LLRect& rect, const std::string& setting = std::string(),
+	struct Parameters {
+		Parameters() :
+			mMinBar(0.f),
+			mMaxBar(50.f),
+			mTickSpacing(10.f),
+			mLabelSpacing(10.f),
+			mPrecision(0),
+			mUpdatesPerSec(5),
+			mPerSec(true),
+			mDisplayMean(true),
+			mUnitLabel("")
+		{}
+		F32 mMinBar;
+		F32 mMaxBar;
+		F32 mTickSpacing;
+		F32 mLabelSpacing;
+		U32 mPrecision;
+		F32 mUpdatesPerSec;
+		BOOL mPerSec;			// Use the per sec stats.
+		BOOL mDisplayMean;	// If true, display mean, if false, display current value
+		std::string mUnitLabel;
+	};
+
+	LLStatBar(const std::string& name, const LLRect& rect, LLStat* stat, const LLStatBar::Parameters& parameters, const std::string& setting = std::string(),
 			  BOOL default_bar = FALSE, BOOL default_history = FALSE);
 
 	virtual void draw();
 	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask);
+	void fit(F32 value) {
+		if (mParameters.mMinBar + mMinShift > value)
+		{
+			mMinShift = value - mParameters.mMinBar;
+		}
+		if (mParameters.mMaxBar + mMaxShift < value)
+		{
+			mMaxShift = value - mParameters.mMaxBar;
+		}
+	}
 
-	void setUnitLabel(const std::string& unit_label);
 	/*virtual*/ LLRect getRequiredRect();	// Return the height of this object, given the set options.
 
-	F32 mMinBar;
-	F32 mMaxBar;
-	F32 mTickSpacing;
-	F32 mLabelSpacing;
-	U32 mPrecision;
-	F32 mUpdatesPerSec;
-	BOOL mPerSec;				// Use the per sec stats.
+private:
+	const Parameters mParameters;
 	BOOL mDisplayBar;			// Display the bar graph.
 	BOOL mDisplayHistory;
-	BOOL mDisplayMean;			// If true, display mean, if false, display current value
 
-	LLStat *mStatp;
-private:
+	const LLStat* mStatp;
+	const LLUIString mLabel;
+	const std::string mSetting;
+
 	LLFrameTimer mUpdateTimer;
-	LLUIString mLabel;
-	std::string mUnitLabel;
 	F32 mValue;
-	std::string mSetting;
+	F32 mMinShift;
+	F32 mMaxShift;
 };
 
 #endif

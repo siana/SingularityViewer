@@ -103,7 +103,7 @@ void LLTexLayerParamAlpha::getCacheByteCount(S32* gl_bytes)
 	*gl_bytes = 0;
 
 	for (param_alpha_ptr_list_t::iterator iter = sInstances.begin();
-		 iter != sInstances.end(); iter++)
+		 iter != sInstances.end(); ++iter)
 	{
 		LLTexLayerParamAlpha* instance = *iter;
 		LLGLTexture* tex = instance->mCachedProcessedTexture;
@@ -260,10 +260,10 @@ BOOL LLTexLayerParamAlpha::getSkip() const
 }
 
 
-static LLFastTimer::DeclareTimer FTM_TEX_LAYER_PARAM_ALPHA("alpha render");
+static LLTrace::BlockTimerStatHandle FTM_TEX_LAYER_PARAM_ALPHA("alpha render");
 BOOL LLTexLayerParamAlpha::render(S32 x, S32 y, S32 width, S32 height)
 {
-	LLFastTimer t(FTM_TEX_LAYER_PARAM_ALPHA);
+	LL_RECORD_BLOCK_TIME(FTM_TEX_LAYER_PARAM_ALPHA);
 	BOOL success = TRUE;
 
 	if (!mTexLayer)
@@ -363,7 +363,7 @@ BOOL LLTexLayerParamAlpha::render(S32 x, S32 y, S32 width, S32 height)
 	}
 	else
 	{
-		LLGLDisable no_alpha(GL_ALPHA_TEST);
+		LLGLDisable<GL_ALPHA_TEST> no_alpha;
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 		gGL.color4f(0.f, 0.f, 0.f, effective_weight);
 		gl_rect_2d_simple(width, height);
@@ -491,7 +491,7 @@ void LLTexLayerParamColor::setWeight(F32 weight, bool upload_bake)
 	{
 		mCurWeight = new_weight;
 
-                const LLTexLayerParamColorInfo *info = (LLTexLayerParamColorInfo *)getInfo();
+		const LLTexLayerParamColorInfo *info = (LLTexLayerParamColorInfo *)getInfo();
 
 		if (info->mNumColors <= 0)
 		{

@@ -93,8 +93,6 @@ public:
 	void setFallbackFonts(const font_vector_t &font);
 	const font_vector_t &getFallbackFonts() const;
 
-	void setCharToGlyphMap(llwchar wch, U32 glyph_index) const;
-
 	// Global font metrics - in units of pixels
 	F32 getLineHeight() const;
 	F32 getAscenderHeight() const;
@@ -140,6 +138,9 @@ public:
 	const std::string& getName() const;
 
 	const LLPointer<LLFontBitmapCache> getFontBitmapCache() const;
+	
+	void setStyle(U8 style);
+	U8 getStyle() const;
 
 	static bool sOpenGLcrashOnRestart;
 
@@ -154,6 +155,8 @@ private:
 
 	std::string mName;
 
+	U8 mStyle;
+
 	F32 mPointSize;
 	F32 mAscender;			
 	F32 mDescender;
@@ -163,8 +166,6 @@ private:
 
 	BOOL mIsFallback;
 	font_vector_t mFallbackFonts; // A list of fallback fonts to look for glyphs in (for Unicode chars)
-
-	BOOL mValid;
 
 	typedef boost::unordered_map<llwchar, LLFontGlyphInfo*> char_glyph_info_map_t;
 	mutable char_glyph_info_map_t mCharGlyphInfoMap; // Information about glyph location in bitmap

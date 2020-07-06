@@ -96,7 +96,7 @@ S32 LLDrawPoolAlpha::getNumPostDeferredPasses()
 
 void LLDrawPoolAlpha::beginPostDeferredPass(S32 pass) 
 { 
-	LLFastTimer t(FTM_RENDER_ALPHA);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA);
 
 	if (pass == 0)
 	{
@@ -125,6 +125,7 @@ void LLDrawPoolAlpha::beginPostDeferredPass(S32 pass)
 
 		//prime simple shader (loads shadow relevant uniforms)
 		gPipeline.bindDeferredShader(*simple_shader);
+		gPipeline.unbindDeferredShader(*simple_shader);
 
 		//simple_shader->uniform1f(LLShaderMgr::DISPLAY_GAMMA, (gamma > 0.1f) ? 1.0f / gamma : (1.0f/2.2f));
 	}
@@ -149,12 +150,14 @@ void LLDrawPoolAlpha::beginPostDeferredPass(S32 pass)
 	current_shader = target_shader = NULL;
 
 	LLGLSLShader::bindNoShader();
-
-	gPipeline.enableLightsDynamic();
 }
 
 void LLDrawPoolAlpha::endPostDeferredPass(S32 pass) 
-{ 
+{
+	if (current_shader)
+	{
+		gPipeline.unbindDeferredShader(*current_shader);
+	}
 	if (pass == 1 && !LLPipeline::sImpostorRender)
 	{
 		gPipeline.mDeferredDepth.flush();
@@ -173,7 +176,7 @@ void LLDrawPoolAlpha::renderPostDeferred(S32 pass)
 
 void LLDrawPoolAlpha::beginRenderPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_ALPHA);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA);
 	
 	simple_shader = &gObjectSimpleProgram[1<<SHD_ALPHA_MASK_BIT | LLPipeline::sUnderWaterRender<<SHD_WATER_BIT];
 	fullbright_shader = &gObjectFullbrightProgram[1<<SHD_ALPHA_MASK_BIT | LLPipeline::sUnderWaterRender<<SHD_WATER_BIT];
@@ -186,13 +189,11 @@ void LLDrawPoolAlpha::beginRenderPass(S32 pass)
 	{
 		LLGLSLShader::bindNoShader();
 	}
-
-	gPipeline.enableLightsDynamic();
 }
 
 void LLDrawPoolAlpha::endRenderPass( S32 pass )
 {
-	LLFastTimer t(FTM_RENDER_ALPHA);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA);
 	LLRenderPass::endRenderPass(pass);
 
 	if(mVertexShaderLevel > 0)	//Singu Note: Unbind if shaders are enabled at all, not just windlight atmospherics..
@@ -203,9 +204,11 @@ void LLDrawPoolAlpha::endRenderPass( S32 pass )
 
 void LLDrawPoolAlpha::render(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_ALPHA);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA);
 
 	LLGLSPipelineAlpha gls_pipeline_alpha;
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.enableLightsDynamic(light_state);
 
 	if (deferred_render && pass == 1)
 	{ //depth only
@@ -270,13 +273,14 @@ void LLDrawPoolAlpha::render(S32 pass)
 
 	if (sShowDebugAlpha)
 	{
+		LLGLState<GL_LIGHTING> light_state;
 		if (LLGLSLShader::sNoFixedFunction)
 		{
 			gHighlightProgram.bind();
 		}
 		else
 		{
-			gPipeline.enableLightsFullbright(LLColor4(1,1,1,1));
+			gPipeline.enableLightsFullbright(light_state);
 		}
 
 		gGL.diffuseColor4f(0.9f,0.f,0.f,0.4f);
@@ -293,6 +297,10 @@ void LLDrawPoolAlpha::render(S32 pass)
 		if (LLGLSLShader::sNoFixedFunction)
 		{
 			gHighlightProgram.unbind();
+		}
+		else
+		{
+			gPipeline.enableLightsDynamic(light_state);
 		}
 	}
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
@@ -332,12 +340,10 @@ void LLDrawPoolAlpha::renderAlphaHighlight(U32 mask)
 
 void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 {
-	BOOL initialized_lighting = FALSE;
-	BOOL light_enabled = TRUE;
-	
-	BOOL use_shaders = LLGLSLShader::sNoFixedFunction;
-
-	BOOL depth_only = (pass == 1 && !LLPipeline::sImpostorRender);
+	LLGLState<GL_LIGHTING> light_state;
+	bool light_enabled = TRUE;
+	bool use_shaders = LLGLSLShader::sNoFixedFunction;
+	bool depth_only = (pass == 1 && !LLPipeline::sImpostorRender);
 		
 	for (LLCullResult::sg_iterator i = gPipeline.beginAlphaGroups(); i != gPipeline.endAlphaGroups(); ++i)
 	{
@@ -354,11 +360,11 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 
 			bool draw_glow_for_this_partition = !depth_only && mVertexShaderLevel > 0; // no shaders = no glow.
 
-			static LLFastTimer::DeclareTimer FTM_RENDER_ALPHA_GROUP_LOOP("Alpha Group");
-			LLFastTimer t(FTM_RENDER_ALPHA_GROUP_LOOP);
+			static LLTrace::BlockTimerStatHandle FTM_RENDER_ALPHA_GROUP_LOOP("Alpha Group");
+			LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA_GROUP_LOOP);
 
 			bool disable_cull = is_particle_or_hud_particle;
-			LLGLDisable cull(disable_cull ? GL_CULL_FACE : 0);
+			LLGLDisable<GL_CULL_FACE> cull(disable_cull);
 
 			LLSpatialGroup::drawmap_elem_t& draw_info = group->mDrawMap[LLRenderPass::PASS_ALPHA];
 
@@ -400,7 +406,6 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 				}
 				
 				LLMaterial* mat = deferred_render ? params.mMaterial.get() : NULL;
-
 				if (!use_shaders)
 				{
 					llassert_always(!target_shader);
@@ -409,18 +414,17 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 					llassert_always(!LLGLSLShader::sCurBoundShaderPtr);
 
 					bool fullbright = depth_only || params.mFullbright;
-					if(fullbright == !!light_enabled || !initialized_lighting)
+					if(light_enabled == fullbright)
 					{
 						light_enabled = !fullbright;
-						initialized_lighting = true;
 
-						if (light_enabled)	// Turn off lighting if it hasn't already been so.
+						if (light_enabled)	// Set local lights
 						{
-							gPipeline.enableLightsDynamic();
+							gPipeline.enableLightsDynamic(light_state);
 						}
-						else	// Turn on lighting if it isn't already.
+						else	// Set fullbright
 						{
-							gPipeline.enableLightsFullbright(LLColor4(1,1,1,1));
+							gPipeline.enableLightsFullbright(light_state);
 						}
 					}
 				}
@@ -437,6 +441,8 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 						// (this way we won't rebind shaders unnecessarily).
 						if (current_shader != target_shader)
 						{
+							if(current_shader)
+								gPipeline.unbindDeferredShader(*current_shader);
 							gPipeline.bindDeferredShader(*target_shader);
 						}
 					}
@@ -448,7 +454,9 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 						// (this way we won't rebind shaders unnecessarily).
 						if(current_shader != target_shader)
 						{
-							target_shader->bind();
+							if(current_shader)
+								gPipeline.unbindDeferredShader(*current_shader);
+							gPipeline.bindDeferredShader(*target_shader);
 						}
 					}
 					current_shader = target_shader;
@@ -523,9 +531,9 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 					}
 				}
 
-				static LLFastTimer::DeclareTimer FTM_RENDER_ALPHA_PUSH("Alpha Push Verts");
+				static LLTrace::BlockTimerStatHandle FTM_RENDER_ALPHA_PUSH("Alpha Push Verts");
 				{
-					LLFastTimer t(FTM_RENDER_ALPHA_PUSH);
+					LL_RECORD_BLOCK_TIME(FTM_RENDER_ALPHA_PUSH);
 
 					gGL.blendFunc((LLRender::eBlendFactor) params.mBlendFuncSrc, (LLRender::eBlendFactor) params.mBlendFuncDst, mAlphaSFactor, mAlphaDFactor);
 					// Singu Note: If using shaders, pull the attribute mask from it, else used passed base mask.
@@ -545,20 +553,21 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 					gGL.blendFunc(LLRender::BF_ZERO, LLRender::BF_ONE, // don't touch color
 						      LLRender::BF_ONE, LLRender::BF_ONE); // add to alpha (glow)
 
-					emissive_shader->bind();
-					
+					//emissive_shader->bind();
+
 					// glow doesn't use vertex colors from the mesh data
 					// Singu Note: Pull attribs from shader, since we always have one here.
-					params.mVertexBuffer->setBuffer(emissive_shader->mAttributeMask);
-					
+					// Singu Note: To avoid ridiculous shader bind cost, simply re-use prior shader, but let llvertexbuffer replace the color attrib ptr with the emissive one.
+					params.mVertexBuffer->setBuffer(current_shader->mAttributeMask | LLVertexBuffer::MAP_EMISSIVE);
+
 					// do the actual drawing, again
 					params.mVertexBuffer->drawRange(params.mDrawMode, params.mStart, params.mEnd, params.mCount, params.mOffset);
 					gPipeline.addTrianglesDrawn(params.mCount, params.mDrawMode);
 
+					//current_shader->bind();
+
 					// restore our alpha blend mode
 					gGL.blendFunc(mColorSFactor, mColorDFactor, mAlphaSFactor, mAlphaDFactor);
-
-					current_shader->bind();
 				}
 			
 				if (tex_setup)
@@ -570,13 +579,12 @@ void LLDrawPoolAlpha::renderAlpha(U32 mask, S32 pass)
 			}
 		}
 	}
+	if (!light_enabled)
+	{
+		gPipeline.enableLightsDynamic(light_state);
+	}
 
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
 
 	LLVertexBuffer::unbind();	
-		
-	if (!light_enabled)
-	{
-		gPipeline.enableLightsDynamic();
-	}
 }

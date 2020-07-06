@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /** 
  * @file llurlregistry.cpp
  * @author Martin Reddy
@@ -27,6 +29,7 @@
 
 #include "linden_common.h"
 #include "llurlregistry.h"
+#include "lluriparser.h"
 
 #include <boost/regex.hpp>
 
@@ -37,15 +40,26 @@ void LLUrlRegistryNullCallback(const std::string &url, const std::string &label,
 
 LLUrlRegistry::LLUrlRegistry()
 {
-	mUrlEntry.reserve(20);
+	mUrlEntry.reserve(23); // <alchemy/>
 
 	// Urls are matched in the order that they were registered
 	registerUrl(new LLUrlEntryNoLink());
-	registerUrl(new LLUrlEntryIcon());
+	mUrlEntryIcon = new LLUrlEntryIcon();
+	registerUrl(mUrlEntryIcon);
+	mLLUrlEntryInvalidSLURL = new LLUrlEntryInvalidSLURL();
+	registerUrl(mLLUrlEntryInvalidSLURL);
 	registerUrl(new LLUrlEntrySLURL());
+
+	// decorated links for host names like: secondlife.com and lindenlab.com
+	mUrlEntryTrusted = new LLUrlEntrySecondlifeURL();
+	registerUrl(mUrlEntryTrusted);
+	registerUrl(new LLUrlEntrySimpleSecondlifeURL());
+
 	registerUrl(new LLUrlEntryHTTP());
-	registerUrl(new LLUrlEntryHTTPLabel());
+	mUrlEntryHTTPLabel = new LLUrlEntryHTTPLabel();
+	registerUrl(mUrlEntryHTTPLabel);
 	registerUrl(new LLUrlEntryAgentCompleteName());
+	registerUrl(new LLUrlEntryAgentLegacyName());
 	registerUrl(new LLUrlEntryAgentDisplayName());
 	registerUrl(new LLUrlEntryAgentUserName());
 	// LLUrlEntryAgent*Name must appear before LLUrlEntryAgent since 
@@ -59,14 +73,18 @@ LLUrlRegistry::LLUrlRegistry()
 	registerUrl(new LLUrlEntryObjectIM());
 	registerUrl(new LLUrlEntryPlace());
 	registerUrl(new LLUrlEntryInventory());
-	registerUrl(new LLUrlEntryObjectIM());
+	registerUrl(new LLUrlEntryExperienceProfile());
 	//LLUrlEntrySL and LLUrlEntrySLLabel have more common pattern, 
 	//so it should be registered in the end of list
 	registerUrl(new LLUrlEntrySL());
-	registerUrl(new LLUrlEntrySLLabel());
-	// most common pattern is a URL without any protocol,
-	// e.g., "secondlife.com"
-	registerUrl(new LLUrlEntryHTTPNoProtocol());	
+	mUrlEntrySLLabel = new LLUrlEntrySLLabel();
+	registerUrl(mUrlEntrySLLabel);
+	registerUrl(new LLUrlEntryEmail());
+	// Parse teh jiras!
+	registerUrl(new LLUrlEntryJira()); // <alchemy/>
+	// most common pattern is a URL without any protocol starting with "www",
+	// e.g., "www.secondlife.com"
+	registerUrl(new LLUrlEntryHTTPNoProtocol());
 }
 
 LLUrlRegistry::~LLUrlRegistry()
@@ -90,7 +108,7 @@ void LLUrlRegistry::registerUrl(LLUrlEntryBase *url, bool force_front)
 	}
 }
 
-static bool matchRegex(const char *text, boost::regex regex, U32 &start, U32 &end)
+static bool matchRegex(const char *text, const boost::regex& regex, U32 &start, U32 &end)
 {
 	boost::cmatch result;
 	bool found;
@@ -100,7 +118,7 @@ static bool matchRegex(const char *text, boost::regex regex, U32 &start, U32 &en
 	{
 		found = boost::regex_search(text, result, regex);
 	}
-	catch (std::runtime_error &)
+	catch (const std::runtime_error &)
 	{
 		return false;
 	}
@@ -127,6 +145,11 @@ static bool matchRegex(const char *text, boost::regex regex, U32 &start, U32 &en
 		end--;
 	}
 
+	else if (text[end] == ']' && std::string(text+start, end-start).find('[') == std::string::npos)
+	{
+			end--;
+	}
+
 	return true;
 }
 
@@ -142,32 +165,77 @@ static bool stringHasUrl(const std::string &text)
 			text.find(".edu") != std::string::npos ||
 			text.find(".org") != std::string::npos ||
 			text.find("<nolink>") != std::string::npos ||
-			text.find("<icon") != std::string::npos);
+			text.find("<icon") != std::string::npos ||
+			text.find('@') != std::string::npos);
 }
 
-bool LLUrlRegistry::findUrl(const std::string &text, LLUrlMatch &match, const LLUrlLabelCallback &cb)
+// <alchemy>
+static bool stringHasJira(const std::string &text)
+{
+	// fast heuristic test for a URL in a string. This is used
+	// to avoid lots of costly regex calls, BUT it needs to be
+	// kept in sync with the LLUrlEntry regexes we support.
+	return (text.find("ALCH")	 != std::string::npos ||
+			text.find("SV")		 != std::string::npos ||
+			text.find("BUG")	 != std::string::npos ||
+			text.find("CHOP")	 != std::string::npos ||
+			text.find("FIRE")	 != std::string::npos ||
+			text.find("MAINT")	 != std::string::npos ||
+			text.find("OPEN")	 != std::string::npos ||
+			text.find("SCR")	 != std::string::npos ||
+			text.find("STORM")	 != std::string::npos ||
+			text.find("SVC")	 != std::string::npos ||
+			text.find("VWR")	 != std::string::npos ||
+			text.find("WEB")	 != std::string::npos);
+}
+// </alchemy>
+
+bool LLUrlRegistry::findUrl(const std::string &text, LLUrlMatch &match, const LLUrlLabelCallback &cb, bool is_content_trusted)
 {
 	// avoid costly regexes if there is clearly no URL in the text
-	if (! stringHasUrl(text))
+	if (!(stringHasUrl(text) || stringHasJira(text))) // <alchemy/>
 	{
 		return false;
 	}
 
 	// find the first matching regex from all url entries in the registry
 	U32 match_start = 0, match_end = 0;
-	LLUrlEntryBase *match_entry = NULL;
+	LLUrlEntryBase *match_entry = nullptr;
 
 	std::vector<LLUrlEntryBase *>::iterator it;
 	for (it = mUrlEntry.begin(); it != mUrlEntry.end(); ++it)
 	{
+		//Skip for url entry icon if content is not trusted
+		if(!is_content_trusted && (mUrlEntryIcon == *it))
+		{
+			continue;
+		}
+
 		LLUrlEntryBase *url_entry = *it;
 
 		U32 start = 0, end = 0;
 		if (matchRegex(text.c_str(), url_entry->getPattern(), start, end))
 		{
 			// does this match occur in the string before any other match
-			if (start < match_start || match_entry == NULL)
+			if (start < match_start || match_entry == nullptr)
 			{
+
+				if (mLLUrlEntryInvalidSLURL == *it)
+				{
+					if(url_entry && url_entry->isSLURLvalid(text.substr(start, end - start + 1)))
+					{
+						continue;
+					}
+				}
+
+				if((mUrlEntryHTTPLabel == *it) || (mUrlEntrySLLabel == *it))
+				{
+					if(url_entry && !url_entry->isWikiLinkCorrect(text.substr(start, end - start + 1)))
+					{
+						continue;
+					}
+				}
+
 				match_start = start;
 				match_end = end;
 				match_entry = url_entry;
@@ -178,18 +246,32 @@ bool LLUrlRegistry::findUrl(const std::string &text, LLUrlMatch &match, const LL
 	// did we find a match? if so, return its details in the match object
 	if (match_entry)
 	{
+		// Skip if link is an email with an empty username (starting with @). See MAINT-5371.
+		if (match_start > 0 && text.substr(match_start - 1, 1) == "@")
+			return false;
+
 		// fill in the LLUrlMatch object and return it
 		std::string url = text.substr(match_start, match_end - match_start + 1);
+
+		if (match_entry == mUrlEntryTrusted)
+		{
+			LLUriParser up(url);
+			up.normalize();
+			url = up.normalizedUri();
+		}
+
 		match.setValues(match_start, match_end,
 						match_entry->getUrl(url),
 						match_entry->getLabel(url, cb),
+						match_entry->getQuery(url),
 						match_entry->getTooltip(url),
 						match_entry->getIcon(url),
-						//match_entry->getStyle(),
+						match_entry->getStyle(),
 						match_entry->getMenuName(),
 						match_entry->getLocation(url),
 						match_entry->getID(url),
-						match_entry->underlineOnHoverOnly(url));
+						match_entry->underlineOnHoverOnly(url),
+						match_entry->isTrusted());
 		return true;
 	}
 
@@ -209,7 +291,7 @@ bool LLUrlRegistry::findUrl(const LLWString &text, LLUrlMatch &match, const LLUr
 		// character encoding, so we need to update the start
 		// and end values to be correct for the wide string.
 		LLWString wurl = utf8str_to_wstring(match.getUrl());
-		S32 start = text.find(wurl);
+		size_t start = text.find(wurl);
 		if (start == std::string::npos)
 		{
 			return false;
@@ -218,9 +300,10 @@ bool LLUrlRegistry::findUrl(const LLWString &text, LLUrlMatch &match, const LLUr
 
 		match.setValues(start, end, match.getUrl(), 
 						match.getLabel(),
+						match.getQuery(),
 						match.getTooltip(),
 						match.getIcon(),
-						//match.getStyle(),
+						match.getStyle(),
 						match.getMenuName(),
 						match.getLocation(),
 						match.getID(),

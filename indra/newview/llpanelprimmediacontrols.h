@@ -155,6 +155,7 @@ private:
 	LLUICtrl *mPauseCtrl;
 	LLUICtrl *mStopCtrl;
 	LLUICtrl *mMediaStopCtrl;
+	LLUICtrl *mMOAPStopCtrl;
 	LLUICtrl *mHomeCtrl;
 	LLUICtrl *mUnzoomCtrl;
 	LLUICtrl *mOpenCtrl;

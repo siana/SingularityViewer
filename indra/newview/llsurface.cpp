@@ -53,6 +53,7 @@
 #include "llglheaders.h"
 #include "lldrawpoolterrain.h"
 #include "lldrawable.h"
+#include "hippogridmanager.h"
 
 extern LLPipeline gPipeline;
 extern bool gShiftFrame;
@@ -71,7 +72,6 @@ LLSurface::LLSurface(U32 type, LLViewerRegion *regionp) :
 	mGridsPerEdge(0),
 	mOOGridsPerEdge(0.f),
 	mPatchesPerEdge(0),
-	mNumberOfPatches(0),
 	mType(type),
 	mDetailTextureScale(0.f),
 	mOriginGlobal(0.0, 0.0, 0.0),
@@ -85,9 +85,6 @@ LLSurface::LLSurface(U32 type, LLViewerRegion *regionp) :
 	// Surface data
 	mSurfaceZ = NULL;
 	mNorm = NULL;
-
-	// Patch data
-	mPatchList = NULL;
 
 	// One of each for each camera
 	mVisiblePatchCount = 0;
@@ -119,7 +116,6 @@ LLSurface::~LLSurface()
 	mGridsPerEdge = 0;
 	mGridsPerPatchEdge = 0;
 	mPatchesPerEdge = 0;
-	mNumberOfPatches = 0;
 	destroyPatchData();
 
 	LLDrawPoolTerrain *poolp = (LLDrawPoolTerrain*) gPipeline.findPool(LLDrawPool::POOL_TERRAIN, mSTexturep);
@@ -167,10 +163,9 @@ void LLSurface::create(const S32 grids_per_edge,
 	mGridsPerEdge = grids_per_edge + 1;  // Add 1 for the east and north buffer
 	mOOGridsPerEdge = 1.f / mGridsPerEdge;
 	mGridsPerPatchEdge = grids_per_patch_edge;
-	mPatchesPerEdge = (mGridsPerEdge - 1) / mGridsPerPatchEdge;
-	mNumberOfPatches = mPatchesPerEdge * mPatchesPerEdge;
-	mMetersPerGrid = width / ((F32)(mGridsPerEdge - 1));
-	mMetersPerEdge = mMetersPerGrid * (mGridsPerEdge - 1);
+	mPatchesPerEdge = grids_per_edge / mGridsPerPatchEdge;
+	mMetersPerGrid = width / (F32)grids_per_edge;
+	mMetersPerEdge = mMetersPerGrid * grids_per_edge;
 // <FS:CR> Aurora Sim
 	sTextureSize = width;
 // </FS:CR> Aurora Sim
@@ -310,14 +305,13 @@ void LLSurface::setOriginGlobal(const LLVector3d &origin_global)
 {
 	LLVector3d new_origin_global;
 	mOriginGlobal = origin_global;
-	LLSurfacePatch *patchp;
 	S32 i, j;
 	// Need to update the southwest corners of the patches
 	for (j=0; j<mPatchesPerEdge; j++) 
 	{
 		for (i=0; i<mPatchesPerEdge; i++) 
 		{
-			patchp = getPatch(i, j);
+			const auto& patchp = getPatch(i, j);
 
 			new_origin_global = patchp->getOriginGlobal();
 			
@@ -369,383 +363,154 @@ void LLSurface::getNeighboringRegionsStatus( std::vector<S32>& regions )
 	}	
 }
 
-void LLSurface::connectNeighbor(LLSurface *neighborp, U32 direction)
+void LLSurface::connectNeighbor(LLSurface* neighborp, U32 direction)
 {
-	S32 i;
-	LLSurfacePatch *patchp, *neighbor_patchp;
-// <FS:CR> Aurora Sim
-	S32 neighborPatchesPerEdge = neighborp->mPatchesPerEdge;
-// </FS:CR> Aurora Sim
+	// Constraints: 
+	// - Regions width must equal height
+	// - Region width divisible by mGridsPerPatchEdge (16)
+	// - Region can only neighbor one other per side and coner (8 total, N, S, E, W, NW, NE, SW, SE)
+	// - Non-power-of-2 regions should work here, but the rest of the viewer code will probably choke on them.
 
+	surface_patch_ref patchp, neighbor_patchp;
+	if (mNeighbors[direction] == neighborp)
+	{
+		return;
+	}
+	if (mNeighbors[direction])
+	{
+		mNeighbors[direction]->disconnectNeighbor(this, gDirOpposite[direction]);
+	}
 	mNeighbors[direction] = neighborp;
-	neighborp->mNeighbors[gDirOpposite[direction]] = this;
 
-// <FS:CR> Aurora Sim
-	S32 ppe[2];
-	S32 own_offset[2] = {0, 0};
-	S32 neighbor_offset[2] = {0, 0};
-	U32 own_xpos, own_ypos, neighbor_xpos, neighbor_ypos;
-
-	ppe[0] = (mPatchesPerEdge < neighborPatchesPerEdge) ? mPatchesPerEdge : neighborPatchesPerEdge; // used for x
-	ppe[1] = ppe[0]; // used for y
-
-	from_region_handle(mRegionp->getHandle(), &own_xpos, &own_ypos);
-	from_region_handle(neighborp->getRegion()->getHandle(), &neighbor_xpos, &neighbor_ypos);
-
-	if(own_ypos >= neighbor_ypos)
-	{
-		neighbor_offset[1] = (own_ypos - neighbor_ypos) / mGridsPerPatchEdge;
-		ppe[1] = llmin(mPatchesPerEdge, neighborPatchesPerEdge-neighbor_offset[1]);
-	}
-	else
-	{
-		own_offset[1] = (neighbor_ypos - own_ypos) / mGridsPerPatchEdge;
-		ppe[1] = llmin(mPatchesPerEdge-own_offset[1], neighborPatchesPerEdge);
-	}
-
-	if(own_xpos >= neighbor_xpos)
-	{
-		neighbor_offset[0] = (own_xpos - neighbor_xpos) / mGridsPerPatchEdge;
-		ppe[0] = llmin(mPatchesPerEdge, neighborPatchesPerEdge-neighbor_offset[0]);
-	}
-	else
-	{
-		own_offset[0] = (neighbor_xpos - own_xpos) / mGridsPerPatchEdge;
-		ppe[0] = llmin(mPatchesPerEdge-own_offset[0], neighborPatchesPerEdge);
-	}
-// <FS:CR> Aurora Sim
+	const S32 max_idx = mPatchesPerEdge - 1;
+	const S32 neighbor_max_idx = neighborp->mPatchesPerEdge - 1;
 
 	// Connect patches
-	if (NORTHEAST == direction)
+	if (direction >= 4)
 	{
-		patchp = getPatch(mPatchesPerEdge - 1, mPatchesPerEdge - 1);
-// <FS:CR> Aurora Sim
-		//neighbor_patchp = neighborp->getPatch(0, 0);
-		neighbor_patchp = neighborp->getPatch(neighbor_offset[0], neighbor_offset[1]);
-// </FS:CR> Aurora Sim
-
-		patchp->connectNeighbor(neighbor_patchp, direction);
-		neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-		patchp->updateNorthEdge(); // Only update one of north or east.
-		patchp->dirtyZ();
-	}
-	else if (NORTHWEST == direction)
+		// Corner stitch
+		S32 patches[4][2] = {
+			{max_idx, max_idx},	//NORTHEAST
+			{0, max_idx},		//NORTHWEST
+			{0, 0},				//SOUTHWEST
+			{max_idx, 0},		//SOUTHEAST
+		};
+		const S32* p = patches[direction - 4];
+		surface_patch_ref patchp = getPatch(p[0], p[1]);
+		patchp->connectNeighbor(neighborp->getPatch(max_idx - p[0], max_idx - p[1]), direction);
+		if (NORTHEAST == direction)
+		{
+			patchp->updateNorthEdge(); // Only update one of north or east.
+			if (patchp->dirtyZ())
+			{
+				dirtySurfacePatch(patchp);
+			}
+		}
+}
+	else
 	{
-// <FS:CR> Aurora Sim
-		S32 off = mPatchesPerEdge + neighbor_offset[1] - own_offset[1];
-// </FS:CR> Aurora Sim
-		patchp = getPatch(0, mPatchesPerEdge - 1);
-// <FS:CR> Aurora Sim
-		//neighbor_patchp = neighborp->getPatch(mPatchesPerEdge - 1, 0);
-		neighbor_patchp = neighborp->getPatch(neighbor_offset[0] - 1, off); //neighborPatchesPerEdge - 1
-		if (!neighbor_patchp)
+		// Edge stitch
+		// Aurora complicates this logic.
+		U32 pos[2][2] = { {0,0},{0,0} };
+		from_region_handle(mRegionp->getHandle(), &pos[0][0], &pos[0][1]);
+		from_region_handle(neighborp->getRegion()->getHandle(), &pos[1][0], &pos[1][1]);
+		S32 width[2] = { (S32)mRegionp->getWidth(), (S32)neighborp->getRegion()->getWidth() };
+		U32 mins[2] = { llmax(pos[0][0], pos[1][0]), llmax(pos[0][1], pos[1][1]) };
+		U32 maxs[2] = { llmin(pos[0][0] + width[0], pos[1][0] + width[1]), llmin(pos[0][1] + width[0], pos[1][1] + width[1]) };
+		S32 start[2][2] = {
+			{S32((mins[0] - pos[0][0]) / mGridsPerPatchEdge) - 1, S32((mins[1] - pos[0][1]) / mGridsPerPatchEdge) - 1},
+			{S32((mins[0] - pos[1][0]) / neighborp->mGridsPerPatchEdge) - 1,S32((mins[1] - pos[1][1]) / neighborp->mGridsPerPatchEdge) - 1}
+		};
+
+		S32 end[2] = { llmin(S32((maxs[0] - pos[0][0]) / mGridsPerPatchEdge), max_idx),  llmin(S32((maxs[1] - pos[0][1]) / mGridsPerPatchEdge), max_idx) };
+		const U32& neighbor_direction = gDirOpposite[direction];
+		S32 stride[4][4][2] = {
+			{{0, 1}, {max_idx, 0}, {neighbor_max_idx, 0}, {NORTHEAST, SOUTHEAST}},	//EAST
+			{{1, 0}, {0, max_idx}, {0, neighbor_max_idx}, {NORTHEAST, NORTHWEST} },	//NORTH
+			{{0, 1}, {0, 0}, {0, 0}, {NORTHWEST, SOUTHWEST}},						//WEST
+			{{1, 0}, {0, 0}, {0, 0}, {SOUTHEAST, SOUTHWEST}}						//SOUTH
+		};
+		const S32 offs[2][2] = {
+			{stride[direction][0][0], stride[direction][0][1]},
+			{stride[neighbor_direction][0][0], stride[neighbor_direction][0][1]}
+		};
+
+		S32 x[2], y[2];
+		x[0] = stride[direction][1][0] + offs[0][0] * start[0][0];
+		y[0] = stride[direction][1][1] + offs[0][1] * start[0][1];
+		x[1] = stride[neighbor_direction][2][0] + offs[1][0] * start[1][0];
+		y[1] = stride[neighbor_direction][2][1] + offs[1][1] * start[1][1];
+
+		for (
+			x[0] = stride[direction][1][0] + offs[0][0] * start[0][0],
+			y[0] = stride[direction][1][1] + offs[0][1] * start[0][1],
+			x[1] = stride[neighbor_direction][2][0] + offs[1][0] * start[1][0],
+			y[1] = stride[neighbor_direction][2][1] + offs[1][1] * start[1][1];
+			(!offs[0][0] || x[0] <= end[0]) && (!offs[0][1] || (y[0] <= end[1]));
+			x[0] += offs[0][0], y[0] += offs[0][1],
+			x[1] += offs[1][0], y[1] += offs[1][1])
 		{
-			mNeighbors[direction] = NULL;
-			return;
-		}
-// </FS:CR> Aurora Sim
-
-		patchp->connectNeighbor(neighbor_patchp, direction);
-		neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-	}
-	else if (SOUTHWEST == direction)
-	{
-		patchp = getPatch(0, 0);
-// <FS:CR> Aurora Sim
-		//neighbor_patchp = neighborp->getPatch(mPatchesPerEdge - 1, mPatchesPerEdge - 1);
-		neighbor_patchp = neighborp->getPatch(neighbor_offset[0] - 1, neighbor_offset[1] - 1);
-		if (!neighbor_patchp)
-		{
-			mNeighbors[direction] = NULL;
-			return;
-		}
-// </FS:CR> Aurora Sim
-
-		patchp->connectNeighbor(neighbor_patchp, direction);
-		neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-// <FS:CR> Aurora Sim
-		//neighbor_patchp->updateNorthEdge(); // Only update one of north or east.
-		neighbor_patchp->updateEastEdge(); // Only update one of north or east.
-// </FS:CR> Aurora Sim
-		neighbor_patchp->dirtyZ();
-	}
-	else if (SOUTHEAST == direction)
-	{
-// <FS:CR> Aurora Sim
-		S32 off = mPatchesPerEdge + neighbor_offset[0] - own_offset[0];
-// </FS:CR> Aurora Sim
-
-		patchp = getPatch(mPatchesPerEdge - 1, 0);
-// <FS:CR> Aurora Sim
-		//neighbor_patchp = neighborp->getPatch(0, mPatchesPerEdge - 1);
-		neighbor_patchp = neighborp->getPatch(off, neighbor_offset[1] - 1); //0
-		if (!neighbor_patchp)
-		{
-			mNeighbors[direction] = NULL;
-			return;
-		}
-// </FS:CR> Aurora Sim
-
-		patchp->connectNeighbor(neighbor_patchp, direction);
-		neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-	}
-	else if (EAST == direction)
-	{
-		// Do east/west connections, first
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < (S32)mPatchesPerEdge; i++)
-		for (i = 0; i < ppe[1]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(mPatchesPerEdge - 1, i);
-			//neighbor_patchp = neighborp->getPatch(0, i);
-			patchp = getPatch(mPatchesPerEdge - 1, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(0, i + neighbor_offset[1]);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, direction);
-			neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-			patchp->updateEastEdge();
-			patchp->dirtyZ();
-		}
-
-		// Now do northeast/southwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < (S32)mPatchesPerEdge - 1; i++)
-		for (i = 0; i < ppe[1] - 1; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(mPatchesPerEdge - 1, i);
-			//neighbor_patchp = neighborp->getPatch(0, i+1);
-			patchp = getPatch(mPatchesPerEdge - 1, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(0, i+1 + neighbor_offset[1]);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, NORTHEAST);
-			neighbor_patchp->connectNeighbor(patchp, SOUTHWEST);
-		}
-		// Now do southeast/northwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 1; i < (S32)mPatchesPerEdge; i++)
-		for (i = 1; i < ppe[1]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(mPatchesPerEdge - 1, i);
-			//neighbor_patchp = neighborp->getPatch(0, i-1);
-			patchp = getPatch(mPatchesPerEdge - 1, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(0, i-1 + neighbor_offset[1]);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, SOUTHEAST);
-			neighbor_patchp->connectNeighbor(patchp, NORTHWEST);
+			if (x[0] < 0 || y[0] < 0) {
+				continue;
+			}
+			surface_patch_ref patchp = getPatch(x[0], y[0]);
+			// diagonal stitch 1
+			if ((offs[1][0] > 0 && x[1] > 0) || (offs[1][1] > 0 && y[1] > 0))
+			{
+				patchp->connectNeighbor(neighborp->getPatch(x[1] - offs[1][0], y[1] - offs[1][1]), stride[direction][3][1]);
+			}
+			// edge stitch
+			if (x[1] >= 0 && y[1] >= 0 && x[1] <= neighbor_max_idx && y[1] <= neighbor_max_idx)
+			{
+				patchp->connectNeighbor(neighborp->getPatch(x[1], y[1]), direction);
+			}
+			// diagonal stitch 2
+			if (x[1] + offs[1][0] <= neighbor_max_idx && y[1] + offs[1][1] <= neighbor_max_idx)
+			{
+				patchp->connectNeighbor(neighborp->getPatch(x[1] + offs[1][0], y[1] + offs[1][1]), stride[direction][3][0]);
+			}
+			if (direction == EAST)
+			{
+				patchp->updateEastEdge();
+				if (patchp->dirtyZ())
+				{
+					dirtySurfacePatch(patchp);
+				}
+			}
+			else if (direction == NORTH)
+			{
+				patchp->updateNorthEdge();
+				if (patchp->dirtyZ())
+				{
+					dirtySurfacePatch(patchp);
+				}
+			}
 		}
 	}
-	else if (NORTH == direction)
-	{
-		// Do north/south connections, first
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < (S32)mPatchesPerEdge; i++)
-		for (i = 0; i < ppe[0]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, mPatchesPerEdge - 1);
-			//neighbor_patchp = neighborp->getPatch(i, 0);
-			patchp = getPatch(i + own_offset[0], mPatchesPerEdge - 1);
-			neighbor_patchp = neighborp->getPatch(i + neighbor_offset[0], 0);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, direction);
-			neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-			patchp->updateNorthEdge();
-			patchp->dirtyZ();
-		}
-
-		// Do northeast/southwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < (S32)mPatchesPerEdge - 1; i++)
-		for (i = 0; i < ppe[0] - 1; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, mPatchesPerEdge - 1);
-			//neighbor_patchp = neighborp->getPatch(i+1, 0);
-			patchp = getPatch(i + own_offset[0], mPatchesPerEdge - 1);
-			neighbor_patchp = neighborp->getPatch(i+1 + neighbor_offset[0], 0);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, NORTHEAST);
-			neighbor_patchp->connectNeighbor(patchp, SOUTHWEST);
-		}
-		// Do southeast/northwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 1; i < (S32)mPatchesPerEdge; i++)
-		for (i = 1; i < ppe[0]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, mPatchesPerEdge - 1);
-			//neighbor_patchp = neighborp->getPatch(i-1, 0);
-			patchp = getPatch(i + own_offset[0], mPatchesPerEdge - 1);
-			neighbor_patchp = neighborp->getPatch(i-1 + neighbor_offset[0], 0);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, NORTHWEST);
-			neighbor_patchp->connectNeighbor(patchp, SOUTHEAST);
-		}
-	}
-	else if (WEST == direction)
-	{
-		// Do east/west connections, first
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < mPatchesPerEdge; i++)
-		for (i = 0; i < ppe[1]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(0, i);
-			//neighbor_patchp = neighborp->getPatch(mPatchesPerEdge - 1, i);
-			patchp = getPatch(0, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(neighborPatchesPerEdge - 1, i + neighbor_offset[1]);
-			if (!neighbor_patchp) continue;
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, direction);
-			neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-			neighbor_patchp->updateEastEdge();
-			neighbor_patchp->dirtyZ();
-		}
-
-		// Now do northeast/southwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 1; i < mPatchesPerEdge; i++)
-		for (i = 1; i < ppe[1]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(0, i);
-			//neighbor_patchp = neighborp->getPatch(mPatchesPerEdge - 1, i - 1);
-			patchp = getPatch(0, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(neighborPatchesPerEdge - 1, i - 1 + neighbor_offset[1]);
-			if (!neighbor_patchp) continue;
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, SOUTHWEST);
-			neighbor_patchp->connectNeighbor(patchp, NORTHEAST);
-		}
-
-		// Now do northwest/southeast connections
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < mPatchesPerEdge - 1; i++)
-		for (i = 0; i < ppe[1] - 1; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(0, i);
-			//neighbor_patchp = neighborp->getPatch(mPatchesPerEdge - 1, i + 1);
-			patchp = getPatch(0, i + own_offset[1]);
-			neighbor_patchp = neighborp->getPatch(neighborPatchesPerEdge - 1, i + 1 + neighbor_offset[1]);
-			if (!neighbor_patchp) continue;
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, NORTHWEST);
-			neighbor_patchp->connectNeighbor(patchp, SOUTHEAST);
-		}
-	}
-	else if (SOUTH == direction)
-	{
-		// Do north/south connections, first
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < mPatchesPerEdge; i++)
-		for (i = 0; i < ppe[0]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, 0);
-			//neighbor_patchp = neighborp->getPatch(i, mPatchesPerEdge - 1);
-			patchp = getPatch(i + own_offset[0], 0);
-			neighbor_patchp = neighborp->getPatch(i + neighbor_offset[0], neighborPatchesPerEdge - 1);
-			if (!neighbor_patchp) continue;
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, direction);
-			neighbor_patchp->connectNeighbor(patchp, gDirOpposite[direction]);
-
-			neighbor_patchp->updateNorthEdge();
-			neighbor_patchp->dirtyZ();
-		}
-
-		// Now do northeast/southwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 1; i < mPatchesPerEdge; i++)
-		for (i = 1; i < ppe[0]; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, 0);
-			//neighbor_patchp = neighborp->getPatch(i - 1, mPatchesPerEdge - 1);
-			patchp = getPatch(i + own_offset[0], 0);
-			neighbor_patchp = neighborp->getPatch(i - 1 + neighbor_offset[0], neighborPatchesPerEdge - 1);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, SOUTHWEST);
-			neighbor_patchp->connectNeighbor(patchp, NORTHEAST);
-		}
-		// Now do northeast/southwest connections
-// <FS:CR> Aurora Sim
-		//for (i = 0; i < mPatchesPerEdge - 1; i++)
-		for (i = 0; i < ppe[0] - 1; i++)
-// </FS:CR> Aurora Sim
-		{
-// <FS:CR> Aurora Sim
-			//patchp = getPatch(i, 0);
-			//neighbor_patchp = neighborp->getPatch(i + 1, mPatchesPerEdge - 1);
-			patchp = getPatch(i + own_offset[0], 0);
-			neighbor_patchp = neighborp->getPatch(i + 1 + neighbor_offset[0], neighborPatchesPerEdge - 1);
-// </FS:CR> Aurora Sim
-
-			patchp->connectNeighbor(neighbor_patchp, SOUTHEAST);
-			neighbor_patchp->connectNeighbor(patchp, NORTHWEST);
-		}
-	}		
 }
 
-void LLSurface::disconnectNeighbor(LLSurface *surfacep)
+void LLSurface::disconnectNeighbor(LLSurface* surfacep, U32 direction)
 {
-	S32 i;
-	for (i = 0; i < 8; i++)
+	if (surfacep && surfacep == mNeighbors[direction])
 	{
-		if (surfacep == mNeighbors[i])
+		mNeighbors[direction] = NULL;
+		for (auto& patchp : mPatchList)
 		{
-			mNeighbors[i] = NULL;
+			patchp->disconnectNeighbor(surfacep);
 		}
-	}
-
-	// Iterate through surface patches, removing any connectivity to removed surface.
-	for (i = 0; i < mNumberOfPatches; i++)
-	{
-		(mPatchList + i)->disconnectNeighbor(surfacep);
 	}
 }
 
 
 void LLSurface::disconnectAllNeighbors()
 {
-	S32 i;
-	for (i = 0; i < 8; i++)
+	for (size_t i = 0; i < mNeighbors.size(); ++i)
 	{
-		if (mNeighbors[i])
+		auto& neighbor = mNeighbors[i];
+		if (neighbor)
 		{
-			mNeighbors[i]->disconnectNeighbor(this);
-			mNeighbors[i] = NULL;
+			neighbor->disconnectNeighbor(this, gDirOpposite[i]);
+			neighbor = NULL;
 		}
 	}
 }
@@ -801,13 +566,9 @@ void LLSurface::updatePatchVisibilities(LLAgent &agent)
 
 	LLVector3 pos_region = mRegionp->getPosRegionFromGlobal(gAgentCamera.getCameraPositionGlobal());
 
-	LLSurfacePatch *patchp;
-	
 	mVisiblePatchCount = 0;
-	for (S32 i=0; i<mNumberOfPatches; i++) 
+	for (auto& patchp : mPatchList)
 	{
-		patchp = mPatchList + i;
-
 		patchp->updateVisibility();
 		if (patchp->getVisible())
 		{
@@ -831,19 +592,29 @@ BOOL LLSurface::idleUpdate(F32 max_update_time)
 
 	// If the Z height data has changed, we need to rebuild our
 	// property line vertex arrays.
-	if (mDirtyPatchList.size() > 0)
+	if (!mDirtyPatchList.empty())
 	{
 		getRegion()->dirtyHeights();
 	}
 
 	// Always call updateNormals() / updateVerticalStats()
 	//  every frame to avoid artifacts
-	for(std::set<LLSurfacePatch *>::iterator iter = mDirtyPatchList.begin();
-		iter != mDirtyPatchList.end(); )
+	for (auto it = mDirtyPatchList.cbegin(); it != mDirtyPatchList.cend();)
 	{
-		std::set<LLSurfacePatch *>::iterator curiter = iter++;
-		LLSurfacePatch *patchp = *curiter;
-		patchp->updateNormals();
+		if (it->second.expired())
+		{
+			LL_WARNS() << "Expired dirty patch detected. Side " << it->first << LL_ENDL;
+		}
+		surface_patch_ref patchp = it->second.lock();
+		if (!patchp)
+		{
+			it = mDirtyPatchList.erase(it);
+			continue;
+		}
+		if (patchp->updateNormals())
+		{
+			patchp->getSurface()->dirtySurfacePatch(patchp);
+		}
 		patchp->updateVerticalStats();
 		if (max_update_time == 0.f || update_timer.getElapsedTimeF32() < max_update_time)
 		{
@@ -851,9 +622,11 @@ BOOL LLSurface::idleUpdate(F32 max_update_time)
 			{
 				did_update = TRUE;
 				patchp->clearDirty();
-				mDirtyPatchList.erase(curiter);
+				it = mDirtyPatchList.erase(it);
+				continue;
 			}
 		}
+		++it;
 	}
 	return did_update;
 }
@@ -864,7 +637,6 @@ void LLSurface::decompressDCTPatch(LLBitPack &bitpack, LLGroupHeader *gopp, BOOL
 	LLPatchHeader  ph;
 	S32 j, i;
 	S32 patch[LARGE_PATCH_SIZE*LARGE_PATCH_SIZE];
-	LLSurfacePatch *patchp;
 
 	init_patch_decompressor(gopp->patch_size);
 	gopp->stride = mGridsPerEdge;
@@ -911,8 +683,7 @@ void LLSurface::decompressDCTPatch(LLBitPack &bitpack, LLGroupHeader *gopp, BOOL
 			return;
 		}
 
-		patchp = &mPatchList[j*mPatchesPerEdge + i];
-
+		const surface_patch_ref& patchp = mPatchList[j * mPatchesPerEdge + i];
 
 		decode_patch(bitpack, patch);
 		decompress_patch(patchp->getDataZ(), patch, &ph);
@@ -920,22 +691,26 @@ void LLSurface::decompressDCTPatch(LLBitPack &bitpack, LLGroupHeader *gopp, BOOL
 		// Update edges for neighbors.  Need to guarantee that this gets done before we generate vertical stats.
 		patchp->updateNorthEdge();
 		patchp->updateEastEdge();
-		if (patchp->getNeighborPatch(WEST))
+		LLSurfacePatch* neighborPatch;
+		if (neighborPatch = patchp->getNeighborPatch(WEST))
 		{
-			patchp->getNeighborPatch(WEST)->updateEastEdge();
+			neighborPatch->updateEastEdge();
 		}
-		if (patchp->getNeighborPatch(SOUTHWEST))
+		if (neighborPatch = patchp->getNeighborPatch(SOUTHWEST))
 		{
-			patchp->getNeighborPatch(SOUTHWEST)->updateEastEdge();
-			patchp->getNeighborPatch(SOUTHWEST)->updateNorthEdge();
+			neighborPatch->updateEastEdge();
+			neighborPatch->updateNorthEdge();
 		}
-		if (patchp->getNeighborPatch(SOUTH))
+		if (neighborPatch = patchp->getNeighborPatch(SOUTH))
 		{
-			patchp->getNeighborPatch(SOUTH)->updateNorthEdge();
+			neighborPatch->updateNorthEdge();
 		}
 
 		// Dirty patch statistics, and flag that the patch has data.
-		patchp->dirtyZ();
+		if (patchp->dirtyZ())
+		{
+			dirtySurfacePatch(patchp);
+		}
 		patchp->setHasReceivedData();
 	}
 }
@@ -1088,8 +863,13 @@ LLVector3 LLSurface::resolveNormalGlobal(const LLVector3d& pos_global) const
 
 }
 
-LLSurfacePatch *LLSurface::resolvePatchRegion(const F32 x, const F32 y) const
+const surface_patch_ref& LLSurface::resolvePatchRegion(const F32 x, const F32 y) const
 {
+	if (mPatchList.empty()) {
+		LL_WARNS() << "No patches for current region!" << LL_ENDL;
+		static surface_patch_ref empty;
+		return empty;
+	}
 // x and y should be region-local coordinates. 
 // If x and y are outside of the surface, then the returned
 // index will be for the nearest boundary patch.
@@ -1140,29 +920,24 @@ LLSurfacePatch *LLSurface::resolvePatchRegion(const F32 x, const F32 y) const
 
 	// *NOTE: Super paranoia code follows.
 	S32 index = i + j * mPatchesPerEdge;
-	if((index < 0) || (index >= mNumberOfPatches))
+	if((index < 0) || (index >= mPatchList.size()))
 	{
-		if(0 == mNumberOfPatches)
-		{
-			LL_WARNS() << "No patches for current region!" << LL_ENDL;
-			return NULL;
-		}
 		S32 old_index = index;
-		index = llclamp(old_index, 0, (mNumberOfPatches - 1));
+		index = llclamp(old_index, 0, ((S32)mPatchList.size() - 1));
 		LL_WARNS() << "Clamping out of range patch index " << old_index
 				<< " to " << index << LL_ENDL;
 	}
-	return &(mPatchList[index]);
+	return mPatchList[index];
 }
 
 
-LLSurfacePatch *LLSurface::resolvePatchRegion(const LLVector3 &pos_region) const
+const surface_patch_ref& LLSurface::resolvePatchRegion(const LLVector3 &pos_region) const
 {
 	return resolvePatchRegion(pos_region.mV[VX], pos_region.mV[VY]);
 }
 
 
-LLSurfacePatch *LLSurface::resolvePatchGlobal(const LLVector3d &pos_global) const
+const surface_patch_ref& LLSurface::resolvePatchGlobal(const LLVector3d &pos_global) const
 {
 	llassert(mRegionp);
 	LLVector3 pos_region = mRegionp->getPosRegionFromGlobal(pos_global);
@@ -1191,36 +966,27 @@ void LLSurface::createPatchData()
 	// Assumes mGridsPerEdge, mGridsPerPatchEdge, and mPatchesPerEdge have been properly set
 	// TODO -- check for create() called when surface is not empty
 	S32 i, j;
-	LLSurfacePatch *patchp;
 
 	// Allocate memory
-	mPatchList = new LLSurfacePatch[mNumberOfPatches];
-
-	// One of each for each camera
-	mVisiblePatchCount = mNumberOfPatches;
-
-	for (j=0; j<mPatchesPerEdge; j++) 
+	mPatchList.resize(mPatchesPerEdge * mPatchesPerEdge);
+	for (S32 i = 0; i < mPatchList.size(); ++i)
 	{
-		for (i=0; i<mPatchesPerEdge; i++) 
-		{
-			patchp = getPatch(i, j);
-			patchp->setSurface(this);
-		}
+		mPatchList[i] = std::make_shared<LLSurfacePatch>(this, i);
 	}
 
+	// One of each for each camera
+	mVisiblePatchCount = mPatchList.size();
+
 	for (j=0; j<mPatchesPerEdge; j++) 
 	{
 		for (i=0; i<mPatchesPerEdge; i++) 
 		{
-			patchp = getPatch(i, j);
-			patchp->mHasReceivedData = FALSE;
-			patchp->mSTexUpdate = TRUE;
+			const auto& patchp = getPatch(i, j);
 
 			S32 data_offset = i * mGridsPerPatchEdge + j * mGridsPerPatchEdge * mGridsPerEdge;
 
 			patchp->setDataZ(mSurfaceZ + data_offset);
 			patchp->setDataNorm(mNorm + data_offset);
-
 
 			// We make each patch point to its neighbors so we can do resolution checking 
 			// when butting up different resolutions.  Patches that don't have neighbors
@@ -1310,9 +1076,7 @@ void LLSurface::createPatchData()
 void LLSurface::destroyPatchData()
 {
 	// Delete all of the cached patch data for these patches.
-
-	delete [] mPatchList;
-	mPatchList = NULL;
+	mPatchList.clear();
 	mVisiblePatchCount = 0;
 }
 
@@ -1335,36 +1099,50 @@ U32 LLSurface::getRenderStride(const U32 render_level) const
 }
 
 
-LLSurfacePatch *LLSurface::getPatch(const S32 x, const S32 y) const
+const surface_patch_ref& LLSurface::getPatch(const S32 x, const S32 y) const
 {
+	static surface_patch_ref empty(nullptr);
 	if ((x < 0) || (x >= mPatchesPerEdge))
 	{
 		LL_WARNS() << "Asking for patch out of bounds" << LL_ENDL;
-		return NULL;
+		return empty;
 	}
 	if ((y < 0) || (y >= mPatchesPerEdge))
 	{
 		LL_WARNS() << "Asking for patch out of bounds" << LL_ENDL;
-		return NULL;
+		return empty;
 	}
 
-	return mPatchList + x + y*mPatchesPerEdge;
+	return mPatchList[x + y*mPatchesPerEdge];
 }
 
 
 void LLSurface::dirtyAllPatches()
 {
-	S32 i;
-	for (i = 0; i < mNumberOfPatches; i++)
+	for (auto& patchp : mPatchList)
 	{
-		mPatchList[i].dirtyZ();
+		if (patchp->dirtyZ())
+		{
+			dirtySurfacePatch(patchp);
+		}
 	}
 }
 
-void LLSurface::dirtySurfacePatch(LLSurfacePatch *patchp)
+void LLSurface::dirtySurfacePatch(const surface_patch_ref& patchp)
 {
+	if (!patchp)
+	{
+		return;
+	}
+
 	// Put surface patch on dirty surface patch list
-	mDirtyPatchList.insert(patchp);
+	if (std::find_if(mDirtyPatchList.begin(), mDirtyPatchList.end(), 
+		[&patchp](std::pair<U32, std::weak_ptr<LLSurfacePatch > >& entry) -> bool {
+			return entry.second.lock().get() == patchp.get();
+		}) == mDirtyPatchList.end())
+	{
+		mDirtyPatchList.push_back(std::make_pair(patchp->getSide(), patchp));
+	}
 }
 
 

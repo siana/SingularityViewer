@@ -243,9 +243,6 @@ BOOL LLPanelDirFind::postBuild()
 		// need to handle secondlife:///app/ URLs for direct teleports
 		mWebBrowser->setTrustedContent( true );
 
-		// redirect 404 pages from S3 somewhere else
-		mWebBrowser->set404RedirectUrl( getString("redirect_404_url") );
-
 		navigateToDefaultPage();
 	}
 
@@ -598,6 +595,7 @@ void LLPanelDirFind::handleMediaEvent(LLPluginClassMedia* self, EMediaEvent even
 // LLPanelDirFindAllInterface
 //---------------------------------------------------------------------------
 
+static LLPanelDirFindAll* sFindAll = NULL;
 // static
 LLPanelDirFindAll* LLPanelDirFindAllInterface::create(LLFloaterDirectory* floater)
 {
@@ -606,12 +604,29 @@ LLPanelDirFindAll* LLPanelDirFindAllInterface::create(LLFloaterDirectory* floate
 
 static LLPanelDirFindAllOld* sFindAllOld = NULL;
 // static
-void LLPanelDirFindAllInterface::search(LLPanelDirFindAll* panel,
-										const std::string& search_text)
+void LLPanelDirFindAllInterface::search(LLFloaterDirectory* inst,
+										const LLFloaterSearch::SearchQuery& search, bool show)
 {
 	bool secondlife(gHippoGridManager->getConnectedGrid()->isSecondLife());
-	if (secondlife || !getSearchUrl().empty()) panel->search(search_text);
-	if (!secondlife && sFindAllOld) sFindAllOld->search(search_text);
+	LLPanelDirFind* find_panel(secondlife ? inst->findChild<LLPanelDirFind>("web_panel") : sFindAll);
+	LLPanel* panel(find_panel);
+	if (secondlife)
+		LLFloaterSearch::search(search, find_panel->mWebBrowser);
+	else
+	{
+		bool has_url(!getSearchUrl().empty());
+		if (has_url) find_panel->search(search.query);
+		if (sFindAllOld)
+		{
+			sFindAllOld->search(search.query);
+			if (!has_url) panel = sFindAllOld;
+		}
+	}
+	if (show && panel)
+	{
+		inst->findChild<LLTabContainer>("Directory Tabs")->selectTabPanel(panel);
+		panel->setFocus(true);
+	}
 }
 
 // static

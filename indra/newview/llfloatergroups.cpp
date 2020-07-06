@@ -45,6 +45,7 @@
 
 #include "hbfloatergrouptitles.h"
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llbutton.h"
 #include "llfloatergroupinvite.h"
 #include "llgroupactions.h"
@@ -187,7 +188,7 @@ void LLPanelGroups::setTexts()
 	LLUICtrl* ctrl(getChild<LLUICtrl>("groupcount"));
 	size_t count(gAgent.mGroups.size());
 	ctrl->setTextArg("[COUNT]", llformat("%d", count));
-	int maxgroups(gHippoLimits->getMaxAgentGroups());
+	int maxgroups(LLAgentBenefitsMgr::current().getGroupMembershipLimit());
 	ctrl->setTextArg("[MAX]", llformat("%d", maxgroups));
 	ctrl->setTextArg("[LEFT]", llformat("%d", maxgroups - count));
 }
@@ -375,7 +376,6 @@ LLSD create_group_element(const LLGroupData *group_datap, const LLUUID &active_g
 
 void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, U64 powers_mask)
 {
-	S32 count = gAgent.mGroups.size();
 	LLUUID id;
 	LLCtrlListInterface *group_list = ctrl->getListInterface();
 	if (!group_list) return;
@@ -386,11 +386,16 @@ void init_group_list(LLScrollListCtrl* ctrl, const LLUUID& highlight_id, U64 pow
 
 	group_list->operateOnAll(LLCtrlListInterface::OP_DELETE);
 
-	for(S32 i = 0; i < count; ++i)
+	for(const auto& group : gAgent.mGroups)
 	{
-		LLSD element = create_group_element(&gAgent.mGroups[i], highlight_id, powers_mask);
-		if(element.size())
+		LLSD element = create_group_element(&group, highlight_id, powers_mask);
+		if (element.size())
+		{
 			group_list->addElement(element, ADD_SORTED);
+			// Force a name lookup here to get it added to the cache so other UI is prepared
+			std::string dummy;
+			gCacheName->getGroupName(group.mID, dummy);
+		}
 	}
 
 	// add "none" to list at top

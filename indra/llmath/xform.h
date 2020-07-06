@@ -200,7 +200,7 @@ void LLXform::setPosition(const LLVector3& pos)
 void LLXform::setPosition(const F32 x, const F32 y, const F32 z)
 {
 	setChanged(TRANSLATED);
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 		mPosition.setVec(x,y,z); 
 	else
 	{
@@ -212,7 +212,7 @@ void LLXform::setPosition(const F32 x, const F32 y, const F32 z)
 void LLXform::setPositionX(const F32 x)
 { 
 	setChanged(TRANSLATED);
-	if (llfinite(x))
+	if (std::isfinite(x))
 		mPosition.mV[VX] = x; 
 	else
 	{
@@ -224,7 +224,7 @@ void LLXform::setPositionX(const F32 x)
 void LLXform::setPositionY(const F32 y)
 { 
 	setChanged(TRANSLATED);
-	if (llfinite(y))
+	if (std::isfinite(y))
 		mPosition.mV[VY] = y; 
 	else
 	{
@@ -236,7 +236,7 @@ void LLXform::setPositionY(const F32 y)
 void LLXform::setPositionZ(const F32 z)
 { 
 	setChanged(TRANSLATED);
-	if (llfinite(z))
+	if (std::isfinite(z))
 		mPosition.mV[VZ] = z; 
 	else
 	{
@@ -268,7 +268,7 @@ void LLXform::setScale(const LLVector3& scale)
 void LLXform::setScale(const F32 x, const F32 y, const F32 z)
 { 
 	setChanged(SCALED);
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 		mScale.setVec(x,y,z); 
 	else
 	{
@@ -290,7 +290,7 @@ void LLXform::setRotation(const LLQuaternion& rot)
 void LLXform::setRotation(const F32 x, const F32 y, const F32 z) 
 { 
 	setChanged(ROTATED);
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 	{
 		mRotation.setQuat(x,y,z); 
 	}
@@ -303,7 +303,7 @@ void LLXform::setRotation(const F32 x, const F32 y, const F32 z)
 void LLXform::setRotation(const F32 x, const F32 y, const F32 z, const F32 s) 
 { 
 	setChanged(ROTATED);
-	if (llfinite(x) && llfinite(y) && llfinite(z) && llfinite(s))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z) && std::isfinite(s))
 	{
 		mRotation.mQ[VX] = x; mRotation.mQ[VY] = y; mRotation.mQ[VZ] = z; mRotation.mQ[VS] = s; 
 	}

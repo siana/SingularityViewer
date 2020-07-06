@@ -1,6 +1,55 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <menu bottom="100" color="MenuDefaultBgColor" drop_shadow="true" height="101" left="100"
      mouse_opaque="false" name="Popup" opaque="true" width="128">
+     <menu_item_call
+      label="Create listing"
+      name="Marketplace Create Listing">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_create_listing"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Associate listing"
+      name="Marketplace Associate Listing">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_associate_listing"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Get (Refresh) listing"
+      name="Marketplace Get Listing">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_get_listing"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Check for errors"
+      name="Marketplace Check Listing">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_check_listing"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Edit listing"
+      name="Marketplace Edit Listing">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_edit_listing"/>
+     </menu_item_call>
+     <menu_item_call
+      label="List"
+      name="Marketplace List">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_list"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Unlist"
+      name="Marketplace Unlist">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_unlist"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Activate"
+      name="Marketplace Activate">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_activate"/>
+     </menu_item_call>
+     <menu_item_call
+      label="Deactivate"
+      name="Marketplace Deactivate">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_deactivate"/>
+     </menu_item_call>
+     <menu_item_call label="Copy Listing ID" name="Marketplace Copy ID">
+       <on_click function="Inventory.DoToSelected" userdata="marketplace_copy_id"/>
+     </menu_item_call>
+     <menu_item_separator name="Marketplace Listings Separator"/>
 	<menu_item_call bottom_delta="-18" height="18" label="Buy" left="0" mouse_opaque="true"
 	     name="Task Buy" width="128">
 		<on_click filter="" function="Inventory.DoToSelected" userdata="task_buy" />
@@ -44,6 +93,9 @@
 	</menu_item_call>
 	<menu_item_call label="Open in New Window" name="Open Folder In New Window">
 		<on_click function="Inventory.DoToSelected" userdata="open_in_new_window"/>
+	</menu_item_call>
+	<menu_item_call label="Copy Folder UUID" name="Copy Folder UUID">
+		<on_click function="Inventory.DoToSelected" userdata="copy_folder_uuid"/>
 	</menu_item_call>
 	<menu_item_call bottom_delta="-18" height="18" label="New Folder" left="0" mouse_opaque="true"
 	     name="New Folder" width="128">
@@ -108,6 +160,9 @@
 		     mouse_opaque="true" name="New Alpha" width="128">
 			<on_click filter="" function="Inventory.DoCreate" userdata="alpha" />
 		</menu_item_call>
+        <menu_item_call label="New Universal" name="New Universal">
+          <on_click function="Inventory.DoCreate" userdata="universal"/>
+        </menu_item_call>
     <menu_item_call bottom_delta="-18" height="18" label="New Physics" left="0"
 		     mouse_opaque="true" name="New Physics" width="128">
       <on_click filter="" function="Inventory.DoCreate" userdata="physics" />
@@ -346,13 +401,11 @@
 		<on_click filter="" function="Inventory.DoToSelected" userdata="take_off" />
 	</menu_item_call>
 	<menu_item_separator name="Marketplace Separator" />
-	<menu_item_call bottom_delta="-18" height="18" label="Copy to Merchant Outbox" left="0" mouse_opaque="true"
-	     name="Merchant Copy" width="128">
-		<on_click filter="" function="Inventory.DoToSelected" userdata="copy_to_outbox" />
+	<menu_item_call label="Copy to Marketplace Listings" name="Marketplace Copy">
+		<on_click function="Inventory.DoToSelected" userdata="copy_to_marketplace_listings" />
 	</menu_item_call>
-	<menu_item_call bottom_delta="-18" height="18" label="Send to Marketplace" left="0" mouse_opaque="true"
-	     name="Marketplace Send" width="128">
-		<on_click filter="" function="Inventory.DoToSelected" userdata="send_to_marketplace" />
+	<menu_item_call label="Move to Marketplace Listings" name="Marketplace Move">
+		<on_click function="Inventory.DoToSelected" userdata="move_to_marketplace_listings" />
 	</menu_item_call>
     <menu_item_call label="Share" name="Share">
         <menu_item_call.on_click function="Inventory.Share"/>

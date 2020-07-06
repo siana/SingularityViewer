@@ -53,7 +53,7 @@ class AIXMLLindenGenepool : public AIXMLRootElement
 	  MetaData(AIXMLElementParser const& parser);
 	};
 
-	AIXMLLindenGenepool(LLFILE* fp);
+	AIXMLLindenGenepool(const std::string& filename);
 };
 
 class AIVisualParamIDValuePair

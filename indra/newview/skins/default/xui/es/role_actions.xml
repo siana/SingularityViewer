@@ -5,7 +5,7 @@
 		name="Membership">
 		<action 
 			description="Invitar Personas al Grupo" 
-			longdescription="Invitar personas al grupo usando el botón &apos;Invitar a un nuevo miembro&apos; en Miembros y Roles &gt; subpestaña Miembros." 
+			longdescription="Invitar personas al grupo usando el botón &apos;Invitar&apos; en Miembros y Roles &gt; subpestaña Miembros." 
 			name="member invite"/>
 		<action 
 			description="Expulsar a miembros del grupo" 
@@ -34,19 +34,19 @@
 			name="role properties"/>
 		<action 
 			description="Designar miembros para el rol de Asignador" 
-			longdescription="Designar miembros para un rol en la sección Roles asignados de la pestaña Miembros y Roles &gt; subpestaña Miembros. Un miembro con este poder sólo puede asignar a otros el rol que él posee." 
+			longdescription="Designar miembros para un rol en la lista de Roles asignados de la pestaña Miembros y Roles &gt; subpestaña Miembros. Un miembro con este poder sólo puede asignar a otros el rol que él posee." 
 			name="role assign member limited"/>
 		<action 
 			description="Designar miembros para cualquier Rol" 
-			longdescription="Designar miembros para cualquier rol en la sección Roles asignados de la pestaña Miembros y Roles &gt; subpestaña Miembros. *AVISO* Todos los miembros con esta capacidad podrán asignarse a sí mismos (y a otros miembros) roles con mayores poderes de los que actualmente tienen. Potencialmente, podrían elevarse hasta poderes cercanos a los del propietario. Asegúrate de lo que estás haciendo antes de otorgar esta capacidad." 
+			longdescription="Designar miembros para cualquier rol en la lista de Roles asignados de la pestaña Miembros y Roles &gt; subpestaña Miembros. *AVISO* Todos los miembros con esta capacidad podrán asignarse a sí mismos (y a otros miembros) roles con mayores poderes de los que actualmente tienen. Potencialmente, podrían elevarse hasta poderes cercanos a los del propietario. Asegúrate de lo que estás haciendo antes de otorgar esta capacidad." 
 			name="role assign member"/>
 		<action 
 			description="Quitar miembros de los roles" 
-			longdescription="Quitar miembros de roles en la sección Capacidades asignadas de Miembros y Roles &gt; subpestaña Roles. No se pueden quitar a los Propietarios." 
+			longdescription="Quitar miembros de roles en la lista de Roles asignados de Miembros y Roles &gt; subpestaña Roles. No se pueden quitar a los Propietarios." 
 			name="role remove member"/>
 		<action 
 			description="Añadir o quitar capacidades a los roles" 
-			longdescription="Añadir o quitar capacidades a los roles en la sección Capacidades asignadas de Miembros y Roles &gt; subpestaña Roles. *AVISO* Todos los miembros con esta capacidad podrán asignarse a sí mismos -y a otros miembros- roles con mayores poderes de los que actualmente tienen. Potencialmente, podrían elevarse hasta poderes cercanos a los del propietario. Asegúrate de lo que estás haciendo antes de otorgar esta capacidad." 
+			longdescription="Añadir o quitar capacidades a los roles en la lista de Roles asignados de Miembros y Roles &gt; subpestaña Roles. *AVISO* Todos los miembros con esta capacidad podrán asignarse a sí mismos -y a otros miembros- roles con mayores poderes de los que actualmente tienen. Potencialmente, podrían elevarse hasta poderes cercanos a los del propietario. Asegúrate de lo que estás haciendo antes de otorgar esta capacidad." 
 			name="role change actions"/> 
 	</action_set>
 	<action_set 
@@ -54,7 +54,7 @@
 		name="Group Identity">
 		<action 
 			description="Cambiar la carta, emblema y &apos;Mostrar en la búsqueda&apos;" 
-			longdescription="Cambiar la carta, emblema y &apos;Mostrar en la búsqueda&apos;, y qué miembros serán visibles en la información del grupo de la pestaña General." 
+			longdescription="Cambiar la carta, emblema y &apos;Mostrar en la búsqueda&apos;, Esto se hace en la sección General." 
 			name="group change identity"/>
 	</action_set>
 	<action_set 
@@ -81,11 +81,11 @@
 		description="Estas capacidades incluyen poder cambiar el nombre de la parcela y su configuración pública, también si se muestra en la Búsqueda y las opciones del punto de llegada y el de teleporte." 
 		name="Parcel Identity">
 		<action 
-			description="Activar/Desactivar &apos;Mostrar en Búsqueda&apos; y el definir la Categoría" longdescription="Activar/Desactivar el &apos;Mostrar en Búsqueda&apos; y en que Categoría se mostrará en Acerca del terreno &gt; pestaña Opciones." 
+			description="Activar/Desactivar &apos;Mostrar en Búsqueda&apos; y en definir la Categoría" longdescription="Activar/Desactivar el &apos;Mostrar en Búsqueda&apos; y en que Categoría se mostrará en Acerca del terreno &gt; pestaña Opciones." 
 			name="land find places"/>
 		<action 
-			description="Cambiar el nombre de la parcela, la descripción, y la configuración de &apos;Mostrar en Búsqueda&apos;" 
-			longdescription="Cambiar el nombre y descripción de la parcela, y la configuración de &apos;Mostrar en Búsqueda&apos;. Se hace en Acerca del terreno &gt; pestaña Opciones." 
+			description="Cambiar el nombre de la parcela, la descripción, y la configuración de &apos;Calificación de Contenido&apos;" 
+			longdescription="Cambiar el nombre y descripción de la parcela, y la configuración de &apos;Calificación de Contenido&apos;. Se hace en Acerca del terreno &gt; pestaña Opciones." 
 			name="land change identity"/>
 		<action 
 			description="Definir los puntos de llegada y teleporte" 
@@ -104,7 +104,7 @@
 			name="land edit"/>
 		<action 
 			description="Activar/desactivar varios ítems de Acerca del terreno &gt; Opciones" 
-			longdescription="Activar/desactivar en un terreno del grupo los ítems de Acerca del terreno &gt; pestaña Opciones: &apos;Seguro (sin daño)&apos;, &apos;Volar&apos;, y permitir a otros residentes: &apos;Crear objetos&apos;, &apos;Editar el terreno&apos;, &apos;Crear hitos&apos;, y &apos;Ejecutar scripts&apos;." 
+			longdescription="Activar/desactivar &apos;Seguro (sin daño)&apos;, &apos;Volar&apos;, y permitir a otros residentes: &apos;Editar el terreno&apos;, &apos;Construir&apos; &apos;Crear hitos&apos;, y &apos;Ejecutar scripts&apos; en terrenos propiedad del grupo en Acerca del terreno &gt; pestaña Opciones." 
 			name="land options"/>
 	</action_set>
 	<action_set 
@@ -152,7 +152,7 @@
 			name="land manage passes"/>
 		<action 
 			description="Expulsar y congelar residentes en las parcelas"
-			longdescription="Los miembros con el rol con esta capacidad pueden actuar frente a un residente indeseado en una parcela del grupo pulsando con el botón derecho sobre él, Más &gt; y seleccionando &apos;Expulsar...&apos; o &apos;Congelar...&apos;."
+			longdescription="Los miembros en el rol con esta capacidad pueden actuar frente a un residente indeseado en una parcela del grupo pulsando con el botón derecho sobre él, Más &gt; y seleccionando &apos;Expulsar...&apos; o &apos;Congelar...&apos;."
 			name="land admin"/>
 	</action_set>
 	<action_set
@@ -172,23 +172,23 @@
 			name="land return non group"/>
 		<action 
 			description="Modificar el paisaje usando plantas Linden"
-			longdescription="La capacidad de modificar el paisaje permite poner y mover árboles Linden, plantas y arbustos. Estos ítems están en la &apos;s Biblioteca de tu Inventario &gt; carpeta Objetos, o pueden crearse con el botón Construir."
+			longdescription="La capacidad de modificar el paisaje permite poner y mover árboles Linden, plantas y arbustos. Estos ítems están en la &apos;s Biblioteca de tu Inventario &gt; carpeta Objetos, o pueden crearse desde el menú Construir."
 			name="land gardening"/>
 	</action_set>
 	<action_set
-		description="Estas capacidades incluyen poderes para transferir, modificar y vender objetos pertenecientes al grupo. Estos cambios se hacen en la pestaña General de la herramienta de edición. Para ver sus configuraciones, pulsa en un objeto con el botón derecho y elige Editar."
+		description="Estas capacidades incluyen poderes para transferir, modificar y vender objetos pertenecientes al grupo. Estos cambios se hacen en la pestaña General de la herramienta de construcción . Para ver sus configuraciones, pulsa en un objeto con el botón derecho y elige Editar."
 		name="Object Management">
 		<action 
 			description="Transferir objetos al grupo"
-			longdescription="Transferir objetos al grupo en Editar &gt; pestaña General."
+			longdescription="Transferir objetos al grupo en Herramientas de construcción &gt; pestaña General."
 			name="object deed"/>
 		<action 
 			description="Manipular (mover, copiar, y modificar) objetos del grupo"
-			longdescription="Manipular (mover, copiar, y modificar) objetos pertenecientes al grupo en Editar &gt; pestaña General."
+			longdescription="Manipular (mover, copiar, y modificar) objetos pertenecientes al grupo en  Herramientas de contrucción &gt; pestaña General."
 			name="object manipulate"/>
 		<action 
 			description="Poner a la venta objetos propiedad del grupo"
-			longdescription="Poner a la venta objetos pertenecientes al grupo en Editar &gt; pestaña General."
+			longdescription="Poner a la venta objetos pertenecientes al grupo en Herramientas de construcción &gt; pestaña General."
 			name="object set sale"/>
 	</action_set>
 	<action_set
@@ -226,8 +226,7 @@
 	<action_set
 		description="Estas capacidades incluyen poderes para permitir o no el aceso a las sesiones de chat del grupo y al chat de voz del mismo." 
 		name="Chat">
-		<action 
-			description="Unirse al Chat de Grupo"
+		<action description="Unirse al Chat de Grupo"
 			longdescription="Los miembros del rol con esta capacidad pueden abrir sesiones de chat del grupo, tanto de texto como de voz."
 			name="join group chat"/>
 		<action description="Unirse al Chat de Voz"
@@ -236,5 +235,14 @@
 		<action description="Moderar el Chat de Grupo"
 			longdescription="Los miembros del rol con esta capacidad pueden controlar el acceso y las participaciones en los chats de texto y de voz del grupo."
 			name="moderate group chat"/>
+	</action_set>
+	<action_set description="Esta capacidad incluye el poder para modificar experiencias propiedad de este grupo."
+		name="experience_tools_experience">
+	<action description="Administrar Experiencias" 
+		longdescription="Los miembros en el rol con esta capacidad pueden editar los metadatos de una experiencia." 
+		name="experience admin"/>
+    <action description="Contribuir en Experiencias"
+		longdescription="Los miembros en el rol con esta capacidad pueden contribuir con scripts para una experiencia."
+		name="experience contributor"/>
 	</action_set>
 </role_actions>

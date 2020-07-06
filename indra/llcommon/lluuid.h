@@ -31,8 +31,10 @@
 #include <vector>
 #include <functional>
 #include <boost/functional/hash.hpp>
+#include <boost/unordered_set.hpp>
 #include "stdtypes.h"
 #include "llpreprocessor.h"
+#include <absl/hash/hash.h>
 
 class LLMutex;
 
@@ -56,10 +58,10 @@ public:
 	LLUUID();
 	explicit LLUUID(const char *in_string); // Convert from string.
 	explicit LLUUID(const std::string& in_string); // Convert from string.
-	LLUUID(const LLUUID &in);
-	LLUUID &operator=(const LLUUID &rhs);
+	LLUUID(const LLUUID &in) = default;
+	LLUUID &operator=(const LLUUID &rhs) = default;
 
-	~LLUUID();
+	~LLUUID() = default;
 
 	//
 	// MANIPULATORS
@@ -92,6 +94,11 @@ public:
 	bool	operator!=(const LLUUID &rhs) const;
 	bool	operator<(const LLUUID &rhs) const;
 	bool	operator>(const LLUUID &rhs) const;
+
+	template <typename H>
+	friend H AbslHashValue(H h, const LLUUID& id) {
+		return H::combine_contiguous(std::move(h), id.mData, UUID_BYTES);
+	}
 
 	// xor functions. Useful since any two random uuids xored together
 	// will yield a determinate third random unique id that can be
@@ -192,24 +199,6 @@ inline BOOL LLUUID::isNull() const
 	return !memcmp(mData, null.mData, sizeof(mData)); // <alchemy/>
 }
 
-// Copy constructor
-inline LLUUID::LLUUID(const LLUUID& rhs)
-{
-	memcpy(mData, rhs.mData, sizeof(mData)); // <alchemy/>
-}
-
-inline LLUUID::~LLUUID()
-{
-}
-
-// Assignment
-inline LLUUID& LLUUID::operator=(const LLUUID& rhs)
-{
-	memcpy(mData, rhs.mData, sizeof(mData)); // <alchemy/>
-	return *this;
-}
-
-
 inline LLUUID::LLUUID(const char *in_string)
 {
 	if (!in_string || in_string[0] == 0)
@@ -288,8 +277,10 @@ inline U32 LLUUID::getCRC32() const
 	// </alchemy>
 }
 
+static_assert(std::is_trivially_copyable<LLUUID>::value, "LLUUID must be a trivially copyable type");
+
 typedef std::vector<LLUUID> uuid_vec_t;
-typedef std::set<LLUUID> uuid_set_t;
+typedef boost::unordered_set<LLUUID> uuid_set_t;
 
 // Helper structure for ordering lluuids in stl containers.  eg:
 // std::map<LLUUID, LLWidget*, lluuid_less> widget_map;
@@ -307,29 +298,24 @@ struct lluuid_less
 
 typedef std::set<LLUUID, lluuid_less> uuid_list_t;
 
-
-#ifdef LL_CPP11
 namespace std {
 	template <> struct hash<LLUUID>
-{
-	public:
+	{
 		size_t operator()(const LLUUID & id) const
 		{
-			return id.hash();
+			return absl::Hash<LLUUID>{}(id);
 		}
 	};
 }
-#endif
 
 namespace boost {
-	template<> class hash<LLUUID>
-{
-	public:
-		size_t operator()(const LLUUID& id) const
+	template<> struct hash<LLUUID>
 	{
-			return id.hash();
-	}
-};
+		size_t operator()(const LLUUID& id) const
+		{
+			return absl::Hash<LLUUID>{}(id);
+		}
+	};
 }
 
 /*

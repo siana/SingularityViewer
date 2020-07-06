@@ -71,6 +71,9 @@ public:
 	void	setEnabled( BOOL b )			{ mEnabled = b; }
 	BOOL	getEnabled() const 				{ return mEnabled; }
 
+	void	setFiltered(bool b)				{ if (mFiltered = b) mSelected = false; }
+	bool	getFiltered() const				{ return mFiltered; }
+
 	void	setUserdata( void* userdata )	{ mUserdata = userdata; }
 	void*	getUserdata() const 			{ return mUserdata; }
 
@@ -92,7 +95,7 @@ public:
 
 	std::string getContentsCSV() const;
 
-	virtual void draw(const LLRect& rect, const LLColor4& fg_color, const LLColor4& bg_color, const LLColor4& highlight_color, S32 column_padding);
+	virtual bool draw(const U32 pass, const LLRect& rect, const LLColor4& fg_color, const LLColor4& bg_color, const LLColor4& highlight_color, S32 column_padding);
 
 protected:
 	LLScrollListItem( const Params& );
@@ -100,6 +103,7 @@ protected:
 private:
 	BOOL	mSelected;
 	BOOL	mEnabled;
+	bool	mFiltered;
 	void*	mUserdata;
 	LLSD	mItemValue;
 	std::vector<LLScrollListCell *> mColumns;

@@ -42,28 +42,28 @@
 // Will clean these up at some point...
 //
 
-const F32 HORIZON_DIST			= 1024.0f;
-const F32 SKY_BOX_MULT			= 16.0f;
-const F32 HEAVENLY_BODY_DIST		= HORIZON_DIST - 10.f;
-const F32 HEAVENLY_BODY_FACTOR	= 0.1f;
-const F32 HEAVENLY_BODY_SCALE	= HEAVENLY_BODY_DIST * HEAVENLY_BODY_FACTOR;
-const F32 EARTH_RADIUS			= 6.4e6f;       // exact radius = 6.37 x 10^6 m
-const F32 ATM_EXP_FALLOFF		= 0.000126f;
-const F32 ATM_SEA_LEVEL_NDENS	= 2.55e25f;
+constexpr F32 HORIZON_DIST			= 1024.0f;
+constexpr F32 SKY_BOX_MULT			= 16.0f;
+constexpr F32 HEAVENLY_BODY_DIST		= HORIZON_DIST - 10.f;
+constexpr F32 HEAVENLY_BODY_FACTOR	= 0.1f;
+constexpr F32 HEAVENLY_BODY_SCALE	= HEAVENLY_BODY_DIST * HEAVENLY_BODY_FACTOR;
+constexpr F32 EARTH_RADIUS			= 6.4e6f;       // exact radius = 6.37 x 10^6 m
+constexpr F32 ATM_EXP_FALLOFF		= 0.000126f;
+constexpr F32 ATM_SEA_LEVEL_NDENS	= 2.55e25f;
 // Somewhat arbitrary:
-const F32 ATM_HEIGHT			= 100000.f;
+constexpr F32 ATM_HEIGHT			= 100000.f;
 
-const F32 FIRST_STEP = 5000.f;
-const F32 INV_FIRST_STEP = 1.f/FIRST_STEP;
-const S32 NO_STEPS = 15;
-const F32 INV_NO_STEPS = 1.f/NO_STEPS;
+constexpr F32 FIRST_STEP = 5000.f;
+constexpr F32 INV_FIRST_STEP = 1.f/FIRST_STEP;
+constexpr S32 NO_STEPS = 15;
+constexpr F32 INV_NO_STEPS = 1.f/NO_STEPS;
 
 
 // constants used in calculation of scattering coeff of clear air
-const F32 sigma		= 0.035f;
-const F32 fsigma	= (6.f + 3.f * sigma) / (6.f-7.f*sigma);
-const F64 Ndens		= 2.55e25;
-const F64 Ndens2	= Ndens*Ndens;
+constexpr F32 sigma		= 0.035f;
+constexpr F32 fsigma	= (6.f + 3.f * sigma) / (6.f-7.f*sigma);
+constexpr F64 Ndens		= 2.55e25;
+constexpr F64 Ndens2	= Ndens*Ndens;
 
 // HACK: Allow server to change sun and moon IDs.
 // I can't figure out how to pass the appropriate
@@ -118,7 +118,8 @@ private:
 	static S32		sComponents;
 	LLPointer<LLViewerTexture> mTexture[2];
 	LLPointer<LLImageRaw> mImageRaw[2];
-	LLColor4		*mSkyData;
+	// Singu Note: Store as unsigned to avoid casting.
+	LLColor4U		*mSkyData;
 	LLVector3		*mSkyDirs;			// Cache of sky direction vectors
 	static S32		sCurrent;
 	static F32		sInterpVal;

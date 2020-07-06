@@ -39,8 +39,8 @@
 #include "lluictrl.h"
 #include "llbutton.h"
 #include "lllineeditor.h"
-#include "lluiimage.h"
 #include "llviewborder.h"
+#include "lluiimage.h"
 #include "lluistring.h"
 #include "v4color.h"
 #include <list>
@@ -142,6 +142,7 @@ public:
 
 	CommitCallbackRegistry::ScopedRegistrar& getCommitCallbackRegistrar() { return mCommitCallbackRegistrar; }
 	EnableCallbackRegistry::ScopedRegistrar& getEnableCallbackRegistrar() { return mEnableCallbackRegistrar; }
+
 	virtual BOOL initPanelXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 	void initChildrenXML(LLXMLNodePtr node, LLUICtrlFactory* factory);
 	void setPanelParameters(LLXMLNodePtr node, LLView *parentp);
@@ -151,6 +152,7 @@ public:
 	std::string getString(const std::string& name) const;
 
 	// ** Wrappers for setting child properties by name ** -TomY
+	// WARNING: These are deprecated, please use getChild<T>("name")->doStuff() idiom instead
 
 	// LLView
 	void childSetVisible(const std::string& name, bool visible);
@@ -196,7 +198,7 @@ public:
 	BOOL childSetTextArg(const std::string& id, const std::string& key, const LLStringExplicit& text);
 	BOOL childSetLabelArg(const std::string& id, const std::string& key, const LLStringExplicit& text);
 	BOOL childSetToolTipArg(const std::string& id, const std::string& key, const LLStringExplicit& text);
-	
+
 	// LLSlider / LLMultiSlider / LLSpinCtrl
 	void childSetMinValue(const std::string& id, LLSD min_value);
 	void childSetMaxValue(const std::string& id, LLSD max_value);
@@ -228,6 +230,7 @@ public:
 	static LLView*	fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 	
 	boost::signals2::connection setVisibleCallback( const commit_signal_t::slot_type& cb );
+
 protected:
 	// Override to set not found list
 	LLButton*		getDefaultButton() { return mDefaultBtn; }
@@ -261,5 +264,57 @@ private:
 	std::string		mRequirementsError;
 
 }; // end class LLPanel
+
+typedef boost::function<LLPanel* (void)> LLPanelClassCreatorFunc;
+
+// local static instance for registering a particular panel class
+
+class LLRegisterPanelClass
+:	public LLSingleton< LLRegisterPanelClass >
+{
+public:
+	// reigister with either the provided builder, or the generic templated builder
+	void addPanelClass(const std::string& tag,LLPanelClassCreatorFunc func)
+	{
+		mPanelClassesNames[tag] = func;
+	}
+
+	LLPanel* createPanelClass(const std::string& tag)
+	{
+		param_name_map_t::iterator iT =  mPanelClassesNames.find(tag);
+		if(iT == mPanelClassesNames.end())
+			return 0;
+		return iT->second();
+	}
+	template<typename T>
+	static T* defaultPanelClassBuilder()
+	{
+		T* pT = new T();
+		return pT;
+	}
+
+private:
+	typedef std::map< std::string, LLPanelClassCreatorFunc> param_name_map_t;
+
+	param_name_map_t mPanelClassesNames;
+};
+
+
+// local static instance for registering a particular panel class
+template<typename T>
+	class LLPanelInjector
+{
+public:
+	// register with either the provided builder, or the generic templated builder
+	LLPanelInjector(const std::string& tag);
+};
+
+
+template<typename T>
+	LLPanelInjector<T>::LLPanelInjector(const std::string& tag)
+{
+	LLRegisterPanelClass::instance().addPanelClass(tag,&LLRegisterPanelClass::defaultPanelClassBuilder<T>);
+}
+
 
 #endif

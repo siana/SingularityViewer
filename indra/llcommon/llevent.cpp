@@ -226,7 +226,7 @@ bool LLSimpleDispatcher::fireEvent(LLPointer<LLEvent> event, LLSD filter)
 	for (itor=mListeners.begin(); itor!=mListeners.end(); ++itor)
 	{
 		LLListenerEntry& entry = *itor;
-		if (filter_string == "" || entry.filter.asString() == filter_string)
+		if (filter_string.empty() || entry.filter.asString() == filter_string)
 		{
 			(entry.listener)->handleEvent(event, (*itor).userdata);
 		}

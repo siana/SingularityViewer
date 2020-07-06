@@ -42,6 +42,9 @@ const U64 REGION_FLAGS_RESET_HOME_ON_TELEPORT	= (1 << 3);
 // Does the sun move?
 const U64 REGION_FLAGS_SUN_FIXED				= (1 << 4);
 
+// Does the estate owner allow private parcels?
+const U64 REGION_FLAGS_ALLOW_ACCESS_OVERRIDE    = (1 << 5);
+
 // Can't change the terrain heightfield, even on owned parcels,
 // but can plant trees and grass.
 const U64 REGION_FLAGS_BLOCK_TERRAFORM			= (1 << 6);
@@ -51,6 +54,9 @@ const U64 REGION_FLAGS_BLOCK_LAND_RESELL		= (1 << 7);
 
 // All content wiped once per night
 const U64 REGION_FLAGS_SANDBOX					= (1 << 8);
+
+const U64 REGION_FLAGS_ALLOW_ENVIRONMENT_OVERRIDE = (1 << 9);
+
 const U64 REGION_FLAGS_GAMING					= (1 << 10); // Denotes a gaming region on certain grids
 const U64 REGION_FLAGS_HIDE_FROM_SEARCH			= (1 << 11); // Hides region from search on certain grids
 const U64 REGION_FLAGS_SKIP_COLLISIONS			= (1 << 12); // Pin all non agent rigid bodies
@@ -162,21 +168,22 @@ const U32 ESTATE_ACCESS_ALL = ESTATE_ACCESS_ALLOWED_AGENTS
 							  | ESTATE_ACCESS_BANNED_AGENTS
 							  | ESTATE_ACCESS_MANAGERS;
 
-// for EstateOwnerRequest, estateaccessdelta message
-const U32 ESTATE_ACCESS_APPLY_TO_ALL_ESTATES		= 1 << 0;
-const U32 ESTATE_ACCESS_APPLY_TO_MANAGED_ESTATES	= 1 << 1;
+// for EstateOwnerRequest, estateaccessdelta, estateexperiencedelta messages
+const U32 ESTATE_ACCESS_APPLY_TO_ALL_ESTATES		= 1U << 0;
+const U32 ESTATE_ACCESS_APPLY_TO_MANAGED_ESTATES	= 1U << 1;
 
-const U32 ESTATE_ACCESS_ALLOWED_AGENT_ADD			= 1 << 2;
-const U32 ESTATE_ACCESS_ALLOWED_AGENT_REMOVE		= 1 << 3;
-const U32 ESTATE_ACCESS_ALLOWED_GROUP_ADD			= 1 << 4;
-const U32 ESTATE_ACCESS_ALLOWED_GROUP_REMOVE		= 1 << 5;
-const U32 ESTATE_ACCESS_BANNED_AGENT_ADD			= 1 << 6;
-const U32 ESTATE_ACCESS_BANNED_AGENT_REMOVE			= 1 << 7;
-const U32 ESTATE_ACCESS_MANAGER_ADD					= 1 << 8;
-const U32 ESTATE_ACCESS_MANAGER_REMOVE				= 1 << 9;
-const U32 ESTATE_ACCESS_NO_REPLY                                  = 1 << 10;
+const U32 ESTATE_ACCESS_ALLOWED_AGENT_ADD			= 1U << 2;
+const U32 ESTATE_ACCESS_ALLOWED_AGENT_REMOVE			= 1U << 3;
+const U32 ESTATE_ACCESS_ALLOWED_GROUP_ADD			= 1U << 4;
+const U32 ESTATE_ACCESS_ALLOWED_GROUP_REMOVE			= 1U << 5;
+const U32 ESTATE_ACCESS_BANNED_AGENT_ADD			= 1U << 6;
+const U32 ESTATE_ACCESS_BANNED_AGENT_REMOVE			= 1U << 7;
+const U32 ESTATE_ACCESS_MANAGER_ADD					= 1U << 8;
+const U32 ESTATE_ACCESS_MANAGER_REMOVE				= 1U << 9;
+const U32 ESTATE_ACCESS_NO_REPLY						= 1U << 10;
+const U32 ESTATE_ACCESS_FAILED_BAN_ESTATE_MANAGER	= 1U << 11;
 
-const S32 ESTATE_MAX_MANAGERS = 10;
+const S32 ESTATE_MAX_MANAGERS = 15;
 const S32 ESTATE_MAX_ACCESS_IDS = 500;	// max for access, banned
 const S32 ESTATE_MAX_GROUP_IDS = (S32) ESTATE_ACCESS_MAX_ENTRIES_PER_PACKET;
 
@@ -184,6 +191,26 @@ const S32 ESTATE_MAX_GROUP_IDS = (S32) ESTATE_ACCESS_MAX_ENTRIES_PER_PACKET;
 const U32 SWD_OTHERS_LAND_ONLY		= (1 << 0);
 const U32 SWD_ALWAYS_RETURN_OBJECTS = (1 << 1);
 const U32 SWD_SCRIPTED_ONLY			= (1 << 2);
+
+// Controls experience key validity in the estate
+const U32 EXPERIENCE_KEY_TYPE_NONE		= 0;
+const U32 EXPERIENCE_KEY_TYPE_BLOCKED	= 1;
+const U32 EXPERIENCE_KEY_TYPE_ALLOWED	= 2;
+const U32 EXPERIENCE_KEY_TYPE_TRUSTED	= 3;
+
+const U32 EXPERIENCE_KEY_TYPE_FIRST		= EXPERIENCE_KEY_TYPE_BLOCKED;
+const U32 EXPERIENCE_KEY_TYPE_LAST		= EXPERIENCE_KEY_TYPE_TRUSTED;
+
+//
+const U32 ESTATE_EXPERIENCE_TRUSTED_ADD		= 1U << 2;
+const U32 ESTATE_EXPERIENCE_TRUSTED_REMOVE	= 1U << 3;
+const U32 ESTATE_EXPERIENCE_ALLOWED_ADD		= 1U << 4;
+const U32 ESTATE_EXPERIENCE_ALLOWED_REMOVE	= 1U << 5;
+const U32 ESTATE_EXPERIENCE_BLOCKED_ADD		= 1U << 6;
+const U32 ESTATE_EXPERIENCE_BLOCKED_REMOVE	= 1U << 7;
+
+const S32 ESTATE_MAX_EXPERIENCE_IDS = 8;
+
 
 #endif
 

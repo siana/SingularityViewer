@@ -166,7 +166,7 @@ rápido
 			Alto
 		</radio_item>
 	</radio_group>
-	<button label="Configurações Recomendadas" name="Defaults" width="190" left="110"/>
+	<button label="Configurações Recomendadas" name="Defaults" width="190"/>
 	<button label="Opções de Hardware" label_selected="Opções de Hardware" name="GraphicsHardwareButton"/>
 	<string name="resolution_format">
 		[RES_X] x [RES_Y]

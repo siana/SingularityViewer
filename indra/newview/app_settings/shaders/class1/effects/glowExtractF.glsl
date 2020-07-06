@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -31,7 +31,7 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect diffuseMap;
+uniform sampler2D diffuseMap;
 uniform float minLuminance;
 uniform float maxExtractAlpha;
 uniform vec3 lumWeights;
@@ -42,7 +42,7 @@ VARYING vec2 vary_texcoord0;
 
 void main()
 {
-	vec4 col = texture2DRect(diffuseMap, vary_texcoord0.xy);	
+	vec4 col = texture2D(diffuseMap, vary_texcoord0.xy);	
 	/// CALCULATING LUMINANCE (Using NTSC lum weights)
 	/// http://en.wikipedia.org/wiki/Luma_%28video%29
 	float lum = smoothstep(minLuminance, minLuminance+1.0, dot(col.rgb, lumWeights ) );

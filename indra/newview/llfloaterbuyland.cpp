@@ -157,7 +157,8 @@ private:
 	{
 		TransactionPreflight,
 		TransactionCurrency,
-		TransactionBuy
+		TransactionBuy,
+		TransactionNone
 	};
 	boost::intrusive_ptr<XMLRPCResponder> mResponder;
 	TransactionType		 mTransactionType;
@@ -175,7 +176,7 @@ public:
 	void updateFloaterCovenantText(const std::string& string, const LLUUID &asset_id);
 	void updateFloaterEstateName(const std::string& name);
 	void updateFloaterLastModified(const std::string& text);
-	void updateFloaterEstateOwnerName(const std::string& name);
+	void updateFloaterEstateOwnerID(const LLUUID& id);
 	void updateWebSiteInfo();
 	void finishWebSiteInfo();
 	
@@ -262,12 +263,12 @@ void LLFloaterBuyLand::updateLastModified(const std::string& text)
 }
 
 // static
-void LLFloaterBuyLand::updateEstateOwnerName(const std::string& name)
+void LLFloaterBuyLand::updateEstateOwnerID(const LLUUID& id)
 {
-	LLFloaterBuyLandUI* floater = LLFloaterBuyLandUI::instanceExists() ? LLFloaterBuyLandUI::getInstance() : NULL;
+	LLFloaterBuyLandUI* floater = LLFloaterBuyLandUI::instanceExists() ? LLFloaterBuyLandUI::getInstance() : nullptr;
 	if (floater)
 	{
-		floater->updateFloaterEstateOwnerName(name);
+		floater->updateFloaterEstateOwnerID(id);
 	}
 }
 
@@ -281,11 +282,34 @@ void LLFloaterBuyLand::updateEstateOwnerName(const std::string& name)
 LLFloaterBuyLandUI::LLFloaterBuyLandUI()
 :	LLFloater(std::string("Buy Land")),
 	mParcelSelectionObserver(this),
+	mRegion(nullptr),
 	mParcel(0),
+	mIsClaim(false),
+	mIsForGroup(false),
+	mCanBuy(false),
+	mCannotBuyIsError(false),
 	mBought(false),
-	mParcelValid(false), mSiteValid(false),
-	mChildren(*this), mCurrency(*this),
-	mParcelBuyInfo(0)
+	mAgentCommittedTier(0),
+	mAgentHasNeverOwnedLand(true),
+	mParcelValid(false),
+	mParcelIsForSale(false),
+	mParcelIsGroupLand(false),
+	mParcelGroupContribution(0),
+	mParcelPrice(0),
+	mParcelActualArea(0),
+	mParcelBillableArea(0),
+	mParcelSupportedObjects(0),
+	mParcelSoldWithObjects(false),
+	mUserPlanChoice(0),
+	mSiteValid(false),
+	mSiteMembershipUpgrade(false),
+	mSiteLandUseUpgrade(false),
+	mPreflightAskBillableArea(0),
+	mPreflightAskCurrencyBuy(0),
+	mChildren(*this),
+	mCurrency(*this),
+	mParcelBuyInfo(nullptr),
+	mTransactionType(TransactionNone)
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_buy_land.xml");
 	LLViewerParcelMgr::getInstance()->addObserver(&mParcelSelectionObserver);
@@ -347,8 +371,6 @@ void LLFloaterBuyLandUI::updateParcelInfo()
 	mParcelSnapshot.setNull();
 	mParcelSellerName = "";
 	
-	mCanBuy = false;
-	mCannotBuyIsError = false;
 	
 	if (!mParcelValid)
 	{
@@ -607,10 +629,10 @@ void LLFloaterBuyLandUI::updateFloaterLastModified(const std::string& text)
 	if (editor) editor->setText(text);
 }
 
-void LLFloaterBuyLandUI::updateFloaterEstateOwnerName(const std::string& name)
+void LLFloaterBuyLandUI::updateFloaterEstateOwnerID(const LLUUID& id)
 {
 	LLTextBox* box = getChild<LLTextBox>("estate_owner_text");
-	if (box) box->setText(name);
+	if (box) box->setValue(id);
 }
 
 void LLFloaterBuyLandUI::updateWebSiteInfo()

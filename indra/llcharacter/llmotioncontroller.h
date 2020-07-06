@@ -162,16 +162,20 @@ public:
 	void pauseAllMotions();
 	void unpauseAllMotions();
 	BOOL isPaused() const { return mPaused; }
+	U64 getPausedFrame() const { return mPausedFrame; }
 	//<singu>
 	void requestPause(std::vector<LLAnimPauseRequest>& avatar_pause_handles);
 	void pauseAllSyncedCharacters(std::vector<LLAnimPauseRequest>& avatar_pause_handles);
 	//</singu>
 
 	void setTimeStep(F32 step);
+    F32 getTimeStep() const { return mTimeStep; }
 
 	void setTimeFactor(F32 time_factor);
 	F32 getTimeFactor() const { return mTimeFactor; }
 
+    F32 getAnimTime() const { return mAnimTime; }
+    
 	motion_list_t& getActiveMotions() { return mActiveMotions; }
 
 	void incMotionCounts(S32& num_motions, S32& num_loading_motions, S32& num_loaded_motions, S32& num_active_motions, S32& num_deprecated_motions);
@@ -248,12 +252,12 @@ protected:
 	F32					mLastTime;
 	BOOL				mHasRunOnce;
 	BOOL				mPaused;
-	F32					mPauseTime;
+	U64					mPausedFrame;
 	F32					mTimeStep;
 	S32					mTimeStepCount;
 	F32					mLastInterp;
 
-	U8					mJointSignature[2][LL_CHARACTER_MAX_JOINTS];
+	U8					mJointSignature[2][LL_CHARACTER_MAX_ANIMATED_JOINTS];
 
 	//<singu>
 public:
@@ -263,7 +267,6 @@ public:
 	bool syncing_disabled(void) const { return mDisableSyncing >= 100; }
 
 	// Accessors needed for synchronization.
-	F32 getAnimTime(void) const { return mAnimTime; }
 	bool isHidden(void) const { return mHidden; }
 
 	// Called often. Should return false if we still need to keep updating our motions even if we're not visible.

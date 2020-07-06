@@ -10,7 +10,9 @@
 	<string name="default_text_label">Click here to instant message.</string>
 	<layout_stack border="false" bottom="0" follows="left|top|right|bottom" height="180" left="0" orientation="horizontal" tab_group="1" width="496" name="panels">
 		<layout_panel border="false" bottom="0" default_tab_group="1" follows="left|top|bottom|right" height="195" left="0" min_width="115" name="im_contents_panel" width="495">
-			<button bottom="-20" follows="left|top" height="20" label="History" left="5" name="history_btn" width="80"/>
+            <flyout_button bottom="-20" follows="left|top" halign="center" height="20" label="History" left="5" name="instant_message_flyout" width="80" list_position="below">
+              <flyout_button_item label="Add to Conference" name="conference" value="-4"/>
+            </flyout_button>
             <button bottom_delta="0" follows="left|top" height="20" left_delta="80" width="50" toggle="true" name="ding_btn" label="Ding">
               <button.commit_callback function="FlipDing"/>
             </button>

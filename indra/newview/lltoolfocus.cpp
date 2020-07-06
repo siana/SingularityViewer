@@ -131,7 +131,9 @@ BOOL LLToolCamera::handleMouseDown(S32 x, S32 y, MASK mask)
 
 	gViewerWindow->hideCursor();
 
-	gViewerWindow->pickAsync(x, y, mask, pickCallback);
+	bool pick_rigged = gFloaterTools && gFloaterTools->getVisible();
+	
+	gViewerWindow->pickAsync(x, y, mask, pickCallback, /*BOOL pick_transparent*/ FALSE, pick_rigged, /*BOOL pick_unselectable*/ TRUE);
 	// don't steal focus from UI
 	return FALSE;
 }

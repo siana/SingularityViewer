@@ -196,14 +196,16 @@ void LLPanel::draw()
 	// draw background
 	if( mBgVisible )
 	{
-		LLRect local_rect = getLocalRect();
+		F32 alpha = getCurrentTransparency();
+
+		LLRect&& local_rect = getLocalRect();
 		if (mBgOpaque )
 		{
-			gl_rect_2d( local_rect, mBgColorOpaque );
+			gl_rect_2d( local_rect, mBgColorOpaque % alpha);
 		}
 		else
 		{
-			gl_rect_2d( local_rect, mBgColorAlpha );
+			gl_rect_2d( local_rect, mBgColorAlpha % alpha);
 		}
 	}
 
@@ -384,7 +386,7 @@ void LLPanel::setBorderVisible(BOOL b)
 	}
 }
 
-LLFastTimer::DeclareTimer FTM_PANEL_CONSTRUCTION("Panel Construction");
+LLTrace::BlockTimerStatHandle FTM_PANEL_CONSTRUCTION("Panel Construction");
 // virtual
 LLXMLNodePtr LLPanel::getXML(bool save_children) const
 {
@@ -439,8 +441,31 @@ LLView* LLPanel::fromXML(LLXMLNodePtr node, LLView* parent, LLUICtrlFactory *fac
 	std::string name("panel");
 	node->getAttributeString("name", name);
 
-	LLPanel* panelp = factory->createFactoryPanel(name);
-	LLFastTimer _(FTM_PANEL_CONSTRUCTION);
+	std::string class_attr;
+	node->getAttributeString("class", class_attr);
+
+	LLPanel* panelp = NULL;
+
+	{
+		if(!class_attr.empty())
+		{
+			panelp = LLRegisterPanelClass::instance().createPanelClass(class_attr);
+		}
+
+		if (!panelp)
+		{
+			panelp = factory->createFactoryPanel(name);
+			/* Singu TODO: Future?
+			llassert(panelp);
+
+			if (!panelp)
+			{
+				return NULL; // :(
+			}*/
+		}
+	}
+	LL_RECORD_BLOCK_TIME(FTM_PANEL_CONSTRUCTION);
+
 	// Fall back on a default panel, if there was no special factory.
 	if (!panelp)
 	{

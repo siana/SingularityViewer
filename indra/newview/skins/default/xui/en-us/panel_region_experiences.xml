@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel
+  border="true"
+  follows="all"
+  height="420"
+  help_topic="panel_region_experience_tab"
+  label="Experiences"
+  name="Experiences"
+  left="0"
+  top="320"
+  width="480">
+   <panel.string
+      name="trusted_estate_text">
+Any Experience may be Trusted.
+
+Trusted Experiences have permission
+to run on this estate.
+
+Additionally, if the estate does not
+allow public access, Residents
+participating in any
+Trusted Experience may enter the
+estate and can remain as long as
+they are in the Experience.
+   </panel.string>
+   <panel.string
+      name="allowed_estate_text">
+Only Experiences that are not
+Grid-Wide may be Allowed.
+
+Allowed Experiences have permission
+to run on this estate.
+   </panel.string>
+   <panel.string
+      name="blocked_estate_text">
+Only Grid-Wide Experiences
+may be Blocked.
+
+Blocked Experiences may not run
+on this estate.
+   </panel.string>
+   <panel.string 
+      name="estate_caption">
+      Changes to settings on this tab will affect all regions in the estate.
+   </panel.string>
+   <panel.string
+     name="allowed_parcel_text">Only Experiences that are not
+Grid-Wide may be Allowed.
+
+Allowed Experiences have
+permission to run on this parcel
+if they are not Blocked by the estate.
+   </panel.string>
+   <panel.string
+     name="blocked_parcel_text">Only Grid-Wide Experiences
+may be Blocked.
+
+Blocked Experiences may not
+run on this parcel.
+   </panel.string>
+   <panel.string
+      name="parcel_caption">
+   </panel.string>
+   <text
+      type="string"
+      length="1"
+      follows="left|top"
+      height="32"
+      left="10"
+      name="experiences_help_text"
+      bottom="-32"
+      word_wrap="true"/>
+  <layout_stack
+    bottom_delta="-380"
+    left="5"
+    follows="all"
+    right="-5"
+    height="400"
+    orientation="vertical">
+    <layout_panel
+      follows="all"
+      height="100"
+      min_height="150"
+      width="530"
+      visible="false"
+      name="trusted_layout_panel">
+      <panel follows="all"
+             width="330"
+             height="100"
+             name="panel_trusted"
+             class="panel_experience_list_editor"
+             filename="panel_experience_list_editor.xml" />
+      <text
+        name="trusted_text_help"
+        length="1"
+        bottom="-205"
+        left_delta="335"
+        width="200"
+        height="200"
+        follows="top|right"
+        word_wrap="true">
+      </text>
+    </layout_panel>
+    <layout_panel
+      height="100"
+      min_height="150"
+      follows="all"
+      width="530">
+      <panel
+        width="330"
+        height="100"
+        name="panel_allowed"
+        class="panel_experience_list_editor"
+        filename="panel_experience_list_editor.xml"/>
+      <text
+        name="allowed_text_help"
+        length="1"
+        bottom="-225"
+        left_delta="335"
+        width="200"
+        height="200"
+        follows="top|right"
+        word_wrap="true">
+      </text>
+    </layout_panel>
+    <layout_panel
+      height="100"
+      min_height="150"
+      follows="all"
+      width="530">
+      <panel
+        width="330"
+        height="200"
+        name="panel_blocked"
+        class="panel_experience_list_editor"
+        filename="panel_experience_list_editor.xml"/>
+      <text
+        name="blocked_text_help"
+        length="1"
+        bottom="-225"
+        left_delta="335"
+        width="200"
+        height="200"
+        follows="top|right"
+        word_wrap="true">
+      </text>
+    </layout_panel>
+  </layout_stack>
+</panel>

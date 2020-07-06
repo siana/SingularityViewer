@@ -33,15 +33,14 @@
 // STL headers
 // std headers
 // external library headers
-#include <boost/bind.hpp>
 // other Linden headers
 #include "llerror.h"                // LL_ERRS
 #include "llsdutil.h"               // llsd_matches()
 
 LLEventFilter::LLEventFilter(LLEventPump& source, const std::string& name, bool tweak):
-    LLEventStream(name, tweak)
+    LLEventStream(name, tweak),
+    mSource(source.listen(getName(), boost::bind(&LLEventFilter::post, this, _1)))
 {
-    source.listen(getName(), boost::bind(&LLEventFilter::post, this, _1));
 }
 
 LLEventMatching::LLEventMatching(const LLSD& pattern):

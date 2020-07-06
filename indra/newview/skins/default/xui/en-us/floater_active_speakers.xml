@@ -6,18 +6,18 @@
   <layout_stack bottom="0" follows="all" mouse_opaque="false" left="5" right="-4" top="280" name="active_speakers_stack">
     <layout_panel name="panel_voice_effect" auto_resize="false" user_resize="false" visiblity_control="VoiceMorphingEnabled" filename="panel_voice_effect.xml" height="23"/>
     <layout_panel mouse_opaque="false" auto_resize="true" user_resize="false" name="active_speakers_panel" height="232">
-      <scroll_list bottom="25" top="232" left="0" right="-1"
+      <name_list bottom="25" top="232" left="0" right="-1"
 		       draw_stripes="false" follows="all" can_resize="true" column_padding="0" draw_heading="true"
-		       multi_select="true" name="speakers_list" search_column="1" sort_column="2" menu_num="0">
+		       multi_select="true" name="speakers_list" search_column="1" sort_column="2" name_column_index="1" menu_num="0">
         <column name="icon_speaking_status" sort="speaking_status" width="20" />
         <column dynamicwidth="true" label="Name" name="speaker_name" />
         <column label="" name="speaking_status" width="0" />
-      </scroll_list>
-      <volume_slider bottom="5" follows="left|bottom" height="15" increment="0.05" initial_val="0.5"
-       left="0" max_val="1.0" min_val="0.0" name="speaker_volume"
+      </name_list>
+      <slider bottom="5" follows="left|bottom" height="15" increment="0.05" initial_val="0.5"
+       left="0" max_val="1.0" min_val="0.0" name="speaker_volume" show_text="true" can_edit_text="true" val_width="28" decimal_digits="2"
        width="145" />
       <button bottom_delta="0" height="20" image_selected="icn_speaker-muted_dark.tga"
-			       image_unselected="icn_speaker_dark.tga" label="" left_delta="145"
+			       image_unselected="icn_speaker_dark.tga" label="" left_delta="149"
 			       name="mute_btn" toggle="true" tool_tip="Mute voice for this resident"
 			       width="25" scale_image="false" />
     </layout_panel>

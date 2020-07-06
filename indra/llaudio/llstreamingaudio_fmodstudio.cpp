@@ -31,14 +31,13 @@
  */
 
 #include "linden_common.h"
+#include "llstreamingaudio_fmodstudio.h"
 
 #include "llmath.h"
 #include "llthread.h"
 
 #include "fmod.hpp"
 #include "fmod_errors.h"
-
-#include "llstreamingaudio_fmodstudio.h"
 
 inline bool Check_FMOD_Error(FMOD_RESULT result, const char *string)
 {
@@ -61,9 +60,9 @@ public:
 	FMOD_RESULT getOpenState(FMOD_OPENSTATE& openstate, unsigned int* percentbuffered = NULL, bool* starving = NULL, bool* diskbusy = NULL);
 protected:
 	FMOD::System* mSystem;
+	FMOD::ChannelGroup* mChannelGroup;
 	FMOD::Channel* mStreamChannel;
 	FMOD::Sound* mInternetStream;
-	FMOD::ChannelGroup* mChannelGroup;
 	bool mReady;
 
 	std::string mInternetStreamURL;
@@ -119,11 +118,11 @@ FMOD_RESULT F_CALLBACK waveDataCallback(FMOD_DSP_STATE *dsp_state, float *inbuff
 LLStreamingAudio_FMODSTUDIO::LLStreamingAudio_FMODSTUDIO(FMOD::System *system) :
 	mSystem(system),
 	mCurrentInternetStreamp(NULL),
+	mStreamDSP(NULL),
+	mStreamGroup(NULL),
 	mFMODInternetStreamChannelp(NULL),
 	mGain(1.0f),
-	mMetaData(NULL),
-	mStreamGroup(NULL),
-	mStreamDSP(NULL)
+	mMetaData(NULL)
 {
 	FMOD_RESULT result;
 
@@ -142,10 +141,9 @@ LLStreamingAudio_FMODSTUDIO::LLStreamingAudio_FMODSTUDIO(FMOD::System *system) :
 	// Leave the net buffer properties at the default.
 	//FSOUND_Stream_Net_SetBufferProperties(20000, 40, 80);
 
-	Check_FMOD_Error(mSystem->createChannelGroup("stream", &mStreamGroup), "FMOD::System::createChannelGroup");
+	Check_FMOD_Error(system->createChannelGroup("stream", &mStreamGroup), "FMOD::System::createChannelGroup");
 
-	FMOD_DSP_DESCRIPTION dspdesc;
-	memset(&dspdesc, 0, sizeof(FMOD_DSP_DESCRIPTION));	//Zero out everything
+	FMOD_DSP_DESCRIPTION dspdesc = { };
 	dspdesc.pluginsdkversion = FMOD_PLUGIN_SDK_VERSION;
 	strncpy(dspdesc.name, "Waveform", sizeof(dspdesc.name));
 	dspdesc.numoutputbuffers = 1;
@@ -153,7 +151,6 @@ LLStreamingAudio_FMODSTUDIO::LLStreamingAudio_FMODSTUDIO(FMOD::System *system) :
 
 	Check_FMOD_Error(system->createDSP(&dspdesc, &mStreamDSP), "FMOD::System::createDSP");
 }
-
 
 LLStreamingAudio_FMODSTUDIO::~LLStreamingAudio_FMODSTUDIO()
 {
@@ -167,7 +164,6 @@ LLStreamingAudio_FMODSTUDIO::~LLStreamingAudio_FMODSTUDIO()
 
 	cleanupWaveData();
 }
-
 
 void LLStreamingAudio_FMODSTUDIO::start(const std::string& url)
 {
@@ -209,7 +205,7 @@ enum utf_endian_type_t
 	UTF16
 };
 
-std::string utf16input_to_utf8(char* input, U32 len, utf_endian_type_t type)
+std::string utf16input_to_utf8(unsigned char* input, U32 len, utf_endian_type_t type)
 {
 	if (type == UTF16)
 	{
@@ -226,7 +222,7 @@ std::string utf16input_to_utf8(char* input, U32 len, utf_endian_type_t type)
 			}
 		}
 	}
-	llutf16string out_16((U16*)input, len / 2);
+	llutf16string out_16((llutf16string::value_type*)input, len / 2);
 	if (len % 2)
 	{
 		out_16.push_back((input)[len - 1] << 8);
@@ -254,7 +250,7 @@ void LLStreamingAudio_FMODSTUDIO::update()
 	{
 		llassert_always(mCurrentInternetStreamp == NULL);
 		LL_INFOS() << "Starting internet stream: " << mPendingURL << LL_ENDL;
-		mCurrentInternetStreamp = new LLAudioStreamManagerFMODSTUDIO(mSystem,mStreamGroup, mPendingURL);
+		mCurrentInternetStreamp = new LLAudioStreamManagerFMODSTUDIO(mSystem, mStreamGroup, mPendingURL);
 		mURL = mPendingURL;
 		mMetaData = new LLSD;
 		mPendingURL.clear();
@@ -315,6 +311,7 @@ void LLStreamingAudio_FMODSTUDIO::update()
 				{
 					if(sound->getTag(NULL, i, &tag)!=FMOD_OK)
 						continue;
+
 					std::string name = tag.name;
 					switch(tag.type)	//Crappy tag translate table.
 					{
@@ -373,7 +370,7 @@ void LLStreamingAudio_FMODSTUDIO::update()
 							break;
 						case(FMOD_TAGDATATYPE_STRING_UTF16):
 						{
-							std::string out = utf16input_to_utf8((char*)tag.data, tag.datalen, UTF16);
+							std::string out = utf16input_to_utf8((unsigned char*)tag.data, tag.datalen, UTF16);
 							if (out.length() && out[out.size() - 1] == 0)
 								out.erase(out.size() - 1);
 							(*mMetaData)[name] = out;
@@ -382,7 +379,7 @@ void LLStreamingAudio_FMODSTUDIO::update()
 							break;
 						case(FMOD_TAGDATATYPE_STRING_UTF16BE):
 						{
-							std::string out = utf16input_to_utf8((char*)tag.data, tag.datalen, UTF16BE);
+							std::string out = utf16input_to_utf8((unsigned char*)tag.data, tag.datalen, UTF16BE);
 							if (out.length() && out[out.size() - 1] == 0)
 								out.erase(out.size() - 1);
 							(*mMetaData)[name] = out;
@@ -393,6 +390,7 @@ void LLStreamingAudio_FMODSTUDIO::update()
 					}
 				}
 			}
+			static bool was_starved = false;
 			if(starving)
 			{
 				bool paused = false;
@@ -403,9 +401,11 @@ void LLStreamingAudio_FMODSTUDIO::update()
 					LL_INFOS() << "  (progress="<<progress<<")" << LL_ENDL;
 					Check_FMOD_Error(mFMODInternetStreamChannelp->setPaused(true), "FMOD::Channel::setPaused");
 				}
+				was_starved = true;
 			}
-			else if(progress > 80)
+			else if(progress > 80 && was_starved)
 			{
+				was_starved = false;
 				Check_FMOD_Error(mFMODInternetStreamChannelp->setPaused(false), "FMOD::Channel::setPaused");
 			}
 		}
@@ -446,7 +446,6 @@ void LLStreamingAudio_FMODSTUDIO::stop()
 			mDeadStreams.push_back(mCurrentInternetStreamp);
 		}
 		mCurrentInternetStreamp = NULL;
-		//mURL.clear();
 	}
 }
 
@@ -514,7 +513,8 @@ void LLStreamingAudio_FMODSTUDIO::setGain(F32 vol)
 	}
 }
 
-/*virtual*/ bool LLStreamingAudio_FMODSTUDIO::getWaveData(float* arr, S32 count, S32 stride/*=1*/)
+/* virtual */
+bool LLStreamingAudio_FMODSTUDIO::getWaveData(float* arr, S32 count, S32 stride/*=1*/)
 {
 	if (count > (WAVE_BUFFER_SIZE / 2))
 		LL_ERRS("AudioImpl") << "Count=" << count << " exceeds WAVE_BUFFER_SIZE/2=" << WAVE_BUFFER_SIZE << LL_ENDL;
@@ -547,9 +547,9 @@ void LLStreamingAudio_FMODSTUDIO::setGain(F32 vol)
 
 LLAudioStreamManagerFMODSTUDIO::LLAudioStreamManagerFMODSTUDIO(FMOD::System *system, FMOD::ChannelGroup *group, const std::string& url) :
 	mSystem(system),
+	mChannelGroup(group),
 	mStreamChannel(NULL),
 	mInternetStream(NULL),
-	mChannelGroup(group),
 	mReady(false)
 {
 	mInternetStreamURL = url;
@@ -632,8 +632,7 @@ FMOD_RESULT LLAudioStreamManagerFMODSTUDIO::getOpenState(FMOD_OPENSTATE& state, 
 void LLStreamingAudio_FMODSTUDIO::setBufferSizes(U32 streambuffertime, U32 decodebuffertime)
 {
 	Check_FMOD_Error(mSystem->setStreamBufferSize(streambuffertime / 1000 * 128 * 128, FMOD_TIMEUNIT_RAWBYTES), "FMOD::System::setStreamBufferSize");
-	FMOD_ADVANCEDSETTINGS settings;
-	memset(&settings,0,sizeof(settings));
+	FMOD_ADVANCEDSETTINGS settings = { };
 	settings.cbSize=sizeof(settings);
 	settings.defaultDecodeBufferSize = decodebuffertime;//ms
 	Check_FMOD_Error(mSystem->setAdvancedSettings(&settings), "FMOD::System::setAdvancedSettings");

@@ -287,38 +287,38 @@ LLColor4U LLSky::getFadeColor() const
 
 void LLSky::init(const LLVector3 &sun_direction)
 {
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	mVOWLSkyp = static_cast<LLVOWLSky*>(gObjectList.createObjectViewer(LLViewerObject::LL_VO_WL_SKY, NULL));
 	mVOWLSkyp->initSunDirection(sun_direction, LLVector3::zero);
 	gPipeline.createObject(mVOWLSkyp.get());
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	mVOSkyp = (LLVOSky *)gObjectList.createObjectViewer(LLViewerObject::LL_VO_SKY, NULL);
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	mVOSkyp->initSunDirection(sun_direction, LLVector3());
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	gPipeline.createObject((LLViewerObject *)mVOSkyp);
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	mVOGroundp = (LLVOGround*)gObjectList.createObjectViewer(LLViewerObject::LL_VO_GROUND, NULL);
 	LLVOGround *groundp = mVOGroundp;
 	gPipeline.createObject((LLViewerObject *)groundp);
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
-
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
+	
 	gSky.setFogRatio(gSavedSettings.getF32("RenderFogRatio"));	
 
 	////////////////////////////
@@ -330,8 +330,8 @@ void LLSky::init(const LLVector3 &sun_direction)
 	// Get the parameters.
 	mSunDefaultPosition = gSavedSettings.getVector3("SkySunDefaultPosition");
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	//LLGLStateValidator::checkStates();
+	//LLGLStateValidator::checkTextureChannels();
 
 	if (gSavedSettings.getBOOL("SkyOverrideSimSunPosition") || mOverrideSimSunPosition)
 	{
@@ -342,8 +342,8 @@ void LLSky::init(const LLVector3 &sun_direction)
 		setSunDirection(sun_direction, LLVector3(0.f, 0.f, 0.f));
 	}
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	//LLGLStateValidator::checkStates();
+	//LLGLStateValidator::checkTextureChannels();
 
 	mUpdatedThisFrame = TRUE;
 }

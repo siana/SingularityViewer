@@ -6,473 +6,218 @@
 	<defaultwidget>
 		ninguno
 	</defaultwidget>
-	<defaultimpl>
-		media_plugin_webkit
-	</defaultimpl>
 	<widgetset name="web">
 		<label name="web_label">
 			Contenido Web
 		</label>
-		<icon>
-			icn_media_web.tga
-		</icon>
-		<default_type>
-			text/html
-		</default_type>
 		<tooltip name="web_tooltip">
 			Esta ubicación tiene contenido Web
 		</tooltip>
 		<playtip name="web_playtip">
 			Mostrar contenido Web
 		</playtip>
-		<allow_resize>
-			verdadero
-		</allow_resize>
-		<allow_looping>
-			falso
-		</allow_looping>
 	</widgetset>
 	<widgetset name="movie">
 		<label name="movie_label">
 			Película
 		</label>
-		<default_type>
-			video/*
-		</default_type>
-		<icon>
-			icn_media_movie.tga
-		</icon>
 		<tooltip name="movie_tooltip">
 			Aquí hay una película para reproducir
 		</tooltip>
 		<playtip name="movie_playtip">
 			Reproducir película
 		</playtip>
-		<allow_resize>
-			falso
-		</allow_resize>
-		<allow_looping>
-			verdadero
-		</allow_looping>
 	</widgetset>
 	<widgetset name="image">
 		<label name="image_label">
 			Imagen
 		</label>
-		<icon>
-			icn_media_web.tga
-		</icon>
-		<default_type>
-			image/*
-		</default_type>
 		<tooltip name="image_tooltip">
 			Hay un imagen en esta ubicación
 		</tooltip>
 		<playtip name="image_playtip">
 			Ver la imagen de esta ubicación
 		</playtip>
-		<allow_resize>
-			falso
-		</allow_resize>
-		<allow_looping>
-			falso
-		</allow_looping>
 	</widgetset>
 	<widgetset name="audio">
 		<label name="audio_label">
 			Audio
 		</label>
-		<icon>
-			icn_media_web.tga
-		</icon>
-		<default_type>
-			audio/*
-		</default_type>
 		<tooltip name="audio_tooltip">
 			Hay audio en esta ubicación
 		</tooltip>
 		<playtip name="audio_playtip">
 			Reproducir el audio de esta ubicación
 		</playtip>
-		<allow_resize>
-			falso
-		</allow_resize>
-		<allow_looping>
-			verdadero
-		</allow_looping>
 	</widgetset>
 	<scheme name="rtsp">
 		<label name="rtsp_label">
 			Streaming en tiempo real
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</scheme>
 	<mimetype name="blank">
 		<label name="blank_label">
 			- Ninguna -
 		</label>
-		<widgettype>
-			ninguna
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="none/none">
 		<label name="none/none_label">
 			- Ninguna -
 		</label>
-		<widgettype>
-			ninguna
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="audio/*">
 		<label name="audio2_label">
 			Audio
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="video/*">
 		<label name="video2_label">
 			Video
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="image/*">
 		<label name="image2_label">
 			Imagen
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
-	<mimetype menu="1" name="video/vnd.secondlife.qt.legacy">
+	<mimetype name="video/vnd.secondlife.qt.legacy">
 		<label name="vnd.secondlife.qt.legacy_label">
 			Pelicula (QuickTime)
 		</label>
-		<widgettype>
-			movie
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="application/javascript">
 		<label name="application/javascript_label">
 			Javascript
 		</label>
-		<widgettype>
-			web
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/ogg">
 		<label name="application/ogg_label">
 			Ogg Audio/Video
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="application/pdf">
 		<label name="application/pdf_label">
 			Documento PDF
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/postscript">
 		<label name="application/postscript_label">
 			Documento Postscript
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/rtf">
 		<label name="application/rtf_label">
 			Rich Text (RTF)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/smil">
 		<label name="application/smil_label">
 			Synchronized Multimedia Integration Language (SMIL)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/xhtml+xml">
 		<label name="application/xhtml+xml_label">
 			Página Web (XHTML)
 		</label>
-		<widgettype>
-			web
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="application/x-director">
 		<label name="application/x-director_label">
 			Macromedia Director
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="audio/mid">
 		<label name="audio/mid_label">
 			Audio (MIDI)
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="audio/mpeg">
 		<label name="audio/mpeg_label">
 			Audio (MP3)
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="audio/x-aiff">
 		<label name="audio/x-aiff_label">
 			Audio (AIFF)
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="audio/x-wav">
 		<label name="audio/x-wav_label">
 			Audio (WAV)
 		</label>
-		<widgettype>
-			audio
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="image/bmp">
 		<label name="image/bmp_label">
 			Imagen (BMP)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="image/gif">
 		<label name="image/gif_label">
 			Imagen (GIF)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="image/jpeg">
 		<label name="image/jpeg_label">
 			Imagen (JPEG)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="image/png">
 		<label name="image/png_label">
 			Imagen (PNG)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="image/svg+xml">
 		<label name="image/svg+xml_label">
 			Imagen (SVG)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="image/tiff">
 		<label name="image/tiff_label">
 			Imagen (TIFF)
 		</label>
-		<widgettype>
-			imagen
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="text/html">
 		<label name="text/html_label">
 			Página Web
 		</label>
-		<widgettype>
-			web
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="text/plain">
 		<label name="text/plain_label">
 			Texto
 		</label>
-		<widgettype>
-			texto
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype name="text/xml">
 		<label name="text/xml_label">
 			XML
 		</label>
-		<widgettype>
-			texto
-		</widgettype>
-		<impl>
-			media_plugin_webkit
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="video/mpeg">
 		<label name="video/mpeg_label">
 			Película (MPEG)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="video/mp4">
 		<label name="video/mp4_label">
 			Película (MP4)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="video/quicktime">
 		<label name="video/quicktime_label">
 			Película (QuickTime)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="video/x-ms-asf">
 		<label name="video/x-ms-asf_label">
 			Película (Windows Media ASF)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype name="video/x-ms-wmv">
 		<label name="video/x-ms-wmv_label">
 			Película (Windows Media WMV)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 	<mimetype menu="1" name="video/x-msvideo">
 		<label name="video/x-msvideo_label">
 			Película (AVI)
 		</label>
-		<widgettype>
-			película
-		</widgettype>
-		<impl>
-			media_plugin_gstreamer
-		</impl>
 	</mimetype>
 </mimetypes>

@@ -386,25 +386,16 @@ void LLViewerParcelMgr::renderRect(const LLVector3d &west_south_bottom_global,
 	gGL.end();
 
 	gGL.color4f(1.f, 1.f, 0.f, 0.2f);
-	gGL.begin(LLRender::QUADS);
+	gGL.begin(LLRender::TRIANGLE_STRIP);
 
-	gGL.vertex3f(west, north, nw_bottom);
 	gGL.vertex3f(west, north, nw_top);
+	gGL.vertex3f(west, north, nw_bottom);
 	gGL.vertex3f(east, north, ne_top);
 	gGL.vertex3f(east, north, ne_bottom);
-
-	gGL.vertex3f(east, north, ne_bottom);
-	gGL.vertex3f(east, north, ne_top);
 	gGL.vertex3f(east, south, se_top);
 	gGL.vertex3f(east, south, se_bottom);
-
-	gGL.vertex3f(east, south, se_bottom);
-	gGL.vertex3f(east, south, se_top);
 	gGL.vertex3f(west, south, sw_top);
 	gGL.vertex3f(west, south, sw_bottom);
-
-	gGL.vertex3f(west, south, sw_bottom);
-	gGL.vertex3f(west, south, sw_top);
 	gGL.vertex3f(west, north, nw_top);
 	gGL.vertex3f(west, north, nw_bottom);
 
@@ -524,8 +515,8 @@ void LLViewerParcelMgr::renderOneSegment(F32 x1, F32 y1, F32 x2, F32 y2, F32 hei
 	if (clamped_y2 > BORDER) clamped_y2 = BORDER;
 
 	F32 z;
-	F32 z1 = regionp->getLand().resolveHeightRegion( LLVector3( clamped_x1, clamped_y1, 0.f ) );;
-	F32 z2 = regionp->getLand().resolveHeightRegion( LLVector3( clamped_x2, clamped_y2, 0.f ) );;
+	F32 z1 = regionp->getLand().resolveHeightRegion( LLVector3( clamped_x1, clamped_y1, 0.f ) );
+	F32 z2 = regionp->getLand().resolveHeightRegion( LLVector3( clamped_x2, clamped_y2, 0.f ) );
 
 	// Convert x1 and x2 from region-local to agent coords.
 	LLVector3 origin = regionp->getOriginAgent();
@@ -541,10 +532,11 @@ void LLViewerParcelMgr::renderOneSegment(F32 x1, F32 y1, F32 x2, F32 y2, F32 hei
 
 		gGL.vertex3f(x1, y1, z1);
 
-		gGL.vertex3f(x2, y2, z2);
-
-		z = z2+height;
+		z = z2 + height;
 		gGL.vertex3f(x2, y2, z);
+		gGL.vertex3f(x2, y2, z);
+		gGL.vertex3f(x1, y1, z1);
+		gGL.vertex3f(x2, y2, z2);
 	}
 	else
 	{
@@ -581,11 +573,14 @@ void LLViewerParcelMgr::renderOneSegment(F32 x1, F32 y1, F32 x2, F32 y2, F32 hei
 
 		// top edge stairsteps
 		z = llmax(z2+height, z1+height);
+		gGL.texCoord2f(tex_coord1*0.5f + 0.5f, z*0.5f);
+		gGL.vertex3f(x1, y1, z);
+		gGL.texCoord2f(tex_coord1*0.5f + 0.5f, z*0.5f);
+		gGL.vertex3f(x1, y1, z);
 		gGL.texCoord2f(tex_coord2*0.5f+0.5f, z*0.5f);
 		gGL.vertex3f(x2, y2, z);
-
-		gGL.texCoord2f(tex_coord1*0.5f+0.5f, z*0.5f);
-		gGL.vertex3f(x1, y1, z);
+		gGL.texCoord2f(tex_coord1*0.5f + 0.5f, z1*0.5f);
+		gGL.vertex3f(x1, y1, z1);
 	}
 }
 
@@ -625,7 +620,7 @@ void LLViewerParcelMgr::renderHighlightSegments(const U8* segments, LLViewerRegi
 				if (!has_segments)
 				{
 					has_segments = true;
-					gGL.begin(LLRender::QUADS);
+					gGL.begin(LLRender::TRIANGLES);
 				}
 				renderOneSegment(x1, y1, x2, y2, PARCEL_POST_HEIGHT, SOUTH_MASK, regionp);
 			}
@@ -641,7 +636,7 @@ void LLViewerParcelMgr::renderHighlightSegments(const U8* segments, LLViewerRegi
 				if (!has_segments)
 				{
 					has_segments = true;
-					gGL.begin(LLRender::QUADS);
+					gGL.begin(LLRender::TRIANGLES);
 				}
 				renderOneSegment(x1, y1, x2, y2, PARCEL_POST_HEIGHT, WEST_MASK, regionp);
 			}
@@ -675,7 +670,7 @@ void LLViewerParcelMgr::renderCollisionSegments(U8* segments, BOOL use_pass, LLV
 
 	LLGLSUIDefault gls_ui;
 	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
-	LLGLDisable cull(GL_CULL_FACE);
+	LLGLDisable<GL_CULL_FACE> cull;
 	
 	if (mCollisionBanned == BA_BANNED ||
 		regionp->getRegionFlag(REGION_FLAGS_BLOCK_FLYOVER))
@@ -697,7 +692,7 @@ void LLViewerParcelMgr::renderCollisionSegments(U8* segments, BOOL use_pass, LLV
 		gGL.getTexUnit(0)->bind(mBlockedImage);
 	}
 
-	gGL.begin(LLRender::QUADS);
+	gGL.begin(LLRender::TRIANGLES);
 
 	for (y = 0; y < STRIDE; y++)
 	{
@@ -851,8 +846,7 @@ void LLViewerObjectList::renderObjectBeacons()
 			S32 line_width = debug_beacon.mLineWidth;
 			if (line_width != last_line_width)
 			{
-				gGL.flush();
-				glLineWidth( (F32)line_width );
+				gGL.setLineWidth(line_width);
 				last_line_width = line_width;
 			}
 
@@ -887,8 +881,7 @@ void LLViewerObjectList::renderObjectBeacons()
 			S32 line_width = debug_beacon.mLineWidth;
 			if (line_width != last_line_width)
 			{
-				gGL.flush();
-				glLineWidth( (F32)line_width );
+				gGL.setLineWidth(line_width);
 				last_line_width = line_width;
 			}
 
@@ -907,13 +900,12 @@ void LLViewerObjectList::renderObjectBeacons()
 			gGL.end();
 		}
 		
-		gGL.flush();
-		glLineWidth(1.f);
+		gGL.setLineWidth(1.f);
 
 		for (std::vector<LLDebugBeacon>::iterator iter = mDebugBeacons.begin(); iter != mDebugBeacons.end(); ++iter)
 		{
 			LLDebugBeacon &debug_beacon = *iter;
-			if (debug_beacon.mString == "")
+			if (debug_beacon.mString.empty())
 			{
 				continue;
 			}

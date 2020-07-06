@@ -9,12 +9,13 @@
 		Do you want to apply these changes?
 	</string>
 	<tab_container border="false" bottom="27" follows="all" height="483" left="0"
-	     name="group_tab_container" tab_position="top" width="419">
+	     name="group_tab_container" tab_position="top" tab_width="0" width="419">
 		<panel filename="panel_group_general.xml" name="general_tab" />
 		<panel filename="panel_group_roles.xml" name="roles_tab" />
 		<panel filename="panel_group_notices.xml" name="notices_tab" />
 		<panel filename="panel_group_voting.xml" name="voting_tab" />
 		<panel filename="panel_group_land_money.xml" name="land_money_tab" />
+		<panel filename="panel_group_experiences.xml" name="experiences_tab" />
 	</tab_container>
 	<button bottom="5" font="SansSerif" halign="center" height="20" label="Apply"
 	     label_selected="Apply" mouse_opaque="true" name="btn_apply" right="410"

@@ -11,22 +11,33 @@
 		<menu_item_call label="Añadir Amigo" name="Add Friend"/>
 		<menu_item_call label="Quitar Amigo" name="Remove Friend"/>
 		<menu_item_call label="Invitar a Grupo" name="Invite To Group"/>
+		<menu_item_call label="Seguir" name="Follow"/>
+		<menu_item_call label="Ir a" name="Move To"/>
 		<menu_item_call label="Ofrecer Teleporte" name="Offer Teleport"/>
 		<menu_item_call label="Teleportar a" name="Teleport To"/>
 		<menu_item_call label="Solicitar Teleporte" name="Request Teleport"/>
 		<menu_item_call label="Compartir" name="Share"/>
+	    <menu_item_call label="Historial de Chat" name="Chat History"/>
 		<menu_item_call label="Rastrear/No Rastrear" name="Track/Untrack"/>
 		<menu_item_call label="Copiar UUID" name="Copy Key"/>
+	    <menu_item_call label="Copiar Nombres" name="Copy Names"/>
 		<menu_item_call label="Copiar SLURL" name="Copy SLURL"/>
 	</menu>
 	<menu label="Enfoque" name="Focusing">
 		<menu_item_call label="Enfocar" name="Focus"/>
 		<menu_item_call label="Enfocar Siguiente" name="Focus Next"/>
 		<menu_item_call label="Enfocar Anterior" name="Focus Previous"/>
-		<menu_item_separator/>
 		<menu_item_call label="Marcar/Desmarcar" name="Mark/Unmark"/>
 		<menu_item_call label="Enfocar Siguiente Marcado" name="Focus Next Marked"/>
 		<menu_item_call label="Enfocar Anterior Marcado" name="Focus Previous Marked"/>
+	</menu>
+	<menu name="Mark" label="Marcas">
+		<menu_item_call label="Rojo" name="Red"/>
+		<menu_item_call label="Verde" name="Green"/>
+		<menu_item_call label="Azul" name="Blue"/>
+		<menu_item_call label="Amarillo" name="Yellow"/>
+		<menu_item_call label="Personalizado..." name="Custom"/>
+		<menu_item_call label="Desmarcar" name="Unmark"/>
 	</menu>
 	<menu label="Alertas" name="Alerts">
 		<menu_item_check label="Mostrar Alertas cuando un avatar" name="Display alerts in chat"/>
@@ -57,6 +68,7 @@
 		<menu_item_check label="Altitud" name="Altitude"/>
 		<menu_item_check label="Actividad" name="Activity"/>
 		<menu_item_check label="Voz" name="Voice"/>
+		<menu_item_check label="Notas" name="Notes"/>
 		<menu_item_check label="Edad" name="Age"/>
 		<menu_item_check label="Tiempo" name="Time"/>
 		<menu_item_check label="Visor" name="Client"/>

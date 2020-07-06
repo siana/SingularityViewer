@@ -33,50 +33,36 @@
 #ifndef LL_LLNAMEEDITOR_H
 #define LL_LLNAMEEDITOR_H
 
-#include <set>
-
-#include "llview.h"
-#include "v4color.h"
-#include "llstring.h"
-#include "llfontgl.h"
 #include "lllineeditor.h"
+#include "llnameui.h"
 
-
-class LLNameEditor
+class LLNameEditor final
 :	public LLLineEditor
+,	public LLNameUI
 {
 public:
 	LLNameEditor(const std::string& name, const LLRect& rect,
 		const LLUUID& name_id = LLUUID::null,
-		BOOL is_group = FALSE,
-		const LLFontGL* glfont = NULL,
+		const Type& type = AVATAR,
+		const std::string& loading = LLStringUtil::null,
+		bool rlv_sensitive = false,
+		const std::string& name_system = LLStringUtil::null,
+		bool click_for_profile = true,
+		const LLFontGL* glfont = nullptr,
 		S32 max_text_length = 254);
-		// By default, follows top and left and is mouse-opaque.
-		// If no text, text = name.
-		// If no font, uses default system font.
 
-	virtual ~LLNameEditor();
+	BOOL handleMouseDown(S32 x, S32 y, MASK mask) override final;
+	BOOL handleRightMouseDown(S32 x, S32 y, MASK mask) override final;
+	BOOL handleHover(S32 x, S32 y, MASK mask) override final;
 
-	virtual LLXMLNodePtr getXML(bool save_children = true) const;
+	LLXMLNodePtr getXML(bool save_children = true) const override final;
 	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 
-	void setNameID(const LLUUID& name_id, BOOL is_group);
+	void setValue(const LLSD& value) override final { LLNameUI::setValue(value); }
+	LLSD getValue() const override final { return LLNameUI::getValue(); }
 
-	void refresh(const LLUUID& id, const std::string& full_name, bool is_group);
-
-	static void refreshAll(const LLUUID& id, const std::string& full_name, bool is_group);
-
-
-	// Take/return agent UUIDs
-	virtual void	setValue( const LLSD& value );
-	virtual LLSD	getValue() const;
-
-private:
-	static std::set<LLNameEditor*> sInstances;
-
-private:
-	LLUUID mNameID;
-
+	void displayAsLink(bool link) override final;
+	void setText(const std::string& text) override final;
 };
 
 #endif

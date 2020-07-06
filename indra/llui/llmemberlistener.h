@@ -8,7 +8,7 @@
  * (in header)
  * 
  * class T {
- *    class LLDoTest : public LLMemberListener<LLInventoryView>
+ *    class LLDoTest : public LLMemberListener<LLPanelMainInventory>
  *    {
  *        bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata);
  *    };

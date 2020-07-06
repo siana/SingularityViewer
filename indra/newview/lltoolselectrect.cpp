@@ -78,7 +78,8 @@ void dialog_refresh_all(void);
 
 BOOL LLToolSelectRect::handleMouseDown(S32 x, S32 y, MASK mask)
 {
-	handlePick(gViewerWindow->pickImmediate(x, y, TRUE));
+    BOOL pick_rigged = true; //gSavedSettings.getBOOL("AnimatedObjectsAllowLeftClick");
+	handlePick(gViewerWindow->pickImmediate(x, y, TRUE /* pick_transparent */, pick_rigged));
 
 	LLTool::handleMouseDown(x, y, mask);
 

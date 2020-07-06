@@ -36,7 +36,6 @@
 #include "llfloaterevent.h"
 
 // viewer project includes
-#include "llcommandhandler.h"
 #include "llpanelevent.h"
 
 // linden library includes
@@ -51,29 +50,6 @@
 //-----------------------------------------------------------------------------
 
 LLMap< U32, LLFloaterEventInfo* > gEventInfoInstances;
-
-class LLEventHandler : public LLCommandHandler
-{
-public:
-	// requires trusted browser to trigger
-	LLEventHandler() : LLCommandHandler("event", UNTRUSTED_THROTTLE) { }
-	bool handle(const LLSD& tokens, const LLSD& query_map,
-				LLMediaCtrl* web)
-	{
-		if (tokens.size() < 2)
-		{
-			return false;
-		}
-		U32 event_id = tokens[0].asInteger();
-		if (tokens[1].asString() == "about")
-		{
-			LLFloaterEventInfo::show(event_id);
-			return true;
-		}
-		return false;
-	}
-};
-LLEventHandler gEventHandler;
 
 LLFloaterEventInfo::LLFloaterEventInfo(const std::string& name, const U32 event_id)
 :	LLFloater(name),

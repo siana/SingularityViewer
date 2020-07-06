@@ -23,10 +23,6 @@
 			<text name="Owner:">
 				Proprietário:
 			</text>
-			<text name="OwnerText">
-				Leyla Linden
-			</text>
-			<button label="Perfil..." label_selected="Perfil..." name="Profile..."/>
 			<text name="Group:">
 				Grupo:
 			</text>
@@ -99,12 +95,6 @@
 			<string name="group_owned_text">
 				(Possuído pelo Grupo)
 			</string>
-			<string name="profile_text">
-				Perfil...
-			</string>
-			<string name="info_text">
-				Informação...
-			</string>
 			<string name="public_text">
 				(público)
 			</string>
@@ -132,9 +122,9 @@ Vá para o menu Mundo &gt; Sobre a Terra ou selecione outro lote para mostrar se
 			<text name="estate_owner_lbl">
 				Dono:
 			</text>
-			<text name="estate_owner_text">
+			<name_box name="estate_owner_text">
 				(nenhum)
-			</text>
+			</name_box>
 			<text_editor name="covenant_editor">
 				Não há corretor para esta Propriedade.
 			</text_editor>

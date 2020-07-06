@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+
+[packages]
+llbase = "*"
+certifi = "*"
+autobuild = {git = "https://git.alchemyviewer.org/alchemy/autobuild.git"}
+
+[requires]
+python_version = "2.7"

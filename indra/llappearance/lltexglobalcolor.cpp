@@ -57,7 +57,7 @@ BOOL LLTexGlobalColor::setInfo(LLTexGlobalColorInfo *info)
 	mParamGlobalColorList.reserve(mInfo->mParamColorInfoList.size());
 	for (param_color_info_list_t::iterator iter = mInfo->mParamColorInfoList.begin(); 
 		 iter != mInfo->mParamColorInfoList.end(); 
-		 iter++)
+		 ++iter)
 	{
 		LLTexParamGlobalColor* param_color = new LLTexParamGlobalColor(this);
 		if (!param_color->setInfo(*iter, TRUE))
@@ -135,6 +135,7 @@ LLTexGlobalColorInfo::LLTexGlobalColorInfo()
 LLTexGlobalColorInfo::~LLTexGlobalColorInfo()
 {
 	for_each(mParamColorInfoList.begin(), mParamColorInfoList.end(), DeletePointer());
+	mParamColorInfoList.clear();
 }
 
 BOOL LLTexGlobalColorInfo::parseXml(LLXmlTreeNode* node)

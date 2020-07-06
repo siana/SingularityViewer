@@ -157,7 +157,12 @@ void LLFloaterTeleportHistory::addEntry(std::string parcelName)
 		// add the new list entry on top of the list, deselect all and disable the buttons
 		const S32 max_entries = gSavedSettings.getS32("TeleportHistoryMaxEntries");
 		S32 num_entries = mPlacesList->getItemCount();
-		while(num_entries >= max_entries)
+		if (max_entries <= 0)
+		{
+			if (!max_entries)
+				mPlacesList->clearRows();
+		}
+		else while(num_entries >= max_entries)
 		{
 			mPlacesList->deleteItems(LLSD(mID - num_entries--));
 		}
@@ -212,7 +217,7 @@ void LLFloaterTeleportHistory::loadFile(const std::string &file_name)
 		else
 		{
 			const S32 max_entries = gSavedSettings.getS32("TeleportHistoryMaxEntries");
-			const S32 num_entries = llmin(max_entries,(const S32)data.size());
+			const S32 num_entries = llmin(max_entries < 0 ? S32_MAX : max_entries,(const S32)data.size());
 			pScrollList->clear();
 			for(S32 i = 0; i < num_entries; i++) //Lower entry = newer
 			{

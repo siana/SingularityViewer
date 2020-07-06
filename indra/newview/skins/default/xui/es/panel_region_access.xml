@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel label="Acceso" name="Access">
+	<tab_container name="tabs">
+		<!-- ============================= ESTATE MANAGERS tab ====================== -->
+		<panel label="Administradores de Estado" name="estate_managers_panel">
+			<text name="estate_manager_label">
+				Administradores de Estado:
+			</text>
+			<button label="?" name="estate_manager_help"/>
+			<!-- Estate Managers box -->
+			<view_border
+     bevel_style="none"
+     follows="top|left"
+     height="400"
+     layout="topleft"
+     left="10"
+     bottom_delta="-408"
+     width="498" />
+			<name_list name="estate_manager_name_list">
+				<column label="Nombre" name="name" width="498" />
+			</name_list>
+			<!-- Estate Managers buttons -->
+			<button label="Agregar..." name="add_estate_manager_btn"/>
+			<button label="Quitar..." name="remove_estate_manager_btn"/>
+		</panel>
+
+		<!-- ================================ ALLOWED tab =========================== -->
+		<panel label="Permitidos" name="allowed_panel">
+			<text name="allow_resident_label">
+				Residentes permitidos:
+			</text>
+			<button label="?" name="allow_resident_help"/>
+			<panel label="top_panel" name="allowed_search_panel">
+				<filter_editor label="Buscar agentes permitidos" name="allowed_search_input"/>
+			</panel>
+			<!-- Always allowed box -->
+			<name_list name="allowed_avatar_name_list">
+				<column label="Nombre" name="name"/>
+			</name_list>
+			<!-- Allowed Residents buttons -->
+			<button label="Agregar..." name="add_allowed_avatar_btn"/>
+			<button label="Quitar..." name="remove_allowed_avatar_btn"/>
+			<button label="Copiar Todo" name="copy_allowed_list_btn"/>
+		</panel>
+
+		<!-- ============================= ALLOWED GROUPS tab ======================= -->
+		<panel label="Grupos Autorizados" name="allowed_groups_panel">
+			<text name="allow_group_label">
+				Grupos Autorizados:
+			</text>
+			<button label="?" name="allow_group_help"/>
+			<panel label="top_panel" name="allowed_group_search_panel">
+				<filter_editor label="Buscar Grupos Autorizados" name="allowed_group_search_input"/>
+			</panel>
+			<!-- Groups always allowed box -->
+			<name_list name="allowed_group_name_list">
+				<column label="Nombre" name="name"/>
+			</name_list>
+			<!-- Groups always allowed buttons -->
+			<button label="Agregar..." name="add_allowed_group_btn"/>
+			<button label="Quitar..." name="remove_allowed_group_btn"/>
+			<button label="Copiar Todo" name="copy_allowed_group_list_btn"/>
+		</panel>
+
+		<!-- ================================ BANNED tab ============================ -->
+		<panel label="Prohibidos" name="banned_panel">
+			<text name="ban_resident_label">
+				Residentes Prohibidos:
+			</text>
+			<button label="?" name="ban_resident_help"/>
+			<panel label="top_panel" name="banned_search_panel">
+				<filter_editor label="Buscar agentes prohibibos" name="banned_search_input"/>
+			</panel>
+			<!-- Always banned box -->
+			<name_list name="banned_avatar_name_list">
+				<column label="Nombre" name="name"/>
+				<column label="Últ. Inicio Sesión" name="last_login_date"/>
+				<column label="Fecha Prohibición" name="ban_date"/>
+				<column label="Prohibido por" name="bannedby"/>
+			</name_list>
+			<!-- Always banned buttons -->
+			<button label="Agregar..." name="add_banned_avatar_btn"/>
+			<button label="Quitar..." name="remove_banned_avatar_btn"/>
+			<button label="Copiar Todo" name="copy_banned_list_btn"/>
+		</panel>
+	</tab_container>
+</panel>

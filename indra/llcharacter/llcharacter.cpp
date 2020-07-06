@@ -38,7 +38,6 @@
 LLStringTable LLCharacter::sVisualParamNames(1024);
 
 std::vector< LLCharacter* > LLCharacter::sInstances;
-BOOL LLCharacter::sAllowInstancesChange = TRUE ;
 
 //-----------------------------------------------------------------------------
 // LLCharacter()
@@ -51,7 +50,6 @@ LLCharacter::LLCharacter()
 	mAppearanceSerialNum( 0 ),
 	mSkeletonSerialNum( 0 )
 {
-	llassert_always(sAllowInstancesChange) ;
 	sInstances.push_back(this);
 
 	mMotionController.setCharacter( this );
@@ -75,8 +73,6 @@ LLCharacter::~LLCharacter()
 	bool erased = vector_replace_with_last(sInstances,this);
 
 	llassert_always(erased) ;
-
-	llassert_always(sAllowInstancesChange) ;
 }
 
 
@@ -176,9 +172,9 @@ void LLCharacter::requestStopMotion( LLMotion* motion)
 //-----------------------------------------------------------------------------
 // updateMotions()
 //-----------------------------------------------------------------------------
-static LLFastTimer::DeclareTimer FTM_UPDATE_ANIMATION("Update Animation");
-static LLFastTimer::DeclareTimer FTM_UPDATE_HIDDEN_ANIMATION("Update Hidden Anim");
-static LLFastTimer::DeclareTimer FTM_UPDATE_MOTIONS("Update Motions");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_ANIMATION("Update Animation");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_HIDDEN_ANIMATION("Update Hidden Anim");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_MOTIONS("Update Motions");
 
 void LLCharacter::updateMotions(e_update_t update_type)
 {
@@ -190,11 +186,11 @@ void LLCharacter::updateMotions(e_update_t update_type)
 		// It returns false if we need to keep updating anyway.
 		if (!mMotionController.hidden(true))
 		{
-			mMotionController.updateMotions(LLCharacter::NORMAL_UPDATE);
+			mMotionController.updateMotions();
 			return;
 		}
 		//</singu>
-		LLFastTimer t(FTM_UPDATE_HIDDEN_ANIMATION);
+		LL_RECORD_BLOCK_TIME(FTM_UPDATE_HIDDEN_ANIMATION);
 		mMotionController.updateMotionsMinimal();
 	}
 	else
@@ -204,7 +200,7 @@ void LLCharacter::updateMotions(e_update_t update_type)
 		// to keep updating if they are synchronized with us, even if they are hidden.
 		mMotionController.hidden(false);
 		//</singu>
-		LLFastTimer t(FTM_UPDATE_ANIMATION);
+		LL_RECORD_BLOCK_TIME(FTM_UPDATE_ANIMATION);
 		// unpause if the number of outstanding pause requests has dropped to the initial one
 		if (mMotionController.isPaused() && mPauseRequest->getNumRefs() == 1)
 		{
@@ -212,7 +208,7 @@ void LLCharacter::updateMotions(e_update_t update_type)
 		}
 		bool force_update = (update_type == FORCE_UPDATE);
 		{
-			LLFastTimer t(FTM_UPDATE_MOTIONS);
+			LL_RECORD_BLOCK_TIME(FTM_UPDATE_MOTIONS);
 			mMotionController.updateMotions(force_update);
 		}
 	}

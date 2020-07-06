@@ -102,7 +102,7 @@ public:
   void  update     (const std::string& str);
   void  finalize   ();
 
-  bool isFinalized() const { return finalized; }
+  bool isFinalized() const { return mFinalized; }
 
 // constructors for special circumstances.  All these constructors finalize
 // the MD5 context.
@@ -120,19 +120,19 @@ public:
   void				hex_digest(char *string) const;			// provide 33-byte array for ascii-hex string
 
   friend LL_COMMON_API std::ostream& operator<< (std::ostream&, LLMD5 const& context);
-  friend LL_COMMON_API bool operator==(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.digest ,b.digest, 16) == 0; }
-  friend LL_COMMON_API bool operator!=(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.digest ,b.digest, 16) != 0; }
-  friend LL_COMMON_API bool  operator<(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.digest ,b.digest, 16) < 0; }
+  friend LL_COMMON_API bool operator==(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.mDigest ,b.mDigest, 16) == 0; }
+  friend LL_COMMON_API bool operator!=(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.mDigest,b.mDigest, 16) != 0; }
+  friend LL_COMMON_API bool  operator<(const LLMD5& a, const LLMD5& b) { return std::memcmp(a.mDigest,b.mDigest, 16) < 0; }
 
 private:
 
 
 // next, the private data:
-  uint4 state[4];
-  uint4 count[2];     // number of *bits*, mod 2^64
-  uint1 buffer[64];   // input buffer
-  uint1 digest[16];
-  uint1 finalized;
+  uint4 mState[4];
+  uint4 mCount[2];     // number of *bits*, mod 2^64
+  uint1 mBuffer[64];   // input buffer
+  uint1 mDigest[16];
+  bool  mFinalized;
 
 // last, the private methods, mostly static:
   void init             ();               // called by all constructors

@@ -33,7 +33,6 @@
 #include "aoremotectrl.h"
 
 #include "floaterao.h"
-#include "llbutton.h"
 #include "lloverlaybar.h"
 #include "lluictrlfactory.h"
 #include "llviewercontrol.h"
@@ -46,80 +45,23 @@ AORemoteCtrl::AORemoteCtrl()
 	setFocusRoot(TRUE);
 }
 
-AORemoteCtrl::~AORemoteCtrl()
-{
-}
-
-void AORemoteCtrl::draw()
-{
-	LLButton* expand_button = getChild<LLButton>("popup_btn");
-	if (expand_button)
-	{
-		if (expand_button->getToggleState())
-		{
-			expand_button->setImageOverlay("arrow_down.tga");
-		}
-		else
-		{
-			expand_button->setImageOverlay("arrow_up.tga");
-		}
-	}
-
-	LLPanel::draw();
-}
-
 void AORemoteCtrl::build()
 {
-	if (gSavedSettings.getBOOL("ShowAOSitPopup"))
-	{
-		LLUICtrlFactory::getInstance()->buildPanel(this, "panel_ao_remote_expanded.xml");
-	}
-	else
-	{
-		LLUICtrlFactory::getInstance()->buildPanel(this, "panel_ao_remote.xml");
-	}
+	LLUICtrlFactory::getInstance()->buildPanel(this, gSavedSettings.getBOOL("ShowAOSitPopup") ? "panel_ao_remote_expanded.xml" : "panel_ao_remote.xml");
 }
 
 BOOL AORemoteCtrl::postBuild()
 {
-	
-	childSetAction("ao_btn", onClickToggleAO, this);
-	if (gSavedSettings.getBOOL("ShowAOSitPopup"))
-	{
-		childSetAction("ao_sit_btn", onClickToggleAOSit, this);
-		//childSetAction("ao_show_btn", onClickShowAO, this);
-	}
-	childSetAction("popup_btn", onClickPopupBtn, this);
+	/*if (LLUICtrl* ctrl = findChild<LLUICtrl>("ao_show_btn"))
+		ctrl->setCommitCallback(boost::bind(&LLFloaterAO::showInstance, LLSD()));*/
+	getChild<LLUICtrl>("popup_btn")->setCommitCallback(boost::bind(&AORemoteCtrl::onClickPopupBtn, this));
 
 	return TRUE;
 }
 
-// static
-void AORemoteCtrl::onClickToggleAO(void* data)
+void AORemoteCtrl::onClickPopupBtn()
 {
-	BOOL ao_enable = gSavedSettings.getBOOL("AOEnabled");
-	gSavedSettings.setBOOL("AOEnabled", !ao_enable);
-}
-
-//static 
-void AORemoteCtrl::onClickToggleAOSit(void* data)
-{
-	BOOL sit_enable = gSavedSettings.getBOOL("AOSitsEnabled");
-	gSavedSettings.setBOOL("AOSitsEnabled", !sit_enable);
-}
-
-//static 
-void AORemoteCtrl::onClickShowAO(void* data)
-{
-	LLFloaterAO::show(NULL);
-}
-
-//static
-void AORemoteCtrl::onClickPopupBtn(void* data)
-{
-	AORemoteCtrl* remotep = (AORemoteCtrl*)data;
-
-	remotep->deleteAllChildren();
-	remotep->build();
+	deleteAllChildren();
+	build();
 	gOverlayBar->layoutButtons();
 }

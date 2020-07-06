@@ -44,14 +44,11 @@
 			</text>
 			<view_border name="acct_border" width="161" />
 			<text name="acct" width="161" />
-			<text name="partner_label" tool_tip="Partner in Second Life. Per maggiori informazioni sulla partnesrhip leggi www.secondlife.com/partner">
+			<text name="partner_label" tool_tip="Partner in Second Life. Per maggiori informazioni sulla partnership leggi www.secondlife.com/partner">
 				Partner:
 			</text>
-			<button label="i" label_selected="i" name="partner_info" tool_tip="Clicca per aprire il profilo del partner"/>
 			<button label="?" label_selected="?" name="partner_help"/>
-			<line_editor name="partner_edit" tool_tip="Partner in Second Life. Per maggiori informazioni sulla partnership leggi www.secondlife.com/partner" width="161">
-				[NAME]
-			</line_editor>
+			<name_editor name="partner_edit" width="161"/>
 			<text name="Photo:">
 				Foto:
 			</text>

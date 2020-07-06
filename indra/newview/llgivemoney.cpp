@@ -76,16 +76,13 @@ LLFloaterPay::LLFloaterPay(const std::string& name,
 				DEFAULT_MIN_WIDTH, DEFAULT_MIN_HEIGHT, DRAG_ON_TOP,
 				MINIMIZE_NO, CLOSE_YES),
 	mCallback(callback),
-	mObjectNameText(NULL),
 	mTargetUUID(uuid),
 	mTargetIsObject(target_is_object),
 	mTargetIsGroup(FALSE),
-	mDefaultValue(0)
+	mDefaultValue(0),
+	mQuickPayButton({ {nullptr,nullptr,nullptr,nullptr} }),
+	mQuickPayInfo({ {PAY_BUTTON_DEFAULT_0, PAY_BUTTON_DEFAULT_1, PAY_BUTTON_DEFAULT_2, PAY_BUTTON_DEFAULT_3} })
 {
-	mQuickPayInfo[0] = PAY_BUTTON_DEFAULT_0;
-	mQuickPayInfo[1] = PAY_BUTTON_DEFAULT_1;
-	mQuickPayInfo[2] = PAY_BUTTON_DEFAULT_2;
-	mQuickPayInfo[3] = PAY_BUTTON_DEFAULT_3;
 	BOOST_STATIC_ASSERT(MAX_PAY_BUTTONS == 4);
 
 	if (target_is_object)

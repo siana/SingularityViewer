@@ -68,6 +68,34 @@
     <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
       <on_click function="Object.ReloadTextures" />
     </menu_item_call>
+    <pie_menu label="Avatar" name="Avatar Tools">
+      <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
+        <on_click function="Avatar.ReloadTextures" />
+      </menu_item_call>
+      <menu_item_call enabled="true" label="Reset Skel" mouse_opaque="true" name="Reset Skeleton">
+        <on_click function="Avatar.ResetSkeleton" />
+      </menu_item_call>
+      <menu_item_call enabled="true" label="Reset Anims" mouse_opaque="true" name="Reset Skeleton And Animations">
+        <on_click function="Avatar.ResetSkeletonAndAnimations" />
+      </menu_item_call>
+      <menu_item_call enabled="true" hidden="false" label="Anims..." mouse_opaque="true" name="Anims...">
+        <on_click function="ShowFloater" userdata="anims_explorer" />
+      </menu_item_call>
+      <menu_item_call enabled="false" hidden="false" label="S. Count" mouse_opaque="true" name="ScriptCount">
+        <on_click function="Object.ScriptCount" userdata="agent"/>
+        <on_visible function="Object.VisibleScriptCount" userdata="agent"/>
+      </menu_item_call>
+      <menu_item_call label="Script Info" mouse_opaque="true" name="Script Info">
+        <on_click function="ShowFloater" userdata="script info" />
+        <on_visible function="Self.VisibleScriptInfo" />
+      </menu_item_call>
+      <menu_item_call enabled="true" label="Copy UUID" mouse_opaque="true" name="CopyUUID">
+        <on_click function="Avatar.CopyUUID" />
+      </menu_item_call>
+      <menu_item_call label="Save OBJ..." mouse_opaque="true" name="Save OBJ...">
+        <on_click function="Avatar.SaveAsOBJ" />
+      </menu_item_call>
+    </pie_menu>
     <menu_item_call label="Save OBJ..." mouse_opaque="true" name="Save OBJ...">
       <on_click function="Object.SaveAsOBJ" />
       <on_enable function="Object.EnableExport" />

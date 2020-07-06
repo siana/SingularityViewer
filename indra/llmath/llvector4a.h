@@ -93,15 +93,19 @@ public:
 	////////////////////////////////////
 	
 	LLVector4a()
+#if !defined(LL_DEBUG)
+		= default;
+#else
 	{ //DO NOT INITIALIZE -- The overhead is completely unnecessary
 		ll_assert_aligned(this,16);
 	}
-	
+#endif
+
 	LLVector4a(F32 x, F32 y, F32 z, F32 w = 0.f)
 	{
-		set(x,y,z,w);
+		set(x, y, z, w);
 	}
-	
+
 	LLVector4a(F32 x)
 	{
 		splat(x);
@@ -320,9 +324,13 @@ public:
 	////////////////////////////////////	
 	
 	// Do NOT add aditional operators without consulting someone with SSE experience
-	inline const LLVector4a& operator= ( const LLVector4a& rhs );
+	//inline const LLVector4a& operator= ( const LLVector4a& rhs );
+	//{
+	//	mQ = rhs.mQ;
+	//	return *this;
+	//}
 	
-	inline const LLVector4a& operator= ( const LLQuad& rhs );
+	inline const LLVector4a& operator= (const LLQuad& rhs);
 
 	inline operator LLQuad() const;	
 
@@ -336,4 +344,14 @@ inline void update_min_max(LLVector4a& min, LLVector4a& max, const LLVector4a& p
 	max.setMax(max, p);
 }
 
+inline std::ostream& operator<<(std::ostream& s, const LLVector4a& v)
+{
+	s << "(" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << ")";
+	return s;
+}
+
+#if !defined(LL_DEBUG)
+static_assert(std::is_trivial<LLVector4a>::value, "LLVector4a must be a be a trivial type");
+static_assert(std::is_standard_layout<LLVector4a>::value, "LLVector4a must be a standard layout type");
+#endif
 #endif

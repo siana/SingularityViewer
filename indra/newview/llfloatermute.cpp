@@ -41,6 +41,7 @@
 
 // project include
 #include "llfloateravatarpicker.h"
+#include "llgroupactions.h"
 #include "llmutelist.h"
 #include "llnamelistctrl.h"
 
@@ -248,20 +249,20 @@ void LLFloaterMute::refreshMuteList()
 		{
 		case LLMute::GROUP:
 			icon_column.value = mGroupIcon->getName();
-			element.target = LLNameListCtrl::GROUP;
+			element.target = LLNameListItem::GROUP;
 			break;
 		case LLMute::AGENT:
 			icon_column.value = mAvatarIcon->getName();
-			element.target = LLNameListCtrl::INDIVIDUAL;
+			element.target = LLNameListItem::INDIVIDUAL;
 			break;
 		case LLMute::OBJECT:
 			icon_column.value = mObjectIcon->getName();
-			element.target = LLNameListCtrl::SPECIAL;
+			element.target = LLNameListItem::SPECIAL;
 			break;
 		case LLMute::BY_NAME:
 		default:
 			icon_column.value = mNameIcon->getName();
-			element.target = LLNameListCtrl::SPECIAL;
+			element.target = LLNameListItem::SPECIAL;
 
 			break;
 		}

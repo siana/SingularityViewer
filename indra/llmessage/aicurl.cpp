@@ -195,10 +195,10 @@ ssl_dyn_create_function_type  old_ssl_dyn_create_function;
 ssl_dyn_destroy_function_type old_ssl_dyn_destroy_function;
 ssl_dyn_lock_function_type    old_ssl_dyn_lock_function;
 
-#if LL_WINDOWS
+#if LL_WINDOWS && !HAVE_CRYPTO_THREADID
 static unsigned long __cdecl apr_os_thread_current_wrapper()
 {
-	return (unsigned long)apr_os_thread_current();
+	return (unsigned long)(HANDLE)apr_os_thread_current();
 }
 #endif
 
@@ -1077,7 +1077,7 @@ CURLcode CurlEasyRequest::curlCtxCallback(CURL* curl, void* sslctx, void* parm)
   // Also turn off SSL v2, which is highly broken and strongly discouraged[1].
   // [1] http://www.openssl.org/docs/ssl/SSL_CTX_set_options.html#SECURE_RENEGOTIATION
   long options = SSL_OP_NO_SSLv2;
-#ifdef SSL_OP_NO_TLSv1_1	// Only defined for openssl version 1.0.1 and up.
+/*#ifdef SSL_OP_NO_TLSv1_1	// Only defined for openssl version 1.0.1 and up.
   if (need_renegotiation_hack)
   {
 	// This option disables openssl to use TLS version 1.1.
@@ -1095,7 +1095,7 @@ CURLcode CurlEasyRequest::curlCtxCallback(CURL* curl, void* sslctx, void* parm)
   // This is expected when you compile against the headers of a version < 1.0.1 and then link at runtime with version >= 1.0.1.
   // Don't do that.
   llassert_always(!need_renegotiation_hack);
-#endif
+#endif*/
   SSL_CTX_set_options(ctx, options);
   return CURLE_OK;
 }

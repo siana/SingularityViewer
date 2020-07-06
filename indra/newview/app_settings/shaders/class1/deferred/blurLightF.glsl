@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
 
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -31,20 +31,21 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect depthMap;
-uniform sampler2DRect normalMap;
-uniform sampler2DRect lightMap;
+uniform sampler2D depthMap;
+uniform sampler2D normalMap;
+uniform sampler2D lightMap;
 
 uniform float dist_factor;
 uniform float blur_size;
 uniform vec2 delta;
-//uniform vec3 kern[4];
-uniform float kern_scale;
+uniform vec2 kern_scale;
 
 VARYING vec2 vary_fragcoord;
 
 uniform mat4 inv_proj;
-uniform vec2 screen_res;
+
+vec3 decode_normal(vec2 enc);
+vec4 getPosition(vec2 pos_screen);
 
 vec2 getKern(int i)
 {
@@ -57,46 +58,16 @@ vec2 getKern(int i)
 	return kern[i];
 }
 
-vec4 getPosition(vec2 pos_screen)
-{
-	float depth = texture2DRect(depthMap, pos_screen.xy).r;
-	vec2 sc = pos_screen.xy*2.0;
-	sc /= screen_res;
-	sc -= vec2(1.0,1.0);
-	vec4 ndc = vec4(sc.x, sc.y, 2.0*depth-1.0, 1.0);
-	vec4 pos = inv_proj * ndc;
-	pos /= pos.w;
-	pos.w = 1.0;
-	return pos;
-}
-
-vec2 encode_normal(vec3 n)
-{
-	float f = sqrt(8 * n.z + 8);
-	return n.xy / f + 0.5;
-}
-
-vec3 decode_normal (vec2 enc)
-{
-    vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return n;
-}
-
 void main() 
 {
-    vec2 tc = vary_fragcoord.xy;
-	vec3 norm = texture2DRect(normalMap, tc).xyz;
+	vec2 tc = vary_fragcoord.xy;
+	vec3 norm = texture2D(normalMap, tc).xyz;
 	norm = decode_normal(norm.xy); // unpack norm
 
 	vec3 pos = getPosition(tc).xyz;
-	vec4 ccol = texture2DRect(lightMap, tc).rgba;
-	
-	vec2 dlt = kern_scale * delta / (vec2(1.0)+norm.xy*norm.xy);
+	vec4 ccol = texture2D(lightMap, tc).rgba;
+
+	vec2 dlt = delta / (vec2(1.0)+norm.xy*norm.xy);
 	dlt /= max(-pos.z*dist_factor, 1.0);
 	
 	vec2 defined_weight = getKern(0).xy; // special case the first (centre) sample's weight in the blur; we have to sample it anyway so we get it for 'free'
@@ -106,20 +77,20 @@ void main()
 	float pointplanedist_tolerance_pow2 = pos.z*-0.001;
 
 	// perturb sampling origin slightly in screen-space to hide edge-ghosting artifacts where smoothing radius is quite large
-	vec2 tc_v = fract(0.5 * tc.xy); // we now have floor(mod(tc,2.0))*0.5
+	vec2 tc_v = fract(0.5 * tc.xy / kern_scale); // we now have floor(mod(tc,2.0))*0.5
 	float tc_mod = 2.0 * abs(tc_v.x - tc_v.y); // diff of x,y makes checkerboard
-	tc += ( (tc_mod - 0.5) * dlt * 0.5 );
+	tc += ( (tc_mod - 0.5) * dlt * 0.5 ) * kern_scale;
 
 	for (int i = 1; i < 4; i++)
 	{
 		vec2 samptc = (tc + i * dlt);
-	    vec3 samppos = getPosition(samptc).xyz; 
+		vec3 samppos = getPosition(samptc).xyz; 
 		float d = dot(norm.xyz, samppos.xyz-pos.xyz);// dist from plane
 
 		if (d*d <= pointplanedist_tolerance_pow2)
 		{
 			vec4 weight = getKern(i).xyxx;
-			col += texture2DRect(lightMap, samptc)*weight;
+			col += texture2D(lightMap, samptc)*weight;
 			defined_weight += weight.xy;
 		}
 	}
@@ -132,7 +103,7 @@ void main()
 		if (d*d <= pointplanedist_tolerance_pow2)
 		{
 			vec4 weight = getKern(i).xyxx;
-			col += texture2DRect(lightMap, samptc)*weight;
+			col += texture2D(lightMap, samptc)*weight;
 			defined_weight += weight.xy;
 		}
 	}

@@ -65,11 +65,11 @@ LLWLParamSet::LLWLParamSet(void) :
 	mCloudScrollXOffset(0.f), mCloudScrollYOffset(0.f)	
 {}
 
-static LLFastTimer::DeclareTimer FTM_WL_PARAM_UPDATE("WL Param Update");
+static LLTrace::BlockTimerStatHandle FTM_WL_PARAM_UPDATE("WL Param Update");
 
 void LLWLParamSet::update(LLGLSLShader * shader) const 
 {	
-	LLFastTimer t(FTM_WL_PARAM_UPDATE);
+	LL_RECORD_BLOCK_TIME(FTM_WL_PARAM_UPDATE);
 	LLSD::map_const_iterator i = mParamValues.beginMap();
 	std::vector<LLStaticHashedString>::const_iterator n = mParamHashedNames.begin();
 	for(;(i != mParamValues.endMap()) && (n != mParamHashedNames.end());++i, n++)
@@ -86,8 +86,7 @@ void LLWLParamSet::update(LLGLSLShader * shader) const
 		{
 			continue;
 		}
-		
-		if (param == sCloudDensity)
+		else if (param == sCloudDensity)
 		{
 			LLVector4 val;
 			val.mV[0] = F32(i->second[0].asReal()) + mCloudScrollXOffset;
@@ -99,55 +98,58 @@ void LLWLParamSet::update(LLGLSLShader * shader) const
 			shader->uniform4fv(param, 1, val.mV);
 			stop_glerror();
 		}
-		else if (param == sCloudScale || param == sCloudShadow ||
-				 param == sDensityMultiplier || param == sDistanceMultiplier ||
-				 param == sHazeDensity || param == sHazeHorizon ||
-				 param == sMaxY )
-		{
-			F32 val = (F32) i->second[0].asReal();
-
-			stop_glerror();
-			shader->uniform1f(param, val);
-			stop_glerror();
-		}
 		else // param is the uniform name
 		{
 			// handle all the different cases
-			if (i->second.isArray() && i->second.size() == 4)
+			if (i->second.isArray())
 			{
-				LLVector4 val;
-
-				val.mV[0] = (F32) i->second[0].asReal();
-				val.mV[1] = (F32) i->second[1].asReal();
-				val.mV[2] = (F32) i->second[2].asReal();
-				val.mV[3] = (F32) i->second[3].asReal();															
-
 				stop_glerror();
-				shader->uniform4fv(param, 1, val.mV);
+				// Switch statement here breaks msbuild for some reason
+				if (i->second.size() == 4)
+				{
+					LLVector4 val(
+						i->second[0].asFloat(),
+						i->second[1].asFloat(),
+						i->second[2].asFloat(),
+						i->second[3].asFloat()
+					);
+					shader->uniform4fv(param, 1, val.mV);
+				}
+				else if (i->second.size() == 3)
+				{
+					shader->uniform3f(param,
+						i->second[0].asFloat(),
+						i->second[1].asFloat(),
+						i->second[2].asFloat());
+				}
+				else if (i->second.size() == 2)
+				{
+					shader->uniform2f(param,
+						i->second[0].asFloat(),
+						i->second[1].asFloat());
+				}
+				else if (i->second.size() == 1)
+				{
+					shader->uniform1f(param, i->second[0].asFloat());
+				}
 				stop_glerror();
 			} 
 			else if (i->second.isReal())
 			{
-				F32 val = (F32) i->second.asReal();
-
 				stop_glerror();
-				shader->uniform1f(param, val);
+				shader->uniform1f(param, i->second.asFloat());
 				stop_glerror();
 			} 
 			else if (i->second.isInteger())
 			{
-				S32 val = (S32) i->second.asInteger();
-
 				stop_glerror();
-				shader->uniform1i(param, val);
+				shader->uniform1i(param, i->second.asInteger());
 				stop_glerror();
 			} 
 			else if (i->second.isBoolean())
 			{
-				S32 val = (i->second.asBoolean() ? 1 : 0);
-
 				stop_glerror();
-				shader->uniform1i(param, val);
+				shader->uniform1i(param, i->second.asBoolean() ? 1 : 0);
 				stop_glerror();
 			}
 		}
@@ -155,9 +157,9 @@ void LLWLParamSet::update(LLGLSLShader * shader) const
 }
 
 void LLWLParamSet::set(const std::string& paramName, float x) 
-{	
+{
 	// handle case where no array
-	if(mParamValues[paramName].isReal()) 
+	if(mParamValues.isUndefined() || mParamValues[paramName].isReal())
 	{
 		mParamValues[paramName] = x;
 	} 
@@ -265,7 +267,7 @@ void LLWLParamSet::setSunAngle(float val)
 		val = F_TWO_PI * num;
 	}
 
-	mParamValues["sun_angle"] = val;
+	set("sun_angle", val);
 }
 
 
@@ -279,7 +281,7 @@ void LLWLParamSet::setEastAngle(float val)
 		val = F_TWO_PI * num;
 	}
 
-	mParamValues["east_angle"] = val;
+	set("east_angle", val);
 }
 
 void LLWLParamSet::mix(LLWLParamSet& src, LLWLParamSet& dest, F32 weight)
@@ -292,7 +294,7 @@ void LLWLParamSet::mix(LLWLParamSet& src, LLWLParamSet& dest, F32 weight)
 	F32 cloudPos1Y = (F32) mParamValues["cloud_pos_density1"][1].asReal();
 	F32 cloudPos2X = (F32) mParamValues["cloud_pos_density2"][0].asReal();
 	F32 cloudPos2Y = (F32) mParamValues["cloud_pos_density2"][1].asReal();
-	F32 cloudCover = (F32) mParamValues["cloud_shadow"][0].asReal();
+	F32 cloudCover = (F32) mParamValues["cloud_shadow"].asReal();
 
 	LLSD srcVal;
 	LLSD destVal;
@@ -381,11 +383,9 @@ void LLWLParamSet::mix(LLWLParamSet& src, LLWLParamSet& dest, F32 weight)
 	// now setup the sun properly
 
 	// reset those cloud positions
-	mParamValues["cloud_pos_density1"][0] = cloudPos1X;
-	mParamValues["cloud_pos_density1"][1] = cloudPos1Y;
-	mParamValues["cloud_pos_density2"][0] = cloudPos2X;
-	mParamValues["cloud_pos_density2"][1] = cloudPos2Y;
-	mParamValues["cloud_shadow"][0] = cloudCover;
+	set("cloud_pos_density1", cloudPos1X, cloudPos1Y);
+	set("cloud_pos_density2", cloudPos2X, cloudPos2Y);
+	set("cloud_shadow", cloudCover);
 }
 
 void LLWLParamSet::updateCloudScrolling(void) 
@@ -410,7 +410,16 @@ void LLWLParamSet::updateHashedNames()
 	// Iterate through values
 	for(LLSD::map_iterator iter = mParamValues.beginMap(); iter != mParamValues.endMap(); ++iter)
 	{
-		mParamHashedNames.push_back(LLStaticHashedString(iter->first));
+		LLStaticHashedString param(iter->first);
+		mParamHashedNames.push_back(param);
+		if (iter->second.isArray() && (param == sCloudScale || param == sCloudShadow ||
+			param == sDensityMultiplier || param == sDistanceMultiplier ||
+			param == sHazeDensity || param == sHazeHorizon ||
+			param == sMaxY))
+		{
+			// Params are incorrect in the XML files. These SHOULD be F32, not arrays.
+			iter->second.assign(iter->second[0]);
+		}
 	}
 }
 

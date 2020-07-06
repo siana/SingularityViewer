@@ -15,9 +15,9 @@
 			</combo_box>
 		</layout_panel>
 		<layout_panel name="moderate_chat_panel">
-			<scroll_list name="speakers_list">
+			<name_list name="speakers_list">
 				<column label="Nom" name="speaker_name"/>
-			</scroll_list>
+			</name_list>
 			<panel name="speaker_controls">
 				<text name="resident_name">
 					Rumplstiltskin Califragilistic

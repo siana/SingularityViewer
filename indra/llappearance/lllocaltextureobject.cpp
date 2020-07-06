@@ -76,6 +76,7 @@ LLLocalTextureObject::LLLocalTextureObject(const LLLocalTextureObject& lto) :
 
 LLLocalTextureObject::~LLLocalTextureObject()
 {
+	delete_and_clear(mTexLayers);
 }
 
 LLGLTexture* LLLocalTextureObject::getImage() const
@@ -95,7 +96,7 @@ LLTexLayer* LLLocalTextureObject::getTexLayer(U32 index) const
 
 LLTexLayer* LLLocalTextureObject::getTexLayer(const std::string &name)
 {
-	for( tex_layer_vec_t::iterator iter = mTexLayers.begin(); iter != mTexLayers.end(); iter++)
+	for( tex_layer_vec_t::iterator iter = mTexLayers.begin(); iter != mTexLayers.end(); ++iter)
 	{
 		LLTexLayer *layer = *iter;
 		if (layer->getName().compare(name) == 0)
@@ -196,7 +197,7 @@ BOOL LLLocalTextureObject::removeTexLayer(U32 index)
 	return TRUE;
 }
 
-void LLLocalTextureObject::setID(LLUUID new_id)
+void LLLocalTextureObject::setID(const LLUUID& new_id)
 {
 	mID = new_id;
 }

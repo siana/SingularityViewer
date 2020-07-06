@@ -34,16 +34,13 @@
 #include "wlfPanel_AdvSettings.h"
 
 #include "llbutton.h"
-#include "lluictrlfactory.h"
-#include "llviewercontrol.h"
-#include "lliconctrl.h"
-#include "lloverlaybar.h"
-#include "lltextbox.h"
-#include "llcombobox.h"
-#include "llsliderctrl.h"
 #include "llcheckboxctrl.h"
-#include "llstartup.h"
+#include "llcombobox.h"
+#include "llpostprocess.h"
+#include "llsliderctrl.h"
+#include "lluictrlfactory.h"
 
+#include "llfloaterpostprocess.h"
 #include "llfloaterwindlight.h"
 #include "llfloaterwater.h"
 
@@ -56,6 +53,10 @@
 #include "llwaterparammanager.h"
 #include "llwlparamset.h"
 #include "llwlparammanager.h"
+
+ // [RLVa:KB]
+#include "rlvhandler.h"
+// [/RLVa:KB]
 
 // Hover funcs
 void syncFromPreferenceSetting(LLSliderCtrl* sldrCtrl);
@@ -152,6 +153,9 @@ BOOL wlfPanel_AdvSettings::postBuild()
 		// Windlight
 		getChild<LLCheckBoxCtrl>("use_estate_wl")->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onUseRegionSettings, this, _2));
 
+		auto mPostProcessPresetCombo = getChild<LLComboBox>("PostProcessPresetsCombo");
+		mPostProcessPresetCombo->setCommitCallback(boost::bind(&LLPostProcess::setSelectedEffect, LLPostProcess::getInstance(), boost::bind(&LLSD::asStringRef, _2)));
+
 		mWaterPresetCombo = getChild<LLComboBox>("WLWaterPresetsCombo");
 		mWaterPresetCombo->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onChangeWWPresetName, this, _2));
 
@@ -161,21 +165,27 @@ BOOL wlfPanel_AdvSettings::postBuild()
 		// mDayCyclePresetCombo = getChild<LLComboBox>("DCPresetsCombo");
 		// mDayCyclePresetCombo->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onChangeDCPresetName, this, _2));
 
+		void populatePostProcessList(LLComboBox* comboBox);
+		mConnections.push_front(new boost::signals2::scoped_connection(LLPostProcess::instance().setSelectedEffectChangeCallback(boost::bind(populatePostProcessList, mPostProcessPresetCombo))));
 		mConnections.push_front(new boost::signals2::scoped_connection(LLEnvManagerNew::instance().setPreferencesChangeCallback(boost::bind(&wlfPanel_AdvSettings::refreshLists, this))));
 		mConnections.push_front(new boost::signals2::scoped_connection(LLWaterParamManager::getInstance()->setPresetListChangeCallback(boost::bind(&wlfPanel_AdvSettings::populateWaterPresetsList, this))));
 		mConnections.push_front(new boost::signals2::scoped_connection(LLWLParamManager::getInstance()->setPresetListChangeCallback(boost::bind(&wlfPanel_AdvSettings::populateSkyPresetsList, this))));
 		// LLDayCycleManager::instance().setModifyCallback(boost::bind(&wlfPanel_AdvSettings::populateDayCyclePresetsList, this));
 
+		populatePostProcessList(mPostProcessPresetCombo);
 		populateWaterPresetsList();
 		populateSkyPresetsList();
 		//populateDayCyclePresetsList();
 
 		// next/prev buttons
-		getChild<LLUICtrl>("WWnext")->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onClickWWNext, this));
-		getChild<LLUICtrl>("WWprev")->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onClickWWPrev, this));
-		getChild<LLUICtrl>("WLnext")->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onClickWLNext, this));
-		getChild<LLUICtrl>("WLprev")->setCommitCallback(boost::bind(&wlfPanel_AdvSettings::onClickWLPrev, this));
+		getChild<LLUICtrl>("PPnext")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mPostProcessPresetCombo, true));
+		getChild<LLUICtrl>("PPprev")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mPostProcessPresetCombo, false));
+		getChild<LLUICtrl>("WWnext")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mWaterPresetCombo, true));
+		getChild<LLUICtrl>("WWprev")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mWaterPresetCombo, false));
+		getChild<LLUICtrl>("WLnext")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mSkyPresetCombo, true));
+		getChild<LLUICtrl>("WLprev")->setCommitCallback(boost::bind(wlfPanel_AdvSettings::onClickArrow, mSkyPresetCombo, false));
 
+		getChild<LLUICtrl>("PostProcessButton")->setCommitCallback(boost::bind(LLFloaterPostProcess::toggleInstance, LLSD()));
 		getChild<LLUICtrl>("EnvAdvancedSkyButton")->setCommitCallback(boost::bind(LLFloaterWindLight::show));
 		getChild<LLUICtrl>("EnvAdvancedWaterButton")->setCommitCallback(boost::bind(LLFloaterWater::show));
 
@@ -224,7 +234,7 @@ BOOL wlfPanel_AdvSettings::postBuild()
 	}
 	else
 	{
-		mHoverHeight = NULL;
+		mHoverHeight = nullptr;
 	}
 	return TRUE;
 }
@@ -301,48 +311,13 @@ void wlfPanel_AdvSettings::onChangeWLPresetName(const LLSD& value)
 	}
 }
 
-void wlfPanel_AdvSettings::onClickWWNext()
+void wlfPanel_AdvSettings::onClickArrow(LLComboBox* combo, bool next)
 {
-	S32 index = mWaterPresetCombo->getCurrentIndex();
-	++index;
-	if (index == mWaterPresetCombo->getItemCount())
-		index = 0;
-	mWaterPresetCombo->setCurrentByIndex(index);
-
-	onChangeWWPresetName(mWaterPresetCombo->getSelectedValue());
-}
-
-void wlfPanel_AdvSettings::onClickWWPrev()
-{
-	S32 index = mWaterPresetCombo->getCurrentIndex();
-	if (index == 0)
-		index = mWaterPresetCombo->getItemCount();
-	--index;
-	mWaterPresetCombo->setCurrentByIndex(index);
-
-	onChangeWWPresetName(mWaterPresetCombo->getSelectedValue());
-}
-
-void wlfPanel_AdvSettings::onClickWLNext()
-{
-	S32 index = mSkyPresetCombo->getCurrentIndex();
-	++index;
-	if (index == mSkyPresetCombo->getItemCount())
-		index = 0;
-	mSkyPresetCombo->setCurrentByIndex(index);
-
-	onChangeWLPresetName(mSkyPresetCombo->getSelectedValue());
-}
-
-void wlfPanel_AdvSettings::onClickWLPrev()
-{
-	S32 index = mSkyPresetCombo->getCurrentIndex();
-	if (index == 0)
-		index = mSkyPresetCombo->getItemCount();
-	--index;
-	mSkyPresetCombo->setCurrentByIndex(index);
-
-	onChangeWLPresetName(mSkyPresetCombo->getSelectedValue());
+	S32 index = combo->getCurrentIndex() + (next ? 1 : -1);
+	const auto too_far = next ? combo->getItemCount() : -1;
+	const auto wrap_around = next ? 0 : combo->getItemCount();
+	combo->setCurrentByIndex(index == too_far ? wrap_around : index);
+	combo->onCommit();
 }
 
 void wlfPanel_AdvSettings::onChangeDayTime(const LLSD& value)
@@ -352,10 +327,7 @@ void wlfPanel_AdvSettings::onChangeDayTime(const LLSD& value)
 	inst.mAnimator.deactivate();
 
 	F32 val = value.asFloat() + 0.25f;
-	if(val > 1.0)
-	{
-		val--;
-	}
+	if (val > 1.0f) --val;
 
 	inst.mAnimator.setDayTime((F64)val);
 	inst.mAnimator.update(inst.mCurParams);
@@ -449,10 +421,7 @@ void wlfPanel_AdvSettings::updateTimeSlider()
 {
 	
 	F32 val = LLWLParamManager::getInstance()->mAnimator.getDayTime() - 0.25f;
-	if(val < 0.0)
-	{
-		val++;
-	}
+	if (val < 0.0) ++val;
 	mTimeSlider->setValue(val);
 }
 
@@ -465,30 +434,34 @@ void syncFromPreferenceSetting(LLSliderCtrl* sldrCtrl)
 
 	if (isAgentAvatarValid())
 	{
-		LLVector3 offset(0.0, 0.0, llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z));
-		LL_INFOS("Avatar") << "setting hover from preference setting " << offset[2] << LL_ENDL;
-		gAgentAvatarp->setHoverOffset(offset);
+		const auto hover = llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z);
+		LL_INFOS("Avatar") << "setting hover from preference setting " << hover << LL_ENDL;
+		gAgentAvatarp->setHoverIfRegionEnabled();
 	}
 }
 
 void onHoverSliderMoved(const LLSD& val)
 {
 	F32 value = val.asFloat();
-	LLVector3 offset(0.0, 0.0, llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z));
-	LL_INFOS("Avatar") << "setting hover from slider moved" << offset[2] << LL_ENDL;
-	gAgentAvatarp->setHoverOffset(offset, false);
+	const auto hover = llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z);
+	LL_DEBUGS("Avatar") << "setting hover from slider moved" << hover << LL_ENDL;
+	gAgentAvatarp->setHoverOffset(LLVector3(0.0, 0.0, hover), false);
 }
+
+bool sInwlfPanelUpdate = false;
 
 // Do send-to-the-server work when slider drag completes, or new
 // value entered as text.
 void onHoverSliderFinalCommit(const LLSD& val)
 {
+	sInwlfPanelUpdate = true;
 	F32 value = val.asFloat();
 	gSavedPerAccountSettings.setF32("AvatarHoverOffsetZ", value);
 
-	LLVector3 offset(0.0, 0.0, llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z));
-	LL_INFOS("Avatar") << "setting hover from slider final commit " << offset[2] << LL_ENDL;
-	gAgentAvatarp->setHoverOffset(offset, true); // will send update this time.
+	const auto hover = llclamp(value,MIN_HOVER_Z,MAX_HOVER_Z);
+	LL_INFOS("Avatar") << "setting hover from slider final commit " << hover << LL_ENDL;
+	gAgentAvatarp->setHoverIfRegionEnabled(); // will send update this time.
+	sInwlfPanelUpdate = false;
 }
 
 void wlfPanel_AdvSettings::onRegionChanged()
@@ -515,11 +488,14 @@ void wlfPanel_AdvSettings::onSimulatorFeaturesReceived(const LLUUID& region_id)
 
 void wlfPanel_AdvSettings::updateEditHoverEnabled()
 {
-	const LLViewerRegion* region = gAgent.getRegion();
-	bool enabled = region && region->avatarHoverHeightEnabled();
-	if (mHoverHeight) mHoverHeight->setEnabled(enabled);
-	if (enabled)
+	if (mHoverHeight)
 	{
-		syncFromPreferenceSetting(mHoverHeight);
+		const LLViewerRegion* region = gAgent.getRegion();
+		bool enabled = region && region->avatarHoverHeightEnabled();
+		mHoverHeight->setEnabled(enabled);
+		if (enabled)
+		{
+			syncFromPreferenceSetting(mHoverHeight);
+		}
 	}
 }

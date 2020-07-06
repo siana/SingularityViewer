@@ -1,4 +1,3 @@
-#include "sys.h"
 #include "llpathinglib.h"
 
 void LLPathingLib::initSystem()

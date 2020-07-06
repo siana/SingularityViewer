@@ -36,9 +36,9 @@
 	<text name="event_runby_label">
 		Organisé par :
 	</text>
-	<text name="event_runby">
+	<name_box name="event_runby">
 		(personne)
-	</text>
+	</name_box>
 	<text name="event_location_label">
 		Lieu :
 	</text>

@@ -9,9 +9,9 @@
 	</string>
 	<button label="?" label_selected="?" name="help_button"/>
 	<line_editor label="Saisir le nom du groupe ici" name="group_name_editor"/>
-	<text name="group_name">
+	<name_box name="group_name">
 		Saisissez le nom du groupe ici:
-	</text>
+	</name_box>
 	<text font="SansSerifSmall" name="prepend_founded_by">
 		Fond&#xE9; par
 	</text>

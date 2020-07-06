@@ -6,14 +6,8 @@
 	<text name="LabelItemDescTitle">Beschreibung:</text>
 	
 	<text name="LabelCreatorTitle">Ersteller:</text>
-	<text name="LabelCreatorName">Nicole Linden</text>
-	<button label="Profil..." name="BtnCreator"/>
 	<text name="LabelOwnerTitle">Eigentümer:</text>
-	<text name="LabelOwnerName">Thrax Linden</text>
-	<button label="Profil..." name="BtnOwner"/>
 	<text name="LabelLastOwnerTitle">Letzter Besitzer:</text>
-	<text name="LabelLastOwnerName">OnceUponA Linden</text>
-	<button label="Profil..." name="BtnLastOwner"/>
 	<text name="LabelAcquiredTitle">Erworben:</text>
 	<text name="LabelAcquiredDate">Mittwoch, 24. Mai 2006, 12:50:46</text>
 	<text name="OwnerLabel">Sie können:</text>

@@ -24,6 +24,9 @@ include_directories(
     )
 
 set(llui_SOURCE_FILES
+    lfidbearer.cpp
+    llaccordionctrl.cpp
+    llaccordionctrltab.cpp
     llalertdialog.cpp
     llbutton.cpp
     llcheckboxctrl.cpp
@@ -34,6 +37,7 @@ set(llui_SOURCE_FILES
     lldraghandle.cpp
     lleditmenuhandler.cpp
     llfiltereditor.cpp
+    llflatlistview.cpp
     llfloater.cpp
     llflyoutbutton.cpp
     llfocusmgr.cpp
@@ -42,6 +46,7 @@ set(llui_SOURCE_FILES
     llkeywords.cpp
     lllayoutstack.cpp
     lllineeditor.cpp
+    llloadingindicator.cpp
     lllocalcliprect.cpp
     llmenugl.cpp
     llmodaldialog.cpp
@@ -98,6 +103,9 @@ set(llui_HEADER_FILES
     CMakeLists.txt
 
     ailist.h
+    lfidbearer.h
+    llaccordionctrl.h
+    llaccordionctrltab.h
     llalertdialog.h
     llbutton.h
     llcallbackmap.h
@@ -109,6 +117,7 @@ set(llui_HEADER_FILES
     lldraghandle.h
     lleditmenuhandler.h
     llfiltereditor.h 
+    llflatlistview.h
     llfloater.h
     llflyoutbutton.h
     llfocusmgr.h
@@ -118,6 +127,7 @@ set(llui_HEADER_FILES
     llkeywords.h
     lllayoutstack.h
     lllineeditor.h
+    llloadingindicator.h
     lllocalcliprect.h
     llmemberlistener.h
     llmenugl.h

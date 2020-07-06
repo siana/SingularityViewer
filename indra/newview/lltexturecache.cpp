@@ -931,17 +931,17 @@ void LLTextureCache::setReadOnly(BOOL read_only)
 }
 
 //called in the main thread.
-S64 LLTextureCache::initCache(ELLPath location, S64 max_size, BOOL texture_cache_mismatch)
+U64 LLTextureCache::initCache(ELLPath location, U64 max_size, BOOL texture_cache_mismatch)
 {
 	llassert_always(getPending() == 0); //should not start accessing the texture cache before initialized.
 	
-	S64 header_size = (max_size * 2) / 10;
-	S64 max_entries = header_size / TEXTURE_CACHE_ENTRY_SIZE;
-	sCacheMaxEntries = (S32)(llmin((S64)sCacheMaxEntries, max_entries));
+	U64 header_size = (max_size * 2) / 10;
+	U32 max_entries = header_size / TEXTURE_CACHE_ENTRY_SIZE;
+	sCacheMaxEntries = (llmin(sCacheMaxEntries, max_entries));
 	header_size = sCacheMaxEntries * TEXTURE_CACHE_ENTRY_SIZE;
 	max_size -= header_size;
 	if (sCacheMaxTexturesSize > 0)
-		sCacheMaxTexturesSize = llmin(sCacheMaxTexturesSize, max_size);
+		sCacheMaxTexturesSize = (U32)llmin((U64)sCacheMaxTexturesSize, max_size);
 	else
 		sCacheMaxTexturesSize = max_size;
 	max_size -= sCacheMaxTexturesSize;
@@ -1064,9 +1064,9 @@ S32 LLTextureCache::openAndReadEntry(const LLUUID& id, Entry& entry, bool create
 			else
 			{
 				// Look for a still valid entry in the LRU
-				for (std::set<LLUUID>::iterator iter2 = mLRU.begin(); iter2 != mLRU.end();)
+				for (auto iter2 = mLRU.begin(); iter2 != mLRU.end();)
 				{
-					std::set<LLUUID>::iterator curiter2 = iter2++;
+					auto curiter2 = iter2++;
 					LLUUID oldid = *curiter2;
 					// Erase entry from LRU regardless
 					mLRU.erase(curiter2);
@@ -1305,14 +1305,12 @@ void LLTextureCache::writeEntriesAndClose(const std::vector<Entry>& entries)
 	if (!mReadOnly)
 	{
 		LLAPRFile* aprfile = openHeaderEntriesFile(false, (S32)sizeof(EntriesInfo));
-		for (S32 idx=0; idx<num_entries; idx++)
+		U64 write_size = U64(sizeof(Entry)) * num_entries;
+		U64 bytes_written = aprfile->write((void*)(entries.data()), write_size);
+		if (bytes_written != write_size)
 		{
-			S32 bytes_written = aprfile->write((void*)(&entries[idx]), (S32)sizeof(Entry));
-			if(bytes_written != sizeof(Entry))
-			{
-				clearCorruptedCache(); //clear the cache.
-				return;
-			}
+			clearCorruptedCache(); //clear the cache.
+			return;
 		}
 		closeHeaderEntriesFile();
 	}

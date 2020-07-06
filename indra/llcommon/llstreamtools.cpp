@@ -124,7 +124,7 @@ bool skip_to_next_word(std::istream& input_stream)
 
 bool skip_to_end_of_next_keyword(const char* keyword, std::istream& input_stream)
 {
-	int key_length = strlen(keyword);	 /*Flawfinder: ignore*/
+	size_t key_length = strlen(keyword);	 /*Flawfinder: ignore*/
 	if (0 == key_length)
 	{
 		return false;
@@ -139,7 +139,7 @@ bool skip_to_end_of_next_keyword(const char* keyword, std::istream& input_stream
 		}
 		else
 		{
-			int key_index = 1;
+			size_t key_index = 1;
 			while ( key_index < key_length
 					&&	keyword[key_index - 1] == c 
 			   		&& input_stream.good())
@@ -321,7 +321,7 @@ bool unget_line(const std::string& line, std::istream& input_stream)
 // returns true if removed last char
 bool remove_last_char(char c, std::string& line)
 {
-	int line_size = line.size();
+	size_t line_size = line.size();
 	if (line_size > 1
 		&& c == line[line_size - 1])
 	{

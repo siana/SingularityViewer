@@ -55,11 +55,14 @@
 	<key>SGAllowRiggedMeshSelection</key>
 	<map>
 	  <key>Comment</key>
-	  <string>Allow selection of worn rigged meshes in build or inspect mode</string>
+	  <string>Rigged mesh selection behavior:
+0 = Never select,
+1 = Hold shift to select,
+2 = Hold shift or have build or inspect floater open</string>
 	  <key>Persist</key>
 	  <integer>1</integer>
 	  <key>Type</key>
-	  <string>Boolean</string>
+	  <string>S32</string>
 	  <key>Value</key>
 	  <integer>0</integer>
 	</map>
@@ -84,18 +87,6 @@
 	  <string>Boolean</string>
 	  <key>Value</key>
 	  <integer>0</integer>
-	</map>
-
-	<key>SianaRenderDeferredInvisiprim</key>
-	<map>
-	  <key>Comment</key>
-	  <string>Support invisiprims in deferred mode</string>
-	  <key>Persist</key>
-	  <integer>1</integer>
-	  <key>Type</key>
-	  <string>Boolean</string>
-	  <key>Value</key>
-	  <integer>1</integer>
 	</map>
 
 	<key>SianaVoidWaterSubdivision</key>
@@ -466,6 +457,8 @@
     <string>Boolean</string>
     <key>Value</key>
     <integer>0</integer>
+    <key>IsCOA</key>
+    <integer>1</integer>
   </map>
   <key>AOAdvanced</key>
   <map>
@@ -487,6 +480,34 @@
     <key>Type</key>
     <string>Boolean</string>
     <key>Value</key>
+    <integer>1</integer>
+    <key>IsCOA</key>
+    <integer>1</integer>
+  </map>
+  <key>AOSwimEnabled</key>
+  <map>
+    <key>Comment</key>
+    <string>Overrides fly animations with swims when underwater.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+    <key>IsCOA</key>
+    <integer>1</integer>
+  </map>
+  <key>AOSwimForced</key>
+  <map>
+    <key>Comment</key>
+    <string>Sets AOSwimEnabled to true, and plays swims instead of flies, even if not underwater.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+    <key>IsCOA</key>
     <integer>1</integer>
   </map>
   <key>AONoStandsInMouselook</key>
@@ -808,17 +829,6 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>LiruResizeRootWithScreen</key>
-    <map>
-      <key>Comment</key>
-      <string>When false, the ui view won't resize when the screen does (floaters won't move around without user interaction, but they also might be restricted from moving everywhere).</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>LiruLegacyScrollToEnd</key>
     <map>
       <key>Comment</key>
@@ -850,7 +860,7 @@
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>LiruMiniBuildFloater</key>
     <map>
@@ -990,6 +1000,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>LiruOnlineNotificationBehavior</key>
+    <map>
+      <key>Comment</key>
+      <string>Determines if Friend is Online notifications will do anything when clicked. (0 does nothing, 1 starts an IM (default), 2 opens profile.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>LiruRegionRestartMinimized</key>
     <map>
       <key>Comment</key>
@@ -1001,6 +1022,17 @@
       <key>Value</key>
       <integer>0</integer>
       <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruResizeRootWithScreen</key>
+    <map>
+      <key>Comment</key>
+      <string>When false, the ui view won't resize when the screen does (floaters won't move around without user interaction, but they also might be restricted from moving everywhere).</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
       <integer>1</integer>
     </map>
     <key>LiruScriptErrorsStealFocus</key>
@@ -1024,7 +1056,7 @@ Found in Advanced->Rendering->Info Displays</string>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>LiruShowLastNameResident</key>
     <map>
@@ -1160,17 +1192,6 @@ Found in Advanced->Rendering->Info Displays</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>FloaterUnfocusedBackgroundOpaque</key>
-    <map>
-      <key>Comment</key>
-      <string>Disables floaters going transparent when not in focus, may conflict with some skins, though.</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
     <key>FSSynchronizeTextureMaps</key>
     <map>
       <key>Comment</key>
@@ -1191,7 +1212,7 @@ Found in Advanced->Rendering->Info Displays</string>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <boolean>0</boolean>
+      <boolean>1</boolean>
     </map>
     <key>InstantMessageLogPathAnyAccount</key>
     <map>
@@ -1273,6 +1294,17 @@ Found in Advanced->Rendering->Info Displays</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>ShowMutedText</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to show chat from muted people in local chat.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>OtherChatsTornOff</key>
     <map>
@@ -1522,15 +1554,6 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>0</integer>
     </map>
-    <key>InventorySortOrder</key>
-    <map>
-      <key>Comment</key>
-      <string>Specifies sort key for inventory items (+0 = name, +1 = date, +2 = folders always by name, +4 = system folders to top)</string>
-      <key>Type</key>
-      <string>U32</string>
-      <key>Value</key>
-      <integer>3</integer>
-    </map>
     <key>Blacklist.Settings</key>
     <map>
       <key>Comment</key>
@@ -1768,6 +1791,17 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>When true, dialogs from inventory item offers will be blocked.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>AntiSpamItemOffersLandmarks</key>
+    <map>
+      <key>Comment</key>
+      <string>When AntiSpamItemOffers is false but this is true, dialogs from inventory item offers of landmarks will be blocked.</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -2053,6 +2087,24 @@ This should be as low as possible, but too low may break functionality</string>
         <real>0.800000011921</real>
         <real>1.0</real>
         <real>1.0</real>
+        <real>1.0</real>
+      </array>
+	  <key>IsCOA</key>
+	  <integer>1</integer>
+    </map>
+    <key>LogChatColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Color of chat messages loaded from your log</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Color4</string>
+      <key>Value</key>
+      <array>
+        <real>0.5</real>
+        <real>0.5</real>
+        <real>0.5</real>
         <real>1.0</real>
       </array>
 	  <key>IsCOA</key>
@@ -2517,7 +2569,7 @@ This should be as low as possible, but too low may break functionality</string>
 		<integer>1</integer>
     </map>
     <!-- Standard SL options (To my knowledge) -->
-    <key>CrashHostUrl</key>
+	<key>CrashHostUrl</key>
     <map>
       <key>Comment</key>
       <string>A URL pointing to a crash report handler; overrides cluster negotiation to locate crash handler.</string>
@@ -2526,7 +2578,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>http://crash.singularityviewer.org/report.php</string>>
+      <string />
     </map>
     <key>AFKTimeout</key>
     <map>
@@ -2538,6 +2590,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>F32</string>
       <key>Value</key>
       <real>300.0</real>
+    </map>
+    <key>ActiveFloaterTransparency</key>
+    <map>
+      <key>Comment</key>
+      <string>Transparency of active floaters (floaters that have focus)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1</real>
     </map>
     <key>AdvanceSnapshot</key>
     <map>
@@ -3444,6 +3507,39 @@ This should be as low as possible, but too low may break functionality</string>
       <string>S32</string>
       <key>Value</key>
       <integer>3128</integer>
+    </map>
+    <key>BrowserProxyType</key>
+    <map>
+      <key>Comment</key>
+      <string>Type of proxy for Web Browser</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>BrowserProxyUsername</key>
+    <map>
+      <key>Comment</key>
+      <string>Username for Web Proxy authentication</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string />
+    </map>
+    <key>BrowserProxyPassword</key>
+    <map>
+      <key>Comment</key>
+      <string>Password for Web Proxy authentication</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string />
     </map>
     <key>BrowserProxySocks45</key>
     <map>
@@ -5326,6 +5422,72 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <string />
     </map>
+  <key>AnimatedObjectsIgnoreLimits</key>
+  <map>
+    <key>Comment</key>
+    <string>Ignore server-enforced limits on animated objects. This is only useful for server testing.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>AnimatedObjectsAllowLeftClick</key>
+  <map>
+    <key>Comment</key>
+    <string>Allow left-click interaction with animated objects. Uncertain how much performance impact this will have.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>AnimatedObjectsGlobalScale</key>
+  <map>
+    <key>Comment</key>
+    <string>Temporary testing: allow an extra scale factor to be forced on animated objects.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>1.00</real>
+  </map>
+  <key>AnimatedObjectsMaxLegalOffset</key>
+  <map>
+    <key>Comment</key>
+    <string>Max visual offset between object position and rendered position</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>3.0</real>
+  </map>
+  <key>AnimatedObjectsMaxLegalSize</key>
+  <map>
+    <key>Comment</key>
+    <string>Max bounding box size for animated object's rendered position</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>64.0</real>
+  </map>
+  <key>AvatarBoundingBoxComplexity</key>
+  <map>
+    <key>Comment</key>
+    <string>How many aspects to consider for avatar bounding box</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>S32</string>
+    <key>Value</key>
+    <integer>3</integer>
+  </map>
   <key>DebugAvatarAppearanceMessage</key>
   <map>
     <key>Comment</key>
@@ -5378,6 +5540,17 @@ This should be as low as possible, but too low may break functionality</string>
       <integer>1</integer>
       <key>Type</key>
       <string>S32</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>DebugHideEmptySystemFolders</key>
+    <map>
+      <key>Comment</key>
+      <string>Hide empty system folders when on</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
@@ -6936,7 +7109,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>%Y-%m-%d</string>
+      <string>%F</string>
     </map>
     <key>ShortTimeFormat</key>
     <map>
@@ -6947,7 +7120,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>%H:%M</string>
+      <string>%R</string>
     </map>
     <key>LongTimeFormat</key>
     <map>
@@ -6958,7 +7131,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>%H:%M:%S</string>
+      <string>%T</string>
     </map>
     <key>TimestampFormat</key>
     <map>
@@ -6969,7 +7142,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>%a %d %b %Y %H:%M:%S</string>
+      <string>%a %d %b %Y %T</string>
     </map>
     <key>SecondsInChatAndIMs</key>
     <map>
@@ -6991,7 +7164,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>FloaterAboutRect</key>
     <map>
@@ -7351,20 +7524,52 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
       </array>
     </map>
-    <key>FloaterFavoritesRect</key>
+    <key>FloaterExperiencePickerRect</key>
     <map>
       <key>Comment</key>
-      <string>Rectangle for favorites window</string>
+      <string>Rectangle for experience picker floater</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>Rect</string>
       <key>Value</key>
       <array>
-        <integer>0</integer>
-        <integer>400</integer>
-        <integer>250</integer>
-        <integer>0</integer>
+        <integer>300</integer>
+        <integer>600</integer>
+        <integer>800</integer>
+        <integer>700</integer>
+      </array>
+    </map>
+    <key>FloaterExperienceProfileRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for experience profile floaters</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>377</integer>
+        <integer>650</integer>
+        <integer>345</integer>
+        <integer>128</integer>
+      </array>
+    </map>
+    <key>FloaterExperiencesRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for experiences floater</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+        <integer>300</integer>
+        <integer>600</integer>
+        <integer>700</integer>
+        <integer>700</integer>
       </array>
     </map>
     <key>FloaterFindRect2</key>
@@ -7482,22 +7687,6 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
       </array>
     </map>
-    <key>FloaterInvPanelRect</key>
-    <map>
-      <key>Comment</key>
-      <string>Rectangle for new inventory windows a folder is opened in</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Rect</string>
-      <key>Value</key>
-      <array>
-        <integer>0</integer>
-        <integer>400</integer>
-        <integer>300</integer>
-        <integer>0</integer>
-      </array>
-    </map>
     <key>FloaterJoystickRect</key>
     <map>
       <key>Comment</key>
@@ -7511,22 +7700,6 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
         <integer>0</integer>
         <integer>0</integer>
-        <integer>0</integer>
-      </array>
-    </map>
-    <key>FloaterLagMeter</key>
-    <map>
-      <key>Comment</key>
-      <string>Rectangle for lag meter</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Rect</string>
-      <key>Value</key>
-      <array>
-        <integer>0</integer>
-        <integer>142</integer>
-        <integer>350</integer>
         <integer>0</integer>
       </array>
     </map>
@@ -7605,6 +7778,17 @@ This should be as low as possible, but too low may break functionality</string>
     <map>
       <key>Comment</key>
       <string>Width for radar's voice status column</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>24</integer>
+    </map>
+    <key>RadarColumnNotesWidth</key>
+    <map>
+      <key>Comment</key>
+      <string>Width for radar's notes column</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -7700,6 +7884,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <boolean>0</boolean>
     </map>
+    <key>RadarColumnNotesHidden</key>
+    <map>
+      <key>Comment</key>
+      <string>Hide radar's notes column</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>RadarColumnAgeHidden</key>
     <map>
       <key>Comment</key>
@@ -7767,6 +7962,28 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>RadarAlertFlood</key>
+    <map>
+      <key>Comment</key>
+      <string>Show the flood of people arriving and (if RadarAlertFloodLeaving) leaving when you login and when you open/close the Radar with RadarKeepOpen off.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>RadarAlertFloodLeaving</key>
+    <map>
+      <key>Comment</key>
+      <string>When activated along with RadarAlertFlood shows the flood of people leaving when you close the Radar with RadarKeepOpen off.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>RadarAlertShowDist</key>
     <map>
@@ -7877,6 +8094,20 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>0</integer>
+    </map>
+    <key>RadarSortOrder</key>
+    <map>
+      <key>Comment</key>
+      <string>Sort order for the radar, map of column names to ascending boolean</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>LLSD</string>
+      <key>Value</key>
+      <array>
+        <string>distance</string>
+        <boolean>1</boolean>
+      </array>
     </map>
     <key>FloaterLandRect5</key>
     <map>
@@ -7990,22 +8221,6 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
       </array>
     </map>
-    <key>FloaterMyOutfitsRect</key>
-    <map>
-      <key>Comment</key>
-      <string>Rectangle for My Outfits window</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Rect</string>
-      <key>Value</key>
-      <array>
-        <integer>0</integer>
-        <integer>400</integer>
-        <integer>250</integer>
-        <integer>0</integer>
-      </array>
-    </map>
     <key>FloaterObjectIMInfo</key>
     <map>
       <key>Comment</key>
@@ -8038,10 +8253,26 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>0</integer>
       </array>
     </map>
-    <key>FloaterOutboxRect</key>
+    <key>FloaterMarketplaceListingsRect</key>
     <map>
       <key>Comment</key>
-      <string>Rectangle for merchant outbox window</string>
+      <string>Rectangle for Marketplace Listings window</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Rect</string>
+      <key>Value</key>
+      <array>
+		<integer>0</integer>
+		<integer>342</integer>
+		<integer>310</integer>
+		<integer>52</integer>
+      </array>
+    </map>
+    <key>FloaterMarketplaceValidationRect</key>
+    <map>
+      <key>Comment</key>
+      <string>Rectangle for Marketplace Validation window</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
@@ -8098,7 +8329,7 @@ This should be as low as possible, but too low may break functionality</string>
       <array>
         <integer>0</integer>
         <integer>512</integer>
-        <integer>480</integer>
+        <integer>500</integer>
         <integer>0</integer>
       </array>
     </map>
@@ -9028,6 +9259,22 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>400</integer>
     </map>
+    <key>HTMLAgentColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Color of hyperlinked user/object names</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Color4</string>
+      <key>Value</key>
+      <array>
+        <real>0.600000023842</real>
+        <real>0.600000023842</real>
+        <real>1.0</real>
+        <real>1.0</real>
+      </array>
+    </map>
     <key>HTMLLinkColor</key>
     <map>
       <key>Comment</key>
@@ -9169,6 +9416,50 @@ This should be as low as possible, but too low may break functionality</string>
         <integer>128</integer>
       </array>
     </map>
+  <key>ImporterDebug</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable debug output to more precisely identify sources of import errors. Warning: the output can slow down import on many machines.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>ImporterLegacyMatching</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable index based model matching.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>ImporterModelLimit</key>
+  <map>
+    <key>Comment</key>
+    <string>Limits amount of importer generated models for dae files</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>768</integer>
+  </map>
+  <key>ImporterPreprocessDAE</key>
+  <map>
+    <key>Comment</key>
+    <string>Enable preprocessing for DAE files to fix some ColladaDOM related problems (like support for space characters within names and ids).</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
+    <integer>1</integer>
+  </map>
     <key>IMInChatConsole</key>
     <map>
       <key>Comment</key>
@@ -9223,6 +9514,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>InactiveFloaterTransparency</key>
+    <map>
+      <key>Comment</key>
+      <string>Transparency of inactive floaters (floaters that have no focus)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>1</real>
     </map>
     <key>InBandwidth</key>
     <map>
@@ -9301,12 +9603,12 @@ This should be as low as possible, but too low may break functionality</string>
         <key>Value</key>
         <integer>0</integer>
     </map>
-    <key>InventoryDisplayOutbox</key>
+    <key>InventoryOutboxDisplayBoth</key>
     <map>
         <key>Comment</key>
-        <string>Override merchant inventory outbox display</string>
+        <string>Show the legacy Merchant Outbox UI as well as the Marketplace Listings UI</string>
         <key>Persist</key>
-        <integer>0</integer>
+        <integer>1</integer>
         <key>Type</key>
         <string>Boolean</string>
         <key>Value</key>
@@ -9323,6 +9625,17 @@ This should be as low as possible, but too low may break functionality</string>
 		<key>Value</key>
 		<integer>0</integer>
 	</map>
+	<key>InventoryOutboxMakeVisible</key>
+	<map>
+		<key>Comment</key>
+		<string>Enable making the Merchant Outbox and Inbox visible in the inventory for debug purposes.</string>
+		<key>Persist</key>
+		<integer>1</integer>
+		<key>Type</key>
+		<string>Boolean</string>
+		<key>Value</key>
+		<integer>1</integer>
+	</map>
     <key>InventoryOutboxMaxFolderCount</key>
     <map>
       <key>Comment</key>
@@ -9332,7 +9645,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>U32</string>
       <key>Value</key>
-      <integer>21</integer>
+      <integer>20</integer>
     </map>
     <key>InventoryOutboxMaxFolderDepth</key>
     <map>
@@ -9356,6 +9669,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>200</integer>
     </map>
+    <key>InventoryOutboxMaxStockItemCount</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum number of items allowed in a stock folder.</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>200</integer>
+    </map>
     <key>InventorySortOrder</key>
     <map>
       <key>Comment</key>
@@ -9366,6 +9690,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>U32</string>
       <key>Value</key>
       <integer>7</integer>
+    </map>
+    <key>MarketplaceListingsSortOrder</key>
+    <map>
+      <key>Comment</key>
+      <string>Specifies sort for marketplace listings</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>2</integer>
     </map>
     <key>InvertMouse</key>
     <map>
@@ -9613,17 +9948,6 @@ This should be as low as possible, but too low may break functionality</string>
       <string>String</string>
       <key>Value</key>
       <string>http://wiki.secondlife.com/wiki/[LSL_STRING]</string>
-    </map>
-    <key>LagMeterShrunk</key>
-    <map>
-      <key>Comment</key>
-      <string>Last large/small state for lag meter</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
     </map>
     <key>Language</key>
     <map>
@@ -10219,6 +10543,17 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <string/>
     </map>
+    <key>MarketplaceListingsLogging</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable debug output associated with the Marketplace Listings (SLM) API.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>MaxDragDistance</key>
     <map>
       <key>Comment</key>
@@ -10240,6 +10575,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>F32</string>
       <key>Value</key>
       <real>1.6</real>
+    </map>
+    <key>MaxPersistentNotifications</key>
+    <map>
+      <key>Comment</key>
+      <string>Maximum amount of persistent notifications</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <real>250</real>
     </map>
     <key>MaxSelectDistance</key>
     <map>
@@ -10493,17 +10839,6 @@ This should be as low as possible, but too low may break functionality</string>
       <string>S32</string>
       <key>Value</key>
       <integer>18</integer>
-    </map>
-    <key>MenuBarWidth</key>
-    <map>
-      <key>Comment</key>
-      <string/>
-      <key>Persist</key>
-      <integer>0</integer>
-      <key>Type</key>
-      <string>S32</string>
-      <key>Value</key>
-      <integer>410</integer>
     </map>
  <key>MeshEnabled</key>
   <map>
@@ -11425,17 +11760,6 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>344</integer>
     </map>
-    <key>RevokePermsOnStandUp</key>
-    <map>
-      <key>Comment</key>
-      <string>When enabled, revokes any permission granted to an object you don't own and from which your avatar is standing up</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>0</integer>
-    </map>
     <key>PickerContextOpacity</key>
     <map>
       <key>Comment</key>
@@ -12315,6 +12639,18 @@ This should be as low as possible, but too low may break functionality</string>
     <integer>128</integer>
   </map>
 
+  <key>OctreeMinimumNodeSize</key>
+  <map>
+    <key>Comment</key>
+    <string>Minimum size of any octree node</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>0.01</real>
+  </map>
+  
     <key>OctreeReserveNodeCapacity</key>
     <map>
       <key>Comment</key>
@@ -12425,6 +12761,20 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+  <key>AlwaysRenderFriends</key>
+    <map>
+      <key>Comment</key>
+      <string>0 - Render avatars with complexity below RenderAvatarMaxComplexity
+1 - Always renders friends, regardless of max complexity
+2 - Only renders friends
+3 - Only renders self</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>RenderAvatarCloth</key>
     <map>
@@ -12577,7 +12927,7 @@ This should be as low as possible, but too low may break functionality</string>
   <key>RenderCompressTextures</key>
   <map>
     <key>Comment</key>
-    <string>Enable texture compression on OpenGL 3.0 and later implementations (EXPERIMENTAL, requires restart)</string>
+    <string>Enable texture compression on OpenGL 2.1 and later implementations (requires restart)</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -12741,7 +13091,7 @@ This should be as low as possible, but too low may break functionality</string>
   <key>RenderSSAOEffect</key>
   <map>
     <key>Comment</key>
-    <string>Multiplier for (1) value for areas which are totally occluded.  Blends with original color for partly-occluded areas.  (Third component is unused.)</string>
+    <string>Multiplier for (1) value and (2) saturation (HSV definition), for areas which are totally occluded.  Blends with original color for partly-occluded areas.  (Third component is unused.)</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -12795,7 +13145,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>0</integer>
+      <integer>1</integer>
     </map>
     <key>RenderDebugGL</key>
     <map>
@@ -13229,13 +13579,13 @@ This should be as low as possible, but too low may break functionality</string>
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
-    <real>384</real>
+    <real>368.0</real>
   </map>
 
   <key>RenderDeferred</key>
   <map>
     <key>Comment</key>
-    <string>Use deferred rendering pipeline.</string>
+    <string>Use deferred rendering pipeline (Advanced Lighting Model).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -13373,7 +13723,7 @@ This should be as low as possible, but too low may break functionality</string>
     <key>Type</key>
     <string>U32</string>
     <key>Value</key>
-    <real>4</real>
+    <integer>4</integer>
   </map>
   <key>RenderShadowBlurDistFactor</key>
   <map>
@@ -13723,7 +14073,7 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Type</key>
       <string>Boolean</string>
       <key>Value</key>
-      <integer>1</integer>
+      <integer>0</integer>
     </map>
     <key>RenderHideGroupTitle</key>
     <map>
@@ -14136,7 +14486,30 @@ This should be as low as possible, but too low may break functionality</string>
   <key>RenderAutoMuteByteLimit</key>
   <map>
     <key>Comment</key>
-    <string>Maximum bytes of attachments before an avatar is automatically visually muted (0 for no limit).</string>
+    <string>If avatar attachment size exceed this value (in bytes) attachment will not be rendered. Excludes attachments worn by own avatar.</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>U32</string>
+    <key>Value</key>
+    <integer>0</integer>
+  </map>
+  <key>MaxAttachmentComplexity</key>
+  <map>
+    <key>Comment</key>
+    <string>Attachment's render weight limit</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>F32</string>
+    <key>Value</key>
+    <real>1.0E6</real>
+  </map>
+  <key>RenderAvatarMaxComplexity</key>
+  <map>
+    <key>Comment</key>
+    <string>Maximum Avatar Complexity; above this value, the avatar is
+    rendered as a solid color outline (0 to disable this limit).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
@@ -14147,15 +14520,27 @@ This should be as low as possible, but too low may break functionality</string>
   <key>RenderAutoMuteSurfaceAreaLimit</key>
   <map>
     <key>Comment</key>
-    <string>Maximum surface area of attachments before an avatar is automatically visually muted (0 for no limit).</string>
+    <string>Maximum surface area of attachments before an avatar is
+    rendered as a simple impostor (to not use this limit, set to zero
+    or set RenderAvatarMaxComplexity to zero).</string>
     <key>Persist</key>
     <integer>1</integer>
     <key>Type</key>
     <string>F32</string>
     <key>Value</key>
+    <real>0</real>
+  </map>
+  <key>RenderAutoMuteLogging</key>
+  <map>
+    <key>Comment</key>
+    <string>Show extra information in viewer logs about avatar rendering costs</string>
+    <key>Persist</key>
+    <integer>1</integer>
+    <key>Type</key>
+    <string>Boolean</string>
+    <key>Value</key>
     <integer>0</integer>
   </map>
-
   <key>RenderAutoHideSurfaceAreaLimit</key>
   <map>
     <key>Comment</key>
@@ -14277,6 +14662,17 @@ This should be as low as possible, but too low may break functionality</string>
       <string>Boolean</string>
       <key>Value</key>
       <integer>1</integer>
+    </map>
+    <key>RevokePermsOnStandUp</key>
+    <map>
+      <key>Comment</key>
+      <string>When enabled, revokes any permission granted to an object you don't own and from which your avatar is standing up</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
     </map>
     <key>RevokePermsOnStopAnimation</key>
     <map>
@@ -17565,17 +17961,6 @@ This should be as low as possible, but too low may break functionality</string>
       <key>Value</key>
       <integer>1</integer>
     </map>
-    <key>WarnQuickTimeInstalled</key>
-    <map>
-      <key>Comment</key>
-      <string>Enables QuickTimeInstalled warning dialog</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <integer>1</integer>
-    </map>
     <key>WarnReturnToOwner</key>
     <map>
       <key>Comment</key>
@@ -18688,24 +19073,13 @@ This should be as low as possible, but too low may break functionality</string>
     <key>CrashSubmitBehavior</key>
     <map>
       <key>Comment</key>
-      <string>Controls behavior when viewer crashes (0 = ask before sending crash report, 1 = always send crash report, 2 = never send crash report)</string>
+      <string>Controls behavior when viewer crashes (0 = never send crash report, 1 = always send crash report)</string>
       <key>Persist</key>
       <integer>1</integer>
       <key>Type</key>
       <string>S32</string>
       <key>Value</key>
-      <integer>0</integer>
-    </map>
-    <key>CrashReportID</key>
-    <map>
-      <key>Comment</key>
-      <string>ID of the last crash report sent. Zero indicates that no crash report has been sent. Non-zero value can be useful infermation for developers to track a specific issue</string>
-      <key>Persist</key>
-      <integer>1</integer>
-      <key>Type</key>
-      <string>S32</string>
-      <key>Value</key>
-      <integer>0</integer>
+      <integer>-1</integer>
     </map>
 
     <key>EveryoneCopy</key>

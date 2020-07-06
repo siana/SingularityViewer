@@ -27,12 +27,14 @@
 	<string name="muted_text_label">
 		Tu chat de texto ha sido deshabilitado por un Moderado del Grupo.
 	</string>
-	<button label="Información Grupo" right="-245" name="group_info_btn" width="80"/>
-	<button label="Historial" left_delta="80" name="history_btn" width="80"/>
-	<button name="ding_btn" label="Timbre"/>
-	<button label="Unirse a Llamada" left_delta="80" name="start_call_btn" width="80"/>
+	<flyout_button label="Info Grupo" name="instant_message_flyout" width="74" >
+		<flyout_button_item label="Historial" name="history_btn" width="58" right="-200"/>
+	</flyout_button>
+	<button name="ding_btn" label="Timbre" width="53"/>
+	<check_box name="Support Check" label="#" tool_tip="Desmárcarlo para no enviar el número de versión (Build)" left_delta="60"/>
+	<button label="Unirse Voz" name="start_call_btn" width="75"/>
 	<button label="Terminar Llamada" name="end_call_btn" width="80"/>
-	<button label="&lt; &lt;" label_selected="&gt; &gt;" left="420" name="toggle_active_speakers_btn" right="450" tool_tip="Pulsa aquí para mostrar/ocultar la lista de participantes activos en esta sesión de MI." width="80"/>
+	<button label="&lt; &lt;" label_selected="&gt; &gt;" left="435" name="toggle_active_speakers_btn" right="465" tool_tip="Pulsa aquí para mostrar/ocultar la lista de participantes activos en esta sesión de MI." width="20"/>
 	<layout_stack name="panels">
 		<layout_panel name="im_contents_panel" width="495">
 			<button label="Enviar" left="435" name="send_btn" width="60"/>

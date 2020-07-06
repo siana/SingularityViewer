@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu
+ layout="topleft"
+ label="Group"
+ name="Url Popup">
+    <menu_item_call
+     label="Show Group Information"
+     layout="topleft"
+     name="show_group">
+        <menu_item_call.on_click
+         function="List.ShowProfile" />
+    </menu_item_call>
+  <menu_item_call label="Open Group Chat" name="im_group">
+    <on_click function="List.StartIM"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Call Group" name="call_group">
+    <on_click function="List.StartCall"/>
+    <on_enable function="List.EnableCall"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Activate Group" name="activate_group">
+    <on_click function="List.Activate"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Chat History" name="Chat History">
+    <on_click function="List.ShowLog"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Join Group" name="join_group">
+    <on_click function="List.Join"/>
+    <on_visible function="List.NotInGroup"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Leave Group" name="leave_group">
+    <on_click function="List.Leave"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Copy Group to clipboard"
+     layout="topleft"
+     name="url_copy_label">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyLabel" />
+    </menu_item_call>
+    <menu_item_call
+     label="Copy SLURL to clipboard"
+     layout="topleft"
+     name="url_copy">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyUrl" />
+    </menu_item_call>
+  <menu_item_call label="Copy Key to clipboard" name="key_copy">
+    <menu_item_call.on_click function="List.CopyUUIDs" />
+  </menu_item_call>
+  <menu_item_call label="Select All" name="Select All">
+    <on_click function="Text" userdata="SelectAll"/>
+  </menu_item_call>
+</context_menu>

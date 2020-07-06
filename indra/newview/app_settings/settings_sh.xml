@@ -216,7 +216,18 @@
       <key>Type</key>
       <string>F32</string>
       <key>Value</key>
-      <real>0.09</real>
+      <real>0.18</real>
+    </map>
+    <key>SHAutoMaskMaxMid</key>
+    <map>
+      <key>Comment</key>
+      <string>Sets the maximum percent of mid-range alpha pixels textures for alphamasking. (SHUseRMSEAutoMask must be TRUE for this to have any effect)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>F32</string>
+      <key>Value</key>
+      <real>0.25</real>
     </map>
     <key>SHAlwaysSoftenShadows</key>
     <map>
@@ -259,6 +270,17 @@
       <integer>1</integer>
       <key>Type</key>
       <string>S32</string>
+      <key>Value</key>
+      <real>0</real>
+    </map>
+    <key>SHSkipResetVBOsOnTeleport</key>
+    <map>
+      <key>Comment</key>
+      <string>Skip VBO auto-recreation upon teleport. Setting to true may help avoid attachments dissipearing on teleport.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
       <key>Value</key>
       <real>0</real>
     </map>

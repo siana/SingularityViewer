@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="rclickmenu" label="Text" create_jump_keys="true">
+  <menu_item_call label="Cut" name="Cut">
+    <on_click function="Edit.Cut"/>
+    <on_visible function="Edit.EnableCut" />
+  </menu_item_call>
+  <menu_item_call label="Copy" name="Copy">
+    <on_click function="Edit.Copy"/>
+    <on_enable function="Edit.EnableCopy" />
+  </menu_item_call>
+  <menu_item_call label="Copy Raw" name="Copy Raw">
+    <on_click function="CopyRawText"/>
+    <on_visible function="TextEditorVisible"/>
+  </menu_item_call>
+  <menu_item_call label="Paste" name="Paste">
+    <on_click function="Edit.Paste"/>
+    <on_visible function="Edit.EnablePaste" />
+  </menu_item_call>
+  <menu_item_call label="Delete" name="Delete">
+    <on_click function="Edit.Delete"/>
+    <on_visible function="Edit.EnableDelete" />
+  </menu_item_call>
+  <menu_item_call label="Select All" name="Select All">
+    <on_click function="Edit.SelectAll"/>
+  </menu_item_call>
+</menu>

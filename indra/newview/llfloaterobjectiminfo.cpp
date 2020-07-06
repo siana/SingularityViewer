@@ -35,17 +35,13 @@
 #include "llfloaterobjectiminfo.h"
 
 #include "llagentdata.h"
-#include "llavataractions.h"
-#include "llcachename.h"
 #include "llcommandhandler.h"
-#include "llfloatergroupinfo.h"
 #include "llfloatermute.h"
-#include "llgroupactions.h"
 #include "llmutelist.h"
+#include "llnamebox.h"
 #include "llslurl.h"
 #include "lltrans.h"
 #include "llui.h"
-#include "lluictrl.h"
 #include "lluictrlfactory.h"
 #include "llurlaction.h"
 #include "llweb.h"
@@ -61,25 +57,16 @@ LLFloaterObjectIMInfo::LLFloaterObjectIMInfo(const LLSD& seed)
 : mName(), mSLurl(), mOwnerID(), mGroupOwned(false)
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_object_im_info.xml");
-	
-	if (!getRect().mLeft && !getRect().mBottom)
-		center();
-}
 
-static void show_avatar_profile(const LLUUID& id)
-{
-// [RLVa:KB] - Version: 1.23.4 | Checked: 2009-07-08 (RLVa-1.0.0e) | Added: RLVa-0.2.0g
-	if ((gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES) || gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS)) && RlvUtil::isNearbyAgent(id))
-		return;
-// [/RLVa:KB]
-	LLAvatarActions::showProfile(id);
+	const auto& rect = getRect();
+	if (!rect.mLeft && !rect.mBottom)
+		center();
 }
 
 BOOL LLFloaterObjectIMInfo::postBuild()
 {
 	getChild<LLUICtrl>("Mute")->setCommitCallback(boost::bind(&LLFloaterObjectIMInfo::onClickMute, this));
-	getChild<LLTextBox>("OwnerName")->setClickedCallback(boost::bind(boost::ref(mGroupOwned) ? boost::bind(LLGroupActions::show, boost::ref(mOwnerID)) : boost::bind(show_avatar_profile, boost::ref(mOwnerID))));
-	getChild<LLTextBox>("Slurl")->setClickedCallback(boost::bind(LLUrlAction::executeSLURL, boost::bind(std::plus<std::string>(), "secondlife:///app/worldmap/", boost::ref(mSLurl))));
+	getChild<LLTextBox>("Slurl")->setClickedCallback(boost::bind(LLUrlAction::executeSLURL, boost::bind(std::plus<std::string>(), "secondlife:///app/worldmap/", boost::ref(mSLurl)), true));
 
 	return true;
 }
@@ -103,23 +90,20 @@ void LLFloaterObjectIMInfo::update(const LLSD& data)
 	childSetVisible("Unknown_Slurl",!have_slurl);
 	childSetVisible("Slurl",have_slurl);
 
-	childSetText("ObjectName",mName);
+	childSetText("ObjectName", mName);
 	std::string slurl(mSLurl);
 	std::string::size_type i = slurl.rfind("?owner_not_object");
 	if (i != std::string::npos)
 		slurl.erase(i) += getString("owner");
 	childSetText("Slurl", slurl);
-	childSetText("OwnerName", LLStringUtil::null);
+	getChild<LLNameBox>("OwnerName")->setNameID(mOwnerID, mGroupOwned ? LFIDBearer::GROUP : LFIDBearer::AVATAR);
 	getChildView("ObjectID")->setValue(data["object_id"].asUUID());
 
-//	bool my_object = (owner_id == gAgentID);
+//	bool my_object = !mGroupOwned && (owner_id == gAgentID);
 // [RLVa:KB] - Version: 1.23.4 | Checked: 2009-07-08 (RLVa-1.0.0e) | Added: RLVa-0.2.0g
-	bool my_object = (mOwnerID == gAgentID) || ((gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES) || gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS)) && (RlvUtil::isNearbyAgent(mOwnerID)));
+	bool my_object = !mGroupOwned && (mOwnerID == gAgentID) || ((gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES) || gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS)) && (RlvUtil::isNearbyAgent(mOwnerID)));
 // [/RLVa:KB]
 	childSetEnabled("Mute",!my_object);
-	
-	if (gCacheName)
-		gCacheName->get(mOwnerID, mGroupOwned, boost::bind(&LLFloaterObjectIMInfo::nameCallback, this, _2));
 }
 
 void LLFloaterObjectIMInfo::onClickMute()
@@ -130,31 +114,21 @@ void LLFloaterObjectIMInfo::onClickMute()
 // [/RLVa:KB]
 
 	LLMuteList::instance().add(LLMute(mOwnerID, mName, mGroupOwned ? LLMute::GROUP : LLMute::AGENT));
-	LLFloaterMute::showInstance();
+	LLFloaterMute::showInstance()->selectMute(mOwnerID);
 	close();
-}
-
-//static 
-void LLFloaterObjectIMInfo::nameCallback(const std::string& full_name)
-{
-	childSetText("OwnerName", mName =
-// [RLVa:KB] - Version: 1.23.4 | Checked: 2009-07-08 (RLVa-1.0.0e) | Added: RLVa-0.2.0g
-	(!mGroupOwned && (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES) || gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS))  && RlvUtil::isNearbyAgent(mOwnerID)) ? RlvStrings::getAnonym(mName) :
-// [/RLVa:KB]
-	full_name);
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // LLObjectIMHandler
 //moved to llchathistory.cpp in v2
 // support for secondlife:///app/objectim/{UUID}/ SLapps
-class LLObjectIMHandler : public LLCommandHandler
+class LLObjectIMHandler final : public LLCommandHandler
 {
 public:
 	// requests will be throttled from a non-trusted browser
 	LLObjectIMHandler() : LLCommandHandler("objectim", UNTRUSTED_THROTTLE) { }
 
-	bool handle(const LLSD& params, const LLSD& query_map, LLMediaCtrl* web)
+	bool handle(const LLSD& params, const LLSD& query_map, LLMediaCtrl* web) override
 	{
 		if (params.size() < 1)
 		{

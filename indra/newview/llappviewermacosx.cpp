@@ -260,12 +260,6 @@ bool LLAppViewerMacOSX::restoreErrorTrap()
 	return reset_count == 0;
 }
 
-void LLAppViewerMacOSX::initCrashReporting(bool reportFreeze)
-{
-	// Singu Note: this is where original code forks crash logger process.
-	// Singularity doesn't need it
-}
-
 std::string LLAppViewerMacOSX::generateSerialNumber()
 {
 	char serial_md5[MD5HEX_STR_SIZE];		// Flawfinder: ignore

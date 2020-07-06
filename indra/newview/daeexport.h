@@ -33,51 +33,30 @@ class LLViewerObject;
 class DAESaver
 {
 public:
-	class MaterialInfo
+	struct MaterialInfo
 	{
-	public:
 		LLUUID textureID;
 		LLColor4 color;
 		std::string name;
 
-		bool matches(LLTextureEntry* te)
+		bool matches(LLTextureEntry* te) const
 		{
 			return (textureID == te->getID()) && (color == te->getColor());
 		}
 
-		bool operator== (const MaterialInfo& rhs)
+		bool operator== (const MaterialInfo& rhs) const
 		{
 			return (textureID == rhs.textureID) && (color == rhs.color) && (name == rhs.name);
 		}
 
-		bool operator!= (const MaterialInfo& rhs)
+		bool operator!= (const MaterialInfo& rhs) const
 		{
 			return !(*this == rhs);
 		}
-
-		MaterialInfo()
-		{
-		}
-
-		MaterialInfo(const MaterialInfo& rhs)
-		{
-			textureID = rhs.textureID;
-			color = rhs.color;
-			name = rhs.name;
-		}
-
-		MaterialInfo& operator= (const MaterialInfo& rhs)
-		{
-			textureID = rhs.textureID;
-			color = rhs.color;
-			name = rhs.name;
-			return *this;
-		}
-
 	};
 
-	typedef std::vector<std::pair<LLViewerObject*,std::string> > obj_info_t;
-	typedef std::vector<LLUUID> id_list_t;
+	typedef std::vector<std::pair<LLViewerObject*,std::string>> obj_info_t;
+	typedef uuid_vec_t id_list_t;
 	typedef std::vector<std::string> string_list_t;
 	typedef std::vector<S32> int_list_t;
 	typedef std::vector<MaterialInfo> material_list_t;
@@ -97,12 +76,12 @@ public:
 
 private:
 	void transformTexCoord(S32 num_vert, LLVector2* coord, LLVector3* positions, LLVector3* normals, LLTextureEntry* te, LLVector3 scale);
-	void addSource(daeElement* mesh, const char* src_id, std::string params, const std::vector<F32> &vals);
+	void addSource(daeElement* mesh, const char* src_id, const std::string& params, const std::vector<F32> &vals);
 	void addPolygons(daeElement* mesh, const char* geomID, const char* materialID, LLViewerObject* obj, int_list_t* faces_to_include);
 	bool skipFace(LLTextureEntry *te);
 	MaterialInfo getMaterial(LLTextureEntry* te);
 	void getMaterials(LLViewerObject* obj, material_list_t* ret);
-	void getFacesWithMaterial(LLViewerObject* obj, MaterialInfo& mat, int_list_t* ret);
+	void getFacesWithMaterial(LLViewerObject* obj, const MaterialInfo& mat, int_list_t* ret);
 	void generateEffects(daeElement *effects);
 	void generateImagesSection(daeElement* images);
 };

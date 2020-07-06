@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<floater name="floater_inventory_favs.xml" title="Favorites" width="250" height="400" min_width="100" min_height="100" rect_control="FloaterFavoritesRect" can_close="true" can_minimize="true" can_resize="true">
-  <inventory_panel name="inventory_favs" start_folder="Favorites" follows="all" left="5" right="-5" top="-20" bottom="5" show_item_link_overlays="true"/>
-</floater>

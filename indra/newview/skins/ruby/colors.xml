@@ -99,6 +99,7 @@
 <NotifyCautionBoxColor value="254, 209, 118, 255" /> 	<!-- the background color of caution permissions prompts -->
 <NotifyCautionWarnColor value="0, 0, 0, 255" /> 	<!-- the foreground color of the special title text in caution permissions prompts -->
 <GroupNotifyBoxColor value="189, 0, 0, 240" />
+<GroupNotifyHeaderBGColor value="0, 0, 0, 0" />
 <GroupNotifyTextColor value="1, 0, 0, 255" />
 
 <!-- CHAT AND IM HISTORY TEXTBOX COLORS -->

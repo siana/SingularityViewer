@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+
+<panel
+  bottom="28"
+  left="1"
+  width="200"
+  height="300"
+  label="Experiences"
+  follows="all">
+  <string
+    name="loading_experiences"
+    value="Loading experiences..."/>
+  <string
+    name="no_experiences"
+    value="No experiences."/>
+  <string
+    name="acquire"
+    value="Acquire an Experience" />
+  <layout_stack
+    left="4" 
+    right="-1"
+    bottom="20"
+    height="280"
+    orientation="vertical"
+    follows="all">
+    <layout_panel
+      bottom="0"
+      left="1"
+      right="-1"
+      height="250"
+      follows="all">
+      <name_list
+        name="experiences_list"
+        height="250"
+        left="1"
+        right="-1"
+        bottom="0"
+        can_resize="false"
+        column_padding="0"
+        draw_heading="false"
+	draw_stripes="false"
+        multi_select="true"
+        search_column="0"
+        sort_column="0"
+        name_column_index="0"
+        menu_num="3"
+        follows="all">
+      </name_list>
+    </layout_panel>
+    <layout_panel
+      bottom="0"
+      left="1"
+      right="-1"
+      height="20"
+      min_height="20"
+      follows="all"
+      name="button_panel"
+      visible="false">
+      <button
+        left="3"
+        right="-3"
+        bottom="0"
+        top="-1"
+        follows="top|left"
+        name="btn_action"
+        enabled="true"/>
+    </layout_panel>
+  </layout_stack>
+</panel>

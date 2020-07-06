@@ -1046,8 +1046,12 @@ void LLAudioEngine::cleanupAudioSource(LLAudioSource *asp)
 		LL_WARNS("AudioEngine") << "Cleaning up unknown audio source!" << LL_ENDL;
 		return;
 	}
-	delete asp;
-	mAllSources.erase(iter);
+	else
+	{
+		LL_DEBUGS("AudioEngine") << "Cleaning up audio sources for "<< asp->getID() <<LL_ENDL;
+		delete asp;
+		mAllSources.erase(iter);
+	}
 }
 
 

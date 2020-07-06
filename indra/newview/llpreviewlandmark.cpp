@@ -43,7 +43,6 @@
 
 #include "llagent.h"
 #include "llbutton.h"
-#include "lleconomy.h"
 #include "llfloaterinventory.h"
 #include "llfloaterworldmap.h"
 #include "lliconctrl.h"
@@ -62,10 +61,6 @@
 
 ////////////////////////////////////////////////////////////////////////////
 // LLPreviewLandmark
-
-// static
-LLPreviewLandmarkList LLPreviewLandmark::sOrderedInstances;
-
 
 LLPreviewLandmark::LLPreviewLandmark(const std::string& name,
 									 const LLRect& rect,
@@ -112,18 +107,10 @@ LLPreviewLandmark::LLPreviewLandmark(const std::string& name,
 		translate(rect.mLeft - curRect.mLeft, rect.mTop - curRect.mTop);
 	}
 	*/
-	LLPreviewLandmark::sOrderedInstances.push_back( this );
 }
 
 LLPreviewLandmark::~LLPreviewLandmark()
 {
-	LLPreviewLandmarkList::iterator this_itr;
-	this_itr = std::find(LLPreviewLandmark::sOrderedInstances.begin(), 
-			LLPreviewLandmark::sOrderedInstances.end(), this);
-	if (this_itr != LLPreviewLandmark::sOrderedInstances.end())
-	{
-		LLPreviewLandmark::sOrderedInstances.erase(this_itr);
-	}
 }
 
 

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="Avatar Menu" create_jump_keys="true">
+  <menu_item_call label="Profile" name="Profile">
+    <on_click function="List.ShowProfile"/>
+    <on_enable function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Allow" name="Allow">
+    <on_click function="List.Experience.Allow"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Forget" name="Forget">
+    <on_click function="List.Experience.Forget"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Block" name="Block">
+    <on_click function="List.Experience.Block"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Report" name="Report">
+    <on_click function="List.AbuseReport"/>
+    <on_enable function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Copy SLURL to clipboard" name="url_copy">
+    <menu_item_call.on_click function="List.CopySLURL"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy Key to clipboard" name="key_copy">
+    <menu_item_call.on_click function="List.CopyUUIDs" />
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy Name to clipboard" name="name_copy">
+    <menu_item_call.on_click function="List.CopyNames" />
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+</menu>

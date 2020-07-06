@@ -44,7 +44,6 @@ public:
 	virtual void handleInsertion(const LLTreeNode<T>* node, T* data) = 0;
 	virtual void handleRemoval(const LLTreeNode<T>* node, T* data) = 0;
 	virtual void handleDestruction(const LLTreeNode<T>* node) = 0;
-	virtual void handleStateChange(const LLTreeNode<T>* node) = 0;
 };
 
 template <class T>
@@ -53,11 +52,15 @@ class LLTreeNode
 public:
 	virtual ~LLTreeNode();
 	
-	virtual bool insert(T* data);
-	virtual bool remove(T* data);
-	virtual void notifyRemoval(T* data);
-	virtual U32 getListenerCount()					{ return mListeners.size(); }
-	virtual LLTreeListener<T>* getListener(U32 index) const
+	virtual bool insert(T* data) = 0;
+	virtual bool remove(T* data) = 0;
+	bool notifyAddition(T* data);
+	void notifyRemoval(T* data);
+	U32 getListenerCount() const
+	{
+		return mListeners.size();
+	}
+	LLTreeListener<T>* getListener(U32 index) const
 	{
 		if(index < mListeners.size())
 		{
@@ -65,7 +68,10 @@ public:
 		}
 		return NULL;
 	}
-	virtual void addListener(LLTreeListener<T>* listener) { mListeners.push_back(listener); }
+	void addListener(LLTreeListener<T>* listener)
+	{
+		mListeners.push_back(listener);
+	}
 
 protected:
 	void destroyListeners()
@@ -97,18 +103,12 @@ LLTreeNode<T>::~LLTreeNode()
 };
 
 template <class T>
-bool LLTreeNode<T>::insert(T* data)
+bool LLTreeNode<T>::notifyAddition(T* data)
 { 
 	for (U32 i = 0; i < mListeners.size(); i++)
 	{
 		mListeners[i]->handleInsertion(this, data);
 	}
-	return true;
-};
-
-template <class T>
-bool LLTreeNode<T>::remove(T* data)
-{
 	return true;
 };
 

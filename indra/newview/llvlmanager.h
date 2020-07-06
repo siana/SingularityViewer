@@ -54,6 +54,7 @@ public:
 	S32 getLandBits() const;
 	S32 getWindBits() const;
 	S32 getCloudBits() const;
+	S32 getWaterBits() const;
 
 	void resetBitCounts();
 
@@ -64,9 +65,7 @@ protected:
 	U32 mLandBits;
 	U32 mWindBits;
 	U32 mCloudBits;
-// <FS:CR> Aurora Sim
 	U32 mWaterBits;
-// </FS:CR> Aurora Sim
 };
 
 class LLVLData
@@ -76,10 +75,10 @@ public:
 			 const S8 type, U8 *data, const S32 size);
 	~LLVLData();
 
-	S8 mType;
-	U8 *mData;
-	S32 mSize;
 	LLViewerRegion *mRegionp;
+	U8 *mData;
+	S8 mType;
+	S32 mSize;
 };
 
 extern LLVLManager gVLManager;

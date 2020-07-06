@@ -57,19 +57,12 @@ static const int& nil(nil_);
 #endif
 
 #include <string>
-#include <boost/shared_ptr.hpp>
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
 #include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
-#include <boost/bind.hpp>
 #include <boost/iterator/transform_iterator.hpp>
 #include <boost/utility/enable_if.hpp>
 #include <boost/function_types/is_nonmember_callable_builtin.hpp>
 #include <boost/function_types/parameter_types.hpp>
 #include <boost/function_types/function_arity.hpp>
-#include <boost/type_traits/remove_cv.hpp>
-#include <boost/type_traits/remove_reference.hpp>
 #include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/include/cons.hpp>
 #include <boost/fusion/include/invoke.hpp>
@@ -303,7 +296,7 @@ private:
     // subclass object. However, I definitely want DispatchMap to destroy
     // DispatchEntry if no references are outstanding at the time an entry is
     // removed. This looks like a job for boost::shared_ptr.
-    typedef std::map<std::string, boost::shared_ptr<DispatchEntry> > DispatchMap;
+    typedef std::map<std::string, std::shared_ptr<DispatchEntry> > DispatchMap;
 
 public:
     /// We want the flexibility to redefine what data we store per name,
@@ -430,7 +423,7 @@ struct LLEventDispatcher::invoker
         // Instead of grabbing the first item from argsrc and making an
         // LLSDParam of it, call getter() and pass that as the instance param.
         invoker<Function, next_iter_type, To>::apply
-        ( func, argsrc, boost::fusion::push_back(boost::fusion::nil(), boost::ref(getter())));
+        ( func, argsrc, boost::fusion::push_back(boost::fusion::nil(), std::ref(getter())));
     }
 };
 

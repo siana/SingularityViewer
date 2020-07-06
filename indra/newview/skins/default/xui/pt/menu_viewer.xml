@@ -4,7 +4,7 @@
 		<menu_item_call label="Imagem ([UPLOADFEE])..." name="Upload Image"/>
 		<menu_item_call label="Som ([UPLOADFEE])..." name="Upload Sound"/>
 		<menu_item_call label="Animação ([UPLOADFEE])..." name="Upload Animation"/>
-		<menu_item_call label="Bulk ([UPLOADFEE] por arquivo)..." name="Bulk Upload"/>
+		<menu_item_call label="Bulk (por arquivo)..." name="Bulk Upload"/>
 		<menu_item_call label="Definir Permissões Padrão..." name="perm prefs"/>
 		<menu_item_call label="Fechar janela" name="Close Window"/>
 		<menu_item_call label="Fechar todas as janelas" name="Close All Windows"/>
@@ -155,7 +155,6 @@
 		<menu_item_call label="Portal de Scripts..." name="Scripting Portal..."/>
 		<menu_item_call label="Reportar Abuso..." name="Report Abuse..."/>
 		<menu_item_call label="Colisões, impulsos e batidas..." name="Bumps, Pushes &amp;amp; Hits..."/>
-		<menu_item_call label="Medidor de Lag" name="Lag Meter"/>
 		<menu label="Reportando Bug" name="Bug Reporting">
 			<menu_item_call label="Rastreador público de problemas..." name="Public Issue Tracker..."/>
 			<menu_item_call label="Ajuda do rastreador público de problemas..." name="Publc Issue Tracker Help..."/>

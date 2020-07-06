@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<menu name="Local Avs Menu">
+  <menu_item_call label="Profile" name="Profile"/>
+  <menu label="Avatar" name="Avatar">
+    <menu_item_call label="Web Profil" name="Web Profile"/>
+    <menu_item_call label="Bezahlen" name="Pay"/>
+    <menu_item_call label="Instant Message" name="Instant Message"/>
+    <menu_item_call label="Konferenz-Chat" name="Conference Chat"/>
+    <menu_item_call label="Anrufen" name="Call"/>
+    <menu_item_call label="Konferenzgespräch" name="Conference Call"/>
+    <menu_item_call label="Freund hinzufügen" name="Add Friend"/>
+    <menu_item_call label="Freund entfernen" name="Remove Friend"/>
+    <menu_item_call label="Gruppeneinladung schicken" name="Invite To Group"/>
+    <menu_item_call label="Teleport anbieten" name="Offer Teleport"/>
+    <menu_item_call label="Kopiere Schlüssel" name="Copy Key"/>
+  </menu>
+  <menu label="Moderation" name="Moderation">
+    <menu_item_call label="Stummschaltung" name="Mute/Unmute"/>
+  </menu>
+</menu>

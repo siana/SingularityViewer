@@ -119,7 +119,7 @@ public:
 	S32 getMipOffset(S32 discard);
 	
 	EFileFormat getFileFormat() { return mFileFormat; }
-	bool isCompressed() { return (mFileFormat >= FORMAT_DXT1 && mFileFormat <= FORMAT_DXR5); }
+	bool isCompressed() const { return (mFileFormat >= FORMAT_DXT1 && mFileFormat <= FORMAT_DXR5); }
 
 	bool convertToDXR(); // convert from DXT to DXR
 	

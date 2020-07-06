@@ -33,6 +33,14 @@
 #include <list>
 #include <map>
 
+// For Flags in AvatarPropertiesReply
+constexpr U32 AVATAR_ALLOW_PUBLISH			= 0x1 << 0;	// whether profile is externally visible or not
+constexpr U32 AVATAR_MATURE_PUBLISH			= 0x1 << 1;	// profile is "mature"
+constexpr U32 AVATAR_IDENTIFIED				= 0x1 << 2;	// whether avatar has provided payment info
+constexpr U32 AVATAR_TRANSACTED				= 0x1 << 3;	// whether avatar has actively used payment info
+constexpr U32 AVATAR_ONLINE					= 0x1 << 4; // the online status of this avatar, if known.
+constexpr U32 AVATAR_AGEVERIFIED			= 0x1 << 5;	// whether avatar has been age-verified
+
 /*
 *TODO Vadim: This needs some refactoring:
 - Remove EAvatarProcessorType in favor of separate observers, derived from a common parent (to get rid of void*).

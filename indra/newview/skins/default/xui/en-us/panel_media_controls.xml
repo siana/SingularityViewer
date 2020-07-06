@@ -42,7 +42,7 @@
              image_disabled="flyout_btn_left_disabled.tga"
 	     label="" left_delta="21"
 	     mouse_opaque="true" name="media_play" scale_image="true" toggle="false"
-	     tool_tip="Play/pause streaming music" width="20" />
+	     tool_tip="Play/pause streaming media" width="20" />
   <button bottom="-21" enabled="false" follows="left|top" height="20"
 	     image_overlay="icn_pause.tga"
                           image_unselected="flyout_btn_left.tga"

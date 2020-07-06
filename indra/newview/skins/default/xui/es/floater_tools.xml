@@ -4,6 +4,10 @@
     <floater.string name="status_selectcount">
         Primitivas: [OBJ_COUNT], LI: [LAND_IMPACT]
     </floater.string>
+    <string name="Selected Face:" value="Cara Seleccionada:"/>
+    <string name="Link number:" value="Enlace Nro.:"/>
+    <string name="Selected prims:" value="Prim Seleccionado:"/>
+    <string name="Selected objects:" value="Objetos Seleccionados:"/>
     <floater.string
      name="status_remaining_capacity">
         Capacidad remanente [LAND_CAPACITY].
@@ -133,30 +137,17 @@
 			<text name="Creator:">
 				Creador:
 			</text>
-			<text name="Creator Name">
-		        Thrax Linden
-      		</text>
-      		<button label="Perfil..." label_selected="Perfil..." name="button creator profile" left_delta="110" width="60" />
 			<text name="Owner:">
 				Propietario:
 			</text>
-			<text name="Owner Name">
-		        Thrax Linden
-		    </text>
-		    <button label="Perfil..." label_selected="Perfil..." name="button owner profile" left_delta="110" width="60" />
 			<text name="Last Owner:">
 				Últ.Propietario:
 			</text>
-			<text name="Last Owner Name">
-				Thrax Linden
-			</text>
-			<button label="Perfil..." label_selected="Perfil..." name="button last owner profile" left_delta="110"  width="60" />
 			<text name="Group:">
 				Grupo:
 			</text>
       <name_box initial_value="Cargando..." name="Group Name Proxy"/>
-			<button label="Definir" label_selected="Definir..." name="button set group" width="48"/>
-			<button label="Ver" label_selected="Abrir" name="button open group" left_delta="48" width="30" />
+			<button label="Definir" label_selected="Definir..." name="button set group" left_delta="128" width="48"/>
 			<text name="Permissions:">
 				Permisos:
 			</text>
@@ -176,7 +167,7 @@
 			</text>
 			<check_box label="Moverlo" name="checkbox allow everyone move"/>
 			<check_box label="Copiarlo" name="checkbox allow everyone copy"/>
-			<check_box name="checkbox allow export" label="Exportarlo"/>			
+			<check_box label="Exportarlo" name="checkbox allow export"/>			
 			<check_box label="Mostrar en la Búsqueda" name="search_check" tool_tip="Permitir que este objeto aparezca en los resultados de la búsqueda"/>
 			<check_box label="En Venta" name="checkbox for sale"/>
 			<text name="Cost">
@@ -197,13 +188,13 @@
 			<text name="Next owner can:">
 				El próximo propietario puede:
 			</text>
-			<check_box label="Modificarlo" name="checkbox next owner can modify"/>
-			<check_box label="Copiarlo" name="checkbox next owner can copy"/>
-			<check_box label="Transferirlo" name="checkbox next owner can transfer"/>
-			<text name="label click action">
+			<check_box label="Modificarlo" name="checkbox next owner can modify" />
+			<check_box label="Copiarlo" name="checkbox next owner can copy" left_delta="82"/>
+			<check_box label="Transferirlo" name="checkbox next owner can transfer" left_delta="76"/>
+			<text name="label click action" width="160">
 				Al pulsarlo con botón izquierdo:
 			</text>
-			<combo_box name="clickaction">
+			<combo_box name="clickaction" left="8" width="160">
 			     <!-- Do not reorder these items, the index numbers are used internally. JC -->
 				<combo_item name="Touch/grab(default)">
 					Tocar/Agarrar (Por Defecto)
@@ -250,7 +241,7 @@
 				<text name="pathfinding_attributes_label">
 					Atributos de Pathfinding:
 				</text>
-				<text name="pathfinding_attributes_value">
+				<text name="pathfinding_attributes_value" left_delta="140">
 					Prueba
 				</text>
 			</panel>
@@ -536,6 +527,7 @@
 			<text name="edit_object">
 				Editar Características del Objeto
 			</text>
+            <check_box label="Mesh Animado" name="Animated Mesh Checkbox Ctrl" tool_tip="Pemitir que los objetos mesh rígidos sean animados de forma independiente"/>
 			<check_box label="Flexibilidad" name="Flexible1D Checkbox Ctrl" tool_tip="Permite que el objeto sea flexible en el eje Z . (Sólo del lado del Cliente"/>
 			<spinner label="Blandura" name="FlexNumSections"/>
 			<spinner label="Gravedad" name="FlexGravity"/>

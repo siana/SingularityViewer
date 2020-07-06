@@ -130,6 +130,8 @@ class LLVector3d
 
 };
 
+static_assert(std::is_trivially_copyable<LLVector3d>::value, "LLVector3d must be a trivially copyable type");
+
 typedef LLVector3d LLGlobalVec;
 
 inline const LLVector3d &LLVector3d::set(const LLVector3 &vec)
@@ -191,7 +193,7 @@ inline LLVector3d::LLVector3d(const LLVector3d &copy)
 // checker
 inline BOOL LLVector3d::isFinite() const
 {
-	return (llfinite(mdV[VX]) && llfinite(mdV[VY]) && llfinite(mdV[VZ]));
+	return (std::isfinite(mdV[VX]) && std::isfinite(mdV[VY]) && std::isfinite(mdV[VZ]));
 }
 
 

@@ -47,8 +47,8 @@
 std::vector<LLVolumeImplFlexible*> LLVolumeImplFlexible::sInstanceList;
 std::vector<U32> LLVolumeImplFlexible::sUpdateDelay;
 
-static LLFastTimer::DeclareTimer FTM_FLEXIBLE_REBUILD("Rebuild");
-static LLFastTimer::DeclareTimer FTM_DO_FLEXIBLE_UPDATE("Flexible Update");
+static LLTrace::BlockTimerStatHandle FTM_FLEXIBLE_REBUILD("Rebuild");
+static LLTrace::BlockTimerStatHandle FTM_DO_FLEXIBLE_UPDATE("Flexible Update");
 
 // LLFlexibleObjectData::pack/unpack now in llprimitive.cpp
 
@@ -328,14 +328,14 @@ void LLVolumeImplFlexible::updateRenderRes()
 // updated every time step. In the future, perhaps there could be an 
 // optimization similar to what Havok does for objects that are stationary. 
 //---------------------------------------------------------------------------------
-static LLFastTimer::DeclareTimer FTM_FLEXIBLE_UPDATE("Update Flexies");
+static LLTrace::BlockTimerStatHandle FTM_FLEXIBLE_UPDATE("Update Flexies");
 void LLVolumeImplFlexible::doIdleUpdate()
 {
 	LLDrawable* drawablep = mVO->mDrawable;
 
 	if (drawablep)
 	{
-		//LLFastTimer ftm(FTM_FLEXIBLE_UPDATE);
+		//LL_RECORD_BLOCK_TIME(FTM_FLEXIBLE_UPDATE);
 		
 		//ensure drawable is active
 		drawablep->makeActive();
@@ -407,7 +407,7 @@ inline S32 log2(S32 x)
 
 void LLVolumeImplFlexible::doFlexibleUpdate()
 {
-	LLFastTimer ftm(FTM_DO_FLEXIBLE_UPDATE);
+	LL_RECORD_BLOCK_TIME(FTM_DO_FLEXIBLE_UPDATE);
 	LLVolume* volume = mVO->getVolume();
 	LLPath *path = &volume->getPath();
 	if ((mSimulateRes == 0 || !mInitialized) && mVO->mDrawable->isVisible()) 
@@ -759,7 +759,7 @@ BOOL LLVolumeImplFlexible::doUpdateGeometry(LLDrawable *drawable)
 
 	if (mRenderRes > -1)
 	{
-		LLFastTimer t(FTM_DO_FLEXIBLE_UPDATE);
+		LL_RECORD_BLOCK_TIME(FTM_DO_FLEXIBLE_UPDATE);
 		doFlexibleUpdate();
 	}
 	
@@ -779,7 +779,7 @@ BOOL LLVolumeImplFlexible::doUpdateGeometry(LLDrawable *drawable)
 		volume->mDrawable->setState(LLDrawable::REBUILD_VOLUME);
 		volume->dirtySpatialGroup();
 		{
-			LLFastTimer t(FTM_FLEXIBLE_REBUILD);
+			LL_RECORD_BLOCK_TIME(FTM_FLEXIBLE_REBUILD);
 			doFlexibleRebuild();
 		}
 		volume->genBBoxes(isVolumeGlobal());

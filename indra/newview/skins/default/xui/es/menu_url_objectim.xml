@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<context_menu name="Url Popup" label="Objeto">
+	<menu name="URL Actions" label="Acciones URL">
+		<menu_item_call label="Perfil del objeto..." name="show_object"/>
+		<menu_item_call label="Ignorar..." name="block_object"/>
+		<menu_item_call label="Desbloquear" name="unblock_object"/>
+		<menu_item_call label="Mostrar en el mapa" name="show_on_map"/>
+		<menu_item_call label="Teleportarse a la posición del objeto" name="teleport_to_object"/>
+	</menu>
+	<menu name="Object" label="Objeto">
+		<menu_item_call label="Enfocar" name="Cam To"/>
+		<menu_item_call label="Seguir" name="Follow"/>
+		<menu_item_call label="Mover A" name="Move To"/>
+		<menu_item_call label="Teleportar  A (ubicación actual)" name="Teleport To (current location)"/>
+		<menu_item_call label="Sentarse" name="Sit On"/>
+		<menu_item_call label="Pagar" name="Pay"/>
+		<menu_item_call label="Tocar" name="Touch"/>
+		<menu_item_call label="Editar" name="Edit"/>
+		<menu_item_call label="Añadir a la Selección" name="Add to Selection"/>
+		<menu_item_call label="Desdibujar" name="Derender"/>
+	</menu>
+	<menu name="Copy" label="Copiar">
+		<menu_item_call label="Nombre" name="url_copy_label"/>
+		<menu_item_call label="SLURL" name="url_copy"/>
+		<menu_item_call label="UUID" name="key_copy"/>
+	</menu>
+	<menu_item_call label="Seleccionar Todo" name="Select All"/>
+</context_menu>

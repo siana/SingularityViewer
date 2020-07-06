@@ -38,6 +38,7 @@
 #include "lluuid.h"
 #include "llstring.h"
 #include "llframetimer.h"
+#include <boost/unordered_map.hpp>
 
 class LLTextBox;
 class LLScrollListCtrl;
@@ -55,6 +56,20 @@ public:
 
 	void results();
 	static void processObjectPropertiesFamily(LLMessageSystem* msg, void** user_data);
+	struct ObjectData
+	{
+		LLUUID id;
+		std::string name;
+		std::string desc;
+		LLUUID owner_id;
+		LLUUID group_id;
+	};
+
+	const ObjectData* getObjectData(const LLUUID& id) const
+	{
+		const auto& it = mCachedObjects.find(id);
+		return it != mCachedObjects.end() ? &it->second : nullptr;
+	}
 
 private:
 
@@ -83,16 +98,8 @@ private:
 	LLViewerRegion* mLastRegion;
 	bool mStopped;
 
-	struct ObjectData
-	{
-		LLUUID id;
-		std::string name;
-		std::string desc;
-		LLUUID owner_id;
-		LLUUID group_id;
-	};
-	std::set<LLUUID> mPendingObjects;
-	std::map<LLUUID, ObjectData> mCachedObjects;
+	uuid_set_t mPendingObjects;
+	boost::unordered_map<LLUUID, ObjectData> mCachedObjects;
 
 	std::string mFilterStrings[LIST_OBJECT_COUNT];
 };

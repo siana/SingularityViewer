@@ -45,7 +45,10 @@
 
 #if LL_GTK
 extern "C" {
-# include "gtk/gtk.h"
+# include <gtk/gtk.h>
+#if GTK_CHECK_VERSION(2, 24, 0)
+#include <gdk/gdkx.h>
+#endif
 }
 #include <locale.h>
 #endif // LL_GTK
@@ -86,23 +89,6 @@ static bool ATIbug = false;
 // be only one object of this class at any time.  Currently this is true.
 static LLWindowSDL *gWindowImplementation = NULL;
 
-
-void maybe_lock_display(void)
-{
-	if (gWindowImplementation && gWindowImplementation->Lock_Display) {
-		gWindowImplementation->Lock_Display();
-	}
-}
-
-
-void maybe_unlock_display(void)
-{
-	if (gWindowImplementation && gWindowImplementation->Unlock_Display) {
-		gWindowImplementation->Unlock_Display();
-	}
-}
-
-
 #if LL_GTK
 // Lazily initialize and check the runtime GTK version for goodness.
 // static
@@ -116,9 +102,7 @@ bool LLWindowSDL::ll_try_gtk_init(void)
 	if (!done_setlocale)
 	{
 		LL_INFOS() << "Starting GTK Initialization." << LL_ENDL;
-		maybe_lock_display();
 		gtk_disable_setlocale();
-		maybe_unlock_display();
 		done_setlocale = TRUE;
 	}
 	
@@ -128,9 +112,7 @@ bool LLWindowSDL::ll_try_gtk_init(void)
 #if !GLIB_CHECK_VERSION(2, 32, 0)
 		if (!g_thread_supported ()) g_thread_init (NULL);
 #endif
-		maybe_lock_display();
 		gtk_is_good = gtk_init_check(NULL, NULL);
-		maybe_unlock_display();
 		if (!gtk_is_good)
 			LL_WARNS() << "GTK Initialization failed." << LL_ENDL;
 	}
@@ -146,12 +128,10 @@ bool LLWindowSDL::ll_try_gtk_init(void)
 			<< gtk_major_version << "."
 			<< gtk_minor_version << "."
 			<< gtk_micro_version << LL_ENDL;
-		maybe_lock_display();
 		const gchar* gtk_warning = gtk_check_version(
 			GTK_MAJOR_VERSION,
 			GTK_MINOR_VERSION,
 			GTK_MICRO_VERSION);
-		maybe_unlock_display();
 		if (gtk_warning)
 		{
 			LL_WARNS() << "- GTK COMPATIBILITY WARNING: " <<
@@ -197,14 +177,14 @@ LLWindowSDL::LLWindowSDL(LLWindowCallbacks* callbacks,
 			 const S32 vsync_mode,
 			 BOOL ignore_pixel_depth, U32 fsaa_samples)
 	: LLWindow(callbacks, fullscreen, flags),
-	  Lock_Display(NULL),
-	  Unlock_Display(NULL), mGamma(1.0f)
+	  mGamma(1.0f)
 {
 	// Initialize the keyboard
 	gKeyboard = new LLKeyboardSDL();
 	gKeyboard->setCallbacks(callbacks);
 	// Note that we can't set up key-repeat until after SDL has init'd video
 
+	// Ignore use_gl for now, only used for drones on PC
 	mWindow = NULL;
 	mNeedsResize = FALSE;
 	mOverrideAspectRatio = 0.f;
@@ -230,7 +210,7 @@ LLWindowSDL::LLWindowSDL(LLWindowCallbacks* callbacks,
 	mOriginalAspectRatio = 1024.0 / 768.0;
 
 	if (title.empty())
-		mWindowTitle = "SDL Window";  // *FIX: (???)
+		mWindowTitle = "SDL Window";  // *FIX: (?)
 	else
 		mWindowTitle = title;
 
@@ -315,7 +295,7 @@ static int x11_detect_VRAM_kb()
 #if LL_SOLARIS && defined(__sparc)
       //  NOTE: there's no Xorg server on SPARC so just return 0
       //        and allow SDL to attempt to get the amount of VRAM
-      return(0);
+      return 0;
 #else
 
 	std::string x_log_location("/var/log/");
@@ -423,7 +403,7 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 
 	// Set the application icon.
 	SDL_Surface *bmpsurface;
-	bmpsurface = Load_BMP_Resource("singularity_icon.BMP");
+	bmpsurface = Load_BMP_Resource("viewer_icon.BMP");
 	if (bmpsurface)
 	{
 		// This attempts to give a black-keyed mask to the icon.
@@ -594,7 +574,6 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 			mWindow = SDL_SetVideoMode(width, height, bits, sdlflags);
 		}
 
-
 		if (!mWindow)
 		{
 			LL_WARNS() << "createContext: window creation failure. SDL: " << SDL_GetError() << LL_ENDL;
@@ -607,13 +586,14 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 	}
 	
 	// Detect video memory size.
-# if LL_X11
+#if LL_X11
 	gGLManager.mVRAM = x11_detect_VRAM_kb() / 1024;
 	if (gGLManager.mVRAM != 0)
 	{
 		LL_INFOS() << "X11 log-parser detected " << gGLManager.mVRAM << "MB VRAM." << LL_ENDL;
-	} else
-# endif // LL_X11
+	}
+	else
+#endif // LL_X11
 	{
 		// fallback to letting SDL detect VRAM.
 		// note: I've not seen SDL's detection ever actually find
@@ -677,23 +657,6 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 		return FALSE;
 	}
 
-#if 0  // *FIX: we're going to brave it for now...
-	if (alphaBits < 8)
-	{
-		close();
-		setupFailure(
-			"Second Life is unable to run because it can't get an 8 bit alpha\n"
-			"channel.  Usually this is due to video card driver issues.\n"
-			"Please make sure you have the latest video card drivers installed.\n"
-			"Also be sure your monitor is set to True Color (32-bit) in\n"
-			"Control Panels -> Display -> Settings.\n"
-			"If you continue to receive this message, contact customer service.",
-			"Error",
-			OSMB_OK);
-		return FALSE;
-	}
-#endif
-
 #if LL_X11
 	/* Grab the window manager specific information */
 	SDL_SysWMinfo info;
@@ -705,8 +668,6 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 		{
 			mSDL_Display = info.info.x11.display;
 			mSDL_XWindowID = info.info.x11.wmwindow;
-			Lock_Display = info.info.x11.lock_func;
-			Unlock_Display = info.info.x11.unlock_func;
 		}
 		else
 		{
@@ -773,7 +734,7 @@ BOOL LLWindowSDL::createContext(int x, int y, int width, int height, int bits, B
 
 
 // changing fullscreen resolution, or switching between windowed and fullscreen mode.
-BOOL LLWindowSDL::switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, const LLCoordScreen * const posp)
+BOOL LLWindowSDL::switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, std::function<void()> stopFn, std::function<void(bool)> restoreFn, const LLCoordScreen * const posp)
 {
 	const BOOL needsRebuild = TRUE;  // Just nuke the context and start over.
 	BOOL result = true;
@@ -782,6 +743,7 @@ BOOL LLWindowSDL::switchContext(BOOL fullscreen, const LLCoordScreen &size, cons
 	stop_glerror();
 	if(needsRebuild)
 	{
+		if (stopFn) stopFn();
 		destroyContext();
 		result = createContext(0, 0, size.mX, size.mY, 0, fullscreen, vsync_mode);
 		if (result)
@@ -790,6 +752,7 @@ BOOL LLWindowSDL::switchContext(BOOL fullscreen, const LLCoordScreen &size, cons
 			initCursors();
 			setCursor( UI_CURSOR_ARROW );
 		}
+		if (restoreFn) restoreFn(true);
 	}
 
 	stop_glerror();
@@ -804,8 +767,6 @@ void LLWindowSDL::destroyContext()
 #if LL_X11
 	mSDL_Display = NULL;
 	mSDL_XWindowID = None;
-	Lock_Display = NULL;
-	Unlock_Display = NULL;
 #endif // LL_X11
 
 	// Clean up remaining GL state before blowing away window
@@ -831,7 +792,7 @@ LLWindowSDL::~LLWindowSDL()
 }
 
 
-void LLWindowSDL::show()
+void LLWindowSDL::show(bool focus)
 {
     // *FIX: What to do with SDL?
 }
@@ -960,7 +921,7 @@ BOOL LLWindowSDL::setPosition(const LLCoordScreen position)
 {
 	if(mWindow)
 	{
-        // *FIX: (???)
+        // *FIX: (?)
 		//MacMoveWindow(mWindow, position.mX, position.mY, false);
 	}
 
@@ -1206,9 +1167,7 @@ void LLWindowSDL::beforeDialog()
 	{
 		// Everything that we/SDL asked for should happen before we
 		// potentially hand control over to GTK.
-		maybe_lock_display();
 		XSync(mSDL_Display, False);
-		maybe_unlock_display();
 	}
 #endif // LL_X11
 
@@ -1217,8 +1176,6 @@ void LLWindowSDL::beforeDialog()
 	// diagnostics, if not already done.
 	ll_try_gtk_init();
 #endif // LL_GTK
-
-	maybe_lock_display();
 }
 
 void LLWindowSDL::afterDialog()
@@ -1229,8 +1186,6 @@ void LLWindowSDL::afterDialog()
 #endif //LL_X11
 
 	LL_INFOS() << "LLWindowSDL::afterDialog()" << LL_ENDL;
-
-	maybe_unlock_display();
 
 	if (mFullscreen)
 	{
@@ -1254,7 +1209,6 @@ void LLWindowSDL::x11_set_urgent(BOOL urgent)
 		
 		LL_INFOS() << "X11 hint for urgency, " << urgent << LL_ENDL;
 
-		maybe_lock_display();
 		wm_hints = XGetWMHints(mSDL_Display, mSDL_XWindowID);
 		if (!wm_hints)
 			wm_hints = XAllocWMHints();
@@ -1267,7 +1221,6 @@ void LLWindowSDL::x11_set_urgent(BOOL urgent)
 		XSetWMHints(mSDL_Display, mSDL_XWindowID, wm_hints);
 		XFree(wm_hints);
 		XSync(mSDL_Display, False);
-		maybe_unlock_display();
 	}
 }
 #endif // LL_X11
@@ -1432,18 +1385,25 @@ LLWindow::LLWindowResolution* LLWindowSDL::getSupportedResolutions(S32 &num_reso
             {
                 modes--;
                 SDL_Rect *r = *modes;
-                int w = r->w;
-                int h = r->h;
+                S32 w = r->w;
+                S32 h = r->h;
                 if ((w >= 800) && (h >= 600))
                 {
                     // make sure we don't add the same resolution multiple times!
-                    if ( (mNumSupportedResolutions == 0) ||
-                         ((mSupportedResolutions[mNumSupportedResolutions-1].mWidth != w) &&
-                          (mSupportedResolutions[mNumSupportedResolutions-1].mHeight != h)) )
+                    bool resolution_exists = false;
+                    for (S32 i = 0; i < mNumSupportedResolutions; ++i)
+                    {
+                        if (mSupportedResolutions[i].mWidth == w &&
+                            mSupportedResolutions[i].mHeight == h)
+                        {
+                            resolution_exists = true;
+                            break;
+                        }
+                    }
+                    if (!resolution_exists)
                     {
                         mSupportedResolutions[mNumSupportedResolutions].mWidth = w;
-                        mSupportedResolutions[mNumSupportedResolutions].mHeight = h;
-                        mNumSupportedResolutions++;
+                        mSupportedResolutions[mNumSupportedResolutions++].mHeight = h;
                     }
                 }
             }
@@ -1567,12 +1527,10 @@ BOOL LLWindowSDL::SDLReallyCaptureInput(BOOL capture)
 			{
 				//LL_INFOS() << "X11 POINTER GRABBY" << LL_ENDL;
 				//newmode = SDL_WM_GrabInput(wantmode);
-				maybe_lock_display();
 				result = XGrabPointer(mSDL_Display, mSDL_XWindowID,
 						      True, 0, GrabModeAsync,
 						      GrabModeAsync,
 						      None, None, CurrentTime);
-				maybe_unlock_display();
 				if (GrabSuccess == result)
 					newmode = SDL_GRAB_ON;
 				else
@@ -1583,11 +1541,9 @@ BOOL LLWindowSDL::SDLReallyCaptureInput(BOOL capture)
 				newmode = SDL_GRAB_OFF;
 				//newmode = SDL_WM_GrabInput(SDL_GRAB_OFF);
 				
-				maybe_lock_display();
 				XUngrabPointer(mSDL_Display, CurrentTime);
 				// Make sure the ungrab happens RIGHT NOW.
 				XSync(mSDL_Display, False);
-				maybe_unlock_display();
 			} else
 			{
 				newmode = SDL_GRAB_QUERY; // neutral
@@ -1784,6 +1740,7 @@ void LLWindowSDL::gatherInput()
             mKeyScanCode = event.key.keysym.scancode;
             mKeyVirtualKey = event.key.keysym.unicode;
             mKeyModifiers = event.key.keysym.mod;
+		    mKeySym = event.key.keysym.sym;
 
             gKeyboard->handleKeyDown(event.key.keysym.sym, event.key.keysym.mod);
             // part of the fix for SL-13243
@@ -1801,6 +1758,7 @@ void LLWindowSDL::gatherInput()
             mKeyScanCode = event.key.keysym.scancode;
             mKeyVirtualKey = event.key.keysym.unicode;
             mKeyModifiers = event.key.keysym.mod;
+		    mKeySym = event.key.keysym.sym;
 
             if (SDLCheckGrabbyKeys(event.key.keysym.sym, FALSE) == 0)
                 SDLReallyCaptureInput(FALSE); // part of the fix for SL-13243
@@ -2312,8 +2270,7 @@ S32 OSMessageBoxSDL(const std::string& text, const std::string& caption, U32 typ
 		{
 			gtk_widget_realize(GTK_WIDGET(win)); // so we can get its gdkwin
 			GdkWindow *gdkwin = gdk_window_foreign_new(gWindowImplementation->mSDL_XWindowID);
-			gdk_window_set_transient_for(GTK_WIDGET(win)->window,
-						     gdkwin);
+			gdk_window_set_transient_for(GTK_WIDGET(win)->window, gdkwin);
 		}
 # endif //LL_X11
 
@@ -2402,6 +2359,7 @@ LLSD LLWindowSDL::getNativeKeyData()
         result["scan_code"] = (S32)mKeyScanCode;
         result["virtual_key"] = (S32)mKeyVirtualKey;
 	result["modifiers"] = (S32)modifiers;
+	result[ "sdl_sym" ] = (S32)mKeySym;
 
         return result;
 }
@@ -2427,8 +2385,7 @@ BOOL LLWindowSDL::dialogColorPicker( F32 *r, F32 *g, F32 *b)
 		{
 			gtk_widget_realize(GTK_WIDGET(win)); // so we can get its gdkwin
 			GdkWindow *gdkwin = gdk_window_foreign_new(mSDL_XWindowID);
-			gdk_window_set_transient_for(GTK_WIDGET(win)->window,
-						     gdkwin);
+			gdk_window_set_transient_for(GTK_WIDGET(win)->window, gdkwin);
 		}
 # endif //LL_X11
 
@@ -2528,18 +2485,7 @@ void exec_cmd(const std::string& cmd, const std::string& arg)
 // Must begin with protocol identifier.
 void LLWindowSDL::spawnWebBrowser(const std::string& escaped_url, bool async)
 {
-	bool found = false;
-	S32 i;
-	for (i = 0; i < gURLProtocolWhitelistCount; i++)
-	{
-		if (escaped_url.find(gURLProtocolWhitelist[i]) != std::string::npos)
-		{
-			found = true;
-			break;
-		}
-	}
-
-	if (!found)
+	if (!isWhitelistedProtocol(escaped_url))
 	{
 		LL_WARNS() << "spawn_web_browser called for url with protocol not on whitelist: " << escaped_url << LL_ENDL;
 		return;
@@ -2551,10 +2497,8 @@ void LLWindowSDL::spawnWebBrowser(const std::string& escaped_url, bool async)
 # if LL_X11
 	if (mSDL_Display)
 	{
-		maybe_lock_display();
 		// Just in case - before forking.
 		XSync(mSDL_Display, False);
-		maybe_unlock_display();
 	}
 # endif // LL_X11
 
@@ -2571,19 +2515,12 @@ void LLWindowSDL::spawnWebBrowser(const std::string& escaped_url, bool async)
 	LL_INFOS() << "spawn_web_browser returning." << LL_ENDL;
 }
 
-void LLWindowSDL::setTitle(const std::string &title)
-{
-	mWindowTitle = title;
-	SDL_WM_SetCaption(mWindowTitle.c_str(),mWindowTitle.c_str());
-}
 
 void *LLWindowSDL::getPlatformWindow()
 {
 #if LL_GTK && LL_LLMOZLIB_ENABLED
 	if (LLWindowSDL::ll_try_gtk_init())
 	{
-		maybe_lock_display();
-
 		GtkWidget *owin = gtk_window_new(GTK_WINDOW_POPUP);
 		// Why a layout widget?  A MozContainer would be ideal, but
 		// it involves exposing Mozilla headers to mozlib-using apps.
@@ -2594,8 +2531,6 @@ void *LLWindowSDL::getPlatformWindow()
 		gtk_container_add(GTK_CONTAINER(owin), rtnw);
 		gtk_widget_realize(rtnw);
 		GTK_WIDGET_UNSET_FLAGS(GTK_WIDGET(rtnw), GTK_NO_WINDOW);
-		
-		maybe_unlock_display();
 		
 		return rtnw;
 	}
@@ -2612,10 +2547,8 @@ void LLWindowSDL::bringToFront()
 #if LL_X11
 	if (mSDL_Display && !mFullscreen)
 	{
-		maybe_lock_display();
 		XRaiseWindow(mSDL_Display, mSDL_XWindowID);
 		XSync(mSDL_Display, False);
-		maybe_unlock_display();
 	}
 #endif // LL_X11
 }
@@ -2626,7 +2559,7 @@ std::vector<std::string> LLWindowSDL::getDynamicFallbackFontList()
 	// Use libfontconfig to find us a nice ordered list of fallback fonts
 	// specific to this system.
 	std::string final_fallback("/usr/share/fonts/truetype/kochi/kochi-gothic.ttf");
-	const int max_font_count_cutoff = 100; // fonts are expensive in the current system, don't enumerate an arbitrary number of them
+	const int max_font_count_cutoff = 40; // fonts are expensive in the current system, don't enumerate an arbitrary number of them
 	// Our 'ideal' font properties which define the sorting results.
 	// slant=0 means Roman, index=0 means the first face in a font file
 	// (the one we actually use), weight=80 means medium weight,
@@ -2719,6 +2652,12 @@ std::vector<std::string> LLWindowSDL::getDynamicFallbackFontList()
 
 	//rtns.push_back(final_fallback);
 	return rtns;
+}
+
+void LLWindowSDL::setTitle(const std::string& title)
+{
+	mWindowTitle = title;
+	SDL_WM_SetCaption(mWindowTitle.c_str(),mWindowTitle.c_str());
 }
 
 #endif // LL_SDL

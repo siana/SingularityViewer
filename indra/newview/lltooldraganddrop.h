@@ -33,10 +33,10 @@
 #ifndef LL_TOOLDRAGANDDROP_H
 #define LL_TOOLDRAGANDDROP_H
 
+#include "lldictionary.h"
 #include "lltool.h"
 #include "llview.h"
 #include "lluuid.h"
-#include "stdenums.h"
 #include "llassetstorage.h"
 #include "llpermissions.h"
 #include "llwindow.h"
@@ -50,6 +50,8 @@ class LLPickInfo;
 class LLToolDragAndDrop : public LLTool, public LLSingleton<LLToolDragAndDrop>
 {
 public:
+	typedef boost::signals2::signal<void ()> enddrag_signal_t;
+
 	LLToolDragAndDrop();
 
 	// overridden from LLTool
@@ -68,7 +70,9 @@ public:
 		SOURCE_AGENT,
 		SOURCE_WORLD,
 		SOURCE_NOTECARD,
-		SOURCE_LIBRARY
+		SOURCE_LIBRARY,
+		SOURCE_VIEWER,
+		SOURCE_PEOPLE
 	};
 
 	void beginDrag(EDragAndDropType type,
@@ -86,8 +90,22 @@ public:
 	const LLUUID& getObjectID() const { return mObjectID; }
 	EAcceptance getLastAccept() { return mLastAccept; }
 	
+	boost::signals2::connection setEndDragCallback( const enddrag_signal_t::slot_type& cb ) { return mEndDragSignal.connect(cb); }
+
+	void setCargoCount(U32 count) { mCargoCount = count; }
+	void resetCargoCount() { mCargoCount = 0; }
+	U32 getCargoCount() const { return (mCargoCount > 0) ? mCargoCount : mCargoIDs.size(); }
+	S32 getCargoIndex() const { return mCurItemIndex; }
+
 	uuid_vec_t::size_type getCargoIDsCount() const { return mCargoIDs.size(); }
 	static S32 getOperationId() { return sOperationId; }
+
+	// deal with permissions of object, etc. returns TRUE if drop can
+	// proceed, otherwise FALSE.
+	static BOOL handleDropTextureProtections(LLViewerObject* hit_obj,
+						 LLInventoryItem* item,
+						 LLToolDragAndDrop::ESource source,
+						 const LLUUID& src_id);
 
 protected:
 	enum EDropTarget
@@ -100,6 +118,7 @@ protected:
 		DT_COUNT = 5
 	};
 
+protected:
 	// dragOrDrop3dImpl points to a member of LLToolDragAndDrop that
 	// takes parameters (LLViewerObject* obj, S32 face, MASK, BOOL
 	// drop) and returns a BOOL if drop is ok
@@ -110,10 +129,13 @@ protected:
 					EAcceptance* acceptance);
 	void dragOrDrop3D(S32 x, S32 y, MASK mask, BOOL drop,
 					  EAcceptance* acceptance);
+
 	static void pickCallback(const LLPickInfo& pick_info);
 	void pick(const LLPickInfo& pick_info);
 
 protected:
+
+	U32				mCargoCount;
 
 	S32				mDragStartX;
 	S32				mDragStartY;
@@ -135,6 +157,9 @@ protected:
 	BOOL			mDrop;
 	S32				mCurItemIndex;
 	std::string		mToolTipMsg;
+	std::string		mCustomMsg;
+
+	enddrag_signal_t	mEndDragSignal;
 
 protected:
 	// 3d drop functions. these call down into the static functions
@@ -209,13 +234,6 @@ protected:
 	// inventory items to determine if a drop would be ok.
 	static EAcceptance willObjectAcceptInventory(LLViewerObject* obj, LLInventoryItem* item);
 
-	// deal with permissions of object, etc. returns TRUE if drop can
-	// proceed, otherwise FALSE.
-	static BOOL handleDropTextureProtections(LLViewerObject* hit_obj,
-						 LLInventoryItem* item,
-						 LLToolDragAndDrop::ESource source,
-						 const LLUUID& src_id);
-
 public:
 	// helper functions
 	static BOOL isInventoryDropAcceptable(LLViewerObject* obj, LLInventoryItem* item) { return (ACCEPT_YES_COPY_SINGLE <= willObjectAcceptInventory(obj, item)); }
@@ -253,7 +271,8 @@ public:
 	static bool handleGiveDragAndDrop(LLUUID agent, LLUUID session, BOOL drop,
 									  EDragAndDropType cargo_type,
 									  void* cargo_data,
-									  EAcceptance* accept);
+									  EAcceptance* accept,
+									  const LLSD& dest = LLSD());
 
 	// Classes used for determining 3d drag and drop types.
 private:

@@ -114,10 +114,10 @@ LLDrawable* LLVOClouds::createDrawable(LLPipeline *pipeline)
 	return mDrawable;
 }
 
-static LLFastTimer::DeclareTimer FTM_UPDATE_CLOUDS("Cloud Update");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_CLOUDS("Cloud Update");
 BOOL LLVOClouds::updateGeometry(LLDrawable *drawable)
 {
-	LLFastTimer ftm(FTM_UPDATE_CLOUDS);
+	LL_RECORD_BLOCK_TIME(FTM_UPDATE_CLOUDS);
 	
 	dirtySpatialGroup();
 
@@ -295,7 +295,8 @@ void LLVOClouds::updateDrawable(BOOL force_damped)
 	clearChanged(SHIFTED);
 }
 
-LLCloudPartition::LLCloudPartition()
+LLCloudPartition::LLCloudPartition(LLViewerRegion* region)
+	: LLParticlePartition(region)
 {
 	mDrawableType = LLPipeline::RENDER_TYPE_CLASSIC_CLOUDS;
 	mPartitionType = LLViewerRegion::PARTITION_CLOUD;

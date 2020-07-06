@@ -730,6 +730,8 @@ llRotLookAt
 llStringLength
 llStartAnimation
 llStopAnimation
+llStartObjectAnimation
+llStopObjectAnimation
 llPointAt
 llStopPointAt
 llTargetOmega

@@ -32,6 +32,7 @@
 #include "llstring.h"
 #include "llcursortypes.h"
 #include "llsd.h"
+#include "llinstancetracker.h"
 
 class LLSplashScreen;
 
@@ -65,7 +66,8 @@ public:
 		// currently unused
 	};
 public:
-	virtual void show() = 0;
+	virtual void postInitialized() {}
+	virtual void show(bool focus = true) = 0;
 	virtual void hide() = 0;
 	virtual void close() = 0;
 	virtual BOOL getVisible() = 0;
@@ -82,7 +84,7 @@ public:
 	BOOL setSize(LLCoordScreen size);
 	BOOL setSize(LLCoordWindow size);
 	virtual void setMinSize(U32 min_width, U32 min_height, bool enforce_immediately = true);
-	virtual BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, const LLCoordScreen * const posp = NULL) = 0;
+	virtual BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, std::function<void()> stopFn, std::function<void(bool)> restoreFn, const LLCoordScreen * const posp = NULL) = 0;
 	virtual BOOL setCursorPosition(LLCoordWindow position) = 0;
 	virtual BOOL getCursorPosition(LLCoordWindow *position) = 0;
 	virtual void showCursor() = 0;
@@ -167,7 +169,7 @@ public:
 	virtual void updateLanguageTextInputArea() {}
 	virtual void interruptLanguageTextInput() {}
 	virtual void spawnWebBrowser(const std::string& escaped_url, bool async) {};
-	virtual void ShellEx(const std::string& command) {};
+	static int ShellEx(const std::string& command);
 
 	static std::vector<std::string> getDynamicFallbackFontList();
 	
@@ -289,11 +291,7 @@ public:
 //
 extern BOOL gDebugWindowProc;
 
-// Protocols, like "http" and "https" we support in URLs
-extern const S32 gURLProtocolWhitelistCount;
-extern const std::string gURLProtocolWhitelist[];
-//extern const std::string gURLProtocolWhitelistHandler[];
-
+bool isWhitelistedProtocol(const std::string& escaped_url);
 void simpleEscapeString ( std::string& stringIn  );
 
 #endif // _LL_window_h_

@@ -76,13 +76,24 @@ static const LLUUID PARCEL_AUDIO_LIST_ITEM_UUID = LLUUID("DF4B020D-8A24-4B95-AB5
 
 
 LLPanelNearByMedia::LLPanelNearByMedia(bool standalone_panel)
-:	mMediaList(NULL),
-	  mEnableAllCtrl(NULL),
-	  mAllMediaDisabled(false),
-	  mDebugInfoVisible(false),
-	  mParcelMediaItem(NULL),
-	  mParcelAudioItem(NULL),
-	  mStandalonePanel(standalone_panel)
+	: mNearbyMediaPanel(nullptr)
+	, mMediaList(nullptr)
+	, mEnableAllCtrl(nullptr)
+	, mDisableAllCtrl(nullptr)
+	, mShowCtrl(nullptr)
+	, mStopCtrl(nullptr)
+	, mPlayCtrl(nullptr)
+	, mPauseCtrl(nullptr)
+	, mMuteCtrl(nullptr)
+	, mVolumeSliderCtrl(nullptr)
+	, mZoomCtrl(nullptr)
+	, mUnzoomCtrl(nullptr)
+	, mVolumeSlider(nullptr)
+	, mMuteBtn(nullptr)
+	, mDebugInfoVisible(false)
+	, mParcelMediaItem(nullptr)
+	, mParcelAudioItem(nullptr)
+	, mStandalonePanel(standalone_panel)
 {
 	mHoverTimer.stop();
 

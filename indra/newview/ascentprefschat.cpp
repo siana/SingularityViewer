@@ -69,27 +69,11 @@ LLPrefsAscentChat::LLPrefsAscentChat()
 		autoresponse->setToolTip(LLTrans::getString("NotLoggedIn"));
 	}
 
-	// Saved per account settings aren't detected by control_name, therefore autoresponse controls get their values here and have them saved during apply.
-	childSetValue("AscentInstantMessageResponseRepeat",  gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseRepeat"));
-	childSetValue("AutoresponseAnyone",                  gSavedPerAccountSettings.getBOOL("AutoresponseAnyone"));
-	childSetValue("AutoresponseAnyoneFriendsOnly",       gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneFriendsOnly"));
-	childSetValue("AutoresponseAnyoneItem",              gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneItem"));
-	childSetValue("AutoresponseAnyoneMessage",           gSavedPerAccountSettings.getString("AutoresponseAnyoneMessage"));
-	childSetValue("AutoresponseAnyoneShow",              gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneShow"));
-	childSetValue("AutoresponseNonFriends",              gSavedPerAccountSettings.getBOOL("AutoresponseNonFriends"));
-	childSetValue("AutoresponseNonFriendsItem",          gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsItem"));
-	childSetValue("AutoresponseNonFriendsMessage",       gSavedPerAccountSettings.getString("AutoresponseNonFriendsMessage"));
-	childSetValue("AutoresponseNonFriendsShow",          gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsShow"));
-	childSetValue("AutoresponseMuted",                   gSavedPerAccountSettings.getBOOL("AutoresponseMuted"));
-	childSetValue("AutoresponseMutedItem",               gSavedPerAccountSettings.getBOOL("AutoresponseMutedItem"));
-	childSetValue("AutoresponseMutedMessage",            gSavedPerAccountSettings.getString("AutoresponseMutedMessage"));
-	childSetValue("AutoresponseMutedShow",               gSavedPerAccountSettings.getBOOL("AutoresponseMutedShow"));
-	childSetValue("BusyModeResponse",                    gSavedPerAccountSettings.getString("BusyModeResponse"));
-	childSetValue("BusyModeResponseItem",                gSavedPerAccountSettings.getBOOL("BusyModeResponseItem"));
-	childSetValue("BusyModeResponseShow",                gSavedPerAccountSettings.getBOOL("BusyModeResponseShow"));
-
 	childSetEnabled("reset_antispam", started);
-	getChild<LLUICtrl>("reset_antispam")->setCommitCallback(boost::bind(NACLAntiSpamRegistry::purgeAllQueues));
+	getChild<LLUICtrl>("reset_antispam")->setCommitCallback([](LLUICtrl* ctrl, const LLSD& param) {
+		if (auto inst = NACLAntiSpamRegistry::getIfExists())
+			inst->resetQueues();
+	});
 
 	getChild<LLUICtrl>("autoreplace")->setCommitCallback(boost::bind(LLFloaterAutoReplaceSettings::showInstance, LLSD()));
 	getChild<LLUICtrl>("KeywordsOn")->setCommitCallback(boost::bind(&LLPrefsAscentChat::onCommitKeywords, this, _1));
@@ -131,57 +115,75 @@ void LLPrefsAscentChat::onSpellBaseComboBoxCommit(const LLSD& value)
 	glggHunSpell->newDictSelection(value.asString());
 }
 
+void setTimeDateFormats(const S8& tempTimeFormat, const S8& tempDateFormat)
+{
+	std::string short_date, long_date, short_time, long_time, timestamp;
+
+	if (tempDateFormat != -1)
+	{
+		if (tempDateFormat < 3)
+		{
+			short_date = !tempDateFormat ? "%F" :
+				tempDateFormat == 1 ? "%Y/%m/%d" :
+				"%d/%m/%Y";
+			long_date  = "%A, %d %B %Y";
+			timestamp  = "%a %d %b %Y";
+		}
+		else
+		{
+			short_date = "%m/%d/%Y";
+			long_date  = "%A, %B %d %Y";
+			timestamp  = "%a %b %d %Y";
+		}
+	}
+
+	if (tempTimeFormat != -1)
+	{
+		if (tempTimeFormat == 0)
+		{
+			short_time = "%R";
+			long_time  = "%T";
+			if (!timestamp.empty()) timestamp += " %T";
+		}
+		else
+		{
+			short_time = "%I:%M %p";
+			long_time  = "%I:%M:%S %p";
+			if (!timestamp.empty()) timestamp += " %I:%M %p";
+		}
+	}
+	else if (!timestamp.empty())
+	{
+		timestamp += ' ' + gSavedSettings.getString("ShortTimeFormat");
+	}
+
+	if (!short_date.empty())
+	{
+		gSavedSettings.setString("ShortDateFormat", short_date);
+		gSavedSettings.setString("LongDateFormat",  long_date);
+	}
+	if (!short_time.empty())
+	{
+		gSavedSettings.setString("ShortTimeFormat", short_time);
+		gSavedSettings.setString("LongTimeFormat",  long_time);
+	}
+	if (!timestamp.empty())
+		gSavedSettings.setString("TimestampFormat", timestamp);
+}
+
 void LLPrefsAscentChat::onCommitTimeDate(LLUICtrl* ctrl)
 {
 	LLComboBox* combo = static_cast<LLComboBox*>(ctrl);
-    if (ctrl->getName() == "time_format_combobox")
-    {
+	if (ctrl->getName() == "time_format_combobox")
+	{
 		tempTimeFormat = combo->getCurrentIndex();
-    }
-    else if (ctrl->getName() == "date_format_combobox")
-    {
+	}
+	else if (ctrl->getName() == "date_format_combobox")
+	{
 		tempDateFormat = combo->getCurrentIndex();
-    }
+	}
 
-    std::string short_date, long_date, short_time, long_time, timestamp;
-
-	if (tempTimeFormat == 0)
-    {
-        short_time = "%H:%M";
-        long_time  = "%H:%M:%S";
-        timestamp  = " %H:%M:%S";
-    }
-    else
-    {
-        short_time = "%I:%M %p";
-        long_time  = "%I:%M:%S %p";
-        timestamp  = " %I:%M %p";
-    }
-
-	if (tempDateFormat == 0)
-    {
-        short_date = "%Y-%m-%d";
-        long_date  = "%A %d %B %Y";
-        timestamp  = "%a %d %b %Y" + timestamp;
-    }
-	else if (tempDateFormat == 1)
-    {
-        short_date = "%d/%m/%Y";
-        long_date  = "%A %d %B %Y";
-        timestamp  = "%a %d %b %Y" + timestamp;
-    }
-    else
-    {
-        short_date = "%m/%d/%Y";
-        long_date  = "%A, %B %d %Y";
-        timestamp  = "%a %b %d %Y" + timestamp;
-    }
-
-    gSavedSettings.setString("ShortDateFormat", short_date);
-    gSavedSettings.setString("LongDateFormat",  long_date);
-    gSavedSettings.setString("ShortTimeFormat", short_time);
-    gSavedSettings.setString("LongTimeFormat",  long_time);
-    gSavedSettings.setString("TimestampFormat", timestamp);
+	setTimeDateFormats(tempTimeFormat, tempDateFormat);
 }
 
 void LLPrefsAscentChat::onCommitKeywords(LLUICtrl* ctrl)
@@ -227,28 +229,16 @@ void LLPrefsAscentChat::refreshValues()
     mSecondsInLog                   = gSavedSettings.getBOOL("SecondsInLog");
 
     std::string format = gSavedSettings.getString("ShortTimeFormat");
-    if (format.find("%p") == std::string::npos)
-    {
-        mTimeFormat = 0;
-    }
-    else
-    {
-        mTimeFormat = 1;
-    }
+    mTimeFormat = format == "%R" ? 0
+	    : format == "%I:%M %p" ? 1
+	    : -1;
 
     format = gSavedSettings.getString("ShortDateFormat");
-    if (format.find("%m/%d/%") != std::string::npos)
-    {
-        mDateFormat = 2;
-    }
-    else if (format.find("%d/%m/%") != -1)
-    {
-        mDateFormat = 1;
-    }
-    else
-    {
-        mDateFormat = 0;
-    }
+    mDateFormat = format == "%F" ? 0 :
+	    format == "%Y/%m/%d" ? 1 :
+	    format == "%d/%m/%Y" ? 2 :
+	    format == "%m/%d/%Y" ? 3 :
+	    -1;
 
     tempTimeFormat = mTimeFormat;
     tempDateFormat = mDateFormat;
@@ -270,32 +260,33 @@ void LLPrefsAscentChat::refreshValues()
 	mFriendNames                    = gSavedSettings.getS32("FriendNameSystem");
 	mGroupMembersNames              = gSavedSettings.getS32("GroupMembersNameSystem");
 	mLandManagementNames            = gSavedSettings.getS32("LandManagementNameSystem");
+	mProfileNames			= gSavedSettings.getS32("ProfileNameSystem");
 	mRadarNames                     = gSavedSettings.getS32("RadarNameSystem");
 	mSpeakerNames                   = gSavedSettings.getS32("SpeakerNameSystem");
 
 	//Autoresponse ------------------------------------------------------------------------
-	mIMResponseAnyoneItemID     = gSavedPerAccountSettings.getString("AutoresponseAnyoneItemID");
-	mIMResponseNonFriendsItemID = gSavedPerAccountSettings.getString("AutoresponseNonFriendsItemID");
-	mIMResponseMutedItemID      = gSavedPerAccountSettings.getString("AutoresponseMutedItemID");
-	mIMResponseBusyItemID       = gSavedPerAccountSettings.getString("BusyModeResponseItemID");
-
-	gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseRepeat", childGetValue("AscentInstantMessageResponseRepeat"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseAnyone",                 childGetValue("AutoresponseAnyone"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneFriendsOnly",      childGetValue("AutoresponseAnyoneFriendsOnly"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneItem",             childGetValue("AutoresponseAnyoneItem"));
-	gSavedPerAccountSettings.setString("AutoresponseAnyoneMessage",        childGetValue("AutoresponseAnyoneMessage"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneShow",             childGetValue("AutoresponseAnyoneShow"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriends",             childGetValue("AutoresponseNonFriends"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsItem",         childGetValue("AutoresponseNonFriendsItem"));
-	gSavedPerAccountSettings.setString("AutoresponseNonFriendsMessage",    childGetValue("AutoresponseNonFriendsMessage"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsShow",         childGetValue("AutoresponseNonFriendsShow"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseMuted",                  childGetValue("AutoresponseMuted"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseMutedItem",              childGetValue("AutoresponseMutedItem"));
-	gSavedPerAccountSettings.setString("AutoresponseMutedMessage",         childGetValue("AutoresponseMutedMessage"));
-	gSavedPerAccountSettings.setBOOL("AutoresponseMutedShow",              childGetValue("AutoresponseMutedShow"));
-	gSavedPerAccountSettings.setString("BusyModeResponse",                 childGetValue("BusyModeResponse"));
-	gSavedPerAccountSettings.setBOOL("BusyModeResponseItem",               childGetValue("BusyModeResponseItem"));
-	gSavedPerAccountSettings.setBOOL("BusyModeResponseShow",               childGetValue("BusyModeResponseShow"));
+	mIMResponseRepeat            = gSavedPerAccountSettings.getBOOL("AscentInstantMessageResponseRepeat");
+	mIMResponseAway              = gSavedPerAccountSettings.getBOOL("AutoresponseOnlyIfAway");
+	mIMResponseAnyone            = gSavedPerAccountSettings.getBOOL("AutoresponseAnyone");
+	mIMResponseAnyoneFriends     = gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneFriendsOnly");
+	mIMResponseAnyoneItem        = gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneItem");
+	mIMResponseAnyoneItemID      = gSavedPerAccountSettings.getString("AutoresponseAnyoneItemID");
+	mIMResponseAnyoneMessage     = gSavedPerAccountSettings.getString("AutoresponseAnyoneMessage");
+	mIMResponseAnyoneShow        = gSavedPerAccountSettings.getBOOL("AutoresponseAnyoneShow");
+	mIMResponseNonFriends        = gSavedPerAccountSettings.getBOOL("AutoresponseNonFriends");
+	mIMResponseNonFriendsItem    = gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsItem");
+	mIMResponseNonFriendsItemID  = gSavedPerAccountSettings.getString("AutoresponseNonFriendsItemID");
+	mIMResponseNonFriendsMessage = gSavedPerAccountSettings.getString("AutoresponseNonFriendsMessage");
+	mIMResponseNonFriendsShow    = gSavedPerAccountSettings.getBOOL("AutoresponseNonFriendsShow");
+	mIMResponseMuted             = gSavedPerAccountSettings.getBOOL("AutoresponseMuted");
+	mIMResponseMutedItem         = gSavedPerAccountSettings.getBOOL("AutoresponseMutedItem");
+	mIMResponseMutedItemID       = gSavedPerAccountSettings.getString("AutoresponseMutedItemID");
+	mIMResponseMutedMessage      = gSavedPerAccountSettings.getString("AutoresponseMutedMessage");
+	mIMResponseMutedShow         = gSavedPerAccountSettings.getBOOL("AutoresponseMutedShow");
+	mIMResponseBusyItem          = gSavedPerAccountSettings.getBOOL("BusyModeResponseItem");
+	mIMResponseBusyItemID        = gSavedPerAccountSettings.getString("BusyModeResponseItemID");
+	mIMResponseBusyMessage       = gSavedPerAccountSettings.getString("BusyModeResponse");
+	mIMResponseBusyShow          = gSavedPerAccountSettings.getBOOL("BusyModeResponseShow");
 
     //Spam --------------------------------------------------------------------------------
 	mEnableAS                       = gSavedSettings.getBOOL("AntiSpamEnabled");
@@ -335,83 +326,78 @@ void LLPrefsAscentChat::refreshValues()
 // Update controls based on current settings
 void LLPrefsAscentChat::refresh()
 {
-    //Chat --------------------------------------------------------------------------------
-    // time format combobox
-    LLComboBox* combo = getChild<LLComboBox>("time_format_combobox");
-    if (combo)
-    {
-        combo->setCurrentByIndex(mTimeFormat);
-    }
+	//Chat --------------------------------------------------------------------------------
+	// time format combobox
+	if (mTimeFormat != -1)
+	{
+		if (auto combo = getChild<LLComboBox>("time_format_combobox"))
+		{
+			combo->setCurrentByIndex(mTimeFormat);
+		}
+	}
 
-    // date format combobox
-    combo = getChild<LLComboBox>("date_format_combobox");
-    if (combo)
-    {
-        combo->setCurrentByIndex(mDateFormat);
-    }
+	// date format combobox
+	if (mDateFormat != -1)
+	{
+		if (auto combo = getChild<LLComboBox>("date_format_combobox"))
+		{
+			combo->setCurrentByIndex(mDateFormat);
+		}
+	}
 
 	//Chat UI -----------------------------------------------------------------------------
-	if (combo = getChild<LLComboBox>("chat_tabs_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("chat_tabs_namesystem_combobox"))
 		combo->setCurrentByIndex(mChatTabNames);
-	if (combo = getChild<LLComboBox>("friends_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("friends_namesystem_combobox"))
 		combo->setCurrentByIndex(mFriendNames);
-	if (combo = getChild<LLComboBox>("group_members_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("group_members_namesystem_combobox"))
 		combo->setCurrentByIndex(mGroupMembersNames);
-	if (combo = getChild<LLComboBox>("land_management_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("land_management_namesystem_combobox"))
 		combo->setCurrentByIndex(mLandManagementNames);
-	if (combo = getChild<LLComboBox>("radar_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("radar_namesystem_combobox"))
 		combo->setCurrentByIndex(mRadarNames);
-	if (combo = getChild<LLComboBox>("speaker_namesystem_combobox"))
+	if (auto combo = getChild<LLComboBox>("speaker_namesystem_combobox"))
 		combo->setCurrentByIndex(mSpeakerNames);
 
     //Text Options ------------------------------------------------------------------------
-    combo = getChild<LLComboBox>("SpellBase");
-
-    if (combo != NULL) 
+    if (auto combo = getChild<LLComboBox>("SpellBase"))
     {
         combo->removeall();
-        std::vector<std::string> names = glggHunSpell->getDicts();
 
-        for (int i = 0; i < (int)names.size(); i++) 
+        for (const auto& name : glggHunSpell->getDicts())
         {
-            combo->add(names[i]);
+            combo->add(name);
         }
 
         combo->setSimple(gSavedSettings.getString("SpellBase"));
     }
 
-    combo = getChild<LLComboBox>("EmSpell_Avail");
-
-    if (combo != NULL) 
+    if (auto combo = getChild<LLComboBox>("EmSpell_Avail"))
     {
         combo->removeall();
 
-        combo->add("");
-        std::vector<std::string> names = glggHunSpell->getAvailDicts();
+        combo->add(LLStringUtil::null);
 
-        for (int i = 0; i < (int)names.size(); i++) 
+        for (const auto& name : glggHunSpell->getAvailDicts())
         {
-            combo->add(names[i]);
+            combo->add(name);
         }
 
-        combo->setSimple(std::string(""));
+        combo->setSimple(LLStringUtil::null);
     }
 
-    combo = getChild<LLComboBox>("EmSpell_Installed");
-
-    if (combo != NULL) 
+    if (auto combo = getChild<LLComboBox>("EmSpell_Installed"))
     {
         combo->removeall();
 
-        combo->add("");
-        std::vector<std::string> names = glggHunSpell->getInstalledDicts();
+        combo->add(LLStringUtil::null);
 
-        for (int i = 0; i < (int)names.size(); i++) 
+        for (const auto& name : glggHunSpell->getInstalledDicts())
         {
-            combo->add(names[i]);
+            combo->add(name);
         }
 
-        combo->setSimple(std::string(""));
+        combo->setSimple(LLStringUtil::null);
     }
 
     childSetEnabled("KeywordsList",        mKeywordsOn);
@@ -453,45 +439,7 @@ void LLPrefsAscentChat::cancel()
     gSavedSettings.setBOOL("SecondsInChatAndIMs",                  mSecondsInChatAndIMs);
     gSavedSettings.setBOOL("SecondsInLog",                         mSecondsInLog);
 
-    std::string short_date, long_date, short_time, long_time, timestamp;
-
-    if (mTimeFormat == 0)
-    {
-        short_time = "%H:%M";
-        long_time  = "%H:%M:%S";
-        timestamp  = " %H:%M:%S";
-    }
-    else
-    {
-        short_time = "%I:%M %p";
-        long_time  = "%I:%M:%S %p";
-        timestamp  = " %I:%M %p";
-    }
-
-    if (mDateFormat == 0)
-    {
-        short_date = "%Y-%m-%d";
-        long_date  = "%A %d %B %Y";
-        timestamp  = "%a %d %b %Y" + timestamp;
-    }
-    else if (mDateFormat == 1)
-    {
-        short_date = "%d/%m/%Y";
-        long_date  = "%A %d %B %Y";
-        timestamp  = "%a %d %b %Y" + timestamp;
-    }
-    else
-    {
-        short_date = "%m/%d/%Y";
-        long_date  = "%A, %B %d %Y";
-        timestamp  = "%a %b %d %Y" + timestamp;
-    }
-
-    gSavedSettings.setString("ShortDateFormat", short_date);
-    gSavedSettings.setString("LongDateFormat",  long_date);
-    gSavedSettings.setString("ShortTimeFormat", short_time);
-    gSavedSettings.setString("LongTimeFormat",  long_time);
-    gSavedSettings.setString("TimestampFormat", timestamp);
+	setTimeDateFormats(mTimeFormat, mDateFormat);
 
 	//Chat UI -----------------------------------------------------------------------------
 	gSavedSettings.setBOOL("WoLfVerticalIMTabs",                   mWoLfVerticalIMTabs);
@@ -510,16 +458,35 @@ void LLPrefsAscentChat::cancel()
 	gSavedSettings.setS32("FriendNameSystem",                      mFriendNames);
 	gSavedSettings.setS32("GroupMembersNameSystem",                mGroupMembersNames);
 	gSavedSettings.setS32("LandManagementNameSystem",              mLandManagementNames);
+	gSavedSettings.setS32("ProfileNameSystem",                     mProfileNames);
 	gSavedSettings.setS32("RadarNameSystem",                       mRadarNames);
 	gSavedSettings.setS32("SpeakerNameSystem",                     mSpeakerNames);
 
 	//Autoresponse ------------------------------------------------------------------------
-	gSavedPerAccountSettings.setString("AutoresponseAnyoneItemID",      mIMResponseAnyoneItemID);
-	gSavedPerAccountSettings.setString("AutoresponseNonFriendsItemID",  mIMResponseNonFriendsItemID);
-	gSavedPerAccountSettings.setString("AutoresponseMutedItemID",       mIMResponseMutedItemID);
-	gSavedPerAccountSettings.setString("BusyModeResponseItemID",        mIMResponseBusyItemID);
+	gSavedPerAccountSettings.setBOOL("AscentInstantMessageResponseRepeat", mIMResponseRepeat);
+	gSavedPerAccountSettings.setBOOL("AutoresponseOnlyIfAway",             mIMResponseAway);
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyone",                 mIMResponseAnyone);
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneFriendsOnly",      mIMResponseAnyoneFriends);
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneItem",             mIMResponseAnyoneItem);
+	gSavedPerAccountSettings.setString("AutoresponseAnyoneItemID",         mIMResponseAnyoneItemID);
+	gSavedPerAccountSettings.setString("AutoresponseAnyoneMessage",        mIMResponseAnyoneMessage);
+	gSavedPerAccountSettings.setBOOL("AutoresponseAnyoneShow",             mIMResponseAnyoneShow);
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriends",             mIMResponseNonFriends);
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsItem",         mIMResponseNonFriendsItem);
+	gSavedPerAccountSettings.setString("AutoresponseNonFriendsItemID",     mIMResponseNonFriendsItemID);
+	gSavedPerAccountSettings.setString("AutoresponseNonFriendsMessage",    mIMResponseNonFriendsMessage);
+	gSavedPerAccountSettings.setBOOL("AutoresponseNonFriendsShow",         mIMResponseNonFriendsShow);
+	gSavedPerAccountSettings.setBOOL("AutoresponseMuted",                  mIMResponseMuted);
+	gSavedPerAccountSettings.setBOOL("AutoresponseMutedItem",              mIMResponseMutedItem);
+	gSavedPerAccountSettings.setString("AutoresponseMutedItemID",          mIMResponseMutedItemID);
+	gSavedPerAccountSettings.setString("AutoresponseMutedMessage",         mIMResponseMutedMessage);
+	gSavedPerAccountSettings.setBOOL("AutoresponseMutedShow",              mIMResponseMutedShow);
+	gSavedPerAccountSettings.setBOOL("BusyModeResponseItem",               mIMResponseBusyItem);
+	gSavedPerAccountSettings.setString("BusyModeResponseItemID",           mIMResponseBusyItemID);
+	gSavedPerAccountSettings.setString("BusyModeResponse",                 mIMResponseBusyMessage);
+	gSavedPerAccountSettings.setBOOL("BusyModeResponseShow",               mIMResponseBusyShow);
 
-    //Spam --------------------------------------------------------------------------------
+	//Spam --------------------------------------------------------------------------------
 	gSavedSettings.setBOOL("AntiSpamEnabled",                mEnableAS);
     gSavedSettings.setBOOL("_NACL_AntiSpamGlobalQueue",      mGlobalQueue);
     gSavedSettings.setU32("_NACL_AntiSpamAmount",            mChatSpamCount);

@@ -529,12 +529,7 @@ void LLPanelGroupNotices::showNotice(const std::string& subject,
 	arrangeNoticeView(VIEW_PAST_NOTICE);
 
 	if(mViewSubject) mViewSubject->setText(subject);
-	if (mViewMessage) {
-		// We need to prune the highlights, and clear() is not doing it...
-		mViewMessage->removeTextFromEnd(mViewMessage->getMaxLength());
-		// Now we append the new text (setText() won't highlight URLs)
-		mViewMessage->appendColoredText(message, false, false, mViewMessage->getReadOnlyFgColor());
-	}
+	if (mViewMessage) mViewMessage->setText(message, false);
 	
 	if (mInventoryOffer)
 	{

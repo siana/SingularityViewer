@@ -25,9 +25,8 @@
  */
 
 #include "linden_common.h"
-#include "llapp.h"
 
-#include <cstdlib>
+#include "llapp.h"
 
 #ifdef LL_DARWIN
 #include <sys/types.h>
@@ -45,7 +44,6 @@
 #include "llstl.h" // for DeletePointer()
 #include "llstring.h"
 #include "lleventtimer.h"
-#include "exception_handler.h"
 
 //
 // Signal handling
@@ -53,34 +51,16 @@
 // Windows uses structured exceptions, so it's handled a bit differently.
 //
 #if LL_WINDOWS
-#include "windows.h"
+#include <windows.h>
 
 LONG WINAPI default_windows_exception_handler(struct _EXCEPTION_POINTERS *exception_infop);
 BOOL ConsoleCtrlHandler(DWORD fdwCtrlType);
-bool windows_post_minidump_callback(const wchar_t* dump_path,
-									const wchar_t* minidump_id,
-									void* context,
-									EXCEPTION_POINTERS* exinfo,
-									MDRawAssertionInfo* assertion,
-									bool succeeded);
 #else
 # include <signal.h>
 # include <unistd.h> // for fork()
 # include "apr_signal.h" // for apr_signal_description_get(int signum)
 void setup_signals();
 void default_unix_signal_handler(int signum, siginfo_t *info, void *);
-
-#if LL_LINUX
-#include "client/linux/handler/minidump_descriptor.h"
-static bool unix_minidump_callback(const google_breakpad::MinidumpDescriptor& minidump_desc, 
-                                   void* context, 
-                                   bool succeeded);
-#else
-// Called by breakpad exception handler after the minidump has been generated.
-bool unix_post_minidump_callback(const char *dump_dir,
-					  const char *minidump_id,
-					  void *context, bool succeeded);
-#endif
 
 # if LL_DARWIN
 /* OSX doesn't support SIGRT* */
@@ -98,7 +78,7 @@ S32 LL_HEARTBEAT_SIGNAL = (SIGRTMAX >= 0) ? (SIGRTMAX-0) : SIGUSR2;
 #endif // LL_WINDOWS
 
 // the static application instance
-LLApp* LLApp::sApplication = NULL;
+LLApp* LLApp::sApplication = nullptr;
 
 // Allows the generation of core files for post mortem under gdb
 // and disables crashlogger
@@ -110,7 +90,7 @@ BOOL LLApp::sLogInSignal = FALSE;
 
 // static
 LLApp::EAppStatus LLApp::sStatus = LLApp::APP_STATUS_STOPPED; // Keeps track of application status
-LLAppErrorHandler LLApp::sErrorHandler = NULL;
+LLAppErrorHandler LLApp::sErrorHandler = nullptr;
 BOOL LLApp::sErrorThreadRunning = FALSE;
 #if !LL_WINDOWS
 LLApp::child_map LLApp::sChildMap;
@@ -119,12 +99,11 @@ LLAppChildCallback LLApp::sDefaultChildCallback = NULL;
 #endif
 
 
-LLApp::LLApp() : mThreadErrorp(NULL)
+LLApp::LLApp()
+	: mThreadErrorp(nullptr)
 {
 	commonCtor();
 }
-
-static void* sCrashLoggerReserve = NULL;
 
 void LLApp::commonCtor()
 {
@@ -150,33 +129,10 @@ void LLApp::commonCtor()
 	// Set the application to this instance.
 	sApplication = this;
 
-	mExceptionHandler = 0;
-
-#if LL_WINDOWS
-	sCrashLoggerReserve = VirtualAlloc(NULL, 512*1024, MEM_COMMIT|MEM_RESERVE, PAGE_NOACCESS);
-#else
-	sCrashLoggerReserve = malloc(512*1024);
-#endif
-	
 	// initialize the buffer to write the minidump filename to
 	// (this is used to avoid allocating memory in the crash handler)
-	memset(mMinidumpPath, 0, MAX_MINDUMP_PATH_LENGTH);
 	mCrashReportPipeStr = L"\\\\.\\pipe\\LLCrashReporterPipe";
 }
-
-#if LL_WINDOWS
-static bool clear_CrashLoggerReserve_callback(void* context, EXCEPTION_POINTERS* exinfo, MDRawAssertionInfo* assertion)
-{
-	VirtualFree(sCrashLoggerReserve, 0, MEM_RELEASE);
-	return true;
-}
-#else
-static bool clear_CrashLoggerReserve_callback(void* context)
-{
-	free(sCrashLoggerReserve);
-	return true;
-}
-#endif
 
 LLApp::LLApp(LLErrorThread *error_thread) :
 	mThreadErrorp(error_thread)
@@ -198,11 +154,9 @@ LLApp::~LLApp()
 	if (mThreadErrorp)
 	{
 		delete mThreadErrorp;
-		mThreadErrorp = NULL;
+		mThreadErrorp = nullptr;
 	}
 	
-	if(mExceptionHandler != 0) delete mExceptionHandler;
-
 	LLCommon::cleanupClass();
 }
 
@@ -216,8 +170,8 @@ LLApp* LLApp::instance()
 LLSD LLApp::getOption(const std::string& name) const
 {
 	LLSD rv;
-	LLSD::array_const_iterator iter = mOptions.beginArray();
-	LLSD::array_const_iterator end = mOptions.endArray();
+    auto iter = mOptions.beginArray();
+    auto end = mOptions.endArray();
 	for(; iter != end; ++iter)
 	{
 		rv = (*iter)[name];
@@ -264,9 +218,9 @@ bool LLApp::parseCommandOptions(int argc, char** argv)
 
 #if LL_WINDOWS
 		//Windows changed command line parsing.  Deal with it.
-		S32 slen = value.length() - 1;
-		S32 start = 0;
-		S32 end = slen;
+		size_t slen = value.length() - 1;
+		size_t start = 0;
+		size_t end = slen;
 		if (argv[ii][start]=='"')start++;
 		if (argv[ii][end]=='"')end--;
 		if (start!=0 || end!=slen) 
@@ -311,99 +265,49 @@ LLSD LLApp::getOptionData(OptionPriority level)
 	return mOptions[level];
 }
 
+#if LL_WINDOWS
+//The following code is needed for 32-bit apps on 64-bit windows to keep it from eating
+//crashes.   It is a lovely undocumented 'feature' in SP1 of Windows 7. An excellent
+//in-depth article on the issue may be found here:  http://randomascii.wordpress.com/2012/07/05/when-even-crashing-doesn-work/
+void EnableCrashingOnCrashes()
+{
+	typedef BOOL (WINAPI *tGetPolicy)(LPDWORD lpFlags);
+	typedef BOOL (WINAPI *tSetPolicy)(DWORD dwFlags);
+	const DWORD EXCEPTION_SWALLOWING = 0x1;
+
+	HMODULE kernel32 = LoadLibraryA("kernel32.dll");
+	tGetPolicy pGetPolicy = (tGetPolicy)GetProcAddress(kernel32,
+		"GetProcessUserModeExceptionPolicy");
+	tSetPolicy pSetPolicy = (tSetPolicy)GetProcAddress(kernel32,
+		"SetProcessUserModeExceptionPolicy");
+	if (pGetPolicy && pSetPolicy)
+	{
+		DWORD dwFlags;
+		if (pGetPolicy(&dwFlags))
+		{
+			// Turn off the filter
+			pSetPolicy(dwFlags & ~EXCEPTION_SWALLOWING);
+		}
+	}
+}
+#endif
+
 void LLApp::setupErrorHandling()
 {
 	// Error handling is done by starting up an error handling thread, which just sleeps and
 	// occasionally checks to see if the app is in an error state, and sees if it needs to be run.
 
-#if LL_WINDOWS
-	// Windows doesn't have the same signal handling mechanisms as UNIX, thus APR doesn't provide
-	// a signal handling thread implementation.
-	// What we do is install an unhandled exception handler, which will try to do the right thing
-	// in the case of an error (generate a minidump)
-
-#if LL_SEND_CRASH_REPORTS
-	// This sets a callback to handle w32 signals to the console window.
-	// The viewer shouldn't be affected, sicne its a windowed app.
-	SetConsoleCtrlHandler( (PHANDLER_ROUTINE) ConsoleCtrlHandler, TRUE);
-
-	// Install the Google Breakpad crash handler for Windows
-	if(mExceptionHandler == 0)
-	{
-		mExceptionHandler = new google_breakpad::ExceptionHandler(
-			std::wstring(mDumpPath.begin(),mDumpPath.end()), //Dump path
-			clear_CrashLoggerReserve_callback,
-			windows_post_minidump_callback, 
-			0, 
-			google_breakpad::ExceptionHandler::HANDLER_ALL);
-		if (mExceptionHandler)
-		{
-			mExceptionHandler->set_handle_debug_exceptions(true);
-		}
-	}
-#endif
-#else
+#if !LL_WINDOWS
 	//
 	// Start up signal handling.
 	//
 	// There are two different classes of signals.  Synchronous signals are delivered to a specific
 	// thread, asynchronous signals can be delivered to any thread (in theory)
 	//
-
 	setup_signals();
-	
-	// Add google breakpad exception handler configured for Darwin/Linux.
-	bool installHandler = true;
-#if LL_DARWIN
-	// For the special case of Darwin, we do not want to install the handler if
-	// the process is being debugged as the app will exit with value ABRT (6) if
-	// we do.  Unfortunately, the code below which performs that test relies on
-	// the structure kinfo_proc which has been tagged by apple as an unstable
-	// API.  We disable this test for shipping versions to avoid conflicts with
-	// future releases of Darwin.  This test is really only needed for developers
-	// starting the app from a debugger anyway.
-	#ifndef LL_RELEASE_FOR_DOWNLOAD
-    int mib[4];
-	mib[0] = CTL_KERN;
-	mib[1] = KERN_PROC;
-	mib[2] = KERN_PROC_PID;
-	mib[3] = getpid();
-	
-	struct kinfo_proc info;
-	memset(&info, 0, sizeof(info));
-	
-	size_t size = sizeof(info);
-	int result = sysctl(mib, sizeof(mib) / sizeof(*mib), &info, &size, NULL, 0);
-	if((result == 0) || (errno == ENOMEM))
-	{
-		// P_TRACED flag is set, so this process is being debugged; do not install
-		// the handler
-		if(info.kp_proc.p_flag & P_TRACED) installHandler = false;
-	}
-	else
-	{
-		// Failed to discover if the process is being debugged; default to
-		// installing the handler.
-		installHandler = true;
-	}
-
-	if(installHandler && (mExceptionHandler == 0))
-	{
-		mExceptionHandler = new google_breakpad::ExceptionHandler(mDumpPath, clear_CrashLoggerReserve_callback, &unix_post_minidump_callback, 0, true, 0);
-	}
-	#endif
-#elif LL_LINUX
-	if(installHandler && (mExceptionHandler == 0))
-	{
-		if (mDumpPath.empty())
-		{
-			mDumpPath = "/tmp";
-		}
-		google_breakpad::MinidumpDescriptor desc(mDumpPath);
-		mExceptionHandler = new google_breakpad::ExceptionHandler(desc, clear_CrashLoggerReserve_callback, unix_minidump_callback, NULL, true, -1);
-	}
-#endif
-
+#endif // ! LL_WINDOWS
+#if !defined(USE_CRASHPAD)
+	startErrorThread();
 #endif
 }
 
@@ -441,7 +345,6 @@ void LLApp::setErrorHandler(LLAppErrorHandler handler)
 	LLApp::sErrorHandler = handler;
 }
 
-
 // static
 void LLApp::runErrorHandler()
 {
@@ -453,7 +356,6 @@ void LLApp::runErrorHandler()
 	//LL_INFOS() << "App status now STOPPED" << LL_ENDL;
 	LLApp::setStopped();
 }
-
 
 // static
 void LLApp::setStatus(EAppStatus status)
@@ -469,41 +371,10 @@ void LLApp::setError()
 	setStatus(APP_STATUS_ERROR);
 }
 
-void LLApp::setMiniDumpDir(const std::string &path)
-{
-	if (path.empty())
-	{
-		mDumpPath = "/tmp";
-	}
-	else
-	{
-		mDumpPath = path;
-	}
-
-	if(mExceptionHandler == 0) return;
-#ifdef LL_WINDOWS
-	wchar_t buffer[MAX_MINDUMP_PATH_LENGTH];
-	mbstowcs(buffer, mDumpPath.c_str(), MAX_MINDUMP_PATH_LENGTH);
-	mExceptionHandler->set_dump_path(std::wstring(buffer));
-#elif LL_LINUX
-        //google_breakpad::MinidumpDescriptor desc("/tmp");	//path works in debug fails in production inside breakpad lib so linux gets a little less stack reporting until it is patched.
-        google_breakpad::MinidumpDescriptor desc(mDumpPath);	//path works in debug fails in production inside breakpad lib so linux gets a little less stack reporting until it is patched.
-	mExceptionHandler->set_minidump_descriptor(desc);
-#else
-	mExceptionHandler->set_dump_path(mDumpPath);
-#endif
-}
-
 void LLApp::setDebugFileNames(const std::string &path)
 {
   	mStaticDebugFileName = path + "static_debug_info.log";
   	mDynamicDebugFileName = path + "dynamic_debug_info.log";
-}
-
-void LLApp::writeMiniDump()
-{
-	if(mExceptionHandler == 0) return;
-	mExceptionHandler->WriteMinidump();
 }
 
 // static
@@ -560,13 +431,6 @@ bool LLApp::isExiting()
 
 void LLApp::disableCrashlogger()
 {
-	// Disable Breakpad exception handler.
-	if (mExceptionHandler != 0)
-	{
-		delete mExceptionHandler;
-		mExceptionHandler = 0;
-	}
-
 	sDisableCrashlogger = TRUE;
 }
 
@@ -634,12 +498,6 @@ LONG WINAPI default_windows_exception_handler(struct _EXCEPTION_POINTERS *except
 	{
 		ms_sleep(10);
 	}
-
-	//
-	// Generate a minidump if we can.
-	//
-	// TODO: This needs to be ported over form the viewer-specific
-	// LLWinDebug class
 
 	//
 	// At this point, we always want to exit the app.  There's no graceful
@@ -940,150 +798,4 @@ void default_unix_signal_handler(int signum, siginfo_t *info, void *)
 		}
 	}
 }
-
-#if LL_LINUX
-bool unix_minidump_callback(const google_breakpad::MinidumpDescriptor& minidump_desc, void* context, bool succeeded)
-{
-	// Copy minidump file path into fixed buffer in the app instance to avoid
-	// heap allocations in a crash handler.
-	
-	// path format: <dump_dir>/<minidump_id>.dmp
-	
-	//HACK:  *path points to the buffer in getMiniDumpFilename which has already allocated space
-	//to avoid doing allocation during crash.
-	char * path = LLApp::instance()->getMiniDumpFilename();
-	int dir_path_len = strlen(path);
-	
-	// The path must not be truncated.
-	S32 remaining =  LLApp::MAX_MINDUMP_PATH_LENGTH - dir_path_len;
-
-	llassert( (remaining - strlen(minidump_desc.path())) > 5);
-	
-	path += dir_path_len;
-
-	if (dir_path_len > 0 && path[-1] != '/')
-	{
-		*path++ = '/';
-		--remaining;
-	}
-
-	strncpy(path, minidump_desc.path(), remaining);
-	
-	LL_INFOS() << "generated minidump: " << LLApp::instance()->getMiniDumpFilename() << LL_ENDL;
-	LLApp::runErrorHandler();
-	
-#ifndef LL_RELEASE_FOR_DOWNLOAD
-	clear_signals();
-	return false;
-#else
-	return true;
-#endif
-
-}
-#endif
-
-
-bool unix_post_minidump_callback(const char *dump_dir,
-					  const char *minidump_id,
-					  void *context, bool succeeded)
-{
-	// Copy minidump file path into fixed buffer in the app instance to avoid
-	// heap allocations in a crash handler.
-	
-	// path format: <dump_dir>/<minidump_id>.dmp
-	int dirPathLength = strlen(dump_dir);
-	int idLength = strlen(minidump_id);
-	
-	// The path must not be truncated.
-	llassert((dirPathLength + idLength + 5) <= LLApp::MAX_MINDUMP_PATH_LENGTH);
-	
-	char * path = LLApp::instance()->getMiniDumpFilename();
-	S32 remaining = LLApp::MAX_MINDUMP_PATH_LENGTH;
-	strncpy(path, dump_dir, remaining);
-	remaining -= dirPathLength;
-	path += dirPathLength;
-	if (remaining > 0 && dirPathLength > 0 && path[-1] != '/')
-	{
-		*path++ = '/';
-		--remaining;
-	}
-	if (remaining > 0)
-	{
-		strncpy(path, minidump_id, remaining);
-		remaining -= idLength;
-		path += idLength;
-		strncpy(path, ".dmp", remaining);
-	}
-	
-	LL_INFOS() << "generated minidump: " << path << LL_ENDL;
-	LLApp::runErrorHandler();
-	
-#ifndef LL_RELEASE_FOR_DOWNLOAD
-	clear_signals();
-	return false;
-#else
-	return true;
-#endif
-}
 #endif // !WINDOWS
-
-#ifdef LL_WINDOWS
-bool windows_post_minidump_callback(const wchar_t* dump_path,
-									const wchar_t* minidump_id,
-									void* context,
-									EXCEPTION_POINTERS* exinfo,
-									MDRawAssertionInfo* assertion,
-									bool succeeded)
-{
-	char * path = LLApp::instance()->getMiniDumpFilename();
-	S32 remaining = LLApp::MAX_MINDUMP_PATH_LENGTH;
-	size_t bytesUsed;
-
-	bytesUsed = wcstombs(path, dump_path, static_cast<size_t>(remaining));
-	remaining -= bytesUsed;
-	path += bytesUsed;
-	if(remaining > 0 && bytesUsed > 0 && path[-1] != '\\')
-	{
-		*path++ = '\\';
-		--remaining;
-	}
-	if(remaining > 0)
-	{
-		bytesUsed = wcstombs(path, minidump_id, static_cast<size_t>(remaining));
-		remaining -= bytesUsed;
-		path += bytesUsed;
-	}
-	if(remaining > 0)
-	{
-		strncpy(path, ".dmp", remaining);
-	}
-
-	LL_INFOS() << "generated minidump: " << LLApp::instance()->getMiniDumpFilename() << LL_ENDL;
-   // *NOTE:Mani - this code is stolen from LLApp, where its never actually used.
-	//OSMessageBox("Attach Debugger Now", "Error", OSMB_OK);
-   // *TODO: Translate the signals/exceptions into cross-platform stuff
-	// Windows implementation
-	LL_INFOS() << "Entering Windows Exception Handler..." << LL_ENDL;
-
-	if (LLApp::isError())
-	{
-		LL_WARNS() << "Got another fatal signal while in the error handler, die now!" << LL_ENDL;
-	}
-
-	// Flag status to error, so thread_error starts its work
-	LLApp::setError();
-
-	// Block in the exception handler until the app has stopped
-	// This is pretty sketchy, but appears to work just fine
-	while (!LLApp::isStopped())
-	{
-		ms_sleep(10);
-	}
-
-#ifndef LL_RELEASE_FOR_DOWNLOAD
-	return false;
-#else
-	return true;
-#endif
-}
-#endif

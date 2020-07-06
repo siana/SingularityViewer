@@ -12,10 +12,10 @@
       <check_box label="Pivote l'avatar quand on marche en arriere" tool_tip="Certains AO peuvent empecher la fontion." name="turn_around"/>
       <check_box label="Préviens quand quelqu'un prend une photo" tool_tip="Sauf si la personne a elle même choisi le mode silencieux." name="announce_snapshots"/>
       <check_box label="Annonce les titres des chansons dans le chat local" tool_tip="" name="announce_stream_metadata"/>
-      <check_box label="Garder les menus flottants opaques en arrière plan (Cliquer une fois en 1er plan pour activer)" tool_tip="peux poser des conflits avec certains thèmes (skin viewers)." name="unfocused_floaters_opaque"/>
-      <check_box label="Montrer les noms complets : display + ancient names dans les profils" tool_tip="Ne fonctionnera pas si les display sont désactivés dans le menu général." name="complete_name_profiles"/>
       <check_box label="Garder les scripts en premier plan quand ils ne peuvent pas être compilés suite a une erreur" name="script_errors_steal_focus"/>
       <check_box label="Se connecter aux régions voisines" name="connect_to_neighbors"/>
+      <check_box label="Reduit automatiquement la notice de redémarrage de la sim" name="region_restart_minimized"/>
+      <text name="UISndRestartText">Alerte sonore du redémarrage:</text>
     </panel>
     <panel label="Tags/Couleurs" name="TagsColors">
       <!-- Client tag options -->

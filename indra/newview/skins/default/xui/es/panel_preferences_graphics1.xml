@@ -191,12 +191,13 @@
 				<combo_item name="VSyncAdaptive">Adaptiva</combo_item>
 			</combo_box>
 			<spinner label="Memoria p/ Texturas (MB):" name="GrapicsCardTextureMemory" tool_tip="Cantidad de memoria asignada a las texturas. Por defecto es la memoria de la tarjeta de vídeo. Reducir esta cantidad puede mejorar el rendimiento, pero también puede hacer que las texturas se vean borrosas."/>
+			<check_box bottom_delta="-50" label="Activar compresión de Texturas(requiere reinicio)" name="compressed_textures" tool_tip="Activado reduce el consumo de memoria de GPU a expensas de su calidad en el mundo."/>
 			<check_box  label="Activar OpenGL Vertex Buffer Objects" name="vbo" tool_tip="Habilitar esta opción en hardware moderno puede proporcionar una mejora en el rendimiento. Sin embargo, el hardware antiguo ofrece una pobre implementación de VBOs y puede causar fallos cuando esta opcíon esté activada."/>
 			<check_box label="Activar Flujo VBOs" name="vbo_stream" tool_tip="Desactivar esta opción puede mejorar el rendimiento cuando se habilita VBO. Desactivarlo produce una mejora visible en diversas GPUs de AMD."/>
 			<check_box label="Activar OpenGL Frame Buffer Objects" name="fbo" tool_tip="Habilitar esta opción en hardware moderno puede proporcionar una mejora en el rendimiento. Sin embargo, si se habilita en combinación con el antialiasing en GPUs de AMD pueden causar problemas de mezcla de texturas. Este ajuste es necesario para renderizado diferido."/>
 			<spinner label="Gama:" name="gamma" width="202" tool_tip="(brillo, más bajo es mayor brlilo)"/>
-			<spinner label="Intensidad de la niebla:" name="fog"/>
-			<text name="note">
+			<spinner label="Intensidad de la niebla:" name="fog" bottom_delta="40" />
+			<text name="note"  bottom_delta="-10" >
 				Nota: Las configuraciones de Gama e 
 Intensidad de la Niebla no están disponibles 
 cuando se activan las Sombras de la Atmósfera.

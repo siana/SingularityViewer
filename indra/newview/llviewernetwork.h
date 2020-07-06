@@ -63,7 +63,7 @@ public:
 
 private:
 	//void parseCommandLineURIs();
-	bool mNameEditted;	// Set if the user edits/sets the First or Last name field.
+	bool mNameEditted = false;	// Set if the user edits/sets the First or Last name field.
 };
 
 

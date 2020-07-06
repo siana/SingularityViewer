@@ -35,7 +35,7 @@
 LLQueuedThread::LLQueuedThread(const std::string& name, bool threaded, bool should_pause) :
 	LLThread(name),
 	mThreaded(threaded),
-	mIdleThread(TRUE),
+	mIdleThread(true),
 	mNextHandle(0),
 	mStarted(FALSE)
 {
@@ -552,14 +552,15 @@ void LLQueuedThread::run()
 			break;
 		}
 
-		mIdleThread = FALSE;
+		mIdleThread = false;
 
 		threadedUpdate();
 		
-		int res = processNextRequest();
-		if (res == 0)
+		int pending_work = processNextRequest();
+
+		if (pending_work == 0)
 		{
-			mIdleThread = TRUE;
+			mIdleThread = true;
 			ms_sleep(1);
 		}
 		//LLThread::yield(); // thread should yield after each request		

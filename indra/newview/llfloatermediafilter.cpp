@@ -77,11 +77,11 @@ void LLFloaterMediaFilter::updateLists(LLMediaFilter::EMediaList list_type)
 	const LLMediaFilter::string_list_t& list = white ? inst.getWhiteList() : inst.getBlackList();
 	LLScrollListCtrl* scroll(white ? mWhitelist : mBlacklist);
 	scroll->clearRows();
-	for (LLMediaFilter::string_list_t::const_iterator itr = list.begin(); itr != list.end(); ++itr)
+	for (const auto& value : list)
 	{
 		LLSD element;
 		element["columns"][0]["column"] = "list";
-		element["columns"][0]["value"] = (*itr);
+		element["columns"][0]["value"] = value;
 		scroll->addElement(element);
 	}
 	enableButton(getChildView(white ? "remove_whitelist" : "remove_blacklist"), scroll);
@@ -103,9 +103,9 @@ void LLFloaterMediaFilter::onRemoveFromList(bool white)
 {
 	std::vector<LLScrollListItem*> selected = (white ? mWhitelist : mBlacklist)->getAllSelected();
 	LLMediaFilter::string_vec_t domains;
-	for (std::vector<LLScrollListItem*>::iterator itr = selected.begin(); itr != selected.end(); ++itr)
+	for (auto* item : selected)
 	{
-		domains.push_back((*itr)->getColumn(0)->getValue().asString());
+		domains.push_back(item->getColumn(0)->getValue().asString());
 	}
 	LLMediaFilter::getInstance()->removeFromMediaList(domains, white ? LLMediaFilter::WHITELIST : LLMediaFilter::BLACKLIST);
 }

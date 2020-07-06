@@ -29,14 +29,13 @@
 #define LL_LLSDPARAM_H
 
 #include "llinitparam.h"
-#include "boost/function.hpp"
 #include "llfasttimer.h"
 
 struct LL_COMMON_API LLParamSDParserUtilities
 {
 	static LLSD& getSDWriteNode(LLSD& input, LLInitParam::Parser::name_stack_range_t& name_stack_range);
 
-	typedef boost::function<void (const LLSD&, LLInitParam::Parser::name_stack_t&)> read_sd_cb_t;
+	typedef std::function<void (const LLSD&, LLInitParam::Parser::name_stack_t&)> read_sd_cb_t;
 	static void readSDValues(read_sd_cb_t cb, const LLSD& sd, LLInitParam::Parser::name_stack_t& stack);
 	static void readSDValues(read_sd_cb_t cb, const LLSD& sd);
 };
@@ -66,6 +65,7 @@ public:
 	}
 
 	/*virtual*/ std::string getCurrentElementName();
+	/*virtual*/ std::string getCurrentFileName(){ return LLStringUtil::null; }
 
 private:
 	void writeSDImpl(LLSD& sd, 
@@ -106,11 +106,10 @@ private:
 	Parser::name_stack_t	mNameStack;
 	const LLSD*				mCurReadSD;
 	LLSD*					mWriteRootSD;
-	LLSD*					mCurWriteSD;
 };
 
 
-extern LL_COMMON_API LLFastTimer::DeclareTimer FTM_SD_PARAM_ADAPTOR;
+extern LL_COMMON_API LLTrace::BlockTimerStatHandle FTM_SD_PARAM_ADAPTOR;
 template<typename T>
 class LLSDParamAdapter : public T
 {
@@ -118,7 +117,7 @@ public:
 	LLSDParamAdapter() {}
 	LLSDParamAdapter(const LLSD& sd)
 	{
-		LLFastTimer _(FTM_SD_PARAM_ADAPTOR);
+		LL_RECORD_BLOCK_TIME(FTM_SD_PARAM_ADAPTOR);
 		LLParamSDParser parser;
 		// don't spam for implicit parsing of LLSD, as we want to allow arbitrary freeform data and ignore most of it
 		bool parse_silently = true;

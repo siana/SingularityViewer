@@ -31,7 +31,6 @@
 
 // library includes
 #include "message.h"
-#include "metapropertyt.h"
 #include "llsd.h"
 
 ///----------------------------------------------------------------------------
@@ -572,17 +571,143 @@ void LLPermissions::unpackMessage(LLMessageSystem* msg, const char* block, S32 b
 
 BOOL LLPermissions::importFile(LLFILE* fp)
 {
-	llifstream ifs(fp);
-	return importStream(ifs);
+	init(LLUUID::null, LLUUID::null, LLUUID::null, LLUUID::null);
+	const S32 BUFSIZE = 16384;
+
+	// *NOTE: Changing the buffer size will require changing the scanf
+	// calls below.
+	char buffer[BUFSIZE];	/* Flawfinder: ignore */
+	char keyword[256];	/* Flawfinder: ignore */
+	char valuestr[256];	/* Flawfinder: ignore */
+	char uuid_str[256];	/* Flawfinder: ignore */
+	U32 mask;
+
+	keyword[0]  = '\0';
+	valuestr[0] = '\0';
+
+	while (!feof(fp))
+	{
+		if (fgets(buffer, BUFSIZE, fp) == NULL)
+		{
+			buffer[0] = '\0';
+		}
+		
+		sscanf( /* Flawfinder: ignore */
+			buffer,
+			" %255s %255s",
+			keyword, valuestr);
+		if (!strcmp("{", keyword))
+		{
+			continue;
+		}
+		if (!strcmp("}",keyword))
+		{
+			break;
+		}
+		else if (!strcmp("creator_mask", keyword))
+		{
+			// legacy support for "creator" masks
+			sscanf(valuestr, "%x", &mask);
+			mMaskBase = mask;
+			fixFairUse();
+		}
+		else if (!strcmp("base_mask", keyword))
+		{
+			sscanf(valuestr, "%x", &mask);
+			mMaskBase = mask;
+			//fixFairUse();
+		}
+		else if (!strcmp("owner_mask", keyword))
+		{
+			sscanf(valuestr, "%x", &mask);
+			mMaskOwner = mask;
+		}
+		else if (!strcmp("group_mask", keyword))
+		{
+			sscanf(valuestr, "%x", &mask);
+			mMaskGroup = mask;
+		}
+		else if (!strcmp("everyone_mask", keyword))
+		{
+			sscanf(valuestr, "%x", &mask);
+			mMaskEveryone = mask;
+		}
+		else if (!strcmp("next_owner_mask", keyword))
+		{
+			sscanf(valuestr, "%x", &mask);
+			mMaskNextOwner = mask;
+		}
+		else if (!strcmp("creator_id", keyword))
+		{
+			sscanf(valuestr, "%255s", uuid_str); /* Flawfinder: ignore */
+			mCreator.set(uuid_str);
+		}
+		else if (!strcmp("owner_id", keyword))
+		{
+			sscanf(valuestr, "%255s", uuid_str); /* Flawfinder: ignore */
+			mOwner.set(uuid_str);
+		}
+		else if (!strcmp("last_owner_id", keyword))
+		{
+			sscanf(valuestr, "%255s", uuid_str); /* Flawfinder: ignore */
+			mLastOwner.set(uuid_str);
+		}
+		else if (!strcmp("group_id", keyword))
+		{
+			sscanf(valuestr, "%255s", uuid_str); /* Flawfinder: ignore */
+			mGroup.set(uuid_str);
+		}
+		else if (!strcmp("group_owned", keyword))
+		{
+			sscanf(valuestr, "%d", &mask);
+			if(mask) mIsGroupOwned = true;
+			else mIsGroupOwned = false;
+		}
+		else
+		{
+			LL_INFOS() << "unknown keyword " << keyword << " in permissions import" << LL_ENDL;
+		}
+	}
+	fix();
+	return TRUE;
 }
+
 
 BOOL LLPermissions::exportFile(LLFILE* fp) const
 {
-	llofstream ofs(fp);
-	return exportStream(ofs);
+	std::string uuid_str;
+
+	fprintf(fp, "\tpermissions 0\n");
+	fprintf(fp, "\t{\n");
+
+	fprintf(fp, "\t\tbase_mask\t%08x\n",		mMaskBase);
+	fprintf(fp, "\t\towner_mask\t%08x\n",		mMaskOwner);
+	fprintf(fp, "\t\tgroup_mask\t%08x\n",		mMaskGroup);
+	fprintf(fp, "\t\teveryone_mask\t%08x\n",	mMaskEveryone);
+	fprintf(fp, "\t\tnext_owner_mask\t%08x\n",	mMaskNextOwner);
+
+	mCreator.toString(uuid_str);
+	fprintf(fp, "\t\tcreator_id\t%s\n",			uuid_str.c_str());
+
+	mOwner.toString(uuid_str);
+	fprintf(fp, "\t\towner_id\t%s\n",			uuid_str.c_str());
+
+	mLastOwner.toString(uuid_str);
+	fprintf(fp, "\t\tlast_owner_id\t%s\n",		uuid_str.c_str());
+
+	mGroup.toString(uuid_str);
+	fprintf(fp, "\t\tgroup_id\t%s\n",			uuid_str.c_str());
+
+	if(mIsGroupOwned)
+	{
+		fprintf(fp, "\t\tgroup_owned\t1\n");
+	}
+	fprintf(fp,"\t}\n");
+	return TRUE;
 }
 
-BOOL LLPermissions::importStream(std::istream& input_stream)
+
+BOOL LLPermissions::importLegacyStream(std::istream& input_stream)
 {
 	init(LLUUID::null, LLUUID::null, LLUUID::null, LLUUID::null);
 	const S32 BUFSIZE = 16384;
@@ -601,18 +726,6 @@ BOOL LLPermissions::importStream(std::istream& input_stream)
 	while (input_stream.good())
 	{
 		input_stream.getline(buffer, BUFSIZE);
-		if (input_stream.eof())
-		{
-			LL_WARNS() << "Bad permissions: early end of input stream"
-					<< LL_ENDL;
-			return FALSE;
-		}
-		if (input_stream.fail())
-		{
-			LL_WARNS() << "Bad permissions: failed to read from input stream"
-					<< LL_ENDL;
-			return FALSE;
-		}
 		sscanf( /* Flawfinder: ignore */
 			buffer,
 			" %255s %255s",
@@ -695,26 +808,36 @@ BOOL LLPermissions::importStream(std::istream& input_stream)
 }
 
 
-BOOL LLPermissions::exportStream(std::ostream& output_stream) const
+BOOL LLPermissions::exportLegacyStream(std::ostream& output_stream) const
 {
-	if (!output_stream.good()) return FALSE;
+	std::string uuid_str;
+
 	output_stream <<  "\tpermissions 0\n";
 	output_stream <<  "\t{\n";
 
-	char prev_fill = output_stream.fill('0');
-	output_stream << std::hex;
-	output_stream << "\t\tbase_mask\t" << std::setw(8) << mMaskBase << "\n";
-	output_stream << "\t\towner_mask\t" << std::setw(8) << mMaskOwner << "\n";
-	output_stream << "\t\tgroup_mask\t" << std::setw(8) << mMaskGroup << "\n";
-	output_stream << "\t\teveryone_mask\t" << std::setw(8) << mMaskEveryone << "\n";
-	output_stream << "\t\tnext_owner_mask\t" << std::setw(8) << mMaskNextOwner << "\n";
-	output_stream << std::dec;
-	output_stream.fill(prev_fill);
+	std::string buffer;
+	buffer = llformat( "\t\tbase_mask\t%08x\n",		mMaskBase);
+	output_stream << buffer;
+	buffer = llformat( "\t\towner_mask\t%08x\n",		mMaskOwner);
+	output_stream << buffer;
+	buffer = llformat( "\t\tgroup_mask\t%08x\n",		mMaskGroup);
+	output_stream << buffer;
+	buffer = llformat( "\t\teveryone_mask\t%08x\n",	mMaskEveryone);
+	output_stream << buffer;
+	buffer = llformat( "\t\tnext_owner_mask\t%08x\n",	mMaskNextOwner);
+	output_stream << buffer;
 
-	output_stream <<  "\t\tcreator_id\t" << mCreator << "\n";
-	output_stream <<  "\t\towner_id\t" << mOwner << "\n";
-	output_stream <<  "\t\tlast_owner_id\t" << mLastOwner << "\n";
-	output_stream <<  "\t\tgroup_id\t" << mGroup << "\n";
+	mCreator.toString(uuid_str);
+	output_stream <<  "\t\tcreator_id\t" << uuid_str << "\n";
+
+	mOwner.toString(uuid_str);
+	output_stream <<  "\t\towner_id\t" << uuid_str << "\n";
+
+	mLastOwner.toString(uuid_str);
+	output_stream <<  "\t\tlast_owner_id\t" << uuid_str << "\n";
+
+	mGroup.toString(uuid_str);
+	output_stream <<  "\t\tgroup_id\t" << uuid_str << "\n";
 
 	if(mIsGroupOwned)
 	{
@@ -770,21 +893,6 @@ std::ostream& operator<<(std::ostream &s, const LLPermissions &perm)
 	s << ", NextOwnerMask=0x" << perm.getMaskNextOwner() << std::dec;
 	s << "}";
 	return s;
-}
-
-template <>
-void LLMetaClassT<LLPermissions>::reflectProperties(LLMetaClass& meta_class)
-{
-	reflectProperty(meta_class, "mCreator", &LLPermissions::mCreator);
-	reflectProperty(meta_class, "mOwner", &LLPermissions::mOwner);
-	reflectProperty(meta_class, "mGroup", &LLPermissions::mGroup);
-	reflectProperty(meta_class, "mIsGroupOwned", &LLPermissions::mIsGroupOwned);
-}
-
-// virtual
-const LLMetaClass& LLPermissions::getMetaClass() const
-{
-	return LLMetaClassT<LLPermissions>::instance();
 }
 
 ///----------------------------------------------------------------------------
@@ -1021,7 +1129,7 @@ void mask_to_string(U32 mask, char* str)
 	else
 	{
 		*str = ' ';
-	}	
+	}
 	str++;
 
 	if (mask & PERM_EXPORT)

@@ -2,7 +2,7 @@
 <mimetypes name="default">
 	<defaultlabel>(unbekannt)</defaultlabel>
 	<defaultwidget>keine</defaultwidget>
-	<defaultimpl>media_plugin_webkit</defaultimpl>
+	<defaultimpl>media_plugin_cef</defaultimpl>
 	<widgetset name="web">
 		<label name="web_label">Webinhalt</label>
 		<icon>icn_media_web.tga</icon>
@@ -47,12 +47,12 @@
 	<mimetype name="blank">
 		<label name="blank_label">- Keine -</label>
 		<widgettype>keine</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="none/none">
 		<label name="none/none_label">- Keine -</label>
 		<widgettype>keine</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="audio/*">
 		<label name="audio2_label">Audio</label>
@@ -67,7 +67,7 @@
 	<mimetype name="image/*">
 		<label name="image2_label">Bild</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="video/vnd.secondlife.qt.legacy">
 		<label name="vnd.secondlife.qt.legacy_label">Video (QuickTime)</label>
@@ -77,7 +77,7 @@
 	<mimetype name="application/javascript">
 		<label name="application/javascript_label">Javascript</label>
 		<widgettype>Web</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/ogg">
 		<label name="application/ogg_label">Ogg Audio/Video</label>
@@ -87,32 +87,32 @@
 	<mimetype name="application/pdf">
 		<label name="application/pdf_label">PDF-Dokument</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/postscript">
 		<label name="application/postscript_label">Postscript-Dokument</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/rtf">
 		<label name="application/rtf_label">Rich Text (RTF)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/smil">
 		<label name="application/smil_label">Synchronized Multimedia Integration Language (SMIL)</label>
 		<widgettype>Film</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/xhtml+xml">
 		<label name="application/xhtml+xml_label">Webseite (XHTML)</label>
 		<widgettype>Web</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="application/x-director">
 		<label name="application/x-director_label">Macromedia Director</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="audio/mid">
 		<label name="audio/mid_label">Audio (MIDI)</label>
@@ -137,47 +137,47 @@
 	<mimetype name="image/bmp">
 		<label name="image/bmp_label">Bild (BMP)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="image/gif">
 		<label name="image/gif_label">Bild (GIF)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="image/jpeg">
 		<label name="image/jpeg_label">Bild (JPEG)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="image/png">
 		<label name="image/png_label">Bild (PNG)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="image/svg+xml">
 		<label name="image/svg+xml_label">Bild (SVG)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="image/tiff">
 		<label name="image/tiff_label">Bild (TIFF)</label>
 		<widgettype>Bild</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="text/html">
 		<label name="text/html_label">Webseite</label>
 		<widgettype>Web</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="text/plain">
 		<label name="text/plain_label">Text</label>
 		<widgettype>text</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="text/xml">
 		<label name="text/xml_label">XML</label>
 		<widgettype>text</widgettype>
-		<impl>media_plugin_webkit</impl>
+		<impl>media_plugin_cef</impl>
 	</mimetype>
 	<mimetype name="video/mpeg">
 		<label name="video/mpeg_label">Video (MPEG)</label>

@@ -36,10 +36,14 @@
 #include "llcontrol.h"
 #include "llfloater.h"
 
+class LLControlVariable;
+class LLColorSwatchCtrl;
 class LLScrollListCtrl;
+class LLSpinCtrl;
 class LLTextEditor;
+class LLUICtrl;
 
-class LLFloaterSettingsDebug
+class LLFloaterSettingsDebug final
 :	public LLFloater
 ,	public LLSingleton<LLFloaterSettingsDebug>
 {
@@ -47,8 +51,8 @@ public:
 	LLFloaterSettingsDebug();
 	virtual ~LLFloaterSettingsDebug();
 
-	virtual BOOL postBuild();
-	virtual void draw();
+	BOOL postBuild() override;
+	void draw() override;
 
 	void updateControl();
 
@@ -64,6 +68,7 @@ public:
 private:
 	// returns a pointer to the currently selected control variable, or NULL
 	LLControlVariable* getControlVariable();
+	void addRow(LLControlVariable* control, const std::string& searchTerm = LLStringUtil::null);
 
 protected:
 	typedef std::map<std::string,LLControlVariable*> settings_map_t;
@@ -72,11 +77,19 @@ protected:
 
 	std::string mOldSearchTerm;
 	LLControlVariable* mCurrentControlVariable;
-	LLControlVariable* mOldControlVariable;
 	bool mOldVisibility;
 
 	LLScrollListCtrl* mSettingsScrollList;
+	LLSpinCtrl* mValSpinner1;
+	LLSpinCtrl* mValSpinner2;
+	LLSpinCtrl* mValSpinner3;
+	LLSpinCtrl* mValSpinner4;
+	LLColorSwatchCtrl* mValColor;
+	LLUICtrl* mValBool;
+	LLUICtrl* mValText;
 	LLTextEditor* mComment;
+	LLView*	mBtnCopy;
+	LLView* mBtnDefault;
 };
 
 #endif //LLFLOATERDEBUGSETTINGS_H

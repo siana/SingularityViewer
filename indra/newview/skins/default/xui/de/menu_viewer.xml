@@ -5,7 +5,7 @@
     <menu_item_call label="Sound ([UPLOADFEE])..." name="Upload Sound"/>
     <menu_item_call label="Animation ([UPLOADFEE])..." name="Upload Animation"/>
 	<menu_item_call label="Mesh hochladen" name="Upload Mesh"/>
-    <menu_item_call label="Massen ([UPLOADFEE] je Datei)..." name="Bulk Upload"/>
+    <menu_item_call label="Massen (je Datei)..." name="Bulk Upload"/>
 	<menu_item_call label="Importiere XML" name="Import"/>
 	<menu_item_call label="Importiere mit Texturen" name="Import2"/>
 	<menu_item_call label="Ändere lokale Texturen" name="Change Local Textures"/>
@@ -241,7 +241,6 @@
 		<menu_item_separator label="-----------" name="separator3"/>
 		<menu_item_call label="Missbrauch melden..." name="Report Abuse..."/>
 		<menu_item_call label="Rempler, Stöße und Schläge..." name="Bumps, Pushes &amp;amp; Hits..."/>
-		<menu_item_call label="Lag-Anzeige" name="Lag Meter"/>
 		<menu_item_separator label="-----------" name="separator7"/>
 		<menu label="Fehlermeldungen" name="Bug Reporting">
 			<menu_item_call label="Allgemeiner Probleme-Tracker..." name="Public Issue Tracker..."/>

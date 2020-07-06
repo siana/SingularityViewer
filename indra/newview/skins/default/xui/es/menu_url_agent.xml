@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<context_menu label="Usuario" name="Url Popup">
+	<menu_item_call label="Enviar MI..." name="send_im"/>
+	<menu label="Acciones" name="Actions">
+		<menu_item_call label="Perfil" name="show_agent"/>
+		<menu_item_call label="Perfil Web" name="Web Profile"/>
+		<menu_item_call label="Pagar" name="Pay"/>
+		<menu_item_call label="Llamar" name="Call"/>
+		<menu_item_call label="Agregar Contacto..." name="add_friend"/>
+		<menu_item_call label="Remover Contacto..." name="remove_friend"/>
+		<menu_item_call label="Copiar el nombre al portapapeles" name="url_copy_label"/>
+		<menu_item_call label="Invitar a Grupo" name="Invite To Group"/>
+		<menu_item_call label="Ofrecer Teleporte" name="Offer Teleport"/>
+		<menu_item_call label="Teleporte a" name="Teleport To"/>
+		<menu_item_call label="Solicitar Teleporte" name="Request Teleport"/>
+		<menu_item_call label="Compartir" name="Share"/>
+		<menu_item_call label="Historial de Chat" name="Chat History"/>
+		<menu_item_call label="Rastrear/Dejar de Rastrear" name="Track/Untrack"/>
+		<menu_item_call label="Enfocar" name="Focus"/>
+	</menu>
+	<menu_item_call label="Copiar Nombre al portapapeles" name="url_copy_label"/>
+	<menu_item_call label="Copiar SLURL al portapapeles" name="url_copy"/>
+	<menu_item_call label="Copiar UUID al Portapapeles" name="key_copy"/>
+	<menu_item_call label="Seleccionar Todo" name="Select All"/>
+	<menu label="Moderación" name="Moderation">
+		<menu_item_call label="Ignorar" name="Mute"/>
+		<menu_item_call label="Dejar de ignorar" name="Unmute"/>
+		<menu_item_call label="Prohibir en el Grupo" name="Ban From Group"/>
+		<menu_item_call label="Denunciar una infracción" name="Report Abuse"/>
+		<menu_item_call label="Congelar" name="Freeze"/>
+		<menu_item_call label="Expulsar/Prohibir en la Parcela" name="Eject/Ban from Parcel"/>
+		<menu_item_call label="Expulsar del estado" name="Eject from estate"/>
+		<menu_item_call label="Expulsar y prohibir del estado" name="Eject and ban from estate"/>
+  </menu>		
+</context_menu>

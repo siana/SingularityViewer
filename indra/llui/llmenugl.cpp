@@ -70,10 +70,9 @@
 using namespace LLOldEvents;
 
 // static
-LLMenuHolderGL *LLMenuGL::sMenuContainer = NULL;
+LLMenuHolderGL *LLMenuGL::sMenuContainer = nullptr;
 
 S32 MENU_BAR_HEIGHT = 0;
-S32 MENU_BAR_WIDTH = 0;
 
 ///============================================================================
 /// Local function declarations, constants, enums, and typedefs
@@ -258,7 +257,7 @@ BOOL LLMenuItemGL::handleRightMouseUp(S32 x, S32 y, MASK mask)
 // if not, it will be added to the list
 BOOL LLMenuItemGL::addToAcceleratorList(std::list <LLKeyBinding*> *listp)
 {
-	LLKeyBinding *accelerator = NULL;
+	LLKeyBinding *accelerator = nullptr;
 
 	if (mAcceleratorKey != KEY_NONE)
 	{
@@ -268,19 +267,37 @@ BOOL LLMenuItemGL::addToAcceleratorList(std::list <LLKeyBinding*> *listp)
 			accelerator = *list_it;
 			if ((accelerator->mKey == mAcceleratorKey) && (accelerator->mMask == (mAcceleratorMask & MASK_NORMALKEYS)))
 			{
+
+			// *NOTE: get calling code to throw up warning or route
+			// warning messages back to app-provided output
+			//	std::string warning;
+			//	warning.append("Duplicate key binding <");
+			//	appendAcceleratorString( warning );
+			//	warning.append("> for menu items:\n    ");
+			//	warning.append(accelerator->mName);
+			//	warning.append("\n    ");
+			//	warning.append(mLabel);
+
+			//	LL_WARNS() << warning << LL_ENDL;
+			//	LLAlertDialog::modalAlert(warning);
 				return FALSE;
 			}
 		}
 		if (!accelerator)
 		{				
-			accelerator = new LLKeyBinding;
-			if (accelerator)
+			try
 			{
+				accelerator = new LLKeyBinding;
 				accelerator->mKey = mAcceleratorKey;
 				accelerator->mMask = (mAcceleratorMask & MASK_NORMALKEYS);
 // 				accelerator->mName = mLabel;
+				listp->push_back(accelerator);//addData(accelerator);
 			}
-			listp->push_back(accelerator);//addData(accelerator);
+			catch (const std::bad_alloc& e)
+			{
+				LL_WARNS() << "Failed to allocate memory for keybinding with exception: " << e.what() << LL_ENDL;
+				return FALSE;
+			}
 		}
 	}
 	return TRUE;
@@ -675,16 +692,17 @@ BOOL LLMenuItemSeparatorGL::handleHover(S32 x, S32 y, MASK mask)
 // This class represents a vertical separator.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class LLMenuItemVerticalSeparatorGL
+class LLMenuItemVerticalSeparatorGL final
 :	public LLMenuItemSeparatorGL
 {
 public:
-	LLMenuItemVerticalSeparatorGL( void );
+	LLMenuItemVerticalSeparatorGL(const std::string& name = LLStringUtil::null);
 
-	virtual BOOL handleMouseDown(S32 x, S32 y, MASK mask) { return FALSE; }
+	BOOL handleMouseDown(S32 x, S32 y, MASK mask) override { return FALSE; }
 };
 
-LLMenuItemVerticalSeparatorGL::LLMenuItemVerticalSeparatorGL( void )
+LLMenuItemVerticalSeparatorGL::LLMenuItemVerticalSeparatorGL(const std::string& name)
+: LLMenuItemSeparatorGL(name)
 {
 	setLabel( VERTICAL_SEPARATOR_LABEL );
 }
@@ -733,7 +751,7 @@ LLFloater* LLMenuItemTearOffGL::getParentFloater()
 		}
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 void LLMenuItemTearOffGL::onCommit()
@@ -809,15 +827,15 @@ U32 LLMenuItemTearOffGL::getNominalHeight( void ) const
 // This class represents a blank, non-functioning item.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class LLMenuItemBlankGL : public LLMenuItemGL
+class LLMenuItemBlankGL final : public LLMenuItemGL
 {
 public:
-	LLMenuItemBlankGL( void ) :	LLMenuItemGL( LLStringUtil::null, LLStringUtil::null )
+	LLMenuItemBlankGL(const std::string& name = LLStringUtil::null) : LLMenuItemGL(name, LLStringUtil::null)
 	{
 		setEnabled(FALSE);
 	}
-	virtual void onCommit( void ) {}
-	virtual void draw( void ) {}
+	void onCommit() override {}
+	void draw() override {}
 };
 
 
@@ -1509,11 +1527,18 @@ void LLMenuItemBranchGL::openMenu()
 		branch->localPointToOtherView( 0, 0, &x, &y, branch->getParent() ); 
 		
 		F32 center_y = top - (getRect().getHeight() / 2.f);
+
 		if( y < menu_region_rect.mBottom  && center_y <= menu_region_rect.getCenterY())
 		{
 			// open upwards if menu extends past bottom
 			// adjust by the height of the menu item branch since it is a submenu
-			delta_y = branch_rect.getHeight() - getRect().getHeight();		
+			delta_y = branch_rect.getHeight() - getRect().getHeight();
+			// Singu: Handle menu clipping off the top of the screen too.
+			if ( branch_rect.mTop + delta_y > menu_region_rect.mTop )
+			{
+				delta_y -= branch_rect.mTop + delta_y - menu_region_rect.mTop;
+				delta_y -= delta_y % getRect().getHeight();
+			}
 		}
 
 		if( x + branch_rect.getWidth() > menu_region_rect.mRight )
@@ -2084,13 +2109,13 @@ LLXMLNodePtr LLMenuGL::getXML(bool save_children) const
 	return node;
 }
 
-void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory *factory)
+void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent)
 {
 	std::string name(child->getName()->mString);
 	if (child->hasName(LL_MENU_GL_TAG))
 	{
 		// SUBMENU
-		LLMenuGL *submenu = (LLMenuGL*)LLMenuGL::fromXML(child, parent, factory);
+		LLMenuGL *submenu = (LLMenuGL*)LLMenuGL::fromXML(child, parent, LLUICtrlFactory::getInstance());
 		appendMenu(submenu);
 		if (LLMenuGL::sMenuContainer != NULL)
 		{
@@ -2168,7 +2193,7 @@ void LLMenuGL::parseChildXML(LLXMLNodePtr child, LLView *parent, LLUICtrlFactory
 		{
 			mask |= MASK_SHIFT;
 		}
-		S32 pipe_pos = shortcut.rfind("|");
+		S32 pipe_pos = shortcut.rfind('|');
 		std::string key_str = shortcut.substr(pipe_pos+1);
 
 		KEY key = KEY_NONE;
@@ -2446,63 +2471,80 @@ BOOL LLMenuGL::isOpen()
 	}
 }
 // static
-LLView* LLMenuGL::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
+LLView* LLMenuGL::fromXML(LLXMLNodePtr node, LLView* parent, LLUICtrlFactory* factory)
 {
 	std::string name("menu");
 	node->getAttributeString("name", name);
 
-	std::string label = name;
-	node->getAttributeString("label", label);
+	LLMenuGL* menu = new LLMenuGL(name);
 
-	LLStringUtil::format(label, LLTrans::getDefaultArgs());
-
-	// parse jump key out of label
-	std::string new_menu_label;
-
-	typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
-	boost::char_separator<char> sep("_");
-	tokenizer tokens(label, sep);
-	tokenizer::iterator token_iter;
-
-	KEY jump_key = KEY_NONE;
-	S32 token_count = 0;
-	for( token_iter = tokens.begin(); token_iter != tokens.end(); ++token_iter)
+	// Menus can be extended using filename
+	if (node->hasAttribute("filename"))
 	{
-		new_menu_label += (*token_iter);
-		if (token_count > 0)
+		std::string filename;
+		node->getAttributeString("filename", filename);
+		LLXMLNodePtr root;
+		LLUICtrlFactory::getLayeredXMLNode(filename, root);
+		menu->initMenuXML(root, parent);
+	}
+	menu->initMenuXML(node, parent);
+
+	return menu;
+}
+
+void LLMenuGL::initMenuXML(LLXMLNodePtr node, LLView* parent)
+{
+	std::string label;
+	if (node->getAttributeString("label", label))
+	{
+		LLStringUtil::format(label, LLTrans::getDefaultArgs());
+
+		// parse jump key out of label
+		std::string new_menu_label;
+
+		typedef boost::tokenizer<boost::char_separator<char>> tokenizer;
+		boost::char_separator<char> sep("_");
+
+		KEY jump_key = KEY_NONE;
+		S32 token_count = 0;
+		for (auto token : tokenizer(label, sep))
 		{
-			jump_key = (*token_iter).c_str()[0];
+			new_menu_label += token;
+			if (token_count > 0)
+			{
+				jump_key = token.front();
+			}
+			++token_count;
 		}
-		++token_count;
+
+		setLabel(new_menu_label);
+		setJumpKey(jump_key);
 	}
 
 	BOOL opaque = TRUE;
 	node->getAttributeBOOL("opaque", opaque);
 
-	LLMenuGL *menu = new LLMenuGL(name, new_menu_label);
-
 	bool b(false);
 	node->getAttribute_bool("scrollable", b);
-	menu->setScrollable(b);
+	setScrollable(b);
 
-	menu->setJumpKey(jump_key);
 
 	BOOL tear_off = FALSE;
 	node->getAttributeBOOL("tear_off", tear_off);
-	menu->setCanTearOff(tear_off);
+	setCanTearOff(tear_off);
 
 	if (node->hasAttribute("drop_shadow"))
 	{
 		BOOL drop_shadow = FALSE;
 		node->getAttributeBOOL("drop_shadow", drop_shadow);
-		menu->setDropShadowed(drop_shadow);
+		setDropShadowed(drop_shadow);
 	}
 
-	menu->setBackgroundVisible(opaque);
+	setBackgroundVisible(opaque);
 	LLColor4 color(0,0,0,1);
 	if (opaque && LLUICtrlFactory::getAttributeColor(node,"color", color))
 	{
-		menu->setBackgroundColor(color);
+		setBackgroundColor(color);
 	}
 
 	BOOL create_jump_keys = FALSE;
@@ -2511,14 +2553,13 @@ LLView* LLMenuGL::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *fa
 	LLXMLNodePtr child;
 	for (child = node->getFirstChild(); child.notNull(); child = child->getNextSibling())
 	{
-		menu->parseChildXML(child, parent, factory);
+		parseChildXML(child, parent);
 	}
 
 	if (create_jump_keys)
 	{
-		menu->createJumpKeys();
+		createJumpKeys();
 	}
-	return menu;
 }
 
 
@@ -3126,12 +3167,7 @@ void LLMenuGL::erase( S32 begin, S32 end, bool arrange/* = true*/)
 	item_list_t::iterator end_position = mItems.begin();
 	std::advance(end_position, end);
 
-	for (item_list_t::iterator position_iter = start_position; position_iter != end_position; position_iter++)
-	{
-		LLUICtrl::removeChild(*position_iter);
-	}
-
-	mItems.erase(start_position, end_position);
+	erase(start_position, end_position);
 
 	if (arrange)
 	{
@@ -3153,7 +3189,7 @@ void LLMenuGL::insert(S32 position, LLView* ctrl, bool arrange /*= true*/)
 	std::advance(position_iter, position);
 	insert(position_iter, item, arrange);
 }
-void LLMenuGL::insert(item_list_t::iterator position_iter, LLMenuItemGL* item, bool arrange /*= true*/)
+void LLMenuGL::insert(item_list_t::const_iterator position_iter, LLMenuItemGL* item, bool arrange /*= true*/)
 {
 	mItems.insert(position_iter, item);
 	LLUICtrl::addChild(item);
@@ -3203,9 +3239,9 @@ BOOL LLMenuGL::append( LLMenuItemGL* item )
 }
 
 // add a separator to this menu
-BOOL LLMenuGL::addSeparator()
+BOOL LLMenuGL::addSeparator(const std::string& name)
 {
-	LLMenuItemGL* separator = new LLMenuItemSeparatorGL();
+	LLMenuItemGL* separator = new LLMenuItemSeparatorGL(name);
 	return addChild(separator);
 }
 
@@ -3290,11 +3326,6 @@ void LLMenuGL::setDropShadowed( const BOOL shadowed )
 void LLMenuGL::setTornOff(BOOL torn_off)
 { 
 	mTornOff = torn_off;
-}
-
-U32 LLMenuGL::getItemCount()
-{
-	return mItems.size();
 }
 
 LLMenuItemGL* LLMenuGL::getItem(S32 number)
@@ -4157,10 +4188,10 @@ S32 LLMenuBarGL::getRightmostMenuEdge()
 }
 
 // add a vertical separator to this menu
-BOOL LLMenuBarGL::addSeparator()
+BOOL LLMenuBarGL::addSeparator(const std::string& name)
 {
-	LLMenuItemGL* separator = new LLMenuItemVerticalSeparatorGL();
-	return append( separator );
+	LLMenuItemGL* separator = new LLMenuItemVerticalSeparatorGL(name);
+	return append(separator);
 }
 
 // add a menu - this will create a drop down menu.
@@ -4502,7 +4533,7 @@ void LLTearOffMenu::draw()
 	if (getRect().getHeight() != mTargetHeight)
 	{
 		// animate towards target height
-		reshape(getRect().getWidth(), llceil(lerp((F32)getRect().getHeight(), mTargetHeight, LLCriticalDamp::getInterpolant(0.05f))));
+		reshape(getRect().getWidth(), llceil(lerp((F32)getRect().getHeight(), mTargetHeight, LLSmoothInterpolation::getInterpolant(0.05f))));
 	}
 	LLFloater::draw();
 }
@@ -4751,7 +4782,7 @@ void LLContextMenu::initXML(LLXMLNodePtr node, LLView *context, LLUICtrlFactory 
 		}
 		else
 		{
-			parseChildXML(child, context, factory);
+			parseChildXML(child, context);
 		}
 	}
 }
@@ -4866,7 +4897,7 @@ void LLContextMenu::hide()
 	{
 		mHoverItem->setHighlight( FALSE );
 	}
-	mHoverItem = NULL;
+	mHoverItem = nullptr;
 }
 
 
@@ -4976,7 +5007,11 @@ bool LLContextMenu::addChild(LLView* view, S32 tab_group)
 	if (LLContextMenu* context = dynamic_cast<LLContextMenu*>(view))
 		return appendContextSubMenu(context);
 	if (LLMenuItemGL* item = dynamic_cast<LLMenuItemGL*>(view))
+	{
+		if (!mItems.empty() && mItems.back()->getType() == "separator" && item->getType() == "separator") // Singu TODO: Profile this? Does it matter?
+			item->setVisible(false);
 		return append(item);
+	}
 	if (LLMenuGL* menu = dynamic_cast<LLMenuGL*>(view))
 		return appendMenu(menu);
 	return false;
@@ -5017,7 +5052,7 @@ LLPieMenu::LLPieMenu(const std::string& name, const std::string& label)
 // Separators on pie menus are invisible
 bool LLPieMenu::addChild(LLView* view, S32 tab_group)
 {
-	if (LLContextMenu::addChild(view, tab_group))
+	if (LLContextMenu::addChild(view, tab_group) && view->getVisible())
 	{
 		LLMenuItemSeparatorGL* sep = dynamic_cast<LLMenuItemSeparatorGL*>(view);
 		if(sep)
@@ -5235,30 +5270,30 @@ void LLPieMenu::draw()
 		mHoverIndex = -1;
 	}
 
-	F32 width = (F32) getRect().getWidth();
-	F32 height = (F32) getRect().getHeight();
-	mCurRadius = PIE_SCALE_FACTOR * llmax( width/2, height/2 );
+	const auto& rect = getRect();
+	// correct for non-square pixels
+	F32 center_x = ((F32) rect.getWidth())/2;
+	F32 center_y = ((F32) rect.getHeight())/2;
+	constexpr S32 steps = 100;
+	mCurRadius = PIE_SCALE_FACTOR * llmax(center_x, center_y);
 
 	mOuterRingAlpha = mUseInfiniteRadius ? 0.f : 1.f;
 	if (mShrinkBorderTimer.getStarted())
 	{
-		mOuterRingAlpha = clamp_rescale(mShrinkBorderTimer.getElapsedTimeF32(), 0.f, PIE_SHRINK_TIME, 0.f, 1.f);
-		mCurRadius *= clamp_rescale(mShrinkBorderTimer.getElapsedTimeF32(), 0.f, PIE_SHRINK_TIME, 1.f, 1.f / PIE_SCALE_FACTOR);
+		const auto& elapsed = mShrinkBorderTimer.getElapsedTimeF32();
+		mOuterRingAlpha = clamp_rescale(elapsed, 0.f, PIE_SHRINK_TIME, 0.f, 1.f);
+		mCurRadius *= clamp_rescale(elapsed, 0.f, PIE_SHRINK_TIME, 1.f, 1.f / PIE_SCALE_FACTOR);
 	}
 
-	// correct for non-square pixels
-	F32 center_x = width/2;
-	F32 center_y = height/2;
-	S32 steps = 100;
 
 	gGL.pushUIMatrix();
 	{
 		gGL.translateUI(center_x, center_y, 0.f);
 
-		F32 line_width = LLUI::sConfigGroup->getF32("PieMenuLineWidth");
-		LLColor4 line_color = LLUI::sColorsGroup->getColor("PieMenuLineColor");
-		LLColor4 bg_color = LLUI::sColorsGroup->getColor("PieMenuBgColor");
-		LLColor4 selected_color = LLUI::sColorsGroup->getColor("PieMenuSelectedColor");
+		static const LLUICachedControl<F32> line_width("PieMenuLineWidth");
+		static const LLCachedControl<LLColor4> line_color(*LLUI::sColorsGroup, "PieMenuLineColor");
+		static const LLCachedControl<LLColor4> bg_color(*LLUI::sColorsGroup, "PieMenuBgColor");
+		static const LLCachedControl<LLColor4> selected_color(*LLUI::sColorsGroup, "PieMenuSelectedColor");
 
 		// main body
 		LLColor4 outer_color = bg_color;
@@ -5268,7 +5303,7 @@ void LLPieMenu::draw()
 		// selected wedge
 		if (mHoverItem)
 		{
-			F32 arc_size = F_PI * 0.25f;
+			constexpr F32 arc_size = F_PI * 0.25f;
 
 			F32 start_radians = (mHoverIndex * arc_size) - (arc_size * 0.5f);
 			F32 end_radians = start_radians + arc_size;
@@ -5286,7 +5321,7 @@ void LLPieMenu::draw()
 		gl_washer_spokes_2d( mCurRadius, (F32)PIE_CENTER_SIZE, 8, line_color, outer_color );
 
 		// inner circle
-		gGL.color4fv( line_color.mV );
+		gGL.color4fv( line_color().mV );
 		gl_circle_2d( 0, 0, (F32)PIE_CENTER_SIZE, steps, FALSE );
 
 		// outer circle
@@ -5317,9 +5352,9 @@ BOOL LLPieMenu::append(LLMenuItemGL *item)
 }
 
 // virtual
-BOOL LLPieMenu::addSeparator()
+BOOL LLPieMenu::addSeparator(const std::string& name)
 {
-	return append( new LLMenuItemBlankGL() );
+	return append(new LLMenuItemBlankGL(name));
 }
 
 // virtual

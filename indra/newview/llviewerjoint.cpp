@@ -48,14 +48,13 @@ LLViewerJoint::LLViewerJoint() :
 	LLAvatarJoint()
 { }
 
-LLViewerJoint::LLViewerJoint(const std::string &name, LLJoint *parent) :
-	LLAvatarJoint(name, parent)
-{ }
-
 LLViewerJoint::LLViewerJoint(S32 joint_num) :
 	LLAvatarJoint(joint_num)
 { }
 
+LLViewerJoint::LLViewerJoint(const std::string &name, LLJoint *parent) :
+	LLAvatarJoint(name, parent)
+{ }
 
 //-----------------------------------------------------------------------------
 // ~LLViewerJoint()
@@ -99,7 +98,7 @@ U32 LLViewerJoint::render( F32 pixelArea, BOOL first_pass, BOOL is_dummy )
 			if ((pixelArea > MIN_PIXEL_AREA_3PASS_HAIR))
 			{
 				// render all three passes
-				LLGLDisable cull(GL_CULL_FACE);
+				LLGLDisable<GL_CULL_FACE> cull;
 				// first pass renders without writing to the z buffer
 				{
 					LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);

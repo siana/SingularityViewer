@@ -65,7 +65,7 @@
 #include "rlvhandler.h"
 // [/RLVa:KB]
 
-#include <boost/foreach.hpp>
+#include <boost/range/adaptor/reversed.hpp>
 
 //
 // Globals
@@ -244,7 +244,7 @@ void LLOverlayBar::layoutButtons()
 	{
 		U32 button_count = 0;
 		const child_list_t& view_list = *(mStateManagementContainer->getChildList());
-		BOOST_FOREACH(LLView* viewp, view_list)
+		for (LLView* viewp : view_list)
 		{
 			if(!viewp->getEnabled())
 				continue;
@@ -264,7 +264,7 @@ void LLOverlayBar::layoutButtons()
 		S32 left = 0;
 		S32 bottom = 1;
 
-		BOOST_REVERSE_FOREACH(LLView* viewp, view_list)
+		for (LLView* viewp : boost::adaptors::reverse(view_list))
 		{
 			if(!viewp->getEnabled())
 				continue;
@@ -324,7 +324,7 @@ void LLOverlayBar::refresh()
 	}
 	buttons_changed |= updateButtonVisiblity(mNotBusy, gAgent.isDoNotDisturb()) != NULL;
 	buttons_changed |= updateButtonVisiblity(mFlyCam,LLViewerJoystick::getInstance()->getOverrideCamera()) != NULL;
-	buttons_changed |= updateButtonVisiblity(mMouseLook,gAgent.isControlGrabbed(CONTROL_ML_LBUTTON_DOWN_INDEX)||gAgent.isControlGrabbed(CONTROL_ML_LBUTTON_UP_INDEX)) != NULL;
+	buttons_changed |= updateButtonVisiblity(mMouseLook,gAgent.isControlBlocked(CONTROL_ML_LBUTTON_DOWN_INDEX)||gAgent.isControlBlocked(CONTROL_ML_LBUTTON_UP_INDEX)) != NULL;
 // [RLVa:KB] - Checked: 2009-07-10 (RLVa-1.0.0g)
 //  buttons_changed |= updateButtonVisiblity("Stand Up", isAgentAvatarValid() && gAgentAvatarp->isSitting()) != NULL;
 	buttons_changed |= updateButtonVisiblity(mStandUp,isAgentAvatarValid() && gAgentAvatarp->isSitting() && !gRlvHandler.hasBehaviour(RLV_BHVR_UNSIT)) != NULL;

@@ -88,7 +88,10 @@ public:
 	LLPickInfo(const LLCoordGL& mouse_pos, 
 		MASK keyboard_mask, 
 		BOOL pick_transparent, 
+		BOOL pick_rigged,
+		BOOL pick_particle,
 		BOOL pick_surface_info,
+		BOOL pick_unselectable,
 		void (*pick_callback)(const LLPickInfo& pick_info));
 
 	void fetchResults();
@@ -108,6 +111,8 @@ public:
 	LLVector3d		mPosGlobal;
 	LLVector3		mObjectOffset;
 	LLUUID			mObjectID;
+	LLUUID			mParticleOwnerID;
+	LLUUID			mParticleSourceID;
 	S32				mObjectFace;
 	LLHUDIcon*		mHUDIcon;
 	LLVector3       mIntersection;
@@ -118,6 +123,9 @@ public:
 	LLVector4		mTangent;
 	LLVector3		mBinormal;
 	BOOL			mPickTransparent;
+	BOOL			mPickRigged;
+	BOOL			mPickParticle;
+	BOOL			mPickUnselectable;
 	void		    getSurfaceInfo();
 
 private:
@@ -181,6 +189,7 @@ public:
 	/*virtual*/ void handleDataCopy(LLWindow *window, S32 data_type, void *data);
 	/*virtual*/ BOOL handleTimerEvent(LLWindow *window);
 	/*virtual*/ BOOL handleDeviceChange(LLWindow *window);
+	/*virtual*/ bool handleDPIScaleChange(LLWindow *window, float xDPIScale, float yDPIScale, U32 width = 0, U32 height = 0);
 
 	/*virtual*/ void handlePingWatchdog(LLWindow *window, const char * msg);
 	/*virtual*/ void handlePauseWatchdog(LLWindow *window);
@@ -241,7 +250,6 @@ public:
 	BOOL			getRightMouseDown()	const	{ return mRightMouseDown; }
 
 	const LLPickInfo&	getLastPick() const { return mLastPick; }
-	const LLPickInfo&	getHoverPick() const { return mHoverPick; }
 
 	void			setup2DViewport(S32 x_offset = 0, S32 y_offset = 0);
 	void			setup3DViewport(S32 x_offset = 0, S32 y_offset = 0);
@@ -292,6 +300,7 @@ public:
 	void				updateKeyboardFocus();		
 
 	BOOL			handleKey(KEY key, MASK mask);
+	BOOL			handleKeyUp(KEY key, MASK mask);
 	void			handleScrollWheel	(S32 clicks);
 
 	// Hide normal UI when a logon fails, re-show everything when logon is attempted again
@@ -342,9 +351,15 @@ public:
 	void			returnEmptyPicks();
 
 
-	void			pickAsync(S32 x, S32 y_from_bot, MASK mask, void (*callback)(const LLPickInfo& pick_info),
-							  BOOL pick_transparent = FALSE, BOOL get_surface_info = FALSE);
-	LLPickInfo		pickImmediate(S32 x, S32 y, BOOL pick_transparent);
+	void			pickAsync(	S32 x,
+								S32 y_from_bot,
+								MASK mask,
+								void (*callback)(const LLPickInfo& pick_info),
+								BOOL pick_transparent = FALSE,
+								BOOL pick_rigged = FALSE,
+								BOOL pick_unselectable = FALSE,
+								BOOL get_surface_info = FALSE);
+	LLPickInfo		pickImmediate(S32 x, S32 y, BOOL pick_transparent, BOOL pick_rigged = FALSE, BOOL pick_particle = FALSE);
 	static void     hoverPickCallback(const LLPickInfo& pick_info);
 	
 	LLHUDIcon* cursorIntersectIcon(S32 mouse_x, S32 mouse_y, F32 depth,
@@ -354,6 +369,7 @@ public:
 									LLViewerObject *this_object = NULL,
 									S32 this_face = -1,
 									BOOL pick_transparent = FALSE,
+									BOOL pick_rigged = FALSE,
 									S32* face_hit = NULL,
 									LLVector4a *intersection = NULL,
 									LLVector2 *uv = NULL,
@@ -371,7 +387,7 @@ public:
 	//const LLVector3d& lastNonFloraObjectHitOffset();
 
 	// mousePointOnLand() returns true if found point
-	BOOL			mousePointOnLandGlobal(const S32 x, const S32 y, LLVector3d *land_pos_global);
+	BOOL			mousePointOnLandGlobal(const S32 x, const S32 y, LLVector3d *land_pos_global, BOOL ignore_distance = FALSE);
 	BOOL			mousePointOnPlaneGlobal(LLVector3d& point, const S32 x, const S32 y, const LLVector3d &plane_point, const LLVector3 &plane_normal);
 	LLVector3d		clickPointInWorldGlobal(const S32 x, const S32 y_from_bot, LLViewerObject* clicked_object) const;
 	BOOL			clickPointOnSurfaceGlobal(const S32 x, const S32 y, LLViewerObject *objectp, LLVector3d &point_global) const;
@@ -392,15 +408,17 @@ public:
 	const LLVector2& getDisplayScale() const { return mDisplayScale; }
 	void			calcDisplayScale();
 
+	LLVector2		getUIScale() const;
+
 private:
 	bool                    shouldShowToolTipFor(LLMouseHandler *mh);
 	static bool onAlert(const LLSD& notify);
 	
-	void			switchToolByMask(MASK mask);
 	void			destroyWindow();
 	void			drawMouselookInstructions();
 	void			stopGL(BOOL save_state = TRUE);
-	void			restoreGL(const std::string& progress_message = LLStringUtil::null);
+	void			restoreGLState();
+	void			restoreGL(bool full_restore, const std::string& progress_message = LLStringUtil::null);
 	void			initFonts(F32 zoom_factor = 1.f);
 	void			schedulePick(LLPickInfo& pick_info);
 	S32				getChatConsoleBottomPad(); // Vertical padding for child console rect, varied by bottom clutter
@@ -445,7 +463,6 @@ protected:
 	BOOL			mHideCursorPermanent;	// true during drags, mouselook
 	BOOL            mCursorHidden;
 	LLPickInfo		mLastPick;
-	LLPickInfo		mHoverPick;
 	std::vector<LLPickInfo> mPicks;
 	LLRect			mPickScreenRegion; // area of frame buffer for rendering pick frames (generally follows mouse to avoid going offscreen)
 	LLTimer         mPickTimer;        // timer for scheduling n picks per second
@@ -462,6 +479,9 @@ protected:
 	//bool			mStatesDirty;  //Singu Note: No longer needed. State update is now in restoreGL.
 	bool			mIsFullscreenChecked; // Did the user check the fullscreen checkbox in the display settings
 	U32			mCurrResolutionIndex;
+
+	float       mDPIScaleX;
+	float		mDPIScaleY;
 
 protected:
 	static std::string sSnapshotBaseName;

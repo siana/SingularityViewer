@@ -1,0 +1,35 @@
+<panel name="script_experience" title="Experiencia">
+	<!-- <floater.string name="EXPERIENCE">EXPERIENCE!!!!</floater.string> 
+ 
+	<floater.string name="Script:">Script:</floater.string>
+	<floater.string name="Associated with:">Associated with:</floater.string>
+	<floater.string name="You can contribute:">You can contribute:</floater.string>
+	<floater.string name="Associate with:">Associate with:</floater.string>
+	<floater.string name="Yes">Yes</floater.string>
+	<floater.string name="No">No</floater.string>
+	<floater.string name="(none)"></floater.string>
+	<floater.string name="Choose Experience...">Choose Experience...</floater.string>
+	<floater.string name="You are not a contributor to any experiences.">You are not a contributor to any experiences.</floater.string>
+  -->
+  
+	<button name="Expand Experience" label="Experiencia"/>
+	<check_box label="Usar Experiencia"name="enable_xp"/>
+	<layout_stack name="xp_details">
+		<layout_panel>
+			<text >Script:</text>
+			<text>Asociado con:</text>
+			<text>Puedes contribuir:</text>
+			<text>Asociado con:</text>
+		</layout_panel>
+
+		<layout_panel>
+			<text>EasySit Animator 1.2.4</text>
+			<text>Kyle's Superhero RPG</text>
+			<text>Si</text>
+			<combo_boxlabel="Seleccionar Experiencia..." name="Experiences..."/>
+		</layout_panel>
+	</layout_stack>
+	<text name="No Experiences">
+		No contribuyes en ninguna experiencia.
+	</text>
+</panel>

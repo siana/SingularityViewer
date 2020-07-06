@@ -113,11 +113,9 @@ void LLDrawPoolSky::render(S32 pass)
 
 	LLGLSquashToFarClip far_clip(glh_get_current_projection());
 
-	LLGLEnable fog_enable( (mVertexShaderLevel < 1 && LLViewerCamera::getInstance()->cameraUnderWater()) ? GL_FOG : 0);
-
-	gPipeline.disableLights();
+	LLGLEnable<GL_FOG> fog_enable(mVertexShaderLevel < 1 && LLViewerCamera::getInstance()->cameraUnderWater());
 	
-	LLGLDisable clip(GL_CLIP_PLANE0);
+	LLGLDisable<GL_CLIP_PLANE0> clip;
 
 	gGL.pushMatrix();
 	LLVector3 origin = LLViewerCamera::getInstance()->getOrigin();
@@ -152,7 +150,7 @@ void LLDrawPoolSky::renderSkyCubeFace(U8 side)
 	if (LLSkyTex::doInterpolate())
 	{
 		
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		mSkyTex[side].bindTexture(FALSE);
 		gGL.diffuseColor4f(1, 1, 1, LLSkyTex::getInterpVal()); // lighting is disabled
 		face.renderIndexed();

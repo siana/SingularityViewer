@@ -28,6 +28,7 @@
 #include "linden_common.h"
 
 #include "llscrolllistitem.h"
+#include "llview.h"
 
 
 //---------------------------------------------------------------------------
@@ -37,6 +38,7 @@
 LLScrollListItem::LLScrollListItem( const Params& p )
 :	mSelected(FALSE),
 	mEnabled(p.enabled),
+	mFiltered(false),
 	mUserdata(p.userdata),
 	mItemValue(p.value),
 	mColumns()
@@ -116,32 +118,73 @@ std::string LLScrollListItem::getContentsCSV() const
 }
 
 
-void LLScrollListItem::draw(const LLRect& rect, const LLColor4& fg_color, const LLColor4& bg_color, const LLColor4& highlight_color, S32 column_padding)
+bool LLScrollListItem::draw(const U32 pass, const LLRect& rect, const LLColor4& fg_color, const LLColor4& bg_color, const LLColor4& highlight_color, S32 column_padding)
 {
+	const U32 num_cols = (U32)getNumColumns();
+
 	// draw background rect
-	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-	LLRect bg_rect = rect;
-	gl_rect_2d( bg_rect, bg_color );
-
-	S32 cur_x = rect.mLeft;
-	S32 num_cols = getNumColumns();
-	S32 cur_col = 0;
-
-	for (LLScrollListCell* cell = getColumn(0); cur_col < num_cols; cell = getColumn(++cur_col))
+	if (pass == 0)
 	{
-		// Two ways a cell could be hidden
-		if (cell->getWidth() < 0
-			|| !cell->getVisible()) continue;
-
-		LLUI::pushMatrix();
-		{
-			LLUI::translate((F32) cur_x, (F32) rect.mBottom);
-
-			cell->draw( fg_color, highlight_color );
-		}
-		LLUI::popMatrix();
-
-		cur_x += cell->getWidth() + column_padding;
+		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+		gl_rect_2d(rect, bg_color);
+		return true;
 	}
+	// Draw column (pass - 1)
+	else if (pass <= num_cols)
+	{
+		LLScrollListCell* cur_cell = getColumn(pass - 1);
+		if (!cur_cell)
+		{
+			return false;
+		}
+		// Two ways a cell could be hidden
+		else if (cur_cell->getWidth() && cur_cell->getVisible())
+		{
+			// Iterate over cells to the left and calculate offset.
+			S32 offset = rect.mLeft;
+			for (U32 i = 0; i < (pass - 1); ++i)
+			{
+				LLScrollListCell* cell = getColumn(i);
+				if (!cell)
+				{
+					return false; // Shouldn't happen.
+				}
+				if (cell->getVisible() && cell->getWidth())
+				{
+					// Only apply padding if cell is visible and has width.
+					offset += cell->getWidth() + column_padding;
+				}
+			}
+			// Do not draw if not on screen.
+			// Only care about horizontal bounds. This draw call wont even occur if this row is entirely off screen.
+			LLRect clip_rect = LLUI::getRootView()->getRect();
+			if (LLGLState<GL_SCISSOR_TEST>::isEnabled())
+			{
+				LLRect scissor = gGL.getScissor();
+				scissor.mLeft /= LLUI::getScaleFactor().mV[VX];
+				scissor.mTop /= LLUI::getScaleFactor().mV[VY];
+				scissor.mRight /= LLUI::getScaleFactor().mV[VX];
+				scissor.mBottom /= LLUI::getScaleFactor().mV[VY];
+				clip_rect.intersectWith(scissor);
+			}
+			if (offset + LLFontGL::sCurOrigin.mX >= clip_rect.mRight)
+			{
+				// Went off the right edge of the screen. Don't bother with any more columns.
+				return false;
+			}
+			// Draw if not off the left edge of screen. If it is off the left edge, still return true if other colums remain.
+			if (offset + LLFontGL::sCurOrigin.mX + cur_cell->getWidth() > clip_rect.mLeft)
+			{
+				LLUI::pushMatrix();
+				{
+					LLUI::translate((F32)offset, (F32)rect.mBottom);
+					cur_cell->draw(fg_color, highlight_color);
+				}
+				LLUI::popMatrix();
+			}
+		}
+		return pass != getNumColumns();
+	}
+	return false;
 }
 

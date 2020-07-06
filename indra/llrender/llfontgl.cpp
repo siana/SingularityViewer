@@ -26,22 +26,27 @@
 
 #include "linden_common.h"
 
-
-
 #include "llfontgl.h"
 
 // Linden library includes
+#include "llfasttimer.h"
 #include "llfontfreetype.h"
 #include "llfontbitmapcache.h"
 #include "llfontregistry.h"
 #include "llgl.h"
 #include "llrender.h"
-#include "v4color.h"
 #include "llstl.h"
-#include "llfasttimer.h"
+#include "v4color.h"
+#include "lltexture.h"
+#include "lldir.h"
 
 // Third party library includes
 #include <boost/tokenizer.hpp>
+
+#if LL_WINDOWS
+#include "llwin32headerslean.h"
+#include <shlobj.h>
+#endif
 
 const S32 BOLD_OFFSET = 1;
 
@@ -51,9 +56,9 @@ F32 LLFontGL::sHorizDPI = 96.f;
 F32 LLFontGL::sScaleX = 1.f;
 F32 LLFontGL::sScaleY = 1.f;
 BOOL LLFontGL::sDisplayFont = TRUE ;
-std::string LLFontGL::sAppDir;
+std::string LLFontGL::sFontDir;
 
-LLColor4 LLFontGL::sShadowColor(0.f, 0.f, 0.f, 1.f);
+LLColor4U LLFontGL::sShadowColor(0, 0, 0, 255);
 LLFontRegistry* LLFontGL::sFontRegistry = NULL;
 
 LLCoordGL LLFontGL::sCurOrigin;
@@ -69,19 +74,7 @@ const F32 PIXEL_CORRECTION_DISTANCE = 0.01f;
 const F32 PAD_UVY = 0.5f; // half of vertical padding between glyphs in the glyph texture
 const F32 DROP_SHADOW_SOFT_STRENGTH = 0.3f;
 
-F32 llfont_round_x(F32 x)
-{
-	//return llfloor((x-LLFontGL::sCurOrigin.mX)/LLFontGL::sScaleX+0.5f)*LLFontGL::sScaleX+LLFontGL::sCurOrigin.mX;
-	//return llfloor(x/LLFontGL::sScaleX+0.5f)*LLFontGL::sScaleY;
-	return x;
-}
-
-F32 llfont_round_y(F32 y)
-{
-	//return llfloor((y-LLFontGL::sCurOrigin.mY)/LLFontGL::sScaleY+0.5f)*LLFontGL::sScaleY+LLFontGL::sCurOrigin.mY;
-	//return llfloor(y+0.5f);
-	return y;
-}
+const U32 GLYPH_VERTICES = 6;
 
 LLFontGL::LLFontGL()
 {
@@ -113,7 +106,7 @@ BOOL LLFontGL::loadFace(const std::string& filename, const F32 point_size, const
 	return mFontFreetype->loadFace(filename, point_size, vert_dpi, horz_dpi, components, is_fallback);
 }
 
-static LLFastTimer::DeclareTimer FTM_RENDER_FONTS("Fonts");
+static LLTrace::BlockTimerStatHandle FTM_RENDER_FONTS("Fonts");
 
 S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, const LLRect& rect, const LLColor4 &color, HAlign halign, VAlign valign, U8 style, 
 					 ShadowType shadow, S32 max_chars, F32* right_x, BOOL use_embedded, BOOL use_ellipses) const
@@ -143,7 +136,7 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, const LLRect& rect
 S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, const LLColor4 &color, HAlign halign, VAlign valign, U8 style, 
 					 ShadowType shadow, S32 max_chars, S32 max_pixels, F32* right_x, BOOL use_embedded, BOOL use_ellipses) const
 {
-	LLFastTimer _(FTM_RENDER_FONTS);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_FONTS);
 
 	if(!sDisplayFont) //do not display texts
 	{
@@ -166,8 +159,9 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 
 	S32 scaled_max_pixels = max_pixels == S32_MAX ? S32_MAX : llceil((F32)max_pixels * sScaleX);
 
-	// Strip off any style bits that are already accounted for by the font.
-	style = style & (~getFontDesc().getStyle());
+	// determine which style flags need to be added programmatically by stripping off the
+	// style bits that are drawn by the underlying Freetype font
+	U8 style_to_add = (style | mFontDescriptor.getStyle()) & ~mFontFreetype->getStyle();
 
 	F32 drop_shadow_strength = 0.f;
 	if (shadow != NO_SHADOW)
@@ -228,10 +222,10 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	case LEFT:
 		break;
 	case RIGHT:
-	  	cur_x -= llmin(scaled_max_pixels, ll_round(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX));
+	  	cur_x -= llmin(scaled_max_pixels, ll_pos_round(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX));
 		break;
 	case HCENTER:
-	    cur_x -= llmin(scaled_max_pixels, ll_round(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX)) / 2;
+	    cur_x -= llmin(scaled_max_pixels, ll_pos_round(getWidthF32(wstr.c_str(), begin_offset, length) * sScaleX)) / 2;
 		break;
 	default:
 		break;
@@ -254,12 +248,12 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	if (use_ellipses && halign == LEFT)
 	{
 		// check for too long of a string
-		S32 string_width = ll_round(getWidthF32(wstr, begin_offset, max_chars) * sScaleX);
+		S32 string_width = ll_pos_round(getWidthF32(wstr, begin_offset, max_chars) * sScaleX);
 		if (string_width > scaled_max_pixels)
 		{
 			// use four dots for ellipsis width to generate padding
 			const LLWString dots(utf8str_to_wstring(std::string("....")));
-			scaled_max_pixels = llmax(0, scaled_max_pixels - ll_round(getWidthF32(dots.c_str())));
+			scaled_max_pixels = llmax(0, scaled_max_pixels - ll_pos_round(getWidthF32(dots.c_str())));
 			draw_ellipses = TRUE;
 		}
 	}
@@ -267,9 +261,9 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 	const LLFontGlyphInfo* next_glyph = NULL;
 
 	const S32 GLYPH_BATCH_SIZE = 30;
-	static LL_ALIGN_16(LLVector4a vertices[GLYPH_BATCH_SIZE * 4]);
-	static LLVector2 uvs[GLYPH_BATCH_SIZE * 4];
-	static LLColor4U colors[GLYPH_BATCH_SIZE * 4];
+	static LL_ALIGN_16(LLVector4a vertices[GLYPH_BATCH_SIZE * GLYPH_VERTICES]);
+	static LLVector2 uvs[GLYPH_BATCH_SIZE * GLYPH_VERTICES];
+	static LLColor4U colors[GLYPH_BATCH_SIZE * GLYPH_VERTICES];
 
 	LLColor4U text_color(color);
 
@@ -314,18 +308,18 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 
 			if (glyph_count > 0)
 			{
-				gGL.begin(LLRender::QUADS);
+				gGL.begin(LLRender::TRIANGLES);
 				{
-					gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * 4);
+					gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * GLYPH_VERTICES);
 				}
 				gGL.end();
 				glyph_count = 0;
 			}
 			renderQuad(vertices, uvs, colors, screen_rect, uv_rect, LLColor4U::white, 0);
 			//No batching here. It will never happen.
-			gGL.begin(LLRender::QUADS);
+			gGL.begin(LLRender::TRIANGLES);
 			{
-				gGL.vertexBatchPreTransformed(vertices, uvs, colors, 4);
+				gGL.vertexBatchPreTransformed(vertices, uvs, colors, GLYPH_VERTICES);
 			}
 			gGL.end();
 
@@ -370,9 +364,9 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 				// otherwise the queued glyphs will be taken from wrong textures.
 				if (glyph_count > 0)
 				{
-					gGL.begin(LLRender::QUADS);
+					gGL.begin(LLRender::TRIANGLES);
 					{
-						gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * 4);
+						gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * GLYPH_VERTICES);
 					}
 					gGL.end();
 					glyph_count = 0;
@@ -403,16 +397,16 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 			
 			if (glyph_count >= GLYPH_BATCH_SIZE)
 			{
-				gGL.begin(LLRender::QUADS);
+				gGL.begin(LLRender::TRIANGLES);
 				{
-					gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * 4);
+					gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * GLYPH_VERTICES);
 				}
 				gGL.end();
 
 				glyph_count = 0;
 			}
 
-			drawGlyph(glyph_count, vertices, uvs, colors, screen_rect, uv_rect, text_color, style, shadow, drop_shadow_strength);
+			drawGlyph(glyph_count, vertices, uvs, colors, screen_rect, uv_rect, text_color, style_to_add, shadow, drop_shadow_strength);
 
 			chars_drawn++;
 			cur_x += fgi->mXAdvance;
@@ -440,9 +434,9 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 
 	if(glyph_count)
 	{
-		gGL.begin(LLRender::QUADS);
+		gGL.begin(LLRender::TRIANGLES);
 		{
-			gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * 4);
+			gGL.vertexBatchPreTransformed(vertices, uvs, colors, glyph_count * GLYPH_VERTICES);
 		}
 		gGL.end();
 	}
@@ -453,7 +447,8 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 		*right_x = (cur_x - origin.mV[VX]) / sScaleX;
 	}
 
-	if (style & UNDERLINE)
+	//FIXME: add underline as glyph?
+	if (style_to_add & UNDERLINE)
 	{
 		F32 descender = (F32)llfloor(mFontFreetype->getDescenderHeight());
 
@@ -475,7 +470,7 @@ S32 LLFontGL::render(const LLWString &wstr, S32 begin_offset, F32 x, F32 y, cons
 				(cur_x - origin.mV[VX]) / sScaleX, (F32)y,
 				color,
 				LEFT, valign,
-				style,
+				style_to_add,
 				shadow,
 				S32_MAX, max_pixels,
 				right_x,
@@ -506,7 +501,7 @@ F32 LLFontGL::getDescenderHeight() const
 
 F32 LLFontGL::getLineHeight() const
 { 
-	return (F32)ll_round(mFontFreetype->getLineHeight() / sScaleY);
+	return (F32)ll_pos_round(mFontFreetype->getLineHeight() / sScaleY);
 }
 
 S32 LLFontGL::getWidth(const std::string& utf8text, const S32 begin_offset, const S32 max_chars, BOOL use_embedded) const
@@ -517,7 +512,7 @@ S32 LLFontGL::getWidth(const std::string& utf8text, const S32 begin_offset, cons
 S32 LLFontGL::getWidth(const LLWString& utf32text, const S32 begin_offset, const S32 max_chars, BOOL use_embedded) const
 {
 	F32 width = getWidthF32(utf32text, begin_offset, max_chars, use_embedded);
-	return ll_round(width);
+	return ll_pos_round(width);
 }
 
 F32 LLFontGL::getWidthF32(const std::string& utf8text, const S32 begin_offset, const S32 max_chars, BOOL use_embedded) const
@@ -582,7 +577,7 @@ F32 LLFontGL::getWidthF32(const LLWString& utf32text, const S32 begin_offset, co
 				}
 			}
 			// Round after kerning.
-			cur_x = (F32)ll_round(cur_x);
+			cur_x = (F32)ll_pos_round(cur_x);
 		}
 	}
 
@@ -698,7 +693,7 @@ S32 LLFontGL::maxDrawableChars(const LLWString& utf32text, F32 max_pixels, S32 m
 			}
 		}
 		// Round after kerning.
-		cur_x = (F32)ll_round(cur_x);
+		cur_x = (F32)ll_pos_round(cur_x);
 		drawn_x = cur_x;
 	}
 
@@ -785,7 +780,7 @@ S32	LLFontGL::firstDrawableChar(const LLWString& utf32text, F32 max_pixels, S32 
 		}
 
 		// Round after kerning.
-		total_width = (F32)ll_round(total_width);
+		total_width = (F32)ll_pos_round(total_width);
 	}
 
 	if (drawable_chars == 0)
@@ -872,7 +867,7 @@ S32 LLFontGL::charFromPixelOffset(const LLWString& utf32text, const S32 begin_of
 
 
 		// Round after kerning.
-		cur_x = (F32)ll_round(cur_x);
+		cur_x = (F32)ll_pos_round(cur_x);
 		
 	}
 
@@ -940,18 +935,18 @@ void LLFontGL::removeEmbeddedChar( llwchar wc ) const
 }
 
 // static
-void LLFontGL::initClass(F32 screen_dpi, F32 x_scale, F32 y_scale, const std::string& app_dir, const std::vector<std::string>& xui_paths, bool create_gl_textures)
+void LLFontGL::initClass(F32 screen_dpi, F32 x_scale, F32 y_scale, const std::string& app_dir, bool create_gl_textures)
 {
 	sVertDPI = (F32)llfloor(screen_dpi * y_scale);
 	sHorizDPI = (F32)llfloor(screen_dpi * x_scale);
 	sScaleX = x_scale;
 	sScaleY = y_scale;
-	sAppDir = app_dir;
+	sFontDir = app_dir;
 
 	// Font registry init
 	if (!sFontRegistry)
 	{
-		sFontRegistry = new LLFontRegistry(xui_paths,create_gl_textures);
+		sFontRegistry = new LLFontRegistry(create_gl_textures);
 		sFontRegistry->parseFontInfo("fonts.xml");
 	}
 	else
@@ -1006,7 +1001,7 @@ void LLFontGL::destroyAllGL()
 // static
 U8 LLFontGL::getStyleFromString(const std::string &style)
 {
-	S32 ret = 0;
+	U8 ret = 0;
 	if (style.find("NORMAL") != style.npos)
 	{
 		ret |= NORMAL;
@@ -1124,6 +1119,7 @@ LLFontGL::VAlign LLFontGL::vAlignFromName(const std::string& name)
 	//else leave baseline
 	return gl_vfont_align;
 }
+
 //static
 LLFontGL* LLFontGL::getFontMonospace()
 {
@@ -1212,59 +1208,67 @@ LLFontGL* LLFontGL::getFontDefault()
 	return getFontSansSerif(); // Fallback to sans serif as default font
 }
 
+static std::string sSystemFontPath;
 
 // static 
 std::string LLFontGL::getFontPathSystem()
 {
-	std::string system_path;
+	if (!sSystemFontPath.empty()) return sSystemFontPath;
 
-	// Try to figure out where the system's font files are stored.
-	char *system_root = NULL;
 #if LL_WINDOWS
-	system_root = getenv("SystemRoot");	/* Flawfinder: ignore */
-	if (!system_root)
+	wchar_t* pPath = nullptr;
+	if (SHGetKnownFolderPath(FOLDERID_Fonts, 0, nullptr, &pPath) == S_OK)
 	{
-		LL_WARNS() << "SystemRoot not found, attempting to load fonts from default path." << LL_ENDL;
-	}
-#endif
-
-	if (system_root)
-	{
-		system_path = llformat("%s/fonts/", system_root);
+		sSystemFontPath = ll_convert_wide_to_string(pPath, CP_UTF8) + gDirUtilp->getDirDelimiter();
+        LL_INFOS() << "from SHGetKnownFolderPath(): " << sSystemFontPath << LL_ENDL;
+		CoTaskMemFree(pPath);
+		pPath = nullptr;
 	}
 	else
 	{
-#if LL_WINDOWS
-		// HACK for windows 98/Me
-		system_path = "/WINDOWS/FONTS/";
+		// Try to figure out where the system's font files are stored.
+    	auto system_root = LLStringUtil::getenv("SystemRoot");
+    	if (! system_root.empty())
+    	{
+			sSystemFontPath = gDirUtilp->add(system_root, "fonts") + gDirUtilp->getDirDelimiter();
+        	LL_INFOS() << "from SystemRoot: " << sSystemFontPath << LL_ENDL;
+		}
+		else
+		{
+			LL_WARNS() << "SystemRoot not found, attempting to load fonts from default path." << LL_ENDL;
+			// HACK for windows 98/Me
+			sSystemFontPath = "/WINDOWS/FONTS/";
+		}
+	}
+
 #elif LL_DARWIN
 		// HACK for Mac OS X
-		system_path = "/System/Library/Fonts/";
+	sSystemFontPath = "/System/Library/Fonts/";
 #endif
-	}
-	return system_path;
+	return sSystemFontPath;
 }
 
+static std::string sLocalFontPath;
 
 // static 
 std::string LLFontGL::getFontPathLocal()
 {
-	std::string local_path;
+	if (!sLocalFontPath.empty()) return sLocalFontPath;
 
 	// Backup files if we can't load from system fonts directory.
 	// We could store this in an end-user writable directory to allow
 	// end users to switch fonts.
-	if (LLFontGL::sAppDir.length())
+	if (!LLFontGL::sFontDir.empty())
 	{
 		// use specified application dir to look for fonts
-		local_path = LLFontGL::sAppDir + "/fonts/";
+		sLocalFontPath = gDirUtilp->add(LLFontGL::sFontDir, "fonts") + gDirUtilp->getDirDelimiter();
 	}
 	else
 	{
 		// assume working directory is executable directory
-		local_path = "./fonts/";
+		sLocalFontPath = "./fonts/";
 	}
-	return local_path;
+	return sLocalFontPath;
 }
 
 LLFontGL::LLFontGL(const LLFontGL &source)
@@ -1282,13 +1286,23 @@ void LLFontGL::renderQuad(LLVector4a* vertex_out, LLVector2* uv_out, LLColor4U* 
 {
 	S32 index = 0;
 
+	vertex_out[index].set(screen_rect.mLeft, screen_rect.mTop, 0.f);
+	uv_out[index] = LLVector2(uv_rect.mLeft, uv_rect.mTop);
+	colors_out[index] = color;
+	index++;
+
+	vertex_out[index].set(screen_rect.mLeft + slant_amt, screen_rect.mBottom, 0.f);
+	uv_out[index] = LLVector2(uv_rect.mLeft, uv_rect.mBottom);
+	colors_out[index] = color;
+	index++;
+
 	vertex_out[index].set(screen_rect.mRight, screen_rect.mTop, 0.f);
 	uv_out[index] = LLVector2(uv_rect.mRight, uv_rect.mTop);
 	colors_out[index] = color;
 	index++;
 
-	vertex_out[index].set(screen_rect.mLeft, screen_rect.mTop, 0.f);
-	uv_out[index] = LLVector2(uv_rect.mLeft, uv_rect.mTop);
+	vertex_out[index].set(screen_rect.mRight, screen_rect.mTop, 0.f);
+	uv_out[index] = LLVector2(uv_rect.mRight, uv_rect.mTop);
 	colors_out[index] = color;
 	index++;
 
@@ -1316,13 +1330,14 @@ void LLFontGL::drawGlyph(S32& glyph_count, LLVector4a* vertex_out, LLVector2* uv
 			LLRectf screen_rect_offset = screen_rect;
 
 			screen_rect_offset.translate((F32)(pass * BOLD_OFFSET), 0.f);
-			renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect_offset, uv_rect, color, slant_offset);
+			const U32 idx = glyph_count * GLYPH_VERTICES;
+			renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect_offset, uv_rect, color, slant_offset);
 			glyph_count++;
 		}
 	}
 	else if (shadow == DROP_SHADOW_SOFT)
 	{
-		LLColor4U shadow_color = LLFontGL::sShadowColor;
+		LLColor4U& shadow_color = LLFontGL::sShadowColor;
 		shadow_color.mV[VALPHA] = U8(color.mV[VALPHA] * drop_shadow_strength * DROP_SHADOW_SOFT_STRENGTH);
 		for (S32 pass = 0; pass < 5; pass++)
 		{
@@ -1347,26 +1362,31 @@ void LLFontGL::drawGlyph(S32& glyph_count, LLVector4a* vertex_out, LLVector2* uv
 				break;
 			}
 		
-			renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect_offset, uv_rect, shadow_color, slant_offset);
+			const U32 idx = glyph_count * GLYPH_VERTICES;
+			renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect_offset, uv_rect, shadow_color, slant_offset);
 			glyph_count++;
 		}
-		renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect, uv_rect, color, slant_offset);
+		const U32 idx = glyph_count * GLYPH_VERTICES;
+		renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect, uv_rect, color, slant_offset);
 		glyph_count++;
 	}
 	else if (shadow == DROP_SHADOW)
 	{
-		LLColor4U shadow_color = LLFontGL::sShadowColor;
+		LLColor4U& shadow_color = LLFontGL::sShadowColor;
 		shadow_color.mV[VALPHA] = U8(color.mV[VALPHA] * drop_shadow_strength);
 		LLRectf screen_rect_shadow = screen_rect;
 		screen_rect_shadow.translate(1.f, -1.f);
-		renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect_shadow, uv_rect, shadow_color, slant_offset);
+		U32 idx = glyph_count * GLYPH_VERTICES;
+		renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect_shadow, uv_rect, shadow_color, slant_offset);
 		glyph_count++;
-		renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect, uv_rect, color, slant_offset);
+		idx = glyph_count * GLYPH_VERTICES;
+		renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect, uv_rect, color, slant_offset);
 		glyph_count++;
 	}
 	else // normal rendering
 	{
-		renderQuad(&vertex_out[glyph_count * 4], &uv_out[glyph_count * 4], &colors_out[glyph_count * 4], screen_rect, uv_rect, color, slant_offset);
+		const U32 idx = glyph_count * GLYPH_VERTICES;
+		renderQuad(&vertex_out[idx], &uv_out[idx], &colors_out[idx], screen_rect, uv_rect, color, slant_offset);
 		glyph_count++;
 	}
 }

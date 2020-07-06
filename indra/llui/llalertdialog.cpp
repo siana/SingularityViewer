@@ -48,6 +48,7 @@
 #include "lluictrlfactory.h"
 #include "llnotifications.h"
 #include "llfunctorregistry.h"
+#include "lldraghandle.h"
 
 const S32 MAX_ALLOWED_MSG_WIDTH = 400;
 const F32 DEFAULT_BUTTON_DELAY = 0.5f;
@@ -233,6 +234,12 @@ LLAlertDialog::LLAlertDialog( LLNotificationPtr notification, bool modal)
 		msg_box->setColor( LLUI::sColorsGroup->getColor( "AlertTextColor" ) );
 	}
 
+	LLDragHandle* handle = getDragHandle();
+	if (handle)
+	{
+		getDragHandle()->setTextColor(LLUI::sColorsGroup->getColor(mCaution ? "AlertCautionTextColor" : "AlertTextColor"));
+	}
+
 	LLRect rect;
 	rect.setLeftTopAndSize( msg_x, msg_y, text_rect.getWidth(), text_rect.getHeight() );
 	msg_box->setRect( rect );
@@ -257,6 +264,10 @@ LLAlertDialog::LLAlertDialog( LLNotificationPtr notification, bool modal)
 			button_data.mText);
 
 		btn->setClickedCallback(boost::bind(&LLAlertDialog::onButtonPressed, this, _1, button_data.mUrl));
+		if (mCaution)
+		{
+			btn->setColor(LLUI::sColorsGroup->getColor("ButtonCautionImageColor"));
+		}
 
 		addChild(btn);
 
@@ -370,6 +381,11 @@ bool LLAlertDialog::setCheckBox( const std::string& check_title, const std::stri
 								max_msg_width, LINE_HEIGHT);
 
 	mCheck = new LLCheckboxCtrl(std::string("check"), check_rect, check_title, font, boost::bind(&LLAlertDialog::onClickIgnore, this, _1));
+	mCheck->setEnabledColor(LLUI::sColorsGroup->getColor( mCaution ? "AlertCautionTextColor" : "AlertTextColor"));
+	if (mCaution)
+	{
+		mCheck->setButtonColor(LLUI::sColorsGroup->getColor("ButtonCautionImageColor"));
+	}
 	addChild(mCheck);
 
 	return true;

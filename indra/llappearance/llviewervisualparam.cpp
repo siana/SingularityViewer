@@ -76,7 +76,7 @@ BOOL LLViewerVisualParamInfo::parseXml(LLXmlTreeNode *node)
 	static LLStdStringHandle edit_group_string = LLXmlTree::addAttributeString("edit_group");
 	if (!node->getFastAttributeString( edit_group_string, mEditGroup))
 	{
-		mEditGroup = "";
+		mEditGroup.clear();
 	}
 
 	static LLStdStringHandle cross_wearable_string = LLXmlTree::addAttributeString("cross_wearable");

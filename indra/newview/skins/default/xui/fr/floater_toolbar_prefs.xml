@@ -85,7 +85,6 @@
   <check_box label="Floater Test" name="floater_test_btn"/>
   <check_box label="Edit UI" name="edit_ui_btn"/>
   <check_box label="Font Test" name="font_test_btn"/>
-  <check_box label="Lag Meter" name="lag_meter_btn"/>
   <check_box label="Report Abuse" name="abuse_btn"/>
   <check_box label="Tuto" name="tutorial_btn"/>
   <check_box label="A propos de [SHORT_APP_NAME]" name="about_btn"/>

@@ -42,6 +42,7 @@
 #include "llviewerwindow.h"
 #include "lluictrlfactory.h"
 #include "llpermissions.h"
+#include "llsdserialize.h"
 #include "hippogridmanager.h"
 
 extern class AIHTTPTimeoutPolicy floaterPermsResponder_timeout;
@@ -64,6 +65,25 @@ U32 LLFloaterPerms::getEveryonePerms(std::string prefix)
 }
 
 //static
+U32 LLFloaterPerms::getNextOwnerPerms(std::string prefix)
+{
+	U32 flags = PERM_MOVE;
+	if ( gSavedSettings.getBOOL(prefix+"NextOwnerCopy") )
+	{
+		flags |= PERM_COPY;
+	}
+	if ( gSavedSettings.getBOOL(prefix+"NextOwnerModify") )
+	{
+		flags |= PERM_MODIFY;
+	}
+	if ( gSavedSettings.getBOOL(prefix+"NextOwnerTransfer") )
+	{
+		flags |= PERM_TRANSFER;
+	}
+	return flags;
+}
+
+//static
 U32 LLFloaterPerms::getNextOwnerPermsInverted(std::string prefix)
 {
 	// Sets bits for permissions that are off
@@ -77,25 +97,6 @@ U32 LLFloaterPerms::getNextOwnerPermsInverted(std::string prefix)
 		flags |= PERM_MODIFY;
 	}
 	if (!gSavedSettings.getBOOL(prefix+"NextOwnerTransfer"))
-	{
-		flags |= PERM_TRANSFER;
-	}
-	return flags;
-}
-
-//static
-U32 LLFloaterPerms::getNextOwnerPerms(std::string prefix)
-{
-	U32 flags = PERM_MOVE;
-	if ( gSavedSettings.getBOOL(prefix+"NextOwnerCopy") )
-	{
-		flags |= PERM_COPY;
-	}
-	if ( gSavedSettings.getBOOL(prefix+"NextOwnerModify") )
-	{
-		flags |= PERM_MODIFY;
-	}
-	if ( gSavedSettings.getBOOL(prefix+"NextOwnerTransfer") )
 	{
 		flags |= PERM_TRANSFER;
 	}
@@ -137,6 +138,7 @@ LLFloaterPermsDefault::LLFloaterPermsDefault(const LLSD& seed)
 	mCommitCallbackRegistrar.add("PermsDefault.Cancel", boost::bind(&LLFloaterPermsDefault::onClickCancel, this));
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_perm_prefs.xml");
 }
+
 
 // String equivalents of enum Categories - initialization order must match enum order!
 const std::string LLFloaterPermsDefault::sCategoryNames[CAT_LAST] =
@@ -224,40 +226,65 @@ void LLFloaterPermsDefault::onClickCancel()
 	close();
 }
 
-class LLFloaterPermsResponder : public LLHTTPClient::ResponderWithResult
+struct LLFloaterPermsRequester final : LLSingleton<LLFloaterPermsRequester>
 {
-public:
-	LLFloaterPermsResponder() : LLHTTPClient::ResponderWithResult() {}
-private:
+	friend class LLSingleton<LLFloaterPermsRequester>;
+	std::string mUrl;
+	LLSD mReport;
+	U8 mRetriesCount = 0;
+	static void init(const std::string url, const LLSD report)
+	{
+		auto& inst = instance();
+		inst.mUrl = url;
+		inst.mReport = report;
+		inst.retry();
+	}
+	bool retry();
+};
+
+class LLFloaterPermsResponder final : public LLHTTPClient::ResponderWithResult
+{
 	static std::string sPreviousReason;
 
-	void httpFailure(void)
+	void httpFailure() override
 	{
-		// <singu> Prevent 404s from annoying the user all the tme
-		if (mStatus == HTTP_NOT_FOUND)
-			LL_INFOS("FloaterPermsResponder") << "Failed to send default permissions to simulator. 404, reason: " << mReason << LL_ENDL;
-		else
-		// </singu>
+		auto* requester = LLFloaterPermsRequester::getIfExists();
+		if (!requester || requester->retry()) return;
+
+		LLFloaterPermsRequester::deleteSingleton();
+		const std::string& reason = getReason();
 		// Do not display the same error more than once in a row
-		if (mReason != sPreviousReason)
+		if (reason != sPreviousReason)
 		{
-			sPreviousReason = mReason;
+			sPreviousReason = reason;
 			LLSD args;
-			args["REASON"] = mReason;
+			args["REASON"] = reason;
 			LLNotificationsUtil::add("DefaultObjectPermissions", args);
 		}
 	}
-	void httpSuccess(void)
+	void httpSuccess() override
 	{
+		//const LLSD& content = getContent();
+		//dump_sequential_xml("perms_responder_result.xml", content);
+
 		// Since we have had a successful POST call be sure to display the next error message
 		// even if it is the same as a previous one.
 		sPreviousReason = "";
-		mCapSent = true;
-		LL_INFOS("FloaterPermsResponder") << "Sent default permissions to simulator" << LL_ENDL;
+		LL_INFOS("ObjectPermissionsFloater") << "Default permissions successfully sent to simulator" << LL_ENDL;
 	}
-	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy() const { return floaterPermsResponder_timeout; }
-	/*virtual*/ char const* getName() const { return "LLFloaterPermsResponder"; }
+	AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy() const override { return floaterPermsResponder_timeout; }
+	char const* getName() const override { return "LLFloaterPermsResponder"; }
 };
+
+bool LLFloaterPermsRequester::retry()
+{
+	if (++mRetriesCount < 5)
+	{
+		LLHTTPClient::post(mUrl, mReport, new LLFloaterPermsResponder);
+		return true;
+	}
+	return false;
+}
 
 std::string LLFloaterPermsResponder::sPreviousReason;
 
@@ -266,12 +293,13 @@ void LLFloaterPermsDefault::sendInitialPerms()
 	if (!mCapSent)
 	{
 		updateCap();
+		mCapSent = true;
 	}
 }
 
 void LLFloaterPermsDefault::updateCap()
 {
-	std::string object_url = gAgent.getRegion()->getCapability("AgentPreferences");
+	std::string object_url = gAgent.getRegionCapability("AgentPreferences");
 
 	if (!object_url.empty())
 	{
@@ -283,13 +311,24 @@ void LLFloaterPermsDefault::updateCap()
 		report["default_object_perm_masks"]["NextOwner"] =
 			(LLSD::Integer)LLFloaterPerms::getNextOwnerPerms(sCategoryNames[CAT_OBJECTS]);
 
-		LLHTTPClient::post(object_url, report, new LLFloaterPermsResponder());
+        {
+            std::ostringstream sent_perms_log;
+            LLSDSerialize::toPrettyXML(report, sent_perms_log);
+            LL_DEBUGS("ObjectPermissionsFloater") << "Sending default permissions to '"
+                                                  << object_url << "'\n"
+                                                  << sent_perms_log.str() << LL_ENDL;
+        }
+        LLFloaterPermsRequester::init(object_url, report);
 	}
+    else
+    {
+        LL_DEBUGS("ObjectPermissionsFloater") << "AgentPreferences cap not available." << LL_ENDL;
+    }
 }
 
 void LLFloaterPermsDefault::ok()
 {
-	// Changes were already applied to saved settings.
+	//	Changes were already applied automatically to saved settings.
 	// Refreshing internal values makes it official.
 	refresh();
 
@@ -302,11 +341,11 @@ void LLFloaterPermsDefault::cancel()
 {
 	for (U32 iter = CAT_OBJECTS; iter < CAT_LAST; iter++)
 	{
-		gSavedSettings.setBOOL(sCategoryNames[iter]+"ShareWithGroup",    mShareWithGroup[iter]);
-		gSavedSettings.setBOOL(sCategoryNames[iter]+"EveryoneCopy",      mEveryoneCopy[iter]);
 		gSavedSettings.setBOOL(sCategoryNames[iter]+"NextOwnerCopy",     mNextOwnerCopy[iter]);
 		gSavedSettings.setBOOL(sCategoryNames[iter]+"NextOwnerModify",   mNextOwnerModify[iter]);
 		gSavedSettings.setBOOL(sCategoryNames[iter]+"NextOwnerTransfer", mNextOwnerTransfer[iter]);
+		gSavedSettings.setBOOL(sCategoryNames[iter]+"ShareWithGroup",    mShareWithGroup[iter]);
+		gSavedSettings.setBOOL(sCategoryNames[iter]+"EveryoneCopy",      mEveryoneCopy[iter]);
 		gSavedPerAccountSettings.setBOOL(sCategoryNames[iter]+"EveryoneExport", mEveryoneExport[iter]);
 	}
 }

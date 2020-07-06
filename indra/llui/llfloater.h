@@ -94,16 +94,19 @@ class LLFloater : public LLPanel
 	friend class LLFloaterView;
 	friend class LLMultiFloater;
 public:
-	enum EFloaterButtons
+	enum EFloaterButton
 	{
-		BUTTON_CLOSE,
+		BUTTON_CLOSE = 0,
 		BUTTON_RESTORE,
 		BUTTON_MINIMIZE,
 		BUTTON_TEAR_OFF,
 		BUTTON_EDIT,
 		BUTTON_COUNT
 	};
-	
+
+	// Load translations for tooltips for standard buttons
+	static void initClass();
+
 	LLFloater();
  	LLFloater(const std::string& name); //simple constructor for data-driven initialization
 	LLFloater(	const std::string& name, const LLRect& rect, const std::string& title,
@@ -164,9 +167,9 @@ public:
 	void			applyTitle();
 	const std::string&	getCurrentTitle() const;
 	void			setTitle( const std::string& title);
-	std::string		getTitle();
+	std::string		getTitle() const;
 	void			setShortTitle( const std::string& short_title );
-	std::string		getShortTitle();
+	std::string		getShortTitle() const;
 	void			setTitleVisible(bool visible);
 	virtual void	setMinimized(BOOL b);
 	void			moveResizeHandlesToFront();
@@ -174,8 +177,8 @@ public:
 	void			addDependentFloater(LLHandle<LLFloater> dependent_handle, BOOL reposition = TRUE);
 	LLFloater*		getDependee() { return (LLFloater*)mDependeeHandle.get(); }
 	void		removeDependentFloater(LLFloater* dependent);
-	BOOL			isMinimized()					{ return mMinimized; }
-	BOOL			isFrontmost();
+	BOOL			isMinimized() const				{ return mMinimized; }
+	virtual BOOL	isFrontmost();
 	BOOL			isDependent()					{ return !mDependeeHandle.isDead(); }
 	void			setCanMinimize(BOOL can_minimize);
 	void			setCanClose(BOOL can_close);
@@ -199,6 +202,7 @@ public:
 	virtual BOOL	handleDoubleClick(S32 x, S32 y, MASK mask);
 	virtual BOOL	handleMiddleMouseDown(S32 x, S32 y, MASK mask);
 	virtual void	draw();
+	virtual void	drawShadow(LLPanel* panel);
 
 	virtual void	onOpen() {}
 
@@ -244,6 +248,8 @@ public:
 	static BOOL		getEditModeEnabled() { return sEditModeEnabled; }
 	static LLMultiFloater*		getFloaterHost() {return sHostp; }
 
+	void			updateTransparency(ETypeTransparency transparency_type);
+
 	void			enableResizeCtrls(bool enable, bool width = true, bool height = true);
 protected:
 
@@ -259,21 +265,29 @@ protected:
 	void			destroy() { die(); } // Don't call this directly.  You probably want to call close(). JC
 
 private:
-	
 	void			setForeground(BOOL b);	// called only by floaterview
 	void			cleanupHandles(); // remove handles to dead floaters
 	void			createMinimizeButton();
 	void			updateButtons();
 	void			buildButtons();
-	BOOL			offerClickToButton(S32 x, S32 y, MASK mask, EFloaterButtons index);
+	BOOL			offerClickToButton(S32 x, S32 y, MASK mask, EFloaterButton index);
 	void			addResizeCtrls();
 	void			layoutResizeCtrls();
 
+	static void		updateActiveFloaterTransparency();
+	static void		updateInactiveFloaterTransparency();
+	void			updateTransparency(LLView* view, ETypeTransparency transparency_type);
+
 	LLRect			mExpandedRect;
+
+protected:
 	LLDragHandle*	mDragHandle;
 	LLResizeBar*	mResizeBar[4];
 	LLResizeHandle*	mResizeHandle[4];
 	LLButton		*mMinimizeButton;
+
+	LLButton*		mButtons[BUTTON_COUNT];
+private:
 	BOOL			mCanTearOff;
 	BOOL			mMinimized;
 	BOOL			mForeground;
@@ -294,10 +308,7 @@ private:
 	handle_set_t	mDependents;
 	bool			mDragOnLeft;
 
-	BOOL			mButtonsEnabled[BUTTON_COUNT];
-protected:
-	LLButton*		mButtons[BUTTON_COUNT];
-private:
+	bool			mButtonsEnabled[BUTTON_COUNT];
 	F32				mButtonScale;
 	BOOL			mAutoFocus;
 	LLHandle<LLFloater> mSnappedTo;
@@ -344,7 +355,7 @@ public:
 
 	/*virtual*/ void draw();
 	/*virtual*/ LLRect getSnapRect() const;
-	void refresh();
+	/*virtual*/ void refresh();
 
 	void			getNewFloaterPosition( S32* left, S32* top );
 	void			resetStartingFloaterPosition();
@@ -373,10 +384,10 @@ public:
 	void			minimizeAllChildren();
 	// </edit>
 
-	LLFloater* getFrontmost();
-	LLFloater* getBackmost();
-	LLFloater* getParentFloater(LLView* viewp);
-	LLFloater* getFocusedFloater();
+	LLFloater* getFrontmost() const;
+	LLFloater* getBackmost() const;
+	LLFloater* getParentFloater(LLView* viewp) const;
+	LLFloater* getFocusedFloater() const;
 	void		syncFloaterTabOrder();
 
 	// Returns z order of child provided. 0 is closest, larger numbers

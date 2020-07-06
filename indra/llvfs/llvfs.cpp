@@ -1586,8 +1586,8 @@ LLVFSBlock *LLVFS::findFreeBlock(S32 size, LLVFSFileBlock *immune)
 			}
 
 			
-			LL_INFOS() << "VFS: LRU: Aggressive: " << (S32)lru_list.size() << " files remain" << LL_ENDL;
-			dumpLockCounts();
+			//LL_INFOS() << "VFS: LRU: Aggressive: " << (S32)lru_list.size() << " files remain" << LL_ENDL;
+			//dumpLockCounts();
 			
 			// Now it's time to aggressively make more space
 			// Delete the oldest 5MB of the vfs or enough to hold the file, which ever is larger

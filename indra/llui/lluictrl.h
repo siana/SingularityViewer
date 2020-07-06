@@ -34,15 +34,10 @@
 #ifndef LL_LLUICTRL_H
 #define LL_LLUICTRL_H
 
+//#include "llboost.h"
 #include "llrect.h"
 #include "llsd.h"
 #include "llregistry.h"
-
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
-#include <boost/signals2.hpp>
 
 #include "llinitparam.h"
 #include "llview.h"
@@ -128,6 +123,13 @@ public:
 		Params();
 	};
 
+	enum ETypeTransparency
+	{
+		TT_DEFAULT,
+		TT_ACTIVE,		// focused floater
+		TT_INACTIVE,	// other floaters
+		TT_FADING,		// fading toast
+	};
 	/*virtual*/ ~LLUICtrl();
 
 	void initFromParams(const Params& p);
@@ -147,26 +149,26 @@ public:
 	// We shouldn't ever need to set this directly
 	//virtual void    setViewModel(const LLViewModelPtr&);
 
-	virtual BOOL	postBuild();
+	BOOL	postBuild() override;
 
 public:
 	// LLView interface
 	/*virtual*/ void	initFromXML(LLXMLNodePtr node, LLView* parent);
 	/*virtual*/ LLXMLNodePtr getXML(bool save_children = true) const;
-	/*virtual*/ BOOL	setLabelArg( const std::string& key, const LLStringExplicit& text );
-	/*virtual*/ BOOL	isCtrl() const;
-	/*virtual*/ void	onMouseEnter(S32 x, S32 y, MASK mask);
-	/*virtual*/ void	onMouseLeave(S32 x, S32 y, MASK mask);
-	/*virtual*/ BOOL	canFocusChildren() const;
-	/*virtual*/ BOOL 	handleMouseDown(S32 x, S32 y, MASK mask);
-	/*virtual*/ BOOL 	handleMouseUp(S32 x, S32 y, MASK mask);
-	/*virtual*/ BOOL	handleRightMouseDown(S32 x, S32 y, MASK mask);
-	/*virtual*/ BOOL	handleRightMouseUp(S32 x, S32 y, MASK mask);
-	/*virtual*/ BOOL	handleDoubleClick(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL	setLabelArg( const std::string& key, const LLStringExplicit& text ) override;
+	/*virtual*/ BOOL	isCtrl() const override;
+	/*virtual*/ void	onMouseEnter(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ void	onMouseLeave(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ BOOL	canFocusChildren() const override;
+	/*virtual*/ BOOL 	handleMouseDown(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ BOOL 	handleMouseUp(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ BOOL	handleRightMouseDown(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ BOOL	handleRightMouseUp(S32 x, S32 y, MASK mask) override;
+	/*virtual*/ BOOL	handleDoubleClick(S32 x, S32 y, MASK mask) override;
 
 	// From LLFocusableElement
-	/*virtual*/ void	setFocus( BOOL b );
-	/*virtual*/ BOOL	hasFocus() const;
+	/*virtual*/ void	setFocus( BOOL b ) override;
+	/*virtual*/ BOOL	hasFocus() const override;
 	
 	// New virtuals
 
@@ -207,10 +209,16 @@ public:
 	// Clear any user-provided input (text in a text editor, checked checkbox,
 	// selected radio button, etc.).  Defaults to no-op.
 	virtual void	clear();
+
 	virtual void	setColor(const LLColor4& color);
 	virtual void	setAlpha(F32 alpha);
 	virtual void	setMinValue(LLSD min_value);
 	virtual void	setMaxValue(LLSD max_value);
+
+	F32 			getCurrentTransparency();
+
+	void				setTransparencyType(ETypeTransparency type);
+	ETypeTransparency	getTransparencyType() const {return mTransparencyType;}
 
 	BOOL	focusNextItem(BOOL text_entry_only);
 	BOOL	focusPrevItem(BOOL text_entry_only);
@@ -248,8 +256,8 @@ public:
 	boost::signals2::connection setDoubleClickCallback( const mouse_signal_t::slot_type& cb );
 
 	// *TODO: Deprecate; for backwards compatability only:
-	boost::signals2::connection setCommitCallback( boost::function<void (LLUICtrl*,void*)> cb, void* data);	
-	boost::signals2::connection setValidateBeforeCommit( boost::function<bool (const LLSD& data)> cb );
+	boost::signals2::connection setCommitCallback( std::function<void (LLUICtrl*,void*)> cb, void* data);	
+	boost::signals2::connection setValidateBeforeCommit( std::function<bool (const LLSD& data)> cb );
 	
 	static LLView* fromXML(LLXMLNodePtr node, LLView* parent, class LLUICtrlFactory* factory);
 
@@ -266,9 +274,13 @@ public:
 	template <typename F, typename DERIVED> class CallbackRegistry : public LLRegistrySingleton<std::string, F, DERIVED >
 	{};
 
-	class CommitCallbackRegistry : public CallbackRegistry<commit_callback_t, CommitCallbackRegistry>{};
+	class CommitCallbackRegistry : public CallbackRegistry<commit_callback_t, CommitCallbackRegistry>
+	{
+	};
 	// the enable callback registry is also used for visiblity callbacks
-	class EnableCallbackRegistry : public CallbackRegistry<enable_callback_t, EnableCallbackRegistry>{};
+	class EnableCallbackRegistry : public CallbackRegistry<enable_callback_t, EnableCallbackRegistry>
+	{
+	};
 
 protected:
 
@@ -297,12 +309,18 @@ protected:
 	boost::signals2::connection mMakeVisibleControlConnection;
 	LLControlVariable* mMakeInvisibleControlVariable;
 	boost::signals2::connection mMakeInvisibleControlConnection;
+
+	static F32 sActiveControlTransparency;
+	static F32 sInactiveControlTransparency;
+
 private:
 
 	BOOL			mIsChrome;
 	BOOL			mRequestsFront;
 	BOOL			mTabStop;
 	BOOL			mTentative;
+
+	ETypeTransparency mTransparencyType;
 
 	bool			mCommitOnReturn;
 

@@ -31,15 +31,15 @@
 
 #if LL_REF_COUNT_DEBUG
 #include "llthread.h"
-#include "llapr.h"
 #endif
 
-LLRefCount::LLRefCount(const LLRefCount& other)
-:	mRef(0)
-{
+LLRefCount::LLRefCount(const LLRefCount& other) :	
 #if LL_REF_COUNT_DEBUG
-	mCrashAtUnlock = FALSE ;
+	mMutex(),
+	mCrashAtUnlock(FALSE),
 #endif
+	mRef(0)
+{
 }
 
 LLRefCount& LLRefCount::operator=(const LLRefCount&)
@@ -49,11 +49,12 @@ LLRefCount& LLRefCount::operator=(const LLRefCount&)
 }
 
 LLRefCount::LLRefCount() :
+#if LL_REF_COUNT_DEBUG
+	mMutex(),
+	mCrashAtUnlock(FALSE),
+#endif
 	mRef(0)
 {
-#if LL_REF_COUNT_DEBUG
-	mCrashAtUnlock = FALSE ;
-#endif
 }
 
 LLRefCount::~LLRefCount()

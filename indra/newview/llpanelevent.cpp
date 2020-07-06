@@ -54,6 +54,8 @@
 #include "llweb.h"
 #include "llworldmap.h"
 #include "lluictrlfactory.h"
+#include "hippogridmanager.h"
+#include "lfsimfeaturehandler.h"
 
 //static
 std::list<LLPanelEvent*> LLPanelEvent::sAllPanels;
@@ -69,6 +71,10 @@ LLPanelEvent::~LLPanelEvent()
 	sAllPanels.remove(this);
 }
 
+void enable_create(const std::string& url, LLView* btn)
+{
+	btn->setEnabled(!url.empty());
+}
 
 BOOL LLPanelEvent::postBuild()
 {
@@ -97,8 +103,15 @@ BOOL LLPanelEvent::postBuild()
 	mNotifyBtn = getChild<LLButton>( "notify_btn");
 	mNotifyBtn->setClickedCallback(boost::bind(&LLPanelEvent::onClickNotify,this));
 
-	mCreateEventBtn = getChild<LLButton>( "create_event_btn");
-	mCreateEventBtn->setClickedCallback(boost::bind(&LLPanelEvent::onClickCreateEvent,this));
+	mCreateEventBtn = getChild<LLButton>("create_event_btn");
+	mCreateEventBtn->setClickedCallback(boost::bind(&LLPanelEvent::onClickCreateEvent, this));
+	if (!gHippoGridManager->getConnectedGrid()->isSecondLife())
+	{
+		auto& inst(LFSimFeatureHandler::instance());
+		mCreateEventBtn->setEnabled(!inst.getEventsURL().empty());
+		inst.setEventsURLCallback(boost::bind(enable_create, _1, mCreateEventBtn));
+	}
+
 
 	return TRUE;
 }
@@ -126,9 +139,8 @@ void LLPanelEvent::processEventInfoReply(LLMessageSystem *msg, void **)
 	msg->getU32("EventData", "EventID", event_id);
 
 	// look up all panels which have this avatar
-	for (panel_list_t::iterator iter = sAllPanels.begin(); iter != sAllPanels.end(); ++iter)
+	for (auto& self : sAllPanels)
 	{
-		LLPanelEvent* self = *iter;
 		// Skip updating panels which aren't for this event
 		if (self->mEventID != event_id)
 		{
@@ -138,7 +150,8 @@ void LLPanelEvent::processEventInfoReply(LLMessageSystem *msg, void **)
 		self->mTBName->setText(self->mEventInfo.mName);
 		self->mTBCategory->setText(self->mEventInfo.mCategoryStr);
 		self->mTBDate->setText(self->mEventInfo.mTimeStr);
-		self->mTBDesc->setText(self->mEventInfo.mDesc);
+		self->mTBDesc->setText(self->mEventInfo.mDesc, false);
+		self->mTBRunBy->setValue(self->mEventInfo.mRunByID);
 
 		self->mTBDuration->setText(llformat("%d:%.2d", self->mEventInfo.mDuration / 60, self->mEventInfo.mDuration % 60));
 
@@ -190,17 +203,6 @@ void LLPanelEvent::processEventInfoReply(LLMessageSystem *msg, void **)
 			self->mNotifyBtn->setLabel(self->getString("notify"));
 		}
 	}
-}
-
-
-void LLPanelEvent::draw()
-{
-	std::string name;
-	gCacheName->getFullName(mEventInfo.mRunByID, name);
-
-	mTBRunBy->setText(name);
-
-	LLPanel::draw();
 }
 
 void LLPanelEvent::resetInfo()
@@ -286,8 +288,8 @@ bool LLPanelEvent::callbackCreateEventWebPage(const LLSD& notification, const LL
 	if (0 == option)
 	{
 		LL_INFOS() << "Loading events page " << EVENTS_URL << LL_ENDL;
-
-		LLWeb::loadURL(EVENTS_URL);
+		const std::string& opensim_events = LFSimFeatureHandler::instance().getEventsURL();
+		LLWeb::loadURL(opensim_events.empty() ? EVENTS_URL : opensim_events);
 	}
 	return false;
 }

@@ -8,7 +8,6 @@
 
 #include <stdtypes.h>
 #include <lldir.h>
-#include <lleconomy.h>
 #include <llerror.h>
 #include <llfile.h>
 #include <llhttpclient.h>
@@ -48,6 +47,7 @@ HippoGridInfo::HippoGridInfo(const std::string& gridName) :
 	mWebSite(LLStringUtil::null),
 	mSupportUrl(LLStringUtil::null),
 	mRegisterUrl(LLStringUtil::null),
+	mPartnerUrl(LLStringUtil::null),
 	mPasswordUrl(LLStringUtil::null),
 	mSearchUrl(LLStringUtil::null),
 	mGridMessage(""),
@@ -58,7 +58,6 @@ HippoGridInfo::HippoGridInfo(const std::string& gridName) :
 	mRenderCompat(true),
 	mAutoUpdate(false),
 	mLocked(false),
-	mMaxAgentGroups(-1),
 	mCurrencySymbol("OS$"),
 	mCurrencyText("OS Dollars"),
 	mRealCurrencySymbol("US$"),
@@ -81,7 +80,7 @@ const std::string& HippoGridInfo::getGridOwner() const
 	}
 	else
 	{
-		return this->getGridName();
+		return getGridName();
 	}	
 }
 
@@ -102,14 +101,13 @@ void HippoGridInfo::setPlatform(Platform platform)
 void HippoGridInfo::setPlatform(const std::string& platform)
 {
 	std::string tmp = platform;
-	for (unsigned i=0; i<platform.size(); i++)
-		tmp[i] = tolower(tmp[i]);
+	LLStringUtil::toLower(tmp);
 
-	if (tmp == "aurora") 
+	if (tmp == "aurora" || tmp == "whitecore")
 	{
-		setPlatform(PLATFORM_AURORA);
+		setPlatform(PLATFORM_WHITECORE);
 	} 
-	else if (tmp == "opensim") 
+	else if (tmp == "opensim" || tmp == "halcyon")
 	{
 		setPlatform(PLATFORM_OPENSIM);
 	} 
@@ -120,7 +118,7 @@ void HippoGridInfo::setPlatform(const std::string& platform)
 	else 
 	{
 		setPlatform(PLATFORM_OTHER);
-		LL_WARNS() << "Unknown platform '" << platform << "' for " << mGridName << "." << LL_ENDL;
+		LL_WARNS() << "Unknown platform '" << platform << "' for " << mGridName << '.' << LL_ENDL;
 	}
 }
 
@@ -216,6 +214,11 @@ void HippoGridInfo::setRegisterUrl(const std::string& url)
 	mRegisterUrl = url;
 }
 
+void HippoGridInfo::setPartnerUrl(const std::string& url)
+{
+	mPartnerUrl = url;
+}
+
 void HippoGridInfo::setPasswordUrl(const std::string& url)
 {
 	mPasswordUrl = url;
@@ -278,6 +281,8 @@ void HippoGridInfo::onXmlElementStart(void* userData, const XML_Char* name, cons
 		self->mXmlState = XML_SUPPORT;
 	else if ((strcasecmp(name, "register") == 0) || (strcasecmp(name, "account") == 0))
 		self->mXmlState = XML_REGISTER;
+	else if (strcasecmp(name, "partner") == 0)
+		self->mXmlState = XML_PARTNER;
 	else if (strcasecmp(name, "password") == 0)
 		self->mXmlState = XML_PASSWORD;
 	else if (strcasecmp(name, "search") == 0)
@@ -337,7 +342,7 @@ void HippoGridInfo::onXmlCharacterData(void* userData, const XML_Char* s, int le
 
 		case XML_GRIDNAME:
 		{
-		  if (self->mGridName == "")
+		  if (self->mGridName.empty())
 		  {
 			self->mGridName.assign(s, len);
 		  }
@@ -348,6 +353,7 @@ void HippoGridInfo::onXmlCharacterData(void* userData, const XML_Char* s, int le
 		case XML_WEBSITE: self->mWebSite.assign(s, len); break;
 		case XML_SUPPORT: self->mSupportUrl.assign(s, len); break;
 		case XML_REGISTER: self->mRegisterUrl.assign(s, len); break;
+		case XML_PARTNER: self->mPartnerUrl.assign(s, len); break;
 		case XML_PASSWORD: self->mPasswordUrl.assign(s, len); break;
 		case XML_MESSAGE: self->mGridMessage.assign(s, len); break;
 
@@ -366,7 +372,7 @@ void HippoGridInfo::getGridInfo()
 
 	// Make sure the uri ends on a '/'.
 	std::string uri = mLoginUri;
-	if (uri.compare(uri.length() - 1, 1, "/") != 0)
+	if (uri.back() != '/')
 	{
 		uri += '/';
 	}
@@ -406,37 +412,22 @@ void HippoGridInfo::getGridInfo()
 	XML_ParserFree(parser);
 }
 
-std::string HippoGridInfo::getUploadFee() const
-{
-	std::string fee;
-	formatFee(fee, LLGlobalEconomy::Singleton::getInstance()->getPriceUpload(), true);
-	return fee;
-}
-
-std::string HippoGridInfo::getGroupCreationFee() const
-{
-	std::string fee;
-	formatFee(fee, LLGlobalEconomy::Singleton::getInstance()->getPriceGroupCreate(), false);
-	return fee;
-}
-
 std::string HippoGridInfo::getDirectoryFee() const
 {
-	std::string fee;
-	formatFee(fee, mDirectoryFee, true);
+	std::string fee = formatFee(mDirectoryFee, true);
 	if (mDirectoryFee != 0) fee += "/" + LLTrans::getString("hippo_label_week");
 	return fee;
 }
 
-void HippoGridInfo::formatFee(std::string &fee, int cost, bool showFree) const
+std::string HippoGridInfo::formatFee(int cost, bool showFree) const
 {
-	if (showFree && (cost == 0)) 
+	if (showFree && (cost < 0)) 
 	{
-		fee = LLTrans::getString("hippo_label_free");
+		return LLTrans::getString("hippo_label_free");
 	} 
 	else 
 	{
-		fee = llformat("%s%d", getCurrencySymbol().c_str(), cost);
+		return llformat("%s%d", getCurrencySymbol().c_str(), cost);
 	}
 }
 
@@ -482,9 +473,9 @@ std::string HippoGridInfo::getGridNick() const
 // static
 const char* HippoGridInfo::getPlatformString(Platform platform)
 {
-	static const char* platformStrings[PLATFORM_LAST] = 
+	constexpr const char* platformStrings[PLATFORM_LAST] =
 	{
-		"Other", "Aurora", "OpenSim", "SecondLife"
+		"Other", "WhiteCore", "OpenSim", "SecondLife"
 	};
 
 	if ((platform < PLATFORM_OTHER) || (platform >= PLATFORM_LAST))
@@ -894,6 +885,7 @@ void HippoGridManager::parseData(LLSD &gridInfo, bool mergeIfNewer)
 			if (gridMap.has("website")) grid->setWebSite(gridMap["website"]);
 			if (gridMap.has("support")) grid->setSupportUrl(gridMap["support"]);
 			if (gridMap.has("register")) grid->setRegisterUrl(gridMap["register"]);
+			if (gridMap.has("partner")) grid->setPartnerUrl(gridMap["partner"]);
 			if (gridMap.has("password")) grid->setPasswordUrl(gridMap["password"]);
 			if (gridMap.has("search")) grid->setSearchUrl(gridMap["search"]);
 			if (gridMap.has("render_compat")) grid->setRenderCompat(gridMap["render_compat"]);
@@ -929,6 +921,7 @@ void HippoGridManager::saveFile()
 		gridInfo[i]["website"] = grid->getWebSite();
 		gridInfo[i]["support"] = grid->getSupportUrl();
 		gridInfo[i]["register"] = grid->getRegisterUrl();
+		gridInfo[i]["partner"] = grid->getPartnerUrl();
 		gridInfo[i]["password"] = grid->getPasswordUrl();
 		
 		gridInfo[i]["search"] = grid->getSearchUrl();

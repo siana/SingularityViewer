@@ -29,6 +29,7 @@
 #include "lldispatcher.h"
 
 #include <algorithm>
+#include <iterator>
 #include "llstl.h"
 #include "message.h"
 
@@ -144,4 +145,26 @@ bool LLDispatcher::unpackMessage(
 		}
 	}
 	return true;
+}
+
+// static
+bool LLDispatcher::unpackLargeMessage(
+    LLMessageSystem* msg,
+    LLDispatcher::key_t& method,
+    LLUUID& invoice,
+    LLDispatcher::sparam_t& parameters)
+{
+    msg->getStringFast(_PREHASH_MethodData, _PREHASH_Method, method);
+    msg->getUUIDFast(_PREHASH_MethodData, _PREHASH_Invoice, invoice);
+    S32 count = msg->getNumberOfBlocksFast(_PREHASH_ParamList);
+    for (S32 i = 0; i < count; ++i)
+    {
+        // This method treats all Parameter List params as strings and unpacks
+        // them regardless of length. If there is binary data it is the callers 
+        // responsibility to decode it.
+        std::string param;
+        msg->getStringFast(_PREHASH_ParamList, _PREHASH_Parameter, param, i);
+        parameters.push_back(param);
+    }
+    return true;
 }

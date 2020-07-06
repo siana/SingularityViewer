@@ -12,11 +12,11 @@
 	</menu_item_call>
 	<menu_item_separator />
 	<menu_item_check label="Center on Camera" name="Center on Camera">
-		<on_click function="MiniMap.Center" userdata="1" />
-		<on_check function="MiniMap.CheckCenter" userdata="1" />
+	  <on_click function="ToggleControl" userdata="MiniMapCenter" />
+	  <on_check control="MiniMapCenter" />
 	</menu_item_check>
 	<menu_item_check label="Rotate Mini-Map" name="Rotate Mini-Map">
-	  <on_click function="MiniMap.ToggleControl" userdata="MiniMapRotate" />
+	  <on_click function="ToggleControl" userdata="MiniMapRotate" />
 	  <on_check control="MiniMapRotate" />
 	</menu_item_check>
   <menu
@@ -26,7 +26,7 @@
      label="Objects"
      name="Objects">
       <menu_item_check.on_click
-       function="MiniMap.ToggleControl"
+       function="ToggleControl"
        userdata="ShowMiniMapObjects" />
       <menu_item_check.on_check
        control="ShowMiniMapObjects" />
@@ -35,8 +35,9 @@
      label="Property Lines"
      name="Property Lines">
       <menu_item_check.on_click
-       function="Minimap.ToggleOverlay"
+       function="ToggleControl"
        userdata="MiniMapPropertyLines" />
+      <menu_item_check.on_click function="Minimap.ToggleOverlay"/>
       <menu_item_check.on_check
        control="MiniMapPropertyLines" />
     </menu_item_check>
@@ -44,8 +45,9 @@
      label="Parcels for Sale"
      name="Parcels for Sale">
       <menu_item_check.on_click
-       function="Minimap.ToggleOverlay"
+       function="ToggleControl"
        userdata="MiniMapForSaleParcels" />
+      <menu_item_check.on_click function="Minimap.ToggleOverlay"/>
       <menu_item_check.on_check
        control="MiniMapForSaleParcels" />
       <menu_item_check.on_enable
@@ -57,7 +59,7 @@
       <menu_item_check.on_check
        control="MiniMapRadarTrackingCircles"/>
       <menu_item_check.on_click
-       function="MiniMap.ToggleControl"
+       function="ToggleControl"
        userdata="MiniMapRadarTrackingCircles"/>
     </menu_item_check>
   </menu>
@@ -69,29 +71,21 @@
 		<menu_item_separator />
 		<menu_item_check label="Show Whisper Ring" name="Show Whisper Ring">
 			<on_check control="MiniMapWhisperRing" />
-			<on_click function="MiniMap.ToggleControl" userdata="MiniMapWhisperRing" />
+			<on_click function="ToggleControl" userdata="MiniMapWhisperRing" />
 		</menu_item_check>
 		<menu_item_check label="Show Chat Ring" name="Show Chat Ring">
 			<on_check control="MiniMapChatRing" />
-			<on_click function="MiniMap.ToggleControl" userdata="MiniMapChatRing" />
+			<on_click function="ToggleControl" userdata="MiniMapChatRing" />
 		</menu_item_check>
 		<menu_item_check label="Show Shout Ring" name="Show Shout Ring">
 			<on_check control="MiniMapShoutRing" />
-			<on_click function="MiniMap.ToggleControl" userdata="MiniMapShoutRing" />
+			<on_click function="ToggleControl" userdata="MiniMapShoutRing" />
 		</menu_item_check>
     </menu>
 	<menu_item_separator />
 	<menu_item_call label="Stop Tracking" name="Stop Tracking">
-		<on_click function="MiniMap.StopTracking" />
-		<on_enable function="MiniMap.EnableTracking" />
-	</menu_item_call>
-	<menu_item_call label="Profile..." name="Profile">
-		<on_click function="MiniMap.ShowProfile" />
-		<on_enable function="MiniMap.EnableProfile" />
-	</menu_item_call>
-	<menu_item_call label="Cam..." name="Camfollow">
-		<on_click function="MiniMap.CamFollow" />
-		<on_enable function="MiniMap.EnableProfile" />
+		<on_click function="StopTracking" />
+		<on_visible function="IsTracking" />
 	</menu_item_call>
 	<menu name="Mark" label="Mark">
 		<menu_item_call label="Red" name="Red">
@@ -109,13 +103,14 @@
 		<menu_item_call label="Custom..." name="Custom">
 			<on_click function="MiniMap.setcustom" />
 		</menu_item_call>
-  </menu>
-  <menu_item_call label="Unmark" name="Unmark">
-    <on_click function="MiniMap.setunmark" />
-    <on_enable function="MiniMap.enableunmark" />
-  </menu_item_call>
+    </menu>
+    <menu_item_call label="Unmark" name="Unmark">
+      <on_click function="MiniMap.setunmark" />
+      <on_enable function="MiniMap.enableunmark" />
+    </menu_item_call>
+  <menu name="avs_menu" label="Selected Avatars" filename="menu_local_avs.xml"/>
   <menu_item_check label="World Map Textures" name="World Map Textures">
     <on_check control="MiniMapWorldMapTextures" />
-    <on_click function="MiniMap.ToggleControl" userdata="MiniMapWorldMapTextures" />
+    <on_click function="ToggleControl" userdata="MiniMapWorldMapTextures" />
   </menu_item_check>
 </menu>

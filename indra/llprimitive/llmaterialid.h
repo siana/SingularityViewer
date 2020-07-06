@@ -30,16 +30,18 @@
 #define MATERIAL_ID_SIZE 16
 
 #include <string>
+#include "llsd.h"
 
 class LLMaterialID
 {
 public:
 	LLMaterialID();
+	LLMaterialID(const LLUUID& id) { set(id.mData); }
 	LLMaterialID(const LLSD& pMaterialID);
 	LLMaterialID(const LLSD::Binary& pMaterialID);
 	LLMaterialID(const void* pMemory);
-	LLMaterialID(const LLMaterialID& pOtherMaterialID);
-	~LLMaterialID();
+	LLMaterialID(const LLMaterialID& pOtherMaterialID) = default;
+	~LLMaterialID() = default;
 
 	bool          operator == (const LLMaterialID& pOtherMaterialID) const;
 	bool          operator != (const LLMaterialID& pOtherMaterialID) const;
@@ -49,7 +51,7 @@ public:
 	bool          operator > (const LLMaterialID& pOtherMaterialID) const;
 	bool          operator >= (const LLMaterialID& pOtherMaterialID) const;
 
-	LLMaterialID& operator = (const LLMaterialID& pOtherMaterialID);
+	LLMaterialID& operator = (const LLMaterialID& pOtherMaterialID) = default;
 
 	bool          isNull() const;
 
@@ -66,11 +68,13 @@ public:
 
 private:
 	void parseFromBinary(const LLSD::Binary& pMaterialID);
-	void copyFromOtherMaterialID(const LLMaterialID& pOtherMaterialID);
 	int  compareToOtherMaterialID(const LLMaterialID& pOtherMaterialID) const;
 
 	U8 mID[MATERIAL_ID_SIZE];
 } ;
+
+static_assert(sizeof(LLMaterialID) == MATERIAL_ID_SIZE, "LLMaterialID must be sizeof(mID)");
+static_assert(std::is_trivially_copyable<LLMaterialID>::value, "LLMaterialID must be a trivially copyable type");
 
 #endif // LL_LLMATERIALID_H
 

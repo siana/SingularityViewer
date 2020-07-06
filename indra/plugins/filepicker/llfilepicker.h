@@ -160,7 +160,7 @@ private:
 	WCHAR mFilesW[FILENAME_BUFFER_SIZE];
 
 public:
-	void setWindowID(unsigned long window_id) { mOFN.hwndOwner = (HWND)window_id; }
+	void setWindowID(unsigned long window_id) { mOFN.hwndOwner = (HWND)(intptr_t)window_id; }
 
 private:
 	bool setupFilter(ELoadFilter filter);

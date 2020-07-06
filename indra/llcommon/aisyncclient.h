@@ -56,8 +56,8 @@ struct LLFrameTimer
   double mStartTime;
   double mExpiry;
   static double getCurrentTime(void);
-  static U32 sFrameCount;
-  static U32 getFrameCount() { return sFrameCount; }
+  static U64 sFrameCount;
+  static U64 getFrameCount() { return sFrameCount; }
   F64 getStartTime() const { return mStartTime; }
   void reset(double expiration) { mStartTime = getCurrentTime(); mExpiry = mStartTime + expiration; }
   bool hasExpired(void) const { return getCurrentTime() > mExpiry; }
@@ -114,7 +114,7 @@ class LL_COMMON_API AISyncKey
 {
   private:
 	LLFrameTimer mFrameTimer;				// This timer is started at the moment the sync key is created.
-	U32 mStartFrameCount;					// The frame count at which the timer was started.
+	U64 mStartFrameCount;					// The frame count at which the timer was started.
 
   public:
 	// Constructor.

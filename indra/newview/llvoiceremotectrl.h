@@ -48,7 +48,6 @@ public:
 	/*virtual*/ BOOL postBuild();
 	/*virtual*/ void draw();
 
-	static void onBtnLock(void* user_data);
 	static void onBtnTalkHeld();
 	static void onBtnTalkReleased();
 	static void onBtnTalkClicked();
@@ -62,7 +61,6 @@ protected:
 	LLButton* mTalkLockBtn;
 	LLButton* mSpeakersBtn;
 	CachedUICtrl<LLIconCtrl> mVoiceVolIcon;
-	CachedUICtrl<LLButton> mShowChanBtn;
 };
 
 #endif // LL_LLVOICEREMOTECTRL_H

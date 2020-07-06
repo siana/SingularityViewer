@@ -115,8 +115,8 @@ void LLManipRotate::render()
 	LLGLSUIDefault gls_ui;
 	gGL.getTexUnit(0)->bind(LLViewerFetchedTexture::sWhiteImagep);
 	LLGLDepthTest gls_depth(GL_TRUE);
-	LLGLEnable gl_blend(GL_BLEND);
-	LLGLEnable gls_alpha_test(GL_ALPHA_TEST);
+	LLGLEnable<GL_BLEND> gl_blend;
+	LLGLEnable<GL_ALPHA_TEST> gls_alpha_test;
 	
 	// You can rotate if you can move
 	LLViewerObject* first_object = mObjectSelection->getFirstMoveableObject(TRUE);
@@ -160,7 +160,7 @@ void LLManipRotate::render()
 				gDebugProgram.bind();
 			}
 
-			LLGLEnable cull_face(GL_CULL_FACE);
+			LLGLEnable<GL_CULL_FACE> cull_face;
 			LLGLDepthTest gls_depth(GL_FALSE);
 			gGL.pushMatrix();
 			{
@@ -242,7 +242,7 @@ void LLManipRotate::render()
 
 		if (mManipPart == LL_ROT_Z)
 		{
-			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 			gGL.pushMatrix();
 			{
 				// selected part
@@ -253,7 +253,7 @@ void LLManipRotate::render()
 		}
 		else if (mManipPart == LL_ROT_Y)
 		{
-			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 			gGL.pushMatrix();
 			{
 				static const LLMatrix4a rot = gGL.genRot( 90.f, 1.f, 0.f, 0.f );
@@ -265,7 +265,7 @@ void LLManipRotate::render()
 		}
 		else if (mManipPart == LL_ROT_X)
 		{
-			mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+			mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 			gGL.pushMatrix();
 			{
 				static const LLMatrix4a rot = gGL.genRot( 90.f, 0.f, 1.f, 0.f );
@@ -277,17 +277,17 @@ void LLManipRotate::render()
 		}
 		else if (mManipPart == LL_ROT_ROLL)
 		{
-			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, SELECTED_MANIPULATOR_SCALE), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+			mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, SELECTED_MANIPULATOR_SCALE), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 		}
 		else if (mManipPart == LL_NO_PART)
 		{
 			if (mHighlightedPart == LL_NO_PART)
 			{
-				mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+				mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 			}
 
-			LLGLEnable cull_face(GL_CULL_FACE);
-			LLGLEnable clip_plane0(GL_CLIP_PLANE0);
+			LLGLEnable<GL_CULL_FACE> cull_face;
+			LLGLEnable<GL_CLIP_PLANE0> clip_plane0;
 			LLGLDepthTest gls_depth(GL_FALSE);
 
 			// First pass: centers. Second pass: sides.
@@ -298,7 +298,7 @@ void LLManipRotate::render()
 				{
 					if (mHighlightedPart == LL_ROT_Z)
 					{
-						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, SELECTED_MANIPULATOR_SCALE, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 						gGL.scalef(mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ], mManipulatorScales.mV[VZ]);
 						// hovering over part
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 0.f, 1.f, 1.f ), LLColor4( 0.f, 0.f, 1.f, 0.5f ), CIRCLE_STEPS, i);
@@ -317,7 +317,7 @@ void LLManipRotate::render()
 					gGL.rotatef( rot );
 					if (mHighlightedPart == LL_ROT_Y)
 					{
-						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+						mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, SELECTED_MANIPULATOR_SCALE, 1.f, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 						gGL.scalef(mManipulatorScales.mV[VY], mManipulatorScales.mV[VY], mManipulatorScales.mV[VY]);
 						// hovering over part
 						gl_ring( mRadiusMeters, width_meters, LLColor4( 0.f, 1.f, 0.f, 1.f ), LLColor4( 0.f, 1.f, 0.f, 0.5f ), CIRCLE_STEPS, i);
@@ -336,7 +336,7 @@ void LLManipRotate::render()
 					gGL.rotatef( rot );
 					if (mHighlightedPart == LL_ROT_X)
 					{
-						mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+						mManipulatorScales = lerp(mManipulatorScales, LLVector4(SELECTED_MANIPULATOR_SCALE, 1.f, 1.f, 1.f), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 						gGL.scalef(mManipulatorScales.mV[VX], mManipulatorScales.mV[VX], mManipulatorScales.mV[VX]);
 	
 						// hovering over part
@@ -352,7 +352,7 @@ void LLManipRotate::render()
 
 				if (mHighlightedPart == LL_ROT_ROLL)
 				{
-					mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, SELECTED_MANIPULATOR_SCALE), LLCriticalDamp::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
+					mManipulatorScales = lerp(mManipulatorScales, LLVector4(1.f, 1.f, 1.f, SELECTED_MANIPULATOR_SCALE), LLSmoothInterpolation::getInterpolant(MANIPULATOR_SCALE_HALF_LIFE));
 				}
 
 			}
@@ -488,7 +488,7 @@ BOOL LLManipRotate::handleMouseUp(S32 x, S32 y, MASK mask)
 			LLViewerObject* root_object = (object == NULL) ? NULL : object->getRootEdit();
 
 			// have permission to move and object is root of selection or individually selected
-			if (object->permMove() && !object->isPermanentEnforced() &&
+			if (object && object->permMove() && !object->isPermanentEnforced() &&
 				((root_object == NULL) || !root_object->isPermanentEnforced()) &&
 				(object->isRootEdit() || selectNode->mIndividualSelection))
 			{
@@ -578,7 +578,7 @@ void LLManipRotate::drag( S32 x, S32 y )
 		LLViewerObject* root_object = (object == NULL) ? NULL : object->getRootEdit();
 
 		// have permission to move and object is root of selection or individually selected
-		if (object->permMove() && !object->isPermanentEnforced() &&
+		if (object && object->permMove() && !object->isPermanentEnforced() &&
 			((root_object == NULL) || !root_object->isPermanentEnforced()) &&
 			(object->isRootEdit() || selectNode->mIndividualSelection))
 		{
@@ -736,7 +736,7 @@ void LLManipRotate::drag( S32 x, S32 y )
 
 void LLManipRotate::renderActiveRing( F32 radius, F32 width, const LLColor4& front_color, const LLColor4& back_color)
 {
-	LLGLEnable cull_face(GL_CULL_FACE);
+	LLGLEnable<GL_CULL_FACE> cull_face;
 	{
 		gl_ring(radius, width, back_color, back_color * 0.5f, CIRCLE_STEPS, FALSE);
 		gl_ring(radius, width, back_color, back_color * 0.5f, CIRCLE_STEPS, TRUE);
@@ -1216,8 +1216,8 @@ LLQuaternion LLManipRotate::dragUnconstrained( S32 x, S32 y )
 	F32 dist_from_sphere_center = sqrt(delta_x * delta_x + delta_y * delta_y);
 
 	LLVector3 axis = mMouseDown % mMouseCur;
+	F32 angle = atan2(sqrtf(axis * axis), mMouseDown * mMouseCur);
 	axis.normVec();
-	F32 angle = acos(mMouseDown * mMouseCur);
 	LLQuaternion sphere_rot( angle, axis );
 
 	if (is_approx_zero(1.f - mMouseDown * mMouseCur))
@@ -1614,9 +1614,9 @@ LLQuaternion LLManipRotate::dragConstrained( S32 x, S32 y )
 			mInSnapRegime = FALSE;
 		}
 
-		angle = acos(mMouseCur * mMouseDown);
-
-		F32 dir = (mMouseDown % mMouseCur) * constraint_axis;  // cross product
+		LLVector3 cross_product = mMouseDown % mMouseCur;
+		angle = atan2(sqrtf(cross_product * cross_product), mMouseCur * mMouseDown);
+		F32 dir = cross_product * constraint_axis;  // cross product
 		if( dir < 0.f )
 		{
 			angle *= -1.f;

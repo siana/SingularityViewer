@@ -27,6 +27,7 @@
 
 #include "llvolumemgr.h"
 #include "llvolume.h"
+#include "llthread.h"
 
 
 const F32 BASE_THRESHOLD = 0.03f;
@@ -214,7 +215,7 @@ void LLVolumeMgr::useMutex()
 { 
 	if (!mDataMutex)
 	{
-		mDataMutex = new LLMutex;
+		mDataMutex = new LLMutex();
 	}
 }
 

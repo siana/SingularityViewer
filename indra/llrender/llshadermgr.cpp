@@ -80,7 +80,11 @@ BOOL LLShaderMgr::attachShaderFeatures(LLGLSLShader * shader)
 {
 	llassert_always(shader != NULL);
 	LLShaderFeatures *features = & shader->mFeatures;
-	
+
+	if (features->attachNothing)
+	{
+		return TRUE;
+	}
 	//////////////////////////////////////
 	// Attach Vertex Shader Features First
 	//////////////////////////////////////
@@ -494,27 +498,28 @@ BOOL LLShaderMgr::attachShaderFeatures(LLGLSLShader * shader)
 //============================================================================
 // Load Shader
 
-static std::string get_object_log(GLhandleARB ret)
+static std::string get_object_log(GLhandleARB ret, bool isProgram)
 {
 	std::string res;
 	
 	//get log length 
 	GLint length;
-	glGetObjectParameterivARB(ret, GL_OBJECT_INFO_LOG_LENGTH_ARB, &length);
+	(isProgram ? glGetProgramiv : glGetShaderiv)(ret, GL_INFO_LOG_LENGTH, &length);
+
 	if (length > 0)
 	{
 		//the log could be any size, so allocate appropriately
 		GLcharARB* log = new GLcharARB[length];
-		glGetInfoLogARB(ret, length, &length, log);
+		(isProgram ? glGetProgramInfoLog : glGetShaderInfoLog)(ret, length, &length, log);
 		res = std::string((char *)log);
 		delete[] log;
 	}
 	return res;
 }
 
-void LLShaderMgr::dumpObjectLog(GLhandleARB ret, BOOL warns) 
+void LLShaderMgr::dumpObjectLog(GLhandleARB ret, bool isProgram, bool warns)
 {
-	std::string log = get_object_log(ret);
+	std::string log = get_object_log(ret, isProgram);
 	if ( log.length() > 0 )
 	{
 		if (warns)
@@ -534,7 +539,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 	range = mShaderObjects.equal_range(filename);
 	for (std::multimap<std::string, CachedObjectInfo>::iterator it = range.first; it != range.second;++it)
 	{
-		if((*it).second.mLevel == shader_level && (*it).second.mType == type && (*it).second.mDefinitions == (defines ? *defines : std::map<std::string, std::string>()))
+		if((*it).second.mLevel == shader_level && (*it).second.mType == type && (*it).second.mIndexChannels == texture_index_channels && (*it).second.mDefinitions == (defines ? *defines : std::map<std::string, std::string>()))
 		{
 			//LL_INFOS("ShaderLoading") << "Loading cached shader for " << filename << LL_ENDL;
 			return (*it).second.mHandle;
@@ -551,7 +556,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 		}
 	}
 
-	LL_DEBUGS("ShaderLoading") << "Loading shader file: " << filename << " class " << shader_level << LL_ENDL;
+	LL_INFOS("ShaderLoading") << "Loading shader file: " << filename << " class " << shader_level << LL_ENDL;
 
 	if (filename.empty()) 
 	{
@@ -607,92 +612,90 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 		if (minor_version <= 19)
 		{
 			text[count++] = strdup("#version 110\n");
-			text[count++] = strdup("#define ATTRIBUTE attribute\n");
-			text[count++] = strdup("#define VARYING varying\n");
-			text[count++] = strdup("#define VARYING_FLAT varying\n");
-			// Need to enable extensions here instead of in the shader files,
-			// before any non-preprocessor directives (per spec)
-			text[count++] = strdup("#extension GL_ARB_texture_rectangle : enable\n");
-			text[count++] = strdup("#extension GL_ARB_shader_texture_lod : enable\n");
 		}
 		else if (minor_version <= 29)
 		{
 			//set version to 1.20
 			text[count++] = strdup("#version 120\n");
-			text[count++] = strdup("#define FXAA_GLSL_120 1\n");
-			text[count++] = strdup("#define FXAA_FAST_PIXEL_OFFSET 0\n");
-			text[count++] = strdup("#define ATTRIBUTE attribute\n");
-			text[count++] = strdup("#define VARYING varying\n");
-			text[count++] = strdup("#define VARYING_FLAT varying\n");
-			// Need to enable extensions here instead of in the shader files,
-			// before any non-preprocessor directives (per spec)
-			text[count++] = strdup("#extension GL_ARB_texture_rectangle : enable\n");
-			text[count++] = strdup("#extension GL_ARB_shader_texture_lod : enable\n");
+			if (type == GL_FRAGMENT_SHADER_ARB)
+			{
+				// Need to enable extensions here instead of in the shader files,
+				// before any non-preprocessor directives (per spec)
+				text[count++] = strdup("#extension GL_ARB_shader_texture_lod : enable\n");
+				text[count++] = strdup("#define FXAA_GLSL_120 1\n");
+				text[count++] = strdup("#define FXAA_FAST_PIXEL_OFFSET 0\n");
+			}
 		}
+
+		text[count++] = strdup("#define ATTRIBUTE attribute\n");
+		text[count++] = strdup("#define VARYING varying\n");
+		text[count++] = strdup("#define VARYING_FLAT varying\n");
 	}
 	else
 	{  
 		if (major_version < 4)
 		{
-			//set version to 1.30
-			text[count++] = strdup("#version 130\n");
-			// Need to enable extensions here instead of in the shader files,
-			// before any non-preprocessor directives (per spec)
-			text[count++] = strdup("#extension GL_ARB_texture_rectangle : enable\n");
-			text[count++] = strdup("#extension GL_ARB_shader_texture_lod : enable\n");
-			
-
+			if (major_version > 1 || minor_version >= 40)
+			{
+				//set version to 1.40
+				text[count++] = strdup("#version 140\n");
+			}
+			else
+			{
+				//set version to 1.30
+				text[count++] = strdup("#version 130\n");
+			}
+			if (minor_version == 50 && gGLManager.mHasGpuShader5)
+			{
+				// Need to enable extensions here instead of in the shader files,
+				// before any non-preprocessor directives (per spec)
+				text[count++] = strdup("#extension GL_ARB_gpu_shader5 : enable\n");
+			}
 			//some implementations of GLSL 1.30 require integer precision be explicitly declared
 			text[count++] = strdup("precision mediump int;\n");
 			text[count++] = strdup("precision highp float;\n");
+			if (type == GL_FRAGMENT_SHADER_ARB)
+			{
+				text[count++] = strdup("#define FXAA_GLSL_130 1\n");
+			}
 		}
 		else
 		{ //set version to 400
 			text[count++] = strdup("#version 400\n");
-			// Need to enable extensions here instead of in the shader files,
-			// before any non-preprocessor directives (per spec)
-			text[count++] = strdup("#extension GL_ARB_texture_rectangle : enable\n");
-			text[count++] = strdup("#extension GL_ARB_shader_texture_lod : enable\n");
+			if (type == GL_FRAGMENT_SHADER_ARB)
+			{
+				text[count++] = strdup("#define FXAA_GLSL_400 1\n");
+			}
 		}
-		
-
-		text[count++] = strdup("#define DEFINE_GL_FRAGCOLOR 1\n");
-		text[count++] = strdup("#define FXAA_GLSL_130 1\n");
-
-		text[count++] = strdup("#define ATTRIBUTE in\n");
 
 		if (type == GL_VERTEX_SHADER_ARB)
 		{ //"varying" state is "out" in a vertex program, "in" in a fragment program 
 			// ("varying" is deprecated after version 1.20)
+			text[count++] = strdup("#define ATTRIBUTE in\n");
 			text[count++] = strdup("#define VARYING out\n");
 			text[count++] = strdup("#define VARYING_FLAT flat out\n");
 		}
 		else
 		{
+			text[count++] = strdup("#define DEFINE_GL_FRAGCOLOR 1\n");
 			text[count++] = strdup("#define VARYING in\n");
 			text[count++] = strdup("#define VARYING_FLAT flat in\n");
-		}
 
-		//backwards compatibility with legacy texture lookup syntax
-		text[count++] = strdup("#define texture2D texture\n");
-		text[count++] = strdup("#define textureCube texture\n");
-		text[count++] = strdup("#define texture2DLod textureLod\n");
-		text[count++] = strdup("#define	shadow2D(a,b) vec2(texture(a,b))\n");
-
-		if (major_version > 1 || minor_version >= 40)
-		{ //GLSL 1.40 replaces texture2DRect et al with texture
-			text[count++] = strdup("#define texture2DRect texture\n");
-			text[count++] = strdup("#define shadow2DRect(a,b) vec2(texture(a,b))\n");
+			//backwards compatibility with legacy texture lookup syntax
+			text[count++] = strdup("#define texture2D texture\n");
+			text[count++] = strdup("#define textureCube texture\n");
+			text[count++] = strdup("#define texture2DLod textureLod\n");
+			text[count++] = strdup("#define	shadow2D(a,b) vec2(texture(a,b))\n");
 		}
 	}
 
 	if(defines)
 	{
 		for (std::map<std::string,std::string>::iterator iter = defines->begin(); iter != defines->end(); ++iter)
-	{
-		std::string define = "#define " + iter->first + " " + iter->second + "\n";
-		text[count++] = (GLcharARB *) strdup(define.c_str());
-	}
+		{
+			std::string define = "#define " + iter->first + " " + iter->second + "\n";
+			text[count++] = (GLcharARB *) strdup(define.c_str());
+		}
 	}
 
 	if (texture_index_channels > 0 && type == GL_FRAGMENT_SHADER_ARB)
@@ -789,7 +792,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 			LL_ERRS() << "Indexed texture rendering requires GLSL 1.30 or later." << LL_ENDL;
 		}
 	}
-	else
+	else if( type == GL_FRAGMENT_SHADER_ARB )
 	{
 		text[count++] = strdup("#define HAS_DIFFUSE_LOOKUP 0\n");
 	}
@@ -809,7 +812,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 		if (error != GL_NO_ERROR)
 		{
 			LL_WARNS("ShaderLoading") << "GL ERROR in glCreateShaderObjectARB: " << error << LL_ENDL;
-			glDeleteObjectARB(ret); //no longer need handle
+			glDeleteShader(ret); //no longer need handle
 			ret=0;
 		}
 	}
@@ -825,7 +828,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 			if (error != GL_NO_ERROR)
 			{
 				LL_WARNS("ShaderLoading") << "GL ERROR in glShaderSourceARB: " << error << LL_ENDL;
-				glDeleteObjectARB(ret); //no longer need handle
+				glDeleteShader(ret); //no longer need handle
 				ret=0;
 			}
 		}
@@ -842,7 +845,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 			if (error != GL_NO_ERROR)
 			{
 				LL_WARNS("ShaderLoading") << "GL ERROR in glCompileShaderARB: " << error << LL_ENDL;
-				glDeleteObjectARB(ret); //no longer need handle
+				glDeleteShader(ret); //no longer need handle
 				ret=0;
 			}
 		}
@@ -854,7 +857,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 	{
 		//check for errors
 		GLint success = GL_TRUE;
-		glGetObjectParameterivARB(ret, GL_OBJECT_COMPILE_STATUS_ARB, &success);
+		glGetShaderiv(ret, GL_COMPILE_STATUS, &success);
 		if (gDebugGL || success == GL_FALSE)
 		{
 			error = glGetError();
@@ -862,10 +865,9 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 			{
 				//an error occured, print log
 				LL_WARNS("ShaderLoading") << "GLSL Compilation Error: (" << error << ") in " << filename << LL_ENDL;
-				dumpObjectLog(ret);
-				error_str = get_object_log(ret);
+				dumpObjectLog(ret, false);
+				error_str = get_object_log(ret, false);
 
-#if LL_WINDOWS
 				std::stringstream ostr;
 				//dump shader source for debugging
 				for (GLuint i = 0; i < count; i++)
@@ -876,31 +878,19 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 					{ //dump every 128 lines
 
 						LL_WARNS("ShaderLoading") << "\n" << ostr.str() << LL_ENDL;
-						ostr = std::stringstream();
+						ostr.clear();
+						ostr.str(LLStringUtil::null);
 					}
 
 				}
 
 				LL_WARNS("ShaderLoading") << "\n" << ostr.str() << LL_ENDL;
-#else
-				std::string str;
-				
-				for (GLuint i = 0; i < count; i++) {
-					str.append(text[i]);
-					
-					if (i % 128 == 0)
-					{
-						LL_WARNS("ShaderLoading") << str << LL_ENDL;
-						str = "";
-					}
-				}
-#endif
-				glDeleteObjectARB(ret); //no longer need handle
+				glDeleteShader(ret); //no longer need handle
 				ret = 0;
 			}	
 		}
 		if(ret)
-			dumpObjectLog(ret,false);
+			dumpObjectLog(ret, false, false);
 	}
 
 	static const LLCachedControl<bool> dump_raw_shaders("ShyotlDumpRawShaders",false);
@@ -941,7 +931,7 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 	if (ret)
 	{
 		// Add shader file to map
-		mShaderObjects.insert(make_pair(filename,CachedObjectInfo(ret,try_gpu_class,type,defines)));
+		mShaderObjects.insert(make_pair(filename,CachedObjectInfo(ret,try_gpu_class,type, texture_index_channels,defines)));
 		shader_level = try_gpu_class;
 	}
 	else
@@ -956,12 +946,69 @@ GLhandleARB LLShaderMgr::loadShaderFile(const std::string& filename, S32 & shade
 	return ret;
 }
 
+void LLShaderMgr::unloadShaders()
+{
+	//Instead of manually unloading, shaders are now automatically accumulated in a list.
+	//Simply iterate and unload.
+	std::vector<LLGLSLShader *> &shader_list = LLShaderMgr::getGlobalShaderList();
+	for (std::vector<LLGLSLShader *>::iterator it = shader_list.begin(); it != shader_list.end(); ++it)
+		(*it)->unload();
+	mShaderObjects.clear();
+	mProgramObjects.clear();
+}
+
+void LLShaderMgr::unloadShaderObjects()
+{
+	std::multimap<std::string, LLShaderMgr::CachedObjectInfo >::iterator it = mShaderObjects.begin();
+	for (; it != mShaderObjects.end(); ++it)
+		if (it->second.mHandle)
+			glDeleteShader(it->second.mHandle);
+	mShaderObjects.clear();
+	cleanupShaderSources();
+}
+
+void LLShaderMgr::cleanupShaderSources()
+{
+	if (!mProgramObjects.empty())
+	{
+		for (auto iter = mProgramObjects.cbegin(),
+			iter_end = mProgramObjects.cend(); iter != iter_end; ++iter)
+		{
+			GLuint program = iter->second;
+			if (program > 0)
+			{
+				GLhandleARB shaders[1024] = {};
+				GLsizei count = -1;
+				glGetAttachedObjectsARB(program, 1024, &count, shaders);
+				if (count > 0)
+				{
+					for (GLsizei i = 0; i < count; ++i)
+					{
+						std::multimap<std::string, LLShaderMgr::CachedObjectInfo>::iterator it = mShaderObjects.begin();
+						for (; it != mShaderObjects.end(); it++)
+						{
+							if ((*it).second.mHandle == shaders[i])
+							{
+								glDetachObjectARB(program, shaders[i]);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Clear the linked program list as its no longer needed
+		mProgramObjects.clear();
+	}
+}
+
 BOOL LLShaderMgr::linkProgramObject(GLhandleARB obj, BOOL suppress_errors) 
 {
 	//check for errors
 	glLinkProgramARB(obj);
 	GLint success = GL_TRUE;
-	glGetObjectParameterivARB(obj, GL_OBJECT_LINK_STATUS_ARB, &success);
+	glGetProgramiv(obj, GL_LINK_STATUS, &success);
 	if (!suppress_errors && success == GL_FALSE) 
 	{
 		//an error occured, print log
@@ -1005,7 +1052,7 @@ BOOL LLShaderMgr::linkProgramObject(GLhandleARB obj, BOOL suppress_errors)
 	}
 
 #else
-	std::string log = get_object_log(obj);
+	std::string log = get_object_log(obj, true);
 	LLStringUtil::toLower(log);
 	if (log.find("software") != std::string::npos)
 	{
@@ -1016,7 +1063,7 @@ BOOL LLShaderMgr::linkProgramObject(GLhandleARB obj, BOOL suppress_errors)
 #endif
 	if (!suppress_errors)
 	{
-        dumpObjectLog(obj, !success);
+        dumpObjectLog(obj, true, !success);
 	}
 
 	return success;
@@ -1027,15 +1074,15 @@ BOOL LLShaderMgr::validateProgramObject(GLhandleARB obj)
 	//check program validity against current GL
 	glValidateProgramARB(obj);
 	GLint success = GL_TRUE;
-	glGetObjectParameterivARB(obj, GL_OBJECT_VALIDATE_STATUS_ARB, &success);
+	glGetProgramiv(obj, GL_VALIDATE_STATUS, &success);
 	if (success == GL_FALSE)
 	{
 		LL_WARNS("ShaderLoading") << "GLSL program not valid: " << LL_ENDL;
-		dumpObjectLog(obj);
+		dumpObjectLog(obj, true);
 	}
 	else
 	{
-		dumpObjectLog(obj, FALSE);
+		dumpObjectLog(obj, true, false);
 	}
 
 	return success;
@@ -1073,8 +1120,6 @@ void LLShaderMgr::initAttribsAndUniforms()
 	mReservedUniforms.push_back("object_plane_t");
 	llassert(mReservedUniforms.size() == LLShaderMgr::OBJECT_PLANE_T+1);
 
-	mReservedUniforms.push_back("viewport");
-
 	mReservedUniforms.push_back("light_position");
 	mReservedUniforms.push_back("light_direction");
 	mReservedUniforms.push_back("light_attenuation");
@@ -1109,7 +1154,7 @@ void LLShaderMgr::initAttribsAndUniforms()
 	mReservedUniforms.push_back("specularMap");
 	mReservedUniforms.push_back("bumpMap");
 	mReservedUniforms.push_back("environmentMap");
-	mReservedUniforms.push_back("cloude_noise_texture");
+	mReservedUniforms.push_back("cloud_noise_texture");
 	mReservedUniforms.push_back("fullbright");
 	mReservedUniforms.push_back("lightnorm");
 	mReservedUniforms.push_back("sunlight_color_copy");
@@ -1165,7 +1210,9 @@ void LLShaderMgr::initAttribsAndUniforms()
 	mReservedUniforms.push_back("ssao_factor");
 	mReservedUniforms.push_back("ssao_factor_inv");
 	mReservedUniforms.push_back("ssao_effect");
-	mReservedUniforms.push_back("screen_res");
+	mReservedUniforms.push_back("ssao_scale");
+	mReservedUniforms.push_back("kern_scale");
+	mReservedUniforms.push_back("noise_scale");
 	mReservedUniforms.push_back("near_clip");
 	mReservedUniforms.push_back("shadow_offset");
 	mReservedUniforms.push_back("shadow_bias");
@@ -1181,7 +1228,6 @@ void LLShaderMgr::initAttribsAndUniforms()
 	
 	llassert(mReservedUniforms.size() == LLShaderMgr::DEFERRED_DOWNSAMPLED_DEPTH_SCALE+1);
 
-	mReservedUniforms.push_back("tc_scale");
 	mReservedUniforms.push_back("rcp_screen_res");
 	mReservedUniforms.push_back("rcp_frame_opt");
 	mReservedUniforms.push_back("rcp_frame_opt2");

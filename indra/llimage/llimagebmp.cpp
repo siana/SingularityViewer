@@ -1,31 +1,25 @@
 /** 
  * @file llimagebmp.cpp
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
- * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
- * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -81,7 +75,7 @@ LLImageBMP::LLImageBMP()
 	:
 	LLImageFormatted(IMG_CODEC_BMP),
 	mColorPaletteColors( 0 ),
-	mColorPalette( NULL ),
+	mColorPalette(nullptr ),
 	mBitmapOffset( 0 ),
 	mBitsPerPixel( 0 ),
 	mOriginAtTop( FALSE )
@@ -324,10 +318,13 @@ BOOL LLImageBMP::updateData()
 
 	if( 0 != mColorPaletteColors )
 	{
-		mColorPalette = new U8[color_palette_size];
-		if (!mColorPalette)
+		try
 		{
-			LL_ERRS() << "Out of memory in LLImageBMP::updateData()" << LL_ENDL;
+			mColorPalette = new U8[color_palette_size];
+		}
+		catch (const std::bad_alloc& e)
+		{
+			LL_WARNS() << "Failed to allocate bmp color date with exception: " << e.what() << LL_ENDL;
 			return FALSE;
 		}
 		memcpy( mColorPalette, mdata + FILE_HEADER_SIZE + BITMAP_HEADER_SIZE + extension_size, color_palette_size );	/* Flawfinder: ignore */
@@ -449,6 +446,10 @@ BOOL LLImageBMP::decodeColorMask32( U8* dst, U8* src )
 		mBitfieldMask[2] = 0x000000FF;
 	}
 
+	if (getWidth() * getHeight() * 4 > getDataSize() - mBitmapOffset)
+	{ //here we have situation when data size in src less than actually needed
+		return FALSE;
+	}
 
 	S32 src_row_span = getWidth() * 4;
 	S32 alignment_bytes = (3 * src_row_span) % 4;  // round up to nearest multiple of 4
@@ -482,6 +483,11 @@ BOOL LLImageBMP::decodeColorTable8( U8* dst, U8* src )
 	S32 src_row_span = getWidth() * 1;
 	S32 alignment_bytes = (3 * src_row_span) % 4;  // round up to nearest multiple of 4
 
+	if ((getWidth() * getHeight()) + getHeight() * alignment_bytes > getDataSize() - mBitmapOffset)
+	{ //here we have situation when data size in src less than actually needed
+		return FALSE;
+	}
+
 	for( S32 row = 0; row < getHeight(); row++ )
 	{
 		for( S32 col = 0; col < getWidth(); col++ )
@@ -506,6 +512,11 @@ BOOL LLImageBMP::decodeTruecolor24( U8* dst, U8* src )
 	llassert( 3 == getComponents() );
 	S32 src_row_span = getWidth() * 3;
 	S32 alignment_bytes = (3 * src_row_span) % 4;  // round up to nearest multiple of 4
+
+	if ((getWidth() * getHeight() * 3) + getHeight() * alignment_bytes > getDataSize() - mBitmapOffset)
+	{ //here we have situation when data size in src less than actually needed
+		return FALSE;
+	}
 
 	for( S32 row = 0; row < getHeight(); row++ )
 	{

@@ -22,6 +22,8 @@
 		<column name="Owner" label="Propietario" tool_tip="Haz doble click en cualquier resultado para marcar su posición"/>
 		<column name="Group" label="Grupo" tool_tip="Haz doble click en cualquier resultado para marcar su posición"/>
 	</scroll_list>
+	<button name="TP" label="TP"/>
+	<button name="Look" label="Ver"/>
 	<text name="counter">
 		Listados/Pendientes/Total
 	</text>

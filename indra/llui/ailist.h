@@ -253,11 +253,15 @@ class AIConstListIterator {
 	typedef AIConstListIterator<T>					_Self;
 	typedef std::list<AINode<T> >					_Container;
 	typedef typename _Container::iterator			_Iterator;
+#if LL_LINUX && GCC_VERSION <= 40899
+	typedef _Iterator _ConstIterator;
+#else
 	typedef typename _Container::const_iterator		_ConstIterator;
+#endif
 	typedef AIListIterator<T>						iterator;
 
 	_Container const* mContainer;
-	_Iterator mConstIterator;		// This has to be an _Iterator instead of _ConstIterator, because the compiler doesn't accept a const_iterator for erase yet (C++11 does).
+	_ConstIterator mConstIterator;
 
 	void ref(void)
 	{
@@ -289,7 +293,7 @@ class AIConstListIterator {
 	typedef T const&									reference;
 
 	AIConstListIterator(void) : mContainer(NULL) { }
-	AIConstListIterator(_Container const* __c, _Iterator const& __i) : mContainer(__c), mConstIterator(__i)
+	AIConstListIterator(_Container const* __c, _ConstIterator const& __i) : mContainer(__c), mConstIterator(__i)
 	{
 	  llassert(mContainer);
 	  ref();
@@ -343,7 +347,7 @@ class AIConstListIterator {
 
 	_Self& operator++()
 	{
-	  _Iterator cur = mConstIterator;
+	  _ConstIterator cur = mConstIterator;
 	  ++cur;
 	  unref();
 	  while(cur != mContainer->end() && cur->dead)
@@ -364,7 +368,7 @@ class AIConstListIterator {
 
 	_Self& operator--()
 	{
-	  _Iterator cur = mConstIterator;
+	  _ConstIterator cur = mConstIterator;
 	  --cur;
 	  unref();
 	  while(cur->dead)

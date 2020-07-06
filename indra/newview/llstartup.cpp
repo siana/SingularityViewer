@@ -44,27 +44,23 @@
 #include "llviewermedia_streamingaudio.h"
 #include "llaudioengine.h"
 
-
-#if LL_FMODSTUDIO
+#ifdef LL_FMODSTUDIO
 # include "llaudioengine_fmodstudio.h"
-#endif
-
-#if LL_FMODEX
-# include "llaudioengine_fmodex.h"
 #endif
 
 #ifdef LL_OPENAL
 #include "llaudioengine_openal.h"
 #endif
 
+#include "aosystem.h"
 #include "hippogridmanager.h"
 #include "hippolimits.h"
-#include "floaterao.h"
 #include "statemachine/aifilepicker.h"
 #include "lfsimfeaturehandler.h"
 
 #include "llares.h"
 #include "llavatarnamecache.h"
+#include "llexperiencecache.h"
 #include "lllandmark.h"
 #include "llcachename.h"
 #include "lldir.h"
@@ -90,7 +86,7 @@
 #include "lltexteditor.h"
 #include "llurlentry.h"
 #include "lluserrelations.h"
-#include "sgversion.h"
+#include "llversioninfo.h"
 #include "llviewercontrol.h"
 #include "llvfs.h"
 #include "llxorcipher.h"	// saved password, MAC address
@@ -99,6 +95,7 @@
 #include "v3math.h"
 
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llagentcamera.h"
 #include "llagentwearables.h"
 #include "llagentpilot.h"
@@ -208,8 +205,7 @@
 #include "llweb.h"
 #include "llvoiceclient.h"
 #include "llnamelistctrl.h"
-#include "llnamebox.h"
-#include "llnameeditor.h"
+#include "llnameui.h"
 #include "llwlparammanager.h"
 #include "llwaterparammanager.h"
 #include "llagentlanguage.h"
@@ -221,6 +217,7 @@
 #include "generichandlers.h"
 
 // <edit>
+#include "floaterlocalassetbrowse.h"
 #include "llpanellogin.h"
 //#include "llfloateravatars.h"
 //#include "llactivation.h"
@@ -229,11 +226,11 @@
 #include "llfloaterblacklist.h"
 #include "scriptcounter.h"
 #include "shfloatermediaticker.h"
+#include "shupdatechecker.h"
 #include "llpacketring.h"
 // </edit>
 
 #include "llpathfindingmanager.h"
-#include "llevents.h"
 
 #include "lgghunspell_wrapper.h"
 
@@ -241,6 +238,8 @@
 #include "rlvhandler.h"
 // [/RLVa:KB]
 
+#include "llevents.h"
+#include "llexperiencelog.h"
 #if LL_WINDOWS
 #include "llwindebug.h"
 #include "lldxhardware.h"
@@ -288,6 +287,7 @@ static LLHost gFirstSim;
 static std::string gFirstSimSeedCap;
 static LLVector3 gAgentStartLookAt(1.0f, 0.f, 0.f);
 static std::string gAgentStartLocation = "safe";
+static bool mBenefitsSuccessfullyInit = false;
 
 
 boost::scoped_ptr<LLEventPump> LLStartUp::sStateWatcher(new LLEventStream("StartupState"));
@@ -318,12 +318,12 @@ void apply_udp_blacklist(const std::string& csv);
 //bool process_login_success_response(std::string& password);
 bool process_login_success_response(std::string& password, U32& first_sim_size_x, U32& first_sim_size_y);
 // </FS:CR> Aurora Sim
+void on_benefits_failed_callback(const LLSD& notification, const LLSD& response);
 void transition_back_to_login_panel(const std::string& emsg);
 
 void callback_cache_name(const LLUUID& id, const std::string& full_name, bool is_group)
 {
-	LLNameBox::refreshAll(id, full_name, is_group);
-	LLNameEditor::refreshAll(id, full_name, is_group);
+	LLNameUI::refreshAll(id, full_name);
 
 	// TODO: Actually be intelligent about the refresh.
 	// For now, just brute force refresh the dialogs.
@@ -431,17 +431,6 @@ void init_audio()
 			)
 		{
 			gAudiop = (LLAudioEngine *) new LLAudioEngine_FMODSTUDIO(gSavedSettings.getBOOL("SHEnableFMODExProfiler"), gSavedSettings.getBOOL("SHEnableFMODEXVerboseDebugging"));
-		}
-#endif
-
-#ifdef LL_FMODEX		
-		if (!gAudiop
-#if !LL_WINDOWS
-		    && NULL == getenv("LL_BAD_FMODEX_DRIVER")
-#endif // !LL_WINDOWS
-		)
-		{
-			gAudiop = (LLAudioEngine *) new LLAudioEngine_FMODEX(gSavedSettings.getBOOL("SHEnableFMODExProfiler"),gSavedSettings.getBOOL("SHEnableFMODEXVerboseDebugging"));
 		}
 #endif
 
@@ -653,21 +642,34 @@ bool idle_startup()
 		//
 		LL_DEBUGS("AppInit") << "Initializing messaging system..." << LL_ENDL;
 
-		std::string message_template_path = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS,"message_template.msg");
+		auto app_settings_path = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, LLStringUtil::null);
+		std::string message_template_path = gDirUtilp->add(app_settings_path, "message_template.msg");
 
 		LLFILE* found_template = NULL;
 		found_template = LLFile::fopen(message_template_path, "r");		/* Flawfinder: ignore */
 		
+		if (!found_template)
+		{
+			app_settings_path = gDirUtilp->getExpandedFilename(LL_PATH_EXECUTABLE,
 		#if LL_WINDOWS
-			// On the windows dev builds, unpackaged, the message_template.msg 
+			// On the windows dev builds, unpackaged, the message_template.msg
 			// file will be located in:
 			// indra/build-vc**/newview/<config>/app_settings.
-			if (!found_template)
-			{
-				message_template_path = gDirUtilp->getExpandedFilename(LL_PATH_EXECUTABLE, "app_settings", "message_template.msg");
-				found_template = LLFile::fopen(message_template_path.c_str(), "r");		/* Flawfinder: ignore */
-			}	
+			"app_settings"
+		#elif LL_DARWIN
+			// On Mac dev builds, message_template.msg lives in:
+			// indra/build-*/newview/<config>/Second Life/Contents/Resources/app_settings
+			"../Resources/app_settings"
+		#else // LL_LINUX and other
+			// On the linux dev builds, the message_template.msg
+			// file will be located in:
+			// indra/build-linux**/newview/packaged/app_settings.
+			"../app_settings"
 		#endif
+			, LLStringUtil::null);
+			message_template_path = gDirUtilp->add(app_settings_path, "message_template.msg");
+			found_template = LLFile::fopen(message_template_path.c_str(), "r");		/* Flawfinder: ignore */
+		}
 
 		if (found_template)
 		{
@@ -693,9 +695,9 @@ bool idle_startup()
 			if(!start_messaging_system(
 				   message_template_path,
 				   port,
-				   gVersionMajor,
-				   gVersionMinor,
-				   gVersionPatch,
+				   LLVersionInfo::getMajor(),
+				   LLVersionInfo::getMinor(),
+				   LLVersionInfo::getPatch(),
 				   FALSE,
 				   std::string(),
 				   responder,
@@ -708,22 +710,8 @@ bool idle_startup()
 				LLAppViewer::instance()->earlyExit("LoginFailedNoNetwork", LLSD().with("DIAGNOSTIC", diagnostic));
 			}
 
-			#if LL_WINDOWS
-				// On the windows dev builds, unpackaged, the message.xml file will 
-				// be located in indra/build-vc**/newview/<config>/app_settings.
-				std::string message_path = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS,"message.xml");
-							
-				if (!LLFile::isfile(message_path.c_str())) 
-				{
-					LLMessageConfig::initClass("viewer", gDirUtilp->getExpandedFilename(LL_PATH_EXECUTABLE, "app_settings", ""));
-				}
-				else
-				{
-					LLMessageConfig::initClass("viewer", gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, ""));
-				}
-			#else			
-				LLMessageConfig::initClass("viewer", gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, ""));
-			#endif
+			// Take into account dev checkout status on all platforms, by using app_settings_path ~Liru
+			LLMessageConfig::initClass("viewer", app_settings_path);
 
 		}
 		else
@@ -864,6 +852,7 @@ bool idle_startup()
 
 		// Go to the next startup state
 		LLStartUp::setStartupState( STATE_BROWSER_INIT );
+		check_for_updates();
 		return FALSE;
 	}
 
@@ -872,7 +861,7 @@ bool idle_startup()
 	{
 		LL_DEBUGS("AppInit") << "STATE_BROWSER_INIT" << LL_ENDL;
 		//std::string msg = LLTrans::getString("LoginInitializingBrowser");
-		//set_startup_status(0.03f, msg.c_str(), gAgent.mMOTD.c_str());
+		//set_startup_status(0.03f, msg.c_str(), gAgent.mMOTD);
 		display_startup();
 		// LLViewerMedia::initBrowser();
 		LLStartUp::setStartupState( STATE_LOGIN_SHOW );
@@ -903,6 +892,8 @@ bool idle_startup()
 			LLToolMgr::getInstance()->initTools();
 
 			display_startup();
+			// Load local textures now, maybe someone wants to use them in UI (why?)
+			LocalAssetBrowser::instance(); // <edit/>
 			// Quickly get something onscreen to look at.
 			gViewerWindow->initWorldUI();
 			display_startup();
@@ -957,7 +948,11 @@ bool idle_startup()
 		display_startup();
 
 		// Push our window frontmost
-		gViewerWindow->getWindow()->show();
+		// Singu Note: Actually, don't! But flash the window to let the user know
+		auto& window(*gViewerWindow->getWindow());
+		window.show(false);
+		if (gSavedSettings.getBOOL("LiruFlashWhenMinimized")) // No, we're not minimized, but if you flash my bar, I will give you the biggest SIGSEGV ~Liru <3
+			window.flashIcon(5.f);
 		display_startup();
 
 		// DEV-16927.  The following code removes errant keystrokes that happen while the window is being 
@@ -1096,27 +1091,12 @@ bool idle_startup()
 		}
 
 		//Get these logs out of my newview root directory, PLEASE.
-		if (gHippoGridManager->getCurrentGrid()->isSecondLife())
-		{
-			gDirUtilp->setPerAccountChatLogsDir(LLStringUtil::null, 
-				gSavedSettings.getString("FirstName"), gSavedSettings.getString("LastName") );
-		}
-		else
-		{
-			gDirUtilp->setPerAccountChatLogsDir(gHippoGridManager->getConnectedGrid()->getGridNick(), 
-				gSavedSettings.getString("FirstName"), gSavedSettings.getString("LastName") );
-		}
+		gDirUtilp->setPerAccountChatLogsDir(gHippoGridManager->getCurrentGrid()->isSecondLife() ? LLStringUtil::null : gHippoGridManager->getConnectedGrid()->getGridNick(), 
+			gSavedSettings.getString("FirstName"), gSavedSettings.getString("LastName"));
 		LLFile::mkdir(gDirUtilp->getChatLogsDir());
 		LLFile::mkdir(gDirUtilp->getPerAccountChatLogsDir());
 
-        // NaCl - Antispam
-        U32 antispam_time = gSavedSettings.getU32("_NACL_AntiSpamTime");
-        U32 antispam_amount = gSavedSettings.getU32("_NACL_AntiSpamAmount");
-        NACLAntiSpamRegistry::registerQueues(antispam_time, antispam_amount);
-		gSavedSettings.getControl("_NACL_AntiSpamGlobalQueue")->getSignal()->connect(boost::bind(&NACLAntiSpamRegistry::handleNaclAntiSpamGlobalQueueChanged, _2));
-		gSavedSettings.getControl("_NACL_AntiSpamTime")->getSignal()->connect(boost::bind(&NACLAntiSpamRegistry::handleNaclAntiSpamTimeChanged, _2));
-		gSavedSettings.getControl("_NACL_AntiSpamAmount")->getSignal()->connect(boost::bind(&NACLAntiSpamRegistry::handleNaclAntiSpamAmountChanged, _2));
-        // NaCl End
+		NACLAntiSpamRegistry::startup(); // NaCl - Antispam
 
 		//good a place as any to create user windlight directories
 		std::string user_windlight_path_name(gDirUtilp->getExpandedFilename( LL_PATH_USER_SETTINGS , "windlight", ""));
@@ -1145,14 +1125,9 @@ bool idle_startup()
 			//LLPanelLogin::close();
 		}
 
-		//For HTML parsing in text boxes.
-		LLTextEditor::setLinkColor( gSavedSettings.getColor4("HTMLLinkColor") );
-
 		// Load URL History File
 		LLURLHistory::loadFile("url_history.xml");
-		// Load media plugin cookies
-		LLViewerMedia::loadCookieFile();
-				
+
 		//-------------------------------------------------
 		// Handle startup progress screen
 		//-------------------------------------------------
@@ -1599,9 +1574,9 @@ bool idle_startup()
 				if (!secondlife ||
 					!boost::algorithm::iequals(lastname, "Resident"))
 				{
-					name += " " + lastname;
+					name += ' ' + lastname;
 				}
-				if (gSavedSettings.getBOOL("LiruGridInTitle")) gWindowTitle += "- " + gHippoGridManager->getCurrentGrid()->getGridName() + " ";
+				if (gSavedSettings.getBOOL("LiruGridInTitle")) gWindowTitle += "- " + gHippoGridManager->getCurrentGrid()->getGridName() + ' ';
 				gViewerWindow->getWindow()->setTitle(gWindowTitle += "- " + name);
 
 				if (!secondlife)
@@ -1740,6 +1715,9 @@ bool idle_startup()
 		gAgent.setPositionAgent(agent_start_position_region);
 
 		display_startup();
+		LLStartUp::initExperiences();
+
+		display_startup();
 		LLStartUp::setStartupState( STATE_MULTIMEDIA_INIT );
 		return FALSE;
 	}
@@ -1859,6 +1837,7 @@ bool idle_startup()
 		display_startup();
 
 		LLStartUp::initNameCache();
+		LLLogChat::initializeIDMap(); // Name cache loaded, create a happy mappy
 		display_startup();
 
 		// update the voice settings *after* gCacheName initialization
@@ -1935,13 +1914,13 @@ bool idle_startup()
 		{
 			LL_DEBUGS("AppInit") << "Initializing sky..." << LL_ENDL;
 			// Initialize all of the viewer object classes for the first time (doing things like texture fetches.
-			LLGLState::checkStates();
-			LLGLState::checkTextureChannels();
+			LLGLStateValidator::checkStates();
+			LLGLStateValidator::checkTextureChannels();
 
 			gSky.init(initial_sun_direction);
 
-			LLGLState::checkStates();
-			LLGLState::checkTextureChannels();
+			LLGLStateValidator::checkStates();
+			LLGLStateValidator::checkTextureChannels();
 		}
 
 		display_startup();
@@ -1983,7 +1962,7 @@ bool idle_startup()
 			gFirstSim,
 			MAX_TIMEOUT_COUNT,
 			FALSE,
-			TIMEOUT_SECONDS,
+			F32Seconds(TIMEOUT_SECONDS),
 			use_circuit_callback,
 			NULL);
 
@@ -2034,7 +2013,7 @@ bool idle_startup()
 			send_complete_agent_movement(regionp->getHost());
 			gAssetStorage->setUpstream(regionp->getHost());
 			gCacheName->setUpstream(regionp->getHost());
-			msg->newMessageFast(_PREHASH_EconomyDataRequest);
+			if (!mBenefitsSuccessfullyInit) msg->newMessageFast(_PREHASH_EconomyDataRequest);
 			gAgent.sendReliableMessage();
 		}
 		display_startup();
@@ -2295,13 +2274,13 @@ bool idle_startup()
 
 		// Create the inventory views
 		LL_INFOS() << "Creating Inventory Views" << LL_ENDL;
-		LLInventoryView::showAgentInventory();
+		LLPanelMainInventory::showAgentInventory();
 		display_startup();
 		
 		// Hide the inventory if it wasn't shown at exit
 		if(!shown_at_exit)
 		{
-			LLInventoryView::toggleVisibility(NULL);
+			LLPanelMainInventory::toggleVisibility(NULL);
 		}
 		display_startup();
 
@@ -2355,6 +2334,12 @@ bool idle_startup()
 		}
 
 		display_startup();
+
+		// *TODO : Uncomment that line once the whole grid migrated to SLM and suppress it from LLAgent::handleTeleportFinished() (llagent.cpp)
+		//check_merchant_status();
+
+		display_startup();
+
 		// We're successfully logged in.
 		gSavedSettings.setBOOL("FirstLoginThisInstall", FALSE);
 
@@ -2572,17 +2557,17 @@ bool idle_startup()
 			&& !sInitialOutfit.empty()    // registration set up an outfit
 			&& !sInitialOutfitGender.empty() // and a gender
 			&& isAgentAvatarValid()	  // can't wear clothes without object
-			&& !gAgent.isGenderChosen() ) // nothing already loading
+			&& !gAgent.isOutfitChosen()) // nothing already loading
 		{
 			// Start loading the wearables, textures, gestures
 			LLStartUp::loadInitialOutfit( sInitialOutfit, sInitialOutfitGender );
 		}
 		// If not first login, we need to fetch COF contents and
 		// compute appearance from that.
-		if (isAgentAvatarValid() && !gAgent.isFirstLogin() && !gAgent.isGenderChosen())
+		if (isAgentAvatarValid() && !gAgent.isFirstLogin() && !gAgent.isOutfitChosen())
 		{
 			gAgentWearables.notifyLoadingStarted();
-			gAgent.setGenderChosen(TRUE);
+			gAgent.setOutfitChosen(TRUE);
 			gAgentWearables.sendDummyAgentWearablesUpdate();
 			callAfterCategoryFetch(LLAppearanceMgr::instance().getCOF(), set_flags_and_update_appearance);
 		}
@@ -2590,7 +2575,7 @@ bool idle_startup()
 		display_startup();
 
 		// wait precache-delay and for agent's avatar or a lot longer.
-		if((timeout_frac > 1.f) && isAgentAvatarValid())
+		if ((timeout_frac > 1.f) && isAgentAvatarValid())
 		{
 			LLStartUp::setStartupState( STATE_WEARABLES_WAIT );
 		}
@@ -2633,11 +2618,11 @@ bool idle_startup()
 		const F32 wearables_time = wearables_timer.getElapsedTimeF32();
 		const F32 MAX_WEARABLES_TIME = 10.f;
 
-		if (!gAgent.isGenderChosen() && isAgentAvatarValid())
+		if (!gAgent.isOutfitChosen() && isAgentAvatarValid())
 		{
-			// No point in waiting for clothing, we don't even
-			// know what gender we are.  Pop a dialog to ask and
-			// proceed to draw the world. JC
+			// No point in waiting for clothing, we don't even know
+			// what outfit we want.  Pop up a gender chooser dialog to
+			// ask and proceed to draw the world. JC
 			//
 			// *NOTE: We might hit this case even if we have an
 			// initial outfit, but if the load hasn't started
@@ -2665,7 +2650,7 @@ bool idle_startup()
 			if (isAgentAvatarValid()
 				&& gAgentAvatarp->isFullyLoaded())
 			{
-				//LL_INFOS() << "avatar fully loaded" << LL_ENDL;
+				LL_DEBUGS("Avatar") << "avatar fully loaded" << LL_ENDL;
 				LLStartUp::setStartupState( STATE_CLEANUP );
 				return TRUE;
 			}
@@ -2676,7 +2661,7 @@ bool idle_startup()
 			if ( gAgentWearables.areWearablesLoaded() )
 			{
 				// We have our clothing, proceed.
-				//LL_INFOS() << "wearables loaded" << LL_ENDL;
+				LL_DEBUGS("Avatar") << "wearables loaded" << LL_ENDL;
 				LLStartUp::setStartupState( STATE_CLEANUP );
 				return TRUE;
 			}
@@ -2686,16 +2671,21 @@ bool idle_startup()
 		update_texture_fetch();
 		display_startup();
 		set_startup_status(0.9f + 0.1f * wearables_time / MAX_WEARABLES_TIME,
-						 LLTrans::getString("LoginDownloadingClothing").c_str(),
-						 gAgent.mMOTD.c_str());
+						 LLTrans::getString("LoginDownloadingClothing"),
+						 gAgent.mMOTD);
 		display_startup();
 		return TRUE;
 	}
 
 	if (STATE_CLEANUP == LLStartUp::getStartupState())
 	{
-		set_startup_status(1.0, "", "");
+		set_startup_status(1.0, LLStringUtil::null, LLStringUtil::null);
 		display_startup();
+
+		if (!mBenefitsSuccessfullyInit && gHippoGridManager->getConnectedGrid()->isSecondLife())
+		{
+			LLNotificationsUtil::add("FailedToGetBenefits", LLSD(), LLSD(), boost::bind(on_benefits_failed_callback, _1, _2));
+		}
 
 		// Let the map know about the inventory.
 		LLFloaterWorldMap* floater_world_map = gFloaterWorldMap;
@@ -2706,16 +2696,13 @@ bool idle_startup()
 		}
 
 		// Start the AO now that settings have loaded and login successful -- MC
-		if (!gAOInvTimer)
-		{
-			gAOInvTimer = new AOInvTimer();
-		}
+		AOSystem::start();
 
 		gViewerWindow->showCursor();
 		gViewerWindow->getWindow()->resetBusyCount();
 		gViewerWindow->getWindow()->setCursor(UI_CURSOR_ARROW);
 		LL_DEBUGS("AppInit") << "Done releasing bitmap" << LL_ENDL;
-
+		//gViewerWindow->revealIntroPanel();
 		gViewerWindow->setStartupComplete();
 		gViewerWindow->setProgressCancelButtonVisible(FALSE);
 		display_startup();
@@ -3027,17 +3014,7 @@ void pass_processObjectPropertiesFamily(LLMessageSystem *msg, void**)
 void process_script_running_reply(LLMessageSystem* msg, void** v)
 {
 	LLLiveLSLEditor::processScriptRunningReply(msg, v);
-	if (ScriptCounter::sCheckMap.size())
-	{
-		LLUUID item_id;
-		msg->getUUIDFast(_PREHASH_Script, _PREHASH_ItemID, item_id);
-		std::map<LLUUID,ScriptCounter*>::iterator it = ScriptCounter::sCheckMap.find(item_id);
-		if (it != ScriptCounter::sCheckMap.end())
-		{
-			it->second->processRunningReply(msg);
-			ScriptCounter::sCheckMap.erase(it);
-		}
-	}
+	ScriptCounter::processScriptRunningReply(msg);
 }
 
 void register_viewer_callbacks(LLMessageSystem* msg)
@@ -3072,6 +3049,7 @@ void register_viewer_callbacks(LLMessageSystem* msg)
 	msg->setHandlerFuncFast(_PREHASH_NameValuePair,			process_name_value);
 	msg->setHandlerFuncFast(_PREHASH_RemoveNameValuePair,	process_remove_name_value);
 	msg->setHandlerFuncFast(_PREHASH_AvatarAnimation,		process_avatar_animation);
+	msg->setHandlerFuncFast(_PREHASH_ObjectAnimation,		process_object_animation);
 	msg->setHandlerFuncFast(_PREHASH_AvatarAppearance,		process_avatar_appearance);
 	msg->setHandlerFunc("AgentCachedTextureResponse",	LLAgent::processAgentCachedTextureResponse);
 	msg->setHandlerFunc("RebakeAvatarTextures", LLVOAvatarSelf::processRebakeAvatarTextures);
@@ -3146,9 +3124,6 @@ void register_viewer_callbacks(LLMessageSystem* msg)
 	// ratings deprecated
 	// msg->setHandlerFuncFast(_PREHASH_ReputationIndividualReply,
 	//					LLFloaterRate::processReputationIndividualReply);
-
-	msg->setHandlerFuncFast(_PREHASH_AgentWearablesUpdate,
-						LLAgentWearables::processAgentInitialWearablesUpdate );
 
 	msg->setHandlerFunc("ScriptControlChange",
 						LLAgent::processScriptControlChange );
@@ -3324,9 +3299,8 @@ void LLStartUp::loadInitialOutfit( const std::string& outfit_folder_name,
 		LL_DEBUGS() << "initial outfit category id: " << cat_id << LL_ENDL;
 	}
 
-	// This is really misnamed -- it means we have started loading
-	// an outfit/shape that will give the avatar a gender eventually. JC
-	gAgent.setGenderChosen(TRUE);
+	gAgent.setOutfitChosen(TRUE);
+	gAgentWearables.sendDummyAgentWearablesUpdate();
 }
 
 //static
@@ -3339,10 +3313,10 @@ void LLStartUp::saveInitialOutfit()
 	
 	if (sWearablesLoadedCon.connected())
 	{
-		LL_DEBUGS() << "sWearablesLoadedCon is connected, disconnecting" << LL_ENDL;
+		LL_DEBUGS("Avatar") << "sWearablesLoadedCon is connected, disconnecting" << LL_ENDL;
 		sWearablesLoadedCon.disconnect();
 	}
-	LL_DEBUGS() << "calling makeNewOutfitLinks( \"" << sInitialOutfit << "\" )" << LL_ENDL;
+	LL_DEBUGS("Avatar") << "calling makeNewOutfitLinks( \"" << sInitialOutfit << "\" )" << LL_ENDL;
 	LLAppearanceMgr::getInstance()->makeNewOutfitLinks(sInitialOutfit,false);
 }
 
@@ -3562,12 +3536,22 @@ void LLStartUp::initNameCache()
 	LLAvatarNameCache::setUseUsernames(!phoenix_name_system || phoenix_name_system == 1 || phoenix_name_system == 3);
 }
 
+
+void LLStartUp::initExperiences()
+{
+    // Should trigger loading the cache.
+    LLExperienceCache::instance().setCapabilityQuery(
+        boost::bind(&LLAgent::getRegionCapability, &gAgent, _1));
+
+	LLExperienceLog::instance().initialize();
+}
+
 void LLStartUp::cleanupNameCache()
 {
 	LLAvatarNameCache::cleanupClass();
 
 	delete gCacheName;
-	gCacheName = NULL;
+	gCacheName = nullptr;
 }
 
 bool LLStartUp::dispatchURL()
@@ -3911,9 +3895,69 @@ void apply_udp_blacklist(const std::string& csv)
 	
 }
 
+void on_benefits_failed_callback(const LLSD& notification, const LLSD& response)
+{
+	LL_WARNS("Benefits") << "Failed to load benefits information" << LL_ENDL;
+}
+
+bool init_benefits(LLSD& response)
+{
+	bool succ = true;
+
+	std::string package_name = response["account_type"].asString();
+	const LLSD& benefits_sd = response["account_level_benefits"];
+	if (!LLAgentBenefitsMgr::init(package_name, benefits_sd) ||
+		!LLAgentBenefitsMgr::initCurrent(package_name, benefits_sd))
+	{
+		succ = false;
+	}
+	else
+	{
+		LL_DEBUGS("Benefits") << "Initialized current benefits, level " << package_name << " from " << benefits_sd << LL_ENDL;
+	}
+	const LLSD& packages_sd = response["premium_packages"];
+	for(LLSD::map_const_iterator package_iter = packages_sd.beginMap();
+		package_iter != packages_sd.endMap();
+		++package_iter)
+	{
+		std::string package_name = package_iter->first;
+		const LLSD& benefits_sd = package_iter->second["benefits"];
+		if (LLAgentBenefitsMgr::init(package_name, benefits_sd))
+		{
+			LL_DEBUGS("Benefits") << "Initialized benefits for package " << package_name << " from " << benefits_sd << LL_ENDL;
+		}
+		else
+		{
+			LL_WARNS("Benefits") << "Failed init for package " << package_name << " from " << benefits_sd << LL_ENDL;
+			succ = false;
+		}
+	}
+
+	if (!LLAgentBenefitsMgr::has("Base"))
+	{
+		LL_WARNS("Benefits") << "Benefits info did not include required package Base" << LL_ENDL;
+		succ = false;
+	}
+	if (!LLAgentBenefitsMgr::has("Premium"))
+	{
+		LL_WARNS("Benefits") << "Benefits info did not include required package Premium" << LL_ENDL;
+		succ = false;
+	}
+
+	// FIXME PREMIUM - for testing if login does not yet provide Premium Plus. Should be removed thereafter.
+	//if (succ && !LLAgentBenefitsMgr::has("Premium Plus"))
+	//{
+	//	LLAgentBenefitsMgr::init("Premium Plus", packages_sd["Premium"]["benefits"]);
+	//	llassert(LLAgentBenefitsMgr::has("Premium Plus"));
+	//}
+	return succ;
+}
+
 bool process_login_success_response(std::string& password, U32& first_sim_size_x, U32& first_sim_size_y)
 {
 	LLSD response = LLUserAuth::getInstance()->getResponse();
+
+	mBenefitsSuccessfullyInit = init_benefits(response);
 
 	std::string text(response["udp_blacklist"]);
 	if(!text.empty())
@@ -4008,17 +4052,6 @@ bool process_login_success_response(std::string& password, U32& first_sim_size_x
 		U32 preferredMaturity = (U32)LLAgent::convertTextToMaturity(text[0]);
 
 		gSavedSettings.setU32("PreferredMaturity", preferredMaturity);
-	}
-	// During the AO transition, this flag will be true. Then the flag will
-	// go away. After the AO transition, this code and all the code that
-	// uses it can be deleted.
-	text = response["ao_transition"].asString();
-	if (!text.empty())
-	{
-		if (text == "1")
-		{
-			gAgent.setAOTransition();
-		}
 	}
 
 	text = response["start_location"].asString();
@@ -4131,6 +4164,7 @@ bool process_login_success_response(std::string& password, U32& first_sim_size_x
 			// We don't care about this flag anymore; now base whether
 			// outfit is chosen on COF contents, initial outfit
 			// requested and available, etc.
+
 			//gAgent.setGenderChosen(TRUE);
 		}
 		
@@ -4147,14 +4181,15 @@ bool process_login_success_response(std::string& password, U32& first_sim_size_x
 		LLWorldMap::gotMapServerURL(true);
 	}
 
-	bool opensim = gHippoGridManager->getConnectedGrid()->isOpenSimulator();
+	auto& grid = *gHippoGridManager->getConnectedGrid();
+	bool opensim = !grid.isSecondLife();
 	if (opensim)
 	{
 		std::string web_profile_url = response["web_profile_url"];
 		//if(!web_profile_url.empty()) // Singu Note: We're using this to check if this grid supports web profiles at all, so set empty if empty.
 			gSavedSettings.setString("WebProfileURL", web_profile_url);
 	}
-	else if(!gHippoGridManager->getConnectedGrid()->isInProductionGrid())
+	else if(!grid.isInProductionGrid())
 	{
 		gSavedSettings.setString("WebProfileURL", "https://my-demo.secondlife.com/[AGENT_NAME]");
 	}
@@ -4203,45 +4238,46 @@ bool process_login_success_response(std::string& password, U32& first_sim_size_x
 			gCloudTextureID = id;
 		}
 #endif
-		// set the location of the Agent Appearance service, from which we can request
-		// avatar baked textures if they are supported by the current region
-		std::string agent_appearance_url = response["agent_appearance_service"];
-		if (!agent_appearance_url.empty())
-		{
-			gSavedSettings.setString("AgentAppearanceServiceURL", agent_appearance_url);
-		}
+	}
+
+	// set the location of the Agent Appearance service, from which we can request
+	// avatar baked textures if they are supported by the current region
+	std::string agent_appearance_url = response["agent_appearance_service"];
+	if (!agent_appearance_url.empty())
+	{
+		gSavedSettings.setString("AgentAppearanceServiceURL", agent_appearance_url);
 	}
 
 	// Override grid info with anything sent in the login response
 	std::string tmp = response["gridname"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setGridName(tmp);
+	if (!tmp.empty()) grid.setGridName(tmp);
 	tmp = response["loginuri"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginUri(tmp);
+	if (!tmp.empty()) grid.setLoginUri(tmp);
 	tmp = response["welcome"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginPage(tmp);
+	if (!tmp.empty()) grid.setLoginPage(tmp);
 	tmp = response["loginpage"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setLoginPage(tmp);
+	if (!tmp.empty()) grid.setLoginPage(tmp);
 	tmp = response["economy"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setHelperUri(tmp);
+	if (!tmp.empty()) grid.setHelperUri(tmp);
 	tmp = response["helperuri"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setHelperUri(tmp);
+	if (!tmp.empty()) grid.setHelperUri(tmp);
 	tmp = response["about"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setWebSite(tmp);
+	if (!tmp.empty()) grid.setWebSite(tmp);
 	tmp = response["website"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setWebSite(tmp);
+	if (!tmp.empty()) grid.setWebSite(tmp);
 	tmp = response["help"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSupportUrl(tmp);
+	if (!tmp.empty()) grid.setSupportUrl(tmp);
 	tmp = response["support"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSupportUrl(tmp);
+	if (!tmp.empty()) grid.setSupportUrl(tmp);
 	tmp = response["register"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRegisterUrl(tmp);
+	if (!tmp.empty()) grid.setRegisterUrl(tmp);
 	tmp = response["account"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRegisterUrl(tmp);
+	if (!tmp.empty()) grid.setRegisterUrl(tmp);
 	tmp = response["password"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setPasswordUrl(tmp);
+	if (!tmp.empty()) grid.setPasswordUrl(tmp);
 	tmp = response["search"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setSearchUrl(tmp);
-	else if (opensim) tmp = gHippoGridManager->getConnectedGrid()->getSearchUrl(); // Fallback from grid info response for setting
+	if (!tmp.empty()) grid.setSearchUrl(tmp);
+	else if (opensim) tmp = grid.getSearchUrl(); // Fallback from grid info response for setting
 	if (opensim)
 	{
 		gSavedSettings.setString("SearchURL", tmp); // Singu Note: For web search purposes, always set this setting
@@ -4250,32 +4286,31 @@ bool process_login_success_response(std::string& password, U32& first_sim_size_x
 		gMenuBarView->getChildView("Avatar Picker")->setVisible(!tmp.empty());
 		gSavedSettings.setString("DestinationGuideURL", response["destination_guide_url"].asString());
 		tmp = response["classified_fee"].asString();
-		gHippoGridManager->getConnectedGrid()->setClassifiedFee(tmp.empty() ? 0 : atoi(tmp.c_str()));
+		grid.setClassifiedFee(tmp.empty() ? 0 : atoi(tmp.c_str()));
 	}
 	tmp = response["currency"].asString();
 	if (!tmp.empty())
 	{
 		LLTrans::setDefaultArg("[CURRENCY]", tmp);
-		gHippoGridManager->getConnectedGrid()->setCurrencySymbol(tmp);
+		grid.setCurrencySymbol(tmp);
 	}
 	tmp = response["currency_text"].asString();
 	if (!tmp.empty())
 	{
 		LLTrans::setDefaultArg("[CURRENCY_TEXT]", tmp);
-		gHippoGridManager->getConnectedGrid()->setCurrencyText(tmp);
+		grid.setCurrencyText(tmp);
 	}
 	tmp = response["real_currency"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setRealCurrencySymbol(tmp);
+	if (!tmp.empty()) grid.setRealCurrencySymbol(tmp);
 	tmp = response["directory_fee"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setDirectoryFee(atoi(tmp.c_str()));
-	tmp = response["max_groups"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setMaxAgentGroups(atoi(tmp.c_str()));
-	tmp = response["max-agent-groups"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setMaxAgentGroups(atoi(tmp.c_str()));
+	if (!tmp.empty()) grid.setDirectoryFee(atoi(tmp.c_str()));
+	if (mBenefitsSuccessfullyInit)
 	tmp = response["VoiceConnector"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setVoiceConnector(tmp);
+	if (!tmp.empty()) grid.setVoiceConnector(tmp);
 	tmp = response["upc_supported"].asString();
-	if (!tmp.empty()) gHippoGridManager->getConnectedGrid()->setUPCSupported(true);
+	if (!tmp.empty()) grid.setUPCSupported(true);
+	if (opensim && !mBenefitsSuccessfullyInit)
+		LLAgentBenefitsMgr::instance().initNonSL(response);
 	gHippoGridManager->saveFile();
 	gHippoLimits->setLimits();
 
@@ -4308,3 +4343,4 @@ void transition_back_to_login_panel(const std::string& emsg)
 	reset_login(); // calls LLStartUp::setStartupState( STATE_LOGIN_SHOW );
 	gSavedSettings.setBOOL("AutoLogin", FALSE);
 }
+

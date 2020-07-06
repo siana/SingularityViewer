@@ -326,7 +326,7 @@ void LLTemplateMessageReader::getF32(const char *block, const char *var,
 {
 	getData(block, var, &d, sizeof(F32), blocknum);
 
-	if( !llfinite( d ) )
+	if( !std::isfinite( d ) )
 	{
 		LL_WARNS() << "non-finite in getF32Fast " << block << " " << var 
 				<< LL_ENDL;
@@ -339,7 +339,7 @@ void LLTemplateMessageReader::getF64(const char *block, const char *var,
 {
 	getData(block, var, &d, sizeof(F64), blocknum);
 
-	if( !llfinite( d ) )
+	if( !std::isfinite( d ) )
 	{
 		LL_WARNS() << "non-finite in getF64Fast " << block << " " << var 
 				<< LL_ENDL;
@@ -501,9 +501,10 @@ BOOL LLTemplateMessageReader::decodeTemplate(
 	else
 	{
 		if(!custom) {
+			// MAINT-7482 - make viewer more tolerant of unknown messages.
 			LL_WARNS() << "Message #" << std::hex << num << std::dec
 					<< " received but not registered!" << LL_ENDL;
-			gMessageSystem->callExceptionFunc(MX_UNREGISTERED_MESSAGE);
+			//gMessageSystem->callExceptionFunc(MX_UNREGISTERED_MESSAGE);
 		}
 		return(FALSE);
 	}
@@ -530,7 +531,7 @@ void LLTemplateMessageReader::logRanOffEndOfPacket( const LLHost& host, const S3
 	gMessageSystem->callExceptionFunc(MX_RAN_OFF_END_OF_PACKET);
 }
 
-static LLFastTimer::DeclareTimer FTM_PROCESS_MESSAGES("Process Messages");
+static LLTrace::BlockTimerStatHandle FTM_PROCESS_MESSAGES("Process Messages");
 
 // decode a given message
 BOOL LLTemplateMessageReader::decodeData(const U8* buffer, const LLHost& sender, bool custom)
@@ -554,7 +555,7 @@ BOOL LLTemplateMessageReader::decodeData(const U8* buffer, const LLHost& sender,
 		iter != mCurrentRMessageTemplate->mMemberBlocks.end();
 		++iter)
 	{
-		LLMessageBlock* mbci = *iter;
+		const LLMessageBlock* mbci = mCurrentRMessageTemplate->mMemberBlocks.toValue(iter);
 		U8	repeat_number;
 		S32	i;
 
@@ -621,17 +622,17 @@ BOOL LLTemplateMessageReader::decodeData(const U8* buffer, const LLHost& sender,
 					 mbci->mMemberVariables.begin();
 				 iter != mbci->mMemberVariables.end(); iter++)
 			{
-				const LLMessageVariable& mvci = **iter;
+				const LLMessageVariable* mvci = mbci->mMemberVariables.toValue(iter);
 
 				// ok, build out the variables
 				// add variable block
-				cur_data_block->addVariable(mvci.getName(), mvci.getType());
+				cur_data_block->addVariable(mvci->getName(), mvci->getType());
 
 				// what type of variable?
-				if (mvci.getType() == MVT_VARIABLE)
+				if (mvci->getType() == MVT_VARIABLE)
 				{
 					// variable, get the number of bytes to read from the template
-					S32 data_size = mvci.getSize();
+					S32 data_size = mvci->getSize();
 					U8 tsizeb = 0;
 					U16 tsizeh = 0;
 					U32 tsize = 0;
@@ -666,32 +667,32 @@ BOOL LLTemplateMessageReader::decodeData(const U8* buffer, const LLHost& sender,
 					}
 					decode_pos += data_size;
 
-					cur_data_block->addData(mvci.getName(), &buffer[decode_pos], tsize, mvci.getType());
+					cur_data_block->addData(mvci->getName(), &buffer[decode_pos], tsize, mvci->getType());
 					decode_pos += tsize;
 				}
 				else
 				{
 					// fixed!
 					// so, copy data pointer and set data size to fixed size
-					if ((decode_pos + mvci.getSize()) > mReceiveSize)
+					if ((decode_pos + mvci->getSize()) > mReceiveSize)
 					{
 						if(!custom)
-							logRanOffEndOfPacket(sender, decode_pos, mvci.getSize());
+							logRanOffEndOfPacket(sender, decode_pos, mvci->getSize());
 
 						// default to 0s.
-						U32 size = mvci.getSize();
+						U32 size = mvci->getSize();
 						std::vector<U8> data(size, 0);
-						cur_data_block->addData(mvci.getName(), &(data[0]), 
-												size, mvci.getType());
+						cur_data_block->addData(mvci->getName(), &(data[0]),
+												size, mvci->getType());
 					}
 					else
 					{
-						cur_data_block->addData(mvci.getName(), 
+						cur_data_block->addData(mvci->getName(),
 												&buffer[decode_pos], 
-												mvci.getSize(), 
-												mvci.getType());
+												mvci->getSize(),
+												mvci->getType());
 					}
-					decode_pos += mvci.getSize();
+					decode_pos += mvci->getSize();
 				}
 			}
 		}
@@ -714,7 +715,7 @@ BOOL LLTemplateMessageReader::decodeData(const U8* buffer, const LLHost& sender,
 		}
 
 		{
-			LLFastTimer t(FTM_PROCESS_MESSAGES);
+			LL_RECORD_BLOCK_TIME(FTM_PROCESS_MESSAGES);
 			if( !mCurrentRMessageTemplate->callHandlerFunc(gMessageSystem) )
 			{
 				LL_WARNS() << "Message from " << sender << " with no handler function received: " << mCurrentRMessageTemplate->mName << LL_ENDL;

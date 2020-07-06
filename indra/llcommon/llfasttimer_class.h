@@ -38,6 +38,8 @@ class LLMutex;
 #include <queue>
 #include "llsd.h"
 
+#define LL_RECORD_BLOCK_TIME(timer_stat) LLFastTimer LL_GLUE_TOKENS(block_time_recorder, __LINE__)(timer_stat);
+
 LL_COMMON_API void assert_main_thread();
 
 class LL_COMMON_API LLFastTimer
@@ -272,5 +274,10 @@ private:
 	LLFastTimer::CurTimerData	mLastTimerData;
 
 };
+
+namespace LLTrace
+{
+	typedef LLFastTimer::DeclareTimer BlockTimerStatHandle;
+}
 
 #endif // LL_LLFASTTIMER_H

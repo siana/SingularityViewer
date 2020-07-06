@@ -54,6 +54,7 @@ protected:
 private:
 	//General -----------------------------------------------------------------------------
 	bool mDoubleClickTeleport;
+	bool mDoubleClickAutoPilot;
 	bool mResetCameraAfterTP;
 	bool mOffsetTPByUserHeight;
 	bool mClearBeaconAfterTeleport;
@@ -115,9 +116,9 @@ private:
 	bool mDisableClickSit;
 	bool mDisableClickSitOtherOwner;
 	bool mDisplayScriptJumps;
-	bool mRestartMinimized;
+	bool mReplaceLinks;
 	F32 mNumScriptDiff;
-	std::string mRestartSound;
+	U32 mEmergencySeconds;
 	std::string mLandmark;
 	std::string mLandmarkBackup;
 

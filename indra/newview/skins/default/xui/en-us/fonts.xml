@@ -3,11 +3,20 @@
 
   <font name="default" comment="default font files (global fallbacks)">
     <file>DejaVuSansCondensed.ttf</file>
+    <file>NotoSansDisplay-Regular.ttf</file>
+    <file>SourceHanSansJP-Regular.otf</file>
+    <file>SourceHanSansKR-Regular.otf</file>
+    <file>SourceHanSansCN-Regular.otf</file>
+    <file>SourceHanSansHK-Regular.otf</file>
+    <file>SourceHanSansTW-Regular.otf</file>
     <os name="Windows">
+      <file>YuGothR.ttc</file>
+      <file>meiryo.TTC</file>
       <file>MSGOTHIC.TTC</file>
       <file>gulim.ttc</file>
       <file>simhei.ttf</file>
       <file>ArialUni.ttf</file>
+      <file>seguisym.ttf</file>
     </os>
     <os name="Mac">
       <file>ヒラギノ角ゴ ProN W3.otf</file>
@@ -20,14 +29,48 @@
     </os>
   </font>
 
-  <font name="SansSerif" comment="Name of san-serif font (Truetype file name)">
-    <file>DroidSans.ttf</file>
-  </font>
-
   <font name="SansSerifBold" 
 	comment="Name of bold sans-serif font" 
 	font_style="Bold">
 	<file>DroidSans-Bold.ttf</file>
+    <file>DejaVuSansCondensed-Bold.ttf</file>
+    <file>NotoSansDisplay-Bold.ttf</file>
+    <file>SourceHanSansJP-Bold.otf</file>
+    <file>SourceHanSansKR-Bold.otf</file>
+    <file>SourceHanSansCN-Bold.otf</file>
+    <file>SourceHanSansHK-Bold.otf</file>
+    <file>SourceHanSansTW-Bold.otf</file>
+  </font>
+  
+  <font name="SansSerif" comment="Name of san-serif font (Truetype file name)">
+    <file>DroidSans.ttf</file>
+  </font>
+
+  <font name="SansSerif"
+	comment="Name of bold sans-serif font" 
+	font_style="BOLD">
+	<file>DroidSans-Bold.ttf</file>
+    <file>DejaVuSansCondensed-Bold.ttf</file>
+    <file>NotoSansDisplay-Bold.ttf</file>
+    <file>SourceHanSansJP-Bold.otf</file>
+    <file>SourceHanSansKR-Bold.otf</file>
+    <file>SourceHanSansCN-Bold.otf</file>
+    <file>SourceHanSansHK-Bold.otf</file>
+    <file>SourceHanSansTW-Bold.otf</file>
+  </font>
+
+  <font name="SansSerif"
+	comment="Name of italic sans-serif font"
+	font_style="ITALIC">
+    <file>DejaVuSansCondensed-Oblique.ttf</file>
+    <file>NotoSansDisplay-Italic.ttf</file>
+  </font>
+
+  <font name="SansSerif"
+	comment="Name of bold italic sans-serif font"
+	font_style="BOLD|ITALIC">
+    <file>DejaVuSansCondensed-BoldOblique.ttf</file>
+    <file>NotoSansDisplay-BoldItalic.ttf</file>
   </font>
 
   <font name="Monospace"
@@ -37,25 +80,25 @@
 
   <font name="DejaVu"
 	comment="Name of DejaVu font">
-    <file>DejaVuSans.ttf</file>
+    <file>DejaVuSansCondensed.ttf</file>
   </font>
 
   <font name="DejaVu"
 	comment="Name of DejaVu font (bold)"
 	font_style="BOLD">
-    <file>DejaVuSansBold.ttf</file>
+    <file>DejaVuSansCondensed-Bold.ttf</file>
   </font>
 
   <font name="DejaVu"
 	comment="Name of DejaVu font (italic)"
 	font_style="ITALIC">
-    <file>DejaVuSansOblique.ttf</file>
+    <file>DejaVuSansCondensed-Oblique.ttf</file>
   </font>
 
   <font name="DejaVu"
 	comment="Name of DejaVu font (bold italic)"
 	font_style="BOLD|ITALIC">
-    <file>DejaVuSansBoldOblique.ttf</file>
+    <file>DejaVuSansCondensed-BoldOblique.ttf</file>
   </font>
 
   <font name="Helvetica"
@@ -107,4 +150,3 @@
 	     size="8.5"
 	     />
 </fonts>
-

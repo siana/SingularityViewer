@@ -2647,7 +2647,7 @@ void LLVivoxVoiceClient::sendPositionalUpdate(void)
 				if(!p->mIsSelf)
 				{
 					// scale from the range 0.0-1.0 to vivox volume in the range 0-100
-					S32 volume = ll_round(p->mVolume / VOLUME_SCALE_VIVOX);
+					S32 volume = ll_pos_round(p->mVolume / VOLUME_SCALE_VIVOX);
 					bool mute = p->mOnMuteList;
 
 					if(mute)
@@ -3564,6 +3564,11 @@ void LLVivoxVoiceClient::participantUpdatedEvent(
 			 */
 			LLVoiceChannel* voice_cnl = LLVoiceChannel::getCurrentVoiceChannel();
 
+			// Singu Note: This block is different so we also update the active speaker list.
+			// also initialize voice moderate_mode depend on Agent's participant. See EXT-6937.
+			// *TODO: remove once a way to request the current voice channel moderation mode is implemented.
+			bool moderate = gAgentID == participant->mAvatarID;
+
 			// ignore session ID of local chat
 			if (voice_cnl && voice_cnl->getSessionID().notNull())
 			{
@@ -3576,14 +3581,20 @@ void LLVivoxVoiceClient::participantUpdatedEvent(
 				{
 					speaker_manager->update(true);
 
-					// also initialize voice moderate_mode depend on Agent's participant. See EXT-6937.
-					// *TODO: remove once a way to request the current voice channel moderation mode is implemented.
-					if (gAgent.getID() == participant->mAvatarID)
+					if (moderate)
 					{
 						speaker_manager->initVoiceModerateMode();
 					}
 				}
 			}
+			else if (voice_cnl) // Local
+			{
+				LLLocalSpeakerMgr::instance().update(true);
+			}
+			// Always update active speakers
+			auto& inst(LLActiveSpeakerMgr::instance());
+			inst.update(true);
+			if (moderate) inst.initVoiceModerateMode();
 		}
 		else
 		{
@@ -3912,7 +3923,7 @@ void LLVivoxVoiceClient::sessionState::removeParticipant(const std::string& uri)
 		vector_replace_with_last(mParticipantList, iter);
 		if (mParticipantList.empty() || mParticipantList.capacity() - mParticipantList.size() > 16)
 		{
-			vector_shrink_to_fit(mParticipantList);
+			mParticipantList.shrink_to_fit();
 		}
 		mParticipantsChanged = true;
 		LL_DEBUGS("Voice") << "participant \"" << uri << "\" (" << iter->mAvatarID << ") removed." << LL_ENDL;
@@ -3929,10 +3940,10 @@ void LLVivoxVoiceClient::sessionState::removeAllParticipants()
 
 	// Singu Note: mParticipantList has replaced both mParticipantsByURI and mParticipantsByUUID, meaning we don't have two maps to maintain any longer.
 	mParticipantList.clear();
-	vector_shrink_to_fit(mParticipantList);
+	mParticipantList.shrink_to_fit();
 }
 
-void LLVivoxVoiceClient::getParticipantList(std::set<LLUUID> &participants)
+void LLVivoxVoiceClient::getParticipantList(uuid_set_t &participants)
 {
 	if(mAudioSession)
 	{
@@ -6364,7 +6375,7 @@ LLVivoxProtocolParser::~LLVivoxProtocolParser()
 		XML_ParserFree(parser);
 }
 
-static LLFastTimer::DeclareTimer FTM_VIVOX_PROCESS("Vivox Process");
+static LLTrace::BlockTimerStatHandle FTM_VIVOX_PROCESS("Vivox Process");
 
 // virtual
 LLIOPipe::EStatus LLVivoxProtocolParser::process_impl(
@@ -6374,7 +6385,7 @@ LLIOPipe::EStatus LLVivoxProtocolParser::process_impl(
 													  LLSD& context,
 													  LLPumpIO* pump)
 {
-	LLFastTimer t(FTM_VIVOX_PROCESS);
+	LL_RECORD_BLOCK_TIME(FTM_VIVOX_PROCESS);
 	LLBufferStream istr(channels, buffer.get());
 	std::ostringstream ostr;
 	while (istr.good())

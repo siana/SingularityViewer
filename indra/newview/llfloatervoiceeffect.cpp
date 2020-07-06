@@ -38,6 +38,7 @@
 
 LLFloaterVoiceEffect::LLFloaterVoiceEffect(const LLSD& key)
 	: LLFloater(/*key*/)
+	, mVoiceEffectList(nullptr)
 {
 	mCommitCallbackRegistrar.add("VoiceEffect.Record",	boost::bind(&LLFloaterVoiceEffect::onClickRecord, this));
 	mCommitCallbackRegistrar.add("VoiceEffect.Play",	boost::bind(&LLFloaterVoiceEffect::onClickPlay, this));
@@ -74,7 +75,7 @@ BOOL LLFloaterVoiceEffect::postBuild()
 		LLStyleSP link(new LLStyle);
 		link->setLinkHREF(LLTrans::getString("voice_morphing_url"));
 		link->setColor(gSavedSettings.getColor4("HTMLLinkColor"));
-		editor->appendStyledText(text, false, false, link);
+		editor->appendText(text, false, false, link);
 	}
 
 	mVoiceEffectList = getChild<LLScrollListCtrl>("voice_effect_list");

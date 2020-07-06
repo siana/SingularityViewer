@@ -5,7 +5,7 @@
 	<menu_item_call label="Tocar" name="Object Touch">
 		<on_click function="Object.Touch" />
 		<on_enable function="Object.EnableTouch" userdata="Tocar" name="EnableTouch"/>
-	</menu_item_call>
+	</menu_item_call>	
 	<menu_item_call label="Sentarse" name="Object Sit">
 		<on_click function="Object.SitOrStand"/>
 		<on_enable function="Object.EnableSitOrStand" userdata="Sentarse,Pararse" name="EnableSitOrStand"/>
@@ -20,6 +20,7 @@
 		<menu_item_call label="Recoger una copia" name="Take Copy"/>
 		<pie_menu label="Anexar HUD" name="Object Attach HUD" />
 		<pie_menu label="Anexar" name="Object Attach" />
+		<pie_menu label="Anexar Mas" name="Object Attach More" />
 		<menu_item_call label="Regresar..." name="Return..."/>
 		<pie_menu label="Más" name="Rate Menu">
 			<pie_menu label="Exportar" name="Export Menu">
@@ -32,6 +33,8 @@
 				<menu_item_call label="Explotar" name="Explode"/>
 				<menu_item_call label="Medir" name="Measure"/>
 				<menu_item_call label="Información" name="Data"/>
+				<menu_item_call label="Ir a" name="Go To"/>
+				<menu_item_call label="Seguir" name="Follow"/>
 				<menu_item_call label="Recargar" name="Reload Textures"/>
 			</pie_menu>
 			<menu_item_call label="Silenciar" name="Object Mute"/>

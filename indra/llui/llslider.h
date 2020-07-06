@@ -48,7 +48,6 @@ public:
 		F32 min_value,
 		F32 max_value,
 		F32 increment,
-		BOOL volume, //TODO: create a "volume" slider sub-class or just use image art, no?  -MG
 		const std::string& control_name = LLStringUtil::null );
 
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
@@ -75,12 +74,12 @@ public:
 	boost::signals2::connection setMouseDownCallback( const commit_signal_t::slot_type& cb );
 	boost::signals2::connection setMouseUpCallback(	const commit_signal_t::slot_type& cb );
 
-
-	virtual BOOL	handleHover(S32 x, S32 y, MASK mask);
-	virtual BOOL	handleMouseUp(S32 x, S32 y, MASK mask);
-	virtual BOOL	handleMouseDown(S32 x, S32 y, MASK mask);
-	virtual BOOL	handleKeyHere(KEY key, MASK mask);
-	virtual void	draw();
+	BOOL	handleHover(S32 x, S32 y, MASK mask) override;
+	BOOL	handleMouseUp(S32 x, S32 y, MASK mask) override;
+	BOOL	handleMouseDown(S32 x, S32 y, MASK mask) override;
+	BOOL	handleKeyHere(KEY key, MASK mask) override;
+	BOOL	handleScrollWheel(S32 x, S32 y, S32 clicks) override;
+	void	draw() override;
 
 private:
 	void			setValueAndCommit(F32 value);
@@ -92,7 +91,6 @@ private:
 	F32				mMaxValue;
 	F32				mIncrement;
 
-	BOOL			mVolumeSlider;
 	S32				mMouseOffset;
 	LLRect			mDragStartThumbRect;
 

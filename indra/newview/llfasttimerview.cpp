@@ -397,13 +397,13 @@ BOOL LLFastTimerView::handleScrollWheel(S32 x, S32 y, S32 clicks)
 	return TRUE;
 }
 
-static LLFastTimer::DeclareTimer FTM_RENDER_TIMER("Timers", true);
+static LLTrace::BlockTimerStatHandle FTM_RENDER_TIMER("Timers", true);
 
 static std::map<LLFastTimer::NamedTimer*, LLColor4> sTimerColors;
 
 void LLFastTimerView::draw()
 {
-	LLFastTimer t(FTM_RENDER_TIMER);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TIMER);
 	
 	std::string tdesc;
 
@@ -421,7 +421,7 @@ void LLFastTimerView::draw()
 	S32 left, top, right, bottom;
 	S32 x, y, barw, barh, dx, dy;
 	S32 texth;
-	LLPointer<LLUIImage> box_imagep = LLUI::getUIImage("rounded_square.tga");
+	LLPointer<LLUIImage> box_imagep = LLUI::getUIImage("Rounded_Square");
 
 	// Draw the window background
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
@@ -884,7 +884,8 @@ void LLFastTimerView::draw()
 					gGL.color4fv(color.mV);
 					F32 start_fragment = llclamp((F32)(left - sublevel_left[level]) / (F32)sublevel_dx[level], 0.f, 1.f);
 					F32 end_fragment = llclamp((F32)(right - sublevel_left[level]) / (F32)sublevel_dx[level], 0.f, 1.f);
-					gl_segmented_rect_2d_fragment_tex(sublevel_left[level], top - level + scale_offset, sublevel_right[level], bottom + level - scale_offset, box_imagep->getTextureWidth(), box_imagep->getTextureHeight(), 16, start_fragment, end_fragment);
+					LLRect rect(sublevel_left[level], top - level + scale_offset, sublevel_right[level], bottom + level - scale_offset);
+					gl_segmented_rect_2d_fragment_tex(rect, box_imagep->getTextureWidth(), box_imagep->getTextureHeight(), 16, start_fragment, end_fragment);
 
 				}
 
@@ -964,7 +965,7 @@ void LLFastTimerView::draw()
 				if (mHoverID == idp)
 				{
 					gGL.flush();
-					glLineWidth(3);
+					gGL.setLineWidth(3);
 				}
 			
 				const F32 * col = sTimerColors[idp].mV;// ft_display_table[idx].color->mV;
@@ -1014,7 +1015,7 @@ void LLFastTimerView::draw()
 				if (mHoverID == idp)
 				{
 					gGL.flush();
-					glLineWidth(1);
+					gGL.setLineWidth(1);
 				}
 
 				if (idp->getCollapsed())
@@ -1025,7 +1026,7 @@ void LLFastTimerView::draw()
 			}
 			
 			//interpolate towards new maximum
-			last_max = (U64) lerp((F32)last_max, (F32) cur_max, LLCriticalDamp::getInterpolant(0.1f));
+			last_max = (U64) lerp((F32)last_max, (F32) cur_max, LLSmoothInterpolation::getInterpolant(0.1f));
 			if (last_max - cur_max <= 1 ||  cur_max - last_max  <= 1)
 			{
 				last_max = cur_max;
@@ -1033,7 +1034,7 @@ void LLFastTimerView::draw()
 			F32 alpha_target = last_max > cur_max ?
 								llmin((F32) last_max/ (F32) cur_max - 1.f,1.f) :
 								llmin((F32) cur_max/ (F32) last_max - 1.f,1.f);
-			alpha_interp = lerp(alpha_interp, alpha_target, LLCriticalDamp::getInterpolant(0.1f));
+			alpha_interp = lerp(alpha_interp, alpha_target, LLSmoothInterpolation::getInterpolant(0.1f));
 
 			if (mHoverID != NULL)
 			{
@@ -1305,7 +1306,7 @@ void LLFastTimerView::exportCharts(const std::string& base, const std::string& t
 
 		last_p.clear();
 
-		LLGLDisable cull(GL_CULL_FACE);
+		LLGLDisable<GL_CULL_FACE> cull;
 
 		LLVector3 base_col(0, 0.7f, 0.f);
 		LLVector3 cur_col(1.f, 0.f, 0.f);
@@ -1329,7 +1330,7 @@ void LLFastTimerView::exportCharts(const std::string& base, const std::string& t
 		
 		last_p.clear();
 		{
-			LLGLEnable blend(GL_BLEND);
+			LLGLEnable<GL_BLEND> blend;
 						
 			gGL.color3fv(cur_col.mV);
 			for (U32 i = 0; i < cur_times.size(); ++i)
@@ -1370,7 +1371,7 @@ void LLFastTimerView::exportCharts(const std::string& base, const std::string& t
 		gGL.flush();
 
 		{
-			LLGLEnable blend(GL_BLEND);
+			LLGLEnable<GL_BLEND> blend;
 			gGL.color3fv(cur_col.mV);
 			last_p.clear();
 
@@ -1418,7 +1419,7 @@ void LLFastTimerView::exportCharts(const std::string& base, const std::string& t
 		last_p.clear();
 				
 		{
-			LLGLEnable blend(GL_BLEND);
+			LLGLEnable<GL_BLEND> blend;
 			gGL.color3fv(cur_col.mV);
 			count = 0;
 			total_count = cur_execution.size();

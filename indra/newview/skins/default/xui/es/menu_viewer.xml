@@ -5,7 +5,7 @@
 		<menu_item_call label="Subir Sonido ([UPLOADFEE])..." name="Upload Sound"/>
 		<menu_item_call label="Subir Animación ([UPLOADFEE])..." name="Upload Animation"/>
 		<menu_item_call label="Subir Modelo..." name="Upload Mesh"/>
-		<menu_item_call label="Subir Masivo ([UPLOADFEE] por archivo)..." name="Bulk Upload"/>
+		<menu_item_call label="Subir Masivo (Pago por archivo)..." name="Bulk Upload"/>
 		<menu_item_call label="Importar Objeto XML" name="Import"/>
 		<menu_item_call label="Importar con Texturas" name="Import2"/>
 		<menu_item_call label="Cambiar Texturas Locales" name="Change Local Textures"/>
@@ -84,10 +84,10 @@
 		<menu_item_check label="Límites de Parcelas" name="Property Lines"/>
 		<menu_item_check label="Líneas de Prohibición" name="Banlines"/>
 		<menu_item_check label="Propietarios del Terreno" name="Land Owners"/>
-		<menu label="Información Adicional" name="Hover Tips">
-			<menu_item_check label="Mostrar Información Adicional" name="Show Tips"/>
-			<menu_item_check label="Información Adicional del Terreno" name="Land Tips"/>
-			<menu_item_check label="Información Adicional en Todos los Objetos" name="Tips On All Objects"/>
+		<menu label="Bulas" name="Hover Tips">
+			<menu_item_check label="Mostrar Bulas" name="Show Tips"/>
+			<menu_item_check label="del Terreno" name="Land Tips"/>
+			<menu_item_check label="de Todos los Objetos" name="Tips On All Objects"/>
 		</menu>
 		<menu_item_check label="Realzar Transparencias" name="Highlight Transparent"/>
 		<menu_item_check name="beacons" label="Balizas"/>
@@ -101,26 +101,40 @@
 	</menu>
 	<!-- ============================= -->
 	<menu label="Mundo" name="World" >
-		<menu_item_call label="Chat" name="Chat"/>
+		<menu_item_check label="Chat" name="Chat"/>
 		<menu_item_check label="Correr Siempre" name="Always Run"/>
 		<menu_item_call label="Sentarse en el piso" name="Sit on Ground"/>
 		<menu_item_check label="Volar" name="Fly"/>
 		<menu_item_call label="Crear un Hito Aquí" name="Create Landmark Here"/>
 		<menu_item_call label="Fijar Base Aquí" name="Set Home to Here"/>
 		<menu_item_call label="Teleportar a Base" name="Teleport Home"/>
-		<menu_item_call label="Falso Estado Ausente" name="Fake Away Status"/>
-		<menu_item_call label="Pasar a Estado Ausente" name="Set Away"/>
-		<menu_item_call label="Pasar a Estado Ocupado" name="Set Busy"/>
+		<menu label="Estado" name="Status">
+			<menu_item_call label="Falso Estado Ausente" name="Fake Away Status"/>
+			<menu_item_call label="Estado Ausente" name="Set Away"/>
+			<menu_item_call label="Estado Ocupado" name="Set Busy"/>
+			<menu label="Respuesta Automática" name="Autoresponse">
+				<menu_item_check label="Repetir" name="Repeat"/>
+				<menu_item_check label="Enviar solo en estado Ausente" name="Only send when away"/>
+				<menu_item_check label="General" name="General"/>
+				<menu_item_check label="&#8226;Sólo Amigos" name="Friends Only"/>
+				<menu_item_check label="No Amigos" name="Non-Friends"/>
+				<menu_item_check label="Ignorados" name="Muted"/>
+			</menu>
+			<menu_item_check label="Sentarte al estar Ausente" name="Sit when away"/>
+		</menu>		
 		<menu_item_call label="Detener las animaciones del Avatar" name="Stop Animating My Avatar"/>
 		<menu_item_call label="Liberar Teclas" name="Release Keys"/>
 		<menu_item_call label="Historial de la Cuenta..." name="Account History..."/>
 		<menu_item_call label="Administrar mi Cuenta..." name="Manage My Account..."/>
-        <menu_item_check label="Buzón de Salida de Comerciante..." name="MerchantOutbox"/>
+        <menu_item_call label="Mercado" name="Marketplace"/>
+        <menu_item_check label="Artículos del Mercado..." name="MarketplaceListings"/>
 		<menu_item_call label="Comprar [CURRENCY]..." name="Buy and Sell L$..."/>
-        <menu_item_call label="Mis Vestuarios" name="My Outfits"/>
-        <menu_item_call label="Favoritos" name="Favorites"/>
+        <menu_item_check label="Mis Vestuarios" name="My Outfits"/>
+        <menu_item_check label="Favoritos" name="Favorites"/>
+		<menu_item_check label="Ítems Recibidos" name="Received Items"/>
         <menu_item_check label="Avatares Predefinidos" name="Avatar Picker"/>
         <menu_item_check label="Destinos" name="Destinations"/>
+		 <menu_item_check label="Experiencias..." name="Experiences..."/> 
 		<menu_item_call label="Mi Terreno..." name="My Land..."/>
 		<menu_item_call label="Acerca del Terreno..." name="About Land..."/>
 		<menu_item_call label="Comprar Terreno..." name="Buy Land..."/>
@@ -152,7 +166,6 @@
 		<menu_item_check label="Mostrar objetos seleccionados ocultos" name="Show Hidden Selection"/>
 		<menu_item_check label="Mostrar radio de luz de la selección" name="Show Light Radius for Selection"/>
 		<menu_item_check label="Mostrar rayo indicador" name="Show Selection Beam"/>
-		<menu_item_call name="insert_tools"/>
 		<menu_item_check label="Ajustar a la cuadrícula" name="Snap to Grid"/>
 		<menu_item_call label="Ajustar Objetos XY a la cuadrícula" name="Snap Object XY to Grid"/>
 		<menu_item_call label="Usar Seleccionado como cuadrícula" name="Use Selection for Grid"/>
@@ -177,19 +190,19 @@
 		<menu_item_call label="Devolver Objeto al Contenido de Objetos" name="Save Object Back to Object Contents"/>
 		<menu_item_call label="Administrador: Borrar" name="Admin Delete"/>
 		<menu_item_call label="Mostrar ventana de avisos/errores de Script " name="Show Script Warning/Error Window"/>
-		<menu label="Recompilar Scripts de la Selección" name="Recompilar Scripts in Selection">
+		<menu label="Recompilar Scripts de la Selección" name="Recompile Scripts in Selection">
 			<menu_item_call label="Mono" name="Mono"/>
 			<menu_item_call label="LSL" name="LSL"/>
 		</menu>
 		<menu_item_call label="Reiniciar Scripts en la Selección" name="Reset Scripts in Selection"/>
-		<menu_item_call label="Definir Ejecución de Scripts en la Selección" name="Set Scripts to Running in Selection"/>
-		<menu_item_call label="Definir la no ejecución de Scripts en la Selección" name="Set Scripts to Not Running in Selection"/>
+		<menu_item_call label="Iniciar la ejecución de Scripts en la Selección" name="Set Scripts to Running in Selection"/>
+		<menu_item_call label="Detener la ejecución de Scripts en la Selección" name="Set Scripts to Not Running in Selection"/>
 		<menu_item_call label="Borrar Scripts en la Selección" name="Remove Scripts in Selection"/>
 		<menu_item_call label="Contar Scripts en la Selección" name="Count Scripts in Selection"/>
 		<menu label="Pathfinding" name="Pathfinding">
 			<menu_item_check label="Conjuntos de Enlaces..." name="pathfinding_linksets_menu_item"/>
 			<menu_item_check label="Personajes..." name="pathfinding_characters_menu_item"/>
-			<menu_item_call label="Rebake de Región" name="pathfinding_rebake_navmesh_item"/>
+			<menu_item_call label="Recargar la Región" name="pathfinding_rebake_navmesh_item"/>
 		</menu>
 	</menu>
 	<!-- ============================= -->
@@ -199,9 +212,8 @@
 		<menu_item_call label="Blog Oficial de Linden Lab..." name="Official Linden Blog..."/>
 		<menu_item_call label="Estado del Grid..." name="Grid Status..."/>
 		<menu_item_call label="Portal de Scripting..." name="Scripting Portal..."/>
-		<menu_item_call label="Denunciar Abuso..." name="Report Abuse..."/>
+		<menu_item_call label="Denunciar Infracción..." name="Report Abuse..."/>
 		<menu_item_call label="Choques, Empujones y Golpes..." name="Bumps, Pushes &amp;amp; Hits..."/>
-		<menu_item_call label="Medidor de Lag" name="Lag Meter"/>
 		<menu label="Informe de Fallos" name="Bug Reporting" >
 			<menu_item_call label="Seguimiento de Problemas Público..." name="Public Issue Tracker..."/>
 			<menu_item_call label="Ayuda del Seguimiento de Problemas Público..." name="Publc Issue Tracker Help..."/>
@@ -211,25 +223,29 @@
 			<menu_item_call label="Wiki de QA..." name="QA Wiki..."/>
 			<menu_item_call label="Informar Fallos..." name="Report Bug..."/>
 			<menu_item_call label="Informar Fallos de [SHORT_APP_NAME]..." name="Report [SHORT_APP_NAME] Bug..."/>
-			<menu_item_call label="Solicitar Nueva Característica..." name="Request New Feature..."/>			
+			<menu_item_call label="Solicitar Nueva Característica..." name="Request New Feature..."/>
 		</menu>
-		<menu_item_call label="Acerca de [APP_NAME]..." name="About Second Life..."/>
+		<menu_item_call label="Grupo [SHORT_APP_NAME]" name="viewer group">
+			<on_click function="URLAction" userdata="secondlife:///app/group/d21f3901-f87d-e8df-4323-f25b23a367be/about"/>
+			<on_visible function="VisibleSecondLife"/>
+		</menu_item_call>
+		<menu_item_call label="Acerca de [SHORT_APP_NAME]..." name="About Second Life..."/>
 	</menu>
 	<!-- ============================= -->
 	<menu label="[SHORT_APP_NAME]" name="Singularity">
 		<menu_item_call label="Cerrar todos los diálogos" name="Close All Dialogs"/>
 		<menu_item_call label="Falso Estado Ausente" name="Fake Away Status"/>
 		<menu_item_call label="Forzar Sentarse en el Piso" name="Force Ground Sit"/>
-		<menu_item_call label="Animation Override..." name="Animation Override ..."/>
+		<menu_item_call label="Animaciones (AO)..." name="Animation Override ..."/>
 		<menu_item_check label="Pose Stand" name="Pose Stand"/>
 		<menu_item_check label="Agilidad" name="Nimble"/>
+		<menu_item_call label="Resincronizar Animaciones" name="Resync Animations"/>
 		<menu_item_check label="Monitor de Región" name="Region Tracker"/>
 		<menu_item_check label="Búsqueda en Área" name="Object Area Search"/>
 		<menu_item_check label="Explorador de Sonidos" name="Sound Explorer"/>
-		<menu_item_check label="Lista Negra de Assets" name="Asset Blacklist"/>
+		<menu_item_check label="Lista Negra" name="Asset Blacklist"/>
 		<menu_item_check label="Filtro de Media" name="Media Filter"/>
 		<menu_item_check label="Mostrar Información de Audio" name="Streaming Audio Display"/>
-
 		<menu_item_check label="Consola de Depuración de Región" name="Region Debug Console"/>
 		<menu_item_call label="Redibujar" name="Rebake"/>
 	</menu>

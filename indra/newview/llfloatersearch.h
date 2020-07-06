@@ -79,18 +79,10 @@ public:
 	///  - "id": specifies the text phrase to search for
 	///  - "category": one of "all" (default), "people", "places",
 	///    "events", "groups", "wiki", "destinations", "classifieds"
-	void search(const SearchQuery &query);
-
-	/// changing godmode can affect the search results that are
-	/// returned by the search website - use this method to tell the
-	/// search floater that the user has changed god level.
-	void godLevelChanged(U8 godlevel);
+	static void search(const SearchQuery& query, LLMediaCtrl* mWebBrowser);
 
 private:
 	/*virtual*/ BOOL postBuild();
-
-	LLSD        mCategoryPaths;
-	U8          mSearchGodLevel;
 };
 
 #endif  // LL_LLFLOATERSEARCH_H

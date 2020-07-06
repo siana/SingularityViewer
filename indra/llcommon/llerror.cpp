@@ -120,6 +120,7 @@ namespace {
 				LL_INFOS() << "Error setting log file to " << filename << LL_ENDL;
 			}
 			mWantsTime = true;
+			mWantsTags = true;
 		}
 		
 		~RecordToFile()
@@ -252,23 +253,13 @@ namespace
 	{
 #ifdef __GNUC__
 		// GCC: type_info::name() returns a mangled class name,st demangle
-
-		static size_t abi_name_len = 100;
-		static char* abi_name_buf = (char*)malloc(abi_name_len);
-			// warning: above is voodoo inferred from the GCC manual,
-			// do NOT change
-
-		int status;
-			// We don't use status, and shouldn't have to pass apointer to it
-			// but gcc 3.3 libstc++'s implementation of demangling is broken
-			// and fails without.
-			
-		char* name = abi::__cxa_demangle(type.name(),
-										abi_name_buf, &abi_name_len, &status);
-			// this call can realloc the abi_name_buf pointer (!)
-
-		return name ? name : type.name();
-
+        // passing nullptr, 0 forces allocation of a unique buffer we can free
+        // fixing MAINT-8724 on OSX 10.14
+		int status = -1;
+		char* name = abi::__cxa_demangle(type.name(), nullptr, 0, &status);
+        std::string result(name ? name : type.name());
+        free(name);
+        return result;
 #elif LL_WINDOWS
 		// DevStudio: type_info::name() includes the text "class " at the start
 
@@ -600,7 +591,7 @@ namespace LLError
 			mFunctionString += std::string(mFunction) + ":";
 			for (size_t i = 0; i < mTagCount; i++)
 			{
-				mTagString += std::string("#") + mTags[i] + ((i == mTagCount - 1) ? "" : " ");
+				mTagString += std::string("#") + mTags[i] + ((i == mTagCount - 1) ? "" : ",");
 			}
 		}
 	}
@@ -983,13 +974,19 @@ namespace
 			}
 
 			if (show_level && r->wantsLevel())
-				{
-				message_stream << site.mLevelString << " ";
-				}
+			{
+				message_stream << site.mLevelString;
+			}
 				
 			if (show_tags && r->wantsTags())
 			{
-				message_stream << site.mTagString << " ";
+				message_stream << site.mTagString;
+			}
+
+			if ((show_level && r->wantsLevel())||
+				(show_tags && r->wantsTags()))
+			{
+				message_stream << " ";
 			}
 
 			if (show_function && r->wantsFunctionName())
@@ -1341,7 +1338,7 @@ namespace LLError
 	}
 
 #if LL_WINDOWS
-		// VC80 was optimizing the error away.
+		// MSVC is optimizing the error away.
 		#pragma optimize("", off)
 #endif
 	void crashAndLoop(const std::string& message)
@@ -1350,9 +1347,8 @@ namespace LLError
 		DoutFatal(dc::core, message);
 #else
 		// Now, we go kaboom!
-		int* make_me_crash = NULL;
-
-		*make_me_crash = 0;
+		int* make_me_crash = nullptr;
+		*make_me_crash = 0xDEADBEEF;
 
 		while(true)
 		{

@@ -74,17 +74,32 @@ BOOL LLPanelNetwork::postBuild()
 	}
 	childSetValue("max_bandwidth", gSavedSettings.getF32("ThrottleBandwidthKBPS"));
 	childSetValue("tex_bandwidth", gSavedSettings.getF32("HTTPThrottleBandwidth"));
-	childSetValue("http_textures", gSavedSettings.getBOOL("ImagePipelineUseHTTP"));
-	childSetValue("http_inventory", gSavedSettings.getBOOL("UseHTTPInventory"));
 	childSetValue("connection_port_enabled", gSavedSettings.getBOOL("ConnectionPortEnabled"));
 	childSetValue("connection_port", (F32)gSavedSettings.getU32("ConnectionPort"));
 
-	// If in Avination, hide the texture bandwidth slider, Avination throttles server-side
-	if (gHippoGridManager->getConnectedGrid()->isAvination())
+	const auto& grid = gHippoGridManager->getConnectedGrid();
+	if (!grid->isSecondLife())
 	{
-		childSetVisible("text_box4", FALSE);
-		childSetVisible("tex_bandwidth", FALSE);
-		childSetVisible("text_box3", FALSE);
+		if (auto view = getChildView("use_http_for"))
+			view->setVisible(true);
+		if (auto view = getChildView("http_textures"))
+		{
+			view->setVisible(true);
+			view->setValue(gSavedSettings.getBOOL("ImagePipelineUseHTTP"));
+		}
+		if (auto view = getChildView("http_inventory"))
+		{
+			view->setVisible(true);
+			view->setValue(gSavedSettings.getBOOL("UseHTTPInventory"));
+		}
+
+		// If in Avination, hide the texture bandwidth slider, Avination throttles server-side
+		if (grid->isAvination())
+		{
+			childSetVisible("text_box4", FALSE);
+			childSetVisible("tex_bandwidth", FALSE);
+			childSetVisible("text_box3", FALSE);
+		}
 	}
 
 	// Socks 5 proxy settings, commit callbacks
@@ -124,9 +139,15 @@ void LLPanelNetwork::apply()
 {
 	gSavedSettings.setU32("CacheSize", childGetValue("cache_size").asInteger());
 	gSavedSettings.setF32("ThrottleBandwidthKBPS", childGetValue("max_bandwidth").asReal());
-	gSavedSettings.setF32("HTTPThrottleBandwidth", childGetValue("tex_bandwidth").asReal());
-	gSavedSettings.setBOOL("ImagePipelineUseHTTP", childGetValue("http_textures"));
-	gSavedSettings.setBOOL("UseHTTPInventory", childGetValue("http_inventory"));
+	if (const auto& view = getChildView("tex_bandwidth"))
+		if (view->getVisible())
+			gSavedSettings.setF32("HTTPThrottleBandwidth", view->getValue().asReal());
+	if (const auto& view = getChildView("http_textures"))
+		if (view->getVisible())
+			gSavedSettings.setBOOL("ImagePipelineUseHTTP", view->getValue());
+	if (const auto& view = getChildView("http_inventory"))
+		if (view->getVisible())
+			gSavedSettings.setBOOL("UseHTTPInventory", view->getValue());
 	gSavedSettings.setBOOL("ConnectionPortEnabled", childGetValue("connection_port_enabled"));
 	gSavedSettings.setU32("ConnectionPort", childGetValue("connection_port").asInteger());
 
@@ -161,8 +182,11 @@ void LLPanelNetwork::cancel()
 void LLPanelNetwork::onClickClearCache(void*)
 {
 	// flag client cache for clearing next time the client runs
-	gSavedSettings.setBOOL("PurgeCacheOnNextStartup", TRUE);
-	LLNotificationsUtil::add("CacheWillClear");
+	if (!gSavedSettings.getBOOL("PurgeCacheOnNextStartup"))
+	{
+		gSavedSettings.setBOOL("PurgeCacheOnNextStartup", TRUE);
+		LLNotificationsUtil::add("CacheWillClear");
+	}
 }
 
 // static

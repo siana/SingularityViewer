@@ -133,11 +133,11 @@ LLDrawable *LLVOWater::createDrawable(LLPipeline *pipeline)
 	return mDrawable;
 }
 
-static LLFastTimer::DeclareTimer FTM_UPDATE_WATER("Update Water");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_WATER("Update Water");
 
 BOOL LLVOWater::updateGeometry(LLDrawable *drawable)
 {
-	LLFastTimer ftm(FTM_UPDATE_WATER);
+	LL_RECORD_BLOCK_TIME(FTM_UPDATE_WATER);
 	LLFace *face;
 
 	if (drawable->getNumFaces() < 1)
@@ -307,15 +307,16 @@ U32 LLVOVoidWater::getPartitionType() const
 	return LLViewerRegion::PARTITION_VOIDWATER;
 }
 
-LLWaterPartition::LLWaterPartition()
-: LLSpatialPartition(0, FALSE, GL_DYNAMIC_DRAW_ARB)
+LLWaterPartition::LLWaterPartition(LLViewerRegion* regionp)
+: LLSpatialPartition(0, FALSE, GL_DYNAMIC_DRAW_ARB, regionp)
 {
 	mInfiniteFarClip = TRUE;
 	mDrawableType = LLPipeline::RENDER_TYPE_WATER;
 	mPartitionType = LLViewerRegion::PARTITION_WATER;
 }
 
-LLVoidWaterPartition::LLVoidWaterPartition()
+LLVoidWaterPartition::LLVoidWaterPartition(LLViewerRegion* regionp)
+	: LLWaterPartition(regionp)
 {
 	//mOcclusionEnabled = FALSE;
 	mDrawableType = LLPipeline::RENDER_TYPE_VOIDWATER;

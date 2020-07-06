@@ -130,14 +130,14 @@ LLWearable::EImportResult LLViewerWearable::importStream( std::istream& input_st
 		LLViewerFetchedTexture* image = LLViewerTextureManager::getFetchedTexture( textureid );
 		if(gSavedSettings.getBOOL("DebugAvatarLocalTexLoadedTime"))
 		{
-			image->setLoadedCallback(LLVOAvatarSelf::debugOnTimingLocalTexLoaded,0,TRUE,FALSE, new LLVOAvatarSelf::LLAvatarTexData(textureid, (LLAvatarAppearanceDefines::ETextureIndex)te), NULL);
+			image->setLoadedCallback(LLVOAvatarSelf::debugOnTimingLocalTexLoaded,0,TRUE,FALSE, new LLVOAvatarSelf::LLAvatarTexData(textureid, (LLAvatarAppearanceDefines::ETextureIndex)te), nullptr);
 		}
 	}
 
 	return result;
 }
 
-AIArchetype LLViewerWearable::getArchetype(void) const
+AIArchetype LLViewerWearable::getArchetype() const
 {
 	AIArchetype archetype(this);
 	for (visual_param_index_map_t::const_iterator iter = mVisualParamIndexMap.begin(); iter != mVisualParamIndexMap.end(); ++iter)
@@ -235,7 +235,6 @@ BOOL LLViewerWearable::isDirty() const
 			
 			U8 a = F32_to_U8( saved_weight, param->getMinWeight(), param->getMaxWeight() );
 			U8 b = F32_to_U8( current_weight, param->getMinWeight(), param->getMaxWeight() );
-
 			if( a != b  )
 			{
 				//LL_WARNS() << "param ID " << param->getID() << " was changed." << LL_ENDL;
@@ -317,8 +316,8 @@ void LLViewerWearable::setTexturesToDefaults()
 const LLUUID LLViewerWearable::getDefaultTextureImageID(ETextureIndex index) const
 {
 	const LLAvatarAppearanceDictionary::TextureEntry *texture_dict = LLAvatarAppearanceDictionary::getInstance()->getTexture(index);
-	const std::string &default_image_name = texture_dict->mDefaultImageName;
-	if (default_image_name == "")
+	const std::string &default_image_name = texture_dict ? texture_dict->mDefaultImageName : "";
+	if (default_image_name.empty())
 	{
 		return IMG_DEFAULT_AVATAR;
 	}
@@ -333,21 +332,12 @@ const LLUUID LLViewerWearable::getDefaultTextureImageID(ETextureIndex index) con
 //virtual
 void LLViewerWearable::writeToAvatar(LLAvatarAppearance *avatarp)
 {
-	LLVOAvatarSelf* viewer_avatar = dynamic_cast<LLVOAvatarSelf*>(avatarp);
+	if (!avatarp || !avatarp->isSelf() || !avatarp->isValid()) return;
+	LLVOAvatarSelf* viewer_avatar = static_cast<LLVOAvatarSelf*>(avatarp);
 
 	if (!avatarp || !viewer_avatar) return;
 
 	if (!viewer_avatar->isValid()) return;
-
-#if 0
-	// FIXME DRANO - kludgy way to avoid overwriting avatar state from wearables.
-	// Ideally would avoid calling this func in the first place.
-	if (viewer_avatar->isUsingServerBakes() &&
-		!viewer_avatar->isUsingLocalAppearance())
-	{
-		return;
-	}
-#endif
 
 	ESex old_sex = avatarp->getSex();
 
@@ -369,7 +359,7 @@ void LLViewerWearable::writeToAvatar(LLAvatarAppearance *avatarp)
 			{	
 				image_id = getDefaultTextureImageID((ETextureIndex) te);
 			}
-			LLViewerTexture* image = LLViewerTextureManager::getFetchedTexture( image_id, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE );
+			LLViewerTexture* image = LLViewerTextureManager::getFetchedTexture( image_id, FTT_DEFAULT, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE );
 			// MULTI-WEARABLE: assume index 0 will be used when writing to avatar. TODO: eliminate the need for this.
 			viewer_avatar->setLocalTextureTE(te, image, 0);
 		}
@@ -459,7 +449,7 @@ void LLViewerWearable::copyDataFrom(const LLViewerWearable* src)
 		{
 			te_map_t::const_iterator iter = src->mTEMap.find(te);
 			LLUUID image_id;
-			LLViewerFetchedTexture *image = NULL;
+			LLViewerFetchedTexture *image = nullptr;
 			if(iter != src->mTEMap.end())
 			{
 				image = dynamic_cast<LLViewerFetchedTexture*> (src->getLocalTextureObject(te)->getImage());
@@ -492,13 +482,6 @@ void LLViewerWearable::setItemID(const LLUUID& item_id)
 
 void LLViewerWearable::revertValues()
 {
-#if 0
-	// DRANO avoid overwrite when not in local appearance
-	if (isAgentAvatarValid() && gAgentAvatarp->isUsingServerBakes() && !gAgentAvatarp->isUsingLocalAppearance())
-	{
-		return;
-	}
-#endif
 	LLWearable::revertValues();
 
 
@@ -600,18 +583,7 @@ void LLViewerWearable::saveNewAsset() const
 	//LL_INFOS() << *this << LL_ENDL;
 
 	const std::string filename = asset_id_to_filename(mAssetID);
-	LLFILE* fp = LLFile::fopen(filename, "wb");		/* Flawfinder: ignore */
-	BOOL successful_save = FALSE;
-	if(fp && exportFile(fp))
-	{
-		successful_save = TRUE;
-	}
-	if(fp)
-	{
-		fclose(fp);
-		fp = NULL;
-	}
-	if(!successful_save)
+	if(! exportFile(filename))
 	{
 		std::string buffer = llformat("Unable to save '%s' to wearable file.", mName.c_str());
 		LL_WARNS() << buffer << LL_ENDL;
@@ -625,28 +597,29 @@ void LLViewerWearable::saveNewAsset() const
 	// save it out to database
 	if( gAssetStorage )
 	{
-		 /*
-		std::string url = gAgent.getRegion()->getCapability("NewAgentInventory");
+#if 0
+		const std::string url = gAgent.getRegion()->getCapability("NewFileAgentInventory");
 		if (!url.empty())
 		{
 			LL_INFOS() << "Update Agent Inventory via capability" << LL_ENDL;
 			LLSD body;
-			body["folder_id"] = gInventory.findCategoryUUIDForType(LLFolderType::assetToFolderType(getAssetType()));
+			body["folder_id"] = gInventory.findCategoryUUIDForType(LLFolderType::assetTypeToFolderType(getAssetType()));
 			body["asset_type"] = LLAssetType::lookup(getAssetType());
 			body["inventory_type"] = LLInventoryType::lookup(LLInventoryType::IT_WEARABLE);
 			body["name"] = getName();
 			body["description"] = getDescription();
-			LLHTTPClient::post(url, body, new LLNewAgentInventoryResponder(body, filename));
+			LLHTTPClient::post(url, body, new LLNewAgentInventoryResponder(body, filename,
+																		   getAssetType()));
 		}
 		else
+#endif // 0
 		{
-		}
-		 */
-		 LLWearableSaveData* data = new LLWearableSaveData;
-		 data->mType = mType;
-		 gAssetStorage->storeAssetData(filename, mTransactionID, getAssetType(),
+			 LLWearableSaveData* data = new LLWearableSaveData;
+			 data->mType = mType;
+			 gAssetStorage->storeAssetData(filename, mTransactionID, getAssetType(),
                                      &LLViewerWearable::onSaveNewAssetComplete,
                                      (void*)data);
+		}
 	}
 }
 
@@ -687,21 +660,19 @@ std::ostream& operator<<(std::ostream &s, const LLViewerWearable &w)
 	//w.mSaleInfo
 
 	s << "    Params:" << "\n";
-	for (LLViewerWearable::visual_param_index_map_t::const_iterator iter = w.mVisualParamIndexMap.begin();
-		 iter != w.mVisualParamIndexMap.end(); ++iter)
+	for (const auto& iter : w.mVisualParamIndexMap)
 	{
-		S32 param_id = iter->first;
-		LLVisualParam *wearable_param = iter->second;
+		S32 param_id = iter.first;
+		LLVisualParam *wearable_param = iter.second;
 		F32 param_weight = wearable_param->getWeight();
 		s << "        " << param_id << " " << param_weight << "\n";
 	}
 
 	s << "    Textures:" << "\n";
-	for (LLViewerWearable::te_map_t::const_iterator iter = w.mTEMap.begin();
-		 iter != w.mTEMap.end(); ++iter)
+	for (const auto& iter : w.mTEMap)
 	{
-		S32 te = iter->first;
-		const LLUUID& image_id = iter->second->getID();
+		S32 te = iter.first;
+		const LLUUID& image_id = iter.second->getID();
 		s << "        " << te << " " << image_id << "\n";
 	}
 	return s;

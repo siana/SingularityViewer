@@ -81,7 +81,6 @@ LLVOGrass::SpeciesNames LLVOGrass::sSpeciesNames;
 LLVOGrass::LLVOGrass(const LLUUID &id, const LLPCode pcode, LLViewerRegion *regionp)
 :	LLAlphaObject(id, pcode, regionp)
 {
-	mPatch               = NULL;
 	mLastPatchUpdateTime = 0;
 	mGrassVel.clearVec();
 	mGrassBend.clearVec();
@@ -103,7 +102,7 @@ LLVOGrass::~LLVOGrass()
 
 void LLVOGrass::updateSpecies()
 {
-	mSpecies = mState;
+	mSpecies = getAttachmentState();
 	
 	if (!sSpeciesTable.count(mSpecies))
 	{
@@ -111,7 +110,7 @@ void LLVOGrass::updateSpecies()
 		SpeciesMap::const_iterator it = sSpeciesTable.begin();
 		mSpecies = (*it).first;
 	}
-	setTEImage(0, LLViewerTextureManager::getFetchedTexture(sSpeciesTable[mSpecies]->mTextureID, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE));
+	setTEImage(0, LLViewerTextureManager::getFetchedTexture(sSpeciesTable[mSpecies]->mTextureID, FTT_DEFAULT, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE));
 }
 
 
@@ -331,7 +330,8 @@ void LLVOGrass::idleUpdate(LLAgent &agent, LLWorld &world, const F64 &time)
 		return;
 	}
 
-	if (mPatch && (mLastPatchUpdateTime != mPatch->getLastUpdateTime()))
+	const auto& patch = mPatch.lock();
+	if (patch && (mLastPatchUpdateTime != patch->getLastUpdateTime()))
 	{
 		gPipeline.markRebuild(mDrawable, LLDrawable::REBUILD_VOLUME, TRUE);
 	}
@@ -437,11 +437,11 @@ LLDrawable* LLVOGrass::createDrawable(LLPipeline *pipeline)
 	return mDrawable;
 }
 
-static LLFastTimer::DeclareTimer FTM_UPDATE_GRASS("Update Grass");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_GRASS("Update Grass");
 
 BOOL LLVOGrass::updateGeometry(LLDrawable *drawable)
 {
-	LLFastTimer ftm(FTM_UPDATE_GRASS);
+	LL_RECORD_BLOCK_TIME(FTM_UPDATE_GRASS);
 
 	dirtySpatialGroup();
 
@@ -507,9 +507,10 @@ void LLVOGrass::getGeometry(S32 idx,
 		return ;
 	}
 
-	mPatch = mRegionp->getLand().resolvePatchRegion(getPositionRegion());
-	if (mPatch)
-		mLastPatchUpdateTime = mPatch->getLastUpdateTime();
+	const auto& patch = mRegionp->getLand().resolvePatchRegion(getPositionRegion());
+	if (patch)
+		mLastPatchUpdateTime = patch->getLastUpdateTime();
+	mPatch = patch;
 	
 	LLVector3 position;
 	// Create random blades of grass with gaussian distribution
@@ -626,8 +627,8 @@ U32 LLVOGrass::getPartitionType() const
 	return LLViewerRegion::PARTITION_GRASS;
 }
 
-LLGrassPartition::LLGrassPartition()
-: LLSpatialPartition(LLDrawPoolAlpha::VERTEX_DATA_MASK | LLVertexBuffer::MAP_TEXTURE_INDEX, TRUE, GL_STREAM_DRAW_ARB)
+LLGrassPartition::LLGrassPartition(LLViewerRegion* regionp)
+: LLSpatialPartition(LLDrawPoolAlpha::VERTEX_DATA_MASK | LLVertexBuffer::MAP_TEXTURE_INDEX, TRUE, GL_STREAM_DRAW_ARB, regionp)
 {
 	mDrawableType = LLPipeline::RENDER_TYPE_GRASS;
 	mPartitionType = LLViewerRegion::PARTITION_GRASS;
@@ -695,11 +696,11 @@ void LLGrassPartition::addGeometryCount(LLSpatialGroup* group, U32& vertex_count
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_REBUILD_GRASS_VB("Grass VB");
+static LLTrace::BlockTimerStatHandle FTM_REBUILD_GRASS_VB("Grass VB");
 
 void LLGrassPartition::getGeometry(LLSpatialGroup* group)
 {
-	LLFastTimer ftm(FTM_REBUILD_GRASS_VB);
+	LL_RECORD_BLOCK_TIME(FTM_REBUILD_GRASS_VB);
 
 	std::sort(mFaceList.begin(), mFaceList.end(), LLFace::CompareDistanceGreater());
 
@@ -798,7 +799,7 @@ void LLVOGrass::updateDrawable(BOOL force_damped)
 }
 
 // virtual 
-BOOL LLVOGrass::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end, S32 face, BOOL pick_transparent, S32 *face_hitp,
+BOOL LLVOGrass::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end, S32 face, BOOL pick_transparent, BOOL pick_rigged, S32 *face_hitp,
 									  LLVector4a* intersection,LLVector2* tex_coord, LLVector4a* normal, LLVector4a* tangent)
 	
 {

@@ -37,8 +37,9 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-LLFloaterWhiteListEntry::LLFloaterWhiteListEntry() :
-	LLFloater()
+LLFloaterWhiteListEntry::LLFloaterWhiteListEntry()
+	: LLFloater()
+	, mWhiteListEdit(nullptr)
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_whitelist_entry.xml");
 }

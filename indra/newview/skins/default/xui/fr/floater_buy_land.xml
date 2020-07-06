@@ -21,9 +21,9 @@
 	<text name="estate_owner_label">
 		Propriétaire:
 	</text>
-	<text name="estate_owner_text">
+	<name_box name="estate_owner_text">
 		(inconnu)
-	</text>
+	</name_box>
 	<text name="resellable_changeable_label">
 		Terrain acheté dans cette région:
 	</text>

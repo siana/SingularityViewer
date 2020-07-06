@@ -1580,6 +1580,10 @@ Inventarobjekt(e) verschieben?<usetemplate name="okcancelignore" yestext="OK"/><
   
   <notification name="NoSupportUrl">Das Grid hat keinen Supportlink.</notification>
   
+  <notification name="ConfirmAddingChatParticipants">
+	  Wenn Sie eine Person zu einer vorhandenen Unterhaltung hinzufügen, wird eine neue Unterhaltung erstellt.  Alle Teilnehmer erhalten neue Unterhaltungsbenachrichtigungen.
+	  <usetemplate ignoretext="Hinzufügen von Chat-Teilnehmern bestätigen" name="okcancelignore" notext="Abbrechen" yestext="OK"/>
+  </notification>
   <notification name="ConfirmQuit">Wirklich beenden?<usetemplate name="okcancelignore" yestext="Beenden"/></notification>
 
   <notification name="HelpReportAbuseEmailLL">Verwenden Sie dieses Tool, um Verletzungen der Servicebedingungen und Community-Standards zu melden. Siehe:
@@ -1995,8 +1999,6 @@ W&#xE4;hlen Sie eine kleinere Landfl&#xE4;che.</notification>
   <notification name="DeactivatedGesturesTrigger">Gesten mit demselben Trigger wurden deaktiviert:
 [NAMES]</notification>
 
-  <notification name="NoQuickTime">Apple QuickTime ist auf Ihrem System anscheinend nicht installiert.
-Laden Sie QuickTime von der QuickTime-Webseite (http://www.apple.com/de/quicktime) herunter, um auf Parzellen, die diese Funktion unterst&#xFC;tzen, Streaming-Inhalte wiederzugeben.</notification>
   <notification name="NoPlugin">Kein Media Plugin wurde gefunden um "[MIME_TYPE]" an zu zeigen. Dieses Medium wird nicht verf&#xFC;gbar sein.</notification>
   <notification name="MediaPluginFailed">Das folgende Media Plugin konnte nicht gestartet werden
 [PLUGIN]
@@ -2154,7 +2156,7 @@ Offer a teleport?<tag>Best&#xE4;tigen</tag><form name="form">
       <button name="GoNow..." text="Jetzt gehen..."/>
     </form></notification>
 
-  <notification name="OfferFriendship">[NAME] bietet Ihnen die Freundschaft an.
+  <notification name="OfferFriendship">[NAME_SLURL] bietet Ihnen die Freundschaft an.
 
 [MESSAGE]
 
@@ -2167,7 +2169,7 @@ Offer a teleport?<tag>Best&#xE4;tigen</tag><form name="form">
 
   <notification name="FriendshipOffered">Sie haben [TO_NAME] die Freundschaft angeboten.</notification>
 
-  <notification name="OfferFriendshipNoMessage">[NAME] bietet Ihnen die Freundschaft an.
+  <notification name="OfferFriendshipNoMessage">[NAME_SLURL] bietet Ihnen die Freundschaft an.
 
 (Sie werden dadurch den gegenseitigen Online-Status sehen k&#xF6;nnen.)<form name="form">
       <button name="Accept" text="Akzeptieren"/>
@@ -2176,9 +2178,9 @@ Offer a teleport?<tag>Best&#xE4;tigen</tag><form name="form">
       <button name="Profile" text="Profil"/>
     </form></notification>
 
-  <notification name="FriendshipAccepted">[NAME] hat Ihr Freundschaftsangebot akzeptiert.</notification>
+  <notification name="FriendshipAccepted">[NAME_SLURL] hat Ihr Freundschaftsangebot akzeptiert.</notification>
 
-  <notification name="FriendshipDeclined">[NAME] hat Ihr Freundschaftsangebot abgelehnt.</notification>
+  <notification name="FriendshipDeclined">[NAME_SLURL] hat Ihr Freundschaftsangebot abgelehnt.</notification>
 
   <notification name="FriendshipDissolved">[NAME] hat Ihr Freundschaftsangebot abgelehnt.</notification>
 
@@ -2404,7 +2406,10 @@ Klicken Sie auf &#x201E;Akzeptieren&#x201C;, um dem Chat beizutreten, oder auf &
   <notification name="ThrottledSLURL">Mehrere SLurls wurden von einem nicht vertrauten Browser innerhalb einer kurzen Zeitspanne empfangen.
 Sie wurden aus Sicherheitsgr&#xFC;nden geblockt f&#xFC;r ein paar Minuten.<tag>Sicherheit</tag></notification>
 
-  <notification name="ServerVersionChanged">Die Region, die Sie betreten haben, verwendet eine andere Simulatorversion. Klicken Sie auf diese Nachricht, um weitere Informationen zu erhalten.</notification>
+  <notification name="ServerVersionChanged">Die Region, die Sie betreten haben, verwendet eine andere Simulatorversion.
+Current simulator: [NEW_VERSION]
+Previous simulator: [OLD_VERSION]
+  </notification>
      <notification name="ObjectMediaFailure">Server Fehler: Media update oder download fehlgeschlagen.
 '[ERROR]'<tag>fehlgeschlagen</tag><usetemplate name="okbutton" yestext="OK"/></notification>
 

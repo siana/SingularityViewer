@@ -57,6 +57,7 @@ public:
 	int getTextureHeight() const;
 	int getFullWidth() const { return mFullMediaWidth; };
 	int getFullHeight() const { return mFullMediaHeight; };
+	F64 getZoomFactor() const { return mZoomFactor; };
 	
 	// This may return NULL.  Callers need to check for and handle this case.
 	unsigned char* getBitsData();
@@ -72,8 +73,9 @@ public:
 
 	void setSize(int width, int height);
 	void setAutoScale(bool auto_scale);
+	void setZoomFactor(F64 zoom_factor) { mZoomFactor = zoom_factor; }
 	
-	void setBackgroundColor(LLColor4 color) { mBackgroundColor = color; };
+	void setBackgroundColor(const LLColor4& color) { mBackgroundColor = color; };
 	
 	void setOwner(LLPluginClassMediaOwner *owner) { mOwner = owner; };
 	
@@ -83,7 +85,7 @@ public:
 	// until you call idle() again.
 	bool textureValid(void);
 	
-	bool getDirty(LLRect *dirty_rect = NULL);
+	bool getDirty(LLRect *dirty_rect = nullptr);
 	void resetDirty(void);
 	
 	typedef enum 
@@ -105,7 +107,7 @@ public:
 	
 	bool keyEvent(EKeyEventType type, int key_code, MASK modifiers, LLSD native_key_data);
 
-	void scrollEvent(int x, int y, MASK modifiers);
+	void scrollEvent(int x, int y, int clicks_x, int clicks_y, MASK modifiers);
 
 	// enable/disable media plugin debugging messages and info spam
 	void enableMediaPluginDebugging( bool enable );
@@ -122,12 +124,14 @@ public:
 	// Text may be unicode (utf8 encoded)
 	bool textInput(const std::string &text, MASK modifiers, LLSD native_key_data);
 	
+	void setCookie(std::string uri, std::string name, std::string value, std::string domain, std::string path, bool httponly, bool secure);
+
 	void loadURI(const std::string &uri);
 	
 	// Inherited from LLPluginProcessParentOwner
-	/* virtual */ void receivePluginMessage(const LLPluginMessage &message);
-	/* virtual */ void pluginLaunchFailed();
-	/* virtual */ void pluginDied();
+	/* virtual */ void receivePluginMessage(const LLPluginMessage &message) override;
+	/* virtual */ void pluginLaunchFailed() override;
+	/* virtual */ void pluginDied() override;
 	// Inherited from LLPluginClassBasic
 	/* virtual */ void priorityChanged(EPriority priority);
 	
@@ -135,7 +139,7 @@ public:
 	
 	F64 getCPUUsage();
 	
-	void sendPickFileResponse(const std::string &file);
+	void sendPickFileResponse(const std::vector<std::string> files);
 
 	void sendAuthResponse(bool ok, const std::string &username, const std::string &password);
 
@@ -143,6 +147,12 @@ public:
 	std::string getCursorName() const { return mCursorName; };
 
 	LLPluginClassMediaOwner::EMediaStatus getStatus() const { return mStatus; }
+
+	void	undo();
+	bool	canUndo() const { return mCanUndo; };
+
+	void	redo();
+	bool	canRedo() const { return mCanRedo; };
 
 	void	cut();
 	bool	canCut() const { return mCanCut; };
@@ -153,8 +163,16 @@ public:
 	void	paste();
 	bool	canPaste() const { return mCanPaste; };
 	
+	void	doDelete();
+	bool	canDoDelete() const { return mCanDoDelete; };
+
+	void	selectAll();
+	bool	canSelectAll() const { return mCanSelectAll; };
+	
+	void	showPageSource();
+
 	// These can be called before init(), and they will be queued and sent before the media init message.
-	void	setUserDataPath(const std::string &user_data_path);
+	void	setUserDataPath(const std::string &user_data_path_cache, const std::string &user_data_path_cookies, const std::string &user_data_path_cef_log);
 	void	setLanguageCode(const std::string &language_code);
 	void	setPluginsEnabled(const bool enabled);
 	void	setJavascriptEnabled(const bool enabled);
@@ -165,17 +183,15 @@ public:
 	bool pluginSupportsMediaBrowser(void);
 	
 	void focus(bool focused);
-	void set_page_zoom_factor( double factor );
+	void set_page_zoom_factor( F64 factor );
 	void clear_cache();
 	void clear_cookies();
-	void set_cookies(const std::string &cookies);
-	void enable_cookies(bool enable);
-	void proxy_setup(bool enable, const std::string &host = LLStringUtil::null, int port = 0);
+	void cookies_enabled(bool enable);
+	void proxy_setup(bool enable, int type = 0, const std::string &host = LLStringUtil::null, int port = 0, const std::string &user = LLStringUtil::null, const std::string &pass = LLStringUtil::null);
 	void browse_stop();
 	void browse_reload(bool ignore_cache = false);
 	void browse_forward();
 	void browse_back();
-	void set_status_redirect(int code, const std::string &url);
 	void setBrowserUserAgent(const std::string& user_agent);
 	void showWebInspector( bool show );
 	void proxyWindowOpened(const std::string &target, const std::string &uuid);
@@ -213,6 +229,13 @@ public:
 	// This is valid during MEDIA_EVENT_CLICK_LINK_HREF and MEDIA_EVENT_GEOMETRY_CHANGE
 	std::string getClickUUID() const { return mClickUUID; };
 
+	// mClickTarget is received from message and governs how link will be opened
+	// use this to enforce your own way of opening links inside plugins
+	void setOverrideClickTarget(const std::string &target);
+	void resetOverrideClickTarget() { mClickEnforceTarget = false; };
+	bool isOverrideClickTarget() const { return mClickEnforceTarget; }
+	std::string getOverrideClickTarget() const { return mOverrideClickTarget; };
+
 	// These are valid during MEDIA_EVENT_DEBUG_MESSAGE
 	std::string getDebugMessageText() const { return mDebugMessageText; };
 	std::string getDebugMessageLevel() const { return mDebugMessageLevel; };
@@ -230,10 +253,17 @@ public:
 	std::string	getAuthURL() const { return mAuthURL; };
 	std::string	getAuthRealm() const { return mAuthRealm; };
 
+	// These are valid during MEDIA_EVENT_PICK_FILE_REQUEST
+	bool getIsMultipleFilePick() const { return mIsMultipleFilePick; }
+
 	// These are valid during MEDIA_EVENT_LINK_HOVERED
 	std::string	getHoverText() const { return mHoverText; };
 	std::string	getHoverLink() const { return mHoverLink; };
 	
+	// these are valid during MEDIA_EVENT_LINK_HOVERED 
+	std::string getFileDownloadFilename() const { return mFileDownloadFilename; }
+
+
 	const std::string& getMediaName() const { return mMediaName; };
 	std::string getMediaDescription() const { return mMediaDescription; };
 
@@ -320,8 +350,12 @@ protected:
 	int			mMediaWidth;
 	int			mMediaHeight;
 	
+	F64			mZoomFactor;
+	
 	float		mRequestedVolume;
 	
+	// Priority of this media stream
+	EPriority	mPriority;
 	int			mLowPrioritySizeLimit;
 	
 	bool		mAllowDownsample;
@@ -337,9 +371,15 @@ protected:
 
 	LLPluginClassMediaOwner::EMediaStatus mStatus;
 
+	F64				mSleepTime;
+
+	bool			mCanUndo;
+	bool			mCanRedo;
 	bool			mCanCut;
 	bool			mCanCopy;
 	bool			mCanPaste;
+	bool			mCanDoDelete;
+	bool			mCanSelectAll;
 	
 	std::string		mMediaName;
 	std::string		mMediaDescription;
@@ -362,6 +402,8 @@ protected:
 	std::string		mClickNavType;
 	std::string		mClickTarget;
 	std::string		mClickUUID;
+	bool			mClickEnforceTarget;
+	std::string		mOverrideClickTarget;
 	std::string		mDebugMessageText;
 	std::string		mDebugMessageLevel;
 	S32				mGeometryX;
@@ -373,6 +415,8 @@ protected:
 	std::string		mAuthRealm;
 	std::string		mHoverText;
 	std::string		mHoverLink;
+	std::string     mFileDownloadFilename;
+	bool			mIsMultipleFilePick;
 	
 	/////////////////////////////////////////
 	// media_time class

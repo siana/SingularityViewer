@@ -67,10 +67,10 @@ private:
 	bool mEnableMUPose;
 	bool mEnableOOCAutoClose;
 	U32 mLinksForChattingObjects;
-	U32 mTimeFormat;
-	U32 mDateFormat;
-	U32 tempTimeFormat;
-	U32 tempDateFormat;
+	S8 mTimeFormat;
+	S8 mDateFormat;
+	S8 tempTimeFormat;
+	S8 tempDateFormat;
 	bool mSecondsInChatAndIMs;
 	bool mSecondsInLog;
 
@@ -91,14 +91,33 @@ private:
 	S32 mFriendNames;
 	S32 mGroupMembersNames;
 	S32 mLandManagementNames;
+	S32 mProfileNames;
 	S32 mRadarNames;
 	S32 mSpeakerNames;
 
 	//Autoresponse ------------------------------------------------------------------------
+	bool mIMResponseRepeat;
+	bool mIMResponseAway;
+	bool mIMResponseAnyone;
+	bool mIMResponseAnyoneFriends;
+	bool mIMResponseAnyoneItem;
 	std::string mIMResponseAnyoneItemID;
+	std::string mIMResponseAnyoneMessage;
+	bool mIMResponseAnyoneShow;
+	bool mIMResponseNonFriends;
+	bool mIMResponseNonFriendsItem;
 	std::string mIMResponseNonFriendsItemID;
+	std::string mIMResponseNonFriendsMessage;
+	bool mIMResponseNonFriendsShow;
+	bool mIMResponseMuted;
+	bool mIMResponseMutedItem;
 	std::string mIMResponseMutedItemID;
+	std::string mIMResponseMutedMessage;
+	bool mIMResponseMutedShow;
+	bool mIMResponseBusyItem;
 	std::string mIMResponseBusyItemID;
+	std::string mIMResponseBusyMessage;
+	bool mIMResponseBusyShow;
 
 	//Spam --------------------------------------------------------------------------------
 	bool mEnableAS;

@@ -5,7 +5,7 @@
  * $License$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
  
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -13,13 +13,12 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect tex0;
+uniform sampler2D tex0;
 uniform float vignette_strength;				//0 - 1
 uniform float vignette_radius;					//0 - 8
 uniform float vignette_darkness;				//0 - 1
 uniform float vignette_desaturation;			//0 - 10
 uniform float vignette_chromatic_aberration;	//0 - .1
-uniform vec2 screen_res;
 
 VARYING vec2 vary_texcoord0;
 
@@ -32,16 +31,15 @@ float luminance(vec3 color)
 
 void main(void) 
 {
-	vec3 color = texture2DRect(tex0, vary_texcoord0).rgb;
-	vec2 norm_texcood = (vary_texcoord0/screen_res);
-	vec2 offset = norm_texcood-vec2(.5);
+	vec3 color = texture2D(tex0, vary_texcoord0).rgb;
+	vec2 offset = vary_texcoord0-vec2(.5);
 	float vignette = clamp(pow(1 - dot(offset,offset),vignette_radius) + 1-vignette_strength, 0.0, 1.0);
 	float inv_vignette = 1-vignette;
 	
 	//vignette chromatic aberration (g
-	vec2 shift = screen_res * offset * vignette_chromatic_aberration * inv_vignette;
-	float g = texture2DRect(tex0,vary_texcoord0-shift).g;
-	float b = texture2DRect(tex0,vary_texcoord0-2*shift).b;
+	vec2 shift = offset * vignette_chromatic_aberration * inv_vignette;
+	float g = texture2D(tex0,vary_texcoord0-shift).g;
+	float b = texture2D(tex0,vary_texcoord0-2*shift).b;
 	color.gb = vec2(g,b);
 
 	//vignette 'black' overlay.

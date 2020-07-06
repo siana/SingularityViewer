@@ -42,13 +42,14 @@ public:
 	virtual ~LLScreenClipRect();
 
 private:
-	static void pushClipRect(const LLRect& rect);
-	static void popClipRect();
+	void pushClipRect(const LLRect& rect);
+	void popClipRect();
 	static void updateScissorRegion();
 
 private:
-	LLGLState		mScissorState;
-	BOOL			mEnabled;
+	LLGLState<GL_SCISSOR_TEST>		mScissorState;
+	const BOOL			mEnabled;
+	const LLRect		mRootScissorRect;
 
 	static std::stack<LLRect> sClipRectStack;
 };

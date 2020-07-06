@@ -5,7 +5,7 @@
 	     draw_heading="true" draw_stripes="true" enabled="true"
 	     follows="left|top|right|bottom" left="10" mouse_opaque="true"
 	     multi_select="true" name="group list" tab_stop="true" top="-10"
-	     width="240">
+	     width="240" menu_num="1">
 		<column dynamicwidth="true" label="Name" name="name" tool_tip="Name" />
     <!--<column label="Active" name="is_active_group"
 		    tool_tip="Group is set as active" width="40" />-->

@@ -89,7 +89,7 @@ void LLTemplateMessageBuilder::newMessage(const char *name)
 			iter != msg_template->mMemberBlocks.end();
 			++iter)
 		{
-			LLMessageBlock* ci = *iter;
+			const LLMessageBlock* ci = msg_template->mMemberBlocks.toValue(iter);
 			LLMsgBlkData* tblockp = new LLMsgBlkData(ci->mName, 0);
 			mCurrentSMessageData->addBlock(tblockp);
 		}
@@ -151,8 +151,8 @@ void LLTemplateMessageBuilder::nextBlock(const char* blockname)
 		for (LLMessageBlock::message_variable_map_t::const_iterator iter = template_data->mMemberVariables.begin();
 			 iter != template_data->mMemberVariables.end(); iter++)
 		{
-			LLMessageVariable& ci = **iter;
-			mCurrentSDataBlock->addVariable(ci.getName(), ci.getType());
+			const LLMessageVariable* ci = template_data->mMemberVariables.toValue(iter);
+			mCurrentSDataBlock->addVariable(ci->getName(), ci->getType());
 		}
 		return;
 	}
@@ -212,74 +212,11 @@ void LLTemplateMessageBuilder::nextBlock(const char* blockname)
 				 end = template_data->mMemberVariables.end();
 			 iter != end; iter++)
 		{
-			LLMessageVariable& ci = **iter;
-			mCurrentSDataBlock->addVariable(ci.getName(), ci.getType());
+			const LLMessageVariable* ci = template_data->mMemberVariables.toValue(iter);
+			mCurrentSDataBlock->addVariable(ci->getName(), ci->getType());
 		}
 		return;
 	}
-}
-
-// TODO: Remove this horror...
-BOOL LLTemplateMessageBuilder::removeLastBlock()
-{
-	if (mCurrentSBlockName)
-	{
-		if (  (mCurrentSMessageData)
-			&&(mCurrentSMessageTemplate))
-		{
-			if (mCurrentSMessageData->mMemberBlocks[mCurrentSBlockName]->mBlockNumber >= 1)
-			{
-				// At least one block for the current block name.
-
-				// Store the current block name for future reference.
-				char *block_name = mCurrentSBlockName;
-
-				// Decrement the sent total by the size of the
-				// data in the message block that we're currently building.
-
-				const LLMessageBlock* template_data = mCurrentSMessageTemplate->getBlock(mCurrentSBlockName);
-				
-				for (LLMessageBlock::message_variable_map_t::const_iterator iter = template_data->mMemberVariables.begin();
-					 iter != template_data->mMemberVariables.end(); iter++)
-				{
-					LLMessageVariable& ci = **iter;
-					mCurrentSendTotal -= ci.getSize();
-				}
-
-
-				// Now we want to find the block that we're blowing away.
-
-				// Get the number of blocks.
-				LLMsgBlkData* block_data = mCurrentSMessageData->mMemberBlocks[block_name];
-				S32 num_blocks = block_data->mBlockNumber;
-
-				// Use the same (suspect?) algorithm that's used to generate
-				// the names in the nextBlock method to find it.
-				char *block_getting_whacked = block_name + num_blocks - 1;
-				LLMsgBlkData* whacked_data = mCurrentSMessageData->mMemberBlocks[block_getting_whacked];
-				delete whacked_data;
-				mCurrentSMessageData->mMemberBlocks.erase(block_getting_whacked);
-
-				if (num_blocks <= 1)
-				{
-					// we just blew away the last one, so return FALSE
-					LL_WARNS() << "not blowing away the only block of message "
-							<< mCurrentSMessageName
-							<< ". Block: " << block_name
-							<< ". Number: " << num_blocks
-							<< LL_ENDL;
-					return FALSE;
-				}
-				else
-				{
-					// Decrement the counter.
-					block_data->mBlockNumber--;
-					return TRUE;
-				}
-			}
-		}
-	}
-	return FALSE;
 }
 
 // add data to variable in current block
@@ -665,7 +602,7 @@ static S32 buildBlock(U8* buffer, S32 buffer_size, const LLMessageBlock* templat
 		for (LLMsgBlkData::msg_var_data_map_t::const_iterator iter = mbci->mMemberVarData.begin();
 			 iter != mbci->mMemberVarData.end(); iter++)
 		{
-			const LLMsgVarData& mvci = *iter;
+			const LLMsgVarData& mvci = mbci->mMemberVarData.toValue(iter);
 			if (mvci.getSize() == -1)
 			{
 				// oops, this variable wasn't ever set!
@@ -821,7 +758,8 @@ U32 LLTemplateMessageBuilder::buildMessage(
 		 iter != end;
 		++iter)
 	{
-		result += buildBlock(buffer + result, buffer_size - result, *iter, mCurrentSMessageData);
+		const LLMessageBlock* block = mCurrentSMessageTemplate->mMemberBlocks.toValue(iter);
+		result += buildBlock(buffer + result, buffer_size - result, block, mCurrentSMessageData);
 	}
 	mbSBuilt = TRUE;
 
@@ -864,7 +802,7 @@ void LLTemplateMessageBuilder::copyFromMessageData(const LLMsgData& data)
 		
 		for(; dit != dend; ++dit)
 		{
-			const LLMsgVarData& mvci = *dit;
+			const LLMsgVarData& mvci = mbci->mMemberVarData.toValue(dit);
 			addData(mvci.getName(), mvci.getData(), mvci.getType(), mvci.getSize());
 		}
 	}

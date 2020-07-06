@@ -43,9 +43,6 @@ Alternativamente, você pode criar uma nova de um esboço e usá-la.
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Forma:
-			</text>
 			<button label="Criar Nova Forma" label_selected="Criar Nova Forma" name="Create New"/>
 			<button label="Salvar" label_selected="Salvar" name="Save"/>
 			<button label="Salvar como..." label_selected="Salvar como..." name="Save As"/>
@@ -77,9 +74,6 @@ e usá-la.
 			</text>
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Pele:
 			</text>
 			<texture_picker width="86" label="Tattoo: cabeça" name="Head Tattoos" tool_tip="Clique para escolher um desenho"/>
 			<texture_picker width="86" label="Tattoo: superior" name="Upper Tattoos" tool_tip="Clique para escolher um desenho"/>
@@ -117,9 +111,6 @@ e usá-lo.
 			<text name="no modify instructions">
 				Você não ter permissão para modificar essa vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Cabelo:
-			</text>
 			<texture_picker label="Texture" name="Texture" tool_tip="Clique para escolher uma imagem"/>
 			<button label="Criar Novo Cabelo" label_selected="Criar Novo Cabelo" name="Create New"/>
 			<button label="Salvar" label_selected="Salvar" name="Save"/>
@@ -148,9 +139,6 @@ Alternativamente, você pode criar um novo modelo de um esboço e usá-lo.
 			</text>
 			<text name="no modify instructions">
 				Você não tem permissão para alterar esta vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Olhos:
 			</text>
 			<texture_picker label="Íris" name="Iris" tool_tip="Clique para escolher uma imagem"/>
 			<button label="Criar Novos Olhos" label_selected="Criar Novos Olhos" name="Create New"/>
@@ -190,9 +178,6 @@ um esboço e usá-lo.
 			<text name="no modify instructions">
 				Você não ter permissão para modificar esta vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Camisa:
-			</text>
 		</panel>
 		<panel label="Calças" name="Pants">
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
@@ -225,9 +210,6 @@ de um esboço e usá-lo.
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Calças:
-			</text>
 		</panel>
 		<panel label="Sapatos" name="Shoes">
 			<text name="title">
@@ -252,9 +234,6 @@ de um esboço e usá-lo.
 			</text>
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Sapatos:
 			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Clique para pegar o conta-gotas"/>
@@ -288,9 +267,6 @@ um esboço e usá-las.
 			<text name="no modify instructions">
 				Você não tem permissão para modificar essa vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Meias:
-			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Clique para pegar o conta-gotas"/>
 			<button label="Criar Novas Meias" label_selected="Criar Novas Meias" name="Create New"/>
@@ -322,9 +298,6 @@ partir de um esboço e usá-lo.
 			</text>
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Jaqueta:
 			</text>
 			<texture_picker label="Tecido Superior" name="Upper Fabric" tool_tip="Clique para escolher uma imagem." width="84"/>
 			<texture_picker label="Tecido Inferior" name="Lower Fabric" tool_tip="Clique para escolher uma imagem." width="84"/>
@@ -359,9 +332,6 @@ partir de um esboço e usá-lo.
 			<text name="no modify instructions">
 				Você não tem permissão para modificar essa vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Luvas:
-			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Clique para abrir o conta-gotas"/>
 			<button label="Criar Novas Luvas" label_selected="Criar Novas Luvas" name="Create New"/>
@@ -393,9 +363,6 @@ partir de um esboço e usá-lo.
 			</text>
 			<text name="no modify instructions">
 				Você não ter permissão para modificar essa vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Camiseta:
 			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Clique para abrir o conta-gotas"/>
@@ -429,9 +396,6 @@ modelo a partir de um esboço e usá-lo.
 			<text name="no modify instructions">
 				Você não tem permissão para modificar essa vestimenta.
 			</text>
-			<text name="Item Action Label">
-				Roupas de Baixo:
-			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Clique para pegar o conta-gotas"/>
 			<button label="Criar Novas Roupas de Baixo" label_selected="Criar Novas Roupas de Baixo" name="Create New" width="180"/>
@@ -463,9 +427,6 @@ partir de um esboço e usá-lo.
 			</text>
 			<text name="no modify instructions">
 				Você não tem permissão para modificar esta vestimenta.
-			</text>
-			<text name="Item Action Label">
-				Saia:
 			</text>
 			<texture_picker label="Tecido" name="Fabric" tool_tip="Clique para escolher uma imagem"/>
 			<color_swatch label="Cor/Tint" name="Color/Tint" tool_tip="Click to open Color Picker"/>

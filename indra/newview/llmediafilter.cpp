@@ -161,9 +161,9 @@ void LLMediaFilter::addToMediaList(const std::string& in_url, EMediaList list, b
 
 	string_list_t& p_list(list == WHITELIST ? mWhiteList : mBlackList);
 	// Check for duplicates
-	for (string_list_t::const_iterator itr = p_list.begin(); itr != p_list.end(); ++itr)
+	for (const auto& p : p_list)
 	{
-		if (url == *itr)
+		if (url == p)
 		{
 			LL_INFOS("MediaFilter") << "URL " << url << " already in list!" << LL_ENDL;
 			return;
@@ -177,8 +177,8 @@ void LLMediaFilter::addToMediaList(const std::string& in_url, EMediaList list, b
 void LLMediaFilter::removeFromMediaList(string_vec_t domains, EMediaList list)
 {
 	if (domains.empty()) return;
-	for (string_vec_t::const_iterator itr = domains.begin(); itr != domains.end(); ++itr)
-		(list == WHITELIST ? mWhiteList : mBlackList).remove(*itr);
+	for (const auto& domain : domains)
+		(list == WHITELIST ? mWhiteList : mBlackList).remove(domain);
 	mMediaListUpdate(list);
 	saveMediaFilterToDisk();
 }
@@ -221,10 +221,10 @@ void LLMediaFilter::loadMediaFilterFromDisk()
 
 void medialist_to_llsd(const LLMediaFilter::string_list_t& list, LLSD& list_llsd, const LLSD& action)
 {
-	for (LLMediaFilter::string_list_t::const_iterator itr = list.begin(); itr != list.end(); ++itr)
+	for (const auto& domain : list)
 	{
 		LLSD item;
-		item["domain"] = *itr;
+		item["domain"] = domain;
 		item["action"] = action;
 		list_llsd.append(item);
 	}
@@ -352,13 +352,13 @@ bool handle_media_filter_callback(const LLSD& notification, const LLSD& response
 	LLParcel* queue = inst.getQueuedMedia();
 	switch(option)
 	{
-		case 2:	// Whitelist domain
+		case 3:	// Whitelist domain
 			inst.addToMediaList(url, LLMediaFilter::WHITELIST);
 		case 0:	// Allow
 			if (inst.getCurrentParcel() == LLViewerParcelMgr::getInstance()->getAgentParcel())
 				LLViewerParcelMedia::play(parcel);
 			break;
-		case 3:	// Blacklist domain
+		case 2:	// Blacklist domain
 			inst.addToMediaList(url, LLMediaFilter::BLACKLIST);
 		case 1:	// Deny
 			break;

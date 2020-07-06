@@ -1,3 +1,4 @@
+
 /** 
  * @file indra_constants.h
  * @brief some useful short term constants for Indra
@@ -31,15 +32,6 @@
 #include "llpreprocessor.h"
 
 class LLUUID;
-
-// At 45 Hz collisions seem stable and objects seem
-// to settle down at a reasonable rate.
-// JC 3/18/2003
-
-// const F32 PHYSICS_TIMESTEP = 1.f / 45.f;
-// This must be a #define due to anal retentive restrictions on const expressions
-// CG 2008-06-05
-#define PHYSICS_TIMESTEP (1.f / 45.f)
 
 const F32 COLLISION_TOLERANCE = 0.1f;
 const F32 HALF_COLLISION_TOLERANCE = 0.05f;
@@ -140,18 +132,18 @@ const	U32		DEFAULT_CGI_SERVICES_PORT		= 12045;
 // on a single host for map tile generation. JC
 const	U32		DEFAULT_MAPSERVER_PORT			= 12124;
 
-const	char	LAND_LAYER_CODE					= 'L';
-const	char	WATER_LAYER_CODE				= 'W';
-const	char	WIND_LAYER_CODE					= '7';
-const	char	CLOUD_LAYER_CODE				= '8';
-
-// <FS:CR> Aurora Sim
-// Extended land layer for Aurora Sim
-const	char	AURORA_LAND_LAYER_CODE			= 'M';
-const	char	AURORA_WATER_LAYER_CODE			= 'X';
-const	char	AURORA_WIND_LAYER_CODE			= '9';
-const	char	AURORA_CLOUD_LAYER_CODE			= ':';
-// </FS:CR> Aurora Sim
+enum ETerrainBrushType
+{
+	// the valid brush numbers cannot be reordered, because they
+	// are used in the binary LSL format as arguments to llModifyLand()
+	E_LANDBRUSH_LEVEL	= 0,
+	E_LANDBRUSH_RAISE	= 1,
+	E_LANDBRUSH_LOWER	= 2,
+	E_LANDBRUSH_SMOOTH 	= 3,
+	E_LANDBRUSH_NOISE	= 4,
+	E_LANDBRUSH_REVERT 	= 5,
+	E_LANDBRUSH_INVALID = 6
+};
 
 // keys
 // Bit masks for various keyboard modifier keys.
@@ -252,7 +244,6 @@ const U8 SIM_ACCESS_DOWN	= 254;
 const U8 SIM_ACCESS_MAX 	= SIM_ACCESS_ADULT;
 
 // attachment constants
-const S32 MAX_AGENT_ATTACHMENTS = 38;
 const U8  ATTACHMENT_ADD = 0x80;
 
 // god levels
@@ -303,13 +294,18 @@ const U32 START_LOCATION_ID_COUNT 		= 6;
 // group constants
 const U32 GROUP_MIN_SIZE = 2;
 
-// gMaxAgentGroups is now sent by login.cgi, which
-// looks it up from globals.xml.
-//
-// For now we need an old default value however,
-// so the viewer can be deployed ahead of login.cgi.
-//
-const S32 DEFAULT_MAX_AGENT_GROUPS = 25;
+
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_HEAD;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_UPPER;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_LOWER;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_EYES;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_SKIRT;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_HAIR;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_LEFTARM;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_LEFTLEG;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_AUX1;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_AUX2;
+LL_COMMON_API extern const LLUUID IMG_USE_BAKED_AUX3;
 
 // radius within which a chat message is fully audible
 const F32 CHAT_WHISPER_RADIUS = 10.f;
@@ -341,18 +337,7 @@ const S32 SANDBOX_CLEAN_FREQ = 12;
 
 const F32 WIND_SCALE_HACK		= 2.0f;	// hack to make wind speeds more realistic
 
-enum ETerrainBrushType
-{
-	// the valid brush numbers cannot be reordered, because they 
-	// are used in the binary LSL format as arguments to llModifyLand()
-	E_LANDBRUSH_LEVEL	= 0,
-	E_LANDBRUSH_RAISE	= 1,
-	E_LANDBRUSH_LOWER	= 2,
-	E_LANDBRUSH_SMOOTH 	= 3,
-	E_LANDBRUSH_NOISE	= 4,
-	E_LANDBRUSH_REVERT 	= 5,
-	E_LANDBRUSH_INVALID = 6
-};
+
 
 // media commands
 const U32 PARCEL_MEDIA_COMMAND_STOP  = 0;
@@ -381,13 +366,6 @@ const U32 MAP_ITEM_LAND_FOR_SALE = 0x07;
 const U32 MAP_ITEM_CLASSIFIED = 0x08;
 const U32 MAP_ITEM_ADULT_EVENT = 0x09;
 const U32 MAP_ITEM_LAND_FOR_SALE_ADULT = 0x0a;
-
-// Crash reporter behavior
-const char* const CRASH_SETTINGS_FILE = "settings_crash_behavior.xml";
-const char* const CRASH_BEHAVIOR_SETTING = "CrashSubmitBehavior";
-const S32 CRASH_BEHAVIOR_ASK = 0;
-const S32 CRASH_BEHAVIOR_ALWAYS_SEND = 1;
-const S32 CRASH_BEHAVIOR_NEVER_SEND = 2;
 
 // Export/Import return values
 const S32 EXPORT_SUCCESS = 0;

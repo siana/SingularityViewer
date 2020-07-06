@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /** 
  * @file lllandmarklist.cpp
  * @brief Landmark asset list class
@@ -35,7 +37,6 @@
 #include "llagent.h"
 #include "llvfile.h"
 #include "llviewerstats.h"
-#include "llnotificationsutil.h"
 
 // Globals
 LLLandmarkList gLandmarkList;
@@ -47,6 +48,7 @@ LLLandmarkList gLandmarkList;
 LLLandmarkList::~LLLandmarkList()
 {
 	std::for_each(mList.begin(), mList.end(), DeletePairedPointer());
+	mList.clear();
 }
 
 LLLandmark* LLLandmarkList::getAsset(const LLUUID& asset_uuid, loaded_callback_t cb)
@@ -67,7 +69,7 @@ LLLandmark* LLLandmarkList::getAsset(const LLUUID& asset_uuid, loaded_callback_t
 	{
 	    if ( mBadList.find(asset_uuid) != mBadList.end() )
 		{
-			return NULL;
+			return nullptr;
 		}
 		
 		landmark_requested_list_t::iterator iter = mRequestedList.find(asset_uuid);
@@ -76,7 +78,7 @@ LLLandmark* LLLandmarkList::getAsset(const LLUUID& asset_uuid, loaded_callback_t
 			const F32 rerequest_time = 30.f; // 30 seconds between requests
 			if (gFrameTimeSeconds - iter->second < rerequest_time)
 			{
-				return NULL;
+				return nullptr;
 			}
 		}
 		
@@ -89,10 +91,10 @@ LLLandmark* LLLandmarkList::getAsset(const LLUUID& asset_uuid, loaded_callback_t
 		gAssetStorage->getAssetData(asset_uuid,
 									LLAssetType::AT_LANDMARK,
 									LLLandmarkList::processGetAssetReply,
-									NULL);
+									nullptr);
 		mRequestedList[asset_uuid] = gFrameTimeSeconds;
 	}
-	return NULL;
+	return nullptr;
 }
 
 // static
@@ -143,14 +145,16 @@ void LLLandmarkList::processGetAssetReply(
 	else
 	{
 		LLViewerStats::getInstance()->incStat( LLViewerStats::ST_DOWNLOAD_FAILED );
-
+		// SJB: No use case for a notification here. Use LL_DEBUGS() instead
 		if( LL_ERR_ASSET_REQUEST_NOT_IN_DATABASE == status )
 		{
-			LLNotificationsUtil::add("LandmarkMissing");
+			LL_WARNS("Landmarks") << "Missing Landmark" << LL_ENDL;
+			//LLNotificationsUtil::add("LandmarkMissing");
 		}
 		else
 		{
-			LLNotificationsUtil::add("UnableToLoadLandmark");
+			LL_WARNS("Landmarks") << "Unable to load Landmark" << LL_ENDL;
+			//LLNotificationsUtil::add("UnableToLoadLandmark");
 		}
 
 		gLandmarkList.mBadList.insert(uuid);

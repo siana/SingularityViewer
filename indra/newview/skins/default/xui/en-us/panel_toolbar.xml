@@ -9,7 +9,7 @@
       <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0" left="0" />
     </layout_panel>
     <layout_panel name="panel2" height="24" width="50" auto_resize="false" user_resize="false" visibility_control="ToolbarVisibleChatbar">
-      <button bottom="0" height="24" image_selected="btn_chatbar_selected.tga" scale_image="true" image_unselected="btn_chatbar.tga" label="" left="2" name="chat_btn" image_overlay="icn_chatbar.tga" tool_tip="Show Chat Bar. (Enter)" width="50" follows="left|right" control_name="ChatVisible" toggle="true"/>
+      <button sound_flags="0" bottom="0" height="24" image_selected="btn_chatbar_selected.tga" scale_image="true" image_unselected="btn_chatbar.tga" label="" left="2" name="chat_btn" image_overlay="icn_chatbar.tga" tool_tip="Show Chat Bar. (Enter)" width="50" follows="left|right" control_name="ChatVisible" toggle="true"/>
     </layout_panel>
     <layout_panel name="panel3" height="2" width="2" auto_resize="false" user_resize="false" visibility_control="ToolbarVisibleChatbar">
       <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" color="0,0,0,0"/>
@@ -21,468 +21,478 @@
       <icon image_name="spacer24.tga" width="2" height="2" follows="left|right" auto_resize="false" color="0,0,0,0"/>
     </layout_panel>
     <layout_panel name="panelim" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleCommunicate">
-      <button bottom="0" height="24" label="Communicate" image_overlay="icn_toolbar_im.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="communicate_im_btn" tool_tip="Communicate with your Friends and Groups.(Ctrl-T)" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Communicate" image_overlay="icn_toolbar_im.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="communicate_im_btn" tool_tip="Communicate with your Friends and Groups.(Ctrl-T)" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="im"/>
       </button>
     </layout_panel>
     <layout_panel name="panelfriends" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleFriends">
-      <button bottom="0" height="24" label="Friends" image_overlay="icn_toolbar_friends.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="friends_btn" tool_tip="Open your Friends List. (Ctrl-Shift-F)" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Friends" image_overlay="icn_toolbar_friends.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="friends_btn" tool_tip="Open your Friends List. (Ctrl-Shift-F)" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="friends"/>
       </button>
     </layout_panel>
     <layout_panel name="panelgroups" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleGroups">
-      <button bottom="0" height="24" label="Groups" image_overlay="icn_toolbar_groups.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="groups_btn" tool_tip="Open your Groups List. (Ctrl-Shift-G)" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Groups" image_overlay="icn_toolbar_groups.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="groups_btn" tool_tip="Open your Groups List. (Ctrl-Shift-G)" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="groups"/>
       </button>
     </layout_panel>
     <layout_panel name="panelgrouptitles" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleGroupTitles">
-      <button bottom="0" height="24" label="Group Titles" image_overlay="icn_toolbar_group_titles.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="group_titles_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Group Titles" image_overlay="icn_toolbar_group_titles.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="group_titles_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="group titles"/>
       </button>
     </layout_panel>
     <layout_panel name="panelchathistory" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleChatHistory">
-      <button bottom="0" height="24" label="Local Chat" image_overlay="icn_toolbar_local_chat.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="chat_history_btn" tool_tip="Open Local Chat. (Ctrl-H)" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Local Chat" image_overlay="icn_toolbar_local_chat.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="chat_history_btn" tool_tip="Open Local Chat. (Ctrl-H)" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="chat history"/>
       </button>
     </layout_panel>
     <layout_panel name="panelactivespeakers" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleActiveSpeakers">
-      <button bottom="0" height="24" label="Active Speakers" name="active_speakers_btn" image_overlay="active_speakers.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Active Speakers" name="active_speakers_btn" image_overlay="active_speakers.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="active speakers"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmutelist" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMuteList">
-      <button bottom="0" height="24" label="Mute List" image_overlay="icn_toolbar_mute_list.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="mute_list_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Mute List" image_overlay="icn_toolbar_mute_list.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="mute_list_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="mute list"/>
       </button>
     </layout_panel>
     <layout_panel name="panelassetblacklist" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAssetBlacklist">
-      <button bottom="0" height="24" label="Asset Blacklist" image_overlay="icn_toolbar_asset_blacklist.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="assetblack_list_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Asset Blacklist" image_overlay="icn_toolbar_asset_blacklist.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="assetblack_list_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="asset_blacklist"/>
       </button>
     </layout_panel>
     <layout_panel name="panelvoiceeffect" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleVoiceEffect">
-      <button bottom="0" height="24" label="Voice FX" name="voice_effects_btn" image_overlay="icn_toolbar_voice_effects.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Voice FX" name="voice_effects_btn" image_overlay="icn_toolbar_voice_effects.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="voice effect"/>
       </button>
     </layout_panel>
     <layout_panel name="panelgestures" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleGestures">
-      <button bottom="0" height="24" label="Gestures" name="gestures_btn" tool_tip="Ctrl-G" image_overlay="icn_toolbar_gestures.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Gestures" name="gestures_btn" tool_tip="Ctrl-G" image_overlay="icn_toolbar_gestures.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="gestures"/>
       </button>
     </layout_panel>
     <layout_panel name="panelbeacons" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleBeacons">
-      <button bottom="0" height="24" label="Beacons" name="beacons_btn" image_overlay="icn_toolbar_beacons.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Beacons" name="beacons_btn" image_overlay="icn_toolbar_beacons.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="beacons"/>
       </button>
     </layout_panel>
     <layout_panel name="panel6" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRadar">
-      <button bottom="0" height="24" label="Radar" image_overlay="icn_toolbar_radar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Radar" name="radar_list_btn" tool_tip="View a list of nearby avatars.(Ctrl-Shift-A)" width="50" follows="left|right" control_name="ShowRadar">
+      <button sound_flags="0" bottom="0" height="24" label="Radar" image_overlay="icn_toolbar_radar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Radar" name="radar_list_btn" tool_tip="View a list of nearby avatars.(Ctrl-Shift-A)" width="50" follows="left|right" control_name="ShowRadar">
         <button.commit_callback function="ShowFloater" parameter="radar"/>
       </button>
     </layout_panel>
     <layout_panel name="panelregiontracker" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRegionTracker">
-      <button bottom="0" height="24" label="Region Tracker" image_overlay="icn_toolbar_region_tracker.png" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="region_tracker_btn" tool_tip="Track various regions status" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Region Tracker" image_overlay="icn_toolbar_region_tracker.png" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="region_tracker_btn" tool_tip="Track various regions status" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="region_tracker"/>
       </button>
     </layout_panel>
     <layout_panel name="panelcameracontrols" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleCameraControls">
-      <button bottom="0" height="24" label="Camera Controls" name="camera_controls_btn" image_overlay="icn_toolbar_camera_controls.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Camera Controls" name="camera_controls_btn" image_overlay="icn_toolbar_camera_controls.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="camera controls"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmessagelog" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMovementControls">
-      <button bottom="0" height="24" label="Movement Controls" name="movement_controls_btn" image_overlay="icn_toolbar_movement_controls.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Movement Controls" name="movement_controls_btn" image_overlay="icn_toolbar_movement_controls.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="movement controls"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmouselook" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMouselook">
-      <button bottom="0" height="24" label="Mouselook" image_overlay="icn_toolbar_mouselook.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="mouselook_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Mouselook" image_overlay="icn_toolbar_mouselook.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="mouselook_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="mouselook"/>
       </button>
     </layout_panel>
     <layout_panel name="panel7" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleFly">
-      <button bottom="0" height="24" label="Fly" image_overlay="icn_toolbar_fly.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Flying" name="fly_btn" tool_tip="Start flying(F or Home). Use E/C or PgUp/PgDn to fly up and down." width="50" follows="left|right" control_name="FlyBtnState">
+      <button sound_flags="0" bottom="0" height="24" label="Fly" image_overlay="icn_toolbar_fly.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Flying" name="fly_btn" tool_tip="Start flying(F or Home). Use E/C or PgUp/PgDn to fly up and down." width="50" follows="left|right" control_name="FlyBtnState">
         <button.commit_callback function="ShowFloater" parameter="fly"/>
       </button>
     </layout_panel>
     <layout_panel name="panelsit" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleSit">
-      <button bottom="0" height="24" label="Sit" image_overlay="icn_toolbar_sit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stand" name="sit_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Sit" image_overlay="icn_toolbar_sit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stand" name="sit_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="sit"/>
       </button>
     </layout_panel>
     <layout_panel name="panelrun" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAlwaysRun">
-      <button bottom="0" height="24" label="Run" image_overlay="icn_toolbar_run.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Running" name="run_btn" tool_tip="Turn on Run mode (Ctrl-R)" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Run" image_overlay="icn_toolbar_run.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" label_selected="Stop Running" name="run_btn" tool_tip="Turn on Run mode (Ctrl-R)" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="always run"/>
       </button>
     </layout_panel>
     <layout_panel name="panelvelocity" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleVelocity">
-      <button bottom="0" height="24" label="Velocity" image_overlay="icn_toolbar_run.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="run_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Velocity" image_overlay="icn_toolbar_run.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="run_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="velocity"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmeanevents" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMeanEvents">
-      <button bottom="0" height="24" label="Bumps" name="bumps_btn" image_overlay="icn_toolbar_bumps.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Bumps" name="bumps_btn" image_overlay="icn_toolbar_bumps.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="mean events"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmediaticker" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMediaTicker">
-      <button bottom="0" height="24" label="Stream Display" name="media_ticker_btn" image_overlay="icn_toolbar_media_ticker.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Stream Display" name="media_ticker_btn" image_overlay="icn_toolbar_media_ticker.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="media ticker"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmediafilter" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMediaFilter">
-      <button bottom="0" height="24" label="Media Filter" name="media_filter_btn" image_overlay="icn_toolbar_media_filter.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Media Filter" name="media_filter_btn" image_overlay="icn_toolbar_media_filter.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="media filter"/>
       </button>
     </layout_panel>
     <layout_panel name="panel8" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleSnapshot">
-      <button bottom="0" height="24" label="Snapshot" image_overlay="icn_toolbar_snapshot.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="snapshot_btn" tool_tip="Save a screen shot to disk or inventory.(Ctrl-Shift-S for floater, Ctrl-`(~) takes snapshot w/o floater)" width="50" follows="left|right" control_name="SnapshotBtnState">
+      <button sound_flags="0" bottom="0" height="24" label="Snapshot" image_overlay="icn_toolbar_snapshot.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="snapshot_btn" tool_tip="Save a screen shot to disk or inventory.(Ctrl-Shift-S for floater, Ctrl-`(~) takes snapshot w/o floater)" width="50" follows="left|right" control_name="SnapshotBtnState">
         <button.commit_callback function="ShowFloater" parameter="snapshot"/>
       </button>
     </layout_panel>
     <layout_panel name="panelappearance" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAppearance">
-      <button bottom="0" height="24" label="Appearance" name="appearance_btn" image_overlay="icn_toolbar_appearance.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Appearance" name="appearance_btn" image_overlay="icn_toolbar_appearance.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="appearance"/>
       </button>
     </layout_panel>
+    <layout_panel name="panelexperiences" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleExperiences">
+      <button sound_flags="0" bottom="0" height="24" label="Experiences" image_overlay="icn_toolbar_experiences.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="experiences_btn" width="50" follows="left|right">
+        <button.commit_callback function="ShowFloater" parameter="experiences"/>
+      </button>
+    </layout_panel>
     <layout_panel name="panel9" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleSearch">
-      <button bottom="0" height="24" label="Search" image_overlay="icn_toolbar_search.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="directory_btn" tool_tip="Search for places, events, people, and more.(Ctrl-F)" width="50" follows="left|right" control_name="ShowDirectory">
+      <button sound_flags="0" bottom="0" height="24" label="Search" image_overlay="icn_toolbar_search.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="directory_btn" tool_tip="Search for places, events, people, and more.(Ctrl-F)" width="50" follows="left|right" control_name="ShowDirectory">
         <button.commit_callback function="ShowFloater" parameter="search"/>
       </button>
     </layout_panel>
     <layout_panel name="panelweb" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleWeb">
-      <button bottom="0" height="24" label="Web Browser" name="web_browser_btn" image_overlay="icn_toolbar_web.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
-        <button.commit_callback function="ShowFloater" parameter="web"/>
+      <button sound_flags="0" bottom="0" height="24" label="Web Browser" name="web_browser_btn" image_overlay="icn_toolbar_web.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+        <button.commit_callback function="ShowWebFloater" parameter="dict web"/>
       </button>
     </layout_panel>
     <layout_panel name="panelao" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAO">
-      <button bottom="0" height="24" label="AO Settings" name="ao_btn" image_overlay="icn_toolbar_ao.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="AO Settings" name="ao_btn" image_overlay="icn_toolbar_ao.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="ao"/>
       </button>
     </layout_panel>
     <layout_panel name="paneldebugsettings" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDebugSettings">
-      <button bottom="0" height="24" label="Debug Settings" name="debug_settings_btn" image_overlay="icn_toolbar_debug_settings.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Debug Settings" name="debug_settings_btn" image_overlay="icn_toolbar_debug_settings.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="debug settings"/>
       </button>
     </layout_panel>
     <layout_panel name="paneldebugavatar" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDebugAvatar">
-      <button bottom="0" height="24" label="Debug Avatar" name="debug_avatar_btn" image_overlay="icn_toolbar_debug_avatar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Debug Avatar" name="debug_avatar_btn" image_overlay="icn_toolbar_debug_avatar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="debug avatar"/>
       </button>
     </layout_panel>
     <layout_panel name="panelanimsexplorer" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAnimsExplorer">
-      <button bottom="0" height="24" label="Anims Explorer" name="anims_explorer_btn" image_overlay="icn_toolbar_anims_explorer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Anims Explorer" name="anims_explorer_btn" image_overlay="icn_toolbar_anims_explorer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="anims_explorer"/>
       </button>
     </layout_panel>
     <layout_panel name="panelsoundexplorer" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleSoundExplorer">
-      <button bottom="0" height="24" label="Sound Explorer" name="sound_explorer_btn" image_overlay="icn_toolbar_sound_explorer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Sound Explorer" name="sound_explorer_btn" image_overlay="icn_toolbar_sound_explorer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="sound_explorer"/>
       </button>
     </layout_panel>
     <layout_panel name="panelareasearch" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAreaSearch">
-      <button bottom="0" height="24" label="Area Search" name="areasearch_btn" image_overlay="icn_toolbar_areasearch.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Area Search" name="areasearch_btn" image_overlay="icn_toolbar_areasearch.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="areasearch"/>
       </button>
     </layout_panel>
     <layout_panel name="panelinspect" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInspect">
-      <button bottom="0" height="24" label="Inspect" name="inspect_btn" image_overlay="icn_toolbar_inspect.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Inspect" name="inspect_btn" image_overlay="icn_toolbar_inspect.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="inspect"/>
       </button>
     </layout_panel>
     <layout_panel name="panelpathingchars" height="24" width="50" user_resize="false" visibility_control="ToolbarVisiblePathfindingCharacters">
-      <button bottom="0" height="24" label="Characters" name="pathing_characters_btn" image_overlay="icn_toolbar_pathfinding_characters.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Characters" name="pathing_characters_btn" image_overlay="icn_toolbar_pathfinding_characters.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="pathfinding_characters"/>
       </button>
     </layout_panel>
     <layout_panel name="panelpathinglinksets" height="24" width="50" user_resize="false" visibility_control="ToolbarVisiblePathfindingLinksets">
-      <button bottom="0" height="24" label="Linksets" name="pathing_linksets_btn" image_overlay="icn_toolbar_pathing_linksets.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Linksets" name="pathing_linksets_btn" image_overlay="icn_toolbar_pathing_linksets.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="pathfinding_linksets"/>
       </button>
     </layout_panel>
     <layout_panel name="panel10" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleBuild">
-      <button bottom="0" height="24" label="Build" name="build_btn" image_overlay="icn_toolbar_build.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Create new objects. (B)" width="50" follows="left|right" control_name="BuildBtnState">
+      <button sound_flags="0" bottom="0" height="24" label="Build" name="build_btn" image_overlay="icn_toolbar_build.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Create new objects. (B)" width="50" follows="left|right" control_name="BuildBtnState">
         <button.commit_callback function="ShowFloater" parameter="build"/>
       </button>
     </layout_panel>
     <layout_panel name="panelgridoptions" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleGridOptions">
-      <button bottom="0" height="24" label="Grid Options" name="grid_options_btn" image_overlay="icn_toolbar_grid_options.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Grid Options" name="grid_options_btn" image_overlay="icn_toolbar_grid_options.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="grid options"/>
       </button>
     </layout_panel>
     <layout_panel name="panellocalassets" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleLocalAssets">
-      <button bottom="0" height="24" label="Local Textures" name="local_textures_btn" image_overlay="icn_toolbar_local_assets.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Local Textures" name="local_textures_btn" image_overlay="icn_toolbar_local_assets.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="local assets"/>
       </button>
     </layout_panel>
     <layout_panel name="panelpermprefs" height="24" width="50" user_resize="false" visibility_control="ToolbarVisiblePermPrefs">
-      <button bottom="0" height="24" label="Upload Perms" name="perm_prefs_btn" image_overlay="icn_toolbar_upload_perms.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Upload Perms" name="perm_prefs_btn" image_overlay="icn_toolbar_upload_perms.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="perm prefs"/>
       </button>
     </layout_panel>
     <layout_panel name="panelscripterrors" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleScriptErrors">
-      <button bottom="0" height="24" label="Script Errors" name="script_errors_btn" image_overlay="icn_toolbar_script_errors.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Script Errors" name="script_errors_btn" image_overlay="icn_toolbar_script_errors.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="script errors"/>
       </button>
     </layout_panel>
     <layout_panel name="panelenvsettings" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleEnvSettings">
-      <button bottom="0" height="24" label="Environment Editor" name="env_editor_btn" image_overlay="icn_toolbar_env_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Environment Editor" name="env_editor_btn" image_overlay="icn_toolbar_env_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="EnvSettings"/>
       </button>
     </layout_panel>
     <layout_panel name="paneldaycycle" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDayCycle">
-      <button bottom="0" height="24" label="Day Cycle Editor" name="day_cycle_editor_btn" image_overlay="icn_toolbar_day_cycle_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Day Cycle Editor" name="day_cycle_editor_btn" image_overlay="icn_toolbar_day_cycle_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="DayCycle"/>
       </button>
     </layout_panel>
     <layout_panel name="panelwindlight" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleWindlight">
-      <button bottom="0" height="24" label="Windlight" name="windlight_btn" image_overlay="icn_toolbar_windlight.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Windlight" name="windlight_btn" image_overlay="icn_toolbar_windlight.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="Windlight"/>
       </button>
     </layout_panel>
     <layout_panel name="panelwatersettings" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleWaterSettings">
-      <button bottom="0" height="24" label="Water Editor" name="water_editor_btn" image_overlay="icn_toolbar_water_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Water Editor" name="water_editor_btn" image_overlay="icn_toolbar_water_editor.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="WaterSettings"/>
       </button>
     </layout_panel>
     <layout_panel name="panelpostprocess" height="24" width="50" user_resize="false" visibility_control="ToolbarVisiblePostProcess">
-      <button bottom="0" height="24" label="Post-Process FX" name="post_process_btn" image_overlay="icn_toolbar_post_process.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Post-Process FX" name="post_process_btn" image_overlay="icn_toolbar_post_process.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="PostProcess"/>
       </button>
     </layout_panel>
     <layout_panel name="panelbuycurrency" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleBuyCurrency">
-      <button bottom="0" height="24" label="Buy [CURRENCY]" name="buy_currency_btn" image_overlay="icn_toolbar_buy_currency.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Buy [CURRENCY]" name="buy_currency_btn" image_overlay="icn_toolbar_buy_currency.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="buy currency"/>
       </button>
     </layout_panel>
     <layout_panel name="panelbuyland" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleBuyLand">
-      <button bottom="0" height="24" label="Buy Land" name="buy_land_btn" image_overlay="icn_toolbar_buy_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Buy Land" name="buy_land_btn" image_overlay="icn_toolbar_buy_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="buy land"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmyland" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMyLand">
-      <button bottom="0" height="24" label="My Land" name="my_land_btn" image_overlay="icn_toolbar_my_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="My Land" name="my_land_btn" image_overlay="icn_toolbar_my_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="my land"/>
       </button>
     </layout_panel>
     <layout_panel name="panelaboutland" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAboutLand">
-      <button bottom="0" height="24" label="About Land" name="about_land_btn" image_overlay="icn_toolbar_about_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="About Land" name="about_land_btn" image_overlay="icn_toolbar_about_land.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="about land"/>
       </button>
     </layout_panel>
     <layout_panel name="panelscriptinfo" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleScriptInfo">
-      <button bottom="0" height="24" label="Script Info" name="script_info_btn" image_overlay="icn_toolbar_script_info.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Script Info" name="script_info_btn" image_overlay="icn_toolbar_script_info.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="script info"/>
       </button>
     </layout_panel>
     <layout_panel name="panelaboutregion" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAboutRegion">
-      <button bottom="0" height="24" label="Region/Estate" name="about_region_btn" image_overlay="icn_toolbar_about_region.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Region/Estate" name="about_region_btn" image_overlay="icn_toolbar_about_region.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="about region"/>
       </button>
     </layout_panel>
     <layout_panel name="panelgodtools" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleGodTools">
-      <button bottom="0" height="24" label="God Tools" name="god_tools_btn" image_overlay="icn_toolbar_god_tools.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="God Tools" name="god_tools_btn" image_overlay="icn_toolbar_god_tools.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="god tools"/>
       </button>
     </layout_panel>
     <layout_panel name="panelteleporthistory" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleTeleportHistory">
-      <button bottom="0" height="24" label="TP History" name="teleport_history_btn" image_overlay="icn_toolbar_teleport_history.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="TP History" name="teleport_history_btn" image_overlay="icn_toolbar_teleport_history.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="teleport history"/>
       </button>
     </layout_panel>
     <layout_panel name="paneldestinations" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDestinations">
-      <button bottom="0" height="24" label="Destinations" name="destinations_btn" image_overlay="icn_toolbar_destinations.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Destinations" name="destinations_btn" image_overlay="icn_toolbar_destinations.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="destinations"/>
       </button>
     </layout_panel>
     <layout_panel name="panel11" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleWorldMap">
-      <button bottom="0" height="24" label="Map" name="map_btn" image_overlay="icn_toolbar_map.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Map of the world. (Ctrl-M)" width="50" follows="left|right" control_name="ShowWorldMap">
+      <button sound_flags="0" bottom="0" height="24" label="Map" name="map_btn" image_overlay="icn_toolbar_map.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Map of the world. (Ctrl-M)" width="50" follows="left|right" control_name="ShowWorldMap">
         <button.commit_callback function="ShowFloater" parameter="world map"/>
       </button>
     </layout_panel>
     <layout_panel name="panel12" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMiniMap">
-      <button bottom="0" height="24" label="Mini-Map" image_overlay="icn_toolbar_minimap.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="radar_btn" tool_tip="Map of the area around you. (Ctrl-Shift-M)" width="50" follows="left|right" control_name="ShowMiniMap">
+      <button sound_flags="0" bottom="0" height="24" label="Mini-Map" image_overlay="icn_toolbar_minimap.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="radar_btn" tool_tip="Map of the area around you. (Ctrl-Shift-M)" width="50" follows="left|right" control_name="ShowMiniMap">
         <button.commit_callback function="ShowFloater" parameter="mini map"/>
       </button>
     </layout_panel>
     <!-- [RLVa:LF] -->
     <layout_panel name="panelrlvrestrictions" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRLVRestrictions">
-      <button bottom="0" height="24" label="Restrictions" name="rlv_restrictions_btn" image_overlay="icn_toolbar_rlv_restrictions.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Restrictions" name="rlv_restrictions_btn" image_overlay="icn_toolbar_rlv_restrictions.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="rlv restrictions"/>
       </button>
     </layout_panel>
     <layout_panel name="panelrlvlocks" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRLVLocks">
-      <button bottom="0" height="24" label="RLVa Locks" name="rlv_locks_btn" image_overlay="icn_toolbar_rlv_locks.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="RLVa Locks" name="rlv_locks_btn" image_overlay="icn_toolbar_rlv_locks.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="rlv locks"/>
       </button>
     </layout_panel>
     <layout_panel name="panelrlvstrings" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRLVStrings">
-      <button bottom="0" height="24" label="RLVa Strings" name="rlv_strings_btn" image_overlay="icn_toolbar_rlv_strings.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="RLVa Strings" name="rlv_strings_btn" image_overlay="icn_toolbar_rlv_strings.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="rlv strings"/>
       </button>
     </layout_panel>
     <!-- [/RLVa:LF] -->
     <layout_panel name="panelmemleak" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMemLeak">
-      <button bottom="0" height="24" label="Memory Leak" name="memleak_btn" image_overlay="icn_toolbar_memleak.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Dear Gawd, I hope you know what you're doing." width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Memory Leak" name="memleak_btn" image_overlay="icn_toolbar_memleak.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" tool_tip="Dear Gawd, I hope you know what you're doing." width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="memleak"/>
       </button>
     </layout_panel>
     <layout_panel name="panelmessagelog" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMessageLog">
-      <button bottom="0" height="24" label="Message Log" name="message_log_btn" image_overlay="icn_toolbar_message_log.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Message Log" name="message_log_btn" image_overlay="icn_toolbar_message_log.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="messagelog"/>
       </button>
     </layout_panel>
     <layout_panel name="panelstats" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleStatBar">
-      <button bottom="0" height="24" label="Statistics" name="stats_btn" image_overlay="icn_toolbar_stats.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Statistics" name="stats_btn" image_overlay="icn_toolbar_stats.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="stat bar"/>
       </button>
     </layout_panel>
     <layout_panel name="panelnotificationsconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleNotificationsConsole">
-      <button bottom="0" height="24" label="Notifications Console" name="notifications_console_btn" image_overlay="icn_toolbar_notifications_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Notifications Console" name="notifications_console_btn" image_overlay="icn_toolbar_notifications_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="notifications console"/>
       </button>
     </layout_panel>
     <layout_panel name="paneldebugconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDebugConsole">
-      <button bottom="0" height="24" label="Debug Console" name="debug_console_btn" image_overlay="icn_toolbar_debug_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Debug Console" name="debug_console_btn" image_overlay="icn_toolbar_debug_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="debug console"/>
       </button>
     </layout_panel>
     <layout_panel name="panelregiondebug" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleRegionDebugConsole">
-      <button bottom="0" height="24" label="Region Console" name="region_console_btn" image_overlay="icn_toolbar_region_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Region Console" name="region_console_btn" image_overlay="icn_toolbar_region_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="RegionDebugConsole"/>
       </button>
     </layout_panel>
     <layout_panel name="panelfasttimers" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleFastTimers">
-      <button bottom="0" height="24" label="Fast Timers" name="fast_timers_btn" image_overlay="icn_toolbar_fast_timers.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Fast Timers" name="fast_timers_btn" image_overlay="icn_toolbar_fast_timers.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="fast timers"/>
       </button>
     </layout_panel>
     <layout_panel name="panelframeconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleFrameConsole">
-      <button bottom="0" height="24" label="Frame Console" name="frame_console_btn" image_overlay="icn_toolbar_frame_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Frame Console" name="frame_console_btn" image_overlay="icn_toolbar_frame_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="frame console"/>
       </button>
     </layout_panel>
     <layout_panel name="panelhttpconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleHTTPConsole">
-      <button bottom="0" height="24" label="HTTP Console" name="http_console_btn" image_overlay="icn_toolbar_http_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="HTTP Console" name="http_console_btn" image_overlay="icn_toolbar_http_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="http console"/>
       </button>
     </layout_panel>
     <layout_panel name="paneltextureconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleTextureConsole">
-      <button bottom="0" height="24" label="Texture Console" name="texture_console_btn" image_overlay="icn_toolbar_texture_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Texture Console" name="texture_console_btn" image_overlay="icn_toolbar_texture_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="texture console"/>
       </button>
     </layout_panel>
     <layout_panel name="paneltexturecategoryconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleTextureCategoryConsole">
-      <button bottom="0" height="24" label="Texture Category Console" name="texture_category_console_btn" image_overlay="icn_toolbar_texture_category_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Texture Category Console" name="texture_category_console_btn" image_overlay="icn_toolbar_texture_category_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="texture category console"/>
       </button>
     </layout_panel>
     <layout_panel name="paneltexturesizeconsole" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleTextureSizeConsole">
-      <button bottom="0" height="24" label="Texture Size Console" name="texture_size_console_btn" image_overlay="icn_toolbar_texture_size_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Texture Size Console" name="texture_size_console_btn" image_overlay="icn_toolbar_texture_size_console.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="texture size console"/>
       </button>
     </layout_panel>
-    <layout_panel name="panel13" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInventory">
-      <button bottom="0" height="24" label="Inventory" image_overlay="icn_toolbar_inventory.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="inventory_btn" tool_tip="Your items. (Ctrl-I)" width="50" follows="left|right" control_name="ShowInventory">
-        <button.commit_callback function="ShowFloater" parameter="inventory"/>
-      </button>
-    </layout_panel>
     <layout_panel name="panelavatar" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAvatar">
-      <button bottom="0" height="24" label="Default Avatars" image_overlay="icn_toolbar_avatar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="avatar_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Default Avatars" image_overlay="icn_toolbar_avatar.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="avatar_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="avatar"/>
       </button>
     </layout_panel>
     <layout_panel name="paneloutfit" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleOutfit">
-      <button bottom="0" height="24" label="Make Outfit" name="make_outfit_btn" image_overlay="icn_toolbar_make_outfit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Make Outfit" name="make_outfit_btn" image_overlay="icn_toolbar_make_outfit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="outfit"/>
       </button>
     </layout_panel>
     <layout_panel name="paneloutfits" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInventoryOutfits">
-      <button bottom="0" height="24" label="Outfits" image_overlay="icn_toolbar_outfits.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="outfits_btn" width="50" follows="left|right">
-        <button.commit_callback function="ShowFloater" parameter="floater_my_outfits.xml"/>
+      <button sound_flags="0" bottom="0" height="24" label="Outfits" image_overlay="icn_toolbar_outfits.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="outfits_btn" width="50" follows="left|right">
+        <button.commit_callback function="ShowInvFloater.Type" parameter="my_otfts"/>
       </button>
     </layout_panel>
     <layout_panel name="panelfavs" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInventoryFavs">
-      <button bottom="0" height="24" label="Favorites" image_overlay="icn_toolbar_favorites.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="favs_btn" width="50" follows="left|right">
-        <button.commit_callback function="ShowFloater" parameter="floater_inventory_favs.xml"/>
+      <button sound_flags="0" bottom="0" height="24" label="Favorites" image_overlay="icn_toolbar_favorites.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="favs_btn" width="50" follows="left|right">
+        <button.commit_callback function="ShowInvFloater.Type" parameter="favorite"/>
       </button>
     </layout_panel>
-    <layout_panel name="paneloutbox" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleOutbox">
-      <button bottom="0" height="24" label="Outbox" image_overlay="icn_toolbar_outbox.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="outbox_btn" width="50" follows="left|right">
-        <button.commit_callback function="ShowFloater" parameter="outbox"/>
+    <layout_panel name="panel13" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInventory">
+      <button sound_flags="0" bottom="0" height="24" label="Inventory" image_overlay="icn_toolbar_inventory.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="inventory_btn" tool_tip="Your items. (Ctrl-I)" width="50" follows="left|right" control_name="ShowInventory">
+        <button.commit_callback function="ShowFloater" parameter="inventory"/>
+      </button>
+    </layout_panel>
+    <layout_panel name="panelreceiveditems" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleInventoryReceivedItems">
+      <button sound_flags="0" bottom="0" height="24" label="Received Items" image_overlay="icn_toolbar_received_items.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="received_items_btn" width="50" follows="left|right">
+        <button.commit_callback function="ShowInvFloater.Type" parameter="inbox"/>
+      </button>
+    </layout_panel>
+    <layout_panel name="panelmarketplacelistings" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMarketplaceListings">
+      <button sound_flags="0" bottom="0" height="24" label="Market Listings" image_overlay="icn_toolbar_marketplace_listings.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="marketplace_listings_btn" width="50" follows="left|right">
+        <button.commit_callback function="ShowFloater" parameter="marketplace_listings"/>
+      </button>
+    </layout_panel>
+    <layout_panel name="panelmarketplace" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleMarketplace">
+      <button sound_flags="0" bottom="0" height="24" label="Marketplace" name="marketplace_btn" image_overlay="icn_toolbar_marketplace.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+        <button.commit_callback function="ShowWebFloater" parameter="marketplace"/>
       </button>
     </layout_panel>
     <layout_panel name="panelpreferences" height="24" width="50" user_resize="false" visibility_control="ToolbarVisiblePreferences">
-      <button bottom="0" height="24" label="Preferences" name="preferences_btn" tool_tip="Ctrl-P" image_overlay="icn_toolbar_preferences.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Preferences" name="preferences_btn" tool_tip="Ctrl-P" image_overlay="icn_toolbar_preferences.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="preferences"/>
       </button>
     </layout_panel>
     <layout_panel name="paneljoystick" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleJoystick">
-      <button bottom="0" height="24" label="Joystick" name="joystick_btn" image_overlay="icn_toolbar_joystick.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Joystick" name="joystick_btn" image_overlay="icn_toolbar_joystick.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="joystick"/>
       </button>
-      <button bottom="-22" height="16" width="16" left="4" toggle="true" scale_image="false" image_unselected="checkbox_enabled_false.tga" image_selected="checkbox_enabled_true.tga" label="" control_name="JoystickEnabled" name="enable_joystick" tool_tip="Toggle Joystick controls on and off"/>
+      <button sound_flags="0" bottom="-22" height="16" width="16" left="4" toggle="true" scale_image="false" image_unselected="checkbox_enabled_false.tga" image_selected="checkbox_enabled_true.tga" label="" control_name="JoystickEnabled" name="enable_joystick" tool_tip="Toggle Joystick controls on and off"/>
     </layout_panel>
     <layout_panel name="panelautoreplace" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAutoReplace">
-      <button bottom="0" height="24" label="Autoreplace" name="auto_replace_btn" image_overlay="icn_toolbar_auto_replace.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Autoreplace" name="auto_replace_btn" image_overlay="icn_toolbar_auto_replace.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="autoreplace"/>
       </button>
-      <button bottom="-22" height="16" width="16" left="4" toggle="true" scale_image="false" image_unselected="checkbox_enabled_false.tga" image_selected="checkbox_enabled_true.tga" label="" control_name="AutoReplace" name="enable_autoreplace" tool_tip="Toggle Autoreplace on and off"/>
+      <button sound_flags="0" bottom="-22" height="16" width="16" left="4" toggle="true" scale_image="false" image_unselected="checkbox_enabled_false.tga" image_selected="checkbox_enabled_true.tga" label="" control_name="AutoReplace" name="enable_autoreplace" tool_tip="Toggle Autoreplace on and off"/>
     </layout_panel>
     <layout_panel name="paneldisplayname" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleDisplayName">
-      <button bottom="0" height="24" label="Display Name" name="display_name_btn" image_overlay="icn_toolbar_display_name.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Display Name" name="display_name_btn" image_overlay="icn_toolbar_display_name.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="displayname"/>
       </button>
     </layout_panel>
     <layout_panel name="paneltest" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleTest">
-      <button bottom="0" height="24" label="Floater Test" name="floater_test_btn" image_overlay="icn_toolbar_test.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Floater Test" name="floater_test_btn" image_overlay="icn_toolbar_test.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="test"/>
       </button>
     </layout_panel>
     <layout_panel name="paneleditui" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleEditUI">
-      <button bottom="0" height="24" label="Edit UI" name="edit_ui_btn" image_overlay="icn_toolbar_edit_ui.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Edit UI" name="edit_ui_btn" image_overlay="icn_toolbar_edit_ui.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="edit ui"/>
       </button>
     </layout_panel>
     <layout_panel name="panelfonttest" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleFontTest">
-      <button bottom="0" height="24" label="Font Test" name="font_test_btn" image_overlay="icn_toolbar_font_test.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Font Test" name="font_test_btn" image_overlay="icn_toolbar_font_test.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="font test"/>
       </button>
     </layout_panel>
-    <layout_panel name="panellagmeter" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleLagMeter">
-      <button bottom="0" height="24" label="Lag Meter" image_overlay="icn_toolbar_lag_meter.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="lag_meter_btn" width="50" follows="left|right">
-        <button.commit_callback function="ShowFloater" parameter="lag meter"/>
-      </button>
-    </layout_panel>
     <layout_panel name="panelreportabuse" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleComplaintReporter">
-      <button bottom="0" height="24" label="Report Abuse" image_overlay="icn_toolbar_report_abuse.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="lag_meter_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Report Abuse" image_overlay="icn_toolbar_report_abuse.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="abuse_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="complaint reporter"/>
       </button>
     </layout_panel>
     <!-- Singu TODO: Re-implement f1 help.
     <layout_panel name="panelhelp" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleHelp">
-      <button bottom="0" height="24" label="Help" image_overlay="icn_toolbar_help.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="help_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Help" image_overlay="icn_toolbar_help.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="help_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="help f1"/>
       </button>
     </layout_panel>
     -->
     <layout_panel name="panelhelptutorial" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleHelpTutorial">
-      <button bottom="0" height="24" label="Tutorial" image_overlay="icn_toolbar_tutorial.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="tutorial_btn" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Tutorial" image_overlay="icn_toolbar_tutorial.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" name="tutorial_btn" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="help tutorial"/>
       </button>
     </layout_panel>
     <layout_panel name="panelabout" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleAbout">
-      <button bottom="0" height="24" label="About [SHORT_APP_NAME]" name="about_btn" image_overlay="icn_toolbar_about_viewer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="About [SHORT_APP_NAME]" name="about_btn" image_overlay="icn_toolbar_about_viewer.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="about"/>
       </button>
     </layout_panel>
     <layout_panel name="panelquit" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleQuit">
-      <button bottom="0" height="24" label="Quit" name="quit_btn" image_overlay="icn_toolbar_quit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Quit" name="quit_btn" image_overlay="icn_toolbar_quit.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="quit"/>
       </button>
     </layout_panel>
     <layout_panel name="paneltoolbarprefs" height="24" width="50" user_resize="false" visibility_control="ToolbarVisibleToolbarPrefs">
-      <button bottom="0" height="24" label="Change Buttons" name="change_buttons_btn" image_overlay="icn_toolbar_change_buttons.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
+      <button sound_flags="0" bottom="0" height="24" label="Change Buttons" name="change_buttons_btn" image_overlay="icn_toolbar_change_buttons.tga" image_overlay_alignment="left" image_selected="toolbar_btn_selected.tga" image_unselected="toolbar_btn_enabled.tga" image_disabled="toolbar_btn_disabled.tga" scale_image="true" width="50" follows="left|right">
         <button.commit_callback function="ShowFloater" parameter="floater_toolbar_prefs.xml"/>
       </button>
     </layout_panel>

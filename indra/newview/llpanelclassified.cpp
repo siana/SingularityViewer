@@ -354,7 +354,7 @@ void LLPanelClassifiedInfo::processProperties(void* data, EAvatarProcessorType t
 
 			// Update UI controls
 			mNameEditor->setText(c_info->name);
-			mDescEditor->setText(c_info->description);
+			mDescEditor->setText(c_info->description, false);
 			mSnapshotCtrl->setImageAssetID(c_info->snapshot_id);
 			mLocationEditor->setText(location_text);
 			mLocationChanged = false;

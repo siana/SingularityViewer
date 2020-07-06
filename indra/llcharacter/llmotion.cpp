@@ -180,8 +180,8 @@ LLMotion::LLMotion(LLUUID const& id, LLMotionController* controller) :
 	mDeactivateCallback(NULL),
 	mDeactivateCallbackUserData(NULL)
 {
-	for (int i=0; i<3; ++i)
-		memset(&mJointSignature[i][0], 0, sizeof(U8) * LL_CHARACTER_MAX_JOINTS);
+	for (S32 i=0; i<3; ++i)
+		memset(&mJointSignature[i][0], 0, sizeof(U8) * LL_CHARACTER_MAX_ANIMATED_JOINTS);
 }
 
 //-----------------------------------------------------------------------------
@@ -199,7 +199,7 @@ void LLMotion::fadeOut()
 {
 	if (mFadeWeight > 0.01f)
 	{
-		mFadeWeight = lerp(mFadeWeight, 0.f, LLCriticalDamp::getInterpolant(0.15f));
+		mFadeWeight = lerp(mFadeWeight, 0.f, LLSmoothInterpolation::getInterpolant(0.15f));
 	}
 	else
 	{
@@ -214,7 +214,7 @@ void LLMotion::fadeIn()
 {
 	if (mFadeWeight < 0.99f)
 	{
-		mFadeWeight = lerp(mFadeWeight, 1.f, LLCriticalDamp::getInterpolant(0.15f));
+		mFadeWeight = lerp(mFadeWeight, 1.f, LLSmoothInterpolation::getInterpolant(0.15f));
 	}
 	else
 	{
@@ -237,9 +237,15 @@ void LLMotion::addJointState(const LLPointer<LLJointState>& jointState)
 	U32 usage = jointState->getUsage();
 
 	// for now, usage is everything
-	mJointSignature[0][jointState->getJoint()->getJointNum()] = (usage & LLJointState::POS) ? (0xff >> (7 - priority)) : 0;
-	mJointSignature[1][jointState->getJoint()->getJointNum()] = (usage & LLJointState::ROT) ? (0xff >> (7 - priority)) : 0;
-	mJointSignature[2][jointState->getJoint()->getJointNum()] = (usage & LLJointState::SCALE) ? (0xff >> (7 - priority)) : 0;
+    S32 joint_num = jointState->getJoint()->getJointNum();
+    if ((joint_num >= (S32)LL_CHARACTER_MAX_ANIMATED_JOINTS) || (joint_num < 0))
+    {
+        LL_WARNS() << "joint_num " << joint_num << " is outside of legal range [0-" << LL_CHARACTER_MAX_ANIMATED_JOINTS << ") for joint " << jointState->getJoint()->getName() << LL_ENDL;
+        return;
+    }
+	mJointSignature[0][joint_num] = (usage & LLJointState::POS) ? (0xff >> (7 - priority)) : 0;
+	mJointSignature[1][joint_num] = (usage & LLJointState::ROT) ? (0xff >> (7 - priority)) : 0;
+	mJointSignature[2][joint_num] = (usage & LLJointState::SCALE) ? (0xff >> (7 - priority)) : 0;
 }
 
 void LLMotion::setDeactivateCallback( void (*cb)(void *), void* userdata )

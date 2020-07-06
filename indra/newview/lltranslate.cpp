@@ -35,7 +35,7 @@
 #include "llbufferstream.h"
 #include "lltranslate.h"
 #include "llui.h"
-#include "sgversion.h"
+#include "llversioninfo.h"
 #include "llweb.h"
 
 // <edit>
@@ -64,9 +64,12 @@ void LLTranslate::translateMessage(LLHTTPClient::ResponderPtr &result, const std
 	std::string url;
 	getTranslateUrl(url, fromLang, toLang, mesg);
 
-//<edit>
-    std::string user_agent = gCurrentVersion;
-//</edit>
+	std::string user_agent = llformat("%s %d.%d.%d (%d)",
+		LLVersionInfo::getChannel().c_str(),
+		LLVersionInfo::getMajor(),
+		LLVersionInfo::getMinor(),
+		LLVersionInfo::getPatch(),
+		LLVersionInfo::getBuild());
 
 	if (m_Header.empty())
 	{

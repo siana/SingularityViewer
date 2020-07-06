@@ -59,11 +59,8 @@ void LLMapLayerResponder::httpSuccess(void)
 
 	LLWorldMap::getInstance()->mMapLayers.clear();
 
-	LLSD::array_const_iterator iter;
-	for(iter = mContent["LayerData"].beginArray(); iter != mContent["LayerData"].endArray(); ++iter)
+	for (auto const& layer_data : mContent["LayerData"].array())
 	{
-		const LLSD& layer_data = *iter;
-		
 		LLWorldMapLayer new_layer;
 		new_layer.LayerDefined = TRUE;
 		

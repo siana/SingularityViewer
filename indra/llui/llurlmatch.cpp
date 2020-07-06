@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /** 
  * @file llurlmatch.cpp
  * @author Martin Reddy
@@ -37,26 +39,29 @@ LLUrlMatch::LLUrlMatch() :
 	mIcon(""),
 	mMenuName(""),
 	mLocation(""),
-	mUnderlineOnHoverOnly(false)
+	mUnderlineOnHoverOnly(false),
+	mTrusted(false)
 {
 }
 
-void LLUrlMatch::setValues(U32 start, U32 end, const std::string &url,
-						   const std::string &label, const std::string &tooltip,
-						   const std::string &icon, /*const LLStyle::Params& style,*/
+void LLUrlMatch::setValues(U32 start, U32 end, const std::string &url, const std::string &label,
+						   const std::string& query, const std::string &tooltip,
+						   const std::string &icon, const LLStyleSP& style,
 						   const std::string &menu, const std::string &location,
-						   const LLUUID& id, bool underline_on_hover_only)
+						   const LLUUID& id, bool underline_on_hover_only, bool trusted)
 {
 	mStart = start;
 	mEnd = end;
 	mUrl = url;
 	mLabel = label;
+	mQuery = query;
 	mTooltip = tooltip;
 	mIcon = icon;
-	//mStyle = style;
-	//mStyle.link_href = url;
+	mStyle = style;
+	mStyle->setLinkHREF(mStyle->isLink() ? LLStringUtil::null : url); // Singu Note: This hack exists in lieu of no link flag
 	mMenuName = menu;
 	mLocation = location;
 	mID = id;
 	mUnderlineOnHoverOnly = underline_on_hover_only;
+	mTrusted = trusted;
 }

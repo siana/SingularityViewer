@@ -4,7 +4,7 @@
 	<text_editor type="string" length="1" bottom="-393"
 	     embedded_items="false" enabled="true" follows="left|top|right|bottom"
 	     font="Monospace" height="376" ignore_tab="false" left="4"
-	     max_length="65536" mouse_opaque="true" name="Script Editor" width="492" border_drop_shadow_visible="false" border_visible="false" bevel_style="none" border_style="line" border_thickness="0"
+	     max_length="2147483647" mouse_opaque="true" name="Script Editor" width="492" border_drop_shadow_visible="false" border_visible="false" bevel_style="none" border_style="line" border_thickness="0"
 	     word_wrap="true" show_line_numbers="true">
 		Loading...
 	</text_editor>
@@ -17,7 +17,7 @@
 	<scroll_list background_visible="true" bottom="-457" column_padding="5" draw_border="true"
 	     draw_heading="false" draw_stripes="true" enabled="true"
 	     follows="left|right|bottom" height="60" left="4" mouse_opaque="true"
-	     multi_select="false" name="lsl errors" width="492" />
+	     multi_select="true" name="lsl errors" width="492" />
 	<combo_box allow_text_entry="false" bottom="-499" enabled="true" follows="left|bottom"
 	     height="20" label="Insert..." left="12" max_chars="20" mouse_opaque="true"
 	     name="Insert..." width="128" />

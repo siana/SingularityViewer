@@ -11,11 +11,8 @@ if (STANDALONE)
   find_package(Boost 1.51.0 COMPONENTS date_time filesystem program_options regex system thread wave context)
 else (STANDALONE)
   use_prebuilt_binary(boost)
-  set(Boost_INCLUDE_DIRS
-    ${LIBS_PREBUILT_DIR}/include
-    ${LIBS_PREBUILT_LEGACY_DIR}/include
-    )
-  set(Boost_VERSION "1.52")
+  set(Boost_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/include)
+  set(Boost_VERSION "1.60")
 
   if (WINDOWS)
     set(Boost_CONTEXT_LIBRARY 

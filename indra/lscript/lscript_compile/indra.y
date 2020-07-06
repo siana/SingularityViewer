@@ -179,6 +179,8 @@
 %type <event>			money
 %type <event>			email
 %type <event>			run_time_permissions
+%type <event>			experience_permissions
+%type <event>			experience_permissions_denied
 %type <event>			inventory
 %type <event>			attach
 %type <event>			dataserver
@@ -787,6 +789,16 @@ event
 		$$ = new LLScriptEventHandler(gLine, gColumn, $1, $2);
 		gAllocationManager->addAllocation($$);
 	}
+	| experience_permissions compound_statement
+	{
+		$$ = new LLScriptEventHandler(gLine, gColumn, $1, $2);
+		gAllocationManager->addAllocation($$);
+	}
+	| experience_permissions_denied compound_statement
+	{
+		$$ = new LLScriptEventHandler(gLine, gColumn, $1, $2);
+		gAllocationManager->addAllocation($$);
+	}
 	| inventory compound_statement														
 	{  
 		$$ = new LLScriptEventHandler(gLine, gColumn, $1, $2);
@@ -1035,6 +1047,28 @@ run_time_permissions
 		LLScriptIdentifier	*id1 = new LLScriptIdentifier(gLine, gColumn, $4);	
 		gAllocationManager->addAllocation(id1);
 		$$ = new LLScriptRTPEvent(gLine, gColumn, id1);
+		gAllocationManager->addAllocation($$);
+	}
+	;
+
+experience_permissions
+	: EXPERIENCE_PERMISSIONS '(' LLKEY IDENTIFIER ')'
+	{
+		LLScriptIdentifier	*id1 = new LLScriptIdentifier(gLine, gColumn, $4);
+		gAllocationManager->addAllocation(id1);
+		$$ = new LLScriptEXPEvent(gLine, gColumn, id1);
+		gAllocationManager->addAllocation($$);
+	}
+	;
+
+experience_permissions_denied
+	: EXPERIENCE_PERMISSIONS_DENIED '(' LLKEY IDENTIFIER ',' INTEGER IDENTIFIER ')'
+	{
+		LLScriptIdentifier	*id1 = new LLScriptIdentifier(gLine, gColumn, $4);
+		gAllocationManager->addAllocation(id1);
+		LLScriptIdentifier	*id2 = new LLScriptIdentifier(gLine, gColumn, $7);
+		gAllocationManager->addAllocation(id2);
+		$$ = new LLScriptEXPDeniedEvent(gLine, gColumn, id1, id2);
 		gAllocationManager->addAllocation($$);
 	}
 	;

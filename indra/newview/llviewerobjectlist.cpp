@@ -101,6 +101,15 @@ class AIHTTPTimeoutPolicy;
 extern AIHTTPTimeoutPolicy objectCostResponder_timeout;
 extern AIHTTPTimeoutPolicy physicsFlagsResponder_timeout;
 
+// <singu>
+#include "llimpanel.h"
+#include "llimview.h"
+LLFloaterIMPanel* find_im_floater(const LLUUID& id)
+{
+	return gIMMgr->findFloaterBySession(id ^ gAgentID);
+}
+// </singu>
+
 #define CULL_VIS
 //#define ORPHAN_SPAM
 //#define IGNORE_DEAD
@@ -282,7 +291,19 @@ void LLViewerObjectList::processUpdateCore(LLViewerObject* objectp,
 	// RN: this must be called after we have a drawable 
 	// (from gPipeline.addObject)
 	// so that the drawable parent is set properly
-	findOrphans(objectp, msg->getSenderIP(), msg->getSenderPort());
+	if(msg != NULL)
+	{
+		findOrphans(objectp, msg->getSenderIP(), msg->getSenderPort());
+	}
+	else
+	{
+		LLViewerRegion* regionp = objectp->getRegion();
+		if(regionp != NULL)
+		{
+			findOrphans(objectp, regionp->getHost().getAddress(), regionp->getHost().getPort());
+		}
+	}
+
 	
 	if(just_created && objectp &&
 	(gImportTracker.getState() == ImportTracker::WAND /*||
@@ -314,14 +335,14 @@ void LLViewerObjectList::processUpdateCore(LLViewerObject* objectp,
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_PROCESS_OBJECTS("Process Objects");
+static LLTrace::BlockTimerStatHandle FTM_PROCESS_OBJECTS("Process Objects");
 
 void LLViewerObjectList::processObjectUpdate(LLMessageSystem *mesgsys,
 											 void **user_data,
 											 const EObjectUpdateType update_type,
 											 bool cached, bool compressed)
 {
-	LLFastTimer t(FTM_PROCESS_OBJECTS);	
+	LL_RECORD_BLOCK_TIME(FTM_PROCESS_OBJECTS);	
 	
 	LLViewerObject *objectp;
 	S32			num_objects;
@@ -425,24 +446,20 @@ void LLViewerObjectList::processObjectUpdate(LLMessageSystem *mesgsys,
 		{
 			S32							uncompressed_length = 2048;
 			compressed_dp.reset();
-
-			U32 flags = 0;
-			if (update_type != OUT_TERSE_IMPROVED)
-			{
-				mesgsys->getU32Fast(_PREHASH_ObjectData, _PREHASH_UpdateFlags, flags, i);
-			}
 			
 			uncompressed_length = mesgsys->getSizeFast(_PREHASH_ObjectData, i, _PREHASH_Data);
-			mesgsys->getBinaryDataFast(_PREHASH_ObjectData, _PREHASH_Data, compressed_dpbuffer, 0, i);
+			mesgsys->getBinaryDataFast(_PREHASH_ObjectData, _PREHASH_Data, compressed_dpbuffer, 0, i, 2048);
 			compressed_dp.assignBuffer(compressed_dpbuffer, uncompressed_length);
 
 			if (update_type != OUT_TERSE_IMPROVED) // OUT_FULL_COMPRESSED only?
 			{
+				U32 flags = 0;
+				mesgsys->getU32Fast(_PREHASH_ObjectData, _PREHASH_UpdateFlags, flags, i);
 				compressed_dp.unpackUUID(fullid, "ID");
 				compressed_dp.unpackU32(local_id, "LocalID");
 				compressed_dp.unpackU8(pcode, "PCode");
 			}
-			else
+			else //OUT_TERSE_IMPROVED
 			{
 				compressed_dp.unpackU32(local_id, "LocalID");
 				getUUIDFromLocal(fullid,
@@ -451,7 +468,7 @@ void LLViewerObjectList::processObjectUpdate(LLMessageSystem *mesgsys,
 								 gMessageSystem->getSenderPort());
 				if (fullid.isNull())
 				{
-					// LL_WARNS() << "update for unknown localid " << local_id << " host " << gMessageSystem->getSender() << ":" << gMessageSystem->getSenderPort() << LL_ENDL;
+					LL_DEBUGS() << "update for unknown localid " << local_id << " host " << gMessageSystem->getSender() << ":" << gMessageSystem->getSenderPort() << LL_ENDL;
 					mNumUnknownUpdates++;
 				}
 			}
@@ -556,7 +573,7 @@ void LLViewerObjectList::processObjectUpdate(LLMessageSystem *mesgsys,
 			if(std::find(LLFloaterBlacklist::blacklist_objects.begin(),
 				LLFloaterBlacklist::blacklist_objects.end(),fullid) != LLFloaterBlacklist::blacklist_objects.end())
 			{
-				LL_INFOS() << "Blacklisted object asset " << fullid.asString() << " blocked." << LL_ENDL; 
+				//LL_INFOS() << "Blacklisted object asset " << fullid.asString() << " blocked." << LL_ENDL; 
 				continue;
 			}
 
@@ -729,12 +746,9 @@ public:
 	void clear_object_list_pending_requests()
 	{
 		// TODO*: No more hard coding
-		for (
-			LLSD::array_iterator iter = mObjectIDs.beginArray();
-			iter != mObjectIDs.endArray();
-			++iter)
+		for (auto const& id : mObjectIDs.array())
 		{
-			gObjectList.onObjectCostFetchFailure(iter->asUUID());
+			gObjectList.onObjectCostFetchFailure(id.asUUID());
 		}
 	}
 
@@ -772,23 +786,20 @@ public:
 
 		// Success, grab the resource cost and linked set costs
 		// for an object if one was returned
-		for (
-			LLSD::array_iterator iter = mObjectIDs.beginArray();
-			iter != mObjectIDs.endArray();
-			++iter)
+		for (auto const& entry : mObjectIDs.array())
 		{
-			LLUUID object_id = iter->asUUID();
+			LLUUID object_id = entry.asUUID();
 
 			// Check to see if the request contains data for the object
-			if ( mContent.has(iter->asString()) )
+			if ( mContent.has(entry.asString()) )
 			{
 				F32 link_cost =
-					mContent[iter->asString()]["linked_set_resource_cost"].asReal();
+					mContent[entry.asString()]["linked_set_resource_cost"].asReal();
 				F32 object_cost =
-					mContent[iter->asString()]["resource_cost"].asReal();
+					mContent[entry.asString()]["resource_cost"].asReal();
 
-				F32 physics_cost = mContent[iter->asString()]["physics_cost"].asReal();
-				F32 link_physics_cost = mContent[iter->asString()]["linked_set_physics_cost"].asReal();
+				F32 physics_cost = mContent[entry.asString()]["physics_cost"].asReal();
+				F32 link_physics_cost = mContent[entry.asString()]["linked_set_physics_cost"].asReal();
 
 				gObjectList.updateObjectCost(object_id, object_cost, link_cost, physics_cost, link_physics_cost);
 			}
@@ -820,12 +831,9 @@ public:
 	void clear_object_list_pending_requests()
 	{
 		// TODO*: No more hard coding
-		for (
-			LLSD::array_iterator iter = mObjectIDs.beginArray();
-			iter != mObjectIDs.endArray();
-			++iter)
+		for (auto const& id : mObjectIDs.array())
 		{
-			gObjectList.onPhysicsFlagsFetchFailure(iter->asUUID());
+			gObjectList.onPhysicsFlagsFetchFailure(id.asUUID());
 		}
 	}
 
@@ -863,17 +871,14 @@ public:
 
 		// Success, grab the resource cost and linked set costs
 		// for an object if one was returned
-		for (
-			LLSD::array_iterator iter = mObjectIDs.beginArray();
-			iter != mObjectIDs.endArray();
-			++iter)
+		for (auto const& entry : mObjectIDs.array())
 		{
-			LLUUID object_id = iter->asUUID();
+			LLUUID object_id = entry.asUUID();
 
 			// Check to see if the request contains data for the object
-			if (mContent.has(iter->asString()))
+			if (mContent.has(entry.asString()))
 			{
-				const LLSD& data = mContent[iter->asString()];
+				const LLSD& data = mContent[entry.asString()];
 
 				S32 shape_type = data["PhysicsShapeType"].asInteger();
 
@@ -932,14 +937,14 @@ void LLViewerObjectList::update(LLAgent &agent, LLWorld &world)
 
 	// update global timer
 	F32 last_time = gFrameTimeSeconds;
-	U64 time = totalTime();                 // this will become the new gFrameTime when the update is done
+	U64Microseconds time = totalTime();				 // this will become the new gFrameTime when the update is done
 	// Time _can_ go backwards, for example if the user changes the system clock.
 	// It doesn't cause any fatal problems (just some oddness with stats), so we shouldn't assert here.
 //	llassert(time > gFrameTime);
-	F64 time_diff = U64_to_F64(time - gFrameTime)/(F64)SEC_TO_MICROSEC;
-	gFrameTime    = time;
-	F64 time_since_start = U64_to_F64(gFrameTime - gStartTime)/(F64)SEC_TO_MICROSEC;
-	gFrameTimeSeconds = (F32)time_since_start;
+	F64Seconds time_diff = time - gFrameTime;
+	gFrameTime	= time;
+	F64Seconds time_since_start = gFrameTime - gStartTime;
+	gFrameTimeSeconds = time_since_start;
 
 	gFrameIntervalSeconds = gFrameTimeSeconds - last_time;
 	if (gFrameIntervalSeconds < 0.f)
@@ -961,10 +966,10 @@ void LLViewerObjectList::update(LLAgent &agent, LLWorld &world)
 
 	U32 idle_count = 0;
 		
-	static LLFastTimer::DeclareTimer idle_copy("Idle Copy");
+	static LLTrace::BlockTimerStatHandle idle_copy("Idle Copy");
 
 	{
-		LLFastTimer t(idle_copy);
+		LL_RECORD_BLOCK_TIME(idle_copy);
 
  		for (std::vector<LLPointer<LLViewerObject> >::iterator active_iter = mActiveObjects.begin();
 			active_iter != mActiveObjects.end(); active_iter++)
@@ -1024,7 +1029,10 @@ void LLViewerObjectList::update(LLAgent &agent, LLWorld &world)
 		LLVolumeImplFlexible::updateClass();
 
 		//update animated textures
-		LLViewerTextureAnim::updateClass();
+		if (gAnimateTextures)
+		{
+			LLViewerTextureAnim::updateClass();
+		}
 	}
 
 
@@ -1042,7 +1050,7 @@ void LLViewerObjectList::update(LLAgent &agent, LLWorld &world)
 	// don't factor frames that were paused into the stats
 	if (! mWasPaused)
 	{
-		LLViewerStats::getInstance()->updateFrameStats(time_diff);
+		LLViewerStats::getInstance()->updateFrameStats(time_diff.value());
 	}
 
 	/*
@@ -1117,7 +1125,7 @@ void LLViewerObjectList::fetchObjectCosts()
 				U32 object_index = 0;
 
 				for (
-					std::set<LLUUID>::iterator iter = mStaleObjectCost.begin();
+					auto iter = mStaleObjectCost.begin();
 					iter != mStaleObjectCost.end();
 					)
 				{
@@ -1175,7 +1183,7 @@ void LLViewerObjectList::fetchPhysicsFlags()
 				U32 object_index = 0;
 
 				for (
-					std::set<LLUUID>::iterator iter = mStalePhysicsFlags.begin();
+					auto iter = mStalePhysicsFlags.begin();
 					iter != mStalePhysicsFlags.end();
 					)
 				{
@@ -1243,9 +1251,11 @@ void LLViewerObjectList::clearDebugText()
 
 void LLViewerObjectList::cleanupReferences(LLViewerObject *objectp)
 {
+	bool new_dead_object = true;
 	if (mDeadObjects.find(objectp->mID) != mDeadObjects.end())
 	{
 		LL_INFOS() << "Object " << objectp->mID << " already on dead list!" << LL_ENDL;	
+		new_dead_object = false;
 	}
 	else
 	{
@@ -1256,7 +1266,11 @@ void LLViewerObjectList::cleanupReferences(LLViewerObject *objectp)
 	// Remove from object map so noone can look it up.
 
 	mUUIDObjectMap.erase(objectp->mID);
-	mUUIDAvatarMap.erase(objectp->mID);//No need to be careful here.
+	// <singu> Use the return value (number of erased elements) to determine if we were an avatar.
+	if (mUUIDAvatarMap.erase(objectp->mID)) //No need to be careful here.
+		if (LLFloaterIMPanel* im = find_im_floater(objectp->mID))
+			im->removeDynamicFocus();
+	// </singu>
 	
 	//if (objectp->getRegion())
 	//{
@@ -1283,14 +1297,17 @@ void LLViewerObjectList::cleanupReferences(LLViewerObject *objectp)
 	// Also, not cleaned up
 	removeDrawable(objectp->mDrawable);
 
-	mNumDeadObjects++;
+	if(new_dead_object)
+	{
+		mNumDeadObjects++;
+	}
 }
 
-static LLFastTimer::DeclareTimer FTM_REMOVE_DRAWABLE("Remove Drawable");
+static LLTrace::BlockTimerStatHandle FTM_REMOVE_DRAWABLE("Remove Drawable");
 
 void LLViewerObjectList::removeDrawable(LLDrawable* drawablep)
 {
-	LLFastTimer t(FTM_REMOVE_DRAWABLE);
+	LL_RECORD_BLOCK_TIME(FTM_REMOVE_DRAWABLE);
 
 	if (!drawablep)
 	{
@@ -1326,16 +1343,11 @@ BOOL LLViewerObjectList::killObject(LLViewerObject *objectp)
 
 	if (objectp)
 	{
-		if (objectp->isDead())
-		{
-			// This object is already dead.  Don't need to do more.
-			return TRUE;
-		}
-		else
-		{
-			objectp->markDead();
-		}
-
+		// We are going to cleanup a lot of smart pointers to this object, they might be last,
+		// and object being NULLed while inside it's own function won't be pretty
+		// so create a pointer to make sure object will stay alive untill markDead() finishes
+		LLPointer<LLViewerObject> sp(objectp);
+		sp->markDead(); // does the right thing if object already dead
 		return TRUE;
 	}
 	return FALSE;
@@ -1589,9 +1601,9 @@ void LLViewerObjectList::onPhysicsFlagsFetchFailure(const LLUUID& object_id)
 	mPendingPhysicsFlags.erase(object_id);
 }
 
-static LLFastTimer::DeclareTimer FTM_SHIFT_OBJECTS("Shift Objects");
-static LLFastTimer::DeclareTimer FTM_PIPELINE_SHIFT("Pipeline Shift");
-static LLFastTimer::DeclareTimer FTM_REGION_SHIFT("Region Shift");
+static LLTrace::BlockTimerStatHandle FTM_SHIFT_OBJECTS("Shift Objects");
+static LLTrace::BlockTimerStatHandle FTM_PIPELINE_SHIFT("Pipeline Shift");
+static LLTrace::BlockTimerStatHandle FTM_REGION_SHIFT("Region Shift");
 
 void LLViewerObjectList::shiftObjects(const LLVector3 &offset)
 {
@@ -1604,7 +1616,7 @@ void LLViewerObjectList::shiftObjects(const LLVector3 &offset)
 		return;
 	}
 
-	LLFastTimer t(FTM_SHIFT_OBJECTS);
+	LL_RECORD_BLOCK_TIME(FTM_SHIFT_OBJECTS);
 
 	LLViewerObject *objectp;
 	for (vobj_list_t::iterator iter = mObjects.begin(); iter != mObjects.end(); ++iter)
@@ -1623,12 +1635,12 @@ void LLViewerObjectList::shiftObjects(const LLVector3 &offset)
 	}
 
 	{
-		LLFastTimer t(FTM_PIPELINE_SHIFT);
+		LL_RECORD_BLOCK_TIME(FTM_PIPELINE_SHIFT);
 		gPipeline.shiftObjects(offset);
 	}
 
 	{
-		LLFastTimer t(FTM_REGION_SHIFT);
+		LL_RECORD_BLOCK_TIME(FTM_REGION_SHIFT);
 		LLWorld::getInstance()->shiftRegions(offset);
 	}
 }
@@ -1961,24 +1973,30 @@ void LLViewerObjectList::resetObjectBeacons()
 	mDebugBeacons.clear();
 }
 
-LLViewerObject *LLViewerObjectList::createObjectViewer(const LLPCode pcode, LLViewerRegion *regionp)
+LLViewerObject *LLViewerObjectList::createObjectViewer(const LLPCode pcode, LLViewerRegion *regionp, S32 flags)
 {
 	LLUUID fullid;
 	fullid.generate();
 
-	LLViewerObject *objectp = LLViewerObject::createObject(fullid, pcode, regionp);
+	LLViewerObject *objectp = LLViewerObject::createObject(fullid, pcode, regionp, flags);
 	if (!objectp)
 	{
 // 		LL_WARNS() << "Couldn't create object of type " << LLPrimitive::pCodeToString(pcode) << LL_ENDL;
 		return NULL;
 	}
 
-	mUUIDObjectMap[fullid] = objectp;
+	mUUIDObjectMap.insert_or_assign(fullid, objectp);
 	if(objectp->isAvatar())
 	{
 		LLVOAvatar *pAvatar = dynamic_cast<LLVOAvatar*>(objectp);
 		if(pAvatar)
-			mUUIDAvatarMap[fullid] = pAvatar;
+		{
+			mUUIDAvatarMap.insert_or_assign(fullid, pAvatar);
+			// <singu>
+			if (LLFloaterIMPanel* im = find_im_floater(fullid))
+				im->addDynamicFocus();
+			// </singu>
+		}
 	}
 
 	mObjects.push_back(objectp);
@@ -1989,12 +2007,12 @@ LLViewerObject *LLViewerObjectList::createObjectViewer(const LLPCode pcode, LLVi
 }
 
 
-static LLFastTimer::DeclareTimer FTM_CREATE_OBJECT("Create Object");
+static LLTrace::BlockTimerStatHandle FTM_CREATE_OBJECT("Create Object");
 
 LLViewerObject *LLViewerObjectList::createObject(const LLPCode pcode, LLViewerRegion *regionp,
 												 const LLUUID &uuid, const U32 local_id, const LLHost &sender)
 {
-	LLFastTimer t(FTM_CREATE_OBJECT);
+	LL_RECORD_BLOCK_TIME(FTM_CREATE_OBJECT);
 	
 	LLUUID fullid;
 	if (uuid == LLUUID::null)
@@ -2012,13 +2030,23 @@ LLViewerObject *LLViewerObjectList::createObject(const LLPCode pcode, LLViewerRe
 // 		LL_WARNS() << "Couldn't create object of type " << LLPrimitive::pCodeToString(pcode) << " id:" << fullid << LL_ENDL;
 		return NULL;
 	}
+	if(regionp)
+	{
+		regionp->addToCreatedList(local_id); 
+	}
 
-	mUUIDObjectMap[fullid] = objectp;
+	mUUIDObjectMap.insert_or_assign(fullid, objectp);
 	if(objectp->isAvatar())
 	{
 		LLVOAvatar *pAvatar = dynamic_cast<LLVOAvatar*>(objectp);
 		if(pAvatar)
-			mUUIDAvatarMap[fullid] = pAvatar;
+		{
+			mUUIDAvatarMap.insert_or_assign(fullid, pAvatar);
+			// <singu>
+			if (LLFloaterIMPanel* im = find_im_floater(fullid))
+				im->addDynamicFocus();
+			// </singu>
+		}
 	}
 	setUUIDAndLocal(fullid,
 					local_id,

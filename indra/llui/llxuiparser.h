@@ -31,10 +31,6 @@
 #include "llregistry.h"
 #include "llxmlnode.h"
 
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
 #include <iosfwd>
 #include <stack>
 #include <set>
@@ -63,7 +59,7 @@ public:
 	void writeXSD(const std::string& name, LLXMLNodePtr node, const LLInitParam::BaseBlock& block, const std::string& xml_namespace);
 
 	/*virtual*/ std::string getCurrentElementName() { return LLStringUtil::null; }
-
+	/*virtual*/ std::string getCurrentFileName() { return LLStringUtil::null; }
 	LLXSDWriter();
 	~LLXSDWriter();
 
@@ -101,6 +97,7 @@ public:
 	typedef LLInitParam::Parser::name_stack_t name_stack_t;
 
 	/*virtual*/ std::string getCurrentElementName();
+	/*virtual*/ std::string getCurrentFileName() { return mCurFileName; }
 	/*virtual*/ void parserWarning(const std::string& message);
 	/*virtual*/ void parserError(const std::string& message);
 
@@ -199,10 +196,11 @@ public:
 	typedef LLInitParam::Parser::name_stack_t name_stack_t;
 	typedef LLInitParam::BaseBlock* (*element_start_callback_t)(LLSimpleXUIParser&, const char* block_name);
 
-	LLSimpleXUIParser(element_start_callback_t element_cb = NULL);
+	LLSimpleXUIParser(element_start_callback_t element_cb = nullptr);
 	virtual ~LLSimpleXUIParser();
 
 	/*virtual*/ std::string getCurrentElementName();
+	/*virtual*/ std::string getCurrentFileName() { return mCurFileName; }
 	/*virtual*/ void parserWarning(const std::string& message);
 	/*virtual*/ void parserError(const std::string& message);
 

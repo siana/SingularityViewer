@@ -45,11 +45,13 @@
 #include "llcombobox.h"
 #include "lltextparser.h"
 #include "lltrans.h"
+#include "llurlregistry.h"
 #include "llwindow.h"
 
 // project include
 #include "ascentkeyword.h"
 #include "llagent.h"
+#include "llavataractions.h"
 #include "llchatbar.h"
 #include "llconsole.h"
 #include "llfloaterchatterbox.h"
@@ -77,7 +79,7 @@
 //
 LLColor4 agent_chat_color(const LLUUID& id, const std::string&, bool local_chat = true);
 LLColor4 get_text_color(const LLChat& chat, bool from_im = false);
-void show_log_browser(const std::string&, const std::string&);
+void show_log_browser(const std::string&, const LLUUID&);
 
 //
 // Member Functions
@@ -94,8 +96,7 @@ LLFloaterChat::LLFloaterChat(const LLSD& seed)
 
 	LLTextEditor* history_editor_with_mute = getChild<LLTextEditor>("Chat History Editor with mute");
 	getChild<LLUICtrl>("show mutes")->setCommitCallback(boost::bind(&LLFloaterChat::onClickToggleShowMute, this, _2, getChild<LLTextEditor>("Chat History Editor"), history_editor_with_mute));
-	history_editor_with_mute->setVisible(false);
-	getChild<LLUICtrl>("chat_history_open")->setCommitCallback(boost::bind(show_log_browser, "chat", "chat"));
+	getChild<LLUICtrl>("chat_history_open")->setCommitCallback(boost::bind(show_log_browser, "chat", LLUUID::null));
 }
 
 LLFloaterChat::~LLFloaterChat()
@@ -195,13 +196,13 @@ void add_timestamped_line(LLViewerTextEditor* edit, LLChat chat, const LLColor4&
 		(!gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) )
 // [/RLVa:KB]
 	{
-		chat.mURL = llformat("secondlife:///app/agent/%s/about",chat.mFromID.asString().c_str());
+		chat.mURL = LLAvatarActions::getSLURL(chat.mFromID);
 	}
 
 	if (chat.mSourceType == CHAT_SOURCE_OBJECT)
 	{
 		LLStringUtil::trim(chat.mFromName);
-		if (!chat.mFromName.length())
+		if (chat.mFromName.empty())
 		{
 			chat.mFromName = LLTrans::getString("Unnamed");
 			line = chat.mFromName + line;
@@ -212,19 +213,26 @@ void add_timestamped_line(LLViewerTextEditor* edit, LLChat chat, const LLColor4&
 	bool is_irc = italicize && chat.mChatStyle == CHAT_STYLE_IRC;
 	// If the chat line has an associated url, link it up to the name.
 	if (!chat.mURL.empty()
-		&& (line.length() > chat.mFromName.length() && line.find(chat.mFromName,0) == 0))
+		&& boost::algorithm::starts_with(line, chat.mFromName))
 	{
-		std::string start_line = line.substr(0, chat.mFromName.length() + 1);
-		line = line.substr(chat.mFromName.length() + 1);
+		line = line.substr(chat.mFromName.length());
 		LLStyleSP sourceStyle = LLStyleMap::instance().lookup(chat.mFromID, chat.mURL);
 		sourceStyle->mItalic = is_irc;
-		edit->appendStyledText(start_line, false, prepend_newline, sourceStyle);
+		edit->appendText(chat.mFromName, false, prepend_newline, sourceStyle, false);
 		prepend_newline = false;
 	}
 	LLStyleSP style(new LLStyle);
 	style->setColor(color);
 	style->mItalic = is_irc;
-	edit->appendStyledText(line, false, prepend_newline, style);
+	style->mBold = chat.mChatType == CHAT_TYPE_SHOUT;
+	edit->appendText(line, false, prepend_newline, style, chat.mSourceType == CHAT_SOURCE_SYSTEM);
+}
+
+void LLFloaterChat::addChatHistory(const std::string& str, bool log_to_file)
+{
+	LLChat chat(str);
+	chat.mSourceType = CHAT_SOURCE_SYSTEM;
+	addChatHistory(chat, log_to_file);
 }
 
 void log_chat_text(const LLChat& chat)
@@ -235,10 +243,10 @@ void log_chat_text(const LLChat& chat)
 	else
 		histstr = chat.mText;
 
-	LLLogChat::saveHistory(std::string("chat"), histstr);
+	LLLogChat::saveHistory("chat", LLUUID::null, histstr);
 }
 // static
-void LLFloaterChat::addChatHistory(const LLChat& chat, bool log_to_file)
+void LLFloaterChat::addChatHistory(LLChat& chat, bool log_to_file)
 {	
 // [RLVa:KB] - Checked: 2009-07-08 (RLVa-1.0.0e)
 	if (rlv_handler_t::isEnabled())
@@ -246,20 +254,18 @@ void LLFloaterChat::addChatHistory(const LLChat& chat, bool log_to_file)
 		// TODO-RLVa: we might cast too broad a net by filtering here, needs testing
 		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) && (!chat.mRlvLocFiltered) && (CHAT_SOURCE_AGENT != chat.mSourceType) )
 		{
-			LLChat& rlvChat = const_cast<LLChat&>(chat);
-			RlvUtil::filterLocation(rlvChat.mText);
-			rlvChat.mRlvLocFiltered = TRUE;
+			RlvUtil::filterLocation(chat.mText);
+			chat.mRlvLocFiltered = TRUE;
 		}
 		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) && (!chat.mRlvNamesFiltered) )
 		{
 			// NOTE: this will also filter inventory accepted/declined text in the chat history
-			LLChat& rlvChat = const_cast<LLChat&>(chat);
 			if (CHAT_SOURCE_AGENT != chat.mSourceType)
 			{
 				// Filter object and system chat (names are filtered elsewhere to save ourselves an gObjectList lookup)
-				RlvUtil::filterNames(rlvChat.mText);
+				RlvUtil::filterNames(chat.mText);
 			}
-			rlvChat.mRlvNamesFiltered = TRUE;
+			chat.mRlvNamesFiltered = TRUE;
 		}
 	}
 // [/RLVa:KB]
@@ -271,18 +277,20 @@ void LLFloaterChat::addChatHistory(const LLChat& chat, bool log_to_file)
 	
 	LLColor4 color = get_text_color(chat);
 	
-	if (!log_to_file) color = LLColor4::grey;	//Recap from log file.
+	if (!log_to_file) color = gSavedSettings.getColor("LogChatColor");	//Recap from log file.
 
 	if (chat.mChatType == CHAT_TYPE_DEBUG_MSG)
 	{
-		LLFloaterScriptDebug::addScriptLine(chat.mText,
-											chat.mFromName, 
-											color, 
-											chat.mFromID);
+		LLFloaterScriptDebug::addScriptLine(chat, color);
 		if (!gSavedSettings.getBOOL("ScriptErrorsAsChat"))
 		{
 			return;
 		}
+	}
+	else if (chat.mChatType == CHAT_TYPE_OWNER && gSavedSettings.getBOOL("SinguOwnerSayAsErrors"))
+	{
+		LLFloaterScriptDebug::addScriptLine(chat, color);
+		return;
 	}
 	
 	// could flash the chat button in the status bar here. JC
@@ -292,10 +300,7 @@ void LLFloaterChat::addChatHistory(const LLChat& chat, bool log_to_file)
 
 	history_editor->setParseHTML(TRUE);
 	history_editor_with_mute->setParseHTML(TRUE);
-	
-	history_editor->setParseHighlights(TRUE);
-	history_editor_with_mute->setParseHighlights(TRUE);
-	
+
 	if (!chat.mMuted)
 	{
 		add_timestamped_line(history_editor, chat, color);
@@ -312,7 +317,7 @@ void LLFloaterChat::addChatHistory(const LLChat& chat, bool log_to_file)
 	// add objects as transient speakers that can be muted
 	if (chat.mSourceType == CHAT_SOURCE_OBJECT)
 	{
-		LLLocalSpeakerMgr::getInstance()->setSpeaker(chat.mFromID, chat.mFromName, LLSpeaker::STATUS_NOT_IN_CHANNEL, LLSpeaker::SPEAKER_OBJECT);
+		LLLocalSpeakerMgr::getInstance()->setSpeaker({ chat.mFromID, LLSpeaker::SPEAKER_OBJECT, LLSpeaker::STATUS_NOT_IN_CHANNEL, boost::none, boost::none, chat.mFromName });
 	}
 
 	// start tab flashing on incoming text from other users (ignoring system text, etc)
@@ -339,13 +344,18 @@ void LLFloaterChat::setHistoryCursorAndScrollToEnd()
 //static
 void LLFloaterChat::onClickToggleShowMute(bool show_mute, LLTextEditor* history_editor, LLTextEditor* history_editor_with_mute)
 {
-	history_editor->setVisible(!show_mute);
-	history_editor_with_mute->setVisible(show_mute);
 	(show_mute ? history_editor_with_mute : history_editor)->setCursorAndScrollToEnd();
 }
 
+void LLFloaterChat::addChat(const std::string& str, BOOL from_im, BOOL local_agent)
+{
+	LLChat chat(str);
+	chat.mSourceType = CHAT_SOURCE_SYSTEM;
+	addChat(chat, from_im, local_agent);
+}
+
 // Put a line of chat in all the right places
-void LLFloaterChat::addChat(const LLChat& chat, 
+void LLFloaterChat::addChat(LLChat& chat,
 			  BOOL from_instant_message, 
 			  BOOL local_agent)
 {
@@ -361,20 +371,18 @@ void LLFloaterChat::addChat(const LLChat& chat,
 		// TODO-RLVa: we might cast too broad a net by filtering here, needs testing
 		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWLOC)) && (!chat.mRlvLocFiltered) && (CHAT_SOURCE_AGENT != chat.mSourceType) )
 		{
-			LLChat& rlvChat = const_cast<LLChat&>(chat);
 			if (!from_instant_message)
-				RlvUtil::filterLocation(rlvChat.mText);
-			rlvChat.mRlvLocFiltered = TRUE;
+				RlvUtil::filterLocation(chat.mText);
+			chat.mRlvLocFiltered = TRUE;
 		}
 		if ( (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES)) && (!chat.mRlvNamesFiltered) )
 		{
-			LLChat& rlvChat = const_cast<LLChat&>(chat);
 			if ( (!from_instant_message) && (CHAT_SOURCE_AGENT != chat.mSourceType) )
 			{
 				// Filter object and system chat (names are filtered elsewhere to save ourselves an gObjectList lookup)
-				RlvUtil::filterNames(rlvChat.mText);
+				RlvUtil::filterNames(chat.mText);
 			}
-			rlvChat.mRlvNamesFiltered = TRUE;
+			chat.mRlvNamesFiltered = TRUE;
 		}
 	}
 // [/RLVa:KB]
@@ -387,7 +395,19 @@ void LLFloaterChat::addChat(const LLChat& chat,
 		// We display anything if it's not an IM. If it's an IM, check pref...
 		if	( !from_instant_message || gSavedSettings.getBOOL("IMInChatConsole") ) 
 		{
-			gConsole->addConsoleLine(chat.mText, text_color);
+			// Replace registered urls in the console so it looks right.
+			std::string chit(chat.mText), // Read through this
+						chat; // Add parts to this
+			LLUrlMatch match;
+			while (!chit.empty() && LLUrlRegistry::instance().findUrl(chit, match))
+			{
+				const auto start(match.getStart()), length(match.getEnd()+1-start);
+				if (start > 0) chat += chit.substr(0, start); // Add up to the start of the match
+				chat += match.getLabel() + match.getQuery(); // Add the label and the query
+				chit.erase(0, start+length); // remove the url match and all before it
+			}
+			if (!chit.empty()) chat += chit; // Add any leftovers
+			gConsole->addConsoleLine(chat, text_color);
 		}
 	}
 
@@ -503,7 +523,7 @@ LLColor4 get_text_color(const LLChat& chat, bool from_im)
 	}
 
 	static const LLCachedControl<bool> sKeywordsChangeColor(gSavedPerAccountSettings, "KeywordsChangeColor", false);
-	if (sKeywordsChangeColor && gAgentID != chat.mFromID && chat.mSourceType != CHAT_SOURCE_SYSTEM && AscentKeyword::hasKeyword(boost::starts_with(chat.mText, chat.mFromName) ? chat.mText.substr(chat.mFromName.length()) : chat.mText, 1))
+	if (sKeywordsChangeColor && gAgentID != chat.mFromID && AscentKeyword::hasKeyword((chat.mSourceType != CHAT_SOURCE_SYSTEM && boost::starts_with(chat.mText, chat.mFromName)) ? chat.mText.substr(chat.mFromName.length()) : chat.mText, 1))
 	{
 		static const LLCachedControl<LLColor4> sKeywordsColor(gSavedPerAccountSettings, "KeywordsColor", LLColor4(1.f, 1.f, 1.f, 1.f));
 		text_color = sKeywordsColor;
@@ -515,28 +535,19 @@ LLColor4 get_text_color(const LLChat& chat, bool from_im)
 //static
 void LLFloaterChat::loadHistory()
 {
-	LLLogChat::loadHistory("chat", &chatFromLogFile, (void*)LLFloaterChat::getInstance()); 
+	LLLogChat::loadHistory("chat", LLUUID::null, boost::bind(&LLFloaterChat::chatFromLogFile, getInstance(), _1, _2));
 }
 
-//static
-void LLFloaterChat::chatFromLogFile(LLLogChat::ELogLineType type, std::string line, void* userdata)
+
+void LLFloaterChat::chatFromLogFile(LLLogChat::ELogLineType type, const std::string& line)
 {
-	switch (type)
+	bool log_line = type == LLLogChat::LOG_LINE;
+	if (log_line || gSavedPerAccountSettings.getBOOL("LogChat"))
 	{
-	case LLLogChat::LOG_EMPTY:
-		if (gSavedPerAccountSettings.getBOOL("LogChat"))
-			addChatHistory(static_cast<LLFloaterChat*>(userdata)->getString("IM_logging_string"), false);
-		break;
-	case LLLogChat::LOG_END:
-		if (gSavedPerAccountSettings.getBOOL("LogChat"))
-			addChatHistory(static_cast<LLFloaterChat*>(userdata)->getString("IM_end_log_string"), false);
-		break;
-	case LLLogChat::LOG_LINE:
-		addChatHistory(line, FALSE);
-		break;
-	default:
-		// nothing
-		break;
+		LLStyleSP style(new LLStyle(true, gSavedSettings.getColor4("LogChatColor"), LLStringUtil::null));
+		const auto text = log_line ? line : getString(type == LLLogChat::LOG_END ? "IM_end_log_string" : "IM_logging_string");
+		for (const auto& ed_name : { "Chat History Editor", "Chat History Editor with mute" })
+			getChild<LLTextEditor>(ed_name)->appendText(text, false, true, style, false);
 	}
 }
 

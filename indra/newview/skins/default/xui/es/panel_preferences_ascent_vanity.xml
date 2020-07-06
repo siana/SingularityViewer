@@ -12,10 +12,15 @@
 			<check_box label="Dar la vuelta al caminar hacía atrás" tool_tip="Es posible que algunos AOs puedan darte vuelta incluso con esta opción deshabilitada." name="turn_around"/>	
 			<check_box label="Anunciar cuando alguien toma una foto" tool_tip="No avisa si el usuario ha deshabilitado en su visor el no anunciar que está tomando fotografías." name="announce_snapshots"/>
 			<check_box label="Mostrar los metadatos de la música en stream en el chat local cuando es activada" tool_tip="Cuando comienza una nueva canción, se mostrará un mensaje en el chat local con la información disponible del tema." name="announce_stream_metadata"/>
-			<check_box label="Mostrar opacas las ventanas flotantes sin foco (requiere que se active en foco cada flotante para tener efecto)" tool_tip="Cuando un flotante pierde el foco, no se volverá transparente con esta opción habilitada.  Esto puede causar conflictos con algunas pieles del visor." name="unfocused_floaters_opaque"/>
-			<check_box label="Mostrar nombres completos (Nombres mostrados y nombres de usuario) en perfiles" tool_tip="Sin importar la configuración global del mostrado de nombres, no funcionará si los nombres mostrados están desactivados." name="complete_name_profiles"/>
 			<check_box label="Permitir a los scripts apropiarse del foco cuando no se puedan compilar debido a errores" name="script_errors_steal_focus"/>
-      <check_box label="Conectarse con regiones contiguas" name="connect_to_neighbors"/>
+			<check_box label="Conectarse con regiones contiguas" name="connect_to_neighbors"/>
+			<check_box label="Minimizar automáticamente aviso de reinicio de región" name="region_restart_minimized" tool_tip="Útil para dueños de sim y personas que necesitan recoger sus cosas antes de salir"/>
+			<text name="UISndRestartText"  bottom_delta="-36" >
+				Ejecutar sonido cuando la región esté por reiniciarse:
+			</text>
+			<line_editor name="UISndRestart" tool_tip="Dejar vacío para no ejecutar sonidos" left_delta="272" />
+			<spinner left_delta="-260" label="Transparencia foco Inactivo" tool_tip="Cuando un flotante pierde el foco, esta opción controla cuanto cambia su opacidad." label_width="150" name="Inactive Transparency" width="200"/>
+			<spinner left_delta="220" label="Transparencia foco Activo" tool_tip="Cuando el flotante tiene el foco, esta opción controla cuanto cambia su opacidad." label_width="134" name="Active Transparency" width="190"/>
 		</panel>
 		<!-- ============================ -->
 		<panel label="Tags/Colores" name="TagsColors">

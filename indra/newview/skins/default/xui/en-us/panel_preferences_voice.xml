@@ -3,7 +3,7 @@
   <text visibility_control="CmdLineDisableVoice" bottom_delta="-14" follows="left|top" left_delta="12" name="voice_unavailable">Voice Chat Is Not Available</text>
   <check_box control_name="local_enable" invisibility_control="CmdLineDisableVoice" bottom_delta="-6" follows="top" height="16" initial_value="false" label="Enable voice chat" left="8" name="enable_voice_check"/>
   <check_box bottom_delta="-18" follows="top" height="16" name="enable_multivoice_check"/>
-	<string value="Allow multiple instances of [APP_NAME] to use voice simultaneously (requires restart)" name="multivoice_label"/>
+	<string value="Allow multiple instances to use voice simultaneously (requires restart)" name="multivoice_label"/>
   <radio_group enabled_control="local_enable" bottom_delta="-66" draw_border="false" follows="top" height="60" left_delta="20" name="ear_location" width="364">
 		<radio_item bottom="-19" height="16" left="3" name="0">Hear Voice Chat from camera position.</radio_item>
 		<radio_item bottom="-35" height="16" name="1">Hear Voice Chat from avatar position.</radio_item>

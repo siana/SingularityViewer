@@ -13,9 +13,9 @@ avranno effetto su tutte le regioni della proprietà.
 	<text name="owner_text">
 		Proprietario:
 	</text>
-	<text name="estate_owner">
+	<name_box name="estate_owner">
 		(sconosciuto)
-	</text>
+	</name_box>
 	<check_box label="Usa orario globale" name="use_global_time_check"/>
 	<button label="?" name="use_global_time_help"/>
 	<check_box label="Sole fisso" name="fixed_sun_check"/>

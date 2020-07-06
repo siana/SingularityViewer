@@ -81,6 +81,7 @@
 #include "llviewerregion.h"
 #include "lldrawpoolwater.h"
 #include "lldrawpoolbump.h"
+#include "lldrawpoolavatar.h"
 #include "llwlparammanager.h"
 #include "llwaterparammanager.h"
 #include "llpostprocess.h"
@@ -146,22 +147,22 @@ void display_startup()
 	// Required for HTML update in login screen
 	static S32 frame_count = 0;
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	if (frame_count++ > 1) // make sure we have rendered a frame first
 	{
 		LLViewerDynamicTexture::updateAllInstances();
 	}
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	gViewerWindow->updateUI(); // Fix ui flicker.
 
+	gGL.syncContextState();
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	LLGLSUIDefault gls_ui;
-	gPipeline.disableLights();
 
 	gViewerWindow->setup2DRender();
 	gGL.getTexUnit(0)->setTextureBlendType(LLTexUnit::TB_MULT);
@@ -172,10 +173,11 @@ void display_startup()
 
 	LLVertexBuffer::unbind();
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 
 	gViewerWindow->getWindow()->swapBuffers();
+	gGL.syncContextState();
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
@@ -236,9 +238,9 @@ void display_stats()
 	F32 mem_log_freq = gSavedSettings.getF32("MemoryLogFrequency");
 	if (mem_log_freq > 0.f && gRecentMemoryTime.getElapsedTimeF32() >= mem_log_freq)
 	{
-		gMemoryAllocated = LLMemory::getCurrentRSS();
-		U32 memory = (U32)(gMemoryAllocated / (1024*1024));
-		LL_INFOS() << llformat("MEMORY: %d MB", memory) << LL_ENDL;
+		gMemoryAllocated = U64Bytes(LLMemory::getCurrentRSS());
+		U32Megabytes memory = gMemoryAllocated;
+		LL_INFOS() << "MEMORY: " << memory << LL_ENDL;
 		LL_INFOS() << "THREADS: "<< LLThread::getCount() << LL_ENDL;
 		LL_INFOS() << "MALLOC: " << SGMemStat::getPrintableStat() <<LL_ENDL;
 		LLMemory::logMemoryInfo(TRUE) ;
@@ -246,23 +248,43 @@ void display_stats()
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_PICK("Picking");
-static LLFastTimer::DeclareTimer FTM_RENDER("Render", true);
-static LLFastTimer::DeclareTimer FTM_UPDATE_SKY("Update Sky");
-static LLFastTimer::DeclareTimer FTM_UPDATE_TEXTURES("Update Textures");
-static LLFastTimer::DeclareTimer FTM_IMAGE_UPDATE("Update Images");
-static LLFastTimer::DeclareTimer FTM_IMAGE_UPDATE_CLASS("Class");
-static LLFastTimer::DeclareTimer FTM_IMAGE_UPDATE_BUMP("Bump");
-static LLFastTimer::DeclareTimer FTM_IMAGE_UPDATE_LIST("List");
-static LLFastTimer::DeclareTimer FTM_IMAGE_UPDATE_DELETE("Delete");
+static LLTrace::BlockTimerStatHandle FTM_PICK("Picking");
+static LLTrace::BlockTimerStatHandle FTM_RENDER("Render", true);
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_SKY("Update Sky");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_TEXTURES("Update Textures");
+static LLTrace::BlockTimerStatHandle FTM_IMAGE_UPDATE("Update Images");
+static LLTrace::BlockTimerStatHandle FTM_IMAGE_UPDATE_CLASS("Class");
+static LLTrace::BlockTimerStatHandle FTM_IMAGE_UPDATE_BUMP("Bump");
+static LLTrace::BlockTimerStatHandle FTM_IMAGE_UPDATE_LIST("List");
+static LLTrace::BlockTimerStatHandle FTM_IMAGE_UPDATE_DELETE("Delete");
+
+int sMaxCacheHit = 0;
+int sCurCacheHit = 0;
+
 // Paint the display!
 void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, bool tiling)
 {
-	LLFastTimer t(FTM_RENDER);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER);
+	/*if (gViewerWindow->getWindow()->getFullscreen() && (!gViewerWindow->getWindow() || !gViewerWindow->getWindow()->getVisible() ||  !gFocusMgr.getAppHasFocus()))
+	{
+		return;
+	}*/
+	gViewerWindow->checkSettings();
+	LLVBOPool::deleteReleasedBuffers();
+
+	for (auto avatar : LLCharacter::sInstances)
+	{
+		LLVOAvatar* avatarp = dynamic_cast<LLVOAvatar*>(avatar);
+		if (!avatarp) continue;
+		if (avatarp->isDead()) continue;
+		avatarp->clearRiggedMatrixCache();
+	}
+	sCurCacheHit = 0;
 
 	if (gWindowResized)
 	{ //skip render on frames where window has been resized
 		gGL.flush();
+		gGL.syncContextState();
 		glClear(GL_COLOR_BUFFER_BIT);
 		gViewerWindow->getWindow()->swapBuffers();
 		LLPipeline::refreshCachedSettings();
@@ -290,12 +312,13 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	
 	LLVertexBuffer::unbind();
 
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 	
 	stop_glerror();
 
-	gPipeline.disableLights();
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.disableLights(light_state);
 
 	//reset vertex buffers if needed
 	gPipeline.doResetVertexBuffers();
@@ -323,23 +346,16 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		stop_glerror();
 		return; 
 	}
-
-	gViewerWindow->checkSettings();
-
-	if(gWindowResized)  //Singu Note: gViewerWindow->checkSettings() can call LLViewerWindow::reshape(). If it has then skip this frame.
-	{
-		return;
-	}
 	
 	{
-		LLFastTimer ftm(FTM_PICK);
+		LL_RECORD_BLOCK_TIME(FTM_PICK);
 		LLAppViewer::instance()->pingMainloopTimeout("Display:Pick");
 		gViewerWindow->performPick();
 	}
 	
 	LLAppViewer::instance()->pingMainloopTimeout("Display:CheckStates");
-	LLGLState::checkStates();
-	LLGLState::checkTextureChannels();
+	LLGLStateValidator::checkStates();
+	LLGLStateValidator::checkTextureChannels();
 	
 	//////////////////////////////////////////////////////////
 	//
@@ -634,10 +650,11 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	if (gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_DYNAMIC_TEXTURES))
 	{
 		LLAppViewer::instance()->pingMainloopTimeout("Display:DynamicTextures");
-		LLFastTimer t(FTM_UPDATE_TEXTURES);
+		LL_RECORD_BLOCK_TIME(FTM_UPDATE_TEXTURES);
 		if (LLViewerDynamicTexture::updateAllInstances())
 		{
 			gGL.setColorMask(true, true);
+			gGL.syncContextState();
 			glClear(GL_DEPTH_BUFFER_BIT);
 		}
 	}
@@ -677,7 +694,7 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			const F32 max_geom_update_time = 0.005f*10.f*gFrameIntervalSeconds; // 50 ms/second update time
 			gPipeline.createObjects(max_geom_update_time);
 			gPipeline.processPartitionQ();
-			gPipeline.updateGeom(max_geom_update_time);
+			gPipeline.updateGeom(max_geom_update_time, *LLViewerCamera::getInstance());
 			stop_glerror();
 			gPipeline.updateGL();
 			stop_glerror();
@@ -719,9 +736,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		}
 		gDepthDirty = FALSE;
 
-		LLGLState::checkStates();
-		LLGLState::checkTextureChannels();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkTextureChannels();
+		LLGLStateValidator::checkClientArrays();
 
 		static LLCullResult result;
 		LLViewerCamera::sCurCameraID = LLViewerCamera::CAMERA_WORLD;
@@ -729,9 +746,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		gPipeline.updateCull(*LLViewerCamera::getInstance(), result, water_clip);
 		stop_glerror();
 
-		LLGLState::checkStates();
-		LLGLState::checkTextureChannels();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkTextureChannels();
+		LLGLStateValidator::checkClientArrays();
 
 		BOOL to_texture = LLGLSLShader::sNoFixedFunction &&
 						LLPipeline::sRenderGlow;
@@ -749,9 +766,9 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			gGL.setColorMask(true, true);
 			glClearColor(0,0,0,0);
 
-			LLGLState::checkStates();
-			LLGLState::checkTextureChannels();
-			LLGLState::checkClientArrays();
+			LLGLStateValidator::checkStates();
+			LLGLStateValidator::checkTextureChannels();
+			LLGLStateValidator::checkClientArrays();
 
 			if (!for_snapshot || LLPipeline::sRenderDeferred)
 			{
@@ -763,13 +780,13 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 
 				LLVertexBuffer::unbind();
 
-				LLGLState::checkStates();
-				LLGLState::checkTextureChannels();
-				LLGLState::checkClientArrays();
+				LLGLStateValidator::checkStates();
+				LLGLStateValidator::checkTextureChannels();
+				LLGLStateValidator::checkClientArrays();
 
 				const LLMatrix4a saved_proj = glh_get_current_projection();
 				const LLMatrix4a saved_mod = glh_get_current_modelview();
-				glViewport(0,0,512,512);
+				gGL.setViewport(0,0,512,512);
 				LLVOAvatar::updateFreezeCounter() ;
 
 				if(!LLPipeline::sMemAllocationThrottled)
@@ -785,16 +802,17 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 				gGL.loadMatrix(saved_mod);
 				gViewerWindow->setup3DViewport();
 
-				LLGLState::checkStates();
-				LLGLState::checkTextureChannels();
-				LLGLState::checkClientArrays();
+				LLGLStateValidator::checkStates();
+				LLGLStateValidator::checkTextureChannels();
+				LLGLStateValidator::checkClientArrays();
 
 			}
+			gGL.syncContextState();
 			glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		}
 
-		LLGLState::checkStates();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkClientArrays();
 
 		//if (!for_snapshot)
 		{
@@ -803,8 +821,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			gPipeline.renderPhysicsDisplay();
 		}
 
-		LLGLState::checkStates();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkClientArrays();
 
 		//////////////////////////////////////
 		//
@@ -819,37 +837,37 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		gFrameStats.start(LLFrameStats::IMAGE_UPDATE);
 
 		{
-			LLFastTimer t(FTM_IMAGE_UPDATE);
+			LL_RECORD_BLOCK_TIME(FTM_IMAGE_UPDATE);
 			
 			{
-				LLFastTimer t(FTM_IMAGE_UPDATE_CLASS);
+				LL_RECORD_BLOCK_TIME(FTM_IMAGE_UPDATE_CLASS);
 				LLViewerTexture::updateClass(LLViewerCamera::getInstance()->getVelocityStat()->getMean(),
 											LLViewerCamera::getInstance()->getAngularVelocityStat()->getMean());
 			}
 
 			
 			{
-				LLFastTimer t(FTM_IMAGE_UPDATE_BUMP);
+				LL_RECORD_BLOCK_TIME(FTM_IMAGE_UPDATE_BUMP);
 				gBumpImageList.updateImages();  // must be called before gTextureList version so that it's textures are thrown out first.
 			}
 
 			{
-				LLFastTimer t(FTM_IMAGE_UPDATE_LIST);
+				LL_RECORD_BLOCK_TIME(FTM_IMAGE_UPDATE_LIST);
 				F32 max_image_decode_time = 0.050f*gFrameIntervalSeconds; // 50 ms/second decode time
 				max_image_decode_time = llclamp(max_image_decode_time, 0.002f, 0.005f ); // min 2ms/frame, max 5ms/frame)
 				gTextureList.updateImages(max_image_decode_time);
 			}
 
 			/*{
-				LLFastTimer t(FTM_IMAGE_UPDATE_DELETE);
+				LL_RECORD_BLOCK_TIME(FTM_IMAGE_UPDATE_DELETE);
 				//remove dead textures from GL
 				LLImageGL::deleteDeadTextures();
 				stop_glerror();
 			}*/
 		}
 		LL_PUSH_CALLSTACKS();
-		LLGLState::checkStates();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkClientArrays();
 
 		///////////////////////////////////
 		//
@@ -879,14 +897,14 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			}
 		}
 
-		LLGLState::checkStates();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkClientArrays();
 
 		LLPipeline::sUseOcclusion = occlusion;
 
 		{
 			LLAppViewer::instance()->pingMainloopTimeout("Display:Sky");
-			LLFastTimer t(FTM_UPDATE_SKY);	
+			LL_RECORD_BLOCK_TIME(FTM_UPDATE_SKY);	
 			gSky.updateSky();
 		}
 
@@ -896,9 +914,12 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 // [/RLVa:KB]
 		{
 			glClearColor(0.5f, 0.5f, 0.5f, 0.f);
+			gGL.syncContextState();
 			glClear(GL_COLOR_BUFFER_BIT);
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			gGL.setPolygonMode(LLRender::PF_FRONT_AND_BACK, LLRender::PM_LINE);
 		}
+
+		LLVBOPool::deleteReleasedBuffers();
 
 		LLAppViewer::instance()->pingMainloopTimeout("Display:RenderStart");
 		
@@ -941,8 +962,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 
 		LLPipeline::sUnderWaterRender = LLViewerCamera::getInstance()->cameraUnderWater() ? TRUE : FALSE;
 		
-		LLGLState::checkStates();
-		LLGLState::checkClientArrays();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkClientArrays();
 
 		stop_glerror();
 
@@ -998,11 +1019,11 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 					gGL.loadIdentity();
 					gGL.color4fv( LLColor4::white.mV );
 					gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-					gGL.begin( LLRender::QUADS );
+					gGL.begin( LLRender::TRIANGLE_STRIP );
 						gGL.vertex3f(rect.mLeft, rect.mTop,0.f);
 						gGL.vertex3f(rect.mLeft, rect.mBottom,0.f);
+						gGL.vertex3f(rect.mRight, rect.mTop, 0.f);
 						gGL.vertex3f(rect.mRight, rect.mBottom,0.f);
-						gGL.vertex3f(rect.mRight, rect.mTop,0.f);
 					gGL.end();
 
 					gGL.matrixMode(LLRender::MM_PROJECTION);
@@ -1017,7 +1038,7 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			if (render_depth_pre_pass && LLGLSLShader::sNoFixedFunction)
 			{
 				LLGLDepthTest depth(GL_TRUE, GL_TRUE);
-				LLGLEnable cull_face(GL_CULL_FACE);
+				LLGLEnable<GL_CULL_FACE> cull_face;
 				gGL.setColorMask(false, false);
 				
 				U32 types[] = { 
@@ -1036,6 +1057,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 			}
 
 			gGL.setColorMask(true, false);
+			LLGLEnable<GL_LIGHTING> lighting;
+			LLGLEnable<GL_NORMALIZE> normalize;
 			if (LLPipeline::sRenderDeferred)
 			{
 				gPipeline.renderGeomDeferred(*LLViewerCamera::getInstance());
@@ -1106,7 +1129,7 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 		LLAppViewer::instance()->pingMainloopTimeout("Display:RenderUI");
 		if (!for_snapshot || LLPipeline::sRenderDeferred)
 		{
-			LLFastTimer t(FTM_RENDER_UI);
+			LL_RECORD_BLOCK_TIME(FTM_RENDER_UI);
 			gFrameStats.start(LLFrameStats::RENDER_UI);
 			render_ui();
 		}
@@ -1134,6 +1157,8 @@ void display(BOOL rebuild, F32 zoom_factor, int subfield, BOOL for_snapshot, boo
 	LLAppViewer::instance()->pingMainloopTimeout("Display:Done");
 
 	gShiftFrame = false;
+
+	LLVBOPool::deleteReleasedBuffers();
 }
 
 void render_hud_attachments()
@@ -1152,7 +1177,7 @@ void render_hud_attachments()
 	gAgentCamera.mHUDTargetZoom = llclamp(gAgentCamera.mHUDTargetZoom, (!gRlvAttachmentLocks.hasLockedHUD()) ? 0.1f : 0.85f, 1.f);
 // [/RLVa:KB]
 	// smoothly interpolate current zoom level
-	gAgentCamera.mHUDCurZoom = lerp(gAgentCamera.mHUDCurZoom, gAgentCamera.mHUDTargetZoom, LLCriticalDamp::getInterpolant(0.03f));
+	gAgentCamera.mHUDCurZoom = lerp(gAgentCamera.mHUDCurZoom, gAgentCamera.mHUDTargetZoom, LLSmoothInterpolation::getInterpolant(0.03f));
 
 	if (LLPipeline::sShowHUDAttachments && !gDisconnected && setup_hud_matrices())
 	{
@@ -1213,8 +1238,6 @@ void render_hud_attachments()
 		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_FULLBRIGHT_ALPHA_MASK);
 		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_FULLBRIGHT_SHINY);
 		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_SHINY);
-		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_INVISIBLE);
-		gPipeline.toggleRenderType(LLPipeline::RENDER_TYPE_PASS_INVISI_SHINY);
 		
 		gPipeline.stateSort(hud_cam, result);
 
@@ -1327,11 +1350,11 @@ BOOL setup_hud_matrices(const LLRect& screen_region)
 	return TRUE;
 }
 
-static LLFastTimer::DeclareTimer FTM_SWAP("Swap");
+static LLTrace::BlockTimerStatHandle FTM_SWAP("Swap");
 
 void render_ui(F32 zoom_factor, int subfield, bool tiling)
 {
-	LLGLState::checkStates();
+	LLGLStateValidator::checkStates();
 	
 	const LLMatrix4a saved_view = glh_get_current_modelview();
 
@@ -1362,20 +1385,17 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 
 	LLGLSDefault gls_default;
 	LLGLSUIDefault gls_ui;
-	{
-		gPipeline.disableLights();
-	}
 
 	{
 		gGL.color4f(1,1,1,1);
 		if (gPipeline.hasRenderDebugFeatureMask(LLPipeline::RENDER_DEBUG_FEATURE_UI))
 		{
-			LLFastTimer t(FTM_RENDER_UI);
+			LL_RECORD_BLOCK_TIME(FTM_RENDER_UI);
 
 			if (!gDisconnected)
 			{
 				render_ui_3d();
-				LLGLState::checkStates();
+				LLGLStateValidator::checkStates();
 			}
 			else
 			{
@@ -1383,7 +1403,7 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 			}
 
 			render_ui_2d();
-			LLGLState::checkStates();
+			LLGLStateValidator::checkStates();
 		}
 		gGL.flush();
 
@@ -1404,7 +1424,7 @@ void render_ui(F32 zoom_factor, int subfield, bool tiling)
 
 	if (gDisplaySwapBuffers)
 	{
-		LLFastTimer t(FTM_SWAP);
+		LL_RECORD_BLOCK_TIME(FTM_SWAP);
 		gViewerWindow->getWindow()->swapBuffers();
 	}
 	gDisplaySwapBuffers = TRUE;
@@ -1525,7 +1545,7 @@ void render_ui_2d()
 	// Render 2D UI elements that overlay the world (no z compare)
 
 	//  Disable wireframe mode below here, as this is HUD/menus
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	gGL.setPolygonMode(LLRender::PF_FRONT_AND_BACK, LLRender::PM_FILL);
 
 	//  Menu overlays, HUD, etc
 	gViewerWindow->setup2DRender();

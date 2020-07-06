@@ -8,24 +8,24 @@
     <menu_item_call enabled="true" label="Upload Image ([UPLOADFEE])..."
         mouse_opaque="true" name="Upload Image" shortcut="control|U" >
 		<on_click function="File.UploadImage" userdata="" />
-		<on_enable function="File.EnableUpload" />
+	<on_enable function="Upload.CalculateCosts" userdata="texture"/>
     </menu_item_call>
     <menu_item_call label="Upload Sound ([UPLOADFEE])..." name="Upload Sound"
         mouse_opaque="true" enabled="true" >
         <on_click function="File.UploadSound" userdata="" />
-        <on_enable function="File.EnableUpload" />
+	<on_enable function="Upload.CalculateCosts" userdata="sound"/>
     </menu_item_call>
     <menu_item_call label="Upload Animation ([UPLOADFEE])..." name="Upload Animation"
         mouse_opaque="true" enabled="true"  >
         <on_click function="File.UploadAnim" userdata="" />
-        <on_enable function="File.EnableUpload" />
+	<on_enable function="Upload.CalculateCosts" userdata="animation"/>
     </menu_item_call>
 	<menu_item_call label="Upload Mesh..." name="Upload Mesh"
         mouse_opaque="true" enabled="true"  >
         <on_click function="File.UploadModel" userdata="" />
         <on_enable function="File.EnableUploadModel" />
     </menu_item_call>
-    <menu_item_call label="Bulk Upload ([UPLOADFEE] per file)..." name="Bulk Upload"
+    <menu_item_call label="Bulk Upload (Costs per file)..." name="Bulk Upload"
         mouse_opaque="true" enabled="true" >
         <on_click function="File.UploadBulk" userdata="" />
     </menu_item_call>
@@ -598,18 +598,21 @@
 		<menu_item_call bottom="-232" enabled="true" height="19" label="Account History..." left="0"
 		     mouse_opaque="true" name="Account History..." width="185">
 			<on_click function="PromptShowURL" name="AccountHistory_url"
-			     userdata="WebLaunchAccountHistory,http://secondlife.com/account/transactions.php" />
+			     userdata="WebLaunchAccountHistory,https://accounts.secondlife.com/transaction_history/" />
 		</menu_item_call>
 		<menu_item_call bottom="-267" enabled="true" height="19" label="Manage My Account..." left="0"
 		     mouse_opaque="true" name="Manage My Account..." width="166">
 			<on_click function="PromptShowURL" name="ManageMyAccount_url"
-			     userdata="WebLaunchJoinNow,http://secondlife.com/account/" />
+			     userdata="WebLaunchJoinNow,https://secondlife.com/my/account/index.php" />
 		</menu_item_call>
+        <menu_item_call label="Marketplace" name="Marketplace">
+            <on_click function="ShowWebFloater" userdata="marketplace"/>
+        </menu_item_call>
         <menu_item_check
-         label="Merchant Outbox..."
-         name="MerchantOutbox">
-            <on_click function="ShowFloater" userdata="outbox" />
-            <on_check function="FloaterVisible" userdata="outbox" />
+         label="Marketplace Listings..."
+         name="MarketplaceListings">
+            <on_click function="ShowFloater" userdata="marketplace_listings" />
+            <on_check function="FloaterVisible" userdata="marketplace_listings" />
         </menu_item_check>
 		<menu_item_call bottom="-286" enabled="true" height="19" label="Buy [CURRENCY]..." left="0"
 		     mouse_opaque="true" name="Buy and Sell L$..." width="166">
@@ -617,12 +620,18 @@
 		</menu_item_call>
 		<menu_item_separator bottom="-213" enabled="true" height="8" label="-----------" left="0"
 		     mouse_opaque="true" name="separator5" width="185" />
-        <menu_item_call bottom="-29" height="19" label="My Outfits" left="0" name="My Outfits" width="166">
-            <on_click function="ShowFloater" userdata="floater_my_outfits.xml" />
-        </menu_item_call>
-        <menu_item_call bottom="-29" height="19" label="Favorites" left="0" name="Favorites" width="166">
-            <on_click function="ShowFloater" userdata="floater_inventory_favs.xml" />
-        </menu_item_call>
+        <menu_item_check label="My Outfits" name="My Outfits">
+            <on_click function="ShowInvFloater.Type" userdata="my_otfts"/>
+            <on_check function="InvFloaterVisible.Type" userdata="my_otfts"/>
+        </menu_item_check>
+        <menu_item_check label="Favorites" name="Favorites">
+            <on_click function="ShowInvFloater.Type" userdata="favorite"/>
+            <on_check function="InvFloaterVisible.Type" userdata="favorite"/>
+        </menu_item_check>
+        <menu_item_check label="Received Items" name="Received Items">
+            <on_click function="ShowInvFloater.Type" userdata="inbox"/>
+            <on_check function="InvFloaterVisible.Type" userdata="inbox"/>
+        </menu_item_check>
         <menu_item_check label="Default Avatars" name="Avatar Picker">
             <on_click function="ShowFloater" userdata="avatar"/>
             <on_check function="FloaterVisible" userdata="avatar"/>
@@ -632,6 +641,10 @@
             <on_click function="ShowFloater" userdata="destinations"/>
             <on_check function="FloaterVisible" userdata="destinations"/>
             <on_visible function="World.VisibleDestinations"/>
+        </menu_item_check>
+        <menu_item_check label="Experiences..." name="Experiences...">
+            <on_click function="ShowFloater" userdata="experiences" />
+            <on_check function="FloaterVisible" userdata="experiences" />
         </menu_item_check>
         <menu_item_separator bottom="-213" label="-----------" left="0" name="separator5"/>
 		<menu_item_call bottom="-251" enabled="true" height="19" label="My Land..." left="0"
@@ -988,9 +1001,6 @@
 		     width="166">
 			<on_click function="ShowFloater" userdata="mean events" />
 		</menu_item_call>
-		<menu_item_call label="Lag Meter" name="Lag Meter">
-			<on_click function="ShowFloater" userdata="lag meter" />
-		</menu_item_call>
 		<menu_item_separator name="separator7"/>
 		<menu bottom="-554" create_jump_keys="true" drop_shadow="true" enabled="true"
 		     height="109" label="Bug Reporting" left="0" mouse_opaque="false"
@@ -1041,12 +1051,16 @@
 			<menu_item_call bottom="-240" enabled="true" height="19" label="Report [SHORT_APP_NAME] Bug..." left="0"
 			     mouse_opaque="true" name="Report [SHORT_APP_NAME] Bug..." width="166">
 				<on_click function="PromptShowURL" name="ReportSinguBug_url"
-						userdata="WebLaunchSinguIssue,http://code.google.com/p/singularity-viewer/issues/entry" />
+						userdata="WebLaunchSinguIssue,https://singularityviewer.atlassian.net/secure/CreateIssue!default.jspa?issuetype=1" />
 			</menu_item_call>
 			<menu_item_call bottom="-240" enabled="true" height="19" label="Request New Feature..." name="Request New Feature..." width="166">
-				<on_click function="PromptShowURL" name="RequestFeature_url" userdata="WebLaunchSinguIssue,http://code.google.com/p/singularity-viewer/issues/entry?template=Feature%20request"/>
+				<on_click function="PromptShowURL" name="RequestFeature_url" userdata="WebLaunchSinguIssue,https://singularityviewer.atlassian.net/secure/CreateIssue!default.jspa?issuetype=2"/>
 			</menu_item_call>
 		</menu>
+		<menu_item_call label="[SHORT_APP_NAME] Group" name="viewer group">
+			<on_click function="URLAction" userdata="secondlife:///app/group/4fa278be-b621-9447-0958-85af4b01cdab/about"/>
+			<on_visible function="VisibleSecondLife"/>
+		</menu_item_call>
 		<menu_item_call bottom="-313" enabled="true" height="19" label="About [SHORT_APP_NAME]..." left="0"
 		     mouse_opaque="true" name="About Second Life..." width="166">
 			<on_click function="ShowFloater" userdata="about" />
@@ -1075,6 +1089,10 @@
 			<on_click function="ToggleControl" userdata="Nimble"/>
 			<on_check control="Nimble"/>
 		</menu_item_check>
+		<menu_item_call label="Resync Animations" name="Resync Animations">
+			<menu_item_call.on_click
+			 function="Tools.ResyncAnimations" />
+		</menu_item_call>
 		<menu_item_separator mouse_opaque="true" name="separators3"/>
 		<menu_item_check label="Region Tracker" name="Region Tracker">
 			<on_click function="ShowFloater" userdata="region_tracker"/>

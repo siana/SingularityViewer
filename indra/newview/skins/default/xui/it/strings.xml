@@ -133,6 +133,176 @@
 	<string name="TooltipMustSingleDrop">
 		Solo un singolo oggetto può essere creato qui
 	</string>
+	<string name="TooltipTooManyWearables">
+		Non puoi indossare una cartella che contiene più di [AMOUNT] elementi. Per modificare questo limite, accedi ad Avanzate &gt; Mostra impostazioni di debug &gt; WearFolderLimit.
+	</string>
+	<string name="TooltipPrice" value="L$ [AMOUNT]:"/>
+	<string name="TooltipSLIcon">
+		Questo link porta a una pagina nel dominio ufficiale SecondLife.com o LindenLab.com.
+	</string>
+	<string name="TooltipOutboxDragToWorld">
+		Non puoi rezzare articoli dalla cartella degli annunci di Marketplace
+	</string>
+	<string name="TooltipOutboxWorn">
+		Non puoi inserire nella cartella degli annunci in Marketplace gli articoli che indossi
+	</string>
+	<string name="TooltipOutboxFolderLevels">
+		La profondità delle caselle nidificate è maggiore di [AMOUNT]. Diminuisci la profondità delle cartelle nidificate; se necessario, raggruppa gli articoli.
+	</string>
+	<string name="TooltipOutboxTooManyFolders">
+		Il numero di sottocartelle è maggiore di [AMOUNT]. Diminuisci il numero delle cartelle nel tuo annuncio; se necessario, raggruppa gli articoli.
+	</string>
+	<string name="TooltipOutboxTooManyObjects">
+		Il numero di articoli è maggiore di [AMOUNT]. Per vendere più di [AMOUNT] articoli in un annuncio, devi raggruppare alcuni di essi.
+	</string>
+	<string name="TooltipOutboxTooManyStockItems">
+		Il numero di articoli in magazzino è maggiore di [AMOUNT].
+	</string>
+	<string name="TooltipOutboxCannotDropOnRoot">
+		Puoi trascinare elementi o cartelle solo nelle schede TUTTI o NON ASSOCIATO. Seleziona una di quelle schede e sposta nuovamente gli elementi o le cartelle.
+	</string>
+	<string name="TooltipOutboxNoTransfer">
+		Almeno uno di questi oggetti non può essere venduto o trasferito
+	</string>
+	<string name="TooltipOutboxNotInInventory">
+		Puoi aggiungere a Marketplace solo gli articoli nel tuo inventario
+	</string>
+	<string name="TooltipOutboxLinked">
+		Non puoi inserire cartelle o articoli collegati tramite link nel Marketplace
+	</string>
+	<string name="TooltipOutboxCallingCard">
+		Non puoi inserire biglietti da visita in Marketplace
+	</string>
+	<string name="TooltipOutboxDragActive">
+		non puoi muovere un annuncio attivo
+	</string>
+	<string name="TooltipOutboxCannotMoveRoot">
+		Non puoi spostare la cartella principale degli annunci di Marketplace
+	</string>
+	<string name="TooltipOutboxMixedStock">
+		Tutti gli articoli in una cartella di magazzino devono essere dello stesso tipo e con le stesse autorizzazioni
+	</string>
+	<string name="TooltipDragOntoOwnChild">
+		Non puoi spostare una cartella nella relativa cartella secondaria
+	</string>
+	<string name="TooltipDragOntoSelf">
+		Non puoi spostare una cartella in se stessa
+	</string>
+	<string name="TooltipHttpUrl">
+		Clicca per visitare questa pagina web
+	</string>
+	<string name="TooltipSLURL">
+		Clicca per avere maggiori informazioni sul luogo
+	</string>
+	<string name="TooltipAgentUrl">
+		Clicca per vedere il profilo di questo residente
+	</string>
+	<string name="TooltipAgentInspect">
+		Ulteriori informazioni su questo Residente
+	</string>
+	<string name="TooltipAgentMute">
+		Clicca per disattivare l&apos;audio di questo residente
+	</string>
+	<string name="TooltipAgentUnmute">
+		Clicca per attivare l&apos;audio del residente
+	</string>
+	<string name="TooltipAgentIM">
+		Clicca per inviare un IM a questo residente
+	</string>
+	<string name="TooltipAgentPay">
+		Clicca per pagare il residente
+	</string>
+	<string name="TooltipAgentOfferTeleport">
+		Fai clic per inviare un&apos;offerta di teleport al residente
+	</string>
+	<string name="TooltipAgentRequestFriend">
+		Fai clic per inviare una richiesta di amicizia al residente
+	</string>
+	<string name="TooltipGroupUrl">
+		Clicca per vedere la descrizione del gruppo
+	</string>
+	<string name="TooltipEventUrl">
+		Clicca per vedere la descrizione dell&apos;evento
+	</string>
+	<string name="TooltipClassifiedUrl">
+		Clicca per vedere questa inserzione
+	</string>
+	<string name="TooltipParcelUrl">
+		Clicca per vedere la descrizione del lotto
+	</string>
+	<string name="TooltipTeleportUrl">
+		Clicca per effettuare il teleport a questa destinazione
+	</string>
+	<string name="TooltipObjectIMUrl">
+		Clicca per vedere la descrizione dell&apos;oggetto
+	</string>
+	<string name="TooltipMapUrl">
+		Clicca per vedere questo posto sulla mappa
+	</string>
+	<string name="TooltipSLAPP">
+		Clicca per avviare il comando secondlife://
+	</string>
+	<string name="CurrentURL" value="URL attuale: [CurrentURL]"/>
+	<string name="TooltipEmail">
+		Fai clic per comporre un&apos;email
+	</string>
+	<string name="SLurlLabelTeleport">
+		Teleportati a
+	</string>
+	<string name="SLurlLabelShowOnMap">
+		Mostra la mappa per
+	</string>
+	<string name="SLappAgentMute">
+		Disattiva audio
+	</string>
+	<string name="SLappAgentUnmute">
+		Riattiva audio
+	</string>
+	<string name="SLappAgentIM">
+		IM
+	</string>
+	<string name="SLappAgentPay">
+		Paga
+	</string>
+	<string name="SLappAgentOfferTeleport">
+		Offri teleport a
+	</string>
+	<string name="SLappAgentRequestFriend">
+		Richiesta di amicizia
+	</string>
+	<string name="SLappAgentRemoveFriend">
+		Rimozione amico
+	</string>
+	<string name="BUTTON_CLOSE_DARWIN">
+		Chiudi (⌘W)
+	</string>
+	<string name="BUTTON_CLOSE_WIN">
+		Chiudi (Ctrl+W)
+	</string>
+	<string name="BUTTON_CLOSE_CHROME">
+		Chiudi
+	</string>
+	<string name="BUTTON_RESTORE">
+		Ripristina
+	</string>
+	<string name="BUTTON_MINIMIZE">
+		Minimizza
+	</string>
+	<string name="BUTTON_TEAR_OFF">
+		Distacca
+	</string>
+	<string name="BUTTON_DOCK">
+		Àncora
+	</string>
+	<string name="BUTTON_HELP">
+		Mostra Aiuto
+	</string>
+	<string name="Searching">
+		Ricerca in corso...
+	</string>
+	<string name="NoneFound">
+		Nessun risultato.
+	</string>
 	<string name="RetrievingData">
 		Recupero dati in corso...
 	</string>

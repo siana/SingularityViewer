@@ -50,7 +50,10 @@ const F32 CAMERA_BUTTON_DELAY = 0.0f;
 //
 
 LLFloaterCamera::LLFloaterCamera(const LLSD& val)
-:	LLFloater("camera floater") // uses "FloaterCameraRect3"
+:	LLFloater("camera floater"), // uses "FloaterCameraRect3"
+	mRotate(nullptr),
+	mZoom(nullptr),
+	mTrack(nullptr)
 {
 	setIsChrome(TRUE);
 	

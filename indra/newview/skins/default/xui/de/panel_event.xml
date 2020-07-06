@@ -12,7 +12,7 @@
 	<text name="event_duration_label">Event-Dauer:</text>
 	<text name="event_duration">(keiner)</text>
 	<text name="event_runby_label">Ausgeführt von:</text>
-	<text name="event_runby">(keiner)</text>
+	<name_box name="event_runby">(keiner)</name_box>
 	<text name="event_location_label">Standort:</text>
 	<text name="event_location">(keiner)</text>
 	<text name="event_cover_label">Gebühr:</text>

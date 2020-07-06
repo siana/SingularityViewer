@@ -7,19 +7,19 @@ include(LLCommon)
 include(LLMath)
 include(LLMessage)
 include(LLRender)
+include(Boost)
 
 include_directories(
     ${LLCOMMON_INCLUDE_DIRS}
     ${LLMATH_INCLUDE_DIRS}
     ${LLMESSAGE_INCLUDE_DIRS}
     ${LLRENDER_INCLUDE_DIRS}
-    ${LLQTWEBKIT_INCLUDE_DIR}
     )
 
 set(llplugin_SOURCE_FILES
     llpluginclassbasic.cpp
     llpluginclassmedia.cpp
-    llplugincookiestore.cpp
+    #llplugincookiestore.cpp
     llplugininstance.cpp
     llpluginmessage.cpp
     llpluginmessagepipe.cpp
@@ -34,7 +34,7 @@ set(llplugin_HEADER_FILES
     llpluginclassbasic.h
     llpluginclassmedia.h
     llpluginclassmediaowner.h
-    llplugincookiestore.h
+    #llplugincookiestore.h
     llplugininstance.h
     llpluginmessage.h
     llpluginmessageclasses.h
@@ -47,22 +47,20 @@ set(llplugin_HEADER_FILES
 set_source_files_properties(${llplugin_HEADER_FILES}
                             PROPERTIES HEADER_FILE_ONLY TRUE)
 
-if(NOT WORD_SIZE EQUAL 32)
-	if(WINDOWS)
-		# add_definitions(/FIXED:NO)
-	else(WINDOWS) # not windows therefore gcc LINUX and DARWIN
-		add_definitions(-fPIC)
-	endif(WINDOWS)
-endif (NOT WORD_SIZE EQUAL 32)
-
 list(APPEND llplugin_SOURCE_FILES ${llplugin_HEADER_FILES})
 
 add_library (llplugin ${llplugin_SOURCE_FILES})
 if(LINUX AND STANDALONE)
-    target_link_libraries (llplugin rt dl)
-endif(LINUX AND STANDALONE)
+    target_link_libraries (llplugin llcommon rt dl)
+else()
+    target_link_libraries(
+        llplugin
+        PUBLIC
+        llcommon
+        )
+endif()
 
-add_dependencies(llplugin prepare)
+set_target_properties(llplugin PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
 add_subdirectory(slplugin)
 

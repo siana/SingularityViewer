@@ -132,7 +132,7 @@ class LL_COMMON_API AIArgs
 	// Add another replacement.
 	AIArgs& operator()(char const* key, std::string const& replacement) { mArgs[key] = replacement; return *this; }
 	// The destructor may not throw.
-	~AIArgs() throw() { }
+	~AIArgs() noexcept { }
 
 	// Accessor.
 	LLStringUtil::format_map_t const& operator*() const { return mArgs; }
@@ -193,7 +193,7 @@ class LL_COMMON_API Line
 	Line(std::string const& xml_desc, AIArgs const& args, bool newline = false) : mNewline(newline), mXmlDesc(xml_desc), mArgs(args), mType(normal) { }
 	Line(Prefix const& prefix, bool newline = false) : mNewline(newline), mXmlDesc("AIPrefix"), mArgs("[PREFIX]", prefix.str()), mType(prefix.type()) { }
 	// The destructor may not throw.
-	~Line() throw() { }
+	~Line() noexcept { }
 
 	// Prepend a newline before this line.
 	void set_newline(void) { mNewline = true; }
@@ -225,7 +225,7 @@ class LL_COMMON_API Error : public std::exception
 	typedef std::deque<Line> lines_type;
 
 	// The destructor may not throw.
-	~Error() throw() { }
+	~Error() noexcept { }
 
 	// Accessors.
 	lines_type const& lines(void) const { return mLines; }
@@ -267,7 +267,7 @@ class LL_COMMON_API ErrorCode : public Error
 
   public:
 	// The destructor may not throw.
-	~ErrorCode() throw() { }
+	~ErrorCode() noexcept { }
 
 	// Accessor.
 	int getCode(void) const { return mCode; }

@@ -2,7 +2,6 @@
 include(Linking)
 include(Prebuilt)
 
-if(NOT FMOD)
 if (LINUX)
   set(OPENAL ON CACHE BOOL "Enable OpenAL")
 else (LINUX)
@@ -10,26 +9,25 @@ else (LINUX)
 endif (LINUX)
 
 if (OPENAL)
+  set(OPENAL_LIB_INCLUDE_DIRS "${LIBS_PREBUILT_DIR}/include/AL")
   if (STANDALONE)
     include(FindPkgConfig)
     include(FindOpenAL)
     pkg_check_modules(OPENAL_LIB REQUIRED openal)
     pkg_check_modules(FREEALUT_LIB REQUIRED freealut)
   else (STANDALONE)
-    use_prebuilt_binary(openal-soft)
+    use_prebuilt_binary(openal)
   endif (STANDALONE)
+  if(WINDOWS)
   set(OPENAL_LIBRARIES 
-    openal
+    OpenAL32
     alut
     )
-    set(OPENAL_INCLUDE_DIRS
-      ${LIBS_PREBUILT_DIR}/include
-      ${LIBS_PREBUILT_LEGACY_DIR}/include
-      )
-endif (OPENAL)
-
-if (OPENAL)
+  else()
+  set(OPENAL_LIBRARIES 
+  openal
+  alut
+    )
+  endif()
   message(STATUS "Building with OpenAL audio support")
-  set(LLSTARTUP_COMPILE_FLAGS "${LLSTARTUP_COMPILE_FLAGS} -DLL_OPENAL")
 endif (OPENAL)
-endif(NOT FMOD)

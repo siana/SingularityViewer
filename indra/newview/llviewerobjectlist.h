@@ -36,6 +36,8 @@
 #include <map>
 #include <set>
 
+#include "absl/container/flat_hash_map.h"
+
 // common includes
 #include "llstat.h"
 #include "llstring.h"
@@ -48,15 +50,15 @@ class LLCamera;
 class LLNetMap;
 class LLDebugBeacon;
 
-const U32 CLOSE_BIN_SIZE = 10;
-const U32 NUM_BINS = 128;
+constexpr U32 CLOSE_BIN_SIZE = 10;
+constexpr U32 NUM_BINS = 128;
 
 // GL name = position in object list + GL_NAME_INDEX_OFFSET so that
 // we can have special numbers like zero.
-const U32 GL_NAME_LAND = 0;
-const U32 GL_NAME_PARCEL_WALL = 1;
+constexpr U32 GL_NAME_LAND = 0;
+constexpr U32 GL_NAME_PARCEL_WALL = 1;
 
-const U32 GL_NAME_INDEX_OFFSET = 10;
+constexpr U32 GL_NAME_INDEX_OFFSET = 10;
 
 class LLViewerObjectList
 {
@@ -74,7 +76,7 @@ public:
 	
 	inline LLViewerObject *findObject(const LLUUID &id) const;
 	inline LLVOAvatar *findAvatar(const LLUUID &id) const;
-	LLViewerObject *createObjectViewer(const LLPCode pcode, LLViewerRegion *regionp); // Create a viewer-side object
+	LLViewerObject *createObjectViewer(const LLPCode pcode, LLViewerRegion *regionp, S32 flags = 0); // Create a viewer-side object
 	LLViewerObject *createObject(const LLPCode pcode, LLViewerRegion *regionp,
 								 const LLUUID &uuid, const U32 local_id, const LLHost &sender);
 
@@ -141,6 +143,7 @@ public:
 	LLViewerObject *getSelectedObject(const U32 object_id);
 
 	inline S32 getNumObjects() { return (S32) mObjects.size(); }
+	inline S32 getNumActiveObjects() { return (S32) mActiveObjects.size(); }
 
 	void addToMap(LLViewerObject *objectp);
 	void removeFromMap(LLViewerObject *objectp);
@@ -216,18 +219,18 @@ public:
 
 	vobj_list_t mMapObjects;
 
-	std::set<LLUUID> mDeadObjects;	
+	uuid_set_t mDeadObjects;	
 
-	boost::unordered_map<LLUUID, LLPointer<LLViewerObject> > mUUIDObjectMap;
-	boost::unordered_map<LLUUID, LLPointer<LLVOAvatar> > mUUIDAvatarMap;
+	absl::flat_hash_map<LLUUID, LLPointer<LLViewerObject> > mUUIDObjectMap;
+	absl::flat_hash_map<LLUUID, LLPointer<LLVOAvatar> > mUUIDAvatarMap;
 
 	//set of objects that need to update their cost
-	std::set<LLUUID> mStaleObjectCost;
-	std::set<LLUUID> mPendingObjectCost;
+	uuid_set_t mStaleObjectCost;
+	uuid_set_t mPendingObjectCost;
 
 	//set of objects that need to update their physics flags
-	std::set<LLUUID> mStalePhysicsFlags;
-	std::set<LLUUID> mPendingPhysicsFlags;
+	uuid_set_t mStalePhysicsFlags;
+	uuid_set_t mPendingPhysicsFlags;
 
 	std::vector<LLDebugBeacon> mDebugBeacons;
 
@@ -271,8 +274,8 @@ extern LLViewerObjectList gObjectList;
 // Inlines
 inline LLViewerObject *LLViewerObjectList::findObject(const LLUUID &id) const
 {
-	boost::unordered_map<LLUUID, LLPointer<LLViewerObject> >::const_iterator iter = mUUIDObjectMap.find(id);
-	if(iter != mUUIDObjectMap.end())
+	auto iter = mUUIDObjectMap.find(id);
+	if(iter != mUUIDObjectMap.cend())
 	{
 		return iter->second;
 	}
@@ -284,8 +287,8 @@ inline LLViewerObject *LLViewerObjectList::findObject(const LLUUID &id) const
 
 inline LLVOAvatar *LLViewerObjectList::findAvatar(const LLUUID &id) const
 {
-	boost::unordered_map<LLUUID, LLPointer<LLVOAvatar> >::const_iterator iter = mUUIDAvatarMap.find(id);
-	return (iter != mUUIDAvatarMap.end()) ? iter->second.get() : NULL;
+	auto iter = mUUIDAvatarMap.find(id);
+	return (iter != mUUIDAvatarMap.cend()) ? iter->second.get() : NULL;
 }
 
 inline LLViewerObject *LLViewerObjectList::getObject(const S32 index)

@@ -33,6 +33,7 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llstylemap.h"
+#include "llavataractions.h"
 
 LLStyleMap::LLStyleMap()
 {
@@ -58,9 +59,8 @@ const LLStyleSP &LLStyleMap::lookupAgent(const LLUUID &source)
 		LLStyleSP style(new LLStyle);
 		if (source.notNull())
 		{
-			style->setColor(gSavedSettings.getColor4("HTMLLinkColor"));
-			std::string link = llformat("secondlife:///app/agent/%s/about",source.asString().c_str());
-			style->setLinkHREF(link);
+			style->setColor(gSavedSettings.getColor4("HTMLAgentColor"));
+			style->setLinkHREF(LLAvatarActions::getSLURL(source));
 		}
 		(*this)[source] = style;
 	}
@@ -77,7 +77,7 @@ const LLStyleSP &LLStyleMap::lookup(const LLUUID& id, const std::string& link)
 		LLStyleSP style(new LLStyle);
 		if (id.notNull() && !link.empty())
 		{
-			style->setColor(gSavedSettings.getColor4("HTMLLinkColor"));
+			style->setColor(gSavedSettings.getColor4("HTMLAgentColor"));
 			style->setLinkHREF(link);
 		}
 		else
@@ -102,6 +102,6 @@ void LLStyleMap::update()
 	{
 		LLStyleSP &style = iter->second;
 		// Update the link color in case it has been changed.
-		style->setColor(gSavedSettings.getColor4("HTMLLinkColor"));
+		style->setColor(gSavedSettings.getColor4("HTMLAgentColor"));
 	}
 }

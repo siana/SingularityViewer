@@ -33,91 +33,85 @@
 #include "llviewerprecompiledheaders.h"
  
 #include "llnameeditor.h"
-#include "llcachename.h"
-#include "llagent.h"
 
-#include "llfontgl.h"
-
-#include "lluuid.h"
-#include "llrect.h"
-#include "llstring.h"
-#include "llui.h"
+#include "llmenugl.h"
+#include "lluictrlfactory.h"
+#include "llwindow.h"
 
 static LLRegisterWidget<LLNameEditor> r("name_editor");
 
-// statics
-std::set<LLNameEditor*> LLNameEditor::sInstances;
-
 LLNameEditor::LLNameEditor(const std::string& name, const LLRect& rect,
-		const LLUUID& name_id, 
-		BOOL is_group,
+		const LLUUID& name_id,
+		const Type& type,
+		const std::string& loading,
+		bool rlv_sensitive,
+		const std::string& name_system,
+		bool click_for_profile,
 		const LLFontGL* glfont,
 		S32 max_text_length)
-:	LLLineEditor(name, rect, 
-				 std::string("(retrieving)"), 
-				 glfont, 
-				 max_text_length),
-	mNameID(name_id)
+: LLNameUI(loading, rlv_sensitive, name_id, type, name_system, click_for_profile)
+, LLLineEditor(name, rect, LLStringUtil::null, glfont, max_text_length)
 {
-	LLNameEditor::sInstances.insert(this);
-	if(!name_id.isNull())
+	if (!name_id.isNull())
 	{
-		setNameID(name_id, is_group);
+		setNameID(name_id, type);
 	}
+	else setText(mInitialValue);
 }
 
-
-LLNameEditor::~LLNameEditor()
+// virtual
+BOOL LLNameEditor::handleMouseDown(S32 x, S32 y, MASK mask)
 {
-	LLNameEditor::sInstances.erase(this);
-}
-
-void LLNameEditor::setNameID(const LLUUID& name_id, BOOL is_group)
-{
-	mNameID = name_id;
-
-	std::string name;
-
-	if (!is_group)
+	if (mClickForProfile && mAllowInteract)
 	{
-		gCacheName->getFullName(name_id, name);
+		showProfile();
+		return true;
 	}
-	else
+	else return LLLineEditor::handleMouseDown(x, y, mask);
+}
+
+// virtual
+BOOL LLNameEditor::handleRightMouseDown(S32 x, S32 y, MASK mask)
+{
+	bool simple_menu = mContextMenuHandle.get()->getName() == "rclickmenu";
+	std::string new_menu;
+	bool needs_simple = !mAllowInteract || mNameID.isNull(); // Need simple if no ID or blocking interaction
+	if (!simple_menu && needs_simple) // Switch to simple menu
 	{
-		gCacheName->getGroupName(name_id, name);
+		new_menu = "menu_texteditor.xml";
 	}
-
-	setText(name);
-}
-
-void LLNameEditor::refresh(const LLUUID& id, const std::string& full_name, bool is_group)
-{
-	if (id == mNameID)
+	else // TODO: This is lazy, but I cannot recall a name editor that switches between group and avatar, so logic is not needed yet.
 	{
-		setText(full_name);
+		new_menu = mType == GROUP ? "menu_nameeditor_group.xml" : "menu_nameeditor_avatar.xml";
 	}
+	if (!new_menu.empty()) setContextMenu(LLUICtrlFactory::instance().buildMenu(new_menu, LLMenuGL::sMenuContainer));
+	setActive();
+
+	return LLLineEditor::handleRightMouseDown(x, y, mask);
 }
 
-void LLNameEditor::refreshAll(const LLUUID& id, const std::string& full_name, bool is_group)
+// virtual
+BOOL LLNameEditor::handleHover(S32 x, S32 y, MASK mask)
 {
-	std::set<LLNameEditor*>::iterator it;
-	for (it = LLNameEditor::sInstances.begin();
-		 it != LLNameEditor::sInstances.end();
-		 ++it)
+	auto handled = LLLineEditor::handleHover(x, y, mask);
+	if (mAllowInteract && mClickForProfile && !mIsSelecting)
 	{
-		LLNameEditor* box = *it;
-		box->refresh(id, full_name, is_group);
+		getWindow()->setCursor(UI_CURSOR_HAND);
+		handled = true;
 	}
+	return handled;
 }
 
-void LLNameEditor::setValue( const LLSD& value )
+void LLNameEditor::displayAsLink(bool link)
 {
-	setNameID(value.asUUID(), FALSE);
+	static const LLUICachedControl<LLColor4> color("HTMLAgentColor");
+	setReadOnlyFgColor(link ? color : LLUI::sColorsGroup->getColor("TextFgReadOnlyColor"));
 }
 
-LLSD LLNameEditor::getValue() const
+void LLNameEditor::setText(const std::string& text)
 {
-	return LLSD(mNameID);
+	setToolTip(text);
+	LLLineEditor::setText(text);
 }
 
 // virtual
@@ -126,6 +120,10 @@ LLXMLNodePtr LLNameEditor::getXML(bool save_children) const
 	LLXMLNodePtr node = LLLineEditor::getXML();
 
 	node->setName(LL_NAME_EDITOR_TAG);
+	node->createChild("label", TRUE)->setStringValue(mInitialValue);
+	node->createChild("rlv_sensitive", TRUE)->setBoolValue(mRLVSensitive);
+	node->createChild("click_for_profile", TRUE)->setBoolValue(mClickForProfile);
+	node->createChild("name_system", TRUE)->setStringValue(mNameSystem);
 
 	return node;
 }
@@ -135,22 +133,28 @@ LLView* LLNameEditor::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory
 	LLRect rect;
 	createRect(node, rect, parent, LLRect());
 
-	S32 max_text_length = 128;
+	S32 max_text_length = 1024;
 	node->getAttributeS32("max_length", max_text_length);
-
-	LLFontGL* font = LLView::selectFont(node);
+	S8 type = AVATAR;
+	node->getAttributeS8("id_type", type);
+	LLUUID id;
+	node->getAttributeUUID("id", id);
+	std::string loading;
+	node->getAttributeString("label", loading);
+	bool rlv_sensitive = false;
+	node->getAttribute_bool("rlv_sensitive", rlv_sensitive);
+	bool click_for_profile = true;
+	node->getAttribute_bool("click_for_profile", click_for_profile);
+	std::string name_system;
+	node->getAttributeString("name_system", name_system);
 
 	LLNameEditor* line_editor = new LLNameEditor("name_editor",
-								rect, 
-								LLUUID::null, FALSE,
-								font,
+								rect,
+								id, (Type)type, loading, rlv_sensitive, name_system,
+								click_for_profile,
+								LLView::selectFont(node),
 								max_text_length);
 
-	std::string label;
-	if(node->getAttributeString("label", label))
-	{
-		line_editor->setLabel(label);
-	}
 	line_editor->setColorParameters(node);
 	line_editor->initFromXML(node, parent);
 	

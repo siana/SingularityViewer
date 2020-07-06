@@ -49,7 +49,7 @@ public:
 	virtual void	cut() {};
 	virtual BOOL	canCut() const { return FALSE; }
 	
-	virtual void	copy() {};
+	virtual void	copy() const {};
 	virtual BOOL	canCopy() const { return FALSE; }
 	
 	virtual void	paste() {};

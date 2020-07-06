@@ -18,26 +18,27 @@
  * Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
  * Boston, MA 02110-1301 USA */
 
-#ifndef LFFLOATERINVPANEL_H
-#define LFFLOATERINVPANEL_H
+#pragma once
 
 #include "llfloater.h"
 #include "llinstancetracker.h"
+#include "llsdutil.h"
 
 
-class LFFloaterInvPanel : public LLFloater, public LLInstanceTracker<LFFloaterInvPanel, LLUUID>
+class LFFloaterInvPanel final : public LLFloater, public LLInstanceTracker<LFFloaterInvPanel, LLSD>
 {
-	LFFloaterInvPanel(const LLUUID& cat_id, class LLInventoryModel* model, const std::string& name);
-	~LFFloaterInvPanel();
+	LFFloaterInvPanel(const LLSD& cat, const std::string& name = LLStringUtil::null, class LLInventoryModel* model = nullptr);
 
 public:
-	static void show(const LLUUID& cat_id, LLInventoryModel* model, const std::string& name); // Show the floater for cat_id (create with other params if necessary)
+	static void show(const LLSD& cat, const std::string& name = LLStringUtil::null, LLInventoryModel* model = nullptr); // Show the floater for cat (create with other params if necessary)
+	static void toggle(const LLSD& cat)
+	{
+		if (auto instance = getInstance(cat))
+			instance->close();
+		else
+			show(cat);
+	}
 	static void closeAll(); // Called when not allowed to have inventory open
 
-	/*virtual*/ BOOL handleKeyHere(KEY key, MASK mask);
-
-private:
-	class LLInventoryPanel* mPanel;
+	BOOL handleKeyHere(KEY key, MASK mask) override;
 };
-
-#endif //LFFLOATERINVPANEL_H

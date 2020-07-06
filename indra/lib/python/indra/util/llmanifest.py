@@ -33,13 +33,26 @@ import filecmp
 import fnmatch
 import getopt
 import glob
+import itertools
+import operator
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tarfile
-import errno
-import subprocess
+
+class ManifestError(RuntimeError):
+    """Use an exception more specific than generic Python RuntimeError"""
+    def __init__(self, msg):
+        self.msg = msg
+        super(ManifestError, self).__init__(self.msg)
+
+class MissingError(ManifestError):
+    """You specified a file that doesn't exist"""
+    def __init__(self, msg):
+        self.msg = msg
+        super(MissingError, self).__init__(self.msg)
 
 def path_ancestors(path):
     drive, path = os.path.splitdrive(os.path.normpath(path))
@@ -76,33 +89,11 @@ def get_default_platform(dummy):
             'darwin':'darwin'
             }[sys.platform]
 
-def get_default_version(srctree):
-    # look up llversion.h and parse out the version info
-    paths = [os.path.join(srctree, x, 'llversionviewer.h') for x in ['llcommon', '../llcommon', '../../indra/llcommon.h']]
-    for p in paths:
-        if os.path.exists(p):
-            contents = open(p, 'r').read()
-            major = re.search("LL_VERSION_MAJOR\s=\s([0-9]+)", contents).group(1)
-            minor = re.search("LL_VERSION_MINOR\s=\s([0-9]+)", contents).group(1)
-            patch = re.search("LL_VERSION_PATCH\s=\s([0-9]+)", contents).group(1)
-            build = re.search("LL_VERSION_BUILD\s=\s([0-9]+)", contents).group(1)
-            return major, minor, patch, build
-
-def get_channel(srctree):
-    # look up llversionserver.h and parse out the version info
-    paths = [os.path.join(srctree, x, 'llversionviewer.h') for x in ['llcommon', '../llcommon', '../../indra/llcommon.h']]
-    for p in paths:
-        if os.path.exists(p):
-            contents = open(p, 'r').read()
-            channel = re.search("LL_CHANNEL\s=\s\"(.+)\";\s*$", contents, flags = re.M).group(1)
-            return channel
-    
-
 DEFAULT_SRCTREE = os.path.dirname(sys.argv[0])
-DEFAULT_CHANNEL = 'Second Life Release'
-DEFAULT_CHANNEL_SNOWGLOBE = 'Snowglobe Release'
+CHANNEL_VENDOR_BASE = 'Singularity'
+RELEASE_CHANNEL = CHANNEL_VENDOR_BASE + ' Release'
 
-ARGUMENTS=[
+BASE_ARGUMENTS=[
     dict(name='actions',
          description="""This argument specifies the actions that are to be taken when the
         script is run.  The meaningful actions are currently:
@@ -120,28 +111,23 @@ ARGUMENTS=[
         Example use: %(name)s --arch=i686
         On Linux this would try to use Linux_i686Manifest.""",
          default=""),
+    dict(name='artwork', description='Artwork directory.', default=DEFAULT_SRCTREE),
+    dict(name='branding_id', description="Identifier for the branding set to use.", default='singularity'),
     dict(name='build', description='Build directory.', default=DEFAULT_SRCTREE),
-    dict(name='buildtype', description="""The build type used. ('Debug', 'Release', or 'RelWithDebInfo')
-        Default is Release """,
-         default="Release"),
-    dict(name='branding_id', description="""Identifier for the branding set to 
-        use.  Currently, 'secondlife' or 'snowglobe')""", 
-         default='secondlife'),
-    dict(name='configuration',
-         description="""The build configuration used. Only used on OS X for
-        now, but it could be used for other platforms as well.""",
-         default="Universal"),
-    dict(name='dest', description='Destination directory.', default=DEFAULT_SRCTREE),
-    dict(name='grid',
-         description="""Which grid the client will try to connect to. Even
-        though it's not strictly a grid, 'firstlook' is also an acceptable
-        value for this parameter.""",
-         default=""),
+    dict(name='buildtype', description='Build type (i.e. Debug, Release, RelWithDebInfo).', default=None),
     dict(name='channel',
          description="""The channel to use for updates, packaging, settings name, etc.""",
-         default=get_channel),
-    dict(name='login_channel',
-         description="""The channel to use for login handshake/updates only.""",
+         default='CHANNEL UNSET'),
+    dict(name='channel_suffix',
+         description="""Addition to the channel for packaging and channel value,
+         but not application name (used internally)""",
+         default=None),
+    dict(name='configuration',
+         description="""The build configuration used.""",
+         default="Release"),
+    dict(name='dest', description='Destination directory.', default=DEFAULT_SRCTREE),
+    dict(name='grid',
+         description="""Which grid the client will try to connect to.""",
          default=None),
     dict(name='installer_name',
          description=""" The name of the file that the installer should be
@@ -154,34 +140,33 @@ ARGUMENTS=[
          description="""The current platform, to be used for looking up which
         manifest class to run.""",
          default=get_default_platform),
+    dict(name='signature',
+         description="""This specifies an identity to sign the viewer with, if any.
+        If no value is supplied, the default signature will be used, if any. Currently
+        only used on Mac OS X.""",
+         default=None),
     dict(name='source',
          description='Source directory.',
          default=DEFAULT_SRCTREE),
     dict(name='standalone',
          description='Set to ON if this is a standalone build.',
          default="OFF"),
-    dict(name='artwork', description='Artwork directory.', default=DEFAULT_SRCTREE),
     dict(name='touch',
          description="""File to touch when action is finished. Touch file will
         contain the name of the final package in a form suitable
         for use by a .bat file.""",
          default=None),
-    dict(name='version',
-         description="""This specifies the version of Second Life that is
-        being packaged up.""",
-         default=get_default_version),
-    dict(name='extra_libraries',
-         description="""List of extra libraries to include in package""",
-         default=None)
+    dict(name='versionfile',
+         description="""The name of a file containing the full version number."""),
     ]
 
-def usage(srctree=""):
+def usage(arguments, srctree=""):
     nd = {'name':sys.argv[0]}
     print """Usage:
     %(name)s [options] [destdir]
     Options:
     """ % nd
-    for arg in ARGUMENTS:
+    for arg in arguments:
         default = arg['default']
         if hasattr(default, '__call__'):
             default = "(computed value) \"" + str(default(srctree)) + '"'
@@ -192,10 +177,15 @@ def usage(srctree=""):
             default,
             arg['description'] % nd)
 
-def main():
-    print "cwd:", os.getcwd()
-    print " ".join(sys.argv)
-    option_names = [arg['name'] + '=' for arg in ARGUMENTS]
+def main(extra=[]):
+##  print ' '.join((("'%s'" % item) if ' ' in item else item)
+##                 for item in itertools.chain([sys.executable], sys.argv))
+    # Supplement our default command-line switches with any desired by
+    # application-specific caller.
+    arguments = list(itertools.chain(BASE_ARGUMENTS, extra))
+    # Alphabetize them by option name in case we display usage.
+    arguments.sort(key=operator.itemgetter('name'))
+    option_names = [arg['name'] + '=' for arg in arguments]
     option_names.append('help')
     options, remainder = getopt.getopt(sys.argv[1:], "", option_names)
 
@@ -218,11 +208,11 @@ def main():
     # early out for help
     if 'help' in args:
         # *TODO: it is a huge hack to pass around the srctree like this
-        usage(args['source'])
+        usage(arguments, srctree=args['source'])
         return
 
     # defaults
-    for arg in ARGUMENTS:
+    for arg in arguments:
         if arg['name'] not in args:
             default = arg['default']
             if hasattr(default, '__call__'):
@@ -231,12 +221,17 @@ def main():
                 args[arg['name']] = default
 
     # fix up version
-    if isinstance(args.get('version'), str):
-        args['version'] = args['version'].split('.')
-        
-    # default and agni are default
-    if args['grid'] in ['default', 'agni']:
-        args['grid'] = ''
+    if isinstance(args.get('versionfile'), str):
+        try: # read in the version string
+            vf = open(args['versionfile'], 'r')
+            args['version'] = vf.read().strip().split('.')
+        except:
+            print "Unable to read versionfile '%s'" % args['versionfile']
+            raise
+
+    # unspecified, default, and agni are default
+    if args['grid'] in ['', 'default', 'agni']:
+        args['grid'] = None
 
     if 'actions' in args:
         args['actions'] = args['actions'].split()
@@ -245,16 +240,69 @@ def main():
     for opt in args:
         print "Option:", opt, "=", args[opt]
 
-    wm = LLManifest.for_platform(args['platform'], args.get('arch'))(args)
-    wm.do(*args['actions'])
+    # pass in sourceid as an argument now instead of an environment variable
+    args['sourceid'] = os.environ.get("sourceid", "")
 
-    # Write out the package file in this format, so that it can easily be called
-    # and used in a .bat file - yeah, it sucks, but this is the simplest...
+    # Build base package.
     touch = args.get('touch')
     if touch:
-        fp = open(touch, 'w')
-        fp.write('set package_file=%s\n' % wm.package_file)
-        fp.close()
+        print '================ Creating base package'
+    else:
+        print '================ Starting base copy'
+    wm = LLManifest.for_platform(args['platform'], args.get('arch'))(args)
+    wm.do(*args['actions'])
+    # Store package file for later if making touched file.
+    base_package_file = ""
+    if touch:
+        print '================ Created base package ', wm.package_file
+        base_package_file = "" + wm.package_file
+    else:
+        print '================ Finished base copy'
+
+    # handle multiple packages if set
+    # ''.split() produces empty list
+    additional_packages = os.environ.get("additional_packages", "").split()
+    if additional_packages:
+        # Determine destination prefix / suffix for additional packages.
+        base_dest_parts = list(os.path.split(args['dest']))
+        base_dest_parts.insert(-1, "{}")
+        base_dest_template = os.path.join(*base_dest_parts)
+        # Determine touched prefix / suffix for additional packages.
+        if touch:
+            base_touch_parts = list(os.path.split(touch))
+            # Because of the special insert() logic below, we don't just want
+            # [dirpath, basename]; we want [dirpath, directory, basename].
+            # Further split the dirpath and replace it in the list.
+            base_touch_parts[0:1] = os.path.split(base_touch_parts[0])
+            if "arwin" in args['platform']:
+                base_touch_parts.insert(-1, "{}")
+            else:
+                base_touch_parts.insert(-2, "{}")
+            base_touch_template = os.path.join(*base_touch_parts)
+        for package_id in additional_packages:
+            args['channel_suffix'] = os.environ.get(package_id + "_viewer_channel_suffix")
+            args['sourceid']       = os.environ.get(package_id + "_sourceid")
+            args['dest'] = base_dest_template.format(package_id)
+            if touch:
+                print '================ Creating additional package for "', package_id, '" in ', args['dest']
+            else:
+                print '================ Starting additional copy for "', package_id, '" in ', args['dest']
+            try:
+                wm = LLManifest.for_platform(args['platform'], args.get('arch'))(args)
+                wm.do(*args['actions'])
+            except Exception as err:
+                sys.exit(str(err))
+            if touch:
+                print '================ Created additional package ', wm.package_file, ' for ', package_id
+                with open(base_touch_template.format(package_id), 'w') as fp:
+                    fp.write('set package_file=%s\n' % wm.package_file)
+            else:
+                print '================ Finished additional copy "', package_id, '" in ', args['dest']
+    # Write out the package file in this format, so that it can easily be called
+    # and used in a .bat file - yeah, it sucks, but this is the simplest...
+    if touch:
+        with open(touch, 'w') as fp:
+            fp.write('set package_file=%s\n' % base_package_file)
         print 'touched', touch
     return 0
 
@@ -269,8 +317,8 @@ class LLManifest(object):
     __metaclass__ = LLManifestRegistry
     manifests = {}
     def for_platform(self, platform, arch = None):
-        if arch and platform != "windows":
-            platform = platform + '_' + arch
+        if arch:
+            platform = platform + '_' + arch + '_'
         return self.manifests[platform.lower()]
     for_platform = classmethod(for_platform)
 
@@ -280,26 +328,15 @@ class LLManifest(object):
         self.file_list = []
         self.excludes = []
         self.actions = []
-        self.src_prefix = list([args['source']])
-        self.artwork_prefix = list([args['artwork']])
-        self.build_prefix = list([args['build']])
-        self.alt_build_prefix = list([args['build']])
-        self.dst_prefix = list([args['dest']])
+        self.src_prefix = [args['source']]
+        self.artwork_prefix = [args['artwork']]
+        self.build_prefix = [args['build']]
+        self.dst_prefix = [args['dest']]
         self.created_paths = []
         self.package_name = "Unknown"
-
-    def default_grid(self):
-        return self.args.get('grid', None) == ''
+        
     def default_channel(self):
-        return self.args.get('channel', None) == DEFAULT_CHANNEL
-    
-    def default_channel_for_brand(self):
-        if self.viewer_branding_id()=='secondlife':
-            return self.args.get('channel', None) == DEFAULT_CHANNEL
-        elif self.viewer_branding_id()=="snowglobe":
-            return self.args.get('channel', None) == DEFAULT_CHANNEL_SNOWGLOBE
-        else:
-            return True
+        return self.args.get('channel', None) == RELEASE_CHANNEL
 
     def construct(self):
         """ Meant to be overriden by LLManifest implementors with code that
@@ -311,27 +348,113 @@ class LLManifest(object):
         in the file list by path()."""
         self.excludes.append(glob)
 
-    def prefix(self, src='', build=None, dst=None, alt_build=None):
-        """ Pushes a prefix onto the stack.  Until end_prefix is
-        called, all relevant method calls (esp. to path()) will prefix
-        paths with the entire prefix stack.  Source and destination
-        prefixes can be different, though if only one is provided they
-        are both equal.  To specify a no-op, use an empty string, not
-        None."""
-        if dst is None:
-            dst = src
-        if build is None:
-            build = src
-        if alt_build is None:
-            alt_build = build
+    def prefix(self, src='', build='', dst='', src_dst=None):
+        """
+        Usage:
 
+        with self.prefix(...args as described...):
+            self.path(...)
+
+        For the duration of the 'with' block, pushes a prefix onto the stack.
+        Within that block, all relevant method calls (esp. to path()) will
+        prefix paths with the entire prefix stack. Source and destination
+        prefixes are independent; if omitted (or passed as the empty string),
+        the prefix has no effect. Thus:
+
+        with self.prefix(src='foo'):
+            # no effect on dst
+
+        with self.prefix(dst='bar'):
+            # no effect on src
+
+        If you want to set both at once, use src_dst:
+
+        with self.prefix(src_dst='subdir'):
+            # same as self.prefix(src='subdir', dst='subdir')
+            # Passing src_dst makes any src or dst argument in the same
+            # parameter list irrelevant.
+
+        Also supports the older (pre-Python-2.5) syntax:
+
+        if self.prefix(...args as described...):
+            self.path(...)
+            self.end_prefix(...)
+
+        Before the arrival of the 'with' statement, one was required to code
+        self.prefix() and self.end_prefix() in matching pairs to push and to
+        pop the prefix stacks, respectively. The older prefix() method
+        returned True specifically so that the caller could indent the
+        relevant block of code with 'if', just for aesthetic purposes.
+        """
+        if src_dst is not None:
+            src = src_dst
+            dst = src_dst
         self.src_prefix.append(src)
         self.artwork_prefix.append(src)
         self.build_prefix.append(build)
         self.dst_prefix.append(dst)
-        self.alt_build_prefix.append(alt_build)
 
-        return True  # so that you can wrap it in an if to get indentation
+##      self.display_stacks()
+
+        # The above code is unchanged from the original implementation. What's
+        # new is the return value. We're going to return an instance of
+        # PrefixManager that binds this LLManifest instance and Does The Right
+        # Thing on exit.
+        return self.PrefixManager(self)
+
+    def display_stacks(self):
+        width = 1 + max(len(stack) for stack in self.PrefixManager.stacks)
+        for stack in self.PrefixManager.stacks:
+            print "{} {}".format((stack + ':').ljust(width),
+                                 os.path.join(*getattr(self, stack)))
+
+    class PrefixManager(object):
+        # stack attributes we manage in this LLManifest (sub)class
+        # instance
+        stacks = ("src_prefix", "artwork_prefix", "build_prefix", "dst_prefix")
+
+        def __init__(self, manifest):
+            self.manifest = manifest
+            # If the caller wrote:
+            # with self.prefix(...):
+            # as intended, then bind the state of each prefix stack as it was
+            # just BEFORE the call to prefix(). Since prefix() appended an
+            # entry to each prefix stack, capture len()-1.
+            self.prevlen = { stack: len(getattr(self.manifest, stack)) - 1
+                             for stack in self.stacks }
+
+        def __nonzero__(self):
+            # If the caller wrote:
+            # if self.prefix(...):
+            # then a value of this class had better evaluate as 'True'.
+            return True
+
+        def __enter__(self):
+            # nobody uses 'with self.prefix(...) as variable:'
+            return None
+
+        def __exit__(self, type, value, traceback):
+            # First, if the 'with' block raised an exception, just propagate.
+            # Do NOT swallow it.
+            if type is not None:
+                return False
+
+            # Okay, 'with' block completed successfully. Restore previous
+            # state of each of the prefix stacks in self.stacks.
+            # Note that we do NOT simply call pop() on them as end_prefix()
+            # does. This is to cope with the possibility that the coder
+            # changed 'if self.prefix(...):' to 'with self.prefix(...):' yet
+            # forgot to remove the self.end_prefix(...) call at the bottom of
+            # the block. In that case, calling pop() again would be Bad! But
+            # if we restore the length of each stack to what it was before the
+            # current prefix() block, it doesn't matter whether end_prefix()
+            # was called or not.
+            for stack, prevlen in self.prevlen.items():
+                # find the attribute in 'self.manifest' named by 'stack', and
+                # truncate that list back to 'prevlen'
+                del getattr(self.manifest, stack)[prevlen:]
+
+##          self.manifest.display_stacks()
 
     def end_prefix(self, descr=None):
         """Pops a prefix off the stack.  If given an argument, checks
@@ -343,30 +466,25 @@ class LLManifest(object):
         src = self.src_prefix.pop()
         artwork = self.artwork_prefix.pop()
         build = self.build_prefix.pop()
-        alt_build_prefix = self.alt_build_prefix.pop()
         dst = self.dst_prefix.pop()
         if descr and not(src == descr or build == descr or dst == descr):
             raise ValueError, "End prefix '" + descr + "' didn't match '" +src+ "' or '" +dst + "'"
 
     def get_src_prefix(self):
         """ Returns the current source prefix."""
-        return os.path.relpath(os.path.normpath(os.path.join(*self.src_prefix)))
+        return os.path.join(*self.src_prefix)
 
     def get_artwork_prefix(self):
         """ Returns the current artwork prefix."""
-        return os.path.relpath(os.path.normpath(os.path.join(*self.artwork_prefix)))
+        return os.path.join(*self.artwork_prefix)
 
     def get_build_prefix(self):
         """ Returns the current build prefix."""
-        return os.path.relpath(os.path.normpath(os.path.join(*self.build_prefix)))
-    
-    def get_alt_build_prefix(self):
-        """ Returns the current alternate source prefix."""
-        return os.path.relpath(os.path.normpath(os.path.join(*self.alt_build_prefix)))
+        return os.path.join(*self.build_prefix)
 
     def get_dst_prefix(self):
         """ Returns the current destination prefix."""
-        return os.path.relpath(os.path.normpath(os.path.join(*self.dst_prefix)))
+        return os.path.join(*self.dst_prefix)
 
     def src_path_of(self, relpath):
         """Returns the full path to a file or directory specified
@@ -383,40 +501,72 @@ class LLManifest(object):
         relative to the destination directory."""
         return os.path.join(self.get_dst_prefix(), relpath)
 
+    def _relative_dst_path(self, dstpath):
+        """
+        Returns the path to a file or directory relative to the destination directory.
+        This should only be used for generating diagnostic output in the path method.
+        """
+        dest_root=self.dst_prefix[0]
+        if dstpath.startswith(dest_root+os.path.sep):
+            return dstpath[len(dest_root)+1:]
+        elif dstpath.startswith(dest_root):
+            return dstpath[len(dest_root):]
+        else:
+            return dstpath
+
+    def ensure_src_dir(self, reldir):
+        """Construct the path for a directory relative to the
+        source path, and ensures that it exists.  Returns the
+        full path."""
+        path = os.path.join(self.get_src_prefix(), reldir)
+        self.cmakedirs(path)
+        return path
+
+    def ensure_dst_dir(self, reldir):
+        """Construct the path for a directory relative to the
+        destination path, and ensures that it exists.  Returns the
+        full path."""
+        path = os.path.join(self.get_dst_prefix(), reldir)
+        self.cmakedirs(path)
+        return path
+
     def run_command(self, command):
-        """ Runs an external command, and returns the output.  Raises
-        an exception if the command reurns a nonzero status code.  For
-        debugging/informational purpoases, prints out the command's
-        output as it is received."""
+        """ 
+        Runs an external command.  
+        Raises ManifestError exception if the command returns a nonzero status.
+        """
         print "Running command:", command
-        fd = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        lines = []
-        while True:
-            lines.append(fd.stdout.readline())
-            if lines[-1] == '':
-                break
-            else:
-                print lines[-1].rstrip('\n'),
-        output = ''.join(lines)
-        if fd.returncode:
-            raise RuntimeError(
-                "Command %s returned non-zero status (%s) \noutput:\n%s"
-                % (command, fd.returncode, output) )
-        return output
+        sys.stdout.flush()
+        try:
+            subprocess.check_call(command)
+        except subprocess.CalledProcessError as err:
+            raise ManifestError( "Command %s returned non-zero status (%s)"
+                                % (command, err.returncode) )
 
     def created_path(self, path):
         """ Declare that you've created a path in order to
           a) verify that you really have created it
           b) schedule it for cleanup"""
         if not os.path.exists(path):
-            raise RuntimeError, "Should be something at path " + path
+            raise ManifestError, "Should be something at path " + path
         self.created_paths.append(path)
 
-    def put_in_file(self, contents, dst):
+    def put_in_file(self, contents, dst, src=None):
         # write contents as dst
-        f = open(self.dst_path_of(dst), "wb")
-        f.write(contents)
-        f.close()
+        dst_path = self.dst_path_of(dst)
+        self.cmakedirs(os.path.dirname(dst_path))
+        f = open(dst_path, "wb")
+        try:
+            f.write(contents)
+        finally:
+            f.close()
+
+        # Why would we create a file in the destination tree if not to include
+        # it in the installer? The default src=None (plus the fact that the
+        # src param is last) is to preserve backwards compatibility.
+        if src:
+            self.file_list.append([src, dst_path])
+        return dst_path
 
     def replace_in(self, src, dst=None, searchdict={}):
         if dst == None:
@@ -436,11 +586,7 @@ class LLManifest(object):
             # ensure that destination path exists
             self.cmakedirs(os.path.dirname(dst))
             self.created_paths.append(dst)
-            if not os.path.isdir(src):
-                self.ccopy(src,dst)
-            else:
-                # src is a dir
-                self.ccopytree(src,dst)
+            self.ccopymumble(src, dst)
         else:
             print "Doesn't exist:", src
 
@@ -470,39 +616,42 @@ class LLManifest(object):
             # *TODO is this gonna be useful?
             print "Cleaning up " + c
 
+    def process_either(self, src, dst):
+        # If it's a real directory, recurse through it --
+        # but not a symlink! Handle those like files.
+        if os.path.isdir(src) and not os.path.islink(src):
+            return self.process_directory(src, dst)
+        else:
+            return self.process_file(src, dst)
+
     def process_file(self, src, dst):
         if self.includes(src, dst):
-#            print src, "=>", dst
             for action in self.actions:
                 methodname = action + "_action"
                 method = getattr(self, methodname, None)
                 if method is not None:
                     method(src, dst)
             self.file_list.append([src, dst])
-            return [dst]
+            return 1
         else:
             sys.stdout.write(" (excluding %r, %r)" % (src, dst))
             sys.stdout.flush()
-            return []
+            return 0
 
     def process_directory(self, src, dst):
         if not self.includes(src, dst):
             sys.stdout.write(" (excluding %r, %r)" % (src, dst))
             sys.stdout.flush()
-            return []
+            return 0
         names = os.listdir(src)
         self.cmakedirs(dst)
         errors = []
-        found_files = []
         count = 0
         for name in names:
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
-            if os.path.isdir(srcname):
-                found_files.extend(self.process_directory(srcname, dstname))
-            else:
-                found_files.extend(self.process_file(srcname, dstname))
-        return found_files
+            count += self.process_either(srcname, dstname)
+        return count
 
     def includes(self, src, dst):
         if src:
@@ -520,28 +669,43 @@ class LLManifest(object):
                 else:
                     os.remove(path)
 
-    def ccopy(self, src, dst):
-        """ Copy a single file or symlink.  Uses filecmp to skip copying for existing files."""
+    def ccopymumble(self, src, dst):
+        """Copy a single symlink, file or directory."""
         if os.path.islink(src):
             linkto = os.readlink(src)
-            if os.path.islink(dst) or os.path.exists(dst):
+            if os.path.islink(dst) or os.path.isfile(dst):
                 os.remove(dst)  # because symlinking over an existing link fails
+            elif os.path.isdir(dst):
+                shutil.rmtree(dst)
             os.symlink(linkto, dst)
+        elif os.path.isdir(src):
+            self.ccopytree(src, dst)
         else:
-            # Don't recopy file if it's up-to-date.
-            # If we seem to be not not overwriting files that have been
-            # updated, set the last arg to False, but it will take longer.
-            if os.path.exists(dst) and filecmp.cmp(src, dst, True):
-                return
-            # only copy if it's not excluded
-            if self.includes(src, dst):
-                try:
-                    os.unlink(dst)
-                except OSError, err:
-                    if err.errno != errno.ENOENT:
-                        raise
+            self.ccopyfile(src, dst)
+            # XXX What about devices, sockets etc.?
+            # YYY would we put such things into a viewer package?!
 
-                shutil.copy2(src, dst)
+    def ccopyfile(self, src, dst):
+        """ Copy a single file.  Uses filecmp to skip copying for existing files."""
+        # Don't recopy file if it's up-to-date.
+        # If we seem to be not not overwriting files that have been
+        # updated, set the last arg to False, but it will take longer.
+##      reldst = (dst[len(self.dst_prefix[0]):]
+##                if dst.startswith(self.dst_prefix[0])
+##                else dst).lstrip(r'\/')
+        if os.path.exists(dst) and filecmp.cmp(src, dst, True):
+##          print "{} (skipping, {} exists)".format(src, reldst)
+            return
+        # only copy if it's not excluded
+        if self.includes(src, dst):
+            try:
+                os.unlink(dst)
+            except OSError as err:
+                if err.errno != errno.ENOENT:
+                    raise
+
+##          print "{} => {}".format(src, reldst)
+            shutil.copy2(src, dst)
 
     def ccopytree(self, src, dst):
         """Direct copy of shutil.copytree with the additional
@@ -557,15 +721,11 @@ class LLManifest(object):
             srcname = os.path.join(src, name)
             dstname = os.path.join(dst, name)
             try:
-                if os.path.isdir(srcname):
-                    self.ccopytree(srcname, dstname)
-                else:
-                    self.ccopy(srcname, dstname)
-                    # XXX What about devices, sockets etc.?
-            except (IOError, os.error), why:
+                self.ccopymumble(srcname, dstname)
+            except (IOError, os.error) as why:
                 errors.append((srcname, dstname, why))
         if errors:
-            raise RuntimeError, errors
+            raise ManifestError, errors
 
 
     def cmakedirs(self, path):
@@ -582,10 +742,24 @@ class LLManifest(object):
             if os.path.exists(f):
                 return f
         # didn't find it, return last item in list
-        if list:
+        if len(list) > 0:
             return list[-1]
         else:
             return None
+
+    def contents_of_tar(self, src_tar, dst_dir):
+        """ Extracts the contents of the tarfile (specified
+        relative to the source prefix) into the directory
+        specified relative to the destination directory."""
+        self.check_file_exists(src_tar)
+        tf = tarfile.open(self.src_path_of(src_tar), 'r')
+        for member in tf.getmembers():
+            tf.extract(member, self.ensure_dst_dir(dst_dir))
+            # TODO get actions working on these dudes, perhaps we should extract to a temporary directory and then process_directory on it?
+            self.file_list.append([src_tar,
+                           self.dst_path_of(os.path.join(dst_dir,member.name))])
+        tf.close()
+
 
     def wildcard_regex(self, src_glob, dst_glob):
         src_re = re.escape(src_glob)
@@ -597,7 +771,12 @@ class LLManifest(object):
             i = i+1
         return re.compile(src_re), dst_temp
 
-    wildcard_pattern = re.compile('\*')
+    def check_file_exists(self, path):
+        if not os.path.exists(path) and not os.path.islink(path):
+            raise MissingError("Path %s doesn't exist" % (os.path.abspath(path),))
+
+
+    wildcard_pattern = re.compile(r'\*')
     def expand_globs(self, src, dst):
         src_list = glob.glob(src)
         src_re, d_template = self.wildcard_regex(src.replace('\\', '/'),
@@ -626,41 +805,43 @@ class LLManifest(object):
     def path(self, src, dst=None):
         sys.stdout.flush()
         if src == None:
-            raise RuntimeError("No source file, dst is " + dst)
+            raise ManifestError("No source file, dst is " + dst)
         if dst == None:
             dst = src
         dst = os.path.join(self.get_dst_prefix(), dst)
-        sys.stdout.write("Processing %s => %s ... " % (src, dst))
-        count = 0
-        is_glob = False
-        found_files = []
+        sys.stdout.write("Processing %s => %s ... " % (src, self._relative_dst_path(dst)))
 
-        # look under each prefix for matching paths. Paths are normalized so  './../blah' will match '../blah/../blah/'
-        paths = set([os.path.normpath(os.path.join(self.get_src_prefix(), src)),
-                 os.path.normpath(os.path.join(self.get_artwork_prefix(), src)),
-                 os.path.normpath(os.path.join(self.get_build_prefix(), src)), 
-                 os.path.normpath(os.path.join(self.get_alt_build_prefix(), src))]
-                    )
-        for path in paths:
-            if self.wildcard_pattern.search(path):
-                is_glob = True
-                for s,d in self.expand_globs(path, dst):
+        def try_path(src):
+            # expand globs
+            count = 0
+            if self.wildcard_pattern.search(src):
+                for s,d in self.expand_globs(src, dst):
                     assert(s != d)
-                    found_files.extend(self.process_file(s, d))
+                    count += self.process_file(s, d)
             else:
-                # if it's a directory, recurse through it
-                if os.path.isdir(path):
-                    found_files.extend(self.process_directory(path, dst))
-                elif os.path.exists(path):
-                    found_files.extend(self.process_file(path, dst))
+                # if we're specifying a single path (not a glob),
+                # we should error out if it doesn't exist
+                self.check_file_exists(src)
+                count += self.process_either(src, dst)
+            return count
 
-        # if we're specifying a single path (not a glob),
-        # we should error out if it doesn't exist
-        if not found_files and not is_glob:
-            raise RuntimeError("No files match %s\n" % str(paths))
+        try_prefixes = [self.get_src_prefix(), self.get_artwork_prefix(), self.get_build_prefix()]
+        tried=[]
+        count=0
+        while not count and try_prefixes: 
+            pfx = try_prefixes.pop(0)
+            try:
+                count = try_path(os.path.join(pfx, src))
+            except MissingError:
+                tried.append(pfx)
+                if not try_prefixes:
+                    # no more prefixes left to try
+                    print "unable to find '%s'; looked in:\n  %s" % (src, '\n  '.join(tried))
+        print "%d files" % count
 
-        print "%d files" % len(found_files)
-        return found_files
+        # Let caller check whether we processed as many files as expected. In
+        # particular, let caller notice 0.
+        return count
 
     def do(self, *actions):
         self.actions = actions

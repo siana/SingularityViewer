@@ -42,7 +42,6 @@
 #include "llfontgl.h"
 #include "llmd5.h"
 #include "llsecondlifeurls.h"
-#include "sgversion.h"
 #include "v4color.h"
 
 #include "llappviewer.h"
@@ -62,6 +61,7 @@
 #include "llui.h"
 #include "lluiconstants.h"
 #include "llurlhistory.h" // OGPX : regionuri text box has a history of region uris (if FN/LN are loaded at startup)
+#include "llversioninfo.h"
 #include "llviewertexturelist.h"
 #include "llviewermenu.h"			// for handle_preferences()
 #include "llviewernetwork.h"
@@ -86,6 +86,8 @@
 #include <boost/lexical_cast.hpp>
 // </edit>
 #include <boost/algorithm/string.hpp>
+
+#include "llsdserialize.h"
 #include "llstring.h"
 #include <cctype>
 
@@ -103,7 +105,7 @@ static bool nameSplit(const std::string& full, std::string& first, std::string& 
 		return false;
 	first = fragments[0];
 	last = (fragments.size() == 1) ?
-		gHippoGridManager->getCurrentGrid()->isAurora() ? "" : "Resident" :
+		gHippoGridManager->getCurrentGrid()->isWhiteCore() ? LLStringUtil::null : "Resident" :
 		fragments[1];
 	return (fragments.size() <= 2);
 }
@@ -113,9 +115,9 @@ static std::string nameJoin(const std::string& first,const std::string& last, bo
 	if (last.empty() || (strip_resident && boost::algorithm::iequals(last, "Resident")))
 		return first;
 	else if (std::islower(last[0]))
-		return first + "." + last;
+		return first + '.' + last;
 	else
-		return first + " " + last;
+		return first + ' ' + last;
 }
 
 static std::string getDisplayString(const std::string& first, const std::string& last, const std::string& grid, bool is_secondlife)
@@ -124,7 +126,7 @@ static std::string getDisplayString(const std::string& first, const std::string&
 	if (grid == gHippoGridManager->getDefaultGridName())
 		return nameJoin(first, last, is_secondlife);
 	else
-		return nameJoin(first, last, is_secondlife) + " (" + grid + ")";
+		return nameJoin(first, last, is_secondlife) + " (" + grid + ')';
 }
 
 static std::string getDisplayString(const LLSavedLoginEntry& entry)
@@ -132,22 +134,87 @@ static std::string getDisplayString(const LLSavedLoginEntry& entry)
 	return getDisplayString(entry.getFirstName(), entry.getLastName(), entry.getGrid(), entry.isSecondLife());
 }
 
-class LLLoginRefreshHandler : public LLCommandHandler
+
+class LLLoginLocationAutoHandler : public LLCommandHandler
 {
 public:
 	// don't allow from external browsers
-	LLLoginRefreshHandler() : LLCommandHandler("login_refresh", UNTRUSTED_BLOCK) { }
+	LLLoginLocationAutoHandler() : LLCommandHandler("location_login", UNTRUSTED_BLOCK) { }
 	bool handle(const LLSD& tokens, const LLSD& query_map, LLMediaCtrl* web)
 	{	
 		if (LLStartUp::getStartupState() < STATE_LOGIN_CLEANUP)
 		{
-			LLPanelLogin::loadLoginPage();
+			if ( tokens.size() == 0 || tokens.size() > 4 )
+				return false;
+
+			// unescape is important - uris with spaces are escaped in this code path
+			// (e.g. space -> %20) and the code to log into a region doesn't support that.
+			const std::string region = LLURI::unescape( tokens[0].asString() );
+
+			// just region name as payload
+			if ( tokens.size() == 1 )
+			{
+				// region name only - slurl will end up as center of region
+				LLSLURL slurl(region);
+				LLPanelLogin::autologinToLocation(slurl);
+			}
+			else
+			// region name and x coord as payload
+			if ( tokens.size() == 2 )
+			{
+				// invalid to only specify region and x coordinate
+				// slurl code will revert to same as region only, so do this anyway
+				LLSLURL slurl(region);
+				LLPanelLogin::autologinToLocation(slurl);
+			}
+			else
+			// region name and x/y coord as payload
+			if ( tokens.size() == 3 )
+			{
+				// region and x/y specified - default z to 0
+				F32 xpos;
+				std::istringstream codec(tokens[1].asString());
+				codec >> xpos;
+
+				F32 ypos;
+				codec.clear();
+				codec.str(tokens[2].asString());
+				codec >> ypos;
+
+				const LLVector3 location(xpos, ypos, 0.0f);
+				LLSLURL slurl(region, location);
+
+				LLPanelLogin::autologinToLocation(slurl);
+			}
+			else
+			// region name and x/y/z coord as payload
+			if ( tokens.size() == 4 )
+			{
+				// region and x/y/z specified - ok
+				F32 xpos;
+				std::istringstream codec(tokens[1].asString());
+				codec >> xpos;
+
+				F32 ypos;
+				codec.clear();
+				codec.str(tokens[2].asString());
+				codec >> ypos;
+
+				F32 zpos;
+				codec.clear();
+				codec.str(tokens[3].asString());
+				codec >> zpos;
+
+				const LLVector3 location(xpos, ypos, zpos);
+				LLSLURL slurl(region, location);
+
+				LLPanelLogin::autologinToLocation(slurl);
+			};
 		}	
 		return true;
 	}
 };
-
-LLLoginRefreshHandler gLoginRefreshHandler;
+LLLoginLocationAutoHandler gLoginLocationAutoHandler;
 
 //---------------------------------------------------------------------------
 // Public methods
@@ -169,6 +236,11 @@ LLPanelLogin::LLPanelLogin(const LLRect& rect)
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_login.xml");
 
 	reshape(rect.getWidth(), rect.getHeight());
+
+#ifndef LL_FMODSTUDIO
+	getChildView("fmod_text")->setVisible(false);
+	getChildView("fmod_logo")->setVisible(false);
+#endif
 
 	LLComboBox* username_combo(getChild<LLComboBox>("username_combo"));
 	username_combo->setCommitCallback(boost::bind(LLPanelLogin::onSelectLoginEntry, _2));
@@ -199,8 +271,8 @@ LLPanelLogin::LLPanelLogin(const LLRect& rect)
 	location_combo->setFocusLostCallback( boost::bind(&LLPanelLogin::onLocationSLURL, this) );
 	
 	LLComboBox* server_choice_combo = getChild<LLComboBox>("grids_combo");
-	server_choice_combo->setCommitCallback(boost::bind(&LLPanelLogin::onSelectGrid, _1));
-	server_choice_combo->setFocusLostCallback(boost::bind(&LLPanelLogin::onSelectGrid, server_choice_combo));
+	server_choice_combo->setCommitCallback(boost::bind(&LLPanelLogin::onSelectGrid, this, _1));
+	server_choice_combo->setFocusLostCallback(boost::bind(&LLPanelLogin::onSelectGrid, this, server_choice_combo));
 	
 	// Load all of the grids, sorted, and then add a bar and the current grid at the top
 	updateGridCombo();
@@ -210,7 +282,7 @@ LLPanelLogin::LLPanelLogin(const LLRect& rect)
 	{
 		// no, so get the preference setting
 		std::string defaultStartLocation = gSavedSettings.getString("LoginLocation");
-		LL_INFOS("AppInit")<<"default LoginLocation '"<<defaultStartLocation<<"'"<<LL_ENDL;
+		LL_INFOS("AppInit")<<"default LoginLocation '" << defaultStartLocation << '\'' << LL_ENDL;
 		LLSLURL defaultStart(defaultStartLocation);
 		if ( defaultStart.isSpatial() )
 		{
@@ -243,13 +315,12 @@ LLPanelLogin::LLPanelLogin(const LLRect& rect)
 
 	getChild<LLUICtrl>("grids_btn")->setCommitCallback(boost::bind(LLPanelLogin::onClickGrids));
 
-	std::string channel = gVersionChannel;
+	std::string channel = LLVersionInfo::getChannel();
 
-	std::string version = llformat("%d.%d.%d (%d)",
-		gVersionMajor,
-		gVersionMinor,
-		gVersionPatch,
-		gVersionBuild );
+	std::string version = llformat("%s (%d)",
+								   LLVersionInfo::getShortVersion().c_str(),
+								   LLVersionInfo::getBuild());
+
 	LLTextBox* channel_text = getChild<LLTextBox>("channel_text");
 	channel_text->setTextArg("[CHANNEL]", channel); // though not displayed
 	channel_text->setTextArg("[VERSION]", version);
@@ -290,6 +361,67 @@ LLPanelLogin::LLPanelLogin(const LLRect& rect)
 	{
 		setFields(*saved_login_entries.rbegin());
 	}
+
+	addFavoritesToStartLocation();
+}
+
+void LLPanelLogin::addFavoritesToStartLocation()
+{
+	// Clear the combo.
+	auto combo = getChild<LLComboBox>("start_location_combo");
+	if (!combo) return;
+	S32 num_items = combo->getItemCount();
+	for (S32 i = num_items - 1; i > 2; i--)
+	{
+		combo->remove(i);
+	}
+
+	// Load favorites into the combo.
+	const auto grid = gHippoGridManager->getCurrentGrid();
+	std::string first, last, password;
+	getFields(first, last, password);
+	auto user_defined_name(first + ' ' + last);
+	std::string filename = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "stored_favorites_" + grid->getGridName() + ".xml");
+	std::string old_filename = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "stored_favorites.xml");
+
+	LLSD fav_llsd;
+	llifstream file;
+	file.open(filename);
+	if (!file.is_open())
+	{
+		file.open(old_filename);
+		if (!file.is_open()) return;
+	}
+	LLSDSerialize::fromXML(fav_llsd, file);
+
+	for (LLSD::map_const_iterator iter = fav_llsd.beginMap();
+		iter != fav_llsd.endMap(); ++iter)
+	{
+		// The account name in stored_favorites.xml has Resident last name even if user has
+		// a single word account name, so it can be compared case-insensitive with the
+		// user defined "firstname lastname".
+		S32 res = LLStringUtil::compareInsensitive(user_defined_name, iter->first);
+		if (res != 0)
+		{
+			LL_DEBUGS() << "Skipping favorites for " << iter->first << LL_ENDL;
+			continue;
+		}
+
+		combo->addSeparator();
+		LL_DEBUGS() << "Loading favorites for " << iter->first << LL_ENDL;
+		auto user_llsd = iter->second;
+		for (LLSD::array_const_iterator iter1 = user_llsd.beginArray();
+			iter1 != user_llsd.endArray(); ++iter1)
+		{
+			std::string label = (*iter1)["name"].asString();
+			std::string value = (*iter1)["slurl"].asString();
+			if (!label.empty() && !value.empty())
+			{
+				combo->add(label, value);
+			}
+		}
+		break;
+	}
 }
 
 void LLPanelLogin::setSiteIsAlive(bool alive)
@@ -304,15 +436,40 @@ void LLPanelLogin::setSiteIsAlive(bool alive)
 	}
 }
 
+void LLPanelLogin::clearPassword()
+{
+	getChild<LLUICtrl>("password_edit")->setValue(mIncomingPassword = mMungedPassword = LLStringUtil::null);
+}
+
+void LLPanelLogin::hidePassword()
+{
+	// This is a MD5 hex digest of a password.
+	// We don't actually use the password input field,
+	// fill it with MAX_PASSWORD characters so we get a
+	// nice row of asterixes.
+	getChild<LLUICtrl>("password_edit")->setValue("123456789!123456");
+}
+
 void LLPanelLogin::mungePassword(const std::string& password)
 {
 	// Re-md5 if we've changed at all
 	if (password != mIncomingPassword)
 	{
-		LLMD5 pass((unsigned char *)password.c_str());
-		char munged_password[MD5HEX_STR_SIZE];
-		pass.hex_digest(munged_password);
-		mMungedPassword = munged_password;
+		// Max "actual" password length is 16 characters.
+		// Hex digests are always 32 characters.
+		if (password.length() == MD5HEX_STR_BYTES)
+		{
+			hidePassword();
+			mMungedPassword = password;
+		}
+		else
+		{
+			LLMD5 pass((unsigned char *)utf8str_truncate(password, gHippoGridManager->getCurrentGrid()->isOpenSimulator() ? 24 : 16).c_str());
+			char munged_password[MD5HEX_STR_SIZE];
+			pass.hex_digest(munged_password);
+			mMungedPassword = munged_password;
+		}
+		mIncomingPassword = password;
 	}
 }
 
@@ -320,7 +477,7 @@ void LLPanelLogin::mungePassword(const std::string& password)
 // (with some padding so the other login screen doesn't show through)
 void LLPanelLogin::reshapeBrowser()
 {
-	LLMediaCtrl* web_browser = getChild<LLMediaCtrl>("login_html");
+	auto web_browser = getChild<LLMediaCtrl>("login_html");
 	LLRect rect = gViewerWindow->getWindowRectScaled();
 	LLRect html_rect;
 	html_rect.setCenterAndSize(
@@ -335,10 +492,13 @@ LLPanelLogin::~LLPanelLogin()
 {
 	std::string login_hist_filepath = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "saved_logins_sg2.xml");
 	LLSavedLogins::saveFile(mLoginHistoryData, login_hist_filepath);
-	LLPanelLogin::sInstance = NULL;
 
+	sInstance = nullptr;
+
+	// Controls having keyboard focus by default
+	// must reset it on destroy. (EXT-2748)
 	if (gFocusMgr.getDefaultKeyboardFocus() == this)
-		gFocusMgr.setDefaultKeyboardFocus(NULL);
+		gFocusMgr.setDefaultKeyboardFocus(nullptr);
 }
 
 // virtual
@@ -391,7 +551,7 @@ BOOL LLPanelLogin::handleKeyHere(KEY key, MASK mask)
 	if ( KEY_F2 == key )
 	{
 		LL_INFOS() << "Spawning floater TOS window" << LL_ENDL;
-		LLFloaterTOS* tos_dialog = LLFloaterTOS::show(LLFloaterTOS::TOS_TOS,"");
+		LLFloaterTOS* tos_dialog = LLFloaterTOS::show(LLFloaterTOS::TOS_TOS,LLStringUtil::null);
 		tos_dialog->startModal();
 		return TRUE;
 	}
@@ -429,8 +589,8 @@ void LLPanelLogin::giveFocus()
 		BOOL have_username = !username.empty();
 		BOOL have_pass = !pass.empty();
 
-		LLLineEditor* edit = NULL;
-		LLComboBox* combo = NULL;
+		LLLineEditor* edit = nullptr;
+		LLComboBox* combo = nullptr;
 		if (have_username && !have_pass)
 		{
 			// User saved his name but not his password.  Move
@@ -488,29 +648,11 @@ void LLPanelLogin::setFields(const std::string& firstname,
 	llassert_always(firstname.find(' ') == std::string::npos);
 	login_combo->setLabel(nameJoin(firstname, lastname, false));
 
-	// Max "actual" password length is 16 characters.
-	// Hex digests are always 32 characters.
-	if (password.length() == 32)
-	{
-		// This is a MD5 hex digest of a password.
-		// We don't actually use the password input field, 
-		// fill it with MAX_PASSWORD characters so we get a 
-		// nice row of asterixes.
-		const std::string filler("123456789!123456");
-		sInstance->getChild<LLUICtrl>("password_edit")->setValue(filler);
-		sInstance->mIncomingPassword = filler;
-		sInstance->mMungedPassword = password;
-	}
-	else
-	{
-		// this is a normal text password
+	sInstance->mungePassword(password);
+	if (sInstance->mIncomingPassword != sInstance->mMungedPassword)
 		sInstance->getChild<LLUICtrl>("password_edit")->setValue(password);
-		sInstance->mIncomingPassword = password;
-		LLMD5 pass((unsigned char *)password.c_str());
-		char munged_password[MD5HEX_STR_SIZE];
-		pass.hex_digest(munged_password);
-		sInstance->mMungedPassword = munged_password;
-	}
+	else
+		sInstance->hidePassword();
 }
 
 // static
@@ -527,33 +669,26 @@ void LLPanelLogin::setFields(const LLSavedLoginEntry& entry, bool takeFocus)
 	LLComboBox* login_combo = sInstance->getChild<LLComboBox>("username_combo");
 	login_combo->setTextEntry(fullname);
 	login_combo->resetTextDirty();
-	//sInstance->getChild<LLUICtrl>("username_combo")->setValue(fullname);
+	//login_combo->setValue(fullname);
 
-	std::string grid = entry.getGrid();
+	const auto& grid = entry.getGrid();
 	//grid comes via LLSavedLoginEntry, which uses full grid names, not nicks
-	if(!grid.empty() && gHippoGridManager->getGrid(grid) && grid != gHippoGridManager->getCurrentGridName())
+	if (!grid.empty() && gHippoGridManager->getGrid(grid) && grid != gHippoGridManager->getCurrentGridName())
 	{
 		gHippoGridManager->setCurrentGrid(grid);
 	}
-	
-	if (entry.getPassword().empty())
-	{
-		sInstance->getChild<LLUICtrl>("password_edit")->setValue(LLStringUtil::null);
-		remember_pass_check->setValue(LLSD(false));
-	}
-	else
-	{
-		const std::string filler("123456789!123456");
-		sInstance->getChild<LLUICtrl>("password_edit")->setValue(filler);
-		sInstance->mIncomingPassword = filler;
-		sInstance->mMungedPassword = entry.getPassword();
-		remember_pass_check->setValue(LLSD(true));
-	}
 
-	if (takeFocus)
+	const auto& password = entry.getPassword();
+	bool remember_pass = !password.empty();
+	if (remember_pass)
 	{
-		giveFocus();
+		sInstance->mIncomingPassword = sInstance->mMungedPassword = password;
+		sInstance->hidePassword();
 	}
+	else sInstance->clearPassword();
+	remember_pass_check->setValue(remember_pass);
+
+	if (takeFocus) giveFocus();
 }
 
 // static
@@ -614,7 +749,7 @@ void LLPanelLogin::onUpdateStartSLURL(const LLSLURL& new_start_slurl)
 
 	LL_DEBUGS("AppInit")<<new_start_slurl.asString()<<LL_ENDL;
 
-	LLComboBox* location_combo = sInstance->getChild<LLComboBox>("start_location_combo");
+	auto location_combo = sInstance->getChild<LLComboBox>("start_location_combo");
 	/*
 	 * Determine whether or not the new_start_slurl modifies the grid.
 	 *
@@ -633,12 +768,15 @@ void LLPanelLogin::onUpdateStartSLURL(const LLSLURL& new_start_slurl)
 		location_combo->setTextEntry(new_start_slurl.getLocationString());
 	}
 	break;
+
 	case LLSLURL::HOME_LOCATION:
 		location_combo->setCurrentByIndex(0);	// home location
 		break;
+
 	case LLSLURL::LAST_LOCATION:
 		location_combo->setCurrentByIndex(1); // last location
 		break;
+
 	default:
 		LL_WARNS("AppInit")<<"invalid login slurl, using home"<<LL_ENDL;
 		location_combo->setCurrentByIndex(1); // home location
@@ -654,14 +792,27 @@ void LLPanelLogin::setLocation(const LLSLURL& slurl)
 	LLStartUp::setStartSLURL(slurl); // calls onUpdateStartSLURL, above
 }
 
+void LLPanelLogin::autologinToLocation(const LLSLURL& slurl)
+{
+	LL_DEBUGS("AppInit")<<"automatically logging into Location "<<slurl.asString()<<LL_ENDL;
+	LLStartUp::setStartSLURL(slurl); // calls onUpdateStartSLURL, above
+
+	if ( LLPanelLogin::sInstance != NULL )
+	{
+		LLPanelLogin::sInstance->onClickConnect();
+	}
+}
+
+
 // static
 void LLPanelLogin::close()
 {
 	if (sInstance)
 	{
 		sInstance->getParent()->removeChild(sInstance);
+
 		delete sInstance;
-		sInstance = NULL;
+		sInstance = nullptr;
 	}
 }
 
@@ -722,25 +873,27 @@ void LLPanelLogin::loadLoginPage()
 		sInstance->setSiteIsAlive(false);
 		return;
 	}
-  
+
 	// Use the right delimeter depending on how LLURI parses the URL
 	LLURI login_page = LLURI(login_page_str);
 	LLSD params(login_page.queryMap());
  
 	LL_DEBUGS("AppInit") << "login_page: " << login_page << LL_ENDL;
 
- 	// Language
+	// Language
 	params["lang"] = LLUI::getLanguage();
- 
- 	// First Login?
- 	if (gSavedSettings.getBOOL("FirstLoginThisInstall"))
+
+	// First Login?
+	if (gSavedSettings.getBOOL("FirstLoginThisInstall"))
 	{
 		params["firstlogin"] = "TRUE"; // not bool: server expects string TRUE
- 	}
- 
-	params["version"]= llformat("%d.%d.%d (%d)",
-				gVersionMajor, gVersionMinor, gVersionPatch, gVersionBuild);
-	params["channel"] = gVersionChannel;
+	}
+
+	// Channel and Version
+	params["version"] = llformat("%s (%d)",
+								 LLVersionInfo::getShortVersion().c_str(),
+								 LLVersionInfo::getBuild());
+	params["channel"] = LLVersionInfo::getChannel();
 
 	// Grid
 
@@ -765,7 +918,7 @@ void LLPanelLogin::loadLoginPage()
 	{
 		params["grid"] = gHippoGridManager->getCurrentGrid()->getGridNick();
 	}
-	else if (gHippoGridManager->getCurrentGrid()->getPlatform() == HippoGridInfo::PLATFORM_AURORA)
+	else if (gHippoGridManager->getCurrentGrid()->getPlatform() == HippoGridInfo::PLATFORM_WHITECORE)
 	{
 		params["grid"] = LLViewerLogin::getInstance()->getGridLabel();
 	}
@@ -773,10 +926,13 @@ void LLPanelLogin::loadLoginPage()
 	// add OS info
 	params["os"] = LLAppViewer::instance()->getOSInfo().getOSStringSimple();
 
+	auto&& uri_with_params = [](const LLURI& uri, const LLSD& params) {
+		return LLURI(uri.scheme(), uri.userName(), uri.password(), uri.hostName(), uri.hostPort(), uri.path(),
+			LLURI::mapToQueryString(params));
+	};
+
 	// Make an LLURI with this augmented info
-	LLURI login_uri(LLURI::buildHTTP(login_page.authority(),
-									 login_page.path(),
-									 params));
+	LLURI login_uri(uri_with_params(login_page, params));
 	
 	gViewerWindow->setMenuBackgroundColor(false, !LLViewerLogin::getInstance()->isInProductionGrid());
 	gLoginMenuBarView->setBackgroundColor(gMenuBarView->getBackgroundColor());
@@ -785,7 +941,14 @@ void LLPanelLogin::loadLoginPage()
 	if (!singularity_splash_uri.empty())
 	{
 		params["original_page"] = login_uri.asString();
-		login_uri = LLURI::buildHTTP(singularity_splash_uri, gSavedSettings.getString("SingularitySplashPagePath"), params);
+		login_uri = LLURI(singularity_splash_uri + gSavedSettings.getString("SingularitySplashPagePath"));
+
+		// Copy any existent splash path params
+		auto& params_map = params.map();
+		for (auto&& pair : login_uri.queryMap().map())
+			params_map.emplace(pair);
+
+		login_uri = uri_with_params(login_uri, params);
 	}
 
 	LLMediaCtrl* web_browser = sInstance->getChild<LLMediaCtrl>("login_html");
@@ -923,7 +1086,7 @@ void LLPanelLogin::onSelectGrid(LLUICtrl *ctrl)
 	LLStringUtil::trim(grid); // Guard against copy paste
 	if (!gHippoGridManager->getGrid(grid)) // We can't get an input grid by name or nick, perhaps a Login URI was entered
 	{
-		HippoGridInfo* info(new HippoGridInfo("")); // Start off with empty grid name, otherwise we don't know what to name
+		HippoGridInfo* info(new HippoGridInfo(LLStringUtil::null)); // Start off with empty grid name, otherwise we don't know what to name
 		info->setLoginUri(grid);
 		try
 		{
@@ -963,11 +1126,47 @@ void LLPanelLogin::onSelectGrid(LLUICtrl *ctrl)
 	}
 	gHippoGridManager->setCurrentGrid(grid);
 	ctrl->setValue(grid);
+	addFavoritesToStartLocation();
+
+	/*
+	 * Determine whether or not the value in the start_location_combo makes sense
+	 * with the new grid value.
+	 *
+	 * Note that some forms that could be in the location combo are grid-agnostic,
+	 * such as "MyRegion/128/128/0".  There could be regions with that name on any
+	 * number of grids, so leave them alone.  Other forms, such as
+	 * https://grid.example.com/region/Party%20Town/20/30/5 specify a particular
+	 * grid; in those cases we want to clear the location.
+	 */
+	auto location_combo = getChild<LLComboBox>("start_location_combo");
+	S32 index = location_combo->getCurrentIndex();
+	switch (index)
+	{
+	case 0: // last location
+	case 1: // home location
+		// do nothing - these are grid-agnostic locations
+		break;
+
+	default:
+		{
+			std::string location = location_combo->getValue().asString();
+			LLSLURL slurl(location); // generata a slurl from the location combo contents
+			if (   slurl.getType() == LLSLURL::LOCATION
+				&& slurl.getGrid() != gHippoGridManager->getCurrentGridNick()
+				)
+			{
+				// the grid specified by the location is not this one, so clear the combo
+				location_combo->setCurrentByIndex(0); // last location on the new grid
+				location_combo->setTextEntry(LLStringUtil::null);
+			}
+		}
+		break;
+	}
 }
 
 void LLPanelLogin::onLocationSLURL()
 {
-	LLComboBox* location_combo = getChild<LLComboBox>("start_location_combo");
+	auto location_combo = getChild<LLComboBox>("start_location_combo");
 	std::string location = location_combo->getValue().asString();
 	LLStringUtil::trim(location);
 	LL_DEBUGS("AppInit")<<location<<LL_ENDL;
@@ -982,13 +1181,15 @@ void LLPanelLogin::onSelectLoginEntry(const LLSD& selected_entry)
 		setFields(LLSavedLoginEntry(selected_entry));
 	// This stops the automatic matching of the first name to a selected grid.
 	LLViewerLogin::getInstance()->setNameEditted(true);
+
+	sInstance->addFavoritesToStartLocation();
 }
 
 void LLPanelLogin::onLoginComboLostFocus(LLComboBox* combo_box)
 {
 	if (combo_box->isTextDirty())
 	{
-		getChild<LLUICtrl>("password_edit")->setValue(mIncomingPassword = mMungedPassword = LLStringUtil::null);
+		clearPassword();
 		combo_box->resetTextDirty();
 	}
 }

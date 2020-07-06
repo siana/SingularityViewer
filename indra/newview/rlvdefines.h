@@ -57,14 +57,14 @@
 
 // Version of the specifcation we support
 const S32 RLV_VERSION_MAJOR = 2;
-const S32 RLV_VERSION_MINOR = 8;
+const S32 RLV_VERSION_MINOR = 9;
 const S32 RLV_VERSION_PATCH = 0;
 const S32 RLV_VERSION_BUILD = 0;
 
 // Implementation version
-const S32 RLVa_VERSION_MAJOR = 1;
-const S32 RLVa_VERSION_MINOR = 4;
-const S32 RLVa_VERSION_PATCH = 10;
+const S32 RLVa_VERSION_MAJOR = 2;
+const S32 RLVa_VERSION_MINOR = 1;
+const S32 RLVa_VERSION_PATCH = 0;
 const S32 RLVa_VERSION_BUILD = 0;
 
 // Uncomment before a final release

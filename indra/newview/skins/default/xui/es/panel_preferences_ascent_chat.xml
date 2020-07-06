@@ -51,6 +51,9 @@
 				<combo_item name="year_first">
 					YYYY-MM-DD
 				</combo_item>
+				<combo_item name="year_first_slashes">
+					YYYY/MM/DD
+				</combo_item>
 				<combo_item name="day_first">
 					DD/MM/YYYY
 				</combo_item>
@@ -69,51 +72,58 @@
 			<check_box label="Usar botones horizontales para la ventana de contactos (Requiere Reiniciar)" tool_tip="Habilitado, los botones en los paneles de Amigos y Grupos se colocarán en la parte inferior del panel, ordendados horizontalmente, en vez de verticales a la derecha." name="horiz_butt"/>
 			<text name="namesystems_text_box">Formato de nombres en las listas de:</text>
 			<text name="chat_tabs_namesystem_text_box">Pestañas de Chat:</text>
-				<combo_box name="chat_tabs_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="chat_tabs_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<text name="friends_namesystem_text_box">Amigos:</text>
-				<combo_box name="friends_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="friends_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<text name="group_members_namesystem_text_box">Miembros de Grupos:</text>
-				<combo_box name="group_members_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="group_members_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<text name="land_management_namesystem_text_box">Administradores de Tierras:</text>
-					<combo_box name="land_management_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="land_management_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
+			<text name="profile_namesystem_text_box">Perfiles:</text>
+			<combo_box name="profile_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<text name="radar_namesystem_text_box">Radar:</text>
-				<combo_box name="radar_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="radar_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<text name="speaker_namesystem_text_box">Participantes:</text>
-				<combo_box name="speaker_namesystem_combobox" width="230">
-					<combo_item name="Old Names">Nombres Antiguos</combo_item>
-					<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
-					<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
-					<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
-				</combo_box>
+			<combo_box name="speaker_namesystem_combobox" width="250">
+				<combo_item name="Old Names">Nombres Antiguos</combo_item>
+				<combo_item name="Display Names (with Username)">Nombre a Mostrar (c/Nombre de Usuario)</combo_item>
+				<combo_item name="Display Names only">Solamente Nombre a Mostrar</combo_item>
+				<combo_item name="Old Names (with Display Names)">Nombres Antiguos  (c/Nombre a Mostrar)</combo_item>
+			</combo_box>
 			<check_box label="Colocar los Botones en la misma línea del nombre en los IMs (Sólo afecta en Nuevos MIs)" name="im_concise_butt"/>
 			<check_box label="Botones en chat de grupo en la línea del nombre del grupo (Afecta nuevos chats de grupo)" name="group_concise_butt"/>
 			<check_box label="Botones en la misma línea de título de conferencia (Afecta nuevas conferencias de Chat)" name="conf_concise_butt"/>
-      <check_box label="Botón Historial abre editor externo" name="legacy_log_launch"/>
+			<check_box label="Botón Historial abre editor externo" name="legacy_log_launch"/>
 			<check_box label="Deshabilitar apertura atajo de Comunicación fuera de la lista de amigos" name="only_comm"/>
 			<check_box label="Desplazamiento automático al final de chats cuando recuperan el foco" name="scroll_to_end_on_focus"/>
 			<check_box label="Mensajes de acción en Itálica (/me)" name="italicize_actions"/>
@@ -126,27 +136,38 @@ Puedes usar los siguientes comodines para personalizar tus respuestas: #n para n
 #d para su nombre mostrado, #r para SLURL a tu ubicación, #i para tu tiempo ausente, en minutos.
 			</text>
 			<check_box name="AscentInstantMessageResponseRepeat" label="Responder cada vez que recibas un mensaje para el cual tienes habilitada la respuesta automática"/>
-			<check_box name="AutoresponseAnyone" label="Enviar respuesta básica" tool_tip="Envía el mensaje de la caja inferior a las personas que no tienes ignoradas."/>
-			<check_box name="AutoresponseAnyoneFriendsOnly" label="Sólo a Amigos" tool_tip="Evita que esta respuesta sea enviada a desconocidos"/>
-			<check_box name="AutoresponseAnyoneItem" label="Enviar ítem"/>
-			<check_box name="AutoresponseAnyoneShow" label="Mostrar respuesta enviada"/>
-			<text_editor name="AutoresponseAnyoneMessage"/>
-			<drop_target name="AutoresponseAnyoneItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
-			<check_box name="AutoresponseNonFriends" label="Responder a desconocidos" tool_tip="Envía el mensaje de la caja inferior a personas que no están en tu lista de amigos"/>
-			<check_box name="AutoresponseNonFriendsItem" label="Enviar ítem"/>
-			<check_box name="AutoresponseNonFriendsShow" label="Mostrar respuesta enviada"/>
-			<text_editor name="AutoresponseNonFriendsMessage"/>
-			<drop_target name="AutoresponseNonFriendsItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
-			<check_box name="AutoresponseMuted" label="Responder a personas que has ignorado" tool_tip="Envía el mensaje de la caja inferior a personas a quienes has ignorado."/>
-			<check_box name="AutoresponseMutedItem" label="Enviar ítem"/>
-			<check_box name="AutoresponseMutedShow" label="Mostrar respuesta enviada"/>
-			<text_editor name="AutoresponseMutedMessage"/>
-			<drop_target name="AutoresponseMutedItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
-			<text name="BusyModeResponseText" tool_tip="Envía el mensaje de la caja inferior a quienes te envían un mensaje estando tu ocupado.">Respuesta en Modo Ocupado:</text>
-			<check_box name="BusyModeResponseItem" label="Enviar ítem"/>
-			<check_box name="BusyModeResponseShow" label="Mostrar respueta enviada"/>
-			<text_editor name="BusyModeResponse"/>
-			<drop_target name="BusyModeResponseItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+			<check_box name="AutoresponseOnlyIfAway" label="Enviar respuesta automática solo al estar ausente"/>
+			<tab_container name="Autoresponses">
+				<panel label="Básico" name="Basic">
+					<check_box name="AutoresponseAnyone" label="Enviar respuesta básica" tool_tip="Envía el mensaje de la caja inferior a las personas que no tienes ignoradas."/>
+					<check_box name="AutoresponseAnyoneFriendsOnly" label="Sólo a Amigos" tool_tip="Evita que esta respuesta sea enviada a desconocidos"/>
+					<check_box name="AutoresponseAnyoneItem" label="Enviar ítem"/>
+					<check_box name="AutoresponseAnyoneShow" label="Mostrar respuesta enviada"/>
+					<text_editor name="AutoresponseAnyoneMessage"/>
+					<drop_target name="AutoresponseAnyoneItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+				</panel>
+				<panel label="No amigos" name="Nonfriends">
+					<check_box name="AutoresponseNonFriends" label="Responder a desconocidos" tool_tip="Envía el mensaje de la caja inferior a personas que no están en tu lista de amigos"/>
+					<check_box name="AutoresponseNonFriendsItem" label="Enviar ítem"/>
+					<check_box name="AutoresponseNonFriendsShow" label="Mostrar respuesta enviada"/>
+					<text_editor name="AutoresponseNonFriendsMessage"/>
+					<drop_target name="AutoresponseNonFriendsItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+				</panel>
+				<panel height="208" width="500" label="Ignorados" name="Muted">
+					<check_box name="AutoresponseMuted" label="Responder a personas que has ignorado" tool_tip="Envía el mensaje de la caja inferior a personas a quienes has ignorado."/>
+					<check_box name="AutoresponseMutedItem" label="Enviar ítem"/>
+					<check_box name="AutoresponseMutedShow" label="Mostrar respuesta enviada"/>
+					<text_editor name="AutoresponseMutedMessage"/>
+					<drop_target name="AutoresponseMutedItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+				</panel>
+				<panel height="208" width="500" label="Modo Ocupado" name="Busy Mode" tool_tip="Enviar el mensaje de la caja inferior a quienes te contactan cuando estás ocupado">
+					<text name="BusyModeResponseText" tool_tip="Envía el mensaje de la caja inferior a quienes te envían un mensaje estando tu ocupado.">Respuesta en Modo Ocupado:</text>
+					<check_box name="BusyModeResponseItem" label="Enviar ítem"/>
+					<check_box name="BusyModeResponseShow" label="Mostrar respueta enviada"/>
+					<text_editor name="BusyModeResponse"/>
+					<drop_target name="BusyModeResponseItemID" tool_tip="Arrastra un ítem del Inventario hasta aquí para entregarlo junto con tu respuesta automática."/>
+				</panel>
+			</tab_container>
 		</panel>	 
 		<!-- =========================== -->
 		<panel label="Spam" name="Spam">
@@ -172,6 +193,7 @@ Puedes usar los siguientes comodines para personalizar tus respuestas: #n para n
 			<check_box label="Ofertas de Teleporte" name="Teleport Offers"/>
 			<check_box label="Avisos de Grupos" name="Group Notices"/>
 			<check_box label="Solicitudes de Teleporte" name="Teleport Requests"/>
+			<check_box label="Oferta de LMs" name="LM Offers"/>
 			<text name="Except those from:" >Excepto de :</text>
 			<check_box label="Mis objetos" name="My objects"/>
 			<check_box label="Mis amigos" name="My friends"/>

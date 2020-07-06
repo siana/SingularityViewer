@@ -287,6 +287,7 @@ public:
 		
 		bool has(const String&) const;
 		LLSD get(const String&) const;
+		LLSD getKeys() const;				// Return an LLSD array with keys as strings
 		void insert(const String&, const LLSD&);
 		void erase(const String&);
 		LLSD& with(const String&, const LLSD&);
@@ -304,7 +305,7 @@ public:
 		LLSD get(Integer) const;
 		void set(Integer, const LLSD&);
 		void insert(Integer, const LLSD&);
-		void append(const LLSD&);
+		LLSD& append(const LLSD&);
 		void erase(Integer);
 		LLSD& with(Integer, const LLSD&);
 		
@@ -319,6 +320,8 @@ public:
 		typedef std::map<String, LLSD>::iterator		map_iterator;
 		typedef std::map<String, LLSD>::const_iterator	map_const_iterator;
 		
+		std::map<String, LLSD>& map();
+		const std::map<String, LLSD>& map() const;
 		map_iterator		beginMap();
 		map_iterator		endMap();
 		map_const_iterator	beginMap() const;
@@ -328,6 +331,8 @@ public:
 		typedef std::vector<LLSD>::const_iterator	array_const_iterator;
 		typedef std::vector<LLSD>::reverse_iterator reverse_array_iterator;
 		
+		std::vector<LLSD>&      array();
+		const std::vector<LLSD>& array() const;
 		array_iterator			beginArray();
 		array_iterator			endArray();
 		array_const_iterator	beginArray() const;
@@ -384,9 +389,9 @@ public:
 		using an arbitrary pointer or scalar type to std::string.
 	 */
 	//@{
-		LLSD(const void*);				///< construct from aribrary pointers
-		void assign(const void*);		///< assign from arbitrary pointers
-		LLSD& operator=(const void*);	///< assign from arbitrary pointers
+		LLSD(const void*) = delete;				///< construct from aribrary pointers
+		void assign(const void*) = delete;		///< assign from arbitrary pointers
+		LLSD& operator=(const void*) = delete;	///< assign from arbitrary pointers
 		
 		bool has(Integer) const;		///< has() only works for Maps
 	//@}

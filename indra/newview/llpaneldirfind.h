@@ -34,10 +34,8 @@
 #define LL_LLPANELDIRFIND_H
 
 #include "llpaneldirbrowser.h"
-#include "llmediactrl.h"
+#include "llfloatersearch.h"
 
-class LLUICtrl;
-class LLLineEditor;
 class LLPanelDirFindAll;
 class LLFloaterDirectory;
 
@@ -76,6 +74,7 @@ private:
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event);
 
 protected:
+	friend class LLPanelDirFindAllInterface;
 	LLMediaCtrl* mWebBrowser;
 	std::string mBrowserName;
 };
@@ -84,7 +83,7 @@ class LLPanelDirFindAllInterface
 {
 public:
 	static LLPanelDirFindAll* create(LLFloaterDirectory* floater);
-	static void search(LLPanelDirFindAll* panel, const std::string& search_text);
+	static void search(LLFloaterDirectory* inst, const LLFloaterSearch::SearchQuery& search, bool show = false);
 	static void focus(LLPanelDirFindAll* panel);
 };
 

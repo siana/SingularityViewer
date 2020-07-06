@@ -79,7 +79,8 @@ public:
 		DND_LINK		// Drop accepted would result in a "link" operation
 	};
 	virtual DragNDropResult handleDragNDrop(LLWindow *window, LLCoordGL pos, MASK mask, DragNDropAction action, std::string data);
-	
+	virtual bool handleDPIScaleChange(LLWindow *window, float xDPIScale, float yDPIScale, U32 width = 0, U32 height = 0);
+
 	virtual void handlePingWatchdog(LLWindow *window, const char * msg);
 	virtual void handlePauseWatchdog(LLWindow *window);
 	virtual void handleResumeWatchdog(LLWindow *window);

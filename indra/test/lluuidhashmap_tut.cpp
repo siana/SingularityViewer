@@ -87,7 +87,7 @@ namespace tut
 	{
 		LLUUIDHashMap<UUIDTableEntry, 32>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		const int numElementsToCheck = 32*256*32;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -128,7 +128,7 @@ namespace tut
 	{
 		LLUUIDHashMap<UUIDTableEntry, 2>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		const int numElementsToCheck = 5;
-		std::vector<LLUUID> idList(numElementsToCheck*10);
+		uuid_vec_t idList(numElementsToCheck*10);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -173,7 +173,7 @@ namespace tut
 	{
 		LLUUIDHashMap<UUIDTableEntry, 5>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		const int numElementsToCheck = 10;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -207,7 +207,7 @@ namespace tut
 	{
 		LLUUIDHashMap<UUIDTableEntry, 5>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		const int numElementsToCheck = 10;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -230,7 +230,7 @@ namespace tut
 	{
 		LLUUIDHashMap<UUIDTableEntry, 2>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		const int numElementsToCheck = 256;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -275,7 +275,7 @@ namespace tut
 		LLUUIDHashMap<UUIDTableEntry, 2>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		LLUUIDHashMapIter<UUIDTableEntry, 2> hashIter(&hashTable);
 		const int numElementsToCheck = 256;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		for (i = 0; i < numElementsToCheck; i++)
@@ -312,7 +312,7 @@ namespace tut
 		LLUUIDHashMap<UUIDTableEntry, 2>	hashTable(UUIDTableEntry::uuidEq, UUIDTableEntry());
 		LLUUIDHashMapIter<UUIDTableEntry, 2> hashIter(&hashTable);
 		const int numElementsToCheck = 256;
-		std::vector<LLUUID> idList(numElementsToCheck);
+		uuid_vec_t idList(numElementsToCheck);
 		int i;
 		
 		LLUUID uuidtoSearch;

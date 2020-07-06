@@ -168,7 +168,7 @@ void LLNameValue::init(const char *name, const char *data, const char *type, con
 		}
 
 		// finite checks
-		if (!llfinite(t1) || !llfinite(t2) || !llfinite(t3))
+		if (!std::isfinite(t1) || !std::isfinite(t2) || !std::isfinite(t3))
 		{
 			t1 = 0.f;
 			t2 = 0.f;

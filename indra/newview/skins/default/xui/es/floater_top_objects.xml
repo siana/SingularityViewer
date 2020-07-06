@@ -62,4 +62,5 @@
 	<button label="Desactivar Seleccionado" name="disable_selected_btn" width="152" />
 	<button label="Desactivar Todo" left_delta="160" name="disable_all_btn" width="110" />
 	<button label="Expulsar del Estado" left_delta="120" name="estate_kick_btn" width="130"/>
+    <button label="Enfocar Objeto" left_delta="140" name="focus_on_btn" >
 </floater>

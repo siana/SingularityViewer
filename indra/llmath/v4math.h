@@ -30,6 +30,7 @@
 #include "llerror.h"
 #include "llmath.h"
 #include "v3math.h"
+#include "v2math.h"
 
 class LLMatrix3;
 class LLMatrix4;
@@ -46,8 +47,11 @@ class LLVector4
 		LLVector4();						// Initializes LLVector4 to (0, 0, 0, 1)
 		explicit LLVector4(const F32 *vec);			// Initializes LLVector4 to (vec[0]. vec[1], vec[2], vec[3])
 		explicit LLVector4(const F64 *vec);			// Initialized LLVector4 to ((F32) vec[0], (F32) vec[1], (F32) vec[3], (F32) vec[4]);
+        explicit LLVector4(const LLVector2 &vec);
+        explicit LLVector4(const LLVector2 &vec, F32 z, F32 w);
 		explicit LLVector4(const LLVector3 &vec);			// Initializes LLVector4 to (vec, 1)
 		explicit LLVector4(const LLVector3 &vec, F32 w);	// Initializes LLVector4 to (vec, w)
+        explicit LLVector4(const LLSD &sd);
 		LLVector4(F32 x, F32 y, F32 z);		// Initializes LLVector4 to (x. y, z, 1)
 		LLVector4(F32 x, F32 y, F32 z, F32 w);
 
@@ -60,6 +64,15 @@ class LLVector4
 			ret[3] = mV[3];
 			return ret;
 		}
+
+        void setValue(const LLSD& sd)
+        {
+            mV[0] = sd[0].asReal();
+            mV[1] = sd[1].asReal();
+            mV[2] = sd[2].asReal();
+            mV[3] = sd[3].asReal();
+        }
+
 
 		inline BOOL isFinite() const;									// checks to see if all values of LLVector3 are finite
 
@@ -124,6 +137,8 @@ class LLVector4
 		friend LLVector4 operator-(const LLVector4 &a);					// Return vector -a
 };
 
+static_assert(std::is_trivially_copyable<LLVector4>::value, "LLVector4 must be a trivially copyable type");
+
 // Non-member functions 
 F32 angle_between(const LLVector4 &a, const LLVector4 &b);		// Returns angle (radians) between a and b
 BOOL are_parallel(const LLVector4 &a, const LLVector4 &b, F32 epsilon=F_APPROXIMATELY_ZERO);		// Returns TRUE if a and b are very close to parallel
@@ -175,6 +190,22 @@ inline LLVector4::LLVector4(const F64 *vec)
 	mV[VW] = (F32) vec[VW];
 }
 
+inline LLVector4::LLVector4(const LLVector2 &vec)
+{
+    mV[VX] = vec[VX];
+    mV[VY] = vec[VY];
+    mV[VZ] = 0.f;
+    mV[VW] = 0.f;
+}
+
+inline LLVector4::LLVector4(const LLVector2 &vec, F32 z, F32 w)
+{
+    mV[VX] = vec[VX];
+    mV[VY] = vec[VY];
+    mV[VZ] = z;
+    mV[VW] = w;
+}
+
 inline LLVector4::LLVector4(const LLVector3 &vec)
 {
 	mV[VX] = vec.mV[VX];
@@ -191,10 +222,15 @@ inline LLVector4::LLVector4(const LLVector3 &vec, F32 w)
 	mV[VW] = w;
 }
 
+inline LLVector4::LLVector4(const LLSD &sd)
+{
+    setValue(sd);
+}
+
 
 inline BOOL LLVector4::isFinite() const
 {
-	return (llfinite(mV[VX]) && llfinite(mV[VY]) && llfinite(mV[VZ]) && llfinite(mV[VW]));
+	return (std::isfinite(mV[VX]) && std::isfinite(mV[VY]) && std::isfinite(mV[VZ]) && std::isfinite(mV[VW]));
 }
 
 // Clear and Assignment Functions

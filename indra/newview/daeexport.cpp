@@ -32,15 +32,18 @@
 
 // library includes
 #include "aifilepicker.h"
+#include "llavatarnamecache.h"
 #include "llnotificationsutil.h"
 
 // newview includes
 #include "lfsimfeaturehandler.h"
-#include "llface.h"
-#include "llvovolume.h"
-#include "llviewerinventory.h"
 #include "llinventorymodel.h"
 #include "llinventoryfunctions.h"
+#include "llface.h"
+#include "llversioninfo.h"
+#include "llviewerinventory.h"
+#include "llviewertexturelist.h"
+#include "llvovolume.h"
 
 // menu includes
 #include "llevent.h"
@@ -73,11 +76,11 @@ typedef LLMemberListener<LLView> view_listener_t;
 
 namespace DAEExportUtil
 {
-	static LLUUID LL_TEXTURE_PLYWOOD		= LLUUID("89556747-24cb-43ed-920b-47caed15465f");
-	static LLUUID LL_TEXTURE_BLANK			= LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
-	static LLUUID LL_TEXTURE_INVISIBLE		= LLUUID("38b86f85-2575-52a9-a531-23108d8da837");
-	static LLUUID LL_TEXTURE_TRANSPARENT	= LLUUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
-	static LLUUID LL_TEXTURE_MEDIA			= LLUUID("8b5fec65-8d8d-9dc5-cda8-8fdf2716e361");
+	const auto LL_TEXTURE_PLYWOOD		= LLUUID("89556747-24cb-43ed-920b-47caed15465f");
+	const auto LL_TEXTURE_BLANK			= LLUUID("5748decc-f629-461c-9a36-a35a221fe21f");
+	const auto LL_TEXTURE_INVISIBLE		= LLUUID("38b86f85-2575-52a9-a531-23108d8da837");
+	const auto LL_TEXTURE_TRANSPARENT	= LLUUID("8dcd4a48-2d37-4909-9f78-f7a9eb4ef903");
+	const auto LL_TEXTURE_MEDIA			= LLUUID("8b5fec65-8d8d-9dc5-cda8-8fdf2716e361");
 
 	enum image_format_type
 	{
@@ -104,23 +107,17 @@ namespace DAEExportUtil
 
 		// See if any of the inventory items matching this texture id are exportable
 		ExportPolicy policy = LFSimFeatureHandler::instance().exportPolicy();
-		for (size_t i = 0; i < items.size(); i++)
+		for (const auto& item : items)
 		{
-			const LLPermissions item_permissions = items[i]->getPermissions();
+			const LLPermissions item_permissions = item->getPermissions();
 			if (item_permissions.allowExportBy(gAgentID, policy))
 			{
-				if (name != NULL)
-				{
-					(*name) = items[i]->getName();
-				}
+				if (name) *name = item->getName();
 				return true;
 			}
 		}
 
-		if (name != NULL)
-		{
-			(*name) = id.getString();
-		}
+		if (name) *name = id.getString();
 
 		return (policy & ep_full_perm) == ep_full_perm;
 	}
@@ -139,7 +136,7 @@ namespace DAEExportUtil
 		LLViewerObject* obj = node->getObject();
 		if (obj->isSculpted() && !obj->isMesh())
 		{
-			LLSculptParams *sculpt_params = (LLSculptParams *)obj->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+			const LLSculptParams *sculpt_params = obj->getSculptParams();
 			LLUUID sculpt_id = sculpt_params->getSculptTexture();
 			return canExportTexture(sculpt_id);
 		}
@@ -205,7 +202,7 @@ public:
 		}
 	}
 
-	BOOL postBuild()
+	BOOL postBuild() override
 	{
 		mFileName				= getChildView("file name editor");
 		mExportBtn				= getChildView("export button");
@@ -305,14 +302,9 @@ public:
 	S32 getNumExportableTextures()
 	{
 		S32 res = 0;
-
-		for (DAESaver::string_list_t::const_iterator t = mSaver.mTextureNames.begin(); t != mSaver.mTextureNames.end(); ++t)
+		for (const auto& name : mSaver.mTextureNames)
 		{
-			std::string name = *t;
-			if (!name.empty())
-			{
-				++res;
-			}
+			if (!name.empty()) ++res;
 		}
 
 		return res;
@@ -364,7 +356,7 @@ public:
 		gIdleCallbacks.addFunction(saveTexturesWorker, this);
 	}
 
-	class CacheReadResponder : public LLTextureCache::ReadResponder
+	class CacheReadResponder final : public LLTextureCache::ReadResponder
 	{
 	private:
 		LLPointer<LLImageFormatted> mFormattedImage;
@@ -412,7 +404,7 @@ public:
 			mImageLocal = imagelocal;
 		}
 
-		virtual void completed(bool success)
+		void completed(bool success) override
 		{
 			if (success && mFormattedImage.notNull() && mImageSize > 0)
 			{
@@ -493,7 +485,7 @@ public:
 		}
 
 		LLUUID id = me->mTexturesToSave.begin()->first;
-		LLViewerTexture* imagep = LLViewerTextureManager::findTexture(id);
+		LLViewerTexture* imagep = LLViewerTextureManager::findFetchedTexture(id, TEX_LIST_STANDARD);
 		if (!imagep)
 		{
 			me->mTexturesToSave.erase(id);
@@ -545,10 +537,8 @@ void DAESaver::updateTextureInfo()
 		{
 			LLTextureEntry* te = obj->getTE(face_num);
 			const LLUUID id = te->getID();
-			if (std::find(mTextures.begin(), mTextures.end(), id) != mTextures.end())
-			{
-				continue;
-			}
+			if (std::find(mTextures.begin(), mTextures.end(), id) != mTextures.end()) continue;
+
 			mTextures.push_back(id);
 			std::string name;
 			if (id != DAEExportUtil::LL_TEXTURE_BLANK && DAEExportUtil::canExportTexture(id, &name))
@@ -565,7 +555,6 @@ void DAESaver::updateTextureInfo()
 	}
 }
 
-
 class v4adapt
 {
 private:
@@ -578,7 +567,7 @@ public:
 	}
 };
 
-void DAESaver::addSource(daeElement* mesh, const char* src_id, std::string params, const std::vector<F32> &vals)
+void DAESaver::addSource(daeElement* mesh, const char* src_id, const std::string& params, const std::vector<F32> &vals)
 {
 	daeElement* source = mesh->add("source");
 	source->setAttribute("id", src_id);
@@ -587,9 +576,9 @@ void DAESaver::addSource(daeElement* mesh, const char* src_id, std::string param
 	src_array->setAttribute("id", llformat("%s-%s", src_id, "array").c_str());
 	src_array->setAttribute("count", llformat("%d", vals.size()).c_str());
 
-	for (U32 i = 0; i < vals.size(); i++)
+	for (const auto& val : vals)
 	{
-		((domFloat_array*)src_array)->getValue().append(vals[i]);
+		static_cast<domFloat_array*>(src_array)->getValue().append(val);
 	}
 
 	domAccessor* acc = daeSafeCast<domAccessor>(source->add("technique_common accessor"));
@@ -597,10 +586,10 @@ void DAESaver::addSource(daeElement* mesh, const char* src_id, std::string param
 	acc->setCount(vals.size() / params.size());
 	acc->setStride(params.size());
 
-	for (std::string::iterator p_iter = params.begin(); p_iter != params.end(); ++p_iter)
+	for (const auto& param : params)
 	{
 		domElement* pX = acc->add("param");
-		pX->setAttribute("name", llformat("%c", *p_iter).c_str());
+		pX->setAttribute("name", (LLStringUtil::null + param).c_str());
 		pX->setAttribute("type", "float");
 	}
 }
@@ -649,7 +638,7 @@ void DAESaver::addPolygons(daeElement* mesh, const char* geomID, const char* mat
 		{
 			for (S32 i = 0; i < face->mNumIndices; i++)
 			{
-				U16 index = index_offset + face->mIndices[i];
+				U32 index = index_offset + face->mIndices[i];
 				(p->getValue()).append(index);
 				if (i % 3 == 0)
 				{
@@ -709,11 +698,21 @@ void DAESaver::transformTexCoord(S32 num_vert, LLVector2* coord, LLVector3* posi
 
 bool DAESaver::saveDAE(std::string filename)
 {
+	// Collada expects file and folder names to be escaped
+	// Note: cdom::nativePathToUri()
+	// Same as in LLDAELoader::OpenFile()
+	const char* allowed =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		"abcdefghijklmnopqrstuvwxyz"
+		"0123456789"
+		"%-._~:\"|\\/";
+	std::string uri_filename = LLURI::escape(filename, allowed);
+
 	mAllMaterials.clear();
 	mTotalNumMaterials = 0;
 	DAE dae;
 	// First set the filename to save
-	daeElement* root = dae.add(filename);
+	daeElement* root = dae.add(uri_filename);
 
 	// Obligatory elements in header
 	daeElement* asset = root->add("asset");
@@ -733,9 +732,13 @@ bool DAESaver::saveDAE(std::string filename)
 	up_axis->setCharData("Z_UP");
 
 	// File creator
+	std::string author;
+	if (!LLAvatarNameCache::getNSName(gAgentID, author))
+		author = "Unknown";
+	
 	daeElement* contributor = asset->add("contributor");
-	contributor->add("author")->setCharData(LLAppViewer::instance()->getSecondLifeTitle() + " User");
-	contributor->add("authoring_tool")->setCharData(LLAppViewer::instance()->getSecondLifeTitle() + " Collada Export");
+	contributor->add("author")->setCharData(author);
+	contributor->add("authoring_tool")->setCharData(LLVersionInfo::getChannelAndVersion() + " Collada Export");
 
 	daeElement* images = root->add("library_images");
 	daeElement* geomLib = root->add("library_geometries");
@@ -824,7 +827,6 @@ bool DAESaver::saveDAE(std::string filename)
 			}
 		}
 
-
 		addSource(mesh, llformat("%s-%s", geomID, "positions").c_str(), "XYZ", position_data);
 		addSource(mesh, llformat("%s-%s", geomID, "normals").c_str(), "XYZ", normal_data);
 		addSource(mesh, llformat("%s-%s", geomID, "map0").c_str(), "ST", uv_data);
@@ -844,12 +846,11 @@ bool DAESaver::saveDAE(std::string filename)
 		// Add triangles
 		if (gSavedSettings.getBOOL("DAEExportConsolidateMaterials"))
 		{
-			for (U32 objMaterial = 0; objMaterial < objMaterials.size(); objMaterial++)
+			for (const auto& objMaterial : objMaterials)
 			{
 				int_list_t faces;
-				getFacesWithMaterial(obj, objMaterials[objMaterial], &faces);
-				std::string matName = objMaterials[objMaterial].name;
-				addPolygons(mesh, geomID, (matName + "-material").c_str(), obj, &faces);
+				getFacesWithMaterial(obj, objMaterial, &faces);
+				addPolygons(mesh, geomID, (objMaterial.name + "-material").c_str(), obj, &faces);
 			}
 		}
 		else
@@ -887,12 +888,12 @@ bool DAESaver::saveDAE(std::string filename)
 
 		// Bind materials
 		daeElement* tq = nodeGeometry->add("bind_material technique_common");
-		for (U32 objMaterial = 0; objMaterial < objMaterials.size(); objMaterial++)
+		for (const auto& objMaterial : objMaterials)
 		{
-			std::string matName = objMaterials[objMaterial].name;
 			daeElement* instanceMaterial = tq->add("instance_material");
-			instanceMaterial->setAttribute("symbol", (matName + "-material").c_str());
-			instanceMaterial->setAttribute("target", ("#" + matName + "-material").c_str());
+			std::string matName = objMaterial.name + "-material";
+			instanceMaterial->setAttribute("symbol", matName.c_str());
+			instanceMaterial->setAttribute("target", ('#' + matName).c_str());
 		}
 
 		nodeGeometry->setAttribute("url", llformat("#%s-%s", geomID, "mesh").c_str());
@@ -903,12 +904,12 @@ bool DAESaver::saveDAE(std::string filename)
 	generateEffects(effects);
 
 	// Materials
-	for (U32 objMaterial = 0; objMaterial < mAllMaterials.size(); objMaterial++)
+	for (const auto& objMaterial : mAllMaterials)
 	{
 		daeElement* mat = materials->add("material");
-		mat->setAttribute("id", (mAllMaterials[objMaterial].name + "-material").c_str());
+		mat->setAttribute("id", (objMaterial.name + "-material").c_str());
 		daeElement* matEffect = mat->add("instance_effect");
-		matEffect->setAttribute("url", ("#" + mAllMaterials[objMaterial].name + "-fx").c_str());
+		matEffect->setAttribute("url", ('#' + objMaterial.name + "-fx").c_str());
 	}
 
 	root->add("scene instance_visual_scene")->setAttribute("url", "#Scene");
@@ -929,11 +930,11 @@ DAESaver::MaterialInfo DAESaver::getMaterial(LLTextureEntry* te)
 {
 	if (gSavedSettings.getBOOL("DAEExportConsolidateMaterials"))
 	{
-		for (U32 i=0; i < mAllMaterials.size(); i++)
+		for (const auto& mat : mAllMaterials)
 		{
-			if (mAllMaterials[i].matches(te))
+			if (mat.matches(te))
 			{
-				return mAllMaterials[i];
+				return mat;
 			}
 		}
 	}
@@ -943,7 +944,7 @@ DAESaver::MaterialInfo DAESaver::getMaterial(LLTextureEntry* te)
 	ret.color = te->getColor();
 	ret.name = llformat("Material%d", mAllMaterials.size());
 	mAllMaterials.push_back(ret);
-	return mAllMaterials[mAllMaterials.size() - 1];
+	return ret;
 }
 
 void DAESaver::getMaterials(LLViewerObject* obj, material_list_t* ret)
@@ -953,10 +954,7 @@ void DAESaver::getMaterials(LLViewerObject* obj, material_list_t* ret)
 	{
 		LLTextureEntry* te = obj->getTE(face_num);
 
-		if (skipFace(te))
-		{
-			continue;
-		}
+		if (skipFace(te)) continue;
 
 		MaterialInfo mat = getMaterial(te);
 
@@ -967,7 +965,7 @@ void DAESaver::getMaterials(LLViewerObject* obj, material_list_t* ret)
 	}
 }
 
-void DAESaver::getFacesWithMaterial(LLViewerObject* obj, MaterialInfo& mat, int_list_t* ret)
+void DAESaver::getFacesWithMaterial(LLViewerObject* obj, const MaterialInfo& mat, int_list_t* ret)
 {
 	S32 num_faces = obj->getVolume()->getNumVolumeFaces();
 	for (S32 face_num = 0; face_num < num_faces; ++face_num)
@@ -984,11 +982,11 @@ void DAESaver::generateEffects(daeElement *effects)
 	// Effects (face color, alpha)
 	bool export_textures = gSavedSettings.getBOOL("DAEExportTextures");
 
-	for (U32 mat = 0; mat < mAllMaterials.size(); mat++)
+	for (const auto& mat : mAllMaterials)
 	{
-		LLColor4 color = mAllMaterials[mat].color;
+		LLColor4 color = mat.color;
 		domEffect* effect = (domEffect*)effects->add("effect");
-		effect->setId((mAllMaterials[mat].name + "-fx").c_str());
+		effect->setId((mat.name + "-fx").c_str());
 		daeElement* profile = effect->add("profile_COMMON");
 		std::string colladaName;
 
@@ -998,7 +996,7 @@ void DAESaver::generateEffects(daeElement *effects)
 			U32 i = 0;
 			for (; i < mTextures.size(); i++)
 			{
-				if (mAllMaterials[mat].textureID == mTextures[i])
+				if (mat.textureID == mTextures[i])
 				{
 					textID = mTextures[i];
 					break;
@@ -1042,19 +1040,18 @@ void DAESaver::generateEffects(daeElement *effects)
 
 void DAESaver::generateImagesSection(daeElement* images)
 {
-	for (U32 i=0; i < mTextureNames.size(); i++)
+	for (const auto& name : mTextureNames)
 	{
-		std::string name = mTextureNames[i];
 		if (name.empty()) continue;
-		std::string colladaName = name + "_" + mImageFormat;
+		std::string colladaName = name + '_' + mImageFormat;
 		daeElement* image = images->add("image");
 		image->setAttribute("id", colladaName.c_str());
 		image->setAttribute("name", colladaName.c_str());
-		image->add("init_from")->setCharData(LLURI::escape(name + "." + mImageFormat));
+		image->add("init_from")->setCharData(LLURI::escape(name + '.' + mImageFormat));
 	}
 }
 
-class DAESaveSelectedObjects : public view_listener_t
+class DAESaveSelectedObjects final : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
 	{

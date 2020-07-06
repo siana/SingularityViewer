@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater can_close="true" can_drag_on_left="false" can_minimize="true" can_resize="true"
-     min_height="300" min_width="400" name="inspect"
+     min_height="300" min_width="480" name="inspect"
      rect_control="FloaterInspectRect" title="Inspect Objects">
 	<scroll_list bottom="30" can_resize="false" column_padding="0" draw_heading="true"
 	     follows="top|right|left|bottom" left="10" multi_select="false"
@@ -22,12 +22,19 @@
 	<button bottom="5" follows="left|bottom" font="SansSerif" halign="center" height="20"
 	     label="See Owner Profile..." label_selected="" left="10"
 	     mouse_opaque="true" name="button owner"
-	     tool_tip="See profile of the highlighted object&apos;s owner" width="150" >
+	     tool_tip="See profile of the highlighted object&apos;s owner" width="152" >
 		<button.commit_callback
 		function="Inspect.OwnerProfile" />
 	</button>
 	<button bottom="5" follows="left|bottom" font="SansSerif" halign="center" height="20"
-	     label="See Creator Profile..." label_selected="" left="170"
+	     label="See Last Owner Profile..." label_selected="" left_delta="154"
+	     mouse_opaque="true" name="button last owner"
+	     tool_tip="See profile of the highlighted object&apos;s last owner" width="152" >
+		<button.commit_callback
+		function="Inspect.LastOwnerProfile" />
+	</button>
+	<button bottom="5" follows="left|bottom" font="SansSerif" halign="center" height="20"
+	     label="See Creator Profile..." label_selected="" left_delta="154"
 	     mouse_opaque="true" name="button creator"
 	     tool_tip="See profile of the highlighted object&apos;s original creator"
 	     width="150" >

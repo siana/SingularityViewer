@@ -39,7 +39,7 @@
 //
 // Classes
 //
-class LLViewerTextEditor : public LLTextEditor
+class LLViewerTextEditor final : public LLTextEditor
 {
 	
 public:
@@ -48,7 +48,8 @@ public:
 					   S32 max_length,
 					   const std::string& default_text = std::string(),
 					   const LLFontGL* glfont = NULL,
-					   BOOL allow_embedded_items = FALSE);
+					   BOOL allow_embedded_items = FALSE,
+					   bool parse_html = false);
 
 	virtual ~LLViewerTextEditor();
 

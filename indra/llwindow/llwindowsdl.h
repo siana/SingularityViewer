@@ -49,7 +49,7 @@
 class LLWindowSDL : public LLWindow
 {
 public:
-	/*virtual*/ void show();
+	/*virtual*/ void show(bool focus);
 	/*virtual*/ void hide();
 	/*virtual*/ void close();
 	/*virtual*/ BOOL getVisible();
@@ -65,7 +65,7 @@ public:
 	/*virtual*/ BOOL setPosition(LLCoordScreen position);
 	/*virtual*/ BOOL setSizeImpl(LLCoordScreen size);
 	/*virtual*/ BOOL setSizeImpl(LLCoordWindow size);
-	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, const LLCoordScreen * const posp = NULL);
+	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, std::function<void()> stopFn, std::function<void(bool)> restoreFn, const LLCoordScreen * const posp = NULL);
 	/*virtual*/ BOOL setCursorPosition(LLCoordWindow position);
 	/*virtual*/ BOOL getCursorPosition(LLCoordWindow *position);
 	/*virtual*/ void showCursor();
@@ -135,8 +135,6 @@ public:
 	Window mSDL_XWindowID;
 	Display *mSDL_Display;
 #endif
-	void (*Lock_Display)(void);
-	void (*Unlock_Display)(void);
 
 #if LL_GTK
 	// Lazily initialize and check the runtime GTK version for goodness.
@@ -216,6 +214,7 @@ private:
 	U32 mKeyScanCode;
         U32 mKeyVirtualKey;
 	SDLMod mKeyModifiers;
+	U32 mKeySym;
 };
 
 

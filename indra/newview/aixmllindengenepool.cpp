@@ -49,11 +49,10 @@
 #include "llviewerprecompiledheaders.h"
 #include "aixmllindengenepool.h"
 #include "hippogridmanager.h"
+#include "llinventorymodel.h"
 #include "llvisualparam.h"
 #include "llviewerwearable.h"
 #include "llquantize.h"
-
-extern void append_path_short(LLUUID const& id, std::string& path);
 
 void AIXMLLindenGenepool::MetaData::toXML(std::ostream& os, int indentation) const
 {
@@ -68,7 +67,7 @@ AIXMLLindenGenepool::MetaData::MetaData(AIXMLElementParser const& parser)
   parser.attribute(DEFAULT_LLDATE_NAME, mDate);
 }
 
-AIXMLLindenGenepool::AIXMLLindenGenepool(LLFILE* fp) : AIXMLRootElement(fp, "linden_genepool")
+AIXMLLindenGenepool::AIXMLLindenGenepool(const std::string& filename) : AIXMLRootElement(filename, "linden_genepool")
 {
   attribute("version", "1.0");
   attribute("metaversion", "1.0");
@@ -145,7 +144,20 @@ AIArchetype::MetaData::MetaData(AIXMLElementParser const& parser)
 
 AIArchetype::MetaData::MetaData(LLViewerWearable const* wearable) : mName(wearable->getName()), mDescription(wearable->getDescription())
 {
-  append_path_short(wearable->getItemID(), mPath);
+	// Path should already end on '/' if it is not empty.
+	const LLUUID& root_id = gInventory.getRootFolderID();
+	LLUUID id = wearable->getItemID();
+	for(const LLInventoryObject* obj = gInventory.getObject(id); obj && id != root_id; obj = gInventory.getCategory(id))
+	{
+		std::string temp(mPath);
+		mPath = obj->getName();
+		if (!temp.empty())
+		{
+			mPath.append(1, '/');
+			mPath.append(temp);
+		}
+		id = obj->getParentUUID();
+	}
 }
 
 AIArchetype::AIArchetype(void) : mType(LLWearableType::WT_NONE)

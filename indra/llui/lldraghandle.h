@@ -63,6 +63,8 @@ public:
 	virtual BOOL	handleMouseDown(S32 x, S32 y, MASK mask);
 	virtual BOOL	handleMouseUp(S32 x, S32 y, MASK mask);
 
+	virtual void	setTextColor(const LLColor4& color);
+
 protected:
 	LLTextBox*		getTitleBox() const { return mTitleBox; }
 	void			setTitleBox(LLTextBox*);

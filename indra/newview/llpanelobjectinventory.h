@@ -52,6 +52,7 @@ public:
 
 	void refresh();
 	const LLUUID& getTaskUUID() { return mTaskUUID;}
+	void clearInventoryTask();
 	void removeSelectedItem();
 	void startRenamingSelectedItem();
 	
@@ -77,7 +78,6 @@ protected:
 	void createViewsForCategory(LLInventoryObject::object_list_t* inventory,
 								LLInventoryObject* parent,
 								LLFolderViewFolder* folder);
-
 	void clearContents();
 
 private:

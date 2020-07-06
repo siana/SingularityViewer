@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -39,16 +39,10 @@ VARYING vec2 vary_texcoord0;
 
 void main() 
 {
-	float shadow = 1.0;
-
-	vec4 color = diffuseLookup(vary_texcoord0.xy)*vertex_color;
-	if(color.a < .01)
+	float alpha = diffuseLookup(vary_texcoord0.xy).a*vertex_color.a;
+	if(alpha < .01)
 		discard;
-	color.rgb = pow(color.rgb, vec3(2.2));
-	color.rgb = fullbrightAtmosTransport(color.rgb);
 
-	color.rgb = fullbrightScaleSoftClip(color.rgb);
-
-	frag_color = color;
+	frag_color = vec4(0,0,0,alpha);
 }
 

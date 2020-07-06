@@ -1,0 +1,166 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  VIEWER_USE_CRASHPAD: "TRUE"
+  VIEWER_CRASHPAD_URL: $SENTRY_DSN
+
+.win_build: &win_build
+  stage: build
+  tags:
+    - autobuild
+    - windows
+  before_script:
+    - pipenv install
+  script:
+    - If ($env:VIEWER_CHANNEL_TYPE -eq 'Project')
+      {
+          $env:VIEWER_CHANNEL_CODENAME = $env:CI_COMMIT_REF_NAME[8..100] -join ''
+      }
+    - pipenv run autobuild configure -c Release -- -DUSE_FMODSTUDIO=ON -DUSE_NVAPI=ON -DUSE_LTO=ON -DVS_DISABLE_FATAL_WARNINGS=ON
+    - pipenv run autobuild build -c Release --no-configure
+    - If ($env:VIEWER_USE_CRASHPAD -eq 'TRUE') {
+    - Push-Location .\build-vc-*\newview\Release\
+    - sentry-cli upload-dif --include-sources singularity-bin.exe singularity-bin.pdb crashpad_handler.exe crashpad_handler.pdb fmod.dll libcrypto-1_1.dll libcrypto-1_1.pdb libssl-1_1.dll libssl-1_1.pdb libcrypto-1_1-x64.dll libcrypto-1_1-x64.pdb libssl-1_1-x64.dll libssl-1_1-x64.pdb vcruntime140.dll msvcp140.dll libhunspell.dll libhunspell.pdb glod.dll
+    - Pop-Location }
+  artifacts:
+    name: "$env:CI_COMMIT_REF_NAME-$env:CI_COMMIT_SHORT_SHA"
+    expire_in: 2 week
+    paths:
+      - build-vc-*/newview/Release/build_data.json
+      - build-vc-*/newview/Release/singularity-bin.pdb
+      - build-vc-*/newview/Release/Singularity_*_Setup.exe
+
+.beta_rules: &beta_rules
+  only:
+    - /^.*-beta$/
+  except:
+    - branches
+
+.release_rules: &release_rules
+  only:
+    - /^.*-release$/
+  except:
+    - branches
+
+build:master:windows32:
+  <<: *win_build
+  interruptible: true
+  variables:
+    AUTOBUILD_ADDRSIZE: 32
+    VIEWER_CHANNEL_TYPE: Test
+    VIEWER_USE_CRASHPAD: "FALSE"
+  only:
+    - schedules
+
+build:master:windows64:
+  <<: *win_build
+  interruptible: true
+  variables:
+    AUTOBUILD_ADDRSIZE: 64
+    VIEWER_CHANNEL_TYPE: Test
+    VIEWER_USE_CRASHPAD: "FALSE"
+  only:
+    - schedules
+
+build:project:windows32:
+  <<: *win_build
+  interruptible: true
+  variables:
+    AUTOBUILD_ADDRSIZE: 32
+    VIEWER_CHANNEL_TYPE: Project
+    VIEWER_USE_CRASHPAD: "FALSE"
+  only:
+    - /^project-.*$/
+
+build:project:windows64:
+  <<: *win_build
+  interruptible: true
+  variables:
+    AUTOBUILD_ADDRSIZE: 64
+    VIEWER_CHANNEL_TYPE: Project
+  only:
+    - /^project-.*$/
+
+build:beta:windows32:
+  <<: *win_build
+  variables:
+    AUTOBUILD_ADDRSIZE: 32
+    VIEWER_CHANNEL_TYPE: Beta
+    VIEWER_USE_CRASHPAD: "FALSE"
+  <<: *beta_rules
+
+build:beta:windows64:
+  <<: *win_build
+  variables:
+    AUTOBUILD_ADDRSIZE: 64
+    VIEWER_CHANNEL_TYPE: Beta
+  <<: *beta_rules
+
+build:release:windows32:
+  <<: *win_build
+  variables:
+    AUTOBUILD_ADDRSIZE: 32
+    VIEWER_CHANNEL_TYPE: Release
+    VIEWER_USE_CRASHPAD: "FALSE"
+  <<: *release_rules
+
+build:release:windows64:
+  <<: *win_build
+  variables:
+    AUTOBUILD_ADDRSIZE: 64
+    VIEWER_CHANNEL_TYPE: Release
+  <<: *release_rules
+
+.deploy_template: &deploy_template
+  stage: deploy
+  tags:
+    - autobuild
+    - windows
+  script:
+    - $BuildData = Get-Content .\build-vc-64\newview\Release\build_data.json | ConvertFrom-Json
+    - $BuildChannelVersion = $BuildData."Channel" + ' ' + $BuildData."Version"
+    - $UploadDestViewerDir = $BuildChannelVersion.ToLower().Replace(" ", "/")
+    - $UploadDestURL = "https://pkg.alchemyviewer.org/repository/viewer/${UploadDestViewerDir}"
+
+    - $UploadParams = @{ UseBasicParsing = $true;
+      Method = "PUT";
+      Headers         = @{
+        ContentType = "application/x-executable";
+        Authorization = "Basic $([System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$env:AUTOBUILD_HTTP_USER`:$env:AUTOBUILD_HTTP_PASS")))"; };
+      Verbose = $true; };
+
+    - Push-Location .\build-vc-32\newview\Release\
+    - $FileNameWin32 = Get-ChildItem -Path . -Name -Include Singularity_*_Setup.exe
+    - Invoke-WebRequest @UploadParams -InFile .\$FileNameWin32 -Uri "${UploadDestURL}/${FileNameWin32}"
+    - Pop-Location
+
+    - Push-Location .\build-vc-64\newview\Release\
+    - $FileNameWin64 = Get-ChildItem -Path . -Name -Include Singularity_*_Setup.exe
+    - Invoke-WebRequest @UploadParams -InFile .\$FileNameWin64 -Uri "${UploadDestURL}/${FileNameWin64}"
+    - Pop-Location
+
+    - sentry-cli releases new $BuildChannelVersion
+    - sentry-cli releases set-commits --auto $BuildChannelVersion
+    - sentry-cli releases finalize $BuildChannelVersion
+  when: manual
+
+deploy_project:
+  <<: *deploy_template
+  environment:
+    name: qa
+  only:
+    - /^project-.*$/
+
+deploy_beta:
+  <<: *deploy_template
+  environment:
+    name: staging
+  <<: *beta_rules
+
+deploy_release:
+  <<: *deploy_template
+  environment:
+    name: production
+  <<: *release_rules

@@ -10,11 +10,13 @@
 	<string name="default_text_label">Click here to instant message.</string>
 	<string name="moderated_chat_label">(Moderated: Voices off by default)</string>
 	<string name="muted_text_label">Your text chat has been disabled by a Group Moderator.</string>
-    <button bottom="-20" follows="right|top" height="20" label="Group Info" right="-290" name="group_info_btn" tab_group="0" width="80"/>
-	<button bottom_delta="0" follows="right|top" height="20" label="History" left_delta="80" name="history_btn" width="80"/>
-    <button bottom_delta="0" follows="right|top" height="20" left_delta="80" width="50" toggle="true" name="ding_btn" label="Ding">
+    <flyout_button bottom="-20" follows="right|top" halign="center" height="20" label="Group Info" right="-260" name="instant_message_flyout" width="100" list_position="below">
+      <flyout_button_item label="History" name="history_btn" value="1"/>
+    </flyout_button>
+    <button bottom_delta="0" follows="right|top" height="20" left_delta="100" width="50" toggle="true" name="ding_btn" label="Ding">
       <button.commit_callback function="FlipDing"/>
     </button>
+    <check_box name="Support Check" label="#" tool_tip="Uncheck to stop sending build number" follows="right|top" bottom_delta="0" left_delta="50" visible="false" control_name="SupportChatDisplayBuild"/>
     <button bottom_delta="0" enabled="false" follows="right|top" halign="right" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Join Call" left_delta="50" name="start_call_btn" width="80"/>
 	<button bottom_delta="0" follows="right|top" halign="right" height="20" image_overlay="icn_voice-call-end.tga" image_overlay_alignment="left" label="End Call" left_delta="0" name="end_call_btn" pad_right="12" visible="false" width="80"/>
 	<button bottom_delta="0" follows="right|top" height="20" label="&lt; &lt;" label_selected="&gt; &gt;" toggle="true" left="420" name="toggle_active_speakers_btn" right="450" tool_tip="Click here to toggle a list of active participants in this IM session." visible="true" width="80"/>

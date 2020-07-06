@@ -35,7 +35,6 @@
 
 #include "llcallbacklist.h"
 #include "lldir.h"
-#include "lleconomy.h"
 #include "llhttpclient.h"
 #include "llinventorydefines.h"
 #include "llimagej2c.h"
@@ -525,8 +524,7 @@ bool LLObjectBackup::validateNode(LLSelectNode* node)
 		}
 		else
 		{
-			LLSculptParams* params;
-			params = (LLSculptParams*)obj->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+			const LLSculptParams* params = obj->getSculptParams();
 			LLUUID sculpt_id = params->getSculptTexture();
 			return validateTexturePerms(sculpt_id);
 		}
@@ -871,23 +869,24 @@ LLSD LLObjectBackup::primsToLLSD(LLViewerObject::child_list_t child_list,
 		if (object->isFlexible())
 		{
 			// Flexible
-			LLFlexibleObjectData* flex;
-			flex = (LLFlexibleObjectData*)object->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
-			prim_llsd["flexible"] = flex->asLLSD();
+			const LLFlexibleObjectData* flex = object->getFlexibleObjectData();
+			if (flex)
+			{
+				prim_llsd["flexible"] = flex->asLLSD();
+			}
 		}
 
-		if (object->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT))
+		const LLLightParams* light = object->getLightParams();
+		if (light)
 		{
 			// Light
-			LLLightParams* light;
-			light = (LLLightParams*)object->getParameterEntry(LLNetworkData::PARAMS_LIGHT);
 			prim_llsd["light"] = light->asLLSD();
 		}
-		if (object->getParameterEntryInUse(LLNetworkData::PARAMS_LIGHT_IMAGE))
+
+		const LLLightImageParams* light_param = object->getLightImageParams();
+		if (light_param)
 		{
 			// Light image
-			LLLightImageParams* light_param;
-			light_param = (LLLightImageParams*)object->getParameterEntry(LLNetworkData::PARAMS_LIGHT_IMAGE);
 			t_id = validateTextureID(light_param->getLightTexture());
 			if (mTexturesList.count(t_id) == 0)
 			{
@@ -898,11 +897,10 @@ LLSD LLObjectBackup::primsToLLSD(LLViewerObject::child_list_t child_list,
 			prim_llsd["light_texture"] = light_param->asLLSD();
 		}
 
-		if (object->getParameterEntryInUse(LLNetworkData::PARAMS_SCULPT))
+		const LLSculptParams* sculpt = object->getSculptParams();
+		if (sculpt)
 		{
 			// Sculpt
-			LLSculptParams* sculpt;
-			sculpt = (LLSculptParams*)object->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
 			prim_llsd["sculpt"] = sculpt->asLLSD();
 			if ((sculpt->getSculptType() & LL_SCULPT_TYPE_MASK) != LL_SCULPT_TYPE_MESH)
 			{
@@ -1021,7 +1019,7 @@ void LLObjectBackup::exportNextTexture()
 			continue;
 		}
 
-		LLViewerTexture* imagep = LLViewerTextureManager::findTexture(id);
+		LLViewerTexture* imagep = LLViewerTextureManager::findFetchedTexture(id, TEX_LIST_STANDARD);
 		if (imagep)
 		{
 			if (imagep->getDiscardLevel() > 0)
@@ -1124,11 +1122,9 @@ void LLObjectBackup::importObject_continued(AIFilePicker* filepicker)
 	mRezCount = 0;
 	updateImportNumbers();
 
-	for (LLSD::array_const_iterator prim_arr_it = mLLSD["data"].beginArray(),
-									prim_arr_end = mLLSD["data"].endArray();
-		 prim_arr_it != prim_arr_end; ++prim_arr_it)
+	for (auto const& entry : mLLSD["data"].array())
 	{
-		LLSD llsd2 = (*prim_arr_it)["group_body"];
+		LLSD llsd2 = entry["group_body"];
 
 		for (LLSD::map_const_iterator prim_it = llsd2.beginMap(),
 									  prim_end = llsd2.endMap();
@@ -1370,7 +1366,7 @@ void LLObjectBackup::xmlToPrim(LLSD prim_llsd, LLViewerObject* object)
 		LLUUID t_id = sculpt.getSculptTexture();
 		if (mAssetMap.count(t_id))
 		{
-			sculpt.setSculptTexture(mAssetMap[t_id]);
+			sculpt.setSculptTexture(mAssetMap[t_id], sculpt.getSculptType());
 		}
 
 		object->setParameterEntry(LLNetworkData::PARAMS_SCULPT, sculpt, true);

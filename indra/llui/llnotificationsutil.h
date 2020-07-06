@@ -30,6 +30,7 @@
 // to avoid including the heavyweight llnotifications.h
 
 #include "llnotificationptr.h"
+#include "lluuid.h"
 #include "aialert.h"
 
 #ifndef BOOST_FUNCTION_HPP_INCLUDED

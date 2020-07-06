@@ -33,14 +33,13 @@
 
 
 LLScreenClipRect::LLScreenClipRect(const LLRect& rect, BOOL enabled)
-:	mScissorState(GL_SCISSOR_TEST),
-	mEnabled(enabled)
+:	mScissorState(enabled),
+	mEnabled(enabled),
+	mRootScissorRect(gGL.getScissor())
 {
 	if (mEnabled)
 	{
 		pushClipRect(rect);
-		mScissorState.setEnabled(!sClipRectStack.empty());
-		updateScissorRegion();
 	}
 }
 
@@ -49,11 +48,9 @@ LLScreenClipRect::~LLScreenClipRect()
 	if (mEnabled)
 	{
 		popClipRect();
-		updateScissorRegion();
 	}
 }
 
-//static 
 void LLScreenClipRect::pushClipRect(const LLRect& rect)
 {
 	LLRect combined_clip_rect = rect;
@@ -68,23 +65,27 @@ void LLScreenClipRect::pushClipRect(const LLRect& rect)
 			combined_clip_rect = LLRect::null;
 		}
 	}
+	
 	sClipRectStack.push(combined_clip_rect);
+	updateScissorRegion();
 }
 
-//static 
 void LLScreenClipRect::popClipRect()
 {
 	sClipRectStack.pop();
+	if (!sClipRectStack.empty())
+	{
+		updateScissorRegion();
+	}
+	else
+	{
+		gGL.setScissor(mRootScissorRect);
+	}
 }
 
-//static
+// static
 void LLScreenClipRect::updateScissorRegion()
 {
-	if (sClipRectStack.empty()) return;
-
-	// finish any deferred calls in the old clipping region
-	gGL.flush();
-
 	LLRect rect = sClipRectStack.top();
 	stop_glerror();
 	S32 x,y,w,h;
@@ -92,7 +93,7 @@ void LLScreenClipRect::updateScissorRegion()
 	y = llfloor(rect.mBottom * LLUI::getScaleFactor().mV[VY]);
 	w = llmax(0, llceil(rect.getWidth() * LLUI::getScaleFactor().mV[VX])) + 1;
 	h = llmax(0, llceil(rect.getHeight() * LLUI::getScaleFactor().mV[VY])) + 1;
-	glScissor( x,y,w,h );
+	gGL.setScissor( x,y,w,h );
 	stop_glerror();
 }
 

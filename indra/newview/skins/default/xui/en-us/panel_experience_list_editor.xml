@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel
+  left="0"
+  bottom="100"
+  width="300"
+  height="100"
+  min_height="100"
+  follows="all">
+  <panel.string
+    name="loading">
+    loading...
+  </panel.string>
+   <panel.string
+      name="panel_allowed">
+      Allowed Experiences:
+   </panel.string>
+   <panel.string
+      name="panel_blocked">
+      Blocked Experiences:
+   </panel.string>
+   <panel.string
+      name="panel_trusted">
+      Trusted Experiences:
+   </panel.string>
+  <panel.string
+    name="no_results">
+    (empty)
+  </panel.string>
+   <text
+      name="text_name"
+      left="3"
+      right="120"
+      height="12"
+      follows="bottom|left|top">
+      Experience List
+   </text>
+   <text
+      name="text_count"
+      left="125"
+      right="-1"
+      height="12"
+      bottom_delta="0"
+      follows="top|left">
+   </text>
+  <name_list
+    draw_heading="false"
+    top="-24"
+    left="3"
+    width="225"
+    bottom="10"
+    follows="all"
+    menu_num="3"
+    name="experience_list">
+    <columns
+      width="225"
+      user_resize="false"
+      name="experience_name"
+      label="Name"/>
+  </name_list>
+  <button
+    follows="top|right"
+    bottom="58"
+    left_delta="228"
+    width="65"
+    height="20"
+    name="btn_add"
+    label="Add..."/>
+  <button
+    follows="top|right"
+    width="64"
+    height="20"
+    name="btn_remove"
+    label="Remove"/>
+  <button
+    follows="top|right"
+    width="64"
+    height="20"
+    name="btn_profile"
+    label="Profile..."/>
+</panel>
+

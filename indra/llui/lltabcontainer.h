@@ -98,6 +98,7 @@ public:
 	S32			getIndexForPanel(LLPanel* panel);
 	S32			getPanelIndexByTitle(const std::string& title);
 	LLPanel*	getPanelByName(const std::string& name);
+	S32			getTotalTabWidth() const;
 	void		setCurrentTabName(const std::string& name);
 
 	void		selectFirstTab();

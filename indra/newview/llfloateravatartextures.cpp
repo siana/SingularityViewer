@@ -46,6 +46,10 @@ LLFloaterAvatarTextures::LLFloaterAvatarTextures(const LLUUID& id) :
 	LLFloater(std::string("avatar_texture_debug")),
 	mID(id)
 {
+	for (U32 i = 0; i < TEX_NUM_INDICES; i++)
+	{
+		mTextures[i] = nullptr;
+	}
 }
 
 LLFloaterAvatarTextures::~LLFloaterAvatarTextures()

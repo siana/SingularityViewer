@@ -165,7 +165,6 @@ private:
 	LLSlider*			mVolumeSlider;
 	LLButton*			mMuteBtn;
 	
-	bool				mAllMediaDisabled;
 	bool				mDebugInfoVisible;
 	bool				mParcelAudioAutoStart;
 	std::string			mEmptyNameString;

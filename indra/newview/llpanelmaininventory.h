@@ -1,4 +1,4 @@
-/** 
+	/** 
  * @file llpanelmaininventory.h
  * @brief llpanelmaininventory.h
  * class definition
@@ -46,22 +46,22 @@ class LLFilterEditor;
 class LLComboBox;
 class LLFloaterInventoryFinder;
 
-class LLInventoryView : public LLFloater, LLInventoryObserver
+class LLPanelMainInventory : public LLFloater, LLInventoryObserver
 {
 friend class LLFloaterInventoryFinder;
 
 public:
-	LLInventoryView(const std::string& name, const std::string& rect,
+	LLPanelMainInventory(const std::string& name, const std::string& rect,
 			LLInventoryModel* inventory);
-	LLInventoryView(const std::string& name, const LLRect& rect,
+	LLPanelMainInventory(const std::string& name, const LLRect& rect,
 					LLInventoryModel* inventory);
-	~LLInventoryView();
+	~LLPanelMainInventory();
 
 	 BOOL postBuild();
 	
 //TODO: Move these statics.
-	static LLInventoryView* showAgentInventory(BOOL take_keyboard_focus=FALSE);
-	static LLInventoryView* getActiveInventory();
+	static LLPanelMainInventory* showAgentInventory(BOOL take_keyboard_focus=FALSE);
+	static LLPanelMainInventory* getActiveInventory();
 	static void toggleVisibility();
 	static void toggleVisibility(void*) { toggleVisibility(); }
 	// Final cleanup, destroy all open inventory views.
@@ -80,9 +80,8 @@ public:
 		void* cargo_data,
 		EAcceptance* accept,
 		std::string& tooltip_msg);
-	/*virtual*/ void changed(U32 mask);
+	/*virtual*/ void changed(U32);
 	/*virtual*/ void draw();
-	
 
 	LLInventoryPanel* getPanel() { return mActivePanel; }
 	LLInventoryPanel* getActivePanel() { return mActivePanel; }
@@ -92,6 +91,7 @@ public:
 	const std::string& getFilterText() const { return mFilterText; }
 
 	void setSelectCallback(const LLFolderView::signal_t::slot_type& cb);
+
 	void onFilterEdit(const std::string& search_string);
 	//
 	// Misc functions
@@ -103,25 +103,21 @@ public:
 	void onSelectionChange(LLInventoryPanel *panel, const std::deque<LLFolderViewItem*>& items, BOOL user_action);
 
 	static BOOL filtersVisible(void* user_data);
-	void onClearSearch();
 	static void onFoldersByName(void *user_data);
 	static BOOL checkFoldersByName(void *user_data);
-	
 	
 	void onFilterSelected();
 	
 	const std::string getFilterSubString();
 	void setFilterSubString(const std::string& string);
 		
-
-
 	static void onQuickFilterCommit(LLUICtrl* ctrl, void* user_data);
 	static void refreshQuickFilter(LLUICtrl* ctrl);
-	
+
 	static void onResetAll(void* userdata);
 	static void onExpandAll(void* userdata);
-    static void onCollapseAll(void* userdata);
-	
+	static void onCollapseAll(void* userdata);
+
 	void updateSortControls();
 
 	void resetFilters();
@@ -132,7 +128,7 @@ public:
 	{
 		// If there are mulitple inventory floaters open then clicking the "Inventory" button will close
 		// them one by one (see LLToolBar::onClickInventory() => toggleVisibility() ) until we get to the
-		// last one which will just be hidden instead of closed/destroyed (see LLInventoryView::onClose)
+		// last one which will just be hidden instead of closed/destroyed (see LLPanelMainInventory::onClose)
 		//
 		// However the view isn't removed from sActiveViews until its destructor is called and since
 		// 'LLMortician::sDestroyImmediate == FALSE' while the viewer is running the destructor won't be 
@@ -143,7 +139,7 @@ public:
 		//
 		// Workaround: "fix" onClose() to count only views that aren't marked as "dead"
 
-		LLInventoryView* pView; U8 flagsSound;
+		LLPanelMainInventory* pView; U8 flagsSound;
 		for (S32 idx = sActiveViews.size() - 1; idx >= 0; idx--)
 		{
 			pView = sActiveViews.at(idx);
@@ -162,22 +158,21 @@ protected:
 
 protected:
 	LLFloaterInventoryFinder* getFinder();
+
 	LLFilterEditor*				mFilterEditor;
 	LLComboBox*					mQuickFilterCombo;
 	LLTabContainer*				mFilterTabs;
 	LLHandle<LLFloater>			mFinderHandle;
 	LLInventoryPanel*			mActivePanel;
 	bool						mResortActivePanel;
-	LLSaveFolderState*			mSavedFolderState;
 	std::string					mFilterText;
 	//std::string					mFilterSubString;
 
 
 	// This container is used to hold all active inventory views. This
 	// is here to support the inventory toggle show button.
-	static std::vector<LLInventoryView*> sActiveViews;
+	static std::vector<LLPanelMainInventory*> sActiveViews;
 };
-
 
 #endif // LL_LLPANELMAININVENTORY_H
 

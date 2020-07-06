@@ -49,6 +49,9 @@
 
 LLFloaterJoystick::LLFloaterJoystick(const LLSD& data)
 	: LLFloater("floater_joystick")
+	, mCheckJoystickEnabled(nullptr)
+	, mCheckFlycamEnabled(nullptr)
+	, mAxisStatsBar({ {nullptr,nullptr,nullptr,nullptr,nullptr,nullptr} })
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_joystick.xml");
 	center();
@@ -56,27 +59,21 @@ LLFloaterJoystick::LLFloaterJoystick(const LLSD& data)
 
 void LLFloaterJoystick::draw()
 {
+	// Singu TODO: Cache these children, or consider not doing this in the draw call
 	bool joystick_inited = LLViewerJoystick::getInstance()->isJoystickInitialized();
 	childSetEnabled("enable_joystick", joystick_inited);
-	childSetEnabled("joystick_type", joystick_inited);
+	auto type(getChild<LLView>("joystick_type"));
+	type->setEnabled(joystick_inited);
 	std::string desc = LLViewerJoystick::getInstance()->getDescription();
 	if (desc.empty()) desc = getString("NoDevice");
-	childSetText("joystick_type", desc);
+	type->setValue(desc);
 
 	LLViewerJoystick* joystick(LLViewerJoystick::getInstance());
-	for (U32 i = 0; i < 6; i++)
+	for (U32 i = 0; i < 6; ++i)
 	{
 		F32 value = joystick->getJoystickAxis(i);
+		mAxisStatsBar[i]->fit(value);
 		mAxisStats[i]->addValue(value * gFrameIntervalSeconds);
-		
-		if (mAxisStatsBar[i]->mMinBar > value)
-		{
-			mAxisStatsBar[i]->mMinBar = value;
-		}
-		if (mAxisStatsBar[i]->mMaxBar < value)
-		{
-			mAxisStatsBar[i]->mMaxBar = value;
-		}
 	}
 
 	LLFloater::draw();
@@ -112,11 +109,12 @@ BOOL LLFloaterJoystick::postBuild()
 		axis.setArg("[NUM]", llformat("%d", i));
 		std::string stat_name(llformat("Joystick axis %d", i));
 		mAxisStats[i] = new LLStat(stat_name,4);
-		mAxisStatsBar[i] = mAxisStatsView->addStat(axis, mAxisStats[i]);
-		mAxisStatsBar[i]->mMinBar = -range;
-		mAxisStatsBar[i]->mMaxBar = range;
-		mAxisStatsBar[i]->mLabelSpacing = range * 0.5f;
-		mAxisStatsBar[i]->mTickSpacing = range * 0.25f;			
+		LLStatBar::Parameters params;
+		params.mMinBar = -range;
+		params.mMaxBar = range;
+		params.mLabelSpacing = range * 0.5f;
+		params.mTickSpacing = range * 0.25f;
+		mAxisStatsBar[i] = mAxisStatsView->addStat(axis, mAxisStats[i], params);
 	}
 
 	addChild(mAxisStatsView);

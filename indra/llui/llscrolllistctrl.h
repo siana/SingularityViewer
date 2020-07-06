@@ -32,6 +32,7 @@
 #include <vector>
 #include <deque>
 
+#include "lfidbearer.h"
 #include "lluictrl.h"
 #include "llctrlselectioninterface.h"
 #include "llfontgl.h"
@@ -48,6 +49,7 @@ class LLMenuGL;
 
 class LLScrollListCtrl : public LLUICtrl, public LLEditMenuHandler, 
 	public LLCtrlListInterface, public LLCtrlScrollInterface
+,	public LFIDBearer
 {
 public:
 	typedef boost::function<void (void)> callback_t;
@@ -194,12 +196,12 @@ public:
 	// "StringUUID" interface: use this when you're creating a list that contains non-unique strings each of which
 	// has an associated, unique UUID, and only one of which can be selected at a time.
 	LLScrollListItem*	addStringUUIDItem(const std::string& item_text, const LLUUID& id, EAddPosition pos = ADD_BOTTOM, BOOL enabled = TRUE);
-	LLUUID				getStringUUIDSelectedItem() const;
+	LLUUID				getStringUUIDSelectedItem() const override final;
 
 	LLScrollListItem*	getFirstSelected() const;
 	virtual S32			getFirstSelectedIndex() const;
 	std::vector<LLScrollListItem*> getAllSelected() const;
-	uuid_vec_t 	getSelectedIDs(); //Helper. Much like getAllSelected, but just provides a LLUUID vec
+	uuid_vec_t 	getSelectedIDs() const override final; //Helper. Much like getAllSelected, but just provides a LLUUID vec
 	S32                 getNumSelected() const;
 	LLScrollListItem*	getLastSelectedItem() const { return mLastSelected; }
 
@@ -207,6 +209,7 @@ public:
 	LLScrollListItem*	getFirstData() const;
 	LLScrollListItem*	getLastData() const;
 	std::vector<LLScrollListItem*>	getAllData() const;
+	uuid_vec_t getAllIDs() const; //Helper. Much like getAllData, but just provides a LLUUID vec
 
 	LLScrollListItem*	getItem(const LLSD& sd) const;
 	
@@ -248,8 +251,21 @@ public:
 
 	void			clearSearchString() { mSearchString.clear(); }
 
-	// support right-click context menus for avatar/group lists
+	bool			filterItem(LLScrollListItem* item);
+	void			setFilter(const std::string& filter);
+
+	// Context Menus
 	void setContextMenu(LLMenuGL* menu) { mPopupMenu = menu; }
+	void setContextMenu(U8 index) { mPopupMenu = sMenus[index]; }
+	void setContextMenu(const std::string& menu);
+
+	Type getSelectedType() const override
+	{
+		for (auto i = 0; mPopupMenu && i < COUNT; ++i)
+			if (sMenus[i] == mPopupMenu)
+				return (Type)i;
+		return LFIDBearer::getSelectedType();
+	}
 
 	// Overridden from LLView
 	/*virtual*/ void    draw();
@@ -273,6 +289,7 @@ public:
 	virtual void	resetDirty();		// Clear dirty state
 
 	virtual void	updateLayout();
+	void			adjustScrollbar(S32 doc_size);
 	virtual void	fitContents(S32 max_width, S32 max_height);
 
 	virtual LLRect	getRequiredRect();
@@ -288,7 +305,7 @@ public:
 
 	static void onClickColumn(void *userdata);
 
-	virtual void updateColumns();
+	virtual void updateColumns(bool force_update = false);
 	S32 calcMaxContentWidth();
 	bool updateColumnWidths();
 	S32 getMaxContentWidth() { return mMaxContentWidth; }
@@ -305,7 +322,7 @@ public:
 	virtual void		scrollToShowSelected();
 
 	// LLEditMenuHandler functions
-	virtual void	copy();
+	void			copy() const override final;
 	virtual BOOL	canCopy() const;
 	virtual void	cut();
 	virtual BOOL	canCut() const;
@@ -318,10 +335,15 @@ public:
 	void updateStaticColumnWidth(LLScrollListColumn* col, S32 new_width);
 	S32 getTotalStaticColumnWidth() { return mTotalStaticColumnWidth; }
 
+	typedef std::pair<S32, bool> sort_column_t;
+	typedef std::vector<sort_column_t> sort_order_t;
+	const sort_order_t& getSortOrder() const { return mSortColumns; }
 	std::string     getSortColumnName();
 	BOOL			getSortAscending() { return mSortColumns.empty() ? TRUE : mSortColumns.back().second; }
 	BOOL			hasSortOrder() const;
+	void			setSortOrder(const sort_order_t& order);
 	void			clearSortOrder();
+	void			setSortEnabled(bool sort);
 
 	template<typename T> S32 selectMultiple(const std::vector<T>& vec)
 	{
@@ -351,7 +373,7 @@ public:
 	void			setNeedsSortColumn(S32 col)
 	{
 		if(!isSorted())return;
-		for(std::vector<std::pair<S32, BOOL> >::iterator it=mSortColumns.begin();it!=mSortColumns.end();++it)
+		for(auto it=mSortColumns.begin();it!=mSortColumns.end();++it)
 		{
 			if((*it).first == col)
 			{
@@ -368,6 +390,7 @@ public:
 		return mSortCallback->connect(cb);
 	}
 
+	S32				getLinesPerPage();
 
 protected:
 	// "Full" interface: use this when you're creating a list that has one or more of the following:
@@ -404,7 +427,6 @@ private:
 	void			deselectItem(LLScrollListItem* itemp);
 	void			commitIfChanged();
 	BOOL			setSort(S32 column, BOOL ascending);
-	S32				getLinesPerPage();
 
 	S32				mLineHeight;	// the max height of a single line
 	S32				mScrollLines;	// how many lines we've scrolled down
@@ -423,6 +445,7 @@ private:
 	bool			mDisplayColumnHeaders;
 	bool			mColumnsDirty;
 	bool			mColumnWidthsDirty;
+	bool			mSortEnabled;
 
 	mutable item_list	mItemList;
 
@@ -454,11 +477,13 @@ private:
 	S32				mHighlightedItem;
 	class LLViewBorder*	mBorder;
 	LLMenuGL	*mPopupMenu;
-	
+
 	LLView			*mCommentTextView;
 
 	LLWString		mSearchString;
 	LLFrameTimer	mSearchTimer;
+
+	std::string		mFilter;
 	
 	S32				mSearchColumn;
 	S32				mNumDynamicWidthColumns;
@@ -476,8 +501,7 @@ private:
 	typedef std::vector<LLScrollListColumn*> ordered_columns_t;
 	ordered_columns_t	mColumnsIndexed;
 
-	typedef std::pair<S32, BOOL> sort_column_t;
-	std::vector<sort_column_t>	mSortColumns;
+	sort_order_t	mSortColumns;
 
 	sort_signal_t*	mSortCallback;
 }; // end class LLScrollListCtrl

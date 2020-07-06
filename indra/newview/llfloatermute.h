@@ -72,6 +72,7 @@ private:
 	void onPickUser(const uuid_vec_t& ids, const std::vector<LLAvatarName>& names);
 	static void onClickMuteByName(void*);
 	static void callbackMuteByName(const std::string& text, void*);
+	void showProfile() const;
 
 private:
 	LLNameListCtrl*			mMuteList;

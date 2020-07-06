@@ -70,7 +70,6 @@
 #include "llnotify.h"
 #include "llkeyboard.h"
 #include "llerrorcontrol.h"
-#include "sgversion.h"
 #include "llappviewer.h"
 #include "llvosurfacepatch.h"
 #include "llvowlsky.h"
@@ -95,10 +94,8 @@ AIThreadSafeDC<settings_map_type> gSettings;
 LLControlGroup gSavedSettings("Global");	// saved at end of session
 LLControlGroup gSavedPerAccountSettings("PerAccount"); // saved at end of session
 LLControlGroup gColors("Colors");	// saved at end of session
-LLControlGroup gCrashSettings("CrashSettings");	// saved at end of session
 
 std::string gLastRunVersion;
-std::string gCurrentVersion;
 
 extern BOOL gResizeScreenTexture;
 extern BOOL gDebugGL;
@@ -137,6 +134,16 @@ bool handleStateMachineMaxTimeChanged(const LLSD& newvalue)
 {
 	F32 StateMachineMaxTime = newvalue.asFloat();
 	AIEngine::setMaxCount(StateMachineMaxTime);
+	return true;
+}
+
+extern bool sInwlfPanelUpdate;
+static bool handleAvatarHoverOffsetChanged(const LLSD& newvalue)
+{
+	if (!sInwlfPanelUpdate && isAgentAvatarValid())
+	{
+		gAgentAvatarp->setHoverIfRegionEnabled();
+	}
 	return true;
 }
 
@@ -327,7 +334,7 @@ static bool handleMaxPartCountChanged(const LLSD& newvalue)
 
 static bool handleVideoMemoryChanged(const LLSD& newvalue)
 {
-	gTextureList.updateMaxResidentTexMem(newvalue.asInteger());
+	gTextureList.updateMaxResidentTexMem(S32Megabytes(newvalue.asInteger()));
 	return true;
 }
 
@@ -447,6 +454,7 @@ static bool handleRepartition(const LLSD&)
 	if (gPipeline.isInit())
 	{
 		gOctreeMaxCapacity = gSavedSettings.getU32("OctreeMaxNodeCapacity");
+		gOctreeMinSize = gSavedSettings.getF32("OctreeMinimumNodeSize");
 		gOctreeReserveCapacity = llmin(gSavedSettings.getU32("OctreeReserveNodeCapacity"),U32(512));
 		gObjectList.repartitionObjects();
 	}
@@ -461,7 +469,7 @@ static bool handleRenderDynamicLODChanged(const LLSD& newvalue)
 
 static bool handleRenderLocalLightsChanged(const LLSD& newvalue)
 {
-	gPipeline.setLightingDetail(-1);
+	gPipeline.updateLocalLightingEnabled();
 	return true;
 }
 
@@ -654,13 +662,28 @@ static bool handleAllowLargeSounds(const LLSD& newvalue)
 	return true;
 }
 
+enum DCAction { AUTOPILOT, TELEPORT };
+static void handleDoubleClickActionChanged(const DCAction& action, const LLSD& newvalue)
+{
+	// Doubleclick actions - there can be only one
+	if (newvalue.asBoolean())
+	{
+		if (action == AUTOPILOT)
+			gSavedSettings.setBOOL("DoubleClickTeleport", false);
+		else
+			gSavedSettings.setBOOL("DoubleClickAutoPilot", false);
+	}
+}
+
 void handleHighResChanged(const LLSD& val)
 {
 	if (val) // High Res Snapshot active, must uncheck RenderUIInSnapshot
 		gSavedSettings.setBOOL("RenderUIInSnapshot", false);
 }
 
+void handleRenderAutoMuteByteLimitChanged(const LLSD& new_value);
 ////////////////////////////////////////////////////////////////////////////
+
 void settings_setup_listeners()
 {
 	gSavedSettings.getControl("FirstPersonAvatarVisible")->getSignal()->connect(boost::bind(&handleRenderAvatarMouselookChanged, _2));
@@ -670,6 +693,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("OctreeStaticObjectSizeFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeDistanceFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeMaxNodeCapacity")->getSignal()->connect(boost::bind(&handleRepartition, _2));
+	gSavedSettings.getControl("OctreeMinimumNodeSize")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeReserveNodeCapacity")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeAlphaDistanceFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
 	gSavedSettings.getControl("OctreeAttachmentSizeFactor")->getSignal()->connect(boost::bind(&handleRepartition, _2));
@@ -711,6 +735,7 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("RenderAutoMaskAlphaNonDeferred")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("SHUseRMSEAutoMask")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("SHAutoMaskMaxRMSE")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
+	gSavedSettings.getControl("SHAutoMaskMaxMid")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("SHAltBatching")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("RenderObjectBump")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
 	gSavedSettings.getControl("RenderMaxVBOSize")->getSignal()->connect(boost::bind(&handleResetVertexBuffersChanged, _2));
@@ -823,7 +848,8 @@ void settings_setup_listeners()
 	gSavedSettings.getControl("SkyUseClassicClouds")->getSignal()->connect(boost::bind(&handleCloudSettingsChanged, _2));
 	gSavedSettings.getControl("RenderTransparentWater")->getSignal()->connect(boost::bind(&handleRenderTransparentWaterChanged, _2));
 	gSavedSettings.getControl("AlchemyWLCloudTexture")->getSignal()->connect(boost::bind(&handleWindlightCloudChanged, _2));
-	
+	gSavedSettings.getControl("RenderAutoMuteByteLimit")->getSignal()->connect(boost::bind(&handleRenderAutoMuteByteLimitChanged, _2));
+	gSavedPerAccountSettings.getControl("AvatarHoverOffsetZ")->getCommitSignal()->connect(boost::bind(&handleAvatarHoverOffsetChanged, _2));
 	gSavedSettings.getControl("AscentAvatarXModifier")->getSignal()->connect(boost::bind(&handleAscentAvatarModifier, _2));
 	gSavedSettings.getControl("AscentAvatarYModifier")->getSignal()->connect(boost::bind(&handleAscentAvatarModifier, _2));
 	gSavedSettings.getControl("AscentAvatarZModifier")->getSignal()->connect(boost::bind(&handleAscentAvatarModifier, _2));
@@ -855,6 +881,8 @@ void settings_setup_listeners()
 
 	gSavedSettings.getControl("AllowLargeSounds")->getSignal()->connect(boost::bind(&handleAllowLargeSounds, _2));
 	gSavedSettings.getControl("LiruUseZQSDKeys")->getSignal()->connect(boost::bind(load_default_bindings, _2));
+	gSavedSettings.getControl("DoubleClickAutoPilot")->getSignal()->connect(boost::bind(handleDoubleClickActionChanged, AUTOPILOT, _2));
+	gSavedSettings.getControl("DoubleClickTeleport")->getSignal()->connect(boost::bind(handleDoubleClickActionChanged, TELEPORT, _2));
 	gSavedSettings.getControl("HighResSnapshot")->getSignal()->connect(boost::bind(&handleHighResChanged, _2));
 }
 

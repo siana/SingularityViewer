@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<floater name="Inventory Finder" title="ítems_recientes_del_inventario" width="160">
+<floater name="Inventory Finder" title="ítems_recientes_del_inventario" width="260">
 	<check_box label="Animación" name="check_animation"/>
 	<check_box label="Tarjetas de Llamada" name="check_calling_card"/>
 	<check_box label="Ropas" name="check_clothing"/>
@@ -11,8 +11,17 @@
 	<check_box label="Sonidos" name="check_sound"/>
 	<check_box label="Texturas" name="check_texture"/>
 	<check_box label="Fotos" name="check_snapshot"/>
-	<button label="Todo" label_selected="Todo" name="All"/>
-	<button label="Nada" label_selected="Nada" name="None"/>
+	<button label="Todo" label_selected="Todas" name="All"/>
+	<button label="Nada" label_selected="Ninguna" name="None"/>
+    <text name="links">Enlaces: </text>
+    <radio_group name="radio_links" left_delta="42" width="214">
+		<radio_item name="Any">Todos</radio_item>
+		<radio_item name="Only" left_delta="28" >Solo Enlaces</radio_item> 
+		<radio_item name="None" left_delta="44">Ninguno</radio_item> 
+		<!-- <radio_item name="Any" label="Todos" width="50"</radio_item> 
+		<radio_item name="Only" label="Solo enlaces" width="50"/>
+		<radio_item name="None" label="Ninguno" width="30"/> -->
+    </radio_group>	
 	<check_box label="Mostrar Carpetas Siempre" name="check_show_empty"/>
 	<check_box label="Desde Fin Sesión Anterior" name="check_since_logoff"/>
 	<text name="- OR -">

@@ -67,8 +67,8 @@ namespace LLInitParam
 		mMergeFunc(merge_func),
 		mDeserializeFunc(deserialize_func),
 		mSerializeFunc(serialize_func),
+        mInspectFunc(inspect_func),
 		mValidationFunc(validation_func),
-		mInspectFunc(inspect_func),
 		mMinCount(min_count),
 		mMaxCount(max_count),
 		mUserData(NULL)
@@ -79,8 +79,8 @@ namespace LLInitParam
 		mMergeFunc(NULL),
 		mDeserializeFunc(NULL),
 		mSerializeFunc(NULL),
+        mInspectFunc(NULL),
 		mValidationFunc(NULL),
-		mInspectFunc(NULL),
 		mMinCount(0),
 		mMaxCount(0),
 		mUserData(NULL)
@@ -193,7 +193,12 @@ namespace LLInitParam
 		{
 			if (!silent)
 			{
-				p.parserWarning(llformat("Failed to parse parameter \"%s\"", p.getCurrentElementName().c_str()));
+				std::string file_name = p.getCurrentFileName();
+				if(!file_name.empty())
+				{
+					file_name = "in file: " + file_name;
+				}
+				p.parserWarning(llformat("Failed to parse parameter \"%s\" %s", p.getCurrentElementName().c_str(), file_name.c_str()));
 			}
 			return false;
 		}

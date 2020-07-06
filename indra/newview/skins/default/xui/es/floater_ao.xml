@@ -4,6 +4,7 @@
 	<button name="opencard" label="Ver Notecard"/>
 	<button name="reloadcard" label="Recargar"/>
 	<check_box label="Activar Animaciones" name="AOEnabled"/>
+	<check_box label="Activar Nado" name="AOSwimEnabled"/>
 	<check_box label="Activar Sentado" name="AOSitsEnabled"/>
 	<text name="buttons_desc">
 		De Pie:
@@ -15,9 +16,8 @@
 	<check_box label="Desactiva De Pie en Vista Subjetiva" name="AONoStandsInMouselook"/>
 	<check_box label="Mostrar AO en Barra de Herram." name="ao_remote_checkbox"/>
 	<spinner name="standtime" label="Tiempo de Ejecución:" label_width="120" tool_tip="Tiempo de ejecución de la animación, en segundos" />
-	<button name="newcard" label="Nueva Plantilla de Nota" />
-	<button label="Más &gt;&gt;" name="more_btn" tool_tip="Opciones Avanzadas" />
-	<button label="&lt;&lt; Menos" name="less_btn" tool_tip="Opciones Avanzadas" />
+	<button name="newcard" label="Nueva Plantilla" />
+	<button label="Más &gt;&gt;" label_selected="&lt;&lt; Menos" name="more_btn" tool_tip="Opciones Avanzadas" />
 	<tab_container label="Por Defecto" name="tabcontainer" >
 		<panel label="Animaciones por Defecto" name="tabdefaultanims">
 			<text name="textdefaultwalk">
@@ -53,7 +53,7 @@
 			</text>
 			<combo_box name="falls"/>
 			<text name="textdefaulthover">
-				Flotar:
+				Flotar en el aire:
 			</text>
 			<combo_box name="hovers"/>
 			<text name="textdefaultfly">
@@ -84,6 +84,26 @@
 				Antes de Saltar:
 			</text>
 			<combo_box name="prejumps"/>
+			<text name="textdefaultfloat">
+				Flotación de nado:
+			</text>
+			<combo_box name="floats" />
+			<text name="textdefaultswim">
+				Nado:
+			</text>
+			<combo_box name="swims"/>
+			<text name="textdefaultswimup">
+				Nado ascendente:
+			</text>
+			<combo_box name="swimups"/>
+			<text name="textdefaultswimdown">
+				Nado descendente:
+			</text>
+			<combo_box name="swimdowns"/>
+			<text name="textdefaulttyping">
+				Escritura:
+			</text>
+			<combo_box name="typings"/>
 		</panel>
 	</tab_container>
 </floater>

@@ -101,6 +101,8 @@ F32	LLToolBar::sInventoryAutoOpenTime = 1.f;
 // Functions
 //
 void show_floater(const std::string& floater_name);
+void show_inv_floater(const LLSD& userdata, const std::string& field);
+void show_web_floater(const std::string& type);
 
 LLToolBar::LLToolBar()
 :	LLLayoutPanel()
@@ -108,6 +110,10 @@ LLToolBar::LLToolBar()
 	setIsChrome(TRUE);
 	setFocusRoot(TRUE);
 	mCommitCallbackRegistrar.add("ShowFloater", boost::bind(show_floater, _2));
+	mCommitCallbackRegistrar.add("ShowInvFloater.ID", boost::bind(show_inv_floater, _2, "id"));
+	mCommitCallbackRegistrar.add("ShowInvFloater.Name", boost::bind(show_inv_floater, _2, "name"));
+	mCommitCallbackRegistrar.add("ShowInvFloater.Type", boost::bind(show_inv_floater, _2, "type"));
+	mCommitCallbackRegistrar.add("ShowWebFloater", boost::bind(show_web_floater, _2));
 }
 
 
@@ -120,17 +126,6 @@ BOOL LLToolBar::postBuild()
 	mMapBtn.connect(this, "map_btn");
 	mRadarBtn.connect(this, "radar_btn");
 	mInventoryBtn.connect(this, "inventory_btn");
-
-	for (child_list_const_iter_t child_iter = getChildList()->begin();
-		 child_iter != getChildList()->end(); ++child_iter)
-	{
-		LLView *view = *child_iter;
-		LLButton* buttonp = dynamic_cast<LLButton*>(view);
-		if(buttonp)
-		{
-			buttonp->setSoundFlags(LLView::SILENT);
-		}
-	}
 
 #if LL_DARWIN
 	LLResizeHandle::Params p;
@@ -161,7 +156,7 @@ BOOL LLToolBar::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 	LLButton* inventory_btn = mInventoryBtn;
 	if (!inventory_btn || !inventory_btn->getVisible()) return FALSE;
 
-	LLInventoryView* active_inventory = LLInventoryView::getActiveInventory();
+	LLPanelMainInventory* active_inventory = LLPanelMainInventory::getActiveInventory();
 
 	if (active_inventory && active_inventory->getVisible())
 	{
@@ -174,7 +169,7 @@ BOOL LLToolBar::handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
 			if (!(active_inventory && active_inventory->getVisible()) && 
 			mInventoryAutoOpenTimer.getElapsedTimeF32() > sInventoryAutoOpenTime)
 			{
-				LLInventoryView::showAgentInventory();
+				LLPanelMainInventory::showAgentInventory();
 			}
 		}
 		else
@@ -249,18 +244,19 @@ void LLToolBar::updateCommunicateList()
 	bold_if_equal(LLFloaterMyFriends::getInstance(), frontmost_floater, mCommunicateBtn->add(LLFloaterMyFriends::getInstance()->getShortTitle(), LLSD("contacts"), ADD_TOP));
 	bold_if_equal(LLFloaterChat::getInstance(), frontmost_floater, mCommunicateBtn->add(LLFloaterChat::getInstance()->getShortTitle(), LLSD("local chat"), ADD_TOP));
 	mCommunicateBtn->addSeparator(ADD_TOP);
-	mCommunicateBtn->add(getString("Redock Windows"), LLSD("redock"), ADD_TOP);
+	static const auto redock = getString("Redock Windows");
+	mCommunicateBtn->add(redock, LLSD("redock"), ADD_TOP);
 	mCommunicateBtn->addSeparator(ADD_TOP);
 	bold_if_equal(LLFloaterMute::getInstance(), frontmost_floater, mCommunicateBtn->add(LLFloaterMute::getInstance()->getShortTitle(), LLSD("mute list"), ADD_TOP));
 
 	if (gIMMgr->getIMFloaterHandles().size() > 0) mCommunicateBtn->addSeparator(ADD_TOP);
-	for(std::set<LLHandle<LLFloater> >::const_iterator floater_handle_it = gIMMgr->getIMFloaterHandles().begin(); floater_handle_it != gIMMgr->getIMFloaterHandles().end(); ++floater_handle_it)
+	for(const auto& handle : gIMMgr->getIMFloaterHandles())
 	{
-		if (LLFloaterIMPanel* im_floaterp = (LLFloaterIMPanel*)floater_handle_it->get())
+		if (LLFloaterIMPanel* im_floaterp = (LLFloaterIMPanel*)handle.get())
 		{
 			const S32 count = im_floaterp->getNumUnreadMessages();
 			std::string floater_title;
-			if (count > 0) floater_title = "*";
+			if (count > 0) floater_title = '*';
 			floater_title.append(im_floaterp->getShortTitle());
 			static const LLCachedControl<bool> show_counts("ShowUnreadIMsCounts", true);
 			if (show_counts && count > 0)
@@ -270,11 +266,14 @@ void LLToolBar::updateCommunicateList()
 				{
 					LLStringUtil::format_map_t args;
 					args["COUNT"] = llformat("%d", count);
-					floater_title += getString("IMs", args);
+					static LLUIString ims = getString("IMs");
+					ims.setArgList(args);
+					floater_title += ims.getString();
 				}
 				else
 				{
-					floater_title += getString("IM");
+					static const auto im = getString("IM");
+					floater_title += im;
 				}
 			}
 			bold_if_equal(im_floaterp, frontmost_floater, mCommunicateBtn->add(floater_title, im_floaterp->getSessionID(), ADD_TOP));

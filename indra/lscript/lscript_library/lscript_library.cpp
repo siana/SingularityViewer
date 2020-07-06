@@ -199,6 +199,8 @@ void LLScriptLibrary::init()
 	addFunction(10.f, 0.f, dummy_func, "llStringLength", "i", "s");
 	addFunction(10.f, 0.f, dummy_func, "llStartAnimation", NULL, "s");
 	addFunction(10.f, 0.f, dummy_func, "llStopAnimation", NULL, "s");
+	addFunction(10.f, 0.f, dummy_func, "llStartObjectAnimation", NULL, "s");
+	addFunction(10.f, 0.f, dummy_func, "llStopObjectAnimation", NULL, "s");
 	addFunction(10.f, 0.f, dummy_func, "llPointAt", NULL, "v");
 	addFunction(10.f, 0.f, dummy_func, "llStopPointAt", NULL, NULL);
 	addFunction(10.f, 0.f, dummy_func, "llTargetOmega", NULL, "vff");

@@ -136,7 +136,7 @@ inline F32 bytestream2float(const U8 *stream, S32 &offset)
 {
 	S32 value = bytestream2integer(stream, offset);
 	F32 fpvalue = *(F32 *)&value;
-	if (!llfinite(fpvalue))
+	if (!std::isfinite(fpvalue))
 	{
 		fpvalue = 0;
 		set_fault(stream, LSRF_MATH);
@@ -155,7 +155,7 @@ inline void bytestream_int2float(U8 *stream, S32 &offset)
 	S32 value = bytestream2integer(stream, offset);
 	offset -= 4;
 	F32 fpvalue = (F32)value;
-	if (!llfinite(fpvalue))
+	if (!std::isfinite(fpvalue))
 	{
 		fpvalue = 0;
 		set_fault(stream, LSRF_MATH);
@@ -230,21 +230,21 @@ inline void bytestream2vector(LLVector3 &vector, const U8 *stream, S32 &offset)
 {
 	S32 value = bytestream2integer(stream, offset);
 	vector.mV[VZ] = *(F32 *)&value;
-	if (!llfinite(vector.mV[VZ]))
+	if (!std::isfinite(vector.mV[VZ]))
 	{
 		vector.mV[VZ] = 0;
 		set_fault(stream, LSRF_MATH);
 	}
 	value = bytestream2integer(stream, offset);
 	vector.mV[VY] = *(F32 *)&value;
-	if (!llfinite(vector.mV[VY]))
+	if (!std::isfinite(vector.mV[VY]))
 	{
 		vector.mV[VY] = 0;
 		set_fault(stream, LSRF_MATH);
 	}
 	value = bytestream2integer(stream, offset);
 	vector.mV[VX] = *(F32 *)&value;
-	if (!llfinite(vector.mV[VX]))
+	if (!std::isfinite(vector.mV[VX]))
 	{
 		vector.mV[VX] = 0;
 		set_fault(stream, LSRF_MATH);
@@ -265,28 +265,28 @@ inline void bytestream2quaternion(LLQuaternion &quat, const U8 *stream, S32 &off
 {
 	S32 value = bytestream2integer(stream, offset);
 	quat.mQ[VS] = *(F32 *)&value;
-	if (!llfinite(quat.mQ[VS]))
+	if (!std::isfinite(quat.mQ[VS]))
 	{
 		quat.mQ[VS] = 0;
 		set_fault(stream, LSRF_MATH);
 	}
 	value = bytestream2integer(stream, offset);
 	quat.mQ[VZ] = *(F32 *)&value;
-	if (!llfinite(quat.mQ[VZ]))
+	if (!std::isfinite(quat.mQ[VZ]))
 	{
 		quat.mQ[VZ] = 0;
 		set_fault(stream, LSRF_MATH);
 	}
 	value = bytestream2integer(stream, offset);
 	quat.mQ[VY] = *(F32 *)&value;
-	if (!llfinite(quat.mQ[VY]))
+	if (!std::isfinite(quat.mQ[VY]))
 	{
 		quat.mQ[VY] = 0;
 		set_fault(stream, LSRF_MATH);
 	}
 	value = bytestream2integer(stream, offset);
 	quat.mQ[VX] = *(F32 *)&value;
-	if (!llfinite(quat.mQ[VX]))
+	if (!std::isfinite(quat.mQ[VX]))
 	{
 		quat.mQ[VX] = 0;
 		set_fault(stream, LSRF_MATH);
@@ -315,7 +315,7 @@ inline F32 get_register_fp(U8 *stream, LSCRIPTRegisters reg)
 {
 	S32 offset = gLSCRIPTRegisterAddresses[reg];
 	F32 value = bytestream2float(stream, offset);
-	if (!llfinite(value))
+	if (!std::isfinite(value))
 	{
 		value = 0;
 		set_fault(stream, LSRF_MATH);
@@ -390,7 +390,7 @@ inline F32 add_register_fp(U8 *stream, LSCRIPTRegisters reg, F32 value)
 	S32 offset = gLSCRIPTRegisterAddresses[reg];
 	F32 newvalue = bytestream2float(stream, offset);
 	newvalue += value;
-	if (!llfinite(newvalue))
+	if (!std::isfinite(newvalue))
 	{
 		newvalue = 0;
 		set_fault(stream, LSRF_MATH);
@@ -587,7 +587,7 @@ inline F32 lscript_pop_float(U8 *stream)
 {
 	S32 sp = get_register(stream, LREG_SP);
 	F32 value = bytestream2float(stream, sp);
-	if (!llfinite(value))
+	if (!std::isfinite(value))
 	{
 		value = 0;
 		set_fault(stream, LSRF_MATH);
@@ -727,7 +727,7 @@ inline void lscript_local_get(U8 *stream, S32 address, F32 &value)
 {
 	if (lscript_check_local(stream, address, LSCRIPTDataSize[LST_FLOATINGPOINT]))
 		value = bytestream2float(stream, address);
-	if (!llfinite(value))
+	if (!std::isfinite(value))
 	{
 		value = 0;
 		set_fault(stream, LSRF_MATH);
@@ -757,7 +757,7 @@ inline void lscript_global_get(U8 *stream, S32 address, F32 &value)
 {
 	if (lscript_check_global(stream, address, LSCRIPTDataSize[LST_FLOATINGPOINT]))
 		value = bytestream2float(stream, address);
-	if (!llfinite(value))
+	if (!std::isfinite(value))
 	{
 		value = 0;
 		set_fault(stream, LSRF_MATH);
@@ -1058,7 +1058,7 @@ inline F32 safe_instruction_bytestream2float(U8 *stream, S32 &offset)
 	if (safe_instruction_check_address(stream, offset, LSCRIPTDataSize[LST_INTEGER]))
 	{
 		F32 value = bytestream2float(stream, offset);
-		if (!llfinite(value))
+		if (!std::isfinite(value))
 		{
 			value = 0;
 			set_fault(stream, LSRF_MATH);

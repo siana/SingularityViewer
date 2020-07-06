@@ -67,7 +67,7 @@ BOOL LLToolPipette::handleMouseDown(S32 x, S32 y, MASK mask)
 	mSuccess = TRUE;
 	mTooltipMsg.clear();
 	setMouseCapture(TRUE);
-	gViewerWindow->pickAsync(x, y, mask, pickCallback);
+	gViewerWindow->pickAsync(x, y, mask, pickCallback, FALSE, TRUE);
 	return TRUE;
 }
 

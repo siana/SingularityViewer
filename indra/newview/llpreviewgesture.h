@@ -113,7 +113,7 @@ protected:
 	// "Sound", "Chat", or "Wait"
 	LLScrollListItem* addStep(const enum EStepType step_type);
 
-	static std::string getLabel(std::vector<std::string> labels);
+	static std::string getLabel(const std::vector<std::string>& labels);
 	static void updateLabel(LLScrollListItem* item);
 
 	void onCommitSetDirty();

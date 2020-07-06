@@ -17,6 +17,7 @@
             <button bottom_delta="0" follows="left|top" height="20" left_delta="80" width="50" toggle="true" name="ding_btn" label="Ding">
               <button.commit_callback function="FlipDing"/>
             </button>
+            <check_box name="Support Check" label="Send Build" tool_tip="Uncheck to stop sending build number" follows="left|top" bottom_delta="0" left_delta="50" visible="false" control_name="SupportChatDisplayBuild"/>
             <button bottom_delta="0" enabled="false" follows="left|top" halign="right" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Join Call" left_delta="50" name="start_call_btn" width="80"/>
 			<button bottom_delta="0" follows="left|top" halign="right" height="20" image_overlay="icn_voice-call-end.tga" image_overlay_alignment="left" label="End Call" left_delta="0" name="end_call_btn" pad_right="12" visible="false" width="80"/>
 			<button bottom_delta="0" follows="right|top" height="20" label="&lt; &lt;" label_selected="&gt; &gt;" toggle="true" left="462" name="toggle_active_speakers_btn" right="495" tool_tip="Click here to toggle a list of active participants in this IM session." visible="true" width="80"/>

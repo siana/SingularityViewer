@@ -1,5 +1,0 @@
-SLASSET_LIBS_WIN32=http://automated-builds-secondlife-com.s3.amazonaws.com/oss-viewer/export/slviewer-win32-libs-oss-viewer-1.23.4.0.zip
-SLASSET_MD5=http://automated-builds-secondlife-com.s3.amazonaws.com/oss-viewer/export/md5sums-oss-viewer-1.23.4.0.txt
-SLASSET_LIBS_DARWIN=http://automated-builds-secondlife-com.s3.amazonaws.com/oss-viewer/export/slviewer-darwin-libs-oss-viewer-1.23.4.0.tar.gz
-SLASSET_ART=http://automated-builds-secondlife-com.s3.amazonaws.com/oss-viewer/export/slviewer-artwork-oss-viewer-1.23.4.0.zip
-SLASSET_LIBS_LINUXI386=http://automated-builds-secondlife-com.s3.amazonaws.com/oss-viewer/export/slviewer-linux-libs-oss-viewer-1.23.4.0.tar.gz

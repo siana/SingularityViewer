@@ -7,13 +7,14 @@
 	     tool_tip="Show list of residents using voice chat around you" width="38" />
 	<button bottom="-22" height="22" pad_left="16" label="Talk" left_delta="40" name="push_to_talk"
 	     tab_stop="false" tool_tip="Hold the button to talk" width="60" />
-	<button bottom="-19" height="16" image_selected="ptt_lock_on.tga"
-	     image_unselected="ptt_lock_off.tga" label="" left_delta="4" name="ptt_lock"
-	     scale_image="false" toggle="true"
+	<button bottom="-19" height="16" image_selected="ptt_lock_off.tga"
+	     image_unselected="ptt_lock_on.tga" label="" left_delta="4" name="ptt_lock"
+	     scale_image="false" toggle="true" control_name="PTTCurrentlyEnabled"
 	     tool_tip="Click lock to switch to talk mode" width="16" />
 	<icon bottom="-19" height="16" image_name="icn_voice_ptt-off.tga" left_delta="42"
 	     name="voice_volume" width="16" />
 	<button bottom="-22" control_name="ShowVoiceChannelPopup" height="22" label=""
 	     left_delta="16" name="show_channel" scale_image="true" toggle="true"
+	     image_overlay_selected="arrow_down.tga" image_overlay="arrow_up.tga"
 	     tool_tip="Click to show current voice channel" width="22" />
 </panel>

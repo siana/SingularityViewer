@@ -29,7 +29,6 @@
 
 #include "llwearable.h"
 #include "llavatarappearancedefines.h"
-#include "aixmllindengenepool.h"
 
 class LLVOAvatar;
 class LLAPRFile;
@@ -69,7 +68,7 @@ public:
 	/*virtual*/ EImportResult	importStream( std::istream& input_stream, LLAvatarAppearance* avatarp );
 
 	// Singu extension.
-	AIArchetype getArchetype(void) const;
+	class AIArchetype getArchetype() const;
 
 	void				setParamsToDefaults();
 	void				setTexturesToDefaults();

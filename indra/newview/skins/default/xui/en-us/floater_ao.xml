@@ -7,7 +7,7 @@
 	can_minimize="true"
 	can_close="true"
 	can_drag_on_left="false"
-	width="610"
+	width="800"
 	height="380">
 
   <drop_target bottom="-80" height="17" left="12" width="180" control_name="AOConfigNotecardID" fill_parent="true" name="ao_notecard" tool_tip="Drop a ZHAO notecard here. Animations have to be in the same Inventory folder as the notecard."/>
@@ -36,6 +36,9 @@
   <check_box bottom_delta="-24" control_name="AOEnabled" enabled="true"
        follows="left|top" font="SansSerifSmall" height="16" initial_value="false" label="Enable animations override" left="10"
        mouse_opaque="true" name="AOEnabled" radio_style="false" width="90" />
+  <check_box bottom_delta="-18" control_name="AOSwimEnabled" enabled="true"
+	     follows="left|top" font="SansSerifSmall" height="16" initial_value="true" label="Enable swimming override" left="10"
+	     mouse_opaque="true" name="AOSwimEnabled" radio_style="false" width="90" />
   <check_box bottom_delta="-18" control_name="AOSitsEnabled" enabled="true"
 	     follows="left|top" font="SansSerifSmall" height="16" initial_value="true" label="Enable sits override" left="10"
 	     mouse_opaque="true" name="AOSitsEnabled" radio_style="false" width="90" />
@@ -97,16 +100,12 @@
 		/>
 
   <button bottom="4" follows="left|bottom" font="SansSerifSmall" halign="center"
-     height="20" label="More &gt;&gt;" left="118"
-     mouse_opaque="true" name="more_btn" scale_image="TRUE"
+     height="20" label="More &gt;&gt;" label_selected="&lt;&lt; Less" left="118" toggle="true"
+     mouse_opaque="true" name="more_btn" scale_image="TRUE" control_name="AOAdvanced" image_selected="button_enabled_32x128.tga"
      tool_tip="Advanced Options" width="76" />
-  <button bottom_delta="0" follows="left|bottom" font="SansSerifSmall" halign="center"
-	     height="20" label="&lt;&lt; Less" left_delta="0"
-	     mouse_opaque="true" name="less_btn" scale_image="TRUE"
-	     tool_tip="Advanced Options" width="76" />
 
-  <tab_container label="Default" bottom="6" left="210" mouse_opaque="false" name="tabcontainer" tab_min_width="50" tab_position="top" width="390" height="350" bg_opaque_color="0,0,0,0.0">
-    <panel border="true" left="0" bottom="0" follows="left|top|right|bottom" height="350" label="Default Anims" mouse_opaque="true" name="tabdefaultanims" width="390">
+  <tab_container label="Default" bottom="6" left="210" mouse_opaque="false" name="tabcontainer" tab_min_width="50" tab_position="top" width="580" height="350" bg_opaque_color="0,0,0,0.0">
+    <panel border="true" left="0" bottom="0" follows="left|top|right|bottom" height="350" label="Default Anims" mouse_opaque="true" name="tabdefaultanims" width="580">
     
       <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	         bottom_delta="-40" drop_shadow_visible="true" follows="left|bottom"
@@ -221,6 +220,41 @@
         Default Pre-Jump:
       </text>
       <combo_box name="prejumps" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultPreJump" />
+      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	         bottom_delta="280" drop_shadow_visible="true" follows="left|bottom"
+	         font="SansSerifSmall" h_pad="0" halign="left" height="16" left="390"
+	         mouse_opaque="true" name="textdefaultfloat" v_pad="0" width="180">
+        Default Float:
+      </text>
+      <combo_box name="floats" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultFloat" />
+      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	         bottom_delta="-40" drop_shadow_visible="true" follows="left|bottom"
+	         font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+	         mouse_opaque="true" name="textdefaultswim" v_pad="0" width="180">
+        Default Swim:
+      </text>
+      <combo_box name="swims" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultSwim" />
+      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	         bottom_delta="-40" drop_shadow_visible="true" follows="left|bottom"
+	         font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+	         mouse_opaque="true" name="textdefaultswimup" v_pad="0" width="180">
+        Default Upward Swim:
+      </text>
+      <combo_box name="swimups" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultSwimUp" />
+      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	         bottom_delta="-40" drop_shadow_visible="true" follows="left|bottom"
+	         font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+	         mouse_opaque="true" name="textdefaultswimdown" v_pad="0" width="180">
+        Default Downward Swim:
+      </text>
+      <combo_box name="swimdowns" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultSwimDown" />
+      <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	         bottom_delta="-40" drop_shadow_visible="true" follows="left|bottom"
+	         font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+	         mouse_opaque="true" name="textdefaulttyping" v_pad="0" width="180">
+        Default Typing:
+      </text>
+      <combo_box name="typings" label="" follows="left|top" height="20" left_delta="0" width="180" bottom_delta="0" control_name="AODefaultTyping" />
   </panel>
 </tab_container>
 </floater>

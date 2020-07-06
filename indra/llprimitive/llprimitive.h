@@ -106,6 +106,8 @@ public:
 		PARAMS_LIGHT_IMAGE = 0x40,
 		PARAMS_RESERVED = 0x50, // Used on server-side
 		PARAMS_MESH     = 0x60,
+		PARAMS_EXTENDED_MESH = 0x70,
+		PARAMS_MAX = PARAMS_EXTENDED_MESH
 	};
 	
 public:
@@ -259,9 +261,8 @@ public:
 	operator LLSD() const { return asLLSD(); }
 	bool fromLLSD(LLSD& sd);
 
-	void setSculptTexture(const LLUUID& id) { mSculptTexture = id; }
+	void setSculptTexture(const LLUUID& texture_id, U8 sculpt_type);
 	LLUUID getSculptTexture() const         { return mSculptTexture; }
-	void setSculptType(U8 type)             { mSculptType = type; }
 	U8 getSculptType() const                { return mSculptType; }
 };
 
@@ -289,6 +290,27 @@ public:
 	
 };
 
+class LLExtendedMeshParams : public LLNetworkData
+{
+protected:
+	U32 mFlags;
+	
+public:
+	static const U32 ANIMATED_MESH_ENABLED_FLAG = 0x1 << 0;
+
+	LLExtendedMeshParams();
+	/*virtual*/ BOOL pack(LLDataPacker &dp) const;
+	/*virtual*/ BOOL unpack(LLDataPacker &dp);
+	/*virtual*/ bool operator==(const LLNetworkData& data) const;
+	/*virtual*/ void copy(const LLNetworkData& data);
+	LLSD asLLSD() const;
+	operator LLSD() const { return asLLSD(); }
+	bool fromLLSD(LLSD& sd);
+
+	void setFlags(const U32& flags) { mFlags = flags; }
+	U32 getFlags() const { return mFlags; }
+	
+};
 
 // This code is not naming-standards compliant. Leaving it like this for
 // now to make the connection to code in
@@ -298,7 +320,7 @@ public:
 // - Vir
 struct LLTEContents
 {
-	static const U32 MAX_TES = 32;
+	static const U32 MAX_TES = 45;
 
 	U8     image_data[MAX_TES*16];
 	U8	  colors[MAX_TES*4];
@@ -309,9 +331,9 @@ struct LLTEContents
 	S16    image_rot[MAX_TES];
 	U8	   bump[MAX_TES];
 	U8	   media_flags[MAX_TES];
-    U8     glow[MAX_TES];
+	U8     glow[MAX_TES];
 	LLMaterialID material_ids[MAX_TES];
-	
+
 	static const U32 MAX_TE_BUFFER = 4096;
 	U8 packed_buffer[MAX_TE_BUFFER];
 
@@ -388,6 +410,8 @@ public:
 	virtual S32 setTEMaterialParams(const U8 index, const LLMaterialPtr pMaterialParams);
 	virtual BOOL setMaterial(const U8 material); // returns TRUE if material changed
 	virtual void setTESelected(const U8 te, bool sel);
+
+	LLMaterialPtr getTEMaterialParams(const U8 index);
 
 	void copyTEs(const LLPrimitive *primitive);
 	S32 packTEField(U8 *cur_ptr, U8 *data_ptr, U8 data_size, U8 last_face_index, EMsgVariableType type) const;
@@ -482,6 +506,11 @@ protected:
 	U32 				mMiscFlags;			// home for misc bools
 
 	static LLVolumeMgr* sVolumeManager;
+public:
+	enum
+	{
+		NO_LOD = -1
+	};
 };
 
 inline BOOL LLPrimitive::isAvatar() const
@@ -528,7 +557,7 @@ inline BOOL LLPrimitive::isApp(const LLPCode pcode)
 // Special case for setPosition.  If not check-for-finite, fall through to LLXform method.
 void LLPrimitive::setPosition(const F32 x, const F32 y, const F32 z)
 {
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 	{
 		LLXform::setPosition(x, y, z);
 	}
@@ -565,7 +594,7 @@ void LLPrimitive::setAngularVelocity(const LLVector3& avel)
 
 void LLPrimitive::setAngularVelocity(const F32 x, const F32 y, const F32 z)		
 { 
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 	{
 		mAngularVelocity.setVec(x,y,z);
 	}
@@ -589,7 +618,7 @@ void LLPrimitive::setVelocity(const LLVector3& vel)
 
 void LLPrimitive::setVelocity(const F32 x, const F32 y, const F32 z)			
 { 
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 	{
 		mVelocity.setVec(x,y,z); 
 	}
@@ -601,7 +630,7 @@ void LLPrimitive::setVelocity(const F32 x, const F32 y, const F32 z)
 
 void LLPrimitive::setVelocityX(const F32 x)							
 { 
-	if (llfinite(x))
+	if (std::isfinite(x))
 	{
 		mVelocity.mV[VX] = x;
 	}
@@ -613,7 +642,7 @@ void LLPrimitive::setVelocityX(const F32 x)
 
 void LLPrimitive::setVelocityY(const F32 y)							
 { 
-	if (llfinite(y))
+	if (std::isfinite(y))
 	{
 		mVelocity.mV[VY] = y;
 	}
@@ -625,7 +654,7 @@ void LLPrimitive::setVelocityY(const F32 y)
 
 void LLPrimitive::setVelocityZ(const F32 z)							
 { 
-	if (llfinite(z))
+	if (std::isfinite(z))
 	{
 		mVelocity.mV[VZ] = z;
 	}
@@ -661,7 +690,7 @@ void LLPrimitive::setAcceleration(const LLVector3& accel)
 
 void LLPrimitive::setAcceleration(const F32 x, const F32 y, const F32 z)		
 { 
-	if (llfinite(x) && llfinite(y) && llfinite(z))
+	if (std::isfinite(x) && std::isfinite(y) && std::isfinite(z))
 	{
 		mAcceleration.setVec(x,y,z); 
 	}

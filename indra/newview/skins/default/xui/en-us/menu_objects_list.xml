@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu label="Objects" name="Objects">
+  <menu filename="menu_objects_list_owners.xml"/>
+  <menu_item_call label="Cam To" name="Cam To">
+    <on_click function="List.Object.CamTo"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Follow" name="Follow">
+    <on_click function="List.Follow"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Move To" name="Move To">
+    <on_click function="List.GoTo"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Teleport To" name="Teleport To">
+    <on_click function="List.TeleportTo"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Sit On" name="Sit On">
+    <on_click function="List.Object.Sit"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+  <menu_item_call label="Pay" name="Pay">
+    <on_click function="List.Object.Pay"/>
+    <on_visible function="List.Object.EnablePay"/>
+  </menu_item_call>
+  <menu_item_call label="Touch" name="Touch">
+    <on_click function="List.Object.Touch"/>
+    <on_visible function="List.Object.EnableTouch"/>
+  </menu_item_call>
+  <menu_item_call label="Edit" name="Edit">
+    <on_click function="List.Object.Edit" userdata="true"/>
+    <on_visible function="List.Object.CanEdit" userdata="true"/>
+  </menu_item_call>
+  <menu_item_call label="Add to Selection" name="Add to Selection">
+    <on_click function="List.Object.Edit" userdata=""/>
+    <on_visible function="List.Object.CanEdit" userdata=""/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Derender" name="Derender">
+    <on_click function="List.Object.Derender"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Copy Key" name="Copy Key">
+    <on_click function="List.CopyUUIDs"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy Name" name="Copy Name">
+    <on_click function="List.CopyNames"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy SLURL" name="Copy SLURL">
+    <on_click function="List.CopySLURL"/>
+    <on_visible function="List.EnableSingleSelected"/>
+  </menu_item_call>
+</context_menu>

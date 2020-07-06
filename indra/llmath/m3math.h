@@ -144,6 +144,8 @@ class LLMatrix3
 		friend std::ostream&	 operator<<(std::ostream& s, const LLMatrix3 &a);	// Stream a
 };
 
+static_assert(std::is_trivially_copyable<LLMatrix3>::value, "LLMatrix3 must be a trivially copyable type");
+
 inline LLMatrix3::LLMatrix3(void)
 {
 	mMatrix[0][0] = 1.f;

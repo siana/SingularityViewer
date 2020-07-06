@@ -27,7 +27,8 @@
 #define LLMEMORY_H
 
 #include "linden_common.h"
-
+#include "llunits.h"
+#include "stdtypes.h"
 #include <new>
 #include <cstdlib>
 #if !LL_WINDOWS
@@ -40,6 +41,21 @@ class LLMutex ;
 #define LL_CHECK_MEMORY llassert(_CrtCheckMemory());
 #else
 #define LL_CHECK_MEMORY
+#endif
+
+
+#if LL_WINDOWS
+#define LL_ALIGN_OF __alignof
+#else
+#define LL_ALIGN_OF __align_of__
+#endif
+
+#if LL_WINDOWS
+#define LL_DEFAULT_HEAP_ALIGN 8
+#elif LL_DARWIN
+#define LL_DEFAULT_HEAP_ALIGN 16
+#elif LL_LINUX
+#define LL_DEFAULT_HEAP_ALIGN 8
 #endif
 
 //<singu>
@@ -102,31 +118,47 @@ template <typename T> T* LL_NEXT_ALIGNED_ADDRESS_64(T* address)
 
 #define LL_ALIGN_16(var) LL_ALIGN_PREFIX(16) var LL_ALIGN_POSTFIX(16)
 
-inline void* ll_aligned_malloc( size_t size, int align )
-{
-#if defined(LL_WINDOWS)
-	return _aligned_malloc(size, align);
-#else
-	void* mem = malloc( size + (align - 1) + sizeof(void*) );
-	char* aligned = ((char*)mem) + sizeof(void*);
-	aligned += align - ((uintptr_t)aligned & (align - 1));
+//------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------
+	// for enable buffer overrun detection predefine LL_DEBUG_BUFFER_OVERRUN in current library
+	// change preprocessor code to: #if 1 && defined(LL_WINDOWS)
 
-	((void**)aligned)[-1] = mem;
-	return aligned;
-#endif
-}
-
-inline void ll_aligned_free( void* ptr )
-{
-#if defined(LL_WINDOWS)
-	_aligned_free(ptr);
+#if 0 && defined(LL_WINDOWS)
+	void* ll_aligned_malloc_fallback( size_t size, int align );
+	void ll_aligned_free_fallback( void* ptr );
+//------------------------------------------------------------------------------------------------
 #else
-	if (ptr)
+	inline void* ll_aligned_malloc_fallback( size_t size, int align )
 	{
-		free( ((void**)ptr)[-1] );
+	#if defined(LL_WINDOWS)
+		return _aligned_malloc(size, align);
+	#else
+        char* aligned = NULL;
+		void* mem = malloc( size + (align - 1) + sizeof(void*) );
+        if (mem)
+        {
+            aligned = ((char*)mem) + sizeof(void*);
+            aligned += align - ((uintptr_t)aligned & (align - 1));
+
+            ((void**)aligned)[-1] = mem;
+        }
+		return aligned;
+	#endif
+	}
+
+	inline void ll_aligned_free_fallback( void* ptr )
+	{
+	#if defined(LL_WINDOWS)
+		_aligned_free(ptr);
+	#else
+		if (ptr)
+		{
+			free( ((void**)ptr)[-1] );
+		}
+	#endif
 	}
 #endif
-}
+//------------------------------------------------------------------------------------------------
 
 #if !LL_USE_TCMALLOC
 inline void* ll_aligned_malloc_16(size_t size) // returned hunk MUST be freed with ll_aligned_free_16().
@@ -189,7 +221,7 @@ inline void* ll_aligned_malloc_32(size_t size) // returned hunk MUST be freed wi
 #if defined(LL_WINDOWS)
 	return _aligned_malloc(size, 32);
 #elif defined(LL_DARWIN)
-	return ll_aligned_malloc( size, 32 );
+	return ll_aligned_malloc_fallback( size, 32 );
 #else
 	void *rtn;
 	if (LL_LIKELY(0 == posix_memalign(&rtn, 32, size)))
@@ -204,12 +236,54 @@ inline void ll_aligned_free_32(void *p)
 #if defined(LL_WINDOWS)
 	_aligned_free(p);
 #elif defined(LL_DARWIN)
-	ll_aligned_free( p );
+	ll_aligned_free_fallback( p );
 #else
 	free(p); // posix_memalign() is compatible with heap deallocator
 #endif
 }
 
+// general purpose dispatch functions that are forced inline so they can compile down to a single call
+template<size_t ALIGNMENT>
+LL_FORCE_INLINE void* ll_aligned_malloc(size_t size)
+{
+	if (LL_DEFAULT_HEAP_ALIGN % ALIGNMENT == 0)
+	{
+		return malloc(size);
+	}
+	else if (ALIGNMENT == 16)
+	{
+		return ll_aligned_malloc_16(size);
+	}
+	else if (ALIGNMENT == 32)
+	{
+		return ll_aligned_malloc_32(size);
+	}
+	else
+	{
+		return ll_aligned_malloc_fallback(size, ALIGNMENT);
+	}
+}
+
+template<size_t ALIGNMENT>
+LL_FORCE_INLINE void ll_aligned_free(void* ptr)
+{
+	if (ALIGNMENT == LL_DEFAULT_HEAP_ALIGN)
+	{
+		free(ptr);
+	}
+	else if (ALIGNMENT == 16)
+	{
+		ll_aligned_free_16(ptr);
+	}
+	else if (ALIGNMENT == 32)
+	{
+		return ll_aligned_free_32(ptr);
+	}
+	else
+	{
+		return ll_aligned_free_fallback(ptr);
+	}
+}
 
 // Copy words 16-byte blocks from src to dst. Source and destination MUST NOT OVERLAP. 
 // Source and dest must be 16-byte aligned and size must be multiple of 16.
@@ -295,24 +369,23 @@ public:
 	// Return the resident set size of the current process, in bytes.
 	// Return value is zero if not known.
 	static U64 getCurrentRSS();
-	static U32 getWorkingSetSize();
 	static void* tryToAlloc(void* address, U32 size);
-	static void initMaxHeapSizeGB(F32 max_heap_size_gb, BOOL prevent_heap_failure);
+	static void initMaxHeapSizeGB(F32Gigabytes max_heap_size, BOOL prevent_heap_failure);
 	static void updateMemoryInfo() ;
 	static void logMemoryInfo(BOOL update = FALSE);
 	static bool isMemoryPoolLow();
 
-	static U32 getAvailableMemKB() ;
-	static U32 getMaxMemKB() ;
-	static U32 getAllocatedMemKB() ;
+	static U32Kilobytes getAvailableMemKB() ;
+	static U32Kilobytes getMaxMemKB() ;
+	static U32Kilobytes getAllocatedMemKB() ;
 private:
 	static char* reserveMem;
-	static U32 sAvailPhysicalMemInKB ;
-	static U32 sMaxPhysicalMemInKB ;
-	static U32 sAllocatedMemInKB;
-	static U32 sAllocatedPageSizeInKB ;
+	static U32Kilobytes sAvailPhysicalMemInKB ;
+	static U32Kilobytes sMaxPhysicalMemInKB ;
+	static U32Kilobytes sAllocatedMemInKB;
+	static U32Kilobytes sAllocatedPageSizeInKB ;
 
-	static U32 sMaxHeapSizeInKB;
+	static U32Kilobytes sMaxHeapSizeInKB;
 	static BOOL sEnableMemoryFailurePrevention;
 };
 

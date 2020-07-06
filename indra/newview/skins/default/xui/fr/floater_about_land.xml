@@ -23,15 +23,10 @@
 			<text name="Owner:">
 				Propriétaire:
 			</text>
-			<text name="OwnerText">
-				Leyla Linden
-			</text>
-			<button label="Profil..." label_selected="Profil..." name="Profile..."/>
 			<text name="Group:">
 				Groupe:
 			</text>
 			<button label="Définir..." label_selected="Définir..." name="Set..."/>
-			<button bottom="-160"  label="Info" name="group_profile"/>
 			<check_box label="Autoriser la cession au groupe" name="check deed" tool_tip="Un officier peut céder ce terrain au groupe. Il viendra alors s'ajouter au patrimoine du groupe."/>
 			<button label="Céder..." label_selected="Céder..." name="Deed..." tool_tip="Vous ne pouvez céder le terrain que si vous avez un rôle d'officier dans le groupe sélectionné."/>
 			<check_box label="Le propriétaire contribue en cédant du terrain" name="check contrib" tool_tip="Lorsqu'un terrain est cédé au groupe, l'ancien propriétaire fait également un don de terrain suffisant."/>
@@ -102,12 +97,6 @@
 			<string name="group_owned_text">
 				(Propriété du Groupe)
 			</string>
-			<string name="profile_text">
-				Profil...
-			</string>
-			<string name="info_text">
-				Infos...
-			</string>
 			<string name="public_text">
 				(public)
 			</string>
@@ -135,9 +124,9 @@ Allez dans le menu Monde &gt; A propos du terrain ou sélectionnez une autre par
 			<text name="estate_owner_lbl">
 				Propriétaire:
 			</text>
-			<text name="estate_owner_text">
+			<name_box name="estate_owner_text">
 				(aucun)
-			</text>
+			</name_box>
 			<text_editor name="covenant_editor">
 				Il n'y a aucun règlement pour ce domaine.
 			</text_editor>

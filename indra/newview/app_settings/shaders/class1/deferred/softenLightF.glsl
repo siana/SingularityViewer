@@ -23,8 +23,6 @@
  * $/LicenseInfo$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
-//#extension GL_ARB_shader_texture_lod : enable
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -32,12 +30,11 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect diffuseRect;
-uniform sampler2DRect specularRect;
-uniform sampler2DRect positionMap;
-uniform sampler2DRect normalMap;
-uniform sampler2DRect lightMap;
-uniform sampler2DRect depthMap;
+uniform sampler2D diffuseRect;
+uniform sampler2D specularRect;
+uniform sampler2D normalMap;
+uniform sampler2D lightMap;
+uniform sampler2D depthMap;
 uniform samplerCube environmentMap;
 uniform sampler2D	  lightFunc;
 
@@ -76,72 +73,20 @@ vec3 vary_AdditiveColor;
 vec3 vary_AtmosAttenuation;
 
 uniform mat4 inv_proj;
-uniform vec2 screen_res;
 
-vec3 srgb_to_linear(vec3 cs)
-{
-	vec3 low_range = cs / vec3(12.92);
-	vec3 high_range = pow((cs+vec3(0.055))/vec3(1.055), vec3(2.4));
-	bvec3 lte = lessThanEqual(cs,vec3(0.04045));
-
-#ifdef OLD_SELECT
-	vec3 result;
-	result.r = lte.r ? low_range.r : high_range.r;
-	result.g = lte.g ? low_range.g : high_range.g;
-	result.b = lte.b ? low_range.b : high_range.b;
-    return result;
-#else
-	return mix(high_range, low_range, lte);
-#endif
-
-}
-
-vec3 linear_to_srgb(vec3 cl)
-{
-	vec3 low_range  = cl * 12.92;
-	vec3 high_range = 1.055 * pow(cl, vec3(0.41666)) - 0.055;
-	bvec3 lt = lessThan(cl,vec3(0.0031308));
-
-#ifdef OLD_SELECT
-	vec3 result;
-	result.r = lt.r ? low_range.r : high_range.r;
-	result.g = lt.g ? low_range.g : high_range.g;
-	result.b = lt.b ? low_range.b : high_range.b;
-    return result;
-#else
-	return mix(high_range, low_range, lt);
-#endif
-
-}
-
-
-vec3 decode_normal (vec2 enc)
-{
-    vec2 fenc = enc*4-2;
-    float f = dot(fenc,fenc);
-    float g = sqrt(1-f/4);
-    vec3 n;
-    n.xy = fenc*g;
-    n.z = 1-f/2;
-    return n;
-}
+vec3 decode_normal(vec2 enc);
+vec3 srgb_to_linear(vec3 cs);
+vec3 linear_to_srgb(vec3 cl);
 
 vec4 getPosition_d(vec2 pos_screen, float depth)
 {
 	vec2 sc = pos_screen.xy*2.0;
-	sc /= screen_res;
 	sc -= vec2(1.0,1.0);
 	vec4 ndc = vec4(sc.x, sc.y, 2.0*depth-1.0, 1.0);
 	vec4 pos = inv_proj * ndc;
 	pos /= pos.w;
 	pos.w = 1.0;
 	return pos;
-}
-
-vec4 getPosition(vec2 pos_screen)
-{ //get position in screen space (world units) given window coordinate and depth map
-	float depth = texture2DRect(depthMap, pos_screen.xy).a;
-	return getPosition_d(pos_screen, depth);
 }
 
 vec3 getPositionEye()
@@ -381,13 +326,13 @@ float luminance(vec3 color)
 void main() 
 {
 	vec2 tc = vary_fragcoord.xy;
-	float depth = texture2DRect(depthMap, tc.xy).r;
+	float depth = texture2D(depthMap, tc.xy).r;
 	vec3 pos = getPosition_d(tc, depth).xyz;
-	vec4 norm = texture2DRect(normalMap, tc);
+	vec4 norm = texture2D(normalMap, tc);
 	float envIntensity = norm.z;
 	norm.xyz = decode_normal(norm.xy); // unpack norm
 		
-	vec4 diffuse = texture2DRect(diffuseRect, tc);
+	vec4 diffuse = texture2D(diffuseRect, tc);
 
 	//convert to gamma space
 	diffuse.rgb = linear_to_srgb(diffuse.rgb);
@@ -395,7 +340,7 @@ void main()
 	vec3 col;
 	float bloom = 0.0;
 	{
-		vec4 spec = texture2DRect(specularRect, vary_fragcoord.xy);
+		vec4 spec = texture2D(specularRect, vary_fragcoord.xy);
 		bloom = spec.r*norm.w;
 		if (norm.w < 0.5)
 		{
@@ -470,7 +415,7 @@ void main()
 		//col.g = envIntensity;
 	}
 
-	frag_color.rgb = col.rgb;
+	frag_color.rgb = col;
 
 	frag_color.a = bloom;
 }

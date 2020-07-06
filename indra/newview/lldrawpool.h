@@ -46,30 +46,24 @@ public:
 	enum
 	{
 		// Correspond to LLPipeline render type
-		POOL_SIMPLE = 1,
-		POOL_GROUND,
+		POOL_GROUND = 1,
+		POOL_TERRAIN,
+		POOL_SIMPLE,
 		POOL_FULLBRIGHT,
 		POOL_BUMP,
 		POOL_MATERIALS,
-		POOL_TERRAIN,	
 		POOL_TREE,	// Singu Note: Before sky for zcull.
 		POOL_ALPHA_MASK,
 		POOL_FULLBRIGHT_ALPHA_MASK,
 		POOL_SKY,
 		POOL_WL_SKY,
 		POOL_GRASS,
-		POOL_INVISIBLE, // see below *
 		POOL_AVATAR,
 		POOL_VOIDWATER,
 		POOL_WATER,
 		POOL_GLOW,
 		POOL_ALPHA,
 		NUM_POOL_TYPES,
-		// * invisiprims work by rendering to the depth buffer but not the color buffer, occluding anything rendered after them
-		// - and the LLDrawPool types enum controls what order things are rendered in
-		// - so, it has absolute control over what invisprims block
-		// ...invisiprims being rendered in pool_invisible
-		// ...shiny/bump mapped objects in rendered in POOL_BUMP
 	};
 	
 	LLDrawPool(const U32 type);
@@ -126,8 +120,6 @@ public:
 		PASS_SIMPLE = NUM_POOL_TYPES,
 		PASS_GRASS,
 		PASS_FULLBRIGHT,
-		PASS_INVISIBLE,
-		PASS_INVISI_SHINY,
 		PASS_FULLBRIGHT_SHINY,
 		PASS_SHINY,
 		PASS_BUMP,

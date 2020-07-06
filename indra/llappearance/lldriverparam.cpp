@@ -102,7 +102,7 @@ void LLDriverParamInfo::toStream(std::ostream &out)
 	LLViewerVisualParamInfo::toStream(out);
 	out << "driver" << "\t";
 	out << mDrivenInfoList.size() << "\t";
-	for (entry_info_list_t::iterator iter = mDrivenInfoList.begin(); iter != mDrivenInfoList.end(); iter++)
+	for (entry_info_list_t::iterator iter = mDrivenInfoList.begin(); iter != mDrivenInfoList.end(); ++iter)
 	{
 		LLDrivenEntryInfo driven = *iter;
 		out << driven.mDrivenID << "\t";
@@ -110,14 +110,26 @@ void LLDriverParamInfo::toStream(std::ostream &out)
 
 	out << std::endl;
 
-	if(mDriverParam && mDriverParam->getAvatarAppearance()->isSelf() &&
-		mDriverParam->getAvatarAppearance()->isValid())
+	// FIXME - this mDriverParam backlink makes no sense, because the
+	// LLDriverParamInfos are static objects - there's only one copy
+	// for each param type, so the backlink will just reference the
+	// corresponding param in the most recently created
+	// avatar. Apparently these toStream() methods are not currently
+	// used anywhere, so it's not an urgent problem.
+    LL_WARNS_ONCE() << "Invalid usage of mDriverParam." << LL_ENDL;
+    
+	if (!mDriverParam)
+		return;
+	const auto& avatar_appearance = mDriverParam->getAvatarAppearance();
+
+	if(avatar_appearance->isSelf() &&
+		avatar_appearance->isValid())
 	{
-		for (entry_info_list_t::iterator iter = mDrivenInfoList.begin(); iter != mDrivenInfoList.end(); iter++)
+		for (entry_info_list_t::iterator iter = mDrivenInfoList.begin(); iter != mDrivenInfoList.end(); ++iter)
 		{
 			LLDrivenEntryInfo driven = *iter;
 			LLViewerVisualParam *param = 
-				(LLViewerVisualParam*)mDriverParam->getAvatarAppearance()->getVisualParam(driven.mDrivenID);
+				(LLViewerVisualParam*) avatar_appearance->getVisualParam(driven.mDrivenID);
 			if (param)
 			{
 				param->getInfo()->toStream(out);
@@ -140,7 +152,7 @@ void LLDriverParamInfo::toStream(std::ostream &out)
 			else
 			{
 				LL_WARNS() << "could not get parameter " << driven.mDrivenID << " from avatar " 
-						<< mDriverParam->getAvatarAppearance() 
+						<< avatar_appearance
 						<< " for driver parameter " << getID() << LL_ENDL;
 			}
 			out << std::endl;
@@ -224,7 +236,7 @@ void LLDriverParam::setWeight(F32 weight, bool upload_bake)
 	//-------|----|-------|----|-------> driver
 	//  | min1   max1    max2  min2
 
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		LLDrivenEntryInfo* info = driven->mInfo;
@@ -297,7 +309,7 @@ void LLDriverParam::setWeight(F32 weight, bool upload_bake)
 F32	LLDriverParam::getTotalDistortion()
 {
 	F32 sum = 0.f;
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		sum += driven->mParam->getTotalDistortion();
@@ -312,7 +324,7 @@ const LLVector4a	&LLDriverParam::getAvgDistortion()
 	LLVector4a sum;
 	sum.clear();
 	S32 count = 0;
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		sum.add(driven->mParam->getAvgDistortion());
@@ -327,7 +339,7 @@ const LLVector4a	&LLDriverParam::getAvgDistortion()
 F32	LLDriverParam::getMaxDistortion() 
 {
 	F32 max = 0.f;
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		F32 param_max = driven->mParam->getMaxDistortion();
@@ -345,7 +357,7 @@ LLVector4a	LLDriverParam::getVertexDistortion(S32 index, LLPolyMesh *poly_mesh)
 {
 	LLVector4a sum;
 	sum.clear();
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		sum.add(driven->mParam->getVertexDistortion( index, poly_mesh ));
@@ -357,7 +369,7 @@ const LLVector4a*	LLDriverParam::getFirstDistortion(U32 *index, LLPolyMesh **pol
 {
 	mCurrentDistortionParam = NULL;
 	const LLVector4a* v = NULL;
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		v = driven->mParam->getFirstDistortion( index, poly_mesh );
@@ -383,7 +395,7 @@ const LLVector4a*	LLDriverParam::getNextDistortion(U32 *index, LLPolyMesh **poly
 	entry_list_t::iterator iter;
 	
 	// Set mDriven iteration to the right point
-	for( iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		driven = &(*iter);
 		if( driven->mParam == mCurrentDistortionParam )
@@ -404,7 +416,7 @@ const LLVector4a*	LLDriverParam::getNextDistortion(U32 *index, LLPolyMesh **poly
 	{
 		// This param is finished, so start the next param.  It might not have any
 		// distortions, though, so we have to loop to find the next param that does.
-		for( iter++; iter != mDriven.end(); iter++ )
+		for( ++iter; iter != mDriven.end(); ++iter )
 		{
 			driven = &(*iter);
 			v = driven->mParam->getFirstDistortion( index, poly_mesh );
@@ -440,7 +452,7 @@ void LLDriverParam::setAnimationTarget( F32 target_value, bool upload_bake )
 {
 	LLVisualParam::setAnimationTarget(target_value, upload_bake);
 
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		F32 driven_weight = getDrivenWeight(driven, mTargetWeight);
@@ -458,7 +470,7 @@ void LLDriverParam::stopAnimating(bool upload_bake)
 {
 	LLVisualParam::stopAnimating(upload_bake);
 
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		driven->mParam->setAnimating(FALSE);
@@ -515,7 +527,7 @@ void LLDriverParam::updateCrossDrivenParams(LLWearableType::EType driven_type)
 	bool needs_update = (getWearableType()==driven_type);
 
 	// if the driver has a driven entry for the passed-in wearable type, we need to refresh the value
-	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); iter++ )
+	for( entry_list_t::iterator iter = mDriven.begin(); iter != mDriven.end(); ++iter )
 	{
 		LLDrivenEntry* driven = &(*iter);
 		if (driven && driven->mParam && driven->mParam->getCrossWearable() && driven->mParam->getWearableType() == driven_type)

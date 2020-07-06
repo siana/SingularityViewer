@@ -149,21 +149,8 @@ LLDir_Mac::LLDir_Mac()
 
 		CFURLRef resourcesURLRef = CFBundleCopyResourcesDirectoryURL(mainBundleRef);
 		CFURLRefToLLString(resourcesURLRef, mAppRODataDir, true);
-		
-		size_t build_dir_pos = mExecutableDir.rfind("/indra/build-darwin-");
-		if (build_dir_pos != std::string::npos)
-		{
-			// ...we're in a dev checkout
-			mSkinBaseDir = mExecutableDir.substr(0, build_dir_pos)
-				+ "/indra/newview/skins";
-			LL_INFOS() << "Running in dev checkout with mSkinBaseDir "
-				<< mSkinBaseDir << LL_ENDL;
-		}
-		else
-		{
-			// ...normal installation running
-			mSkinBaseDir = mAppRODataDir + mDirDelimiter + "skins";
-		}
+
+		mSkinBaseDir = mAppRODataDir + mDirDelimiter + "skins";
 		
 		// mOSUserDir
 		error = FSFindFolder(kUserDomain, kApplicationSupportFolderType, true, &fileRef);
@@ -267,7 +254,7 @@ std::string LLDir_Mac::getCurPath()
 
 
 
-BOOL LLDir_Mac::fileExists(const std::string &filename) const
+bool LLDir_Mac::fileExists(const std::string &filename) const
 {
 	struct stat stat_data;
 	// Check the age of the file

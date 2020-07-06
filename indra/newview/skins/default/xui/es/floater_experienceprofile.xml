@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<floater title="Perfil de la Experiencia">
+	<floater.string name="empty_slurl">
+		(ninguno)
+	</floater.string>
+	<floater.string name="maturity_icon_general">
+		map_event.tga
+	</floater.string>
+	<floater.string name="maturity_icon_moderate">
+		map_event_mature.tga
+	</floater.string>
+	<floater.string name="maturity_icon_adult">
+		map_event_adult.tga
+	</floater.string>
+	<name_box name="experience_title"/>
+	<tab_container  name="tab_container">
+		<panel name="panel_experience_info">
+			<scroll_container name="xp_scroll">
+				<panel name="scrolling_panel">
+					<layout_stack name="Experience_profile">
+						<layout_panel name="top panel">
+							<text name="grid_wide"/>
+							<button label="Editar" name="edit_btn"/>
+						</layout_panel>
+						<layout_panel name="image_panel">
+							<texture_picker name="logo"/>
+						</layout_panel>
+						<layout_panel name="description panel">
+							<text_editor name="experience_description"/>
+						</layout_panel>
+						<layout_panel name="maturity panel">
+							<text name="ContentRating" width="75">
+								Contenido:
+							</text>
+							<text name="ContentRatingText"/>
+						</layout_panel>
+						<layout_panel name="location panel">
+							<text name="Location" width="290">
+								Ubicación:
+							</text>
+							<text_editor name="LocationTextText"/>
+						</layout_panel>
+						<layout_panel name="marketplace panel">
+							<text name="marketplace store">
+								Tienda del Mercado:
+							</text>
+							<text_editor name="marketplace"/>
+						</layout_panel>
+						<layout_panel name ="owner panel">
+							<text name="Owner">
+								Propietario:
+							</text>
+							<name_box name="OwnerText"/>
+						</layout_panel>
+						<layout_panel name="group_panel">
+							<text name="Group">
+								Grupo:
+							</text>
+							<name_box name="GroupText"/>
+						</layout_panel>
+						<layout_panel name="perm panel">
+							<button label="Permitir" name="allow_btn"/>
+							<button label="Olvidar" name="forget_btn"/>
+							<button label="Bloquear" name="block_btn"/>
+							<text name="privileged">
+								Esta experiencia está habilitada para todos los residentes.
+							</text>
+							<button label="Denunciar Infracción" name="report_btn" left="84" width="134"/>
+						</layout_panel>
+					</layout_stack>
+				</panel>
+			</scroll_container>
+		</panel>
+		<panel name="edit_panel_experience_info">
+			<scroll_container name="edit_xp_scroll" >
+				<panel name="edit_scrolling_panel">
+					<texture_picker name="edit_logo"/>
+					<text name="edit_experience_title_label" value="Nombre:"/>
+					<line_editor name="edit_experience_title"/>
+					<text name="edit_experience_desc_label" value="Descripción:"/>
+					<text_editor name="edit_experience_description"/>
+					<button name="Group_btn" label="Definir Grupo"/>
+					<name_box name="edit_GroupText"/>
+					<text name="edit_ContentRating">
+						Contenido:
+					</text>
+					<combo_box label="Moderado" tool_tip="Increasing the maturity rating on an experience will reset permission for all residents which have allowed the experience." name="edit_ContentRatingText">
+						<combo_item label="Adulto" name="Adult"/>
+						<combo_item label="Moderado" name="Mature"/>
+						<combo_item label="General" name="PG"/>
+					</combo_box>
+					<text name="edit_Location">
+						Ubicación:
+					</text>
+					<text_editor name="edit_LocationTextText"/>
+					<button name="location_btn" label="Definir aquí"/>
+					<button name="clear_btn" label="Limpiar Ubicación"/>
+					<text name="Marketplace Store text">
+						Tienda del Mercado:
+					</text>
+					<line_editor name="edit_marketplace"/>
+					<check_box tool_tip="" label="Habilitar Experiencia" name="edit_enable_btn"/>
+					<check_box label="Ocultar en Búsqueda" name="edit_private_btn"/>
+					<text name="changes" value="Los cambios de una experiencia pueden tardar varios minutos en mostrarse en todas las regiones."/>
+					<button label="Volver" name="cancel_btn"/>
+					<button label="Guardar" name="save_btn"/>
+				</panel>
+			</scroll_container>
+		</panel>
+	</tab_container>
+</floater>
+

@@ -35,6 +35,7 @@
 #include "llpanelgroupgeneral.h"
 
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "lluictrlfactory.h"
 #include "roles_constants.h"
 
@@ -43,7 +44,6 @@
 #include "llcheckboxctrl.h"
 #include "llcombobox.h"
 #include "lldbstrings.h"
-#include "llavataractions.h"
 #include "llgroupactions.h"
 #include "llimview.h"
 #include "lllineeditor.h"
@@ -84,7 +84,6 @@ LLPanelGroupGeneral::LLPanelGroupGeneral(const std::string& name,
 	mGroupNameEditor(NULL),
 	mFounderName(NULL),
 	mInsignia(NULL),
-	mGroupName(NULL),
 	mEditCharter(NULL),
 	mBtnJoinGroup(NULL),
 	mListVisibleMembers(NULL),
@@ -122,15 +121,17 @@ BOOL LLPanelGroupGeneral::postBuild()
 
 	// General info
 	mGroupNameEditor = getChild<LLLineEditor>("group_name_editor", recurse);
-	mGroupName = getChild<LLTextBox>("group_name", recurse);
-	
+
 	mInsignia = getChild<LLTextureCtrl>("insignia", recurse);
 	if (mInsignia)
 	{
 		mInsignia->setCommitCallback(boost::bind(&LLPanelGroupGeneral::onCommitAny,this));
 		mDefaultIconID = mInsignia->getImageAssetID();
 		void show_picture(const LLUUID& id, const std::string& name);
-		getChild<LLUICtrl>("bigimg")->setCommitCallback(boost::bind(boost::bind(show_picture, boost::bind(&LLTextureCtrl::getImageAssetID, mInsignia), "Group Insignia")));
+		auto show_pic = [this] { show_picture(mInsignia->getImageAssetID(), "Group Insignia"); };
+		auto show_pic_if_not_self = [=] { if (!mInsignia->canChange()) show_pic(); };
+		mInsignia->setMouseUpCallback(std::bind(show_pic_if_not_self));
+		getChild<LLUICtrl>("bigimg")->setCommitCallback(std::bind(show_pic));
 	}
 	
 	mEditCharter = getChild<LLTextEditor>("charter", recurse);
@@ -156,10 +157,6 @@ BOOL LLPanelGroupGeneral::postBuild()
 	mFounderName = getChild<LLNameBox>("founder_name");
 
 	mListVisibleMembers = getChild<LLNameListCtrl>("visible_members", recurse);
-	if (mListVisibleMembers)
-	{
-		mListVisibleMembers->setDoubleClickCallback(boost::bind(LLAvatarActions::showProfile, boost::bind(&LLScrollListCtrl::getCurrentID, mListVisibleMembers), false));
-	}
 
 	// Options
 	mCtrlShowInGroupList = getChild<LLCheckBoxCtrl>("show_in_group_list", recurse);
@@ -186,10 +183,11 @@ BOOL LLPanelGroupGeneral::postBuild()
 		mCtrlOpenEnrollment->setCommitCallback(boost::bind(&LLPanelGroupGeneral::onCommitAny,this));
 	}
 
+	auto& grid = *gHippoGridManager->getConnectedGrid();
 	mCtrlEnrollmentFee = getChild<LLCheckBoxCtrl>("check_enrollment_fee", recurse);
 	if (mCtrlEnrollmentFee)
 	{
-		mCtrlEnrollmentFee->setLabelArg("[CURRENCY]", gHippoGridManager->getConnectedGrid()->getCurrencySymbol());
+		mCtrlEnrollmentFee->setLabelArg("[CURRENCY]", grid.getCurrencySymbol());
 		mCtrlEnrollmentFee->setCommitCallback(boost::bind(&LLPanelGroupGeneral::onCommitEnrollment,this));
 	}
 
@@ -246,7 +244,7 @@ BOOL LLPanelGroupGeneral::postBuild()
 	}
 
 	LLStringUtil::format_map_t args;
-	args["[GROUPCREATEFEE]"] = gHippoGridManager->getConnectedGrid()->getGroupCreationFee();
+	args["[GROUPCREATEFEE]"] = grid.formatFee(LLAgentBenefitsMgr::current().getCreateGroupCost());
 	mIncompleteMemberDataStr = getString("incomplete_member_data_str");
 	mConfirmGroupCreateStr = getString("confirm_group_create_str", args);
 
@@ -265,7 +263,7 @@ BOOL LLPanelGroupGeneral::postBuild()
 
 		mBtnJoinGroup->setVisible(FALSE);
 		mBtnInfo->setVisible(FALSE);
-		mGroupName->setVisible(FALSE);
+		getChildView("group_name")->setVisible(FALSE);
 	}
 
 	std::string member_count(LLTrans::getString("LoadingData"));
@@ -733,15 +731,14 @@ void LLPanelGroupGeneral::update(LLGroupChange gc)
 
 		if (mInsignia) mInsignia->setEnabled(can_change_ident);
 		if (mEditCharter) mEditCharter->setEnabled(can_change_ident);
-	
-		if (mGroupName) mGroupName->setText(gdatap->mName);
-		if (mGroupNameEditor) mGroupNameEditor->setVisible(FALSE);
-		if (mFounderName) mFounderName->setNameID(gdatap->mFounderID,FALSE);
 
-		LLNameEditor* key_edit = getChild<LLNameEditor>("group_key");
-		if(key_edit)
+		getChildView("group_name")->setValue(mGroupID);
+		if (mGroupNameEditor) mGroupNameEditor->setVisible(FALSE);
+		if (mFounderName) mFounderName->setValue(gdatap->mFounderID);
+
+		if (auto key_edit = getChildView("group_key"))
 		{
-			key_edit->setText(gdatap->getID().asString());
+			key_edit->setValue(gdatap->getID().asString());
 		}
 
 		if (mInsignia)
@@ -758,7 +755,7 @@ void LLPanelGroupGeneral::update(LLGroupChange gc)
 
 		if (mEditCharter)
 		{
-			mEditCharter->setText(gdatap->mCharter);
+			mEditCharter->setText(gdatap->mCharter, false);
 			mEditCharter->resetDirty();
 		}
 	}
@@ -910,7 +907,6 @@ void LLPanelGroupGeneral::updateChanged()
 	LLUICtrl *check_list[] =
 	{
 		mGroupNameEditor,
-		mGroupName,
 		mFounderName,
 		mInsignia,
 		mEditCharter,

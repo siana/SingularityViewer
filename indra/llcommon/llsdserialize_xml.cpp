@@ -116,11 +116,9 @@ S32 LLSDXMLFormatter::format_impl(const LLSD& data, std::ostream& ostr, U32 opti
 		else
 		{
 			ostr << pre << "<array>" << post;
-			LLSD::array_const_iterator iter = data.beginArray();
-			LLSD::array_const_iterator end = data.endArray();
-			for(; iter != end; ++iter)
+			for (const auto& entry : data.array())
 			{
-				format_count += format_impl(*iter, ostr, options, level + 1);
+				format_count += format_impl(entry, ostr, options, level + 1);
 			}
 			ostr << pre << "</array>" << post;
 		}
@@ -337,10 +335,9 @@ void clear_eol(std::istream& input)
 static unsigned get_till_eol(std::istream& input, char *buf, unsigned bufsize)
 {
 	unsigned count = 0;
-	char c;
 	while (count < bufsize && input.good())
 	{
-		input.get(c);
+		char c = input.get();
 		buf[count++] = c;
 		if (is_eol(c))
 			break;

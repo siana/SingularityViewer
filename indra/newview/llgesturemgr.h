@@ -27,8 +27,9 @@
 #ifndef LL_LLGESTUREMGR_H
 #define LL_LLGESTUREMGR_H
 
-#include <map>
 #include <string>
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 #include <vector>
 
 #include "llassetstorage.h"	// LLAssetType
@@ -53,10 +54,10 @@ class LLGestureMgr : public LLSingleton<LLGestureMgr>, public LLInventoryFetchIt
 {
 public:
 
-	typedef boost::function<void (LLMultiGesture* loaded_gesture)> gesture_loaded_callback_t;
+	typedef std::function<void (LLMultiGesture* loaded_gesture)> gesture_loaded_callback_t;
 	// Maps inventory item_id to gesture
-	typedef std::map<LLUUID, LLMultiGesture*> item_map_t;
-	typedef std::map<LLUUID, gesture_loaded_callback_t> callback_map_t;
+	typedef boost::unordered_map<LLUUID, LLMultiGesture*> item_map_t;
+	typedef boost::unordered_map<LLUUID, gesture_loaded_callback_t> callback_map_t;
 
 	LLGestureMgr();
 	~LLGestureMgr();
@@ -81,24 +82,24 @@ public:
 
 	// Load gesture into in-memory active form.
 	// Can be called even if the inventory item isn't loaded yet.
-	// inform_server TRUE will send message upstream to update database
+	// inform_server true will send message upstream to update database
 	// user_gesture_active table, which isn't necessary on login.
 	// deactivate_similar will cause other gestures with the same trigger phrase
 	// or keybinding to be deactivated.
-	void activateGestureWithAsset(const LLUUID& item_id, const LLUUID& asset_id, BOOL inform_server, BOOL deactivate_similar);
+	void activateGestureWithAsset(const LLUUID& item_id, const LLUUID& asset_id, bool inform_server, bool deactivate_similar);
 
 	// Takes gesture out of active list and deletes it.
 	void deactivateGesture(const LLUUID& item_id);
 
 	// Deactivates all gestures that match either this trigger phrase,
 	// or this hot key.
-	void deactivateSimilarGestures(LLMultiGesture* gesture, const LLUUID& in_item_id);
+	void deactivateSimilarGestures(const LLMultiGesture* gesture, const LLUUID& in_item_id);
 
-	BOOL isGestureActive(const LLUUID& item_id);
+	bool isGestureActive(const LLUUID& item_id) const;
 
-	BOOL isGesturePlaying(const LLUUID& item_id);
+	bool isGesturePlaying(const LLUUID& item_id) const;
 
-	BOOL isGesturePlaying(LLMultiGesture* gesture);
+	bool isGesturePlaying(const LLMultiGesture* gesture) const;
 
 	const item_map_t& getActiveGestures() const { return mActive; }
 	// Force a gesture to be played, for example, if it is being
@@ -115,19 +116,19 @@ public:
 	 * Note:
 	 * Manager will call cb after gesture will be loaded and will remove cb automatically. 
 	 */
-	void setGestureLoadedCallback(LLUUID inv_item_id, gesture_loaded_callback_t cb)
+	void setGestureLoadedCallback(const LLUUID& inv_item_id, gesture_loaded_callback_t cb)
 	{
 		mCallbackMap[inv_item_id] = cb;
 	}
 	// Trigger the first gesture that matches this key.
 	// Returns TRUE if it finds a gesture bound to that key.
-	BOOL triggerGesture(KEY key, MASK mask);
+	bool triggerGesture(KEY key, MASK mask);
 
 	// Trigger all gestures referenced as substrings in this string
-	BOOL triggerAndReviseString(const std::string &str, std::string *revised_string = NULL);
+	bool triggerAndReviseString(const std::string &str, std::string *revised_string = nullptr);
 
 	// Does some gesture have this key bound?
-	BOOL isKeyBound(KEY key, MASK mask);
+	//bool isKeyBound(KEY key, MASK mask) const;
 
 	S32 getPlayingCount() const;
 
@@ -138,10 +139,10 @@ public:
 	// Overriding so we can update active gesture names and notify observers 
 	void changed(U32 mask); 
 
-	BOOL matchPrefix(const std::string& in_str, std::string* out_str);
+	bool matchPrefix(const std::string& in_str, std::string* out_str) const;
 
 	// Copy item ids into the vector
-	void getItemIDs(uuid_vec_t* ids);
+	void getItemIDs(uuid_vec_t* ids) const;
 
 protected:
 	// Handle the processing of a single gesture
@@ -172,7 +173,7 @@ protected:
 
 private:
 	// Active gestures.
-	// NOTE: The gesture pointer CAN BE NULL.  This means that
+	// NOTE: The gesture pointer CAN BE a nullptr.  This means that
 	// there is a gesture with that item_id, but the asset data
 	// is still on its way down from the server.
 	item_map_t mActive;
@@ -183,9 +184,9 @@ private:
 	std::vector<LLGestureManagerObserver*> mObservers;
 	callback_map_t mCallbackMap;
 	std::vector<LLMultiGesture*> mPlaying;	
-	BOOL mValid;
+	bool mValid;
 
-	std::set<LLUUID> mLoadingAssets;
+	uuid_set_t mLoadingAssets;
 };
 
 #endif

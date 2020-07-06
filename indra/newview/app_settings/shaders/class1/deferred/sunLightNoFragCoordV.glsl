@@ -27,8 +27,6 @@ uniform mat4 modelview_projection_matrix;
  
 ATTRIBUTE vec3 position;
 
-uniform vec2 screen_res;
-
 void main()
 {
 	//transform vertex

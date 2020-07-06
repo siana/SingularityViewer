@@ -122,10 +122,10 @@ protected:
 	static LLVector3 mClipboardSize;
 	static LLVector3 mClipboardRot;
 	static LLVolumeParams mClipboardVolumeParams;
-	static LLFlexibleObjectData* mClipboardFlexiParams;
-	static LLLightParams* mClipboardLightParams;
-	static LLSculptParams* mClipboardSculptParams;
-	static LLLightImageParams* mClipboardLightImageParams;
+	static const LLFlexibleObjectData* mClipboardFlexiParams;
+	static const LLLightParams* mClipboardLightParams;
+	static const LLSculptParams* mClipboardSculptParams;
+	static const LLLightImageParams* mClipboardLightImageParams;
 	static BOOL hasParamClipboard;
 
 	S32				mComboMaterialItemCount;

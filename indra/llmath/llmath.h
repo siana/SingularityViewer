@@ -41,23 +41,6 @@
 // llcommon depend on llmath.
 #include "is_approx_equal_fraction.h"
 
-
-// work around for Windows & older gcc non-standard function names.
-#if LL_WINDOWS
-#include <float.h>
-#define llisnan(val)	_isnan(val)
-#define llfinite(val)	_finite(val)
-#elif (LL_LINUX && __GNUC__ <= 2)
-#define llisnan(val)	isnan(val)
-#define llfinite(val)	isfinite(val)
-#elif LL_SOLARIS
-#define llisnan(val)    isnan(val)
-#define llfinite(val)   (val <= std::numeric_limits<double>::max())
-#else
-#define llisnan(val)	std::isnan(val)
-#define llfinite(val)	std::isfinite(val)
-#endif
-
 // Single Precision Floating Point Routines
 // (There used to be more defined here, but they appeared to be redundant and 
 // were breaking some other includes. Removed by Falcon, reviewed by Andrew, 11/25/09)
@@ -65,34 +48,34 @@
 #define tanf(x)		((F32)tan((F64)(x)))
 #endif*/
 
-const F32	GRAVITY			= -9.8f;
+constexpr F32	GRAVITY			= -9.8f;
 
 // mathematical constants
-const F32	F_PI		= 3.1415926535897932384626433832795f;
-const F32	F_TWO_PI	= 6.283185307179586476925286766559f;
-const F32	F_PI_BY_TWO	= 1.5707963267948966192313216916398f;
-const F32	F_SQRT_TWO_PI = 2.506628274631000502415765284811f;
-const F32	F_E			= 2.71828182845904523536f;
-const F32	F_SQRT2		= 1.4142135623730950488016887242097f;
-const F32	F_SQRT3		= 1.73205080756888288657986402541f;
-const F32	OO_SQRT2	= 0.7071067811865475244008443621049f;
-const F32	OO_SQRT3	= 0.577350269189625764509f;
-const F32	DEG_TO_RAD	= 0.017453292519943295769236907684886f;
-const F32	RAD_TO_DEG	= 57.295779513082320876798154814105f;
-const F32	F_APPROXIMATELY_ZERO = 0.00001f;
-const F32	F_LN10		= 2.3025850929940456840179914546844f;
-const F32	OO_LN10		= 0.43429448190325182765112891891661f;
-const F32	F_LN2		= 0.69314718056f;
-const F32	OO_LN2		= 1.4426950408889634073599246810019f;
+constexpr F32	F_PI		= 3.1415926535897932384626433832795f;
+constexpr F32	F_TWO_PI	= 6.283185307179586476925286766559f;
+constexpr F32	F_PI_BY_TWO	= 1.5707963267948966192313216916398f;
+constexpr F32	F_SQRT_TWO_PI = 2.506628274631000502415765284811f;
+constexpr F32	F_E			= 2.71828182845904523536f;
+constexpr F32	F_SQRT2		= 1.4142135623730950488016887242097f;
+constexpr F32	F_SQRT3		= 1.73205080756888288657986402541f;
+constexpr F32	OO_SQRT2	= 0.7071067811865475244008443621049f;
+constexpr F32	OO_SQRT3	= 0.577350269189625764509f;
+constexpr F32	DEG_TO_RAD	= 0.017453292519943295769236907684886f;
+constexpr F32	RAD_TO_DEG	= 57.295779513082320876798154814105f;
+constexpr F32	F_APPROXIMATELY_ZERO = 0.00001f;
+constexpr F32	F_LN10		= 2.3025850929940456840179914546844f;
+constexpr F32	OO_LN10		= 0.43429448190325182765112891891661f;
+constexpr F32	F_LN2		= 0.69314718056f;
+constexpr F32	OO_LN2		= 1.4426950408889634073599246810019f;
 
-const F32	F_ALMOST_ZERO	= 0.0001f;
-const F32	F_ALMOST_ONE	= 1.0f - F_ALMOST_ZERO;
+constexpr F32	F_ALMOST_ZERO	= 0.0001f;
+constexpr F32	F_ALMOST_ONE	= 1.0f - F_ALMOST_ZERO;
 
-const F32	GIMBAL_THRESHOLD = 0.000436f; // sets the gimballock threshold 0.025 away from +/-90 degrees
+constexpr F32	GIMBAL_THRESHOLD = 0.000436f; // sets the gimballock threshold 0.025 away from +/-90 degrees
 // formula: GIMBAL_THRESHOLD = sin(DEG_TO_RAD * gimbal_threshold_angle);
 
 // BUG: Eliminate in favor of F_APPROXIMATELY_ZERO above?
-const F32 FP_MAG_THRESHOLD = 0.0000001f;
+constexpr F32 FP_MAG_THRESHOLD = 0.0000001f;
 
 // TODO: Replace with logic like is_approx_equal
 inline bool is_approx_zero( F32 f ) { return (-F_APPROXIMATELY_ZERO < f) && (f < F_APPROXIMATELY_ZERO); }
@@ -129,13 +112,13 @@ inline bool is_zero(F32 x)
 
 inline bool is_approx_equal(F32 x, F32 y)
 {
-	const S32 COMPARE_MANTISSA_UP_TO_BIT = 0x02;
+	constexpr S32 COMPARE_MANTISSA_UP_TO_BIT = 0x02;
 	return (std::abs((S32) ((U32&)x - (U32&)y) ) < COMPARE_MANTISSA_UP_TO_BIT);
 }
 
 inline bool is_approx_equal(F64 x, F64 y)
 {
-	const S64 COMPARE_MANTISSA_UP_TO_BIT = 0x02;
+	constexpr S64 COMPARE_MANTISSA_UP_TO_BIT = 0x02;
 	return (std::abs((S32) ((U64&)x - (U64&)y) ) < COMPARE_MANTISSA_UP_TO_BIT);
 }
 
@@ -156,36 +139,12 @@ inline F64 llabs(const F64 a)
 
 inline S32 lltrunc( F32 f )
 {
-#if LL_WINDOWS && !defined( __INTEL_COMPILER ) && !defined(_WIN64) && !(_MSC_VER >= 1800)
-		// Avoids changing the floating point control word.
-		// Add or subtract 0.5 - epsilon and then round
-		const static U32 zpfp[] = { 0xBEFFFFFF, 0x3EFFFFFF };
-		S32 result;
-		__asm {
-			fld		f
-			mov		eax,	f
-			shr		eax,	29
-			and		eax,	4
-			fadd	dword ptr [zpfp + eax]
-			fistp	result
-		}
-		return result;
-#else
-#ifdef LL_CPP11
-		return (S32)trunc(f);
-#else
-		return (S32)f;
-#endif
-#endif
+	return (S32)trunc(f);
 }
 
 inline S32 lltrunc( F64 f )
 {
-#ifdef LL_CPP11
 	return (S32)trunc(f);
-#else
-	return (S32)f;
-#endif
 }
 
 inline S32 llfloor( F32 f )
@@ -217,29 +176,23 @@ inline S32 llceil( F32 f )
 // Use this round.  Does an arithmetic round (0.5 always rounds up)
 inline S32 ll_round(const F32 val)
 {
-#ifdef LL_CPP11
 	return (S32)round(val);
-#else
-	return llfloor(val + 0.5f);
-#endif
+}
+
+// Singu Note: Quick round for values that are known to be >= 0.
+inline S32 ll_pos_round(const F32 val)
+{
+	return val + .5f;
 }
 
 inline F32 ll_round(F32 val, F32 nearest)
 {
-#ifdef LL_CPP11
 	return F32(round(val * (1.0f / nearest))) * nearest;
-#else
-	return F32(floor(val * (1.0f / nearest) + 0.5f)) * nearest;
-#endif
 }
 
 inline F64 ll_round(F64 val, F64 nearest)
 {
-#ifdef LL_CPP11
 	return F64(round(val * (1.0 / nearest))) * nearest;
-#else
-	return F64(floor(val * (1.0 / nearest) + 0.5)) * nearest;
-#endif
 }
 
 // these provide minimum peak error
@@ -248,8 +201,8 @@ inline F64 ll_round(F64 val, F64 nearest)
 // peak error = -31.4 dB
 // RMS  error = -28.1 dB
 
-const F32 FAST_MAG_ALPHA = 0.960433870103f;
-const F32 FAST_MAG_BETA = 0.397824734759f;
+constexpr F32 FAST_MAG_ALPHA = 0.960433870103f;
+constexpr F32 FAST_MAG_BETA = 0.397824734759f;
 
 // these provide minimum RMS error
 //
@@ -257,8 +210,8 @@ const F32 FAST_MAG_BETA = 0.397824734759f;
 // peak error = -32.6 dB
 // RMS  error = -25.7 dB
 //
-//const F32 FAST_MAG_ALPHA = 0.948059448969f;
-//const F32 FAST_MAG_BETA = 0.392699081699f;
+//constexpr F32 FAST_MAG_ALPHA = 0.948059448969f;
+//constexpr F32 FAST_MAG_BETA = 0.392699081699f;
 
 inline F32 fastMagnitude(F32 a, F32 b)
 { 
@@ -275,8 +228,8 @@ inline F32 fastMagnitude(F32 a, F32 b)
 //
 // Culled from www.stereopsis.com/FPU.html
 
-const F64 LL_DOUBLE_TO_FIX_MAGIC	= 68719476736.0*1.5;     //2^36 * 1.5,  (52-_shiftamt=36) uses limited precisicion to floor
-const S32 LL_SHIFT_AMOUNT			= 16;                    //16.16 fixed point representation,
+constexpr F64 LL_DOUBLE_TO_FIX_MAGIC	= 68719476736.0*1.5;     //2^36 * 1.5,  (52-_shiftamt=36) uses limited precisicion to floor
+constexpr S32 LL_SHIFT_AMOUNT			= 16;                    //16.16 fixed point representation,
 
 // Endian dependent code
 #ifdef LL_LITTLE_ENDIAN
@@ -442,7 +395,7 @@ inline U32 get_lower_power_two(U32 val, U32 max_power_two)
 {
 	if(!max_power_two)
 	{
-		max_power_two = 1 << 31 ;
+		max_power_two = 1U << 31 ;
 	}
 	if(max_power_two & (max_power_two - 1))
 	{
@@ -464,7 +417,7 @@ inline U32 get_next_power_two(U32 val, U32 max_power_two)
 {
 	if(!max_power_two)
 	{
-		max_power_two = 1 << 31 ;
+		max_power_two = 1U << 31 ;
 	}
 
 	if(val >= max_power_two)

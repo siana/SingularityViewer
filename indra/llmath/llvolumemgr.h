@@ -31,7 +31,6 @@
 
 #include "llvolume.h"
 #include "llpointer.h"
-#include "llthread.h"
 
 class LLVolumeParams;
 class LLVolumeLODGroup;

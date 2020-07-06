@@ -33,9 +33,7 @@
 #ifndef LL_LLPROCESSLAUNCHER_H
 #define LL_LLPROCESSLAUNCHER_H
 
-#if LL_WINDOWS
-#include <windows.h>
-#endif
+#include "llwin32headerslean.h"
 
 
 /*

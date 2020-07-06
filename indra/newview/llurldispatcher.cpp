@@ -144,7 +144,7 @@ bool LLURLDispatcherImpl::dispatch(const LLSLURL& slurl,
 bool LLURLDispatcherImpl::dispatchRightClick(const LLSLURL& slurl)
 {
 	const bool right_click = true;
-	LLMediaCtrl* web = NULL;
+	LLMediaCtrl* web = nullptr;
 	const bool trusted_browser = false;
 	return dispatchCore(slurl, "clicked", right_click, web, trusted_browser);
 }
@@ -187,11 +187,18 @@ bool LLURLDispatcherImpl::dispatchRegion(const LLSLURL& slurl, const std::string
 		LLPanelLogin::setLocation(slurl);
 		return true;
 	}
+	LLSLURL _slurl = slurl;
+	const std::string& grid = slurl.getGrid();
+	const std::string& current_grid = gHippoGridManager->getCurrentGrid()->getGridName();
+	if (grid != current_grid)
+	{
+		_slurl = LLSLURL(llformat("%s:%s", grid.c_str(), slurl.getRegion().c_str()), slurl.getPosition());
+	}
 
 	// Request a region handle by name
 	LLWorldMapMessage::getInstance()->sendNamedRegionRequest(slurl.getRegion(),
 									  LLURLDispatcherImpl::regionNameCallback,
-									  slurl.getSLURLString(),
+									  _slurl.getSLURLString(),
 									  LLUI::sConfigGroup->getBOOL("SLURLTeleportDirectly"));	// don't teleport
 	return true;
 }
@@ -263,7 +270,8 @@ void LLURLDispatcherImpl::regionHandleCallback(U64 region_handle, const LLSLURL&
 
 //---------------------------------------------------------------------------
 // Teleportation links are handled here because they are tightly coupled
-// to URL parsing and sim-fragment parsing
+// to SLURL parsing and sim-fragment parsing
+
 class LLTeleportHandler : public LLCommandHandler
 {
 public:
@@ -272,8 +280,9 @@ public:
 	// cause a constant teleport loop.  JC
 	LLTeleportHandler() : LLCommandHandler("teleport", UNTRUSTED_THROTTLE) { }
 
+
 	bool handle(const LLSD& tokens, const LLSD& query_map,
-				LLMediaCtrl* web)
+				LLMediaCtrl* web) override
 	{
 		// construct a "normal" SLURL, resolve the region to
 		// a global position, and teleport to it
@@ -287,12 +296,11 @@ public:
 							   tokens[3].asReal());
 		}
 
-		LLSD args;
-		args["LOCATION"] = tokens[0];
-
 		// Region names may be %20 escaped.
 		std::string region_name = LLURI::unescape(tokens[0]);
 
+		LLSD args;
+		args["LOCATION"] = region_name;
 
 		LLSD payload;
 		payload["region_name"] = region_name;
@@ -351,7 +359,7 @@ bool LLURLDispatcher::dispatchRightClick(const std::string& slurl)
 }
 
 // static
-bool LLURLDispatcher::dispatchFromTextEditor(const std::string& slurl)
+bool LLURLDispatcher::dispatchFromTextEditor(const std::string& slurl, bool trusted_content)
 {
 	// *NOTE: Text editors are considered sources of trusted URLs
 	// in order to make avatar profile links in chat history work.
@@ -359,9 +367,9 @@ bool LLURLDispatcher::dispatchFromTextEditor(const std::string& slurl)
 	// receiving resident will see it and must affirmatively
 	// click on it.
 	// *TODO: Make this trust model more refined.  JC
-	const bool trusted_browser = true;
-	LLMediaCtrl* web = NULL;
-	return LLURLDispatcherImpl::dispatch(LLSLURL(slurl), "clicked", web, trusted_browser);
+
+	LLMediaCtrl* web = nullptr;
+	return LLURLDispatcherImpl::dispatch(LLSLURL(slurl), "clicked", web, trusted_content);
 }
 
 

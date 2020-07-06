@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -31,11 +31,11 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect depthMap;
+uniform sampler2D depthMap;
 
 VARYING vec2 vary_fragcoord;
 
 void main() 
 {
-	gl_FragDepth = texture2DRect(depthMap, vary_fragcoord.xy).r;
+	gl_FragDepth = texture2D(depthMap, vary_fragcoord.xy).r;
 }

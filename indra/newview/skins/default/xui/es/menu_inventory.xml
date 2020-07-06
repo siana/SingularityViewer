@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <menu name="Popup">
+	<menu_item_call label="Crear artículos" name="Marketplace Create Listing"/>
+	<menu_item_call label="Asociar artículos" name="Marketplace Associate Listing"/>
+	<menu_item_call label="Obener (Actualizar) artículos" name="Marketplace Get Listing"/>
+	<menu_item_call label="Comprobar errores" name="Marketplace Check Listing"/>
+	<menu_item_call label="Editar artículos" name="Marketplace Edit Listing"/>
+	<menu_item_call label="Incluir en la Lista" name="Marketplace List"/>
+	<menu_item_call label="Retirar de la Lista" name="Marketplace Unlist"/>
+	<menu_item_call label="Activar" name="Marketplace Activate"/>
+	<menu_item_call label="Desactivar" name="Marketplace Deactivate"/>
+	<menu_item_call label="Copiar ID del artículo" name="Marketplace Copy ID"/>
 	<menu_item_call name="Task Buy" label="Comprar"/>
 	<menu_item_call name="Task Open" label="Abrir"/>
 	<menu_item_call name="Task Play" label="Reproducir"/>
@@ -11,7 +21,8 @@
 	<menu_item_call label="Ejecutar Script" name="Task Set Running"/>
 	<menu_item_call name="Empty Trash" label="Vaciar Papelera"/>
 	<menu_item_call name="Empty Lost And Found" label="Vaciar Elementos Perdidos"/>
-	<menu_item_call label="Abrir en Nueva Ventana" name="Open Folder In New Window"/>
+	<menu_item_call label="Abrir Carpeta en Nueva Ventana" name="Open Folder In New Window"/>
+	<menu_item_call label="Copiar UUID de la Carpeta" name="Copy Folder UUID"/>
 	<menu_item_call name="New Folder" label="Carpeta nueva"/>
 	<menu_item_call name="New Script" label="Script nuevo"/>
 	<menu_item_call name="New Note" label="Nota nueva"/>
@@ -27,7 +38,8 @@
 		<menu_item_call name="New Undershirt" label="Camiseta nueva"/>
 		<menu_item_call name="New Underpants" label="Ropa Interior nueva"/>
 		<menu_item_call name="New Tattoo" label="Tatuaje nuevo"/>
-		<menu_item_call name="New Alpha" label="Alfa nueva"/>
+		<menu_item_call name="New Alpha" label="Capa Alfa nueva"/>
+		<menu_item_call name="New Universal" label="Capa Universal Nueva"/>
 		<menu_item_call name="New Physics" label="Física nueva"/>
 	</menu>
 	<menu name="New Body Parts" label="Partes de Cuerpo Nuevas">
@@ -93,8 +105,8 @@
 	<menu_item_call name="Detach From Yourself" label="Quitarse"/>
 	<menu_item_call name="Wearable Edit" label="Editar"/>
 	<menu_item_call name="Take Off" label="Quitarse"/>
-	<menu_item_call name="Merchant Copy" label="Copiar al Buzón de Salida del Comerciante"/>
-	<menu_item_call name="Marketplace Send" label="Enviar al Mercado en Línea"/>
+	<menu_item_call label="Copiar en artículos del Mercado" name="Marketplace Copy"/>
+	<menu_item_call label="Mover a artículos del Mercado" name="Marketplace Move"/>
 	<menu_item_call label="Compartir" name="Share"/>
 	<menu_item_call name="--no options--" label="--sin opciones--"/>
 </menu>

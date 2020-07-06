@@ -105,7 +105,7 @@ protected:
 	
 	//Why this weird structure? LLWearableType::WT_COUNT small and known, therefore it's more efficient to make an array of vectors, indexed
 	//by wearable type. This allows O(1) lookups. This structure simply lets us plug in this optimization without touching any code elsewhere.
-	typedef boost::array<std::pair<LLWearableType::EType,wearableentry_vec_t>,LLWearableType::WT_COUNT> wearable_array_t;
+	typedef std::array<std::pair<LLWearableType::EType, wearableentry_vec_t>, LLWearableType::WT_COUNT> wearable_array_t;
 	struct wearableentry_map_t : public wearable_array_t
 	{
 		wearableentry_map_t()

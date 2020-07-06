@@ -101,15 +101,15 @@ void LLPanelMediaSettingsPermissions::draw()
 	{
 		if(mPermsGroupName)
 		{
-			mPermsGroupName->setNameID(group_id, true);
+			mPermsGroupName->setNameID(group_id, LFIDBearer::GROUP);
 		}
 	}
 	else
 	{
 		if(mPermsGroupName)
 		{
-			mPermsGroupName->setNameID(LLUUID::null, TRUE);
-			mPermsGroupName->refresh(LLUUID::null, std::string(), true);
+			mPermsGroupName->setNameID(LLUUID::null, LFIDBearer::GROUP);
+			mPermsGroupName->refresh(LLUUID::null, std::string());
 		}
 	}
 }

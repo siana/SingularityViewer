@@ -33,8 +33,6 @@
 #ifndef LL_LLAGENT_H
 #define LL_LLAGENT_H
 
-#include <set>
-
 #include "indra_constants.h"
 #include "llevent.h" 				// LLObservable base class
 #include "llagentconstants.h"
@@ -46,10 +44,6 @@
 #include "llinventorymodel.h"
 #include "v3dmath.h"
 
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
 #include <boost/shared_ptr.hpp>
 #include <boost/signals2.hpp>
 
@@ -73,6 +67,7 @@ class LLAgentAccess;
 class LLSLURL;
 class LLSimInfo;
 class LLTeleportRequest;
+struct LLCoroResponder;
 
 typedef boost::shared_ptr<LLTeleportRequest> LLTeleportRequestPtr;
 
@@ -103,7 +98,7 @@ struct LLGroupData
 //------------------------------------------------------------------------
 // LLAgent
 //------------------------------------------------------------------------
-class LLAgent : public LLOldEvents::LLObservable
+class LLAgent final : public LLOldEvents::LLObservable
 {
 	LOG_CLASS(LLAgent);
 
@@ -123,6 +118,8 @@ public:
 	virtual 		~LLAgent();
 	void			init();
 	void			cleanup();
+
+private:
 
 	//--------------------------------------------------------------------
 	// Login
@@ -165,8 +162,6 @@ public:
 	// Name
 	//--------------------------------------------------------------------
 public:
-	void			getName(std::string& name);	//Legacy
-	void			buildFullname(std::string &name) const; //Legacy
 	//*TODO remove, is not used as of August 20, 2009
 	void			buildFullnameAndTitle(std::string &name) const;
 
@@ -174,12 +169,13 @@ public:
 	// Gender
 	//--------------------------------------------------------------------
 public:
-	// On the very first login, gender isn't chosen until the user clicks
-	// in a dialog.  We don't render the avatar until they choose.
-	BOOL			isGenderChosen() const { return mGenderChosen; }
-	void			setGenderChosen(BOOL b)	{ mGenderChosen = b; }
+	// On the very first login, outfit needs to be chosen by some
+	// mechanism, usually by loading the requested initial outfit.  We
+	// don't render the avatar until the choice is made.
+	BOOL 			isOutfitChosen() const 	{ return mOutfitChosen; }
+	void			setOutfitChosen(BOOL b)	{ mOutfitChosen = b; }
 private:
-	BOOL			mGenderChosen;
+	BOOL			mOutfitChosen;
 
 /**                    Identity
  **                                                                            **
@@ -250,7 +246,7 @@ public:
 	void changeParcels(); // called by LLViewerParcelMgr when we cross a parcel boundary
 
 	// Register a boost callback to be called when the agent changes parcels
-	typedef boost::function<void()> parcel_changed_callback_t;
+	typedef std::function<void()> parcel_changed_callback_t;
 	boost::signals2::connection     addParcelChangedCallback(parcel_changed_callback_t);
 
 private:
@@ -265,6 +261,9 @@ public:
 	LLViewerRegion	*getRegion() const;
 	const LLHost&	getRegionHost() const;
 	BOOL			inPrelude();
+
+	// Capability
+	std::string     getRegionCapability(const std::string &name); // short hand for if (getRegion()) { getRegion()->getCapability(name) }
 
 	/**
 	 * Register a boost callback to be called when the agent changes regions
@@ -485,6 +484,7 @@ private:
 	//--------------------------------------------------------------------
 public:
 	BOOL 			leftButtonGrabbed() const;
+	BOOL 			leftButtonBlocked() const;
 	BOOL 			rotateGrabbed() const;
 	BOOL 			forwardGrabbed() const;
 	BOOL 			backwardGrabbed() const;
@@ -496,13 +496,14 @@ public:
 	//--------------------------------------------------------------------
 public:
 	U32 			getControlFlags(); 
-	void 			setControlFlags(U32 mask); 			// performs bitwise mControlFlags |= mask
-	void 			clearControlFlags(U32 mask); 			// performs bitwise mControlFlags &= ~mask
+	void 			setControlFlags(U32 mask); 		// Performs bitwise mControlFlags |= mask
+	void 			clearControlFlags(U32 mask); 	// Performs bitwise mControlFlags &= ~mask
 	BOOL			controlFlagsDirty() const;
 	void			enableControlFlagReset();
 	void 			resetControlFlags();
-	BOOL			anyControlGrabbed() const; 		// True iff a script has taken over a control
-	BOOL			isControlGrabbed(S32 control_index) const;
+	BOOL			anyControlGrabbed() const; 		// True if a script has taken over any control
+	BOOL			isControlGrabbed(S32 control_index) const; // True if a script has taken over a control
+	BOOL			isControlBlocked(S32 control_index) const; // Control should be ignored or won't be passed
 	// Send message to simulator to force grabbed controls to be
 	// released, in case of a poorly written script.
 	void			forceReleaseControls();
@@ -522,7 +523,7 @@ public:
 	void            stopCurrentAnimations();
 	void			requestStopMotion(LLMotion* motion);
 	void			onAnimStop(const LLUUID& id);
-	void			sendAnimationRequests(const std::vector<LLUUID> &anim_ids, EAnimRequest request);
+	void			sendAnimationRequests(const uuid_vec_t &anim_ids, EAnimRequest request);
 	void			sendAnimationRequest(const LLUUID &anim_id, EAnimRequest request);
 	void			sendAnimationStateReset();
 	void			sendRevokePermissions(const LLUUID & target, U32 permissions);
@@ -567,6 +568,9 @@ public:
 	void			moveYaw(F32 mag, bool reset_view = true);
 	void			movePitch(F32 mag);
 
+	BOOL			isMovementLocked() const				{ return mMovementKeysLocked; }
+	void			setMovementLocked(BOOL set_locked)	{ mMovementKeysLocked = set_locked; }
+
 	//--------------------------------------------------------------------
  	// Move the avatar's frame
 	//--------------------------------------------------------------------
@@ -587,20 +591,22 @@ public:
 public:
 	BOOL			getAutoPilot() const				{ return mAutoPilot; }
 	LLVector3d		getAutoPilotTargetGlobal() const 	{ return mAutoPilotTargetGlobal; }
-	LLUUID			getAutoPilotLeaderID() const		{ return mLeaderID; }
+	const LLUUID&	getAutoPilotLeaderID() const		{ return mLeaderID; }
 	F32				getAutoPilotStopDistance() const	{ return mAutoPilotStopDistance; }
 	F32				getAutoPilotTargetDist() const		{ return mAutoPilotTargetDist; }
 	BOOL			getAutoPilotUseRotation() const		{ return mAutoPilotUseRotation; }
 	LLVector3		getAutoPilotTargetFacing() const	{ return mAutoPilotTargetFacing; }
 	F32				getAutoPilotRotationThreshold() const	{ return mAutoPilotRotationThreshold; }
-	std::string		getAutoPilotBehaviorName() const	{ return mAutoPilotBehaviorName; }
+	const std::string&	getAutoPilotBehaviorName() const	{ return mAutoPilotBehaviorName; }
+	bool			getAutoPilotNoProgress() const;
 
 	void			startAutoPilotGlobal(const LLVector3d &pos_global, 
 										 const std::string& behavior_name = std::string(), 
 										 const LLQuaternion *target_rotation = NULL, 
 										 void (*finish_callback)(BOOL, void *) = NULL, void *callback_data = NULL, 
-										 F32 stop_distance = 0.f, F32 rotation_threshold = 0.03f);
-	void 			startFollowPilot(const LLUUID &leader_id);
+										 F32 stop_distance = 0.f, F32 rotation_threshold = 0.03f,
+										 BOOL allow_flying = TRUE);
+	void 			startFollowPilot(const LLUUID &leader_id, BOOL allow_flying = TRUE, F32 stop_distance = 0.5f);
 	void			stopAutoPilot(BOOL user_cancel = FALSE);
 	void 			setAutoPilotTargetGlobal(const LLVector3d &target_global);
 	void			autoPilot(F32 *delta_yaw); 			// Autopilot walking action, angles in radians
@@ -608,17 +614,19 @@ public:
 private:
 	BOOL			mAutoPilot;
 	BOOL			mAutoPilotFlyOnStop;
+	BOOL			mAutoPilotAllowFlying;
 	LLVector3d		mAutoPilotTargetGlobal;
 	F32				mAutoPilotStopDistance;
 	BOOL			mAutoPilotUseRotation;
 	LLVector3		mAutoPilotTargetFacing;
 	F32				mAutoPilotTargetDist;
-	S32				mAutoPilotNoProgressFrameCount;
+	U64				mAutoPilotNoProgressFrameCount;
 	F32				mAutoPilotRotationThreshold;
 	std::string		mAutoPilotBehaviorName;
 	void			(*mAutoPilotFinishedCallback)(BOOL, void *);
 	void*			mAutoPilotCallbackData;
 	LLUUID			mLeaderID;
+	BOOL			mMovementKeysLocked;
 	
 /**                    Movement
  **                                                                            **
@@ -662,6 +670,7 @@ public:
 	void 			teleportViaLocation(const LLVector3d& pos_global);		// To a global location - this will probably need to be deprecated
 	void			teleportViaLocationLookAt(const LLVector3d& pos_global);// To a global location, preserving camera rotation
 	void 			teleportCancel();										// May or may not be allowed by server
+	void            restoreCanceledTeleportRequest();
 	bool			getTeleportKeepsLookAt() { return mbTeleportKeepsLookAt; } // Whether look-at reset after teleport
 protected:
 	bool 			teleportCore(bool is_local = false); 					// Stuff for all teleports; returns true if the teleport can proceed
@@ -684,6 +693,7 @@ private:
 	friend class LLTeleportRequestViaLocationLookAt;
 
 	LLTeleportRequestPtr        mTeleportRequest;
+	LLTeleportRequestPtr        mTeleportCanceled;
 	boost::signals2::connection mTeleportFinishedSlot;
 	boost::signals2::connection mTeleportFailedSlot;
 
@@ -710,7 +720,7 @@ public:
 	// Teleport State
 	//--------------------------------------------------------------------
 public:
-	ETeleportState	getTeleportState() const 						{ return mTeleportState; }
+	ETeleportState	getTeleportState() const;
 	void			setTeleportState(ETeleportState state);
 private:
 	ETeleportState	mTeleportState;
@@ -727,6 +737,13 @@ private:
 /**                    Teleport
  **                                                                            **
  *******************************************************************************/
+
+	// Attachments getting lost on TP
+public:
+	void setIsCrossingRegion(bool is_crossing) { mIsCrossingRegion = is_crossing; }
+	bool isCrossingRegion() const { return mIsCrossingRegion; }
+private:
+	bool mIsCrossingRegion;
 
 	// Build
 public:
@@ -752,8 +769,6 @@ public:
 	const LLAgentAccess& getAgentAccess();
 	BOOL			canManageEstate() const;
 	BOOL			getAdminOverride() const;
-	// ! BACKWARDS COMPATIBILITY ! This function can go away after the AO transition (see llstartup.cpp).
-	void 			setAOTransition();
 private:
 	LLAgentAccess * mAgentAccess;
 	
@@ -769,7 +784,7 @@ public:
 	void			requestEnterGodMode();
 	void			requestLeaveGodMode();
 
-	typedef boost::function<void (U8)>         god_level_change_callback_t;
+	typedef std::function<void (U8)>         god_level_change_callback_t;
 	typedef boost::signals2::signal<void (U8)> god_level_change_signal_t;
 	typedef boost::signals2::connection        god_level_change_slot_t;
 
@@ -791,7 +806,7 @@ public:
 	bool 			canAccessMature() const;
 	bool 			canAccessAdult() const;
 	bool 			canAccessMaturityInRegion( U64 region_handle ) const;
-	bool 			canAccessMaturityAtGlobal( LLVector3d pos_global ) const;
+	bool 			canAccessMaturityAtGlobal( const LLVector3d& pos_global ) const;
 	bool 			prefersPG() const;
 	bool 			prefersMature() const;
 	bool 			prefersAdult() const;
@@ -927,7 +942,7 @@ public:
 	void 			friendsChanged();
 private:
 	LLFriendObserver* mFriendObserver;
-	std::set<LLUUID> mProxyForAgents;
+	uuid_set_t mProxyForAgents;
 
 /**                    Groups
  **                                                                            **
@@ -948,8 +963,16 @@ public:
 	void			sendAgentSetAppearance();
 	void 			sendAgentDataUpdateRequest();
 	void 			sendAgentUserInfoRequest();
-	// IM to Email and Online visibility
+
+// IM to Email and Online visibility
 	void			sendAgentUpdateUserInfo(bool im_to_email, const std::string& directory_visibility);
+
+private:
+    void            requestAgentUserInfoCoro(const LLCoroResponder& responder);
+    void            updateAgentUserInfoCoro(const LLCoroResponder& responder);
+    // DEPRECATED: may be removed when User Info cap propagates 
+    void 			sendAgentUserInfoRequestMessage();
+    void            sendAgentUpdateUserInfoMessage(bool im_via_email, const std::string& directory_visibility);
 
 	//--------------------------------------------------------------------
 	// Receive

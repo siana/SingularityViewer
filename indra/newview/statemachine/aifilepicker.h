@@ -203,6 +203,7 @@ private:
 
 public:
 	enum open_type { save, load, load_multiple };
+	static AIFilePicker* activePicker;
 
 private:
 	LLPointer<LLViewerPluginManager> mPluginManager;				//!< Pointer to the plugin manager.

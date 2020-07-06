@@ -37,7 +37,7 @@
 LLWorkerThread::LLWorkerThread(const std::string& name, bool threaded, bool should_pause) :
 	LLQueuedThread(name, threaded, should_pause)
 {
-	mDeleteMutex = new LLMutex;
+	mDeleteMutex = new LLMutex();
 }
 
 LLWorkerThread::~LLWorkerThread()
@@ -199,6 +199,7 @@ LLWorkerClass::LLWorkerClass(LLWorkerThread* workerthread, const std::string& na
 	  mWorkerClassName(name),
 	  mRequestHandle(LLWorkerThread::nullHandle()),
 	  mRequestPriority(LLWorkerThread::PRIORITY_NORMAL),
+	  mMutex(),
 	  mWorkFlags(0)
 {
 	if (!mWorkerThread)
@@ -345,10 +346,14 @@ bool LLWorkerClass::checkWork(bool aborting)
 		}
 
 		LLQueuedThread::status_t status = workreq->getStatus();
-		if (status == LLWorkerThread::STATUS_COMPLETE || status == LLWorkerThread::STATUS_ABORTED)
+		if (status == LLWorkerThread::STATUS_ABORTED)
 		{
 			complete = !(workreq->getFlags() & LLWorkerThread::FLAG_LOCKED);
-			abort = status == LLWorkerThread::STATUS_ABORTED;
+			abort = true;
+		}
+		else if (status == LLWorkerThread::STATUS_COMPLETE)
+		{
+			complete = !(workreq->getFlags() & LLWorkerThread::FLAG_LOCKED);
 		}
 		else
 		{

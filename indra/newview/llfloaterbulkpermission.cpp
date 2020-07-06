@@ -79,7 +79,7 @@ void LLFloaterBulkPermission::doApply()
 	class ModifiableGatherer : public LLSelectedNodeFunctor
 	{
 	public:
-		ModifiableGatherer(std::vector<LLUUID>& q) : mQueue(q) {}
+		ModifiableGatherer(uuid_vec_t& q) : mQueue(q) {}
 		virtual bool apply(LLSelectNode* node)
 		{
 			if( node->allowOperationOnNode(PERM_MODIFY, GP_OBJECT_MANIPULATE) )
@@ -89,7 +89,7 @@ void LLFloaterBulkPermission::doApply()
 			return true;
 		}
 	private:
-		std::vector<LLUUID>& mQueue;
+		uuid_vec_t& mQueue;
 	};
 	LLScrollListCtrl* list = getChild<LLScrollListCtrl>("queue output");
 	list->deleteAllItems();
@@ -342,12 +342,13 @@ void LLFloaterBulkPermission::handleInventory(LLViewerObject* viewer_obj, LLInve
 					//status_text.setArg("[STATUS]", getString("status_ok_text"));
 					status_text.setArg("[STATUS]", "");
 				}
+#if 0
 				else
 				{
 					//status_text.setArg("[STATUS]", getString("status_bad_text"));
 					status_text.setArg("[STATUS]", "");
 				}
-				
+#endif
 				list->addSimpleElement(status_text.getString());
 
 				//TODO if we are an object inside an object we should check a recuse flag and if set

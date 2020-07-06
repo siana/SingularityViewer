@@ -32,6 +32,10 @@
 #include "llinventory.h"
 #include "llwearabletype.h"
 
+// compute_stock_count() return error code
+const S32 COMPUTE_STOCK_INFINITE = -1;
+const S32 COMPUTE_STOCK_NOT_EVALUATED = -2;
+
 /********************************************************************************
  **                                                                            **
  **                    MISCELLANEOUS GLOBAL FUNCTIONS
@@ -41,7 +45,6 @@
 BOOL get_is_parent_to_worn_item(const LLUUID& id);
 
 // Is this item or its baseitem is worn, attached, etc...
-BOOL get_is_item_worn(const LLInventoryItem *item);
 BOOL get_is_item_worn(const LLUUID& id);
 
 // Could this item be worn (correct type + not already being worn)
@@ -55,20 +58,28 @@ BOOL get_is_category_renameable(const LLInventoryModel* model, const LLUUID& id)
 
 void show_item_profile(const LLUUID& item_uuid);
 
+// Nudge the listing categories in the inventory to signal that their marketplace status changed
+void update_marketplace_category(const LLUUID& cat_id, bool perform_consistency_enforcement = true);
+// Nudge all listing categories to signal that their marketplace status changed
+void update_all_marketplace_count();
+
 void rename_category(LLInventoryModel* model, const LLUUID& cat_id, const std::string& new_name);
 
-void copy_inventory_category(LLInventoryModel* model, LLViewerInventoryCategory* cat, const LLUUID& parent_id, const LLUUID& root_copy_id = LLUUID::null);
+void copy_inventory_category(LLInventoryModel* model, LLViewerInventoryCategory* cat, const LLUUID& parent_id, const LLUUID& root_copy_id = LLUUID::null, bool move_no_copy_items = false);
 
 // Generates a string containing the path to the item specified by item_id.
 void append_path(const LLUUID& id, std::string& path);
 
-// Same as append_path but omits the root prefix "/My Inventory/".
-void append_path_short(const LLUUID& id, std::string& path);
+typedef boost::function<void(std::string& validation_message, S32 depth, LLError::ELevel log_level)> validation_callback_t;
 
-void copy_item_to_outbox(LLInventoryItem* inv_item, LLUUID dest_folder, const LLUUID& top_level_folder, S32 operation_id);
-void move_item_within_outbox(LLInventoryItem* inv_item, LLUUID dest_folder, S32 operation_id);
-
-void copy_folder_to_outbox(LLInventoryCategory* inv_cat, const LLUUID& dest_folder, const LLUUID& top_level_folder, S32 operation_id);
+bool can_move_item_to_marketplace(const LLInventoryCategory* root_folder, LLInventoryCategory* dest_folder, LLInventoryItem* inv_item, std::string& tooltip_msg, S32 bundle_size = 1, bool from_paste = false);
+bool can_move_folder_to_marketplace(const LLInventoryCategory* root_folder, LLInventoryCategory* dest_folder, LLInventoryCategory* inv_cat, std::string& tooltip_msg, S32 bundle_size = 1, bool check_items = true, bool from_paste = false);
+bool move_item_to_marketplacelistings(LLInventoryItem* inv_item, LLUUID dest_folder, bool copy = false);
+bool move_folder_to_marketplacelistings(LLInventoryCategory* inv_cat, const LLUUID& dest_folder, bool copy = false, bool move_no_copy_items = false);
+bool validate_marketplacelistings(LLInventoryCategory* inv_cat, validation_callback_t cb = NULL, bool fix_hierarchy = true, S32 depth = -1);
+S32  depth_nesting_in_marketplace(LLUUID cur_uuid);
+LLUUID nested_parent_id(LLUUID cur_uuid, S32 depth);
+S32 compute_stock_count(LLUUID cat_uuid, bool force_count = false);
 
 /**                    Miscellaneous global functions
  **                                                                            **
@@ -238,7 +249,7 @@ public:
 							LLInventoryItem* item);
 
 protected:
-	std::set<LLUUID> mSeen;
+	uuid_set_t mSeen;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -481,7 +492,7 @@ public:
 	void setApply(BOOL apply);
 	void clearOpenFolders() { mOpenFolders.clear(); }
 protected:
-	std::set<LLUUID> mOpenFolders;
+	uuid_set_t mOpenFolders;
 	BOOL mApply;
 };
 

@@ -27,12 +27,29 @@
 #ifndef LL_LLSTRING_H
 #define LL_LLSTRING_H
 
+#include <boost/optional/optional.hpp>
 #include <string>
+
+#if __cplusplus < 201606
+#include <absl/strings/string_view.h>
+namespace std {
+    typedef absl::string_view string_view;
+}
+#else
+    #include <string_view>
+#endif
+
 #include <cstdio>
-#include <locale>
+//#include <locale>
 #include <iomanip>
-#include "llsd.h"
-#include "llfasttimer.h"
+#include <algorithm>
+#include <vector>
+#include <map>
+#include "stdtypes.h"
+#include "llpreprocessor.h"
+// [RLVa:KB] - Checked: RLVa-2.1.0
+#include <list>
+// [/RLVa:KB]
 
 #if LL_LINUX || LL_SOLARIS
 #include <wctype.h>
@@ -49,6 +66,7 @@
 #endif
 
 const char LL_UNKNOWN_CHAR = '?';
+class LLSD;
 
 #if LL_DARWIN || LL_LINUX || LL_SOLARIS
 // Template specialization of char_traits for U16s. Only necessary on Mac and Linux (exists on Windows already)
@@ -209,7 +227,10 @@ public:
 	// currently in daylight savings time?
 	static bool getPacificDaylightTime(void) { return sPacificDaylightTime;}
 
-	static std::string getDatetimeCode (std::string key);
+	static std::string getDatetimeCode (const std::string& key);
+
+    // Express a value like 1234567 as "1.23M" 
+    static std::string getReadableNumber(F64 num);
 };
 
 /**
@@ -232,7 +253,7 @@ public:
 	bool operator<(const LLFormatMapString& rhs) const { return mString < rhs.mString; }
 	std::size_t length() const { return mString.length(); }
 	// The destructor may not throw.
-	~LLFormatMapString() throw() { }
+	~LLFormatMapString() noexcept { }
 
 private:
 	std::string mString;
@@ -308,6 +329,7 @@ public:
 
 	static void	trimHead(string_type& string);
 	static void	trimTail(string_type& string);
+	static void trimTail(string_type& string, const string_type& tokens);
 	static void	trim(string_type& string)	{ trimHead(string); trimTail(string); }
 	static void truncate(string_type& string, size_type count);
 
@@ -335,8 +357,22 @@ public:
 		const string_type& string,
 		const string_type& substr);
 
+	/**
+	 * get environment string value with proper Unicode handling
+	 * (key is always UTF-8)
+	 * detect absence by return value == dflt
+	 */
+	static string_type getenv(const std::string& key, const string_type& dflt="");
+	/**
+	 * get optional environment string value with proper Unicode handling
+	 * (key is always UTF-8)
+	 * detect absence by (! return value)
+	 */
+	static boost::optional<string_type> getoptenv(const std::string& key);
+
 	static void	addCRLF(string_type& string);
 	static void	removeCRLF(string_type& string);
+	static void removeWindowsCR(string_type& string);
 
 	static void	replaceTabsWithSpaces( string_type& string, size_type spaces_per_tab );
 	static void	replaceNonstandardASCII( string_type& string, T replacement );
@@ -445,7 +481,7 @@ public:
 struct LLDictionaryLess
 {
 public:
-	bool operator()(const std::string& a, const std::string& b)
+	bool operator()(const std::string& a, const std::string& b) const
 	{
 		return (LLStringUtil::precedesDict(a, b) ? true : false);
 	}
@@ -475,6 +511,7 @@ inline std::string chop_tail_copy(
  * @brief This translates a nybble stored as a hex value from 0-f back
  * to a nybble in the low order bits of the return byte.
  */
+LL_COMMON_API bool is_char_hex(char hex);
 LL_COMMON_API U8 hex_as_nybble(char hex);
 
 /**
@@ -493,6 +530,37 @@ LL_COMMON_API bool iswindividual(llwchar elem);
  * Unicode support
  */
 
+/// generic conversion aliases
+template<typename TO, typename FROM, typename Enable=void>
+struct ll_convert_impl
+{
+    // Don't even provide a generic implementation. We specialize for every
+    // combination we do support.
+    TO operator()(const FROM& in) const;
+};
+
+// Use a function template to get the nice ll_convert<TO>(from_value) API.
+template<typename TO, typename FROM>
+TO ll_convert(const FROM& in)
+{
+    return ll_convert_impl<TO, FROM>()(in);
+}
+
+// degenerate case
+template<typename T>
+struct ll_convert_impl<T, T>
+{
+    T operator()(const T& in) const { return in; }
+};
+
+// specialize ll_convert_impl<TO, FROM> to return EXPR
+#define ll_convert_alias(TO, FROM, EXPR)                    \
+template<>                                                  \
+struct ll_convert_impl<TO, FROM>                            \
+{                                                           \
+    TO operator()(const FROM& in) const { return EXPR; }    \
+}
+
 // Make the incoming string a utf8 string. Replaces any unknown glyph
 // with the UNKNOWN_CHARACTER. Once any unknown glyph is found, the rest
 // of the data may not be recovered.
@@ -500,31 +568,95 @@ LL_COMMON_API std::string rawstr_to_utf8(const std::string& raw);
 
 //
 // We should never use UTF16 except when communicating with Win32!
+// https://docs.microsoft.com/en-us/cpp/cpp/char-wchar-t-char16-t-char32-t
+// nat 2018-12-14: I consider the whole llutf16string thing a mistake, because
+// the Windows APIs we want to call are all defined in terms of wchar_t*
+// (or worse, LPCTSTR).
+// https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types
+
+// While there is no point coding for an ASCII-only world (! defined(UNICODE)),
+// use of U16 and llutf16string for Windows APIs locks in /Zc:wchar_t-. Going
+// forward, we should code in terms of wchar_t and std::wstring so as to
+// support either setting of /Zc:wchar_t.
+
+// The first link above states that char can be used to hold ASCII or any
+// multi-byte character set, and distinguishes wchar_t (UTF-16LE), char16_t
+// (UTF-16) and char32_t (UTF-32). Nonetheless, within this code base:
+// * char and std::string always hold UTF-8 (of which ASCII is a subset). It
+//   is a BUG if they are used to pass strings in any other multi-byte
+//   encoding.
+// * wchar_t and std::wstring should be our interface to Windows wide-string
+//   APIs, and therefore hold UTF-16LE.
+// * U16 and llutf16string are the previous but DEPRECATED UTF-16LE type. Do
+//   not introduce new uses of U16 or llutf16string for string data.
+// * llwchar and LLWString hold UTF-32 strings.
+// * Do not introduce char16_t or std::u16string.
+// * Do not introduce char32_t or std::u32string.
 //
-typedef std::basic_string<U16> llutf16string;
+#if _WIN32 && _NATIVE_WCHAR_T_DEFINED
+typedef wchar_t utf16strtype;
+#else
+typedef U16 utf16strtype;
+#endif
+typedef std::basic_string<utf16strtype> llutf16string;
+
+#if ! defined(LL_WCHAR_T_NATIVE)
+// wchar_t is identical to U16, and std::wstring is identical to llutf16string.
+// Defining an ll_convert alias involving llutf16string would collide with the
+// comparable preferred alias involving std::wstring. (In this scenario, if
+// you pass llutf16string, it will engage the std::wstring specialization.)
+#define ll_convert_u16_alias(TO, FROM, EXPR) // nothing
+#else  // defined(LL_WCHAR_T_NATIVE)
+// wchar_t is a distinct native type, so llutf16string is also a distinct
+// type, and there IS a point to converting separately to/from llutf16string.
+// (But why? Windows APIs are still defined in terms of wchar_t, and
+// in this scenario llutf16string won't work for them!)
+#define ll_convert_u16_alias(TO, FROM, EXPR) ll_convert_alias(TO, FROM, EXPR)
+
+#if LL_WINDOWS
+// LL_WCHAR_T_NATIVE is defined on non-Windows systems because, in fact,
+// wchar_t is native. Everywhere but Windows, we use it for llwchar (see
+// stdtypes.h). That makes LLWString identical to std::wstring, so these
+// aliases for std::wstring would collide with those for LLWString. Only
+// define on Windows, where converting between std::wstring and llutf16string
+// means copying chars.
+ll_convert_alias(llutf16string, std::wstring, llutf16string(in.begin(), in.end()));
+ll_convert_alias(std::wstring, llutf16string,  std::wstring(in.begin(), in.end()));
+#endif // LL_WINDOWS
+#endif // defined(LL_WCHAR_T_NATIVE)
 
 LL_COMMON_API LLWString utf16str_to_wstring(const llutf16string &utf16str, S32 len);
 LL_COMMON_API LLWString utf16str_to_wstring(const llutf16string &utf16str);
+ll_convert_u16_alias(LLWString, llutf16string, utf16str_to_wstring(in));
 
 LL_COMMON_API llutf16string wstring_to_utf16str(const LLWString &utf32str, S32 len);
 LL_COMMON_API llutf16string wstring_to_utf16str(const LLWString &utf32str);
+ll_convert_u16_alias(llutf16string, LLWString, wstring_to_utf16str(in));
 
 LL_COMMON_API llutf16string utf8str_to_utf16str ( const std::string& utf8str, S32 len);
 LL_COMMON_API llutf16string utf8str_to_utf16str ( const std::string& utf8str );
+ll_convert_u16_alias(llutf16string, std::string, utf8str_to_utf16str(in));
 
 LL_COMMON_API LLWString utf8str_to_wstring(const std::string &utf8str, S32 len);
 LL_COMMON_API LLWString utf8str_to_wstring(const std::string &utf8str);
 // Same function, better name. JC
 inline LLWString utf8string_to_wstring(const std::string& utf8_string) { return utf8str_to_wstring(utf8_string); }
+// best name of all
+ll_convert_alias(LLWString, std::string, utf8string_to_wstring(in));
 
 //
 LL_COMMON_API S32 wchar_to_utf8chars(llwchar inchar, char* outchars);
 
 LL_COMMON_API std::string wstring_to_utf8str(const LLWString &utf32str, S32 len);
 LL_COMMON_API std::string wstring_to_utf8str(const LLWString &utf32str);
-
+ll_convert_alias(std::string, LLWString, wstring_to_utf8str(in));
 LL_COMMON_API std::string utf16str_to_utf8str(const llutf16string &utf16str, S32 len);
 LL_COMMON_API std::string utf16str_to_utf8str(const llutf16string &utf16str);
+ll_convert_u16_alias(std::string, llutf16string, utf16str_to_utf8str(in));
+
+#if LL_WINDOWS
+inline std::string wstring_to_utf8str(const llutf16string &utf16str) { return utf16str_to_utf8str(utf16str);}
+#endif
 
 // Length of this UTF32 string in bytes when transformed to UTF8
 LL_COMMON_API S32 wstring_utf8_length(const LLWString& wstr); 
@@ -541,7 +673,7 @@ LL_COMMON_API S32 utf16str_wstring_length(const llutf16string &utf16str, S32 len
 LL_COMMON_API S32 wstring_utf16_length(const LLWString & wstr, S32 woffset, S32 wlen);
 
 // Length in wstring (i.e., llwchar count) of a part of a wstring specified by utf16 length (i.e., utf16 units.)
-LL_COMMON_API S32 wstring_wstring_length_from_utf16_length(const LLWString & wstr, S32 woffset, S32 utf16_length, BOOL *unaligned = NULL);
+LL_COMMON_API S32 wstring_wstring_length_from_utf16_length(const LLWString & wstr, S32 woffset, S32 utf16_length, BOOL *unaligned = nullptr);
 
 /**
  * @brief Properly truncate a utf8 string to a maximum byte count.
@@ -555,11 +687,27 @@ LL_COMMON_API S32 wstring_wstring_length_from_utf16_length(const LLWString & wst
  */
 LL_COMMON_API std::string utf8str_truncate(const std::string& utf8str, const S32 max_len);
 
+// [RLVa:KB] - Checked: RLVa-2.1.0
+LL_COMMON_API std::string utf8str_substr(const std::string& utf8str, const S32 index, const S32 max_len);
+LL_COMMON_API void utf8str_split(std::list<std::string>& split_list, const std::string& utf8str, size_t maxlen, char split_token);
+// [/RLVa:KB]
+
 LL_COMMON_API std::string utf8str_trim(const std::string& utf8str);
 
 LL_COMMON_API S32 utf8str_compare_insensitive(
 	const std::string& lhs,
 	const std::string& rhs);
+
+/**
+* @brief Properly truncate a utf8 string to a maximum character count.
+*
+* If symbol_len is longer than the string passed in, the return
+* value == utf8str.
+* @param utf8str A valid utf8 string to truncate.
+* @param symbol_len The maximum number of symbols in the return value.
+* @return Returns a valid utf8 string with symbol count <= max_len.
+*/
+LL_COMMON_API std::string utf8str_symbol_truncate(const std::string& utf8str, const S32 symbol_len);
 
 /**
  * @brief Replace all occurences of target_char with replace_char
@@ -587,53 +735,82 @@ LL_COMMON_API std::string utf8str_removeCRLF(const std::string& utf8str);
 //@{
 
 /**
- * @brief Implementation the expected snprintf interface.
- *
- * If the size of the passed in buffer is not large enough to hold the string,
- * two bad things happen:
- * 1. resulting formatted string is NOT null terminated
- * 2. Depending on the platform, the return value could be a) the required
- *    size of the buffer to copy the entire formatted string or b) -1.
- *    On Windows with VS.Net 2003, it returns -1 e.g. 
- *
- * safe_snprintf always adds a NULL terminator so that the caller does not
- * need to check for return value or need to add the NULL terminator.
- * It does not, however change the return value - to let the caller know
- * that the passed in buffer size was not large enough to hold the
- * formatted string.
- *
- */
-
-// Deal with the differeneces on Windows
-namespace snprintf_hack
-{
-	LL_COMMON_API int snprintf(char *str, size_t size, const char *format, ...);
-}
-
-using snprintf_hack::snprintf;
-
-/**
  * @brief Convert a wide string to std::string
  *
  * This replaces the unsafe W2A macro from ATL.
  */
 LL_COMMON_API std::string ll_convert_wide_to_string(const wchar_t* in, unsigned int code_page);
+LL_COMMON_API std::string ll_convert_wide_to_string(const wchar_t* in); // default CP_UTF8
+inline std::string ll_convert_wide_to_string(const std::wstring& in, unsigned int code_page)
+{
+    return ll_convert_wide_to_string(in.c_str(), code_page);
+}
+inline std::string ll_convert_wide_to_string(const std::wstring& in)
+{
+    return ll_convert_wide_to_string(in.c_str());
+}
+ll_convert_alias(std::string, std::wstring, ll_convert_wide_to_string(in));
 
 /**
  * Converts a string to wide string.
- *
- * It will allocate memory for result string with "new []". Don't forget to release it with "delete []".
  */
-LL_COMMON_API wchar_t* ll_convert_string_to_wide(const std::string& in, unsigned int code_page);
+LL_COMMON_API wchar_t* ll_convert_string_to_wide(const std::string& in,
+                                                     unsigned int code_page);
+LL_COMMON_API wchar_t* ll_convert_string_to_wide(const std::string& in);
+                                                     // default CP_UTF8
+ll_convert_alias(wchar_t*, std::string, ll_convert_string_to_wide(in));
 
 /**
- * Converts incoming string into urf8 string
+ * Convert a Windows wide string to our LLWString
+ */
+LL_COMMON_API LLWString ll_convert_wide_to_wstring(const std::wstring& in);
+ll_convert_alias(LLWString, std::wstring, ll_convert_wide_to_wstring(in));
+
+/**
+ * Convert LLWString to Windows wide string
+ */
+LL_COMMON_API std::wstring ll_convert_wstring_to_wide(const LLWString& in);
+ll_convert_alias(std::wstring, LLWString, ll_convert_wstring_to_wide(in));
+
+/**
+ * Converts incoming string into utf8 string
  *
  */
 LL_COMMON_API std::string ll_convert_string_to_utf8_string(const std::string& in);
 
+/// Get Windows message string for passed GetLastError() code
+// VS 2013 doesn't let us forward-declare this template, which is what we
+// started with, so the implementation could reference the specialization we
+// haven't yet declared. Somewhat weirdly, just stating the generic
+// implementation in terms of the specialization works, even in this order...
+
+// the general case is just a conversion from the sole implementation
+// Microsoft says DWORD is a typedef for unsigned long
+// https://docs.microsoft.com/en-us/windows/desktop/winprog/windows-data-types
+// so rather than drag windows.h into everybody's include space...
+template<typename STRING>
+STRING windows_message(unsigned long error)
+{
+    return ll_convert<STRING>(windows_message<std::wstring>(error));
+}
+
+/// There's only one real implementation
+template<>
+LL_COMMON_API std::wstring windows_message<std::wstring>(unsigned long error);
+
+/// Get Windows message string, implicitly calling GetLastError()
+template<typename STRING>
+STRING windows_message() { return windows_message<STRING>(GetLastError()); }
+
 //@}
-#endif // LL_WINDOWS
+
+LL_COMMON_API boost::optional<std::wstring> llstring_getoptenv(const std::string& key);
+
+#else // ! LL_WINDOWS
+
+LL_COMMON_API boost::optional<std::string>  llstring_getoptenv(const std::string& key);
+
+#endif // ! LL_WINDOWS
 
 /**
  * Many of the 'strip' and 'replace' methods of LLStringUtilBase need
@@ -829,8 +1006,9 @@ public:
 	}
 
 	/// This implementation uses the answer cached by setiter().
-	virtual bool escaped() const { return mIsEsc; }
-	virtual T next()
+	bool escaped() const override { return mIsEsc; }
+
+	T next() override
 	{
 		// If we're looking at the escape character of an escape sequence,
 		// skip that character. This is the one time we can modify 'mIter'
@@ -846,21 +1024,21 @@ public:
 		return result;
 	}
 
-	virtual bool is(T ch) const
+	bool is(T ch) const override
 	{
 		// Like base-class is(), except that an escaped character matches
 		// nothing.
 		return (! done()) && (! mIsEsc) && *mIter == ch;
 	}
 
-	virtual bool oneof(const string_type& delims) const
+	bool oneof(const string_type& delims) const override
 	{
 		// Like base-class oneof(), except that an escaped character matches
 		// nothing.
 		return (! done()) && (! mIsEsc) && LLStringUtilBase<T>::contains(delims, *mIter);
 	}
 
-	virtual bool collect_until(string_type& into, const_iterator from, T delim)
+	bool collect_until(string_type& into, const_iterator from, T delim) override
 	{
 		// Deal with escapes in the characters we collect; that is, an escaped
 		// character must become just that character without the preceding
@@ -1174,7 +1352,7 @@ BOOL LLStringUtilBase<T>::precedesDict( const string_type& a, const string_type&
 {
 	if( a.size() && b.size() )
 	{
-		return (LLStringUtilBase<T>::compareDict(a.c_str(), b.c_str()) < 0);
+		return (LLStringUtilBase<T>::compareDict(a, b) < 0);
 	}
 	else
 	{
@@ -1229,11 +1407,27 @@ void LLStringUtilBase<T>::trimHead(string_type& string)
 template<class T> 
 void LLStringUtilBase<T>::trimTail(string_type& string)
 {			
-	if( string.size() )
+	if(!string.empty())
 	{
 		size_type len = string.length();
 		size_type i = len;
 		while( i > 0 && LLStringOps::isSpace( string[i-1] ) )
+		{
+			i--;
+		}
+
+		string.erase( i, len - i );
+	}
+}
+
+template<class T>
+void LLStringUtilBase<T>::trimTail(string_type& string, const string_type& tokens)
+{
+	if(!string.empty())
+	{
+		size_type len = string.length();
+		size_type i = len;
+		while( i > 0 && (tokens.find_first_of(string[i-1]) != string_type::npos) )
 		{
 			i--;
 		}
@@ -1248,6 +1442,9 @@ void LLStringUtilBase<T>::trimTail(string_type& string)
 template<class T>
 void LLStringUtilBase<T>::addCRLF(string_type& string)
 {
+	if (string.empty())
+		return;
+
 	const T LF = 10;
 	const T CR = 13;
 
@@ -1290,6 +1487,9 @@ void LLStringUtilBase<T>::addCRLF(string_type& string)
 template<class T> 
 void LLStringUtilBase<T>::removeCRLF(string_type& string)
 {
+	if (string.empty())
+		return;
+
 	const T CR = 13;
 
 	size_type cr_count = 0;
@@ -1309,6 +1509,32 @@ void LLStringUtilBase<T>::removeCRLF(string_type& string)
 
 //static
 template<class T> 
+void LLStringUtilBase<T>::removeWindowsCR(string_type& string)
+{
+    if (string.empty())
+    {
+        return;
+    }
+    const T LF = 10;
+    const T CR = 13;
+
+    size_type cr_count = 0;
+    size_type len = string.size();
+    size_type i;
+    for( i = 0; i < len - cr_count - 1; i++ )
+    {
+        if( string[i+cr_count] == CR && string[i+cr_count+1] == LF)
+        {
+            cr_count++;
+        }
+
+        string[i] = string[i+cr_count];
+    }
+    string.erase(i, cr_count);
+}
+
+//static
+template<class T>
 void LLStringUtilBase<T>::replaceChar( string_type& string, T target, T replacement )
 {
 	size_type found_pos = 0;
@@ -1392,6 +1618,7 @@ BOOL LLStringUtilBase<T>::containsNonprintable(const string_type& string)
 	return rv;
 }
 
+// *TODO: reimplement in terms of algorithm 
 //static
 template<class T> 
 void LLStringUtilBase<T>::stripNonprintable(string_type& string)
@@ -1402,29 +1629,23 @@ void LLStringUtilBase<T>::stripNonprintable(string_type& string)
 	{
 		return;
 	}
-	size_t src_size = string.size();
-	char* c_string = new char[src_size + 1];
-	if(c_string == NULL)
-	{
-		return;
-	}
-	copy(c_string, string.c_str(), src_size+1);
-	char* write_head = &c_string[0];
+	const size_t src_size = string.size();
+	auto c_string = std::make_unique<char[]>(src_size + 1);
+
+	copy(c_string.get(), string.c_str(), src_size+1);
 	for (size_type i = 0; i < src_size; i++)
 	{
-		char* read_head = &string[i];
-		write_head = &c_string[j];
-		if(!(*read_head < MIN))
+		if(string[i] >= MIN)
 		{
-			*write_head = *read_head;
+			c_string[j] = string[i];
 			++j;
 		}
 	}
 	c_string[j]= '\0';
-	string = c_string;
-	delete []c_string;
+	string.assign(c_string.get());
 }
 
+// *TODO: reimplement in terms of algorithm 
 template<class T>
 std::basic_string<T> LLStringUtilBase<T>::quote(const string_type& str,
 												const string_type& triggers,
@@ -1446,7 +1667,9 @@ std::basic_string<T> LLStringUtilBase<T>::quote(const string_type& str,
 	}
 
 	// For whatever reason, we must quote this string.
+	auto needed_escapes = std::count(str.begin(), str.end(), '"');
 	string_type result;
+	result.reserve(len + (needed_escapes * escape.length()));
 	result.push_back('"');
 	for (typename string_type::const_iterator ci(str.begin()), cend(str.end()); ci != cend; ++ci)
 	{
@@ -1561,6 +1784,37 @@ bool LLStringUtilBase<T>::endsWith(
 	return (idx == (string.size() - substr.size()));
 }
 
+// static
+template<class T>
+auto LLStringUtilBase<T>::getoptenv(const std::string& key) -> boost::optional<string_type>
+{
+    auto found(llstring_getoptenv(key));
+    if (found)
+    {
+        // return populated boost::optional
+        return { ll_convert<string_type>(*found) };
+    }
+    else
+    {
+        // empty boost::optional
+        return {};
+    }
+}
+
+// static
+template<class T>
+auto LLStringUtilBase<T>::getenv(const std::string& key, const string_type& dflt) -> string_type
+{
+    auto found(getoptenv(key));
+    if (found)
+    {
+        return *found;
+    }
+    else
+    {
+        return dflt;
+    }
+}
 
 template<class T> 
 BOOL LLStringUtilBase<T>::convertToBOOL(const string_type& string, BOOL& value)

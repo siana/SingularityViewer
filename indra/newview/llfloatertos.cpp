@@ -1,34 +1,33 @@
 /** 
- * @file llfloatertos.cpp
- * @brief Terms of Service Agreement dialog
- *
- * $LicenseInfo:firstyear=2003&license=viewergpl$
- * 
- * Copyright (c) 2003-2009, Linden Research, Inc.
- * 
- * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
- * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
- * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
- * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
- * $/LicenseInfo$
- */
+* @file llfloatertos.cpp
+* @brief Terms of Service Agreement dialog
+*
+* $LicenseInfo:firstyear=2003&license=viewergpl$
+* 
+* Copyright (c) 2003-2009, Linden Research, Inc.; 2010, McCabe Maxsted; 2019, Liru Faers
+* 
+* Second Life Viewer Source Code
+* The source code in this file ("Source Code") is provided by Linden Lab
+* to you under the terms of the GNU General Public License, version 2.0
+* ("GPL"), unless you have obtained a separate licensing agreement
+* ("Other License"), formally executed by you and Linden Lab.  Terms of
+* the GPL can be found in doc/GPL-license.txt in this distribution, or
+* online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+* 
+* There are special exceptions to the terms and conditions of the GPL as
+* it is applied to this Source Code. View the full text of the exception
+* in the file doc/FLOSS-exception.txt in this software distribution, or
+* online at http://secondlifegrid.net/programs/open_source/licensing/flossexception
+* 
+* By copying, modifying or distributing this software, you acknowledge
+* that you have read and understood your obligations described above,
+* and agree to abide by those obligations.
+* 
+* ALL SOURCE CODE IS PROVIDED "AS IS." THE AUTHOR MAKES NO
+* WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
+* COMPLETENESS OR PERFORMANCE.
+* $/LicenseInfo$
+*/
 
 #include "llviewerprecompiledheaders.h"
 
@@ -58,86 +57,71 @@ class AIHTTPTimeoutPolicy;
 extern AIHTTPTimeoutPolicy iamHere_timeout;
 
 // static 
-LLFloaterTOS* LLFloaterTOS::sInstance = NULL;
+LLFloaterTOS* LLFloaterTOS::sInstance = nullptr;
 
 // static
 LLFloaterTOS* LLFloaterTOS::show(ETOSType type, const std::string & message)
 {
-	if( !LLFloaterTOS::sInstance )
-	{
-		LLFloaterTOS::sInstance = new LLFloaterTOS(type, message);
-	}
-
-	if (type == TOS_TOS)
-	{
-		LLUICtrlFactory::getInstance()->buildFloater(LLFloaterTOS::sInstance, "floater_tos.xml");
-	}
-	else
-	{
-		LLUICtrlFactory::getInstance()->buildFloater(LLFloaterTOS::sInstance, "floater_critical.xml");
-	}
-
-	return LLFloaterTOS::sInstance;
+	if (sInstance) sInstance->close();
+	return sInstance = new LLFloaterTOS(type, message);
 }
 
 
-LLFloaterTOS::LLFloaterTOS(ETOSType type, const std::string & message)
-:	LLModalDialog( std::string(" "), 100, 100 ),
+LLFloaterTOS::LLFloaterTOS(ETOSType type, const std::string& message)
+:	LLModalDialog(std::string(" "), 100, 100),
 	mType(type),
-	mMessage(message),
-	mLoadCompleteCount( 0 )
+	mLoadCompleteCount(0)
 {
+	LLUICtrlFactory::getInstance()->buildFloater(this,
+		mType == TOS_CRITICAL_MESSAGE ? "floater_critical.xml"
+			: mType == TOS_TOS ? "floater_tos.xml"
+			: "floater_voice_license.xml");
+
+	if (mType == TOS_CRITICAL_MESSAGE)
+	{
+		// this displays the critical message
+		LLTextEditor *editor = getChild<LLTextEditor>("tos_text");
+		editor->setHandleEditKeysDirectly(TRUE);
+		editor->setEnabled(FALSE);
+		editor->setWordWrap(TRUE);
+		editor->setFocus(TRUE);
+		editor->setValue(message);
+	}
 }
 
 // helper class that trys to download a URL from a web site and calls a method 
 // on parent class indicating if the web server is working or not
 class LLIamHere : public LLHTTPClient::ResponderWithResult
 {
-	private:
-		LLIamHere( LLFloaterTOS* parent ) :
-		   mParent( parent )
-		{}
+	LLIamHere(LLFloaterTOS* parent) : mParent(parent->getDerivedHandle<LLFloaterTOS>()) {}
+	LLHandle<LLFloaterTOS> mParent;
 
-		LLFloaterTOS* mParent;
-
-	public:
-
-		static boost::intrusive_ptr< LLIamHere > build( LLFloaterTOS* parent )
-		{
-			return boost::intrusive_ptr< LLIamHere >( new LLIamHere( parent ) );
-		};
+public:
+	static boost::intrusive_ptr<LLIamHere> build(LLFloaterTOS* parent)
+	{
+		return boost::intrusive_ptr<LLIamHere>(new LLIamHere(parent));
+	}
 		
-		virtual void  setParent( LLFloaterTOS* parentIn )
-		{
-			mParent = parentIn;
-		};
-		
-		/*virtual*/ void httpSuccess(void)
-		{
-			if ( mParent )
-				mParent->setSiteIsAlive( true );
-		};
+	void httpSuccess() override
+	{
+		if (!mParent.isDead())
+			mParent.get()->setSiteIsAlive(true);
+	}
 
-		/*virtual*/ void httpFailure(void)
+	void httpFailure() override
+	{
+		if (!mParent.isDead())
 		{
-			if ( mParent )
-			{
-				// *HACK: For purposes of this alive check, 302 Found
-				// (aka Moved Temporarily) is considered alive.  The web site
-				// redirects this link to a "cache busting" temporary URL. JC
-				bool alive = (mStatus == HTTP_FOUND);
-				mParent->setSiteIsAlive( alive );
-			}
-		};
+			// *HACK: For purposes of this alive check, 302 Found
+			// (aka Moved Temporarily) is considered alive.  The web site
+			// redirects this link to a "cache busting" temporary URL. JC
+			mParent.get()->setSiteIsAlive(mStatus == HTTP_FOUND);
+		}
+	}
 
-		/*virtual*/  AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return iamHere_timeout; }
-		/*virtual*/ bool pass_redirect_status(void) const { return true; }
-		/*virtual*/ char const* getName(void) const { return "LLIamHere"; }
-};
-
-// this is global and not a class member to keep crud out of the header file
-namespace {
-	boost::intrusive_ptr< LLIamHere > gResponsePtr = 0;
+	AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy() const override { return iamHere_timeout; }
+	bool pass_redirect_status() const override { return true; }
+	char const* getName() const override { return "LLIamHere"; }
 };
 
 BOOL LLFloaterTOS::postBuild()
@@ -146,78 +130,60 @@ BOOL LLFloaterTOS::postBuild()
 	childSetAction("Cancel", onCancel, this);
 	childSetCommitCallback("agree_chk", updateAgree, this);
 
-	if ( mType != TOS_TOS )
-	{
-		// this displays the critical message
-		LLTextEditor *editor = getChild<LLTextEditor>("tos_text");
-		editor->setHandleEditKeysDirectly( TRUE );
-		editor->setEnabled( FALSE );
-		editor->setWordWrap(TRUE);
-		editor->setFocus(TRUE);
-		editor->setValue(LLSD(mMessage));
-
-		return TRUE;
-	}
+	if (mType == TOS_CRITICAL_MESSAGE) return TRUE;
 
 	// disable Agree to TOS radio button until the page has fully loaded
 	LLCheckBoxCtrl* tos_agreement = getChild<LLCheckBoxCtrl>("agree_chk");
-	tos_agreement->setEnabled( false );
+	tos_agreement->setEnabled(false);
 
+	bool voice = mType == TOS_VOICE;
 	// hide the SL text widget if we're displaying TOS with using a browser widget.
-	LLTextEditor *editor = getChild<LLTextEditor>("tos_text");
-	editor->setVisible( FALSE );
+	getChild<LLTextEditor>(voice ? "license_text" : "tos_text")->setVisible(FALSE);
 
-	LLMediaCtrl* web_browser = getChild<LLMediaCtrl>("tos_html");
-	if ( web_browser )
+	if (LLMediaCtrl* web_browser = getChild<LLMediaCtrl>(voice ? "license_html" : "tos_html"))
 	{
+		// start to observe it so we see navigate complete events
 		web_browser->addObserver(this);
-		gResponsePtr = LLIamHere::build( this );
-		LLHTTPClient::get( getString( "real_url" ), gResponsePtr );
+		std::string url = getString( "real_url" );
+		if (!voice || url.substr(0,4) == "http") {
+			LLHTTPClient::get(url, LLIamHere::build(this));
+		} else {
+			setSiteIsAlive(false);
+		}
 	}
 
 	return TRUE;
 }
 
-void LLFloaterTOS::setSiteIsAlive( bool alive )
+void LLFloaterTOS::setSiteIsAlive(bool alive)
 {
 	// only do this for TOS pages
-	if ( mType == TOS_TOS )
+	if (mType != TOS_CRITICAL_MESSAGE)
 	{
-		LLMediaCtrl* web_browser = getChild<LLMediaCtrl>("tos_html");
+		bool voice = mType == TOS_VOICE;
+		LLMediaCtrl* web_browser = getChild<LLMediaCtrl>(voice ? "license_html" : "tos_html");
 		// if the contents of the site was retrieved
-		if ( alive )
+		if (alive)
 		{
-			if ( web_browser )
+			if (web_browser)
 			{
 				// navigate to the "real" page 
-				web_browser->navigateTo( getString( "real_url" ) );
-			};
+				web_browser->navigateTo(getString("real_url"));
+			}
 		}
 		else
 		{
+			if (voice) web_browser->navigateToLocalPage("license", getString("fallback_html"));
 			// normally this is set when navigation to TOS page navigation completes (so you can't accept before TOS loads)
 			// but if the page is unavailable, we need to do this now
-			LLCheckBoxCtrl* tos_agreement = getChild<LLCheckBoxCtrl>("agree_chk");
-			tos_agreement->setEnabled( true );
-		};
-	};
+			getChild<LLCheckBoxCtrl>("agree_chk")->setEnabled(true);
+		}
+	}
 }
 
 LLFloaterTOS::~LLFloaterTOS()
 {
-
-	// tell the responder we're not here anymore
-	if ( gResponsePtr )
-		gResponsePtr->setParent( 0 );
-
-	LLFloaterTOS::sInstance = NULL;
-}
-
-// virtual
-void LLFloaterTOS::draw()
-{
-	// draw children
-	LLModalDialog::draw();
+	sInstance = nullptr;
 }
 
 // static
@@ -229,11 +195,21 @@ void LLFloaterTOS::updateAgree(LLUICtrl*, void* userdata )
 }
 
 // static
-void LLFloaterTOS::onContinue( void* userdata )
+void LLFloaterTOS::onContinue(void* userdata)
 {
 	LLFloaterTOS* self = (LLFloaterTOS*) userdata;
-	LL_INFOS() << "User agrees with TOS." << LL_ENDL;
-	if (self->mType == TOS_TOS)
+	bool voice = self->mType == TOS_VOICE;
+	LL_INFOS() << (voice ? "User agreed to the Vivox personal license" : "User agrees with TOS.") << LL_ENDL;
+	if (voice)
+	{
+		// enabling voice by default here seems like the best behavior
+		gSavedSettings.setBOOL("EnableVoiceChat", TRUE);
+		gSavedSettings.setBOOL("VivoxLicenseAccepted", TRUE);
+
+		// save these settings in case something bad happens later
+		gSavedSettings.saveToFile(gSavedSettings.getString("ClientSettingsFile"), TRUE);
+	}
+	else if (self->mType == TOS_TOS)
 	{
 		gAcceptTOS = TRUE;
 	}
@@ -242,42 +218,57 @@ void LLFloaterTOS::onContinue( void* userdata )
 		gAcceptCriticalMessage = TRUE;
 	}
 
+	auto state = LLStartUp::getStartupState();
 	// Testing TOS dialog
-	#if ! LL_RELEASE_FOR_DOWNLOAD		
-	if ( LLStartUp::getStartupState() == STATE_LOGIN_WAIT )
+#if !LL_RELEASE_FOR_DOWNLOAD
+	if (!voice && state == STATE_LOGIN_WAIT)
 	{
-		LLStartUp::setStartupState( STATE_LOGIN_SHOW );
+		LLStartUp::setStartupState(STATE_LOGIN_SHOW);
 	}
 	else 
-	#endif
-
-	LLStartUp::setStartupState( STATE_LOGIN_AUTH_INIT );			// Go back and finish authentication
+#endif
+	if (!voice || state == STATE_LOGIN_VOICE_LICENSE)
+	{
+		LLStartUp::setStartupState(STATE_LOGIN_AUTH_INIT);			// Go back and finish authentication
+	}
 	self->close(); // destroys this object
 }
 
 // static
-void LLFloaterTOS::onCancel( void* userdata )
+void LLFloaterTOS::onCancel(void* userdata)
 {
 	LLFloaterTOS* self = (LLFloaterTOS*) userdata;
-	LL_INFOS() << "User disagrees with TOS." << LL_ENDL;
-	LLNotificationsUtil::add("MustAgreeToLogIn", LLSD(), LLSD(), login_alert_done);
-	LLStartUp::setStartupState( STATE_LOGIN_SHOW );
-	self->mLoadCompleteCount = 0;  // reset counter for next time we come to TOS
+	if (self->mType == TOS_VOICE)
+	{
+		LL_INFOS() << "User disagreed with the Vivox personal license" << LL_ENDL;
+		gSavedSettings.setBOOL("EnableVoiceChat", FALSE);
+		gSavedSettings.setBOOL("VivoxLicenseAccepted", FALSE);
+
+		if (LLStartUp::getStartupState() == STATE_LOGIN_VOICE_LICENSE)
+		{
+			LLStartUp::setStartupState(STATE_LOGIN_AUTH_INIT);			// Go back and finish authentication
+		}
+	}
+	else
+	{
+		LL_INFOS() << "User disagrees with TOS." << LL_ENDL;
+		LLNotificationsUtil::add("MustAgreeToLogIn", LLSD(), LLSD(), login_alert_done);
+		LLStartUp::setStartupState(STATE_LOGIN_SHOW);
+	}
 	self->close(); // destroys this object
 }
 
 //virtual 
 void LLFloaterTOS::handleMediaEvent(LLPluginClassMedia* /*self*/, EMediaEvent event)
 {
-	if(event == MEDIA_EVENT_NAVIGATE_COMPLETE)
+	if (event == MEDIA_EVENT_NAVIGATE_COMPLETE)
 	{
 		// skip past the loading screen navigate complete
-		if ( ++mLoadCompleteCount == 2 )
+		if (++mLoadCompleteCount == 2)
 		{
 			LL_INFOS() << "NAVIGATE COMPLETE" << LL_ENDL;
 			// enable Agree to TOS radio button now that page has loaded
-			LLCheckBoxCtrl * tos_agreement = getChild<LLCheckBoxCtrl>("agree_chk");
-			tos_agreement->setEnabled( true );
+			getChild<LLCheckBoxCtrl>("agree_chk")->setEnabled(true);
 		}
 	}
 }

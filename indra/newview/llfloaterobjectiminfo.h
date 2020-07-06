@@ -35,20 +35,18 @@
 
 #include "llfloater.h"
 
-class LLFloaterObjectIMInfo : public LLFloater, public LLFloaterSingleton<LLFloaterObjectIMInfo>
+class LLFloaterObjectIMInfo final : public LLFloater, public LLFloaterSingleton<LLFloaterObjectIMInfo>
 {
 public:
 	LLFloaterObjectIMInfo(const LLSD& sd);
 	virtual ~LLFloaterObjectIMInfo() { };
 
-	/*virtual*/ BOOL postBuild();
+	BOOL postBuild() override;
 
 	void update(const LLSD& payload);
 
 	// UI Handlers
 	void onClickMute();
-
-	void nameCallback(const std::string& full_name);
 
 private:
 	LLUUID mOwnerID;

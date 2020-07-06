@@ -12,12 +12,12 @@
       <flyout_button bottom="-24" follows="left|top" height="16" label="Copy:" left="4" font="SansSerifSmall" tool_tip="Copy key to clipboard, press the arrow for other copy options" name="copy_flyout" width="70">
         <flyout_button_item label="Copy SLURL" name="copy_slurl_item" value="1"/>
       </flyout_button>
-      <name_editor bevel_style="in" border_style="line"
+      <line_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="-24" enabled="false" follows="left|top"
 			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="75"
 			     max_length="36" mouse_opaque="false" name="avatar_key"
-			     width="204" />
-      <button bottom="-24" height="16" width="106" left_delta="204" name="web_profile" label="Web Profile">
+			     width="225" />
+      <button bottom="-24" height="16" width="97" left_delta="225" name="web_profile" label="Web Profile">
          <button.commit_callback function="Profile.Web"/>
       </button>
       <text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
@@ -26,74 +26,67 @@
 			     mouse_opaque="true" name="Name:" v_pad="0" width="70">
         Name:
       </text>
-			<line_editor bevel_style="in" border_style="line"
+			<name_editor bevel_style="in" border_style="line"
 				 border_thickness="1" bottom="-48" enabled="false" follows="left|top"
 				 font="SansSerifSmall" height="16" is_unicode="false" left_delta="75"
 				 max_length="254" mouse_opaque="false" name="dnname"
-				 width="180" />
+				 width="181" name_system="ProfileNameSystem" click_for_profile="false"/>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-48" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="279"
-			     mouse_opaque="true" name="online_yes" v_pad="0" width="121">
+			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="185"
+			     mouse_opaque="true" name="online_yes" v_pad="0" width="136">
 				Currently Online
 			</text>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="279"
-			     mouse_opaque="true" name="label" v_pad="0" width="121">
+			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+			     mouse_opaque="true" name="label" v_pad="0" width="136">
 				Born:
 			</text>
 			<line_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom_delta="-16" enabled="true" follows="left|top"
-			     font="SansSerifSmall" height="16" is_unicode="false" left="279"
+			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="0"
 			     max_length="254" mouse_opaque="false" name="born"
-			     width="121" />
+			     width="137" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="279"
-			     mouse_opaque="true" name="label2" v_pad="0" width="121">
+			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
+			     mouse_opaque="true" name="label2" v_pad="0" width="136">
 				Account:
 			</text>
-			<view_border bevel_style="in" bottom_delta="-48" follows="left|top" height="48" left="279"
-			     mouse_opaque="false" name="acct_border" width="121" />
+			<view_border bevel_style="in" bottom_delta="-48" follows="left|top" height="48" left_delta="0"
+			     mouse_opaque="false" name="acct_border" width="136" />
 			<text bg_visible="false" border_drop_shadow_visible="false"
 			     border_visible="true" bottom_delta="0" drop_shadow_visible="true"
-			     follows="left|top" font="SansSerifSmall" height="48" left="279"
-			     mouse_opaque="false" name="acct" width="121" />
+			     follows="left|top" font="SansSerifSmall" height="48" left_delta="0"
+			     mouse_opaque="true" name="acct" width="136" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
-			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="279"
+			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="0"
 			     mouse_opaque="true" name="partner_label"
 			     tool_tip="Second Life partner. For more info on how to set, see www.secondlife.com/partner"
-			     v_pad="0" width="130">
+			     v_pad="0" width="135">
 				Partner:
 			</text>
 			<button bottom_delta="0" follows="left|top" font="SansSerif" halign="center"
-			     height="18" label="i" label_selected="i" left_delta="44"
-			     mouse_opaque="true" name="partner_info"
-			     tool_tip="Click to open partner&apos;s profile" width="18" />
-			<button bottom_delta="0" follows="left|top" font="SansSerif" halign="center"
-			     height="18" label="?" label_selected="?" left_delta="24"
+			     height="18" label="?" label_selected="?" left_delta="119"
 			     mouse_opaque="true" name="partner_help" width="18" />
-			<line_editor bevel_style="in" border_style="line"
+			<name_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom_delta="-16" enabled="true" follows="left|top"
-			     font="SansSerifSmall" height="16" is_unicode="false" left="279"
-			     max_length="254" mouse_opaque="false" name="partner_edit"
-			     tool_tip="Second Life partner. For more info on how to set, see www.secondlife.com/partner"
-			     width="121">
-				[NAME]
-			</line_editor>
+			     font="SansSerifSmall" height="16" left_delta="-119"
+			     max_length="1024" mouse_opaque="true" name="partner_edit"
+			     width="137"/>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-68" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="4"
 			     mouse_opaque="true" name="Photo:" v_pad="0" width="70">
 				Photo:
 			</text>
-			<texture_picker allow_no_texture="true" bottom="-203" can_apply_immediately="false"
+			<texture_picker allow_no_texture="true" bottom_delta="-135" can_apply_immediately="false"
 			     default_image_name="None" follows="left|top" height="151" label=""
 			     left="79" mouse_opaque="true" name="img"
 			     tool_tip="Click to choose a picture" width="180" />
-			<button bottom="-230" follows="bottom|left" font="SansSerif" halign="center"
+			<button bottom_delta="-27" follows="bottom|left" font="SansSerif" halign="center"
 			     height="32" label="" left_delta="-40"  width="32"  scale_image="true"
 			 image_selected="tool_zoom.tga" 
 			 image_unselected="tool_zoom.tga" 
@@ -102,17 +95,17 @@
 			 mouse_opaque="true" 
 			  name="bigimg"/>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-207" drop_shadow_visible="true" follows="left|top"
+			     bottom_delta="23" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="4"
 			     mouse_opaque="true" name="Groups:" v_pad="0" width="70">
 				Groups:
 			</text>
-			<scroll_list background_visible="true" bottom="-282" column_padding="5" draw_border="true"
-			     follows="left|top" height="90" left="79" mouse_opaque="false"
-			     multi_select="false" name="groups" width="321" />
+			<scroll_list background_visible="true" bottom_delta="-80" column_padding="5" draw_border="true"
+			     follows="left|top" height="95" left="79" mouse_opaque="false"
+			     multi_select="false" name="groups" width="321" menu_num="1"/>
 			<string name="None">None</string>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
-			     bottom="-304" drop_shadow_visible="true" follows="left|top"
+			     bottom_delta="-18" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="right" height="16" left="4"
 			     mouse_opaque="true" name="About:" v_pad="0" width="70">
 				About:
@@ -123,9 +116,9 @@
 			     mouse_opaque="true" name="(500 chars)" v_pad="0" width="70">
 				(500 chars)
 			</text>
-			<text_editor bottom="-399" embedded_items="false"
-			     enabled="true" follows="left|top" font="SansSerifSmall" height="110"
-			     is_unicode="false" left="79" max_length="511" mouse_opaque="true"
+			<text_editor bottom_delta="-88" embedded_items="false"
+			     enabled="true" follows="left|top" font="SansSerifSmall" height="119"
+			     left="79" max_length="511" mouse_opaque="true" hide_scrollbar="true"
 			     name="about" width="321" word_wrap="true" spell_check="true" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-427" drop_shadow_visible="true" follows="left|top"
@@ -133,7 +126,7 @@
 			     mouse_opaque="true" name="Give item:" v_pad="0" width="75">
 				Give item:
 			</text>
-			<drop_target bottom="-427" height="17" left_delta="79" width="321" fill_parent="true" show_reset="false" name="drop_target_rect" label="Drop inventory item here." tool_tip="Drop inventory items here to give them to this person."/>
+			<drop_target bottom="-428" height="17" left_delta="79" width="321" fill_parent="true" show_reset="false" name="drop_target_rect" label="Drop inventory item here." tool_tip="Drop inventory items here to give them to this person."/>
 			<check_box bottom="-447" follows="left|top" font="SansSerifSmall" height="16"
 			     initial_value="false" label="Show in search" left="75" mouse_opaque="true"
 			     name="allow_publish"
@@ -143,27 +136,28 @@
 			     label="?" label_selected="?" left_delta="145" mouse_opaque="true" name="?"
 			     width="20" />
 			<button bottom="-452" font="SansSerif" halign="center" height="20" label="Find on Map"
-			     label_selected="Find on Map" left="24" mouse_opaque="true"
-			     name="Find on Map" width="100" />
+			     label_selected="Find on Map" left="15" mouse_opaque="true"
+			     name="Find on Map" width="102" />
 			<button bottom="-452" font="SansSerif" halign="center" height="20"
-			     label="Offer Teleport..." label_selected="Offer Teleport..."
-			     left_delta="102" mouse_opaque="true" name="Offer Teleport..." width="140" />
+			     label="Teleport..." label_selected="Teleport..."
+			     left_delta="102" mouse_opaque="true" name="Offer Teleport..." width="82" />
 			<button bottom="-452" font="SansSerif" halign="center" height="20"
-			     label="Add Friend..." label_selected="Add Friend..." left_delta="142"
-			     mouse_opaque="true" name="Add Friend..." width="130" />
+			     label="Add Friend..." label_selected="Add Friend..." left_delta="82"
+			     mouse_opaque="true" name="Add Friend..." width="132" />
+			<button label="Log" name="Log" bottom="-452" left_delta="132" height="20" width="70"/>
 			<button bottom="-470" font="SansSerif" halign="center" height="20" label="Pay..."
-			     label_selected="Pay..." left="24" mouse_opaque="true" name="Pay..."
-			     width="70" />
+			     label_selected="Pay..." left="15" mouse_opaque="true" name="Pay..."
+			     width="71" />
 			<button bottom="-470" font="SansSerif" halign="center" height="20"
 			     label="Instant Message..." label_selected="Instant Message..."
 			     left_delta="71" mouse_opaque="true" name="Instant Message..."
-			     tool_tip="Instant Message (IM)" width="140" />
+			     tool_tip="Instant Message (IM)" width="141" />
 			<button bottom="-470" font="SansSerifSmall" halign="center" height="20" label="Mute" label_selected="Unmute" toggle="true"
 			     left_delta="141" mouse_opaque="true" name="Mute"
-			     width="60" />
+			     width="61" />
 			<button bottom="-470" font="SansSerif" halign="center" height="20" label="Invite to Group"
 			     label_selected="Invite to Group" left_delta="61" mouse_opaque="true"
-			     name="GroupInvite_Button" width="100" />
+			     name="GroupInvite_Button" width="113" />
 		</panel>
 		<panel border="true" bottom="-482" follows="left|top|right|bottom" height="466"
 		       label="Web" left="1" mouse_opaque="true" name="WebProfile" width="418">

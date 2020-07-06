@@ -99,6 +99,7 @@
 <NotifyCautionBoxColor value="210, 210, 210, 255" /> 	<!-- the background color of caution permissions prompts -->
 <NotifyCautionWarnColor value="210, 210, 210, 255" /> 	<!-- the foreground color of the special title text in caution permissions prompts -->
 <GroupNotifyBoxColor value="255, 255, 255, 255" />
+<GroupNotifyHeaderBGColor value="0, 0, 0, 0" />
 <GroupNotifyTextColor value="0, 0, 0, 255" />
 
 <!-- CHAT AND IM HISTORY TEXTBOX COLORS -->
@@ -165,7 +166,6 @@
 <FocusColor value="153, 153, 153, 255" /> 		<!-- Color of the glow around UI controls with keyboard focus -->
 <FloaterButtonImageColor value="255, 255, 255, 255" /> 	<!-- The floater buttons (like the close box) are white images that receive this color. -->
 <ButtonCautionImageColor value="255, 255,  255, 255" />	<!-- Match the caution dialog buttons to the default -->
-<HealthTextColor value="255, 255, 255, 255" />
 <MapAutopilotColor value="255, 128, 0, 255" />
 <ContextSilhouetteColor value="0, 0, 0, 255" />	<!-- For "context" highlighting, i.e. pie menu -->
 <ScriptBgReadOnlyColor value="180, 180, 180, 255" />

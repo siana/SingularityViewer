@@ -89,6 +89,7 @@ private:
 	ECursorType cursorFromObject(LLViewerObject* object);
 
 	bool handleMediaClick(const LLPickInfo& info);
+    bool handleMediaDblClick(const LLPickInfo& info);
 	bool handleMediaHover(const LLPickInfo& info);
 	bool handleMediaMouseUp();
 

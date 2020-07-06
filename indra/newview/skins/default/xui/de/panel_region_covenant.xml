@@ -4,7 +4,7 @@
 	<text name="estate_name_lbl">Name:</text>
 	<text name="estate_name_text">Mainland</text>
 	<text name="estate_owner_lbl">Eigentümer:</text>
-	<text name="estate_owner_text">(keiner)</text>
+	<name_box name="estate_owner_text">(keiner)</name_box>
 	<text name="estate_cov_lbl">Vertrag:</text>
 	<text name="covenant_timestamp_text">Letzte Änderung am Mittwoch, den 31. Dez. 1969, 16:00:00</text>
 	<button label="?" name="covenant_help"/>

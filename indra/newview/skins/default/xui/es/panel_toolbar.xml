@@ -5,17 +5,13 @@
 	</string>
 	<string name="IMs">[COUNT] MIs</string>
 	<string name="IM">1 MI</string>
-	<panel bottom="0" filename="panel_bg_toolbar.xml" height="28" left="0" width="1024"/>
 	<layout_stack name="toolbar_stack">
-		<layout_panel name="panel1"/>
 		<layout_panel name="panel2" >
 			<button label="" name="chat_btn" tool_tip="Mostrar Barra de Chat. (Intro)"/>
 		</layout_panel>
-		<layout_panel name="panel3"/>
 		<layout_panel name="panel4">
-		  <flyout_button label="Comunicación" name="communicate_btn" tool_tip="Comunícate con tus amigos o grupos.(Ctrl-T)" />
+		  <flyout_button label="Comunicación" name="communicate_btn" tool_tip="Comunícate con tus amigos y grupos.(Ctrl-T)" />
 		</layout_panel>
-		<layout_panel name="panel5"/>
 		<layout_panel name="panelim">
 			<button label="Comunicación" name="communicate_im_btn" tool_tip="Comunícate con tus amigos o grupos.(Ctrl-T)"/>
 		</layout_panel>
@@ -38,7 +34,7 @@
 			<button label="Ignorados" name="mute_list_btn"/>
 		</layout_panel>
 		<layout_panel name="panelassetblacklist">
-			<button label="Lista Negra Asset" name="assetblack_list_btn"/>
+			<button label="Lista Negra" name="assetblack_list_btn"/>
 		</layout_panel>
 		<layout_panel name="panelvoiceeffect">
 			<button label="Efectos de Voz" name="voice_effects_btn"/>
@@ -50,7 +46,7 @@
 			<button label="Balizas" name="beacons_btn"/>
 		</layout_panel>
 		<layout_panel name="panel6">
-			<button label="Radar" name="radar_list_btn" tool_tip="Ver lista de avatares cercanos.(Ctrl-Shift-A)"/>
+			<button label="Radar" name="radar_list_btn" tool_tip="Ver lista de avatares cercanos.(Ctrl-Mayús-A)"/>
 		</layout_panel>
 		<layout_panel name="panelregiontracker">
 			<button label="Monitor Región" name="region_tracker_btn" tool_tip="Monitorear el estado de varias regiones"/>
@@ -65,13 +61,13 @@
 			<button label="Vista Subjetiva" name="mouselook_btn"/>
 		</layout_panel>
 		<layout_panel name="panel7">
-			<button label="Volar" label_selected="Stop Flying" name="fly_btn" tool_tip="Despegar(F o Inicio). Usa E/C o AvPág/RePág para ascender o descender"/>
+			<button label="Volar" label_selected="No volar" name="fly_btn" tool_tip="Despegar(F o Inicio). Usa E/C o AvPág/RePág para ascender o descender"/>
 		</layout_panel>
 		<layout_panel name="panelsit">
 			<button label="Sentarse" label_selected="Pararse" name="sit_btn"/>
 		</layout_panel>
 		<layout_panel name="panelrun">
-			<button label="Correr" label_selected="Dejar de Correr" name="run_btn" tool_tip="Activar modo Correr (Ctrl-R)"/>
+			<button label="Correr" label_selected="No Correr" name="run_btn" tool_tip="Activar modo Correr (Ctrl-R)"/>
 		</layout_panel>
 		<layout_panel name="panelvelocity">
 			<button label="Velocidad" name="run_btn"/>
@@ -91,6 +87,9 @@
 		<layout_panel name="panelappearance">
 			<button label="Apariencia" name="appearance_btn"/>
 		</layout_panel>
+		<layout_panel name="panelexperiences">
+			<button label="Experiencias" name="experiences_btn"/>
+		</layout_panel>		
 		<layout_panel name="panel9">
 			<button label="Buscar" name="directory_btn" tool_tip="Buscar lugares, eventos, personas, y más.(Ctrl-F)"/>
 		</layout_panel>
@@ -178,11 +177,14 @@
 		<layout_panel name="panelteleporthistory">
 			<button label="Historial de TP" name="teleport_history_btn"/>
 		</layout_panel>
+		<layout_panel name="paneldestinations" >
+			<button label="Destinos" name="destinations_btn"/>
+		</layout_panel>
 		<layout_panel name="panel11">
 			<button label="Mapa" name="map_btn" tool_tip="Mapa del Mundo. (Ctrl-M)"/>
 		</layout_panel>
 		<layout_panel name="panel12">
-			<button label="MiniMapa" name="radar_btn" tool_tip="Mapa del área a tu alrededor. (Ctrl-Shift-M)"/>
+			<button label="MiniMapa" name="radar_btn" tool_tip="Mapa del área a tu alrededor. (Ctrl-Mayús-M)"/>
 		</layout_panel>
 		<!-- [RLVa:LF] -->
 		<layout_panel name="panelrlvrestrictions">
@@ -217,7 +219,7 @@
 			<button label="Temporizadores" name="fast_timers_btn"/>
 		</layout_panel>
 		<layout_panel name="panelframeconsole">
-			<button label="Consola Cuadros" name="frame_console_btn"/>
+			<button label="Consola Frames" name="frame_console_btn"/>
 		</layout_panel>
 		<layout_panel name="panelhttpconsole">
 			<button label="Consola HTTP" name="http_console_btn"/>
@@ -231,9 +233,6 @@
 		<layout_panel name="paneltexturesizeconsole">
 			<button label="Consola Tam. Texturas" name="texture_size_console_btn"/>
 		</layout_panel>
-		<layout_panel name="panel13">
-			<button label="Inventario" name="inventory_btn" tool_tip="Tus items. (Ctrl-I)"/>
-		</layout_panel>
 		<layout_panel name="panelavatar" >
 			<button label="Avatares Predeterminados" iname="avatar_btn"/>
 		</layout_panel>
@@ -246,8 +245,17 @@
 		<layout_panel name="panelfavs">
 			<button label="Favoritos" name="favs_btn"/>
 		</layout_panel>
-		<layout_panel name="paneloutbox">
-			<button label="Buzón de Salida" name="outbox_btn"/>
+		<layout_panel name="panel13">
+			<button label="Inventario" name="inventory_btn" tool_tip="Tus items. (Ctrl-I)"/>
+		</layout_panel>
+		<layout_panel name="panelreceiveditems">
+			<button label="Ítems Recibidos" name="received_items_btn"/>
+		</layout_panel>
+		<layout_panel name="panelmarketplacelistings">
+			<button label="Art. del Mercado" name="marketplace_listings_btn"/>
+		</layout_panel>
+		<layout_panel name="panelmarketplace">
+			<button label="Mercado" name="marketplace_btn"/>
 		</layout_panel>
 		<layout_panel name="panelpreferences">
 			<button label="Preferencias" name="preferences_btn" tool_tip="Ctrl-P"/>
@@ -272,11 +280,8 @@
 		<layout_panel name="panelfonttest">
 			<button label="Prueba Fuentes" name="font_test_btn"/>
 		</layout_panel>
-		<layout_panel name="panellagmeter">
-			<button label="Medidor de Lag" name="lag_meter_btn"/>
-		</layout_panel>
 		<layout_panel name="panelreportabuse">
-			<button label="Denunciar Abuso" name="lag_meter_btn"/>
+			<button label="Denunciar Infracción" name="abuse_btn"/>
 		</layout_panel>
 		<!-- Singu TODO: Re-implement f1 help.
 		<layout_panel name="panelhelp">

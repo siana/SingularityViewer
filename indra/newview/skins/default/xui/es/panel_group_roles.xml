@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<panel label="Miembros y Roles" name="roles_tab">
+<panel label="Miembros" name="roles_tab">
 	<string name="default_needs_apply_text">
 		En cambios sin aplicar en esta pestaña.
 	</string>

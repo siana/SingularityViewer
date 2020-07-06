@@ -108,18 +108,11 @@
 			<text name="Description:">Beschreibung:</text>
 			
 			<text name="Creator:">Ersteller:</text>
-			<text name="Creator Name">Thrax Linden</text>
-      		<button label="Profil..." label_selected="Profil..." name="button creator profile"/>
 			<text name="Owner:">Eigentümer:</text>
-			<text name="Owner Name">Thrax Linden</text>
-		    <button label="Profil..." label_selected="Profil..." name="button owner profile"/>
 			<text name="Last Owner:">Letzter Besitzer:</text>
-			<text name="Last Owner Name">Thrax Linden</text>
-			<button label="Profil..." label_selected="Profil..." name="button last owner profile"/>
 			<text name="Group:">Gruppe:</text>
 			
 			<button label="Festlegen" label_selected="Einstellen..." name="button set group"/>
-			<button label="Anzeigen" label_selected="Öffnen" name="button open group"/>
 			<text name="Permissions:">Berechtigungen:</text>
 			<text name="perm_modify">Sie können dieses Objekt ändern.</text>
 			<check_box label="Mit Gruppe teilen" name="checkbox share with group" tool_tip="Allen Mitgliedern der zugeordneten Gruppe die Erlaubnis erteilen, Ihre Berechtigungen für dieses Objekt zu teilen und zu verwenden. Sie müssen Übereignen, um Rollenbeschränkungen zu aktivieren."/>

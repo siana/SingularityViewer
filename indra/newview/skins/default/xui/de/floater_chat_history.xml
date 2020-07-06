@@ -16,7 +16,7 @@
 			</combo_box>
 			<check_box label="Stummgeschalteten Text anzeigen" name="show mutes"/>
 			<!--check_box bottom_delta="-15" enabled="true" follows="left|top" font="SansSerifSmall" height="20" initial_value="false" label="Translate Chat (powered by Google)" name="translate chat" width="100"/-->
-			<button label="Teleport Historie" name="chat_history_open" tool_tip="Klicken Sie hier zur Anzeige des Gesprächsverlaufs im externen Editor"/>
+			<button label="Gesprächsverlaufs" name="chat_history_open" tool_tip="Klicken Sie hier zur Anzeige des Gesprächsverlaufs im externen Editor"/>
 			<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Klicken Sie hier, um eine Liste der aktiven Teilnehmer an dieser IM-Sitzung anzuzeigen."/>
 			
 			

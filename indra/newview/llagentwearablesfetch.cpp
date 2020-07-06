@@ -267,21 +267,16 @@ void LLInitialWearablesFetch::processWearablesMessage()
 		for (U8 i = 0; i < mAgentInitialWearables.size(); ++i)
 		{
 			// Populate the current outfit folder with links to the wearables passed in the message
-//			InitialWearableData *wearable_data = new InitialWearableData(mAgentInitialWearables[i]); // This will be deleted in the callback.
-// [SL:KB] - Patch: Appearance-MixedViewers | Checked: 2010-05-02 (Catznip-3.0.0a) | Added: Catznip-2.0.0f
-			// Fixes minor leak: since COF is used onInitialWearableAssetArrived() will never get called and "wearable_data" leaks
-			InitialWearableData* wearable_data = &mAgentInitialWearables[i];
-// [/SL:KB]
+			const InitialWearableData& wearable_data = mAgentInitialWearables[i];
 			
-			if (wearable_data->mAssetID.notNull())
+			if (wearable_data.mAssetID.notNull())
 			{
-				ids.push_back(wearable_data->mItemID);
+				ids.push_back(wearable_data.mItemID);
 			}
 			else
 			{
-				LL_INFOS() << "Invalid wearable, type " << wearable_data->mType << " itemID "
-				<< wearable_data->mItemID << " assetID " << wearable_data->mAssetID << LL_ENDL;
-//				delete wearable_data;
+				LL_INFOS() << "Invalid wearable, type " << wearable_data.mType << " itemID "
+				<< wearable_data.mItemID << " assetID " << wearable_data.mAssetID << LL_ENDL;
 			}
 		}
 

@@ -46,28 +46,25 @@ S32 LLGLTexture::getCategoryFromIndex(S32 index)
 	return (index < BOOST_HIGH) ? index : index + (BOOST_HIGH - BOOST_SCULPTED) - 1 ;
 }
 
-LLGLTexture::LLGLTexture(BOOL usemipmaps)
+LLGLTexture::LLGLTexture(BOOL usemipmaps, bool allow_compresssion)
 {
-	init();
-	mUseMipMaps = usemipmaps;
+	init(usemipmaps, allow_compresssion);
 }
 
-LLGLTexture::LLGLTexture(const U32 width, const U32 height, const U8 components, BOOL usemipmaps)
+LLGLTexture::LLGLTexture(const U32 width, const U32 height, const U8 components, BOOL usemipmaps, bool allow_compresssion)
 {
-	init();
+	init(usemipmaps, allow_compresssion);
 	mFullWidth = width ;
 	mFullHeight = height ;
-	mUseMipMaps = usemipmaps ;
 	mComponents = components ;
 	setTexelsPerImage();
 }
 
-LLGLTexture::LLGLTexture(const LLImageRaw* raw, BOOL usemipmaps)
+LLGLTexture::LLGLTexture(const LLImageRaw* raw, BOOL usemipmaps, bool allow_compresssion)
 {
-	init();
-	mUseMipMaps = usemipmaps ;
+	init(usemipmaps, allow_compresssion);
 	// Create an empty image of the specified size and width
-	mGLTexturep = new LLImageGL(raw, usemipmaps) ;
+	mGLTexturep = new LLImageGL(raw, usemipmaps, mAllowCompression) ;
 }
 
 LLGLTexture::~LLGLTexture()
@@ -75,14 +72,15 @@ LLGLTexture::~LLGLTexture()
 	cleanup();
 }
 
-void LLGLTexture::init()
+void LLGLTexture::init(bool use_mipmaps, bool allow_compression)
 {
 	mBoostLevel = LLGLTexture::BOOST_NONE;
 
+	mUseMipMaps = use_mipmaps;
+	mAllowCompression = allow_compression;
 	mFullWidth = 0;
 	mFullHeight = 0;
 	mTexelsPerImage = 0 ;
-	mUseMipMaps = FALSE ;
 	mComponents = 0 ;
 
 	mTextureState = NO_DELETE ;
@@ -146,7 +144,7 @@ void LLGLTexture::generateGLTexture()
 {	
 	if(mGLTexturep.isNull())
 	{
-		mGLTexturep = new LLImageGL(mFullWidth, mFullHeight, mComponents, mUseMipMaps) ;
+		mGLTexturep = new LLImageGL(mFullWidth, mFullHeight, mComponents, mUseMipMaps, mAllowCompression) ;
 	}
 }
 
@@ -167,7 +165,7 @@ BOOL LLGLTexture::createGLTexture()
 	return mGLTexturep->createGLTexture() ;
 }
 
-BOOL LLGLTexture::createGLTexture(S32 discard_level, const LLImageRaw* imageraw, S32 usename, BOOL to_create, S32 category)
+BOOL LLGLTexture::createGLTexture(S32 discard_level, const LLImageRaw* imageraw, LLImageGL::GLTextureName* usename, BOOL to_create, S32 category)
 {
 	llassert(mGLTexturep.notNull()) ;	
 
@@ -298,7 +296,7 @@ LLTexUnit::eTextureAddressMode LLGLTexture::getAddressMode(void) const
 	return mGLTexturep->getAddressMode() ;
 }
 
-S32 LLGLTexture::getTextureMemory() const
+S32Bytes LLGLTexture::getTextureMemory() const
 {
 	llassert(mGLTexturep.notNull()) ;
 
@@ -312,11 +310,11 @@ LLGLenum LLGLTexture::getPrimaryFormat() const
 	return mGLTexturep->getPrimaryFormat() ;
 }
 
-BOOL LLGLTexture::getIsAlphaMask(const F32 max_rmse) const
+BOOL LLGLTexture::getIsAlphaMask(const F32 max_rmse, const F32 max_mid) const
 {
 	llassert(mGLTexturep.notNull()) ;
 
-	return mGLTexturep->getIsAlphaMask(max_rmse) ;
+	return mGLTexturep->getIsAlphaMask(max_rmse, max_mid) ;
 }
 
 BOOL LLGLTexture::getMask(const LLVector2 &tc)

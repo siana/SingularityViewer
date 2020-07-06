@@ -2291,12 +2291,13 @@ size_t BufferedCurlEasyRequest::curlHeaderCallback(char* data, size_t size, size
 	  }
 	  else
 	  {
-		reason = "Unexpected HTTP status.";
+		//reason = "Unexpected HTTP status.";
 		LL_WARNS() << "Received unexpected status value from server (" << status << "): \"" << header << "\"" << LL_ENDL;
 	  }
+	  // Singu TODO: WHAT THE HELL WAS THIS?! LYING? WHY WERE WE LYING???? Responders USE These Codes!!!!!
 	  // Either way, this status value is not understood (or taken into account).
 	  // Set it to internal error so that the rest of code treats it as an error.
-	  status = HTTP_INTERNAL_ERROR_OTHER;
+	  if (!status) status = HTTP_INTERNAL_ERROR_OTHER;
 	}
 	self_w->received_HTTP_header();
 	self_w->setStatusAndReason(status, reason);

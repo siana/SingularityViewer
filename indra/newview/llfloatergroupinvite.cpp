@@ -112,7 +112,7 @@ LLFloaterGroupInvite::~LLFloaterGroupInvite()
 }
 
 // static
-void LLFloaterGroupInvite::showForGroup(const LLUUID& group_id, std::vector<LLUUID> *agent_ids)
+void LLFloaterGroupInvite::showForGroup(const LLUUID& group_id, uuid_vec_t *agent_ids)
 {
 	// Make sure group_id isn't null
 	if (group_id.isNull())

@@ -57,7 +57,6 @@ public:
 		S32 text_left,
 		BOOL show_text,
 		BOOL can_edit_text,
-		BOOL volume, //TODO: create a "volume" slider sub-class or just use image art, no?  -MG
 		commit_callback_t commit_callback,
 		F32 initial_value, F32 min_value, F32 max_value, F32 increment,
 		const std::string& control_which = LLStringUtil::null );
@@ -125,8 +124,7 @@ private:
 	const LLFontGL*	mFont;
 	BOOL			mShowText;
 	BOOL			mCanEditText;
-	BOOL			mVolumeSlider;
-	
+
 	S32				mPrecision;
 	LLTextBox*		mLabelBox;
 	S32				mLabelWidth;

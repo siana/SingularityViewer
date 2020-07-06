@@ -143,8 +143,8 @@ protected:
 	std::string				mTrackedLandmarkName;
 	LLUUID					mTrackedLandmarkAssetID;
 	LLUUID					mTrackedLandmarkItemID;
-	std::vector<LLUUID>	mLandmarkAssetIDList;
-	std::vector<LLUUID>	mLandmarkItemIDList;
+	uuid_vec_t				mLandmarkAssetIDList;
+	uuid_vec_t				mLandmarkItemIDList;
 	BOOL					mHasReachedLandmark;
 	BOOL 					mHasLandmarkPosition;
 	BOOL					mLandmarkHasBeenVisited;

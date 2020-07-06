@@ -27,200 +27,162 @@
 #ifndef LL_CALCPARSER_H
 #define LL_CALCPARSER_H
 
-#include <boost/spirit/version.hpp>
-#if !defined(SPIRIT_VERSION) || SPIRIT_VERSION < 0x2010
-#error "At least Spirit version 2.1 required"
-#endif
+#include <boost/spirit/include/classic_attribute.hpp>
+#include <boost/spirit/include/classic_core.hpp>
+#include <boost/spirit/include/classic_error_handling.hpp>
+#include <boost/spirit/include/classic_position_iterator.hpp>
+#include <boost/spirit/include/phoenix1_binders.hpp>
+#include <boost/spirit/include/classic_symbols.hpp>
+using namespace boost::spirit::classic;
 
-// Add this in if we want boost math constants.
-//#include <boost/math/constants/constants.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/spirit/include/qi.hpp>
+#include "llcalc.h"
+#include "llmath.h"
 
-namespace expression {
-
-
-//TODO: If we can find a better way to do this with boost::pheonix::bind lets do it
-//namespace { // anonymous
-
-template <typename T>
-T min_glue(T a, T b)
+struct LLCalcParser : grammar<LLCalcParser>
 {
-	return std::min(a, b);
-}
-
-template <typename T>
-T max_glue(T a, T b)
-{
-	return std::max(a, b);
-}
- 
-template<typename RT>
-struct lazy_ufunc_
-{
-	typedef RT result_type;
-
-	template <typename F, typename A1>
-	struct result { typedef RT type; };
- 
-	template <typename F, typename A1>
-	RT operator()(F f, A1 a1) const
+	LLCalcParser(F32& result, LLCalc::calc_map_t* constants, LLCalc::calc_map_t* vars) :
+		mResult(result), mConstants(constants), mVariables(vars) {};
+	
+	struct value_closure : closure<value_closure, F32>
 	{
-		return f(a1);
-	}
-};
-
-template<typename RT>
-struct lazy_bfunc_
-{
-	typedef RT result_type;
-
-	template <typename F, typename A1, typename A2>
-	struct result { typedef RT type; };
- 
-	template <typename F, typename A1, typename A2>
-	RT operator()(F f, A1 a1, A2 a2) const
+		member1 value;
+	};
+	
+	template <typename ScannerT>
+	struct definition
 	{
-		return f(a1, a2);
-	}
-};
+		// Rule declarations
+		rule<ScannerT> statement, identifier;
+		rule<ScannerT, value_closure::context_t> expression, term,
+			power, 
+			unary_expr, 
+			factor, 
+			unary_func, 
+			binary_func,
+			group;
 
-//} // end namespace anonymous
- 
-template <typename FPT, typename Iterator>
-struct grammar
-	: boost::spirit::qi::grammar<
-			Iterator, FPT(), boost::spirit::ascii::space_type
-		>
-{
- 
-	// symbol table for constants
-	// to be added by the actual calculator
-	struct constant_
-		: boost::spirit::qi::symbols<
-				typename std::iterator_traits<Iterator>::value_type,
-				FPT
-			>
-	{
-		constant_()
+		// start() should return the starting symbol
+		rule<ScannerT> const& start() const { return statement; }
+		
+		definition(LLCalcParser const& self)
 		{
-		}
-	} constant;
- 
-	// symbol table for unary functions like "abs"
-	struct ufunc_
-		: boost::spirit::qi::symbols<
-				typename std::iterator_traits<Iterator>::value_type,
-				FPT (*)(FPT)
-			>
-	{
-		ufunc_()
-		{
-			this->add
-				("abs"   , (FPT (*)(FPT)) std::abs  )
-				("acos"  , (FPT (*)(FPT)) std::acos )
-				("asin"  , (FPT (*)(FPT)) std::asin )
-				("atan"  , (FPT (*)(FPT)) std::atan )
-				("ceil"  , (FPT (*)(FPT)) std::ceil	)
-				("cos"   , (FPT (*)(FPT)) std::cos  )
-				("cosh"  , (FPT (*)(FPT)) std::cosh )
-				("exp"   , (FPT (*)(FPT)) std::exp  )
-				("floor" , (FPT (*)(FPT)) std::floor)
-				("log"   , (FPT (*)(FPT)) std::log  )
-				("log10" , (FPT (*)(FPT)) std::log10)
-				("sin"   , (FPT (*)(FPT)) std::sin  )
-				("sinh"  , (FPT (*)(FPT)) std::sinh )
-				("sqrt"  , (FPT (*)(FPT)) std::sqrt )
-				("tan"   , (FPT (*)(FPT)) std::tan  )
-				("tanh"  , (FPT (*)(FPT)) std::tanh )
+			using namespace phoenix;
+			
+			assertion<std::string> assert_domain("Domain error");
+//			assertion<std::string> assert_symbol("Unknown symbol");
+			assertion<std::string> assert_syntax("Syntax error");
+			
+			identifier =
+				lexeme_d[(alpha_p | '_') >> *(alnum_p | '_')]
 			;
-		}
-	} ufunc;
-
-	// symbol table for binary functions like "pow"
-	struct bfunc_
-		: boost::spirit::qi::symbols<
-				typename std::iterator_traits<Iterator>::value_type,
-				FPT (*)(FPT, FPT)
-			>
-	{
-		bfunc_()
-		{
-			using boost::bind;
-			this->add
-				("pow"  , (FPT (*)(FPT, FPT)) std::pow	)
-				("atan2", (FPT (*)(FPT, FPT)) std::atan2)
-				("min"	, (FPT (*)(FPT, FPT)) min_glue)
-				("max"	, (FPT (*)(FPT, FPT)) max_glue)
+			
+			group =
+				'(' >> expression[group.value = arg1] >> assert_syntax(ch_p(')'))
 			;
-		}
-	} bfunc;
- 
-	boost::spirit::qi::rule<
-			Iterator, FPT(), boost::spirit::ascii::space_type
-		> expression, term, factor, primary;
- 
-	grammar() : grammar::base_type(expression)
-	{
-		using boost::spirit::qi::real_parser;
-		using boost::spirit::qi::real_policies;
-		real_parser<FPT,real_policies<FPT> > real;
- 
-		using boost::spirit::qi::_1;
-		using boost::spirit::qi::_2;
-		using boost::spirit::qi::_3;
-		using boost::spirit::qi::no_case;
-		using boost::spirit::qi::_val;
- 
-		boost::phoenix::function< lazy_ufunc_<FPT> > lazy_ufunc;
-		boost::phoenix::function< lazy_bfunc_<FPT> > lazy_bfunc;
 
-		expression =
-			term                   [_val =  _1]
-			>> *(  ('+' >> term    [_val += _1])
-				|  ('-' >> term    [_val -= _1])
+			unary_func =
+				((str_p("SIN") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_sin)(self,arg1)]) |
+				 (str_p("COS") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_cos)(self,arg1)]) |
+				 (str_p("TAN") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_tan)(self,arg1)]) |
+				 (str_p("ASIN") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_asin)(self,arg1)]) |
+				 (str_p("ACOS") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_acos)(self,arg1)]) |
+				 (str_p("ATAN") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_atan)(self,arg1)]) |
+				 (str_p("SQRT") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_sqrt)(self,arg1)]) |
+				 (str_p("LOG") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_log)(self,arg1)]) |
+				 (str_p("EXP") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_exp)(self,arg1)]) |
+				 (str_p("ABS") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_fabs)(self,arg1)]) |
+				 (str_p("FLR") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_floor)(self,arg1)]) |
+				 (str_p("CEIL") >> '(' >> expression[unary_func.value = bind(&LLCalcParser::_ceil)(self,arg1)])
+				) >> assert_syntax(ch_p(')'))
+			;
+			
+			binary_func =
+				((str_p("ATAN2") >> '(' >> expression[binary_func.value = arg1] >> ',' >>
+				  expression[binary_func.value = bind(&LLCalcParser::_atan2)(self, binary_func.value, arg1)]) |
+				 (str_p("MIN") >> '(' >> expression[binary_func.value = arg1] >> ',' >> 
+				  expression[binary_func.value = bind(&LLCalcParser::_min)(self, binary_func.value, arg1)]) |
+				 (str_p("MAX") >> '(' >> expression[binary_func.value = arg1] >> ',' >> 
+				  expression[binary_func.value = bind(&LLCalcParser::_max)(self, binary_func.value, arg1)])
+				) >> assert_syntax(ch_p(')'))
+			;
+			
+			// *TODO: Localisation of the decimal point?
+			// Problem, LLLineEditor::postvalidateFloat accepts a comma when appropriate
+			// for the current locale. However to do that here could clash with using
+			// the comma as a separator when passing arguments to functions.
+			factor =
+				(ureal_p[factor.value = arg1] |
+				 group[factor.value = arg1] |
+				 unary_func[factor.value = arg1] |
+				 binary_func[factor.value = arg1] |
+				 // Lookup throws an Unknown Symbol error if it is unknown, while this works fine,
+				 // would be "neater" to handle symbol lookup from here with an assertive parser.
+//				 constants_p[factor.value = arg1]|
+				 identifier[factor.value = bind(&LLCalcParser::lookup)(self, arg1, arg2)]
+				) >>
+				// Detect and throw math errors.
+				assert_domain(eps_p(bind(&LLCalcParser::checkNaN)(self, factor.value)))
+			;
+
+			unary_expr =
+				!ch_p('+') >> factor[unary_expr.value = arg1] |
+				'-' >> factor[unary_expr.value = -arg1]
+			;
+			
+			power =
+				unary_expr[power.value = arg1] >>
+				*('^' >> assert_syntax(unary_expr[power.value = bind(&powf)(power.value, arg1)]))
+			;
+			
+			term =
+				power[term.value = arg1] >>
+				*(('*' >> assert_syntax(power[term.value *= arg1])) |
+				  ('/' >> assert_syntax(power[term.value /= arg1])) |
+				  ('%' >> assert_syntax(power[term.value = bind(&fmodf)(term.value, arg1)]))
 				)
 			;
- 
-		term =
-			factor                 [_val =  _1]
-			>> *(  ('*' >> factor  [_val *= _1])
-				|  ('/' >> factor  [_val /= _1])
+			
+			expression =
+				assert_syntax(term[expression.value = arg1]) >>
+				*(('+' >> assert_syntax(term[expression.value += arg1])) |
+				  ('-' >> assert_syntax(term[expression.value -= arg1]))
 				)
 			;
- 
-		factor =
-			primary                [_val =  _1]
-			>> *(  ("**" >> factor [_val = boost::phoenix::bind(static_cast<FPT (*)(FPT,FPT)>(&std::pow),_val,_1)])
-				)
+
+			statement =
+				!ch_p('=') >> ( expression )[var(self.mResult) = arg1] >> (end_p)
 			;
- 
-		primary =
-			real                   [_val =  _1]
-			|   '(' >> expression  [_val =  _1] >> ')'
-			|   ('-' >> primary    [_val = -_1])
-			|   ('+' >> primary    [_val =  _1])
-			|   (no_case[ufunc] >> '(' >> expression >> ')')
-								   [_val = lazy_ufunc(_1, _2)]
-			|   (no_case[bfunc] >> '(' >> expression >> ','
-									   >> expression >> ')')
-								   [_val = lazy_bfunc(_1, _2, _3)]
-			|   no_case[constant]  [_val =  _1]
-			;
- 
-	}
+		}
+	};
+	
+private:
+	// Member functions for semantic actions
+	F32	lookup(const std::string::iterator&, const std::string::iterator&) const;
+	F32 _min(const F32& a, const F32& b) const { return llmin(a, b); }
+	F32 _max(const F32& a, const F32& b) const { return llmax(a, b); }
+	
+	bool checkNaN(const F32& a) const { return !std::isnan(a); }
+	
+	//FIX* non ambiguous function fix making SIN() work for calc -Cryogenic Blitz
+	F32 _sin(const F32& a) const { return sin(DEG_TO_RAD * a); }
+	F32 _cos(const F32& a) const { return cos(DEG_TO_RAD * a); }
+	F32 _tan(const F32& a) const { return tan(DEG_TO_RAD * a); }
+	F32 _asin(const F32& a) const { return asin(a * RAD_TO_DEG); }
+	F32 _acos(const F32& a) const { return acos(a * RAD_TO_DEG); }
+	F32 _atan(const F32& a) const { return atan(a * RAD_TO_DEG); }
+	F32 _sqrt(const F32& a) const { return sqrt(a); }
+	F32 _log(const F32& a) const { return log(a); }
+	F32 _exp(const F32& a) const { return exp(a); }
+	F32 _fabs(const F32& a) const { return fabs(a); }
+	F32 _floor(const F32& a) const { return (F32)llfloor(a); }
+	F32 _ceil(const F32& a) const { return llceil(a); }
+	F32 _atan2(const F32& a,const F32& b) const { return atan2(a,b); }
+
+	LLCalc::calc_map_t* mConstants;
+	LLCalc::calc_map_t* mVariables;
+//	LLCalc::calc_map_t* mUserVariables;
+	
+	F32&		mResult;
 };
- 
-template <typename FPT, typename Iterator>
-bool parse(Iterator &iter,
-		   Iterator end,
-		   const grammar<FPT,Iterator> &g,
-		   FPT &result)
-{
-	return boost::spirit::qi::phrase_parse(
-				iter, end, g, boost::spirit::ascii::space, result);
-}
- 
-} // end namespace expression
 
 #endif // LL_CALCPARSER_H

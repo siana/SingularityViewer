@@ -401,6 +401,13 @@ void LLGroupActions::show(const LLUUID& group_id)
 }
 
 // static
+void LLGroupActions::showProfiles(const uuid_vec_t& ids)
+{
+	for (const auto& id : ids)
+		show(id);
+}
+
+// static
 void LLGroupActions::showTab(const LLUUID& group_id, const std::string& tab_name)
 {
 	if (group_id.isNull()) return;
@@ -599,5 +606,10 @@ LLFloaterGroupInfo* LLGroupActions::openGroupProfile(const LLUUID& group_id)
 	fgi->center();
 	fgi->open();
 	return fgi;
+}
+
+std::string LLGroupActions::getSLURL(const LLUUID& id)
+{
+	return llformat("secondlife:///app/group/%s/about", id.asString().c_str());
 }
 

@@ -76,7 +76,7 @@ BOOL LLVector3::clampLength( F32 length_limit )
 	BOOL changed = FALSE;
 
 	F32 len = length();
-	if (llfinite(len))
+	if (std::isfinite(len))
 	{
 		if ( len > length_limit)
 		{
@@ -97,7 +97,7 @@ BOOL LLVector3::clampLength( F32 length_limit )
 		for (S32 i = 0; i < 3; ++i)
 		{
 			F32 abs_component = fabs(mV[i]);
-			if (llfinite(abs_component))
+			if (std::isfinite(abs_component))
 			{
 				if (abs_component > max_abs_component)
 				{
@@ -369,3 +369,39 @@ BOOL LLVector3::parseVector3(const std::string& buf, LLVector3* value)
 
 	return FALSE;
 }
+
+// Displacement from query point to nearest neighbor point on bounding box.
+// Returns zero vector for points within or on the box.
+LLVector3 point_to_box_offset(LLVector3& pos, const LLVector3* box)
+{
+    LLVector3 offset;
+    for (S32 k=0; k<3; k++)
+    {
+        offset[k] = 0;
+        if (pos[k] < box[0][k])
+        {
+            offset[k] = pos[k] - box[0][k];
+        }
+        else if (pos[k] > box[1][k])
+        {
+            offset[k] = pos[k] - box[1][k];
+        }
+    }
+    return offset;
+}
+
+bool box_valid_and_non_zero(const LLVector3* box)
+{
+    if (!box[0].isFinite() || !box[1].isFinite())
+    {
+        return false;
+    }
+    LLVector3 zero_vec;
+    zero_vec.clear();
+    if ((box[0] != zero_vec) || (box[1] != zero_vec))
+    {
+        return true;
+    }
+    return false;
+}
+

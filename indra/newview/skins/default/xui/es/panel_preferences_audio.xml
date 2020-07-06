@@ -4,12 +4,14 @@
 		Volumen:
 	</text>
 	<text name="streaming_prefs_text">
-		Preferencias de Streaming:
+		Preferencias 
+		de Streaming:
 	</text>
 	<text name="audio_prefs_text">
-		Preferencias de Audio:
+		Preferencias 
+		de Audio:
 	</text>
-	<panel label="Volumen" name="Volume Panel"/>
+	<panel label="Volumen" name="Volume Panel" left="112"/>
 		<text name="Media Filtering">Filtro de Medios</text>
 		<radio_group name="filter_group" width="314">
 			<radio_item name="0">Apagado</radio_item>
@@ -18,12 +20,12 @@
 		</radio_group>
 		<check_box label="Reproducir Música cuando esté disponible (usa más ancho de banda)" name="streaming_music"/>
 		<check_box label="Reproducir Media cuando esté disponible (usa más ancho de banda)" name="streaming_video"/>
-		<check_box label="Reproducir automáticamente media en prims" name="auto_prim_streaming_video"/>
-		<check_box label="Reproducir automáticamente Media de Parcela" name="auto_streaming_video"/>
-		<check_box label="Silenciar audio al minimizar la ventana" name="mute_when_minimized"/>
-		<slider label="Efecto Doppler" label_width="180"  name="Doppler Effect"/>
-		<slider label="Factor de Atenuación" label_width="180"  name="Rolloff Factor"/>
-		<slider label="Factor de Atenuación (Bajo el Agua)" label_width="180" name="Underwater Rolloff Factor" width="300"/>		
-		<spinner label="Informar transacción de [CURRENCY] desde:" name="currency_change_threshold" label_width="190" width="254"/>
-		<spinner label="Informar Estado de Salud desde:" name="Health Change Threshold" label_width="190" width="254"/>
+		<check_box label="Reproducir automáticamente media en prims" name="auto_prim_streaming_video" left="132"/>
+		<check_box label="Reproducir automáticamente Media de Parcela" name="auto_streaming_video" left="132"/>
+		<check_box label="Silenciar audio al minimizar la ventana" name="mute_when_minimized" left="112"/>
+		<slider label="Efecto Doppler" label_width="180"  name="Doppler Effect" left="112"/>
+		<slider label="Factor de Atenuación" label_width="180"  name="Rolloff Factor" left="112"/>
+		<slider label="Factor de Atenuación (Bajo el Agua)" label_width="180" name="Underwater Rolloff Factor" width="300" left="112"/>		
+		<spinner label="Informar transacción de [CURRENCY] desde:" name="currency_change_threshold" label_width="190" width="254" left="112"/>
+		<spinner label="Informar Estado de Salud desde:" name="Health Change Threshold" label_width="190" width="254" left="112"/>
 </panel>

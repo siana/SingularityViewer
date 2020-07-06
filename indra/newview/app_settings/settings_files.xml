@@ -43,13 +43,6 @@
               <key>Requirement</key>
               <integer>1</integer>
             </map>
-            <key>CrashSettings</key>
-            <map>
-              <key>Name</key>
-              <string>settings_crash_behavior.xml</string>
-              <key>Requirement</key>
-              <integer>1</integer>
-            </map>
           </map>
         </map>
         <key>User</key>
@@ -64,11 +57,6 @@
               <string>settings_singularity.xml</string>
               <key>NameFromSetting</key>
               <string>ClientSettingsFile</string>
-            </map>
-            <key>CrashSettings</key>
-            <map>
-              <key>Name</key>
-              <string>settings_crash_behavior.xml</string>
             </map>
           </map>
         </map>

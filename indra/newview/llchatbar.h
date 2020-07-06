@@ -33,10 +33,9 @@
 #ifndef LL_LLCHATBAR_H
 #define LL_LLCHATBAR_H
 
-#include "llpanel.h"
 #include "llframetimer.h"
 #include "llchat.h"
-#include "lllayoutstack.h"
+#include "llpanel.h"
 
 class LLLineEditor;
 class LLMessageSystem;
@@ -46,17 +45,19 @@ class LLFrameTimer;
 class LLChatBarGestureObserver;
 class LLComboBox;
 
-class LLChatBar : public LLPanel
+
+class LLChatBar final
+:	public LLPanel
 {
 public:
 	// constructor for inline chat-bars (e.g. hosted in chat history window)
 	LLChatBar();
-	~LLChatBar();
-	virtual BOOL postBuild();
 
-	virtual BOOL handleKeyHere(KEY key, MASK mask);
+	BOOL		postBuild() override;
+	BOOL		handleKeyHere(KEY key, MASK mask) override;
+	void		onFocusLost() override;
 
-	void		refresh();
+	void		refresh() override;
 	void		refreshGestures();
 
 	// Move cursor into chat input field.
@@ -65,8 +66,8 @@ public:
 	// Ignore arrow keys for chat bar
 	void		setIgnoreArrowKeys(BOOL b);
 
-	BOOL		inputEditorHasFocus();
-	std::string	getCurrentChat();
+	BOOL		inputEditorHasFocus() const;
+	std::string	getCurrentChat() const;
 
 	// since chat bar logic is reused for chat history
 	// gesture combo box might not be a direct child
@@ -94,10 +95,11 @@ public:
 	static void stopChat();
 
 protected:
+	~LLChatBar();
+
 	void sendChat(EChatType type);
 	void updateChat();
 
-protected:
 	LLLineEditor*	mInputEditor;
 
 	LLFrameTimer	mGestureLabelTimer;

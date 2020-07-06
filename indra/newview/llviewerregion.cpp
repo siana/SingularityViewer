@@ -52,6 +52,8 @@
 #include "lfsimfeaturehandler.h"
 #include "llagent.h"
 #include "llagentcamera.h"
+
+#include "llavatarrenderinfoaccountant.h"
 #include "llcallingcard.h"
 #include "llcaphttpsender.h"
 #include "llcapabilitylistener.h"
@@ -61,7 +63,6 @@
 #include "llfloateravatarlist.h"
 #include "llfloatergodtools.h"
 #include "llfloaterperms.h"
-#include "llfloaterreporter.h"
 #include "llfloaterregioninfo.h"
 #include "llhttpnode.h"
 #include "llregioninfomodel.h"
@@ -106,6 +107,19 @@ typedef std::map<std::string, std::string> CapabilityMap;
 
 static void log_capabilities(const CapabilityMap &capmap);
 
+
+namespace
+{
+
+void newRegionEntry(LLViewerRegion& region)
+{
+    LL_INFOS("LLViewerRegion") << "Entering region [" << region.getName() << "]" << LL_ENDL;
+    gDebugInfo["CurrentRegion"] = region.getName();
+    LLAppViewer::instance()->writeDebugInfo();
+}
+
+} // anonymous namespace
+
 class LLViewerRegionImpl {
 public:
 	LLViewerRegionImpl(LLViewerRegion * region, LLHost const & host)
@@ -116,6 +130,7 @@ public:
 			mSeedCapMaxAttemptsBeforeLogin(MAX_SEED_CAP_ATTEMPTS_BEFORE_LOGIN),
 			mSeedCapAttempts(0),
 			mHttpResponderID(0),
+			mLandp(NULL),
 		    // I'd prefer to set the LLCapabilityListener name to match the region
 		    // name -- it's disappointing that's not available at construction time.
 		    // We could instead store an LLCapabilityListener*, making
@@ -415,7 +430,7 @@ LLViewerRegion::LLViewerRegion(const U64 &handle,
 	mColoName("unknown"),
 	mProductSKU("unknown"),
 	mProductName("unknown"),
-	mHttpUrl(""),
+	mViewerAssetUrl(""),
 	mCacheLoaded(FALSE),
 	mCacheDirty(FALSE),
 	mReleaseNotesRequested(FALSE),
@@ -474,21 +489,24 @@ void LLViewerRegion::initPartitions()
 {
 	//create object partitions
 	//MUST MATCH declaration of eObjectPartitions
-	mImpl->mObjectPartition.push_back(new LLHUDPartition());		//PARTITION_HUD
-	mImpl->mObjectPartition.push_back(new LLTerrainPartition());	//PARTITION_TERRAIN
-	mImpl->mObjectPartition.push_back(new LLVoidWaterPartition());	//PARTITION_VOIDWATER
-	mImpl->mObjectPartition.push_back(new LLWaterPartition());		//PARTITION_WATER
-	mImpl->mObjectPartition.push_back(new LLTreePartition());		//PARTITION_TREE
-	mImpl->mObjectPartition.push_back(new LLParticlePartition());	//PARTITION_PARTICLE
+	mImpl->mObjectPartition.push_back(new LLHUDPartition(this));		//PARTITION_HUD
+	mImpl->mObjectPartition.push_back(new LLTerrainPartition(this));	//PARTITION_TERRAIN
+	mImpl->mObjectPartition.push_back(new LLVoidWaterPartition(this));	//PARTITION_VOIDWATER
+	mImpl->mObjectPartition.push_back(new LLWaterPartition(this));		//PARTITION_WATER
+	mImpl->mObjectPartition.push_back(new LLTreePartition(this));		//PARTITION_TREE
+	mImpl->mObjectPartition.push_back(new LLParticlePartition(this));	//PARTITION_PARTICLE
 #if ENABLE_CLASSIC_CLOUDS
-	mImpl->mObjectPartition.push_back(new LLCloudPartition());		//PARTITION_CLOUD
+	mImpl->mObjectPartition.push_back(new LLCloudPartition(this));		//PARTITION_CLOUD
 #endif
-	mImpl->mObjectPartition.push_back(new LLGrassPartition());		//PARTITION_GRASS
-	mImpl->mObjectPartition.push_back(new LLVolumePartition());	//PARTITION_VOLUME
-	mImpl->mObjectPartition.push_back(new LLBridgePartition());	//PARTITION_BRIDGE
-	mImpl->mObjectPartition.push_back(new LLAttachmentPartition());	//PARTITION_ATTACHMENT
-	mImpl->mObjectPartition.push_back(new LLHUDParticlePartition());//PARTITION_HUD_PARTICLE
+	mImpl->mObjectPartition.push_back(new LLGrassPartition(this));		//PARTITION_GRASS
+	mImpl->mObjectPartition.push_back(new LLVolumePartition(this));	//PARTITION_VOLUME
+	mImpl->mObjectPartition.push_back(new LLBridgePartition(this));	//PARTITION_BRIDGE
+	mImpl->mObjectPartition.push_back(new LLAttachmentPartition(this));	//PARTITION_ATTACHMENT
+	mImpl->mObjectPartition.push_back(new LLHUDParticlePartition(this));//PARTITION_HUD_PARTICLE
 	mImpl->mObjectPartition.push_back(NULL);						//PARTITION_NONE
+
+	mRenderInfoRequestTimer.resetWithExpiry(0.f);		// Set timer to be expired
+	setCapabilitiesReceivedCallback(boost::bind(&LLAvatarRenderInfoAccountant::expireRenderInfoReportTimer, _1));
 }
 
 void LLViewerRegion::reInitPartitions()
@@ -502,14 +520,14 @@ void LLViewerRegion::initStats()
 {
 	mImpl->mLastNetUpdate.reset();
 	mPacketsIn = 0;
-	mBitsIn = 0;
-	mLastBitsIn = 0;
+	mBitsIn = (U32Bits)0;
+	mLastBitsIn = (U32Bits)0;
 	mLastPacketsIn = 0;
 	mPacketsOut = 0;
 	mLastPacketsOut = 0;
 	mPacketsLost = 0;
 	mLastPacketsLost = 0;
-	mPingDelay = 0;
+	mPingDelay = (U32Seconds)0;
 	mAlive = false;					// can become false if circuit disconnects
 }
 
@@ -899,7 +917,6 @@ void LLViewerRegion::processRegionInfo(LLMessageSystem* msg, void**)
 	LLRegionInfoModel::instance().update(msg);
 	LLFloaterGodTools::processRegionInfo(msg);
 	LLFloaterRegionInfo::processRegionInfo(msg);
-	LLFloaterReporter::processRegionInfo(msg);
 }
 
 void LLViewerRegion::setCacheID(const LLUUID& id)
@@ -927,6 +944,10 @@ void LLViewerRegion::dirtyHeights()
 	{
 		mParcelOverlay->setDirty();
 	}
+}
+
+void LLViewerRegion::clearCachedVisibleObjects()
+{
 }
 
 BOOL LLViewerRegion::idleUpdate(F32 max_update_time)
@@ -958,6 +979,7 @@ void LLViewerRegion::forceUpdate()
 void LLViewerRegion::connectNeighbor(LLViewerRegion *neighborp, U32 direction)
 {
 	mImpl->mLandp->connectNeighbor(neighborp->mImpl->mLandp, direction);
+	neighborp->mImpl->mLandp->connectNeighbor(mImpl->mLandp, gDirOpposite[direction]);
 #if ENABLE_CLASSIC_CLOUDS
 	mCloudLayer.connectNeighbor(&(neighborp->mCloudLayer), direction);
 #endif
@@ -1129,7 +1151,7 @@ void LLViewerRegion::updateNetStats()
 	mPacketsLost =				cdp->getPacketsLost();
 	mPingDelay =				cdp->getPingDelay();
 
-	mBitStat.addValue(mBitsIn - mLastBitsIn);
+	mBitStat.addValue((mBitsIn - mLastBitsIn).value());
 	mPacketsStat.addValue(mPacketsIn - mLastPacketsIn);
 	mPacketsLostStat.addValue(mPacketsLost);
 }
@@ -1229,7 +1251,7 @@ const LLViewerRegion::tex_matrix_t& LLViewerRegion::getWorldMapTiles() const
 		for (U32 x = 0; x != totalX; ++x)
 			for (U32 y = 0; y != totalY; ++y)
 			{
-				LLPointer<LLViewerTexture> tex(LLViewerTextureManager::getFetchedTextureFromUrl(strImgURL+llformat("%d-%d-objects.jpg", gridX + x, gridY + y), TRUE, LLViewerTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE));
+				LLPointer<LLViewerTexture> tex(LLViewerTextureManager::getFetchedTextureFromUrl(strImgURL+llformat("%d-%d-objects.jpg", gridX + x, gridY + y), FTT_MAP_TILE, TRUE, LLViewerTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE));
 				mWorldMapTiles.push_back(tex);
 				tex->setBoostLevel(LLViewerTexture::BOOST_MAP);
 			}
@@ -1286,10 +1308,11 @@ public:
 		S32 target_index = input["body"]["Index"][0]["Prey"].asInteger();
 		S32 you_index    = input["body"]["Index"][0]["You" ].asInteger();
 
-		std::vector<U32>* avatar_locs = &region->mMapAvatars;
-		std::vector<LLUUID>* avatar_ids = &region->mMapAvatarIDs;
-		avatar_locs->clear();
-		avatar_ids->clear();
+		std::vector<U32>& avatar_locs = region->mMapAvatars;
+		uuid_vec_t& avatar_ids = region->mMapAvatarIDs;
+		std::list<LLUUID> map_avids(avatar_ids.begin(), avatar_ids.end());
+		avatar_locs.clear();
+		avatar_ids.clear();
 
 		//LL_INFOS() << "coarse locations agent[0] " << input["body"]["AgentData"][0]["AgentID"].asUUID() << LL_ENDL;
 		//LL_INFOS() << "my agent id = " << gAgent.getID() << LL_ENDL;
@@ -1329,19 +1352,26 @@ public:
 				pos |= y;
 				pos <<= 8;
 				pos |= z;
-				avatar_locs->push_back(pos);
+				avatar_locs.push_back(pos);
 				//LL_INFOS() << "next pos: " << x << "," << y << "," << z << ": " << pos << LL_ENDL;
 				if(has_agent_data) // for backwards compatibility with old message format
 				{
 					LLUUID agent_id(agents_it->get("AgentID").asUUID());
 					//LL_INFOS() << "next agent: " << agent_id.asString() << LL_ENDL;
-					avatar_ids->push_back(agent_id);
+					avatar_ids.push_back(agent_id);
+					map_avids.remove(agent_id);
 				}
 			}
 			if (has_agent_data)
 			{
 				agents_it++;
 			}
+		}
+		if (LLFloaterAvatarList::instanceExists())
+		{
+			LLFloaterAvatarList& inst(LLFloaterAvatarList::instance());
+			inst.updateAvatarList(region);
+			inst.expireAvatarList(map_avids);
 		}
 	}
 };
@@ -1433,6 +1463,81 @@ void LLViewerRegion::getInfo(LLSD& info)
 	info["Region"]["Handle"]["y"] = (LLSD::Integer)y;
 }
 
+class BaseFeaturesReceived : public LLHTTPClient::ResponderWithResult
+{
+	LOG_CLASS(BaseFeaturesReceived);
+public:
+	BaseFeaturesReceived(const std::string& retry_url, U64 region_handle, const char* classname, boost::function<void(LLViewerRegion*, const LLSD&)> fn,
+		S32 attempt = 0, S32 max_attempts = MAX_CAP_REQUEST_ATTEMPTS)
+		: mRetryURL(retry_url), mRegionHandle(region_handle), mAttempt(attempt), mMaxAttempts(max_attempts), mClassName(classname), mFunction(fn)
+	{ }
+
+
+	void httpFailure(void)
+	{
+		LL_WARNS("AppInit", mClassName) << dumpResponse() << LL_ENDL;
+		retry();
+	}
+
+	void httpSuccess(void)
+	{
+		LLViewerRegion *regionp = LLWorld::getInstance()->getRegionFromHandle(mRegionHandle);
+		if (!regionp) //region is removed or responder is not created.
+		{
+			LL_WARNS("AppInit", mClassName)
+				<< "Received results for region that no longer exists!" << LL_ENDL;
+			return;
+		}
+
+		const LLSD& content = getContent();
+		if (!content.isMap())
+		{
+			failureResult(400, "Malformed response contents", content);
+			return;
+		}
+		mFunction(regionp, content);
+	}
+
+	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return baseFeaturesReceived_timeout; }
+	/*virtual*/ char const* getName(void) const { return mClassName; }
+
+private:
+
+	void retry()
+	{
+		if (mAttempt < mMaxAttempts)
+		{
+			mAttempt++;
+			LL_WARNS("AppInit", mClassName) << "Re-trying '" << mRetryURL << "'.  Retry #" << mAttempt << LL_ENDL;
+			LLHTTPClient::get(mRetryURL, new BaseFeaturesReceived(*this));
+		}
+	}
+
+	std::string mRetryURL;
+	U64 mRegionHandle;
+	S32 mAttempt;
+	S32 mMaxAttempts;
+	const char* mClassName;
+	boost::function<void(LLViewerRegion*, const LLSD&)> mFunction;
+};
+
+void LLViewerRegion::requestSimulatorFeatures()
+{
+	LL_DEBUGS("SimulatorFeatures") << "region " << getName() << " ptr " << this
+								   << " trying to request SimulatorFeatures" << LL_ENDL;
+	// kick off a request for simulator features
+	std::string url = getCapability("SimulatorFeatures");
+	 if (!url.empty())
+	{
+		// kick off a request for simulator features
+		LLHTTPClient::get(url, new BaseFeaturesReceived(url, getHandle(), "SimulatorFeaturesReceived", &LLViewerRegion::setSimulatorFeatures));
+	}
+	else
+	{
+		LL_WARNS("AppInit", "SimulatorFeatures") << "SimulatorFeatures cap not set" << LL_ENDL;
+	}
+}
+
 boost::signals2::connection LLViewerRegion::setSimulatorFeaturesReceivedCallback(const caps_received_signal_t::slot_type& cb)
 {
 	return mSimulatorFeaturesReceivedSignal.connect(cb);
@@ -1453,7 +1558,7 @@ bool LLViewerRegion::simulatorFeaturesReceived() const
 	return mSimulatorFeaturesReceived;
 }
 
-void LLViewerRegion::getSimulatorFeatures(LLSD& sim_features)
+void LLViewerRegion::getSimulatorFeatures(LLSD& sim_features) const
 {
 	sim_features = mSimulatorFeatures;
 }
@@ -1463,10 +1568,11 @@ void LLViewerRegion::setSimulatorFeatures(const LLSD& sim_features)
 	std::stringstream str;
 	
 	LLSDSerialize::toPrettyXML(sim_features, str);
-	LL_DEBUGS("SimFeatures") << "\n" << str.str() << LL_ENDL;
+	LL_INFOS() << "region " << getName() << " "  << str.str() << LL_ENDL;
 	mSimulatorFeatures = sim_features;
 
 	setSimulatorFeaturesReceived(true);
+
 }
 
 void LLViewerRegion::setGamingData(const LLSD& gaming_data)
@@ -1539,6 +1645,14 @@ LLViewerRegion::eCacheUpdateResult LLViewerRegion::cacheFullUpdate(LLViewerObjec
 
 	mImpl->mCacheMap[local_id] = entry;
 	return result;
+}
+
+void LLViewerRegion::removeFromCreatedList(U32 local_id)
+{
+}
+
+void LLViewerRegion::addToCreatedList(U32 local_id)
+{
 }
 
 // Get data packer for this object, if we have cached data
@@ -1872,29 +1986,52 @@ void LLViewerRegion::unpackRegionHandshake()
 
 void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 {
+	capabilityNames.append("AbuseCategories");
+	capabilityNames.append("AcceptFriendship");
+	capabilityNames.append("AcceptGroupInvite"); // ReadOfflineMsgs recieved messages only!!!
 	capabilityNames.append("AgentPreferences");
 	capabilityNames.append("AgentState");
 	capabilityNames.append("AttachmentResources");
 	//capabilityNames.append("AvatarPickerSearch"); //Display name/SLID lookup (llfloateravatarpicker.cpp)
+	capabilityNames.append("AvatarRenderInfo");
 	capabilityNames.append("CharacterProperties");
 	capabilityNames.append("ChatSessionRequest");
 	capabilityNames.append("CopyInventoryFromNotecard");
 	capabilityNames.append("CreateInventoryCategory");
 	capabilityNames.append("CustomMenuAction");
+	capabilityNames.append("DeclineFriendship");
+	capabilityNames.append("DeclineGroupInvite"); // ReadOfflineMsgs recieved messages only!!!
 	capabilityNames.append("DispatchRegionInfo");
+	capabilityNames.append("DirectDelivery");
 	capabilityNames.append("EnvironmentSettings");
+	capabilityNames.append("EstateAccess");
 	capabilityNames.append("EstateChangeInfo");
 	capabilityNames.append("EventQueueGet");
+    capabilityNames.append("ExtEnvironment");
 	capabilityNames.append("FetchLib2");
 	capabilityNames.append("FetchLibDescendents2");
 	capabilityNames.append("FetchInventory2");
 	capabilityNames.append("FetchInventoryDescendents2");
 	capabilityNames.append("IncrementCOFVersion");
 	capabilityNames.append("GamingData"); //Used by certain grids.
-	AISCommand::getCapabilityNames(capabilityNames);
+	AISAPI::getCapNames(capabilityNames);
+
 	capabilityNames.append("GetDisplayNames");
+	capabilityNames.append("GetExperiences");
+	capabilityNames.append("AgentExperiences");
+	capabilityNames.append("FindExperienceByName");
+	capabilityNames.append("GetExperienceInfo");
+	capabilityNames.append("GetAdminExperiences");
+	capabilityNames.append("GetCreatorExperiences");
+	capabilityNames.append("ExperiencePreferences");
+	capabilityNames.append("GroupExperiences");
+	capabilityNames.append("UpdateExperience");
+	capabilityNames.append("IsExperienceAdmin");
+	capabilityNames.append("IsExperienceContributor");
+	capabilityNames.append("RegionExperiences");
 	capabilityNames.append("GetMesh");
-	capabilityNames.append("GetMesh2");		// Used on SecondLife(tm) sim versions 280647 and higher (13.09.17).
+	capabilityNames.append("GetMesh2");
+	capabilityNames.append("GetMetadata");
 	capabilityNames.append("GetObjectCost");
 	capabilityNames.append("GetObjectPhysicsData");
 	capabilityNames.append("GetTexture");
@@ -1908,6 +2045,7 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("MeshUploadFlag");
 	capabilityNames.append("NavMeshGenerationStatus");
 	capabilityNames.append("NewFileAgentInventory");
+	capabilityNames.append("ObjectAnimation");
 	capabilityNames.append("ObjectMedia");
 	capabilityNames.append("ObjectMediaNavigate");
 	capabilityNames.append("ObjectNavMeshProperties");
@@ -1916,6 +2054,7 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("ParcelVoiceInfoRequest");
 	capabilityNames.append("ProductInfoRequest");
 	capabilityNames.append("ProvisionVoiceAccountRequest");
+	capabilityNames.append("ReadOfflineMsgs"); // Requires to respond reliably: AcceptFriendship, AcceptGroupInvite, DeclineFriendship, DeclineGroupInvite
 	capabilityNames.append("RemoteParcelRequest");
 	capabilityNames.append("RenderMaterials");
 	capabilityNames.append("RequestTextureDownload");
@@ -1945,6 +2084,9 @@ void LLViewerRegionImpl::buildCapabilityNames(LLSD& capabilityNames)
 	capabilityNames.append("UpdateScriptAgent");
 	capabilityNames.append("UpdateScriptTask");
 	capabilityNames.append("UploadBakedTexture");
+    capabilityNames.append("UserInfo");
+	capabilityNames.append("ViewerAsset");
+	capabilityNames.append("ViewerBenefits");
 	capabilityNames.append("ViewerMetrics");
 	capabilityNames.append("ViewerStartAuction");
 	capabilityNames.append("ViewerStats");
@@ -1962,6 +2104,9 @@ void LLViewerRegion::setSeedCapability(const std::string& url)
 		LL_DEBUGS("CrossingCaps") <<  "Received duplicate seed capability, posting to seed " <<
 				url	<< LL_ENDL;
 
+		// record that we just entered a new region
+		newRegionEntry(*this);
+
 		//Instead of just returning we build up a second set of seed caps and compare them 
 		//to the "original" seed cap received and determine why there is problem!
 		LLSD capabilityNames = LLSD::emptyArray();
@@ -1976,6 +2121,8 @@ void LLViewerRegion::setSeedCapability(const std::string& url)
 	mImpl->mCapabilities.clear();
 	setCapability("Seed", url);
 
+	// record that we just entered a new region
+	newRegionEntry(*this);
 	LLSD capabilityNames = LLSD::emptyArray();
 	mImpl->buildCapabilityNames(capabilityNames);
 
@@ -2027,64 +2174,6 @@ void LLViewerRegion::failedSeedCapability()
 	}
 }
 
-class BaseFeaturesReceived : public LLHTTPClient::ResponderWithResult
-{
-	LOG_CLASS(BaseFeaturesReceived);
-public:
-	BaseFeaturesReceived(const std::string& retry_url, U64 region_handle, const char* classname, boost::function<void(LLViewerRegion*, const LLSD&)> fn,
-			S32 attempt = 0, S32 max_attempts = MAX_CAP_REQUEST_ATTEMPTS)
-	: mRetryURL(retry_url), mRegionHandle(region_handle), mAttempt(attempt), mMaxAttempts(max_attempts), mClassName(classname), mFunction(fn)
-    { }
-	
-	
-    void httpFailure(void)
-    {
-		LL_WARNS("AppInit", mClassName) << dumpResponse() << LL_ENDL;
-		retry();
-    }
-
-    void httpSuccess(void)
-    {
-		LLViewerRegion *regionp = LLWorld::getInstance()->getRegionFromHandle(mRegionHandle);
-		if(!regionp) //region is removed or responder is not created.
-		{
-			LL_WARNS("AppInit", mClassName)
-				<< "Received results for region that no longer exists!" << LL_ENDL;
-			return ;
-		}
-		
-		const LLSD& content = getContent();
-		if (!content.isMap())
-		{
-			failureResult(400, "Malformed response contents", content);
-			return;
-		}
-		mFunction(regionp, content);
-	}
-	
-	/*virtual*/ AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy(void) const { return baseFeaturesReceived_timeout; }
-	/*virtual*/ char const* getName(void) const { return mClassName; }
-
-private:
-
-	void retry()
-	{
-		if (mAttempt < mMaxAttempts)
-		{
-			mAttempt++;
-			LL_WARNS("AppInit", mClassName) << "Re-trying '" << mRetryURL << "'.  Retry #" << mAttempt << LL_ENDL;
-			LLHTTPClient::get(mRetryURL, new BaseFeaturesReceived(*this));
-		}
-	}
-	
-	std::string mRetryURL;
-	U64 mRegionHandle;
-	S32 mAttempt;
-	S32 mMaxAttempts;
-	const char* mClassName;
-	boost::function<void(LLViewerRegion*, const LLSD&)> mFunction;
-};
-
 void LLViewerRegion::setCapability(const std::string& name, const std::string& url)
 {
 	if(name == "EventQueueGet")
@@ -2100,10 +2189,8 @@ void LLViewerRegion::setCapability(const std::string& name, const std::string& u
 	else if (name == "SimulatorFeatures")
 	{
 		// although this is not needed later, add it so we can check if the sim supports it at all later
-		mImpl->mCapabilities[name] = url;
-
-		// kick off a request for simulator features
-		LLHTTPClient::get(url, new BaseFeaturesReceived(url, getHandle(), "SimulatorFeaturesReceived", &LLViewerRegion::setSimulatorFeatures));
+		mImpl->mCapabilities["SimulatorFeatures"] = url;
+		requestSimulatorFeatures();
 	}
 	else if (name == "GamingData")
 	{
@@ -2114,9 +2201,20 @@ void LLViewerRegion::setCapability(const std::string& name, const std::string& u
 	else
 	{
 		mImpl->mCapabilities[name] = url;
-		if(name == "GetTexture")
+		if(name == "ViewerAsset")
 		{
-			mHttpUrl = url ;
+			/*==============================================================*/
+			// The following inserted lines are a hack for testing MAINT-7081,
+			// which is why the indentation and formatting are left ugly.
+			const char* VIEWERASSET = getenv("VIEWERASSET");
+			if (VIEWERASSET)
+			{
+				mImpl->mCapabilities[name] = VIEWERASSET;
+				mViewerAssetUrl = VIEWERASSET;
+			}
+			else
+			/*==============================================================*/
+			mViewerAssetUrl = url;
 		}
 	}
 }
@@ -2127,9 +2225,20 @@ void LLViewerRegion::setCapabilityDebug(const std::string& name, const std::stri
 	if ( ! ( name == "EventQueueGet" || name == "UntrustedSimulatorMessage" || name == "SimulatorFeatures" ) )
 	{
 		mImpl->mSecondCapabilitiesTracker[name] = url;
-		if(name == "GetTexture")
+		if(name == "ViewerAsset")
 		{
-			mHttpUrl = url ;
+			/*==============================================================*/
+			// The following inserted lines are a hack for testing MAINT-7081,
+			// which is why the indentation and formatting are left ugly.
+			const char* VIEWERASSET = getenv("VIEWERASSET");
+			if (VIEWERASSET)
+			{
+				mImpl->mSecondCapabilitiesTracker[name] = VIEWERASSET;
+				mViewerAssetUrl = VIEWERASSET;
+			}
+			else
+			/*==============================================================*/
+			mViewerAssetUrl = url;
 		}
 	}
 
@@ -2299,9 +2408,19 @@ bool LLViewerRegion::meshUploadEnabled() const
 	}
 }
 
+bool LLViewerRegion::bakesOnMeshEnabled() const
+{
+	return (mSimulatorFeatures.has("BakesOnMeshEnabled") &&
+		mSimulatorFeatures["BakesOnMeshEnabled"].asBoolean());
+}
+
 bool LLViewerRegion::meshRezEnabled() const
 {
-	if (getCapability("SimulatorFeatures").empty())
+	if (!capabilitiesReceived())
+	{
+		return false;
+	}
+	else if (getCapability("SimulatorFeatures").empty())
 	{
 		return !getCapability("GetMesh").empty() || !getCapability("GetMesh2").empty();
 	}

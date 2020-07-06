@@ -162,12 +162,26 @@ void LLAres::getSrvRecords(const std::string &name, SrvResponder *resp)
 }
 	
 void LLAres::rewriteURI(const std::string &uri, UriRewriteResponder *resp)
-{
-	LL_INFOS() << "Rewriting " << uri << LL_ENDL;
+{	
+	if (resp && uri.size())
+	{
+		LLURI* pURI = new LLURI(uri);
 
-	resp->mUri = LLURI(uri);
-	search("_" + resp->mUri.scheme() + "._tcp." + resp->mUri.hostName(),
-		   RES_SRV, resp);
+		resp->mUri = *pURI;
+
+		delete pURI;
+
+		if (!resp->mUri.scheme().size() || !resp->mUri.hostName().size())
+		{
+			return;
+		}
+
+		//LL_INFOS() << "LLAres::rewriteURI (" << uri << ") search: '" << "_" + resp->mUri.scheme() + "._tcp." + resp->mUri.hostName() << "'" << LL_ENDL;
+
+		search("_" + resp->mUri.scheme() + "._tcp." + resp->mUri.hostName(), RES_SRV, resp);
+
+		
+	}
 }
 
 LLQueryResponder::LLQueryResponder()

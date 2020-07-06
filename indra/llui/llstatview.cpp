@@ -66,7 +66,7 @@ LLStatView::~LLStatView()
 	}
 }
 
-LLStatBar *LLStatView::addStat(const std::string& name, LLStat *statp,
+LLStatBar *LLStatView::addStat(const std::string& name, LLStat *statp, const LLStatBar::Parameters& parameters,
 							   const std::string& setting, BOOL default_bar, BOOL default_history)
 {
 	LLStatBar *stat_barp;
@@ -74,8 +74,7 @@ LLStatBar *LLStatView::addStat(const std::string& name, LLStat *statp,
 
 	mNumStatBars++;
 
-	stat_barp = new LLStatBar(name, r, setting, default_bar, default_history);
-	stat_barp->mStatp = statp;
+	stat_barp = new LLStatBar(name, r, statp, parameters, setting, default_bar, default_history);
 
 	stat_barp->setVisible(mDisplayChildren);
 	addChildInBack(stat_barp);

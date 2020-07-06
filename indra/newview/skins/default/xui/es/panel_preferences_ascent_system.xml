@@ -3,7 +3,9 @@
 	<tab_container label="Sistema" name="Ascent System">
 		<!-- =========================== -->
 		<panel label="General" name="User Interface">
-			<check_box label="Habilitar Teleporte con doble click" tool_tip="Haciendo doble click en un objeto o persona te transportará hacia su ubicación." name="double_click_teleport_check"/>
+			<text name="double_click_text" value="Habilitar Doble Click"/>
+			<check_box label="teleportar" tool_tip="Haciendo doble click en un objeto o persona te transportará hacia su ubicación." name="double_click_teleport_check"/>
+			<check_box left_delta="70" label="Piloto Automático" tool_tip="Haciendo doble click en un objeto o persona te hará caminar hacia su ubicación." name="double_click_autopilot_check"/>
 			<check_box label="Reiniciar la Cámara luego de Teleportar" tool_tip="Centra la cámara detrás tuyo luego de un teleport." name="center_after_teleport_check"/>
 			<check_box label="Desplazar destino TP a mitad de la altura del agente" tool_tip="Intenta apuntar el TP de modo que tus pies se apoyen en la tierra del punto al que estás apuntando." name="offset_teleport_check"/>
 			<check_box name="clear_beacon_after_tp" label="Borrar baliza roja de destino despues de teleportarte"/>			
@@ -66,6 +68,8 @@
 				Abrir url/slurl (uso: cmd slurl)
 			</text>
 			<line_editor name="SinguCmdLineURL"/>
+			<text name="hover_txt">Resincronizar Animaciones (uso: cmd)</text>
+			<line_editor name="AlchemyChatCommandResyncAnim" width="200"/>			
 			<!-- Column Split -->
 			<text name="cmd_line_text_9">
 				Cambiar Distancia de Dibujo (uso: cmd metros)
@@ -100,24 +104,29 @@
 				Enviar mensaje a la Región (uso: cmd mensaje)
 			</text>
 			<line_editor name="SinguCmdLineRegionSay" tool_tip="Sólo funciona en regiones permisivas (Sólo Administradores de Estado"/>
+			<text name="hover_txt">Altura Avatar (uso: cmd height)</text>
+			<line_editor name="AlchemyChatCommandHoverHeight" width="200"/>
 		</panel>
 		<!-- =========================== -->
 		<panel label="Seguridad" name="Security">
-			<check_box label="Transmitir efectos del Visor (No incluye rayos)" name="broadcast_viewer_effects"/>
-			<check_box label="Desactivar Apuntar a... y Rayos" tool_tip="No apunta hacia ni muestra tus rayos de edición cuando seleccionas un objeto." name="disable_point_at_and_beams_check"/>
-			<check_box label="No mirar hacia los Objetos (anula ShowLookAt)" tool_tip="Apaga la tansmisión de los giros de cabeza y rayos lookat propios." name="private_look_at_check"/>
-			<check_box label="Mostrar las balizas Mirar A de los demás" tool_tip="Te muestra hacia donde miran los demas." name="show_look_at_check"/>
-			<combo_box name="lookat_namesystem_combobox" tool_tip="Estilo para mostrar nombres en balizas Mirar A" left_delta="220" width="200">
+			<check_box label="Transmitir efectos del Visor (No incluye Puntos de Mira)" name="broadcast_viewer_effects"/>
+			<check_box label="Desactivar Apuntar a... y Puntos de Mira" tool_tip="No apunta hacia ni muestra tus puntos de mira de edición cuando seleccionas un objeto." name="disable_point_at_and_beams_check"/>
+			<check_box label="No mirar hacia los Objetos y/o Avatares" tool_tip="Apaga la tansmisión de los giros de cabeza y punto de mira propios." name="private_look_at_check"/>
+			<check_box label="No mostrarme mi propio Punto de Mira" tool_tip="No mostrarme mi propio punto de mira" name="LookAtHideOwn"/>
+			<check_box label="Don't show me my LookAt beacon" tool_tip="Don't show me my own camera crosshairs" name="LookAtHideOwn"/>
+			<check_box label="Mostrar los Puntos de Mira de los demás" tool_tip="Te muestra hacia donde miran los demas." name="show_look_at_check"/>
+			<combo_box name="lookat_namesystem_combobox" tool_tip="Estilo para mostrar nombres en los Puntos de Mira" left_delta="220" width="200">
 				<combo_item name="No Names">Sin Nombres</combo_item>
 				<combo_item name="Old Names">Nombre antiguos</combo_item>
 				<combo_item name="Display Names (with Username)">Nombres Mostrados (c/Nombre de usuario)</combo_item>
 				<combo_item name="Display Names only">Solo Nombres Mostrados</combo_item>
 				<combo_item name="Old Names (with Display Names)">Nombres Antiguos (c/Nombres Mostrados)</combo_item>
 			</combo_box>
-			<check_box label="Mostrar una línea desde la baliza Mirar a hasta el avatar" tool_tip="Ver una línea conectando el foco de la cámara a su avatar. Útil para encontrar donde se encuentra el avatar." name="lineslookat"/>
+			<check_box label="Mostrar una línea desde el Punto de Mira hasta el avatar" tool_tip="Ver una línea conectando el foco de la cámara a su avatar. Útil para encontrar donde se encuentra el avatar." name="lineslookat"/>
 			<check_box label="Notificar en el chat cuando alguien te empuja" name="announce_bumps"/>
-      <check_box label="Quitarse automáticamente el Bridge LSL" tool_tip="Quitar automáticamente el Bridge LSL de los visores Phoenix o Firestorm." name="detach_bridge"/>
-			<check_box label="Dibujar avatares bloqueados" name="render_muted"/>
+			<check_box label="Sentarse al estar Ausente" name="AlchemySitOnAway"/>
+			<check_box label="Quitarse automáticamente el Bridge LSL" tool_tip="Quitar automáticamente el Bridge LSL de los visores Phoenix o Firestorm." name="detach_bridge"/>
+			<check_box label="Dibujar avatares ignorados" name="render_muted"/>
 			<check_box label="Captura silenciosa a Disco" tool_tip="Anula el sonido de la cámara y el alerta a los demás cuando realizas una captura al disco de tu PC" name="quiet_snapshots_check"/>
 			<check_box label="Al pararse, revoca el permiso de los objetos en los cuales estuvo sentado tu avatar" tool_tip="Los objetos retienen, generalmente, el permiso para tomar control y ejecutar animaciones hasta que se reinician u otro usuario le cede permisos. Activando esta opción te aseguras que los permisos serán revocados inmediatamente." name="revoke_perms_on_stand_up_check"/>
 			<check_box label="Desactivar click del ratón para sentarse en los objetos" tool_tip="Algunas herramientas de griefer se basan en forzarte o engañarte para que hagas click en un objeto el cual te hará sentar, dándole automáticamente al objeto permisos para ejecutar una animación entre de otras cosas. Esta opción desactivará la función llSitTarget - Esto significa que deberás seleccionar la opción 'Sentarse' en las bolas de animación o muebles." name="disable_click_sit_check"/>
@@ -125,16 +134,13 @@
 			<check_box label="Mostrar cambios del Total de Scripts en Ejecución:" name="totalscriptjumps" tool_tip="Muestra los cambios en la cuenta total de scritps en tu región, dependiendo del umbral que selecciones a la derecha."/>
 			<spinner left_delta="270" name="ScriptJumpCount" tool_tip="Umbral para el mensaje de salto de scripts [Predeterminado: 100]"/>
 			<check_box label="Soporte API Restrained Love (RLVa)" name="RestrainedLove" tool_tip="Permite a los scripts tomar control del visor, si tienes vestido un objeto compatible con RLVa."/>
-			<check_box label="Minimizar automáticamente aviso de reinicio de región" name="region_restart_minimized" tool_tip="Útil para dueños de sim y personas que necesitan recoger sus cosas antes de salir"/>
-			<text name="EmergencyTeleportDesc" bottom_delta="-20" >Arrastra un hito para autoteleportarte en los últimos 20 segundos previos al reinicio de región</text>
+			<check_box label="Reemplazar slurls y enlaces con etiquetas" name="SinguReplaceLinks"  tool_tip="Si bien puedes hacer clic con el botón derecho para ver a dónde conducen realmente al copiarlos, esto puede hacer que los enlaces sean confusos a primera vista."/>
+			<text name="EmergencyTeleportDesc" bottom_delta="-20" >Arrastra un hito debajo para autoteleportarte antes del reinicio de la región</text>
+			<spinner name="EmergencyTeleportSeconds" label="Comenzar intentos de teleporte antes del reinicio, en segundos"/>
 			<drop_target name="emergency_teleport_landmark_drop" bottom_delta="-15" width="450"/>
 			<text name="EmergencyTeleportBackupDesc" width="440" bottom_delta="-30" >
 				Suelta aquí un hito de resguardo para autoteleportarte, si ya tienes uno en el ítem anterior</text>
 			<drop_target name="emergency_teleport_landmark_backup_drop"/>
-			<text name="UISndRestartText"  bottom_delta="-36" >
-				Ejecutar sonido cuando la región esté por reiniciarse:
-			</text>
-			<line_editor name="UISndRestart" tool_tip="Dejar vacío para no ejecutar sonidos" left_delta="258" />
 		</panel>
 		<!-- =========================== -->
 		<panel label="Construcción" name="Building">

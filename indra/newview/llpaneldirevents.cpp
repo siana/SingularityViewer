@@ -52,8 +52,6 @@
 #include "llnotificationsutil.h"
 #include "llviewerregion.h"
 
-BOOL gDisplayEventHack = FALSE;
-
 LLPanelDirEvents::LLPanelDirEvents(const std::string& name, LLFloaterDirectory* floater)
 	:	LLPanelDirBrowser(name, floater),
 	mDoneQuery(FALSE),
@@ -85,12 +83,7 @@ BOOL LLPanelDirEvents::postBuild()
 
 	mCurrentSortColumn = "time";
 
-	if (!gDisplayEventHack)
-	{
-		setDay(0);	// for today
-		//performQuery(); // Temporary change to help DB - Sabin
-	}
-	gDisplayEventHack = FALSE;
+	setDay(0);	// for today
 
 	LLViewerRegion* region(gAgent.getRegion());
 	getChildView("filter_gaming")->setVisible(region && (gAgent.getRegion()->getGamingFlags() & REGION_GAMING_PRESENT) && !(gAgent.getRegion()->getGamingFlags() & REGION_GAMING_HIDE_FIND_EVENTS));

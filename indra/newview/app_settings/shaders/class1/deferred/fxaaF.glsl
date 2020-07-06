@@ -22,9 +22,6 @@
  * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
- 
-//#extension GL_ARB_texture_rectangle : enable
-//#extension GL_ARB_shader_texture_lod : enable
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -34,7 +31,9 @@ out vec4 frag_color;
 
 #define FXAA_PC 1
 //#define FXAA_GLSL_130 1
+#ifndef FXAA_QUALITY_M_PRESET
 #define FXAA_QUALITY_M_PRESET 12
+#endif
 
 /*============================================================================
 
@@ -258,6 +257,10 @@ A. Or use FXAA_GREEN_AS_LUMA.
     #define FXAA_GLSL_130 0
 #endif
 /*--------------------------------------------------------------------------*/
+#ifndef FXAA_GLSL_400
+    #define FXAA_GLSL_400 0
+#endif
+/*--------------------------------------------------------------------------*/
 #ifndef FXAA_HLSL_3
     #define FXAA_HLSL_3 0
 #endif
@@ -344,8 +347,8 @@ A. Or use FXAA_GREEN_AS_LUMA.
     // 1 = API supports gather4 on alpha channel.
     // 0 = API does not support gather4 on alpha channel.
     //
-	#if (FXAA_GLSL_130 == 0)
-		#define FXAA_GATHER4_ALPHA 0
+	#if (FXAA_GLSL_400 == 1)
+		#define FXAA_GATHER4_ALPHA 1
 	#endif
     #if (FXAA_HLSL_5 == 1)
         #define FXAA_GATHER4_ALPHA 1
@@ -654,7 +657,7 @@ NOTE the other tuning knobs are now in the shader function inputs!
                                 API PORTING
 
 ============================================================================*/
-#if (FXAA_GLSL_120 == 1) || (FXAA_GLSL_130 == 1)
+#if (FXAA_GLSL_120 == 1) || (FXAA_GLSL_130 == 1) || (FXAA_GLSL_400 == 1)
     #define FxaaBool bool
     #define FxaaDiscard discard
     #define FxaaFloat float
@@ -714,6 +717,16 @@ NOTE the other tuning knobs are now in the shader function inputs!
         #define FxaaTexGreen4(t, p) textureGather(t, p, 1)
         #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, p, o, 1)
     #endif
+#endif
+/*--------------------------------------------------------------------------*/
+#if (FXAA_GLSL_400 == 1)
+    // Requires "#version 400" or better
+    #define FxaaTexTop(t, p) textureLod(t, p, 0.0)
+    #define FxaaTexOff(t, p, o, r) textureLodOffset(t, p, 0.0, o)
+    #define FxaaTexAlpha4(t, p) textureGather(t, p, 3)
+    #define FxaaTexOffAlpha4(t, p, o) textureGatherOffset(t, p, o, 3)
+    #define FxaaTexGreen4(t, p) textureGather(t, p, 1)
+    #define FxaaTexOffGreen4(t, p, o) textureGatherOffset(t, p, o, 1)
 #endif
 /*--------------------------------------------------------------------------*/
 #if (FXAA_HLSL_3 == 1) || (FXAA_360 == 1) || (FXAA_PS3 == 1)
@@ -2095,11 +2108,10 @@ uniform vec2 rcp_screen_res;
 uniform vec4 rcp_frame_opt;
 uniform vec4 rcp_frame_opt2;
 VARYING vec2 vary_fragcoord;
-VARYING vec2 vary_tc;
 
 void main() 
 {
-	vec4 diff =			FxaaPixelShader(vary_tc,			//pos
+	vec4 diff =			FxaaPixelShader(vary_fragcoord,			//pos
 										vec4(vary_fragcoord.xy, 0, 0), //fxaaConsolePosPos
 										diffuseMap,					//tex
 										diffuseMap,					

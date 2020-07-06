@@ -64,7 +64,7 @@ class AIXMLElement
 
   public:
 	AIXMLElement(std::ostream& os, char const* name, int indentation);
-	~AIXMLElement();
+	~AIXMLElement() noexcept(false);
 
 	template<typename T>
 	  void attribute(char const* name, T const& attribute);
@@ -151,7 +151,7 @@ void AIXMLElement::child(FWD_ITERATOR i1, FWD_ITERATOR const& i2)
 class AIXMLStream {
   protected:
 	llofstream mOfs;
-	AIXMLStream(LLFILE* fp, bool standalone);
+	AIXMLStream(const std::string& filename, bool standalone);
 	~AIXMLStream();
 };
 
@@ -159,7 +159,7 @@ class AIXMLStream {
 class AIXMLRootElement : public AIXMLStream, public AIXMLElement
 {
   public:
-	AIXMLRootElement(LLFILE* fp, char const* name, bool standalone = true) : AIXMLStream(fp, standalone), AIXMLElement(mOfs, name, 0) { }
+	AIXMLRootElement(const std::string& filename, char const* name, bool standalone = true) : AIXMLStream(filename, standalone), AIXMLElement(mOfs, name, 0) { }
 };
 
 class AIXMLElementParser

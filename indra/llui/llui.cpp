@@ -158,8 +158,8 @@ void LLUI::cleanupClass()
 void LLUI::setMousePositionScreen(S32 x, S32 y)
 {
 	S32 screen_x, screen_y;
-	screen_x = ll_round((F32)x * getScaleFactor().mV[VX]);
-	screen_y = ll_round((F32)y * getScaleFactor().mV[VY]);
+	screen_x = ll_pos_round((F32)x * getScaleFactor().mV[VX]);
+	screen_y = ll_pos_round((F32)y * getScaleFactor().mV[VY]);
 	
 	LLView::getWindow()->setCursorPosition(LLCoordGL(screen_x, screen_y).convert());
 }
@@ -170,8 +170,8 @@ void LLUI::getMousePositionScreen(S32 *x, S32 *y)
 	LLCoordWindow cursor_pos_window;
 	getWindow()->getCursorPosition(&cursor_pos_window);
 	LLCoordGL cursor_pos_gl(cursor_pos_window.convert());
-	*x = ll_round((F32)cursor_pos_gl.mX / getScaleFactor().mV[VX]);
-	*y = ll_round((F32)cursor_pos_gl.mY / getScaleFactor().mV[VX]);
+	*x = ll_pos_round((F32)cursor_pos_gl.mX / getScaleFactor().mV[VX]);
+	*y = ll_pos_round((F32)cursor_pos_gl.mY / getScaleFactor().mV[VX]);
 }
 
 //static 
@@ -223,32 +223,33 @@ std::string LLUI::getLanguage()
 //static
 std::string LLUI::locateSkin(const std::string& filename)
 {
-	std::string slash = gDirUtilp->getDirDelimiter();
 	std::string found_file = filename;
-	if (!gDirUtilp->fileExists(found_file))
+	if (gDirUtilp->fileExists(found_file))
 	{
-		found_file = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, filename); // Should be CUSTOM_SKINS?
+		return found_file;
 	}
-	if (sConfigGroup && sConfigGroup->controlExists("Language"))
+
+	found_file = gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, filename); // Should be CUSTOM_SKINS?
+	if (gDirUtilp->fileExists(found_file))
 	{
-		if (!gDirUtilp->fileExists(found_file))
-		{
-			std::string localization = getLanguage();
-			std::string local_skin = "xui" + slash + localization + slash + filename;
-			found_file = gDirUtilp->findSkinnedFilename(local_skin);
-		}
+		return found_file;
 	}
-	if (!gDirUtilp->fileExists(found_file))
+
+	found_file = gDirUtilp->findSkinnedFilename(LLDir::XUI, filename);
+	if (! found_file.empty())
 	{
-		std::string local_skin = "xui" + slash + "en-us" + slash + filename;
-		found_file = gDirUtilp->findSkinnedFilename(local_skin);
+		return found_file;
 	}
-	if (!gDirUtilp->fileExists(found_file))
+
+	found_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, filename);
+	if (gDirUtilp->fileExists(found_file))
 	{
-		found_file = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, filename);
+		return found_file;
 	}
-	return found_file;
-}	
+	LL_WARNS("LLUI") << "Can't find '" << filename
+					 << "' in user settings, any skin directory or app_settings" << LL_ENDL;
+	return "";
+}
 
 //static
 LLVector2 LLUI::getWindowSize()

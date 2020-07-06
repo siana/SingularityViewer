@@ -77,6 +77,7 @@ LLFloaterPathfindingLinksets::LLFloaterPathfindingLinksets(const LLSD& pSeed)
 	mFilterByDescription(NULL),
 	mFilterByLinksetUse(NULL),
 	mEditLinksetUse(NULL),
+	mEditLinksetUseUnset(nullptr),
 	mEditLinksetUseWalkable(NULL),
 	mEditLinksetUseStaticObstacle(NULL),
 	mEditLinksetUseDynamicObstacle(NULL),

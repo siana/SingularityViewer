@@ -3,46 +3,35 @@
  * @author James Cook
  * @brief "About Land" floater, allowing display and editing of land parcel properties.
  *
- * $LicenseInfo:firstyear=2002&license=viewergpl$
- * 
- * Copyright (c) 2002-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2002&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
 #ifndef LL_LLFLOATERLAND_H
 #define LL_LLFLOATERLAND_H
 
-#include <set>
-#include <vector>
-
 #include "llfloater.h"
 #include "llpointer.h"	// LLPointer<>
-//#include "llviewertexturelist.h"
 #include "llsafehandle.h"
 
-typedef std::set<LLUUID, lluuid_less> uuid_list_t;
 const F32 CACHE_REFRESH_TIME	= 2.5f;
 
 class LLButton;
@@ -50,6 +39,7 @@ class LLCheckBoxCtrl;
 class LLRadioGroup;
 class LLComboBox;
 class LLLineEditor;
+class LLMessageSystem;
 class LLNameListCtrl;
 class LLRadioGroup;
 class LLParcelSelectionObserver;
@@ -59,7 +49,6 @@ class LLTextBox;
 class LLTextEditor;
 class LLTextureCtrl;
 class LLUIImage;
-class LLViewerTextEditor;
 class LLParcelSelection;
 
 class LLPanelLandGeneral;
@@ -72,9 +61,11 @@ class LLPanelLandBan;
 class LLPanelLandRenters;
 class LLPanelLandCovenant;
 class LLParcel;
+class LLPanelLandExperiences;
 
-class LLFloaterLand
-:	public LLFloater, public LLFloaterSingleton<LLFloaterLand>
+class LLFloaterLand final
+:	public LLFloater
+, public LLFloaterSingleton<LLFloaterLand>
 {
 	friend class LLUISingleton<LLFloaterLand, VisibilityPolicy<LLFloater> >;
 public:
@@ -86,24 +77,23 @@ public:
 	LLParcel* getCurrentSelectedParcel();
 
 	// Destroys itself on close.
-	virtual void onClose(bool app_quitting);
-	virtual void onOpen();
-	virtual BOOL postBuild();
+	void onClose(bool app_quitting) override;
+	void onOpen() override;
+	BOOL postBuild() override;
 
 // [RLVa:KB] - Checked: 2009-07-04 (RLVa-1.0.0a)
-	virtual void open();
+	void open() override;
 // [/RLVa:KB]
 
-
-
-protected:
-
+private:
 	// Does its own instance management, so clients not allowed
 	// to allocate or destroy.
 	LLFloaterLand(const LLSD& seed);
 	virtual ~LLFloaterLand();
 
-	/*virtual*/ void refresh();
+protected:
+
+	/*virtual*/ void refresh() override;
 
 	static void* createPanelLandGeneral(void* data);
 	static void* createPanelLandCovenant(void* data);
@@ -112,12 +102,15 @@ protected:
 	static void* createPanelLandAudio(void* data);
 	static void* createPanelLandMedia(void* data);
 	static void* createPanelLandAccess(void* data);
+	static void* createPanelLandExperiences(void* data);
 	static void* createPanelLandBan(void* data);
+
 
 protected:
 	static LLParcelSelectionObserver* sObserver;
 	static S32 sLastTab;
 
+	friend class LLPanelLandObjects;
 	LLTabContainer*			mTabLand;
 	LLPanelLandGeneral*		mPanelGeneral;
 	LLPanelLandObjects*		mPanelObjects;
@@ -126,6 +119,7 @@ protected:
 	LLPanelLandMedia*		mPanelMedia;
 	LLPanelLandAccess*		mPanelAccess;
 	LLPanelLandCovenant*	mPanelCovenant;
+	LLPanelLandExperiences*	mPanelExperiences;
 
 	LLSafeHandle<LLParcelSelection>	mParcel;
 
@@ -138,28 +132,25 @@ public:
 };
 
 
-class LLPanelLandGeneral
+class LLPanelLandGeneral final
 :	public LLPanel
 {
 public:
 	LLPanelLandGeneral(LLSafeHandle<LLParcelSelection>& parcelp);
 	virtual ~LLPanelLandGeneral();
-	/*virtual*/ void refresh();
+	/*virtual*/ void refresh() override;
 	void refreshNames();
-	virtual void draw();
 
 	void setGroup(const LLUUID& group_id);
-	void onClickProfile();
 	void onClickSetGroup();
-	static void onClickInfoGroup(void*);
-	static void onClickDeed(void*);
 	static void onClickBuyLand(void* data);
-	static void onClickScriptLimits(void* data);
-	static void onClickRelease(void*);
-	static void onClickReclaim(void*);
 	static void onClickBuyPass(void* deselect_when_done);
+	void onClickDeed();
+	void onClickScriptLimits();
+	void onClickRelease();
+	void onClickReclaim();
 	static BOOL enableBuyPass(void*);
-	static void onCommitAny(LLUICtrl* ctrl, void *userdata);
+	void onCommitAny();
 	static void finalizeCommit(void * userdata);
 	static void onForSaleChange(LLUICtrl *ctrl, void * userdata);
 	static void finalizeSetSellChange(void * userdata);
@@ -167,27 +158,23 @@ public:
 
 	static bool cbBuyPass(const LLSD& notification, const LLSD& response);
 
-	static void onClickSellLand(void* data);
-	static void onClickStopSellLand(void* data);
-	static void onClickSet(void* data);
-	static void onClickClear(void* data);
-	static void onClickShow(void* data);
-	static void callbackAvatarPick(const std::vector<std::string>& names, const std::vector<LLUUID>& ids, void* data);
+	void onClickSellLand();
+	void onClickStopSellLand();
+	void onClickSet();
+	void onClickClear();
+	void onClickShow();
+	static void callbackAvatarPick(const std::vector<std::string>& names, const uuid_vec_t& ids, void* data);
 	static void finalizeAvatarPick(void* data);
 	static void callbackHighlightTransferable(S32 option, void* userdata);
-	static void onClickStartAuction(void*);
+	void onClickStartAuction();
 	// sale change confirmed when "is for sale", "sale price", "sell to whom" fields are changed
 	static void confirmSaleChange(S32 landSize, S32 salePrice, std::string authorizedName, void(*callback)(void*), void* userdata);
 	static void callbackConfirmSaleChange(S32 option, void* userdata);
 
-	virtual BOOL postBuild();
+	BOOL postBuild() override;
 
 protected:
-	BOOL			mUncheckedSell; // True only when verifying land information when land is for sale on sale info change
-	
-	LLTextBox*		mLabelName;
 	LLLineEditor*	mEditName;
-	LLTextBox*		mLabelDesc;
 	LLTextEditor*	mEditDesc;
 
 	LLTextBox*		mTextSalePending;
@@ -195,16 +182,12 @@ protected:
  	LLButton*		mBtnDeedToGroup;
  	LLButton*		mBtnSetGroup;
 
-	LLTextBox*		mTextOwnerLabel;
 	LLTextBox*		mTextOwner;
-	LLButton*		mBtnProfile;
-	
+
 	LLTextBox*		mContentRating;
 	LLTextBox*		mLandType;
 
 	LLTextBox*		mTextGroup;
-	LLTextBox*		mTextGroupLabel;
-	LLTextBox*		mTextClaimDateLabel;
 	LLTextBox*		mTextClaimDate;
 
 	LLTextBox*		mTextPriceLabel;
@@ -247,39 +230,36 @@ protected:
 	static LLHandle<LLFloater> sBuyPassDialogHandle;
 };
 
-class LLPanelLandObjects
+class LLPanelLandObjects final
 :	public LLPanel
 {
 public:
 	LLPanelLandObjects(LLSafeHandle<LLParcelSelection>& parcelp);
 	virtual ~LLPanelLandObjects();
-	/*virtual*/ void refresh();
-	virtual void draw();
+	/*virtual*/ void refresh() override;
 
 	bool callbackReturnOwnerObjects(const LLSD& notification, const LLSD& response);
 	bool callbackReturnGroupObjects(const LLSD& notification, const LLSD& response);
 	bool callbackReturnOtherObjects(const LLSD& notification, const LLSD& response);
 	bool callbackReturnOwnerList(const LLSD& notification, const LLSD& response);
 
-	static void clickShowCore(LLPanelLandObjects* panelp, S32 return_type, uuid_list_t* list = 0);
-	static void onClickShowOwnerObjects(void*);
-	static void onClickShowGroupObjects(void*);
-	static void onClickShowOtherObjects(void*);
+	static void clickShowCore(LLPanelLandObjects* panelp, S32 return_type, uuid_list_t* list = nullptr);
+	void onClickShowOwnerObjects();
+	void onClickShowGroupObjects();
+	void onClickShowOtherObjects();
 
-	static void onClickReturnOwnerObjects(void*);
-	static void onClickReturnGroupObjects(void*);
-	static void onClickReturnOtherObjects(void*);
-	static void onClickReturnOwnerList(void*);
-	static void onClickRefresh(void*);
-
-	static void onDoubleClickOwner(void*);	
+	void onClickReturnOwnerObjects();
+	void onClickReturnGroupObjects();
+	void onClickReturnOtherObjects();
+	void onClickReturnOwnerList();
+	void onClickRefresh();
 
 	void onCommitList();
 	static void onLostFocus(LLFocusableElement* caller, void* user_data);
-	static void onCommitClean(LLUICtrl* caller, void* user_data);
+		   void onCommitClean();
 	static void processParcelObjectOwnersReply(LLMessageSystem *msg, void **);
 	
-	virtual BOOL postBuild();
+	BOOL postBuild() override;
 
 protected:
 
@@ -319,23 +299,23 @@ protected:
 };
 
 
-class LLPanelLandOptions
+class LLPanelLandOptions final
 :	public LLPanel
 {
 public:
 	LLPanelLandOptions(LLSafeHandle<LLParcelSelection>& parcelp);
 	virtual ~LLPanelLandOptions();
-	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void draw();
-	/*virtual*/ void refresh();
+	/*virtual*/ BOOL postBuild() override;
+	/*virtual*/ void draw() override;
+	/*virtual*/ void refresh() override;
 
 private:
 	// Refresh the "show in search" checkbox and category selector.
 	void refreshSearch();
 
-	static void onCommitAny(LLUICtrl* ctrl, void *userdata);
-	static void onClickSet(void* userdata);
-	static void onClickClear(void* userdata);
+	void onCommitAny();
+	void onClickSet();
+	void onClickClear();
 	static void onClickPublishHelp(void*);
 
 private:
@@ -370,28 +350,29 @@ private:
 };
 
 
-class LLPanelLandAccess
+class LLPanelLandAccess final
 :	public LLPanel
 {
 public:
 	LLPanelLandAccess(LLSafeHandle<LLParcelSelection>& parcelp);
 	virtual ~LLPanelLandAccess();
-	void refresh();
+	void refresh() override;
 	void refresh_ui();
 	void refreshNames();
-	virtual void draw();
+	void draw() override;
 
-	static void onCommitPublicAccess(LLUICtrl* ctrl, void *userdata);
-	static void onCommitAny(LLUICtrl* ctrl, void *userdata);
-	static void onCommitGroupCheck(LLUICtrl* ctrl, void *userdata);
-	static void onClickRemoveAccess(void*);
-	static void onClickRemoveBanned(void*);
+	void onCommitPublicAccess(LLUICtrl* ctrl);
+	void onCommitAny();
+	void onCommitGroupCheck(LLUICtrl* ctrl);
+	void onClickRemoveAccess();
+	void onClickRemoveBanned();
 
-	virtual BOOL postBuild();
+	BOOL postBuild() override;
 
 	void onClickAddAccess();
 	void onClickAddBanned();
 	void callbackAvatarCBBanned(const uuid_vec_t& ids);
+	void callbackAvatarCBBanned2(const uuid_vec_t& ids, S32 duration);
 	void callbackAvatarCBAccess(const uuid_vec_t& ids);
 
 protected:
@@ -401,22 +382,25 @@ protected:
 	LLSafeHandle<LLParcelSelection>&	mParcel;
 };
 
-
-class LLPanelLandCovenant
+class LLPanelLandCovenant final
 :	public LLPanel
 {
 public:
 	LLPanelLandCovenant(LLSafeHandle<LLParcelSelection>& parcelp);
 	virtual ~LLPanelLandCovenant();
-	virtual BOOL postBuild();
-	void refresh();
+	BOOL postBuild() override;
+	void refresh() override;
 	static void updateCovenantText(const std::string& string);
 	static void updateEstateName(const std::string& name);
 	static void updateLastModified(const std::string& text);
-	static void updateEstateOwnerName(const std::string& name);
+	static void updateEstateOwnerID(const LLUUID& id);
 
 protected:
 	LLSafeHandle<LLParcelSelection>&	mParcel;
+
+private:
+	LLUUID mLastRegionID;
+	F64 mNextUpdateTime; //seconds since client start
 };
 
 #endif

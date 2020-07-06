@@ -44,6 +44,7 @@
 #include "llinventorymodelbackgroundfetch.h"
 #include "llinventorypanel.h"
 #include "llmakeoutfitdialog.h"
+#include "llmarketplacefunctions.h"
 #include "llnotificationsutil.h"
 #include "llpanelmaininventory.h"
 #include "llpanelobjectinventory.h"
@@ -60,36 +61,151 @@ extern LLUUID gAgentID;
 
 using namespace LLOldEvents;
 
+bool contains_nocopy_items(const LLUUID& id);
+
 namespace LLInventoryAction
 {
-	bool doToSelected(LLFolderView* folder, std::string action);
+	void callback_doToSelected(const LLSD& notification, const LLSD& response, LLFolderView* folder, const std::string& action);
+	void callback_copySelected(const LLSD& notification, const LLSD& response, class LLFolderView* root, const std::string& action);
+	bool doToSelected(LLFolderView* root, std::string action, BOOL user_confirm = TRUE);
+
+	void buildMarketplaceFolders(LLFolderView* root);
+	void updateMarketplaceFolders();
+	std::list<LLUUID> sMarketplaceFolders; // Marketplace folders that will need update once the action is completed
 }
 
 typedef LLMemberListener<LLPanelObjectInventory> object_inventory_listener_t;
-typedef LLMemberListener<LLInventoryView> inventory_listener_t;
+typedef LLMemberListener<LLPanelMainInventory> inventory_listener_t;
 typedef LLMemberListener<LLInventoryPanel> inventory_panel_listener_t;
 
-bool LLInventoryAction::doToSelected(LLFolderView* folder, std::string action)
+// Callback for doToSelected if DAMA required...
+void LLInventoryAction::callback_doToSelected(const LLSD& notification, const LLSD& response, LLFolderView* folder, const std::string& action)
 {
-	if (!folder)
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	if (option == 0) // YES
+	{
+		doToSelected(folder, action, false);
+	}
+}
+
+void LLInventoryAction::callback_copySelected(const LLSD& notification, const LLSD& response, class LLFolderView* root, const std::string& action)
+{
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	if (option == 0) // YES, Move no copy item(s)
+	{
+		doToSelected(root, "copy_or_move_to_marketplace_listings", false);
+	}
+	else if (option == 1) // NO, Don't move no copy item(s) (leave them behind)
+	{
+		doToSelected(root, "copy_to_marketplace_listings", false);
+	}
+}
+
+// Succeeds iff all selected items are bridges to objects, in which
+// case returns their corresponding uuids.
+bool get_selection_object_uuids(LLFolderView *root, uuid_vec_t& ids)
+{
+	uuid_vec_t results;
+	//S32 no_object = 0;
+	for(const auto& id : root->getSelectionList())
+	{
+		if(id.notNull())
+		{
+			results.push_back(id);
+		}
+		else
+		{
+			return false; //non_object++;
+		}
+	}
+	//if (non_object == 0)
+	{
+		ids = results;
 		return true;
+	}
+	//return false;
+}
+
+bool LLInventoryAction::doToSelected(LLFolderView* root, std::string action, BOOL user_confirm)
+{
+	if (!root)
+		return true;
+
+	auto selected_items = root->getSelectionList();
+
+	// Prompt the user and check for authorization for some marketplace active listing edits
+	if (user_confirm && (("delete" == action) || ("cut" == action) || ("rename" == action) || ("properties" == action) || ("task_properties" == action) || ("open" == action)))
+	{
+		auto set_iter = std::find_if(selected_items.begin(), selected_items.end(), boost::bind(&depth_nesting_in_marketplace, _1) >= 0);
+		if (set_iter != selected_items.end())
+		{
+			if ("open" == action)
+			{
+				if (get_can_item_be_worn(*set_iter))
+				{
+					// Wearing an object from any listing, active or not, is verbotten
+					LLNotificationsUtil::add("AlertMerchantListingCannotWear");
+					return true;
+				}
+				// Note: we do not prompt for change when opening items (e.g. textures or note cards) on the marketplace...
+			}
+			else if (LLMarketplaceData::instance().isInActiveFolder(*set_iter) ||
+					 LLMarketplaceData::instance().isListedAndActive(*set_iter))
+			{
+				// If item is in active listing, further confirmation is required
+				if ((("cut" == action) || ("delete" == action)) && (LLMarketplaceData::instance().isListed(*set_iter) || LLMarketplaceData::instance().isVersionFolder(*set_iter)))
+				{
+					// Cut or delete of the active version folder or listing folder itself will unlist the listing so ask that question specifically
+					LLNotificationsUtil::add("ConfirmMerchantUnlist", LLSD(), LLSD(), boost::bind(&LLInventoryAction::callback_doToSelected, _1, _2, root, action));
+					return true;
+				}
+				// Any other case will simply modify but not unlist a listing
+				LLNotificationsUtil::add("ConfirmMerchantActiveChange", LLSD(), LLSD(), boost::bind(&LLInventoryAction::callback_doToSelected, _1, _2, root, action));
+				return true;
+			}
+			// Cutting or deleting a whole listing needs confirmation as SLM will be archived and inaccessible to the user
+			else if (LLMarketplaceData::instance().isListed(*set_iter) && (("cut" == action) || ("delete" == action)))
+			{
+				LLNotificationsUtil::add("ConfirmListingCutOrDelete", LLSD(), LLSD(), boost::bind(&LLInventoryAction::callback_doToSelected, _1, _2, root, action));
+				return true;
+			}
+		}
+	}
+	// Copying to the marketplace needs confirmation if nocopy items are involved
+	if (("copy_to_marketplace_listings" == action))
+	{
+		auto set_iter = selected_items.begin();
+		if (contains_nocopy_items(*set_iter))
+		{
+			LLNotificationsUtil::add("ConfirmCopyToMarketplace", LLSD(), LLSD(), boost::bind(&LLInventoryAction::callback_copySelected, _1, _2, root, action));
+			return true;
+		}
+	}
+
+	// Keep track of the marketplace folders that will need update of their status/name after the operation is performed
+	buildMarketplaceFolders(root);
+
 	LLInventoryModel* model = &gInventory;
 	if ("rename" == action)
 	{
-		folder->startRenamingSelectedItem();
+		root->startRenamingSelectedItem();
+		// Update the marketplace listings that have been affected by the operation
+		updateMarketplaceFolders();
 		return true;
 	}
-	else if ("delete" == action)
+
+	if ("delete" == action)
 	{
-		folder->removeSelectedItems();
+		root->removeSelectedItems();
+
+		// Update the marketplace listings that have been affected by the operation
+		updateMarketplaceFolders();
 		return true;
 	}
-	else if ("copy" == action || "cut" == action)
+	if ("copy" == action || "cut" == action)
 	{	
 		LLInventoryClipboard::instance().reset();
 	}
-
-	std::set<LLUUID> selected_items = folder->getSelectionList();
 
 	LLMultiFloater* multi_floaterp = NULL;
 
@@ -114,16 +230,30 @@ bool LLInventoryAction::doToSelected(LLFolderView* folder, std::string action)
 		LLFloater::setFloaterHost(multi_floaterp);
 	}
 
-	std::set<LLUUID>::iterator set_iter;
 
-	for (set_iter = selected_items.begin(); set_iter != selected_items.end(); ++set_iter)
+	// This rather warty piece of code is to allow items to be removed
+	// from the avatar in a batch, eliminating redundant
+	// updateAppearanceFromCOF() requests further down the line. (MAINT-4918)
+	//
+	// There are probably other cases where similar batching would be
+	// desirable, but the current item-by-item performAction()
+	// approach would need to be reworked.
+	uuid_vec_t object_uuids_to_remove;
+	if (isRemoveAction(action) && get_selection_object_uuids(root, object_uuids_to_remove))
 	{
-		LLFolderViewItem* folder_item = folder->getItemByID(*set_iter);
-		if(!folder_item) continue;
-		LLInvFVBridge* bridge = (LLInvFVBridge*)folder_item->getListener();
-		if(!bridge) continue;
+		LLAppearanceMgr::instance().removeItemsFromAvatar(object_uuids_to_remove);
+	}
+	else
+	{
+		for (const auto& id : selected_items)
+		{
+			LLFolderViewItem* folder_item = root->getItemByID(id);
+			if(!folder_item) continue;
+			LLInvFVBridge* bridge = (LLInvFVBridge*)folder_item->getListener();
+			if(!bridge) continue;
 
-		bridge->performAction(model, action);
+			bridge->performAction(model, action);
+		}
 	}
 
 	LLFloater::setFloaterHost(NULL);
@@ -135,7 +265,93 @@ bool LLInventoryAction::doToSelected(LLFolderView* folder, std::string action)
 	return true;
 }
 
-struct LLNewWindow : public inventory_listener_t
+void LLInventoryAction::buildMarketplaceFolders(LLFolderView* root)
+{
+	// Make a list of all marketplace folders containing the elements in the selected list
+	// as well as the elements themselves.
+	// Once those elements are updated (cut, delete in particular but potentially any action), their
+	// containing folder will need to be updated as well as their initially containing folder. For
+	// instance, moving a stock folder from a listed folder to another will require an update of the
+	// target listing *and* the original listing. So we need to keep track of both.
+	// Note: do not however put the marketplace listings root itself in this list or the whole marketplace data will be rebuilt.
+	sMarketplaceFolders.clear();
+	const LLUUID& marketplacelistings_id = gInventory.findCategoryUUIDForType(LLFolderType::FT_MARKETPLACE_LISTINGS, false);
+	if (marketplacelistings_id.isNull())
+	{
+		return;
+	}
+
+	for (const auto& item : root->getSelectionList())
+	{
+		const LLInventoryObject* obj(gInventory.getObject(item));
+		if (!obj) continue;
+		if (gInventory.isObjectDescendentOf(obj->getParentUUID(), marketplacelistings_id))
+		{
+			const LLUUID& parent_id = obj->getParentUUID();
+			if (parent_id != marketplacelistings_id)
+			{
+				sMarketplaceFolders.push_back(parent_id);
+			}
+			const LLUUID& curr_id = obj->getUUID();
+			if (curr_id != marketplacelistings_id)
+			{
+				sMarketplaceFolders.push_back(curr_id);
+			}
+		}
+	}
+	// Suppress dupes in the list so we wo't update listings twice
+	sMarketplaceFolders.sort();
+	sMarketplaceFolders.unique();
+}
+
+void LLInventoryAction::updateMarketplaceFolders()
+{
+	while (!sMarketplaceFolders.empty())
+	{
+		update_marketplace_category(sMarketplaceFolders.back());
+		sMarketplaceFolders.pop_back();
+	}
+}
+
+
+
+class LLDoToSelectedPanel : public object_inventory_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLPanelObjectInventory *panel = mPtr;
+		LLFolderView* folder = panel->getRootFolder();
+		if(!folder) return true;
+
+		return LLInventoryAction::doToSelected(folder, userdata.asString());
+	}
+};
+
+class LLDoToSelectedFloater : public inventory_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLInventoryPanel *panel = mPtr->getPanel();
+		LLFolderView* folder = panel->getRootFolder();
+		if(!folder) return true;
+
+		return LLInventoryAction::doToSelected(folder, userdata.asString());
+	}
+};
+
+class LLDoToSelected : public inventory_panel_listener_t
+{
+	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
+	{
+		LLInventoryPanel *panel = mPtr;
+		LLFolderView* folder = panel->getRootFolder();
+		if(!folder) return true;
+
+		return LLInventoryAction::doToSelected(folder, userdata.asString());
+	}
+};
+
+class LLNewWindow : public inventory_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
@@ -143,7 +359,7 @@ struct LLNewWindow : public inventory_listener_t
 		S32 left = 0 , top = 0;
 		gFloaterView->getNewFloaterPosition(&left, &top);
 		rect.setLeftTopAndSize(left, top, rect.getWidth(), rect.getHeight());
-		LLInventoryView* iv = new LLInventoryView(std::string("Inventory"),
+		LLPanelMainInventory* iv = new LLPanelMainInventory(std::string("Inventory"),
 												rect,
 												mPtr->getActivePanel()->getModel());
 		iv->getActivePanel()->setFilterTypes(mPtr->getActivePanel()->getFilterObjectTypes());
@@ -173,7 +389,15 @@ void do_create(LLInventoryModel *model, LLInventoryPanel *ptr, const LLSD& sdtyp
 												LLFolderType::FT_NONE, LLStringUtil::null);
 		}
 		model->notifyObservers();
+
+		// Singu Note: SV-2036
+		// Hack! setSelection sets category to fetching state, which disables scrolling. Scrolling, however, is desired.
+		// Setting autoSelectOverride to true just happens to skip the fetch check, thus allowing the scroll to proceed.
+		bool autoselected = ptr->getRootFolder()->getAutoSelectOverride();
+		ptr->getRootFolder()->setAutoSelectOverride(true);
 		ptr->setSelection(category, TRUE);
+		// Restore autoSelectOverride to whatever it was before we hijacked it.
+		ptr->getRootFolder()->setAutoSelectOverride(autoselected);
 	}
 	else if ("lsl" == type)
 	{
@@ -292,22 +516,19 @@ struct LLBeginIMSession : public inventory_panel_listener_t
 		LLInventoryPanel *panel = mPtr;
 		LLInventoryModel* model = panel->getModel();
 		if(!model) return true;
-		std::set<LLUUID> selected_items = panel->getRootFolder()->getSelectionList();
 
 		std::string name;
 		static int session_num = 1;
 
-		std::vector<LLUUID> members;
+		uuid_vec_t members;
 		EInstantMessage type = IM_SESSION_CONFERENCE_START;
 
 // [RLVa:KB] - Checked: 2013-05-08 (RLVa-1.4.9)
 		bool fRlvCanStartIM = true;
 // [/RLVa:KB]
 
-		for (std::set<LLUUID>::const_iterator iter = selected_items.begin(); iter != selected_items.end(); iter++)
+		for (const auto& item : panel->getRootFolder()->getSelectionList())
 		{
-
-			LLUUID item = *iter;
 			LLFolderViewItem* folder_item = panel->getRootFolder()->getItemByID(item);
 			
 			if(folder_item) 
@@ -414,7 +635,7 @@ struct LLAttachObject : public inventory_panel_listener_t
 		LLFolderView* folder = panel->getRootFolder();
 		if(!folder) return true;
 
-		std::set<LLUUID> selected_items = folder->getSelectionList();
+		auto selected_items = folder->getSelectionList();
 		LLUUID id = *selected_items.begin();
 
 		std::string joint_name = userdata.asString();
@@ -464,25 +685,25 @@ struct LLAttachObject : public inventory_panel_listener_t
 
 void init_object_inventory_panel_actions(LLPanelObjectInventory *panel)
 {
-	(new LLBindMemberListener(panel, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLPanelObjectInventory::getRootFolder, panel), _2)));
+	(new LLBindMemberListener(panel, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLPanelObjectInventory::getRootFolder, panel), _2, true)));
 }
 
-void init_inventory_actions(LLInventoryView *floater)
+void init_inventory_actions(LLPanelMainInventory *floater)
 {
-	(new LLBindMemberListener(floater, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLInventoryView::getRootFolder, floater), _2)));
-	(new LLBindMemberListener(floater, "Inventory.CloseAllFolders", boost::bind(&LLInventoryPanel::closeAllFolders, boost::bind(&LLInventoryView::getPanel, floater))));
+	(new LLBindMemberListener(floater, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLPanelMainInventory::getRootFolder, floater), _2, true)));
+	(new LLBindMemberListener(floater, "Inventory.CloseAllFolders", boost::bind(&LLInventoryPanel::closeAllFolders, boost::bind(&LLPanelMainInventory::getPanel, floater))));
 	(new LLBindMemberListener(floater, "Inventory.EmptyTrash", boost::bind(&LLInventoryModel::emptyFolderType, &gInventory, "", LLFolderType::FT_TRASH)));
-	(new LLBindMemberListener(floater, "Inventory.DoCreate", boost::bind(&do_create, &gInventory, boost::bind(&LLInventoryView::getPanel, floater), _2, (LLFolderBridge*)0)));
+	(new LLBindMemberListener(floater, "Inventory.DoCreate", boost::bind(&do_create, &gInventory, boost::bind(&LLPanelMainInventory::getPanel, floater), _2, (LLFolderBridge*)0)));
 	(new LLNewWindow())->registerListener(floater, "Inventory.NewWindow");
-	(new LLBindMemberListener(floater, "Inventory.ShowFilters", boost::bind(&LLInventoryView::toggleFindOptions, floater)));
-	(new LLBindMemberListener(floater, "Inventory.ResetFilter", boost::bind(&LLInventoryView::resetFilters, floater)));
+	(new LLBindMemberListener(floater, "Inventory.ShowFilters", boost::bind(&LLPanelMainInventory::toggleFindOptions, floater)));
+	(new LLBindMemberListener(floater, "Inventory.ResetFilter", boost::bind(&LLPanelMainInventory::resetFilters, floater)));
 	(new LLSetSortBy())->registerListener(floater, "Inventory.SetSortBy");
 	(new LLSetSearchType())->registerListener(floater, "Inventory.SetSearchType");
 }
 
 void init_inventory_panel_actions(LLInventoryPanel *panel)
 {
-	(new LLBindMemberListener(panel, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLInventoryPanel::getRootFolder, panel), _2)));
+	(new LLBindMemberListener(panel, "Inventory.DoToSelected", boost::bind(&LLInventoryAction::doToSelected, boost::bind(&LLInventoryPanel::getRootFolder, panel), _2, true)));
 	(new LLAttachObject())->registerListener(panel, "Inventory.AttachObject");
 	(new LLBindMemberListener(panel, "Inventory.CloseAllFolders", boost::bind(&LLInventoryPanel::closeAllFolders, panel)));
 	(new LLBindMemberListener(panel, "Inventory.EmptyTrash", boost::bind(&LLInventoryModel::emptyFolderType, &gInventory, "ConfirmEmptyTrash", LLFolderType::FT_TRASH)));

@@ -36,7 +36,7 @@
 #include <boost/ptr_container/ptr_list.hpp>
 
 // [RLVa:KB]
-#include "rlvhandler.h"
+#include "rlvdefines.h"
 // [/RLVa:KB]
 
 class LLComboBox;
@@ -66,10 +66,7 @@ protected:
 	void build();
 
 	void onUseRegionSettings(const LLSD& value);
-	void onClickWWNext();
-	void onClickWWPrev();
-	void onClickWLNext();
-	void onClickWLPrev();
+	static void onClickArrow(LLComboBox* combo, bool next);
 	void onChangeDayTime(const LLSD& value);
 
 	void refreshLists(); /// update controls with user prefs

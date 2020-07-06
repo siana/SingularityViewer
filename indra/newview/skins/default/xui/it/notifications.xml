@@ -2010,6 +2010,10 @@ Trasferisci gli elementi nell&apos;inventario?
 		Visita il sito di supporto di Second Life?
 		<usetemplate ignoretext="Quando visiti il sito del supporto di Second Life." name="okcancelignore" notext="Annulla" yestext="Vai"/>
 	</notification>
+	<notification name="ConfirmAddingChatParticipants">
+		Quando aggiungi una persona a una conversazione esistente, viene creata una nuova conversazione.  Tutti i partecipanti riceveranno notifiche per la nuova conversazione.
+		<usetemplate ignoretext="Conferma l&apos;aggiunta dei partecipanti alla chat" name="okcancelignore" notext="Annulla" yestext="Ok"/>
+	</notification>
 	<notification name="ConfirmQuit">
 		Confermi di voler uscire?
 		<usetemplate ignoretext="Quando esci da Second Life." name="okcancelignore" notext="Continua" yestext="Esci"/>
@@ -2598,10 +2602,6 @@ Prova a selezionare una parte di terreno più piccola.
 		Usa lo stesso tasto per disattivare la gesture:
 [NAMES]
 	</notification>
-	<notification name="NoQuickTime">
-		Il software Apple QuickTime sembra non essere installato nel tuo sistema.
-Se desideri visualizzare il video streaming nei terreni supportati si consiglia di andare sul sito di QuickTime (http://www.apple.com/quicktime) e procedere con l&apos;installazione di QuickTime Player.
-	</notification>
 	<notification name="OwnedObjectsReturned">
 		Gli oggetti che possiedi sul terreno selezionato ti sono stati restituiti nell&apos;inventario.
 	</notification>
@@ -2788,7 +2788,7 @@ Riprova tra qualche istante.
 		</form>
 	</notification>
 	<notification name="OfferFriendship">
-		[NAME] ti ha offerto la sua amicizia.
+		[NAME_SLURL] ti ha offerto la sua amicizia.
 
 [MESSAGE]
 
@@ -2799,7 +2799,7 @@ Riprova tra qualche istante.
 		</form>
 	</notification>
 	<notification name="OfferFriendshipNoMessage">
-		[NAME] ti ha offerto la sua amicizia.
+		[NAME_SLURL] ti ha offerto la sua amicizia.
 
 (Di default, potrete vedervi reciprocamente online.)
 		<form name="form">
@@ -2808,10 +2808,10 @@ Riprova tra qualche istante.
 		</form>
 	</notification>
 	<notification name="FriendshipAccepted">
-		[NAME] ha accettato la tua offerta di amicizia.
+		[NAME_SLURL] ha accettato la tua offerta di amicizia.
 	</notification>
 	<notification name="FriendshipDeclined">
-		[NAME] ha rifiutato la tua offerta di amicizia.
+		[NAME_SLURL] ha rifiutato la tua offerta di amicizia.
 	</notification>
 	<notification name="OfferCallingCard">
 		[NAME] ti ha offerto il suo biglietto da visita.

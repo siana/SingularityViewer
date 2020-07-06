@@ -5,7 +5,7 @@
  * $License$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
  
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -13,13 +13,13 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect tex0;
+uniform sampler2D tex0;
 uniform int layerCount;
 
 VARYING vec2 vary_texcoord0;
 
 void main(void) 
 {
-	vec3 color = pow(floor(pow(vec3(texture2DRect(tex0, vary_texcoord0.st)),vec3(.6)) * layerCount)/layerCount,vec3(1.66666));
+	vec3 color = pow(floor(pow(vec3(texture2D(tex0, vary_texcoord0.st)),vec3(.6)) * layerCount)/layerCount,vec3(1.66666));
 	frag_color = vec4(color, 1.0);
 }

@@ -179,7 +179,7 @@ void LLDrawPoolWLSky::renderSkyHaze(F32 camHeightLocal) const
 {
 	if (gPipeline.canUseWindLightShaders() && gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_SKY))
 	{
-		LLGLDisable blend(GL_BLEND);
+		LLGLDisable<GL_BLEND> blend;
 
 		sky_shader->bind();
 
@@ -202,15 +202,16 @@ void LLDrawPoolWLSky::renderStars(void) const
 		return;
 	
 	LLGLSPipelineSkyBox gls_sky;
-	LLGLEnable blend(GL_BLEND);
+	LLGLEnable<GL_BLEND> blend;
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
 	
 	// *NOTE: have to have bound the cloud noise texture already since register
 	// combiners blending below requires something to be bound
 	// and we might as well only bind once.
 	gGL.getTexUnit(0)->enable(LLTexUnit::TT_TEXTURE);
-	
-	gPipeline.disableLights();
+
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.disableLights(light_state);
 
 	/*if (!LLPipeline::sReflectionRender)
 	{
@@ -251,7 +252,7 @@ void LLDrawPoolWLSky::renderSkyClouds(F32 camHeightLocal) const
 {
 	if (gPipeline.canUseWindLightShaders() && gPipeline.hasRenderType(LLPipeline::RENDER_TYPE_WL_CLOUDS) && sCloudNoiseTexture.notNull())
 	{
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		gGL.setSceneBlendType(LLRender::BT_ALPHA);
 		
 		gGL.getTexUnit(0)->bind(sCloudNoiseTexture);
@@ -274,9 +275,9 @@ void LLDrawPoolWLSky::renderHeavenlyBodies()
 	color.mV[VW] = llclamp(color.mV[VW]*color.mV[VW]*4.f,0.f,1.f);
 
 	LLGLSPipelineSkyBox gls_skybox;
-	LLGLEnable blend_on(GL_BLEND);
+	LLGLEnable<GL_BLEND> blend_on;
+	LLGLDisable<GL_LIGHTING> lighting;
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);
-	gPipeline.disableLights();
 
 #if 0 // when we want to re-add a texture sun disc, here's where to do it.
 	LLFace * face = gSky.mVOSkyp->mFace[LLVOSky::FACE_SUN];
@@ -328,14 +329,14 @@ void LLDrawPoolWLSky::renderDeferred(S32 pass)
 	{
 		return;
 	}
-	LLFastTimer ftm(FTM_RENDER_WL_SKY);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_WL_SKY);
 
 	const F32 camHeightLocal = LLWLParamManager::getInstance()->getDomeOffset() * LLWLParamManager::getInstance()->getDomeRadius();
 
-	LLGLDisable stencil(GL_STENCIL_TEST);
+	LLGLDisable<GL_STENCIL_TEST> stencil;
 	LLGLSNoFog disableFog;
 	LLGLDepthTest depth(GL_TRUE, GL_FALSE);
-	LLGLDisable clip(GL_CLIP_PLANE0);
+	LLGLDisable<GL_CLIP_PLANE0> clip;
 
 	LLGLSquashToFarClip far_clip(glh_get_current_projection());
 
@@ -373,13 +374,13 @@ void LLDrawPoolWLSky::render(S32 pass)
 	{
 		return;
 	}
-	LLFastTimer ftm(FTM_RENDER_WL_SKY);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_WL_SKY);
 
 	const F32 camHeightLocal = LLWLParamManager::getInstance()->getDomeOffset() * LLWLParamManager::getInstance()->getDomeRadius();
 
 	LLGLSNoFog disableFog;
 	LLGLDepthTest depth(GL_TRUE, GL_FALSE);
-	LLGLDisable clip(GL_CLIP_PLANE0);
+	LLGLDisable<GL_CLIP_PLANE0> clip;
 
 	LLGLSquashToFarClip far_clip(glh_get_current_projection());
 

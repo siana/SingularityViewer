@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel label="Comunicación" name="im">
-	<text name="text_box">
-		Mi Estado en Línea:
+	<text name="text_box">Mi Estado en Línea:</text>
+	<check_box label="Sólo mis amigos y mis grupos pueden ver cuando estoy en línea" name="online_visibility"  left="138"/>
+	<text name="text_box2">Opciones de MI:</text>
+	<string name="log_in_to_change">Iniciar sesión para cambiar</string>
+    <string name="email_unverified_tooltip">Por favor verifica tu cuenta de email para habilitar el envío de IM a tu email. Puedes hacer esto en la página web del grid.</string>
+	<check_box label="Enviar MI al Email ([EMAIL])" name="send_im_to_email" left="138"/>
+	<check_box label="Incluir MI en la consola de Chat" name="include_im_in_chat_console" left="138"/>
+	<check_box label="Mostrar horario en los IMI" name="show_timestamps_check" left="138"/>
+	<check_box label="Mostrar notificaciones cuando los amigos inician/terminan sesión" name="friends_online_notify_checkbox" left="138"/>
+	<text name="conference_block_text" left="138">
+		Conferencias entrantes:
 	</text>
-	<check_box label="Sólo mis amigos y mis grupos pueden ver cuando estoy en línea" name="online_visibility"/>
-	<text name="text_box2">
-		Opciones de MI:
-	</text>
-	<string name="log_in_to_change">
-		Iniciar sesión para cambiar
-	</string>
-	<check_box label="Enviar MI al Email ([EMAIL])" name="send_im_to_email"/>
-	<check_box label="Incluir MI en la consola de Chat" name="include_im_in_chat_console"/>
-	<check_box label="Mostrar horario en los IMI" name="show_timestamps_check"/>
-	<check_box label="Mostrar notificaciones cuando los amigos inician/terminan sesión" name="friends_online_notify_checkbox"/>
-    <check_box label="Bloquear conferencias entrantes" name="block_conferences_checkbox"/>
-	<text name="text_box4">
-		Opciones de Registro:
-	</text>
-	<check_box label="Guardar Registro de MI en mi computador" name="log_instant_messages" />
-	<check_box label="Mostrar horario en el registro de MI" name="log_instant_messages_timestamp"/>
-	<check_box label="Mostrar final de la última conversación en MI" name="log_show_history"/>
-	<check_box label="Guardar Registro del chat local en mi computador" name="log_chat"/>
-	<check_box label="Mostrar horario en el registro del chat local" name="log_chat_timestamp"/>
-	<check_box label="Mostrar MI recibidos en el registro de chat local" name="log_chat_IM"/>
-	<check_box label="Incluir fecha con horario" name="log_date_timestamp"/>
-	<check_box label="Agregar fecha al nombre de archivo de registro" name="logfile_name_datestamp"/>
+	<radio_group name="block_conferences_radio" bottom_delta="-2" left_delta="118" width="214">
+		<radio_item name="accept" width="30" value="0">Aceptar</radio_item>
+		<radio_item left_delta="30" name="friends only" width="44" value="2">Solo Amigos</radio_item>
+		<radio_item left_delta="44" name="block" width="30" value="1">Bloquear</radio_item>
+	</radio_group>	
+	<check_box label="Bloquear conferencias entrantes" name="block_conferences_checkbox"/>
+	<text name="text_box4">Opciones de Registro:</text>
+	<check_box label="Guardar Registro de MI en mi computador" name="log_instant_messages" left="138"/>
+	<check_box label="Mostrar horario en el registro de MI" name="log_instant_messages_timestamp" left="138"/>
+	<check_box label="Mostrar final de la última conversación en MI" name="log_show_history" left="138"/>
+	<check_box label="Guardar Registro del chat local en mi computador" name="log_chat" left="138"/>
+	<check_box label="Mostrar horario en el registro del chat local" name="log_chat_timestamp" left="138"/>
+	<check_box label="Mostrar MI recibidos en el registro de chat local" name="log_chat_IM" left="138"/>
+	<check_box label="Incluir fecha con horario" name="log_date_timestamp" left="138"/>
+	<check_box label="Agregar fecha al nombre de archivo de registro" name="logfile_name_datestamp" left="138"/>
 	<button label="Cambiar Ruta" label_selected="Cambiar Ruta" name="log_path_button" left="50" width="110"/>
 </panel>

@@ -756,7 +756,7 @@ bool LLXMLNode::parseFile(const std::string& filename, LLXMLNodePtr& node, LLXML
 		return false;
 	}
 	fseek(fp, 0, SEEK_END);
-	U32 length = ftell(fp);
+	size_t length = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
 
 	U8* buffer = new U8[length+1];

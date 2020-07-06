@@ -1,100 +1,101 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater name="floater_toolbar_prefs.xml" title="Selecciona el botón que quieres mostrar en la Barra de Herramientas">
-  <check_box label="Conmutador Barra de Chat" left="5" name="chat_btn"/>
-  <check_box label="Comunicación c/Menú Lateral" name="communicate_flyout"/>
-  <check_box label="Botón Comunicación" name="communicate_btn"/>
-  <check_box label="Amigos" name="friends_btn"/>
-  <check_box label="Grupos" name="groups_btn"/>
-  <check_box label="Títulos de Grupos" name="group_titles_btn"/>
-  <check_box label="Chat Local" name="chat_history_btn"/>
-  <check_box label="Participantes Activos" name="active_speakers_btn"/>
-  <check_box label="Lista de Ignorados" name="mute_list_btn"/>
-  <check_box label="Lista Negra de Asset" name="black_list_btn"/>
-  <check_box label="Efectos de Voz" name="voice_effects_btn"/>
-  <check_box label="Gestos" name="gestures_btn"/>
-  <check_box label="Balizas" name="beacons_btn"/>
-  <check_box label="Radar" name="radar_list_btn"/>
-  <check_box label="Monitor de Región" name="region_tracker_btn"/>
-  <check_box label="Controles de Cámara" name="camera_controls_btn"/>
-  <check_box label="Controles de Movimiento" name="movement_controls_btn"/>
-  <check_box label="Vista Subjetiva" name="look_btn"/>
-  <check_box label="Volar" name="fly_btn"/>
-  <check_box label="Sentarse" name="sit_btn"/>
-  <check_box label="Correr" name="run_btn"/>
-  <check_box label="Velocidad" name="velocity_btn"/>
-  <check_box label="Golpes" name="bumps_btn"/>
-  <check_box label="Información de Audio" name="media_ticker_btn"/>
-  <check_box label="Filtro de Media" name="media_filter_btn"/>
-  <check_box label="Foto" name="snapshot_btn"/>
-  <check_box label="Apariencia" name="appearance_btn"/>
-  <check_box label="Buscar" name="directory_btn"/>
-  <check_box label="Navegador Web" name="web_browser_btn"/>
-  <check_box label="Configuración AO" name="ao_btn"/>
-  <check_box label="Configuración del Depurador" name="debug_settings_btn"/>
-  <check_box label="Texturas del Avatar" name="debug_avatar_btn"/>
-  <check_box label="Explorador de Animaciones" name="anims_explorer_btn"/>
-  <check_box label="Explorador de Sonidos" name="sound_explorer_btn"/>
-  <check_box label="Búsqueda en Área" name="areasearch_btn"/>
-  <check_box label="Examinar" name="inspect_btn"/>
-  <check_box label="Personajes" name="pathing_characters_btn"/>
-  <check_box label="Conjuntos de Enlaces" name="pathing_linksets_btn"/>
-  <check_box label="Construir" name="build_btn"/>
-  <check_box label="Opciones de Grilla" name="grid_options_btn"/>
-  <check_box label="Texturas Locales" name="local_textures_btn"/>
-  <check_box label="Permisos de Subida" name="perm_prefs_btn"/>
-  <check_box label="Errores de Script" name="script_errors_btn"/>
-  <check_box label="Editor de Entorno" name="env_editor_btn"/>
-  <check_box label="Editor del Ciclo Diario" name="day_cycle_editor_btn"/>
-  <check_box label="Windlight" name="windlight_btn"/>
-  <check_box label="Editor del Agua" name="water_editor_btn"/>
-  <check_box label="Efectos Postprocesado" name="post_process_btn"/>
-  <check_box label="Comprar [CURRENCY]" name="buy_currency_btn"/>
-  <check_box label="Comprar Terreno" name="buy_land_btn"/>
-  <check_box label="Mi Terreno" name="my_land_btn"/>
-  <check_box label="Acerca del Terreno" name="about_land_btn"/>
-  <check_box label="Información de Script" name="script_info_btn"/>
-  <check_box label="Región/Estado" name="about_region_btn"/>
-  <check_box label="Herramientas de Dios" name="god_tools_btn"/>
-  <check_box label="Historial de TP" name="teleport_history_btn"/>
-  <check_box label="Mapa" name="map_btn"/>
-  <check_box label="Mini-Mapa" name="minimap_btn"/>
-  <!-- [RLVa:LF] -->
-  <check_box label="Restricciones RLVa" name="rlv_restrictions_btn"/>
-  <check_box label="Bloqueos RLVa" name="rlv_locks_btn"/>
-  <check_box label="Cadenas RLVa" name="rlv_strings_btn"/>
-  <!-- [/RLVa:LF] -->
-  <check_box label="Pérdida de Memoria" name="memleak_btn"/>
-  <check_box label="Registro de Mensajes" name="message_log_btn"/>
-  <check_box label="Estadísticas" name="stats_btn"/>
-  <check_box label="Consola de Notificaciones" name="notifications_console_btn"/>
-  <check_box label="Consola de Depuración" name="debug_console_btn"/>
-  <check_box label="Consola de Región" name="region_console_btn"/>
-  <check_box label="Temporizadores Rápidos" name="fast_timers_btn"/>
-  <check_box label="Consola de Cuadros" name="frame_console_btn"/>
-  <check_box label="Consola HTTP" name="http_console_btn"/>
-  <check_box label="Consola de Texturas" name="texture_console_btn"/>
-  <check_box label="Consola Categorías Texturas" name="texture_category_console_btn"/>
-  <check_box label="Consola Tamaño Texturas" name="texture_size_console_btn"/>
-  <check_box label="Inventario" name="directory_btn"/>
-  <check_box label="Avatares Predeterminados" name="default_avatars_btn"/>
-  <check_box label="Hacer Vestuario" name="make_outfit_btn"/>
-  <check_box label="Vestuarios" name="outfits_btn"/>
-  <check_box label="Favoritos" name="favs_btn"/>
-  <check_box label="Buzón de Salida" name="outbox_btn"/>
-  <check_box label="Preferencias" name="preferences_btn"/>
-  <check_box label="Configuración Joystick" name="joystick_btn"/>
-  <check_box label="Reemplazo Automático" name="auto_replace_btn"/>
-  <check_box label="Nombre a Mostrar" name="display_name_btn"/>
-  <check_box label="Prueba Flotantes" name="floater_test_btn"/>
-  <check_box label="Editar UI" name="edit_ui_btn"/>
-  <check_box label="Prueba Fuentes" name="font_test_btn"/>
-  <check_box label="Medidor de Lag" name="lag_meter_btn"/>
-  <check_box label="Denunciar Abuso" name="abuse_btn"/>
-  <!-- Singu TODO: Re-implement f1 help.
-  <check_box label="Ayuda" name="help_btn"/>
+	<check_box label="Conmutador Barra de Chat" left="5" name="chat_btn"/>
+	<check_box label="Comunicación c/Menú Lateral" name="communicate_flyout"/>
+	<check_box label="Botón Comunicación" name="communicate_btn"/>
+	<check_box label="Amigos" name="friends_btn"/>
+	<check_box label="Grupos" name="groups_btn"/>
+	<check_box label="Títulos de Grupos" name="group_titles_btn"/>
+	<check_box label="Chat Local" name="chat_history_btn"/>
+	<check_box label="Participantes Activos" name="active_speakers_btn"/>
+	<check_box label="Lista de Ignorados" name="mute_list_btn"/>
+	<check_box label="Lista Negra de Asset" name="black_list_btn"/>
+	<check_box label="Efectos de Voz" name="voice_effects_btn"/>
+	<check_box label="Gestos" name="gestures_btn"/>
+	<check_box label="Balizas" name="beacons_btn"/>
+	<check_box label="Radar" name="radar_list_btn"/>
+	<check_box label="Monitor de Región" name="region_tracker_btn"/>
+	<check_box label="Controles de Cámara" name="camera_controls_btn"/>
+	<check_box label="Controles de Movimiento" name="movement_controls_btn"/>
+	<check_box label="Vista Subjetiva" name="look_btn"/>
+	<check_box label="Volar" name="fly_btn"/>
+	<check_box label="Sentarse" name="sit_btn"/>
+	<check_box label="Correr" name="run_btn"/>
+	<check_box label="Velocidad" name="velocity_btn"/>
+	<check_box label="Golpes" name="bumps_btn"/>
+	<check_box label="Información de Audio" name="media_ticker_btn"/>
+	<check_box label="Filtro de Media" name="media_filter_btn"/>
+	<check_box label="Foto" name="snapshot_btn"/>
+	<check_box label="Apariencia" name="appearance_btn"/>
+	<check_box label="Buscar" name="directory_btn"/>
+	<check_box label="Navegador Web" name="web_browser_btn"/>
+	<check_box label="Configuración AO" name="ao_btn"/>
+	<check_box label="Configuración del Depurador" name="debug_settings_btn"/>
+	<check_box label="Texturas del Avatar" name="debug_avatar_btn"/>
+	<check_box label="Explorador de Animaciones" name="anims_explorer_btn"/>
+	<check_box label="Explorador de Sonidos" name="sound_explorer_btn"/>
+	<check_box label="Búsqueda en Área" name="areasearch_btn"/>
+	<check_box label="Examinar" name="inspect_btn"/>
+	<check_box label="Personajes" name="pathing_characters_btn"/>
+	<check_box label="Conjuntos de Enlaces" name="pathing_linksets_btn"/>
+	<check_box label="Construir" name="build_btn"/>
+	<check_box label="Opciones de Grilla" name="grid_options_btn"/>
+	<check_box label="Texturas Locales" name="local_textures_btn"/>
+	<check_box label="Permisos de Subida" name="perm_prefs_btn"/>
+	<check_box label="Errores de Script" name="script_errors_btn"/>
+	<check_box label="Editor de Entorno" name="env_editor_btn"/>
+	<check_box label="Editor del Ciclo Diario" name="day_cycle_editor_btn"/>
+	<check_box label="Windlight" name="windlight_btn"/>
+	<check_box label="Editor del Agua" name="water_editor_btn"/>
+	<check_box label="Efectos Postprocesado" name="post_process_btn"/>
+	<check_box label="Comprar [CURRENCY]" name="buy_currency_btn"/>
+	<check_box label="Comprar Terreno" name="buy_land_btn"/>
+	<check_box label="Mi Terreno" name="my_land_btn"/>
+	<check_box label="Acerca del Terreno" name="about_land_btn"/>
+	<check_box label="Información de Script" name="script_info_btn"/>
+	<check_box label="Región/Estado" name="about_region_btn"/>
+	<check_box label="Herramientas de Dios" name="god_tools_btn"/>
+	<check_box label="Historial de TP" name="teleport_history_btn"/>
+	<check_box label="Mapa" name="map_btn"/>
+	<check_box label="Mini-Mapa" name="minimap_btn"/>
+	<!-- [RLVa:LF] -->
+	<check_box label="Restricciones RLVa" name="rlv_restrictions_btn"/>
+	<check_box label="Bloqueos RLVa" name="rlv_locks_btn"/>
+	<check_box label="Cadenas RLVa" name="rlv_strings_btn"/>
+	<!-- [/RLVa:LF] -->
+	<check_box label="Pérdida de Memoria" name="memleak_btn"/>
+	<check_box label="Registro de Mensajes" name="message_log_btn"/>
+	<check_box label="Estadísticas" name="stats_btn"/>
+	<check_box label="Consola de Notificaciones" name="notifications_console_btn"/>
+	<check_box label="Consola de Depuración" name="debug_console_btn"/>
+	<check_box label="Consola de Región" name="region_console_btn"/>
+	<check_box label="Temporizadores Rápidos" name="fast_timers_btn"/>
+	<check_box label="Consola de Cuadros" name="frame_console_btn"/>
+	<check_box label="Consola HTTP" name="http_console_btn"/>
+	<check_box label="Consola de Texturas" name="texture_console_btn"/>
+	<check_box label="Consola Categorías Texturas" name="texture_category_console_btn"/>
+	<check_box label="Consola Tamaño Texturas" name="texture_size_console_btn"/>
+	<check_box label="Inventario" name="directory_btn"/>
+	<check_box label="Avatares Predeterminados" name="default_avatars_btn"/>
+	<check_box label="Hacer Vestuario" name="make_outfit_btn"/>
+	<check_box label="Vestuarios" name="outfits_btn"/>
+	<check_box label="Favoritos" name="favs_btn"/>
+	<check_box label="Ítems Recibidos" name="received_items_btn"/>
+	<check_box label="Artículos del Mercado" name="marketplace_listings_btn"/>
+	<check_box label="Mercado" name="marketplace_btn"/>
+	<check_box label="Preferencias" name="preferences_btn"/>
+	<check_box label="Configuración Joystick" name="joystick_btn"/>
+	<check_box label="Reemplazo Automático" name="auto_replace_btn"/>
+	<check_box label="Nombre a Mostrar" name="display_name_btn"/>
+	<check_box label="Prueba Flotantes" name="floater_test_btn"/>
+	<check_box label="Editar UI" name="edit_ui_btn"/>
+	<check_box label="Prueba Fuentes" name="font_test_btn"/>
+	<check_box label="Denunciar Abuso" name="abuse_btn"/>
+	<!-- Singu TODO: Re-implement f1 help.
+	<check_box label="Ayuda" name="help_btn"/>
   -->
-  <check_box label="Tutorial" name="tutorial_btn"/>
-  <check_box label="Acerca de [SHORT_APP_NAME]" name="about_btn"/>
-  <check_box label="Salir" name="quit_btn"/>
-  <check_box label="Configurar Botones" name="change_buttons_btn"/>
+	<check_box label="Tutorial" name="tutorial_btn"/>
+	<check_box label="Acerca de [SHORT_APP_NAME]" name="about_btn"/>
+	<check_box label="Salir" name="quit_btn"/>
+	<check_box label="Configurar Botones" name="change_buttons_btn"/>
 </floater>

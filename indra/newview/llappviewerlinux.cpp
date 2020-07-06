@@ -119,7 +119,6 @@ int main( int argc, char **argv )
 	}
 	delete viewer_app_ptr;
 	viewer_app_ptr = NULL;
-
 	return 0;
 }
 
@@ -143,20 +142,12 @@ bool LLAppViewerLinux::init()
 	
 	bool success = LLAppViewer::init();
 
-#if LL_SEND_CRASH_REPORTS
-    if (success)
-    {
-        LLAppViewer* pApp = LLAppViewer::instance();
-        pApp->initCrashReporting();
-    }
-#endif
-
 	return success;
 }
 
 bool LLAppViewerLinux::restoreErrorTrap()
 {
-	// *NOTE:Mani there is a case for implementing this or the mac.
+	// *NOTE:Mani there is a case for implementing this on the mac.
 	// Linux doesn't need it to my knowledge.
 	return true;
 }
@@ -347,12 +338,6 @@ bool LLAppViewerLinux::sendURLToOtherInstance(const std::string& url)
 }
 #endif // LL_DBUS_ENABLED
 
-void LLAppViewerLinux::initCrashReporting(bool reportFreeze)
-{
-	// Singu Note: this is where original code forks crash logger process.
-	// Singularity doesn't need it
-}
-
 bool LLAppViewerLinux::beingDebugged()
 {
 	static enum {unknown, no, yes} debugged = unknown;
@@ -397,7 +382,7 @@ bool LLAppViewerLinux::beingDebugged()
 #endif
 }
 
-bool LLAppViewerLinux::initLogging()
+void LLAppViewerLinux::initLoggingAndGetLastDuration()
 {
 	// Remove the last stack trace, if any
 	// This file is no longer created, since the move to Google Breakpad
@@ -406,7 +391,7 @@ bool LLAppViewerLinux::initLogging()
 		gDirUtilp->getExpandedFilename(LL_PATH_LOGS,"stack_trace.log");
 	LLFile::remove(old_stack_file);
 
-	return LLAppViewer::initLogging();
+	LLAppViewer::initLoggingAndGetLastDuration();
 }
 
 bool LLAppViewerLinux::initParseCommandLine(LLCommandLineParser& clp)

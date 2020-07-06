@@ -181,12 +181,18 @@ public:
         {
            mNotifyCallback(*value);
         }
-
     }
-	virtual bool is_required(void) const
-	{
-		return mIsRequired;
-	}
+
+    virtual bool is_required(void) const
+    {
+        return mIsRequired;
+    }
+
+    virtual bool adjacent_tokens_only() const
+    {
+        return false;
+    }
+
 protected:
     void xparse(boost::any& value_store,
          const std::vector<std::string>& new_tokens) const
@@ -287,19 +293,19 @@ bool LLCommandLineParser::parseAndStoreResults(po::command_line_parser& clp)
         po::basic_parsed_options<char> opts = clp.run();
         po::store(opts, gVariableMap);
     }
-    catch(po::error& e)
+    catch (const po::error& e)
     {
         LL_WARNS() << "Caught Error:" << e.what() << LL_ENDL;
 		mErrorMsg = e.what();
         return false;
     }
-    catch(LLCLPError& e)
+    catch (const LLCLPError& e)
     {
         LL_WARNS() << "Caught Error:" << e.what() << LL_ENDL;
 		mErrorMsg = e.what();
         return false;
     }
-    catch(LLCLPLastOption&) 
+    catch (const LLCLPLastOption&)
     {
 		// This exception means a token was read after an option 
 		// that must be the last option was reached (see url and slurl options)
@@ -348,18 +354,58 @@ bool LLCommandLineParser::parseCommandLine(int argc, char **argv)
     return parseAndStoreResults(clp);
 }
 
+// TODO:
+// - Break out this funky parsing logic into separate method
+// - Unit-test it with tests like LLStringUtil::getTokens() (the command-line
+//   overload that supports quoted tokens)
+// - Unless this logic offers significant semantic benefits, replace it with
+//   LLStringUtil::getTokens(). This would fix a known bug: you cannot --set a
+//   string-valued variable to the empty string, because empty strings are
+//   eliminated below.
+
 bool LLCommandLineParser::parseCommandLineString(const std::string& str)
 {
+    std::string cmd_line_string("");
+    if (!str.empty())
+    {
+        bool add_last_c = true;
+        S32 last_c_pos = str.size() - 1; //don't get out of bounds on pos+1, last char will be processed separately
+        for (S32 pos = 0; pos < last_c_pos; ++pos)
+        {
+            cmd_line_string.append(&str[pos], 1);
+            if (str[pos] == '\\')
+            {
+                cmd_line_string.append("\\", 1);
+                if (str[pos + 1] == '\\')
+                {
+                    ++pos;
+                    add_last_c = (pos != last_c_pos);
+                }
+            }
+        }
+        if (add_last_c)
+        {
+            cmd_line_string.append(&str[last_c_pos], 1);
+            if (str[last_c_pos] == '\\')
+            {
+                cmd_line_string.append("\\", 1);
+            }
+        }
+    }
+
     // Split the string content into tokens
-    boost::escaped_list_separator<char> sep("\\", "\r\n ", "\"'");
-    boost::tokenizer< boost::escaped_list_separator<char> > tok(str, sep);
+    const char* escape_chars = "\\";
+    const char* separator_chars = "\r\n ";
+    const char* quote_chars = "\"'";
+    boost::escaped_list_separator<char> sep(escape_chars, separator_chars, quote_chars);
+    boost::tokenizer< boost::escaped_list_separator<char> > tok(cmd_line_string, sep);
     std::vector<std::string> tokens;
     // std::copy(tok.begin(), tok.end(), std::back_inserter(tokens));
     for(boost::tokenizer< boost::escaped_list_separator<char> >::iterator i = tok.begin();
         i != tok.end();
         ++i)
     {
-        if(0 != i->size())
+        if(!i->empty())
         {
             tokens.push_back(*i);
         }
@@ -380,20 +426,28 @@ bool LLCommandLineParser::parseCommandLineFile(const std::basic_istream < char >
 
 void LLCommandLineParser::notify()
 {
-    po::notify(gVariableMap);    
+    try
+    {
+        po::notify(gVariableMap);
+    }
+    catch (const LLCLPError& e)
+    {
+        LL_WARNS() << "Caught Error: " << e.what() << LL_ENDL;
+        mErrorMsg = e.what();
+    }
 }
 
 void LLCommandLineParser::printOptions() const
 {
-    for(po::variables_map::iterator i = gVariableMap.begin(); i != gVariableMap.end(); ++i)
+    for (auto& i : gVariableMap)
     {
-        std::string name = i->first;
-        token_vector_t values = i->second.as<token_vector_t>();
+        std::string name = i.first;
+        token_vector_t values = i.second.as<token_vector_t>();
         std::ostringstream oss;
         oss << name << ": ";
-        for(token_vector_t::iterator t_itr = values.begin(); t_itr != values.end(); ++t_itr)
+        for (auto& value : values)
         {
-            oss << t_itr->c_str() << " ";
+            oss << value.c_str() << " ";
         }
         LL_INFOS() << oss.str() << LL_ENDL;
     }

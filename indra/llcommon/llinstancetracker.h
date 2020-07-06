@@ -28,7 +28,7 @@
 #ifndef LL_LLINSTANCETRACKER_H
 #define LL_LLINSTANCETRACKER_H
 
-#include <map>
+#include <boost/unordered_map.hpp>
 #include <typeinfo>
 
 #include "llstringtable.h"
@@ -89,8 +89,7 @@ template<typename T, typename KEY = T*>
 class LLInstanceTracker : public LLInstanceTrackerBase
 {
 	typedef LLInstanceTracker<T, KEY> MyT;
-	typedef typename std::map<KEY, T*> InstanceMap;
-	typedef typename InstanceMap::iterator::difference_type difference_type;
+	typedef typename boost::unordered_map<KEY, T*> InstanceMap;
 	struct StaticData: public StaticBase
 	{
 		InstanceMap sMap;
@@ -121,10 +120,6 @@ public:
 
 		void increment() { mIterator++; }
 		void decrement() { --mIterator; }
-		difference_type distance_to(instance_iter const& other) const
-		{
-			return std::distance(mIterator, other.mIterator);
-		}
 		bool equal(instance_iter const& other) const
 		{
 			return mIterator == other.mIterator;
@@ -166,10 +161,6 @@ public:
 
 		void increment() { mIterator++; }
 		void decrement() { --mIterator; }
-		difference_type distance_to(instance_iter const& other) const
-		{
-			return std::distance(mIterator, other.mIterator);
-		}
 		bool equal(key_iter const& other) const
 		{
 			return mIterator == other.mIterator;

@@ -416,12 +416,17 @@ U32 LLInventoryItem::getCRC32() const
 	return crc;
 }
 
+// static
+void LLInventoryItem::correctInventoryDescription(std::string& desc)
+{
+	LLStringUtil::replaceNonstandardASCII(desc, ' ');
+	LLStringUtil::replaceChar(desc, '|', ' ');
+}
 
 void LLInventoryItem::setDescription(const std::string& d)
 {
 	std::string new_desc(d);
-	LLStringUtil::replaceNonstandardASCII(new_desc, ' ');
-	LLStringUtil::replaceChar(new_desc, '|', ' ');
+	LLInventoryItem::correctInventoryDescription(new_desc);
 	if( new_desc != mDescription )
 	{
 		mDescription = new_desc;
@@ -831,7 +836,7 @@ BOOL LLInventoryItem::importLegacyStream(std::istream& input_stream)
 		}
 		else if(0 == strcmp("permissions", keyword))
 		{
-			success = mPermissions.importStream(input_stream);
+			success = mPermissions.importLegacyStream(input_stream);
 		}
 		else if(0 == strcmp("sale_info", keyword))
 		{
@@ -841,7 +846,7 @@ BOOL LLInventoryItem::importLegacyStream(std::istream& input_stream)
 			// should pick up the vast majority of the tasks.
 			BOOL has_perm_mask = FALSE;
 			U32 perm_mask = 0;
-			success = mSaleInfo.importStream(input_stream, has_perm_mask, perm_mask);
+			success = mSaleInfo.importLegacyStream(input_stream, has_perm_mask, perm_mask);
 			if(has_perm_mask)
 			{
 				if(perm_mask == PERM_NONE)
@@ -957,7 +962,7 @@ BOOL LLInventoryItem::exportLegacyStream(std::ostream& output_stream, BOOL inclu
 	output_stream << "\t\titem_id\t" << uuid_str << "\n";
 	mParentUUID.toString(uuid_str);
 	output_stream << "\t\tparent_id\t" << uuid_str << "\n";
-	mPermissions.exportStream(output_stream);
+	mPermissions.exportLegacyStream(output_stream);
 
 	// Check for permissions to see the asset id, and if so write it
 	// out as an asset id. Otherwise, apply our cheesy encryption.
@@ -991,7 +996,7 @@ BOOL LLInventoryItem::exportLegacyStream(std::ostream& output_stream, BOOL inclu
 	std::string buffer;
 	buffer = llformat( "\t\tflags\t%08x\n", mFlags);
 	output_stream << buffer;
-	mSaleInfo.exportStream(output_stream);
+	mSaleInfo.exportLegacyStream(output_stream);
 	output_stream << "\t\tname\t" << mName.c_str() << "|\n";
 	output_stream << "\t\tdesc\t" << mDescription.c_str() << "|\n";
 	output_stream << "\t\tcreation_date\t" << mCreationDate << "\n";
@@ -1041,12 +1046,12 @@ void LLInventoryItem::asLLSD( LLSD& sd ) const
 	sd[INV_CREATION_DATE_LABEL] = (S32) mCreationDate;
 }
 
-LLFastTimer::DeclareTimer FTM_INVENTORY_SD_DESERIALIZE("Inventory SD Deserialize");
+LLTrace::BlockTimerStatHandle FTM_INVENTORY_SD_DESERIALIZE("Inventory SD Deserialize");
 
 bool LLInventoryItem::fromLLSD(const LLSD& sd, bool is_new)
 {
 
-	LLFastTimer _(FTM_INVENTORY_SD_DESERIALIZE);
+	LL_RECORD_BLOCK_TIME(FTM_INVENTORY_SD_DESERIALIZE);
 	if (is_new)
 	{
 		// If we're adding LLSD to an existing object, need avoid
@@ -1160,13 +1165,15 @@ bool LLInventoryItem::fromLLSD(const LLSD& sd, bool is_new)
 		// mType, these are the two asset types that are IT_WEARABLE:
 		static U32 AT_BODYPART = 13;	// LLAssetType::AT_BODYPART
 		// Viewer local values:
-		static U32 WT_UNKNOWN = 16;		// LLWearableType::WT_UNKNOWN
-		static U32 WT_COUNT = 17;		// LLWearableType::WT_COUNT
+		static U32 WT_UNKNOWN = 17;		// LLWearableType::WT_UNKNOWN
+		static U32 WT_COUNT = 18;		// LLWearableType::WT_COUNT
+										// Keep WT_UNKNOWN and WT_COUNT
+										// in sync with llwearabletype.h
 		// The last 8 bits of mFlags contain the wearable type.
-		static U32 II_FLAGS_WEARABLES_MASK = 0xff;	// LLInventoryItemFlags::II_FLAGS_WEARABLES_MASK
+		static U32 II_FLAGS_SUBTYPE_MASK = 0xff;	// LLInventoryItemFlags::II_FLAGS_SUBTYPE_MASK
 
 		// The wearable type is stored in the lower 8 bits of mFlags.
-		U32 wt = mFlags & II_FLAGS_WEARABLES_MASK;
+		U32 wt = mFlags & II_FLAGS_SUBTYPE_MASK;
 
 		// Because WT_UNKNOWN now has locally a special meaning, make sure we don't receive it from the server.
 		if (wt == WT_UNKNOWN)
@@ -1309,11 +1316,11 @@ void LLInventoryItem::unpackBinaryBucket(U8* bin_bucket, S32 bin_bucket_size)
 	setUUID(item_id);
 
 	LLAssetType::EType type;
-	type = (LLAssetType::EType)(atoi((*(iter++)).c_str()));
+	type = static_cast<LLAssetType::EType>(std::stoi((*(iter++))));
 	setType( type );
 	
 	LLInventoryType::EType inv_type;
-	inv_type = (LLInventoryType::EType)(atoi((*(iter++)).c_str()));
+	inv_type = static_cast<LLInventoryType::EType>(std::stoi((*(iter++))));
 	setInventoryType( inv_type );
 
 	std::string name((*(iter++)).c_str());
@@ -1341,8 +1348,8 @@ void LLInventoryItem::unpackBinaryBucket(U8* bin_bucket, S32 bin_bucket_size)
 	setDescription(desc);
 	
 	LLSaleInfo::EForSale sale_type;
-	sale_type = (LLSaleInfo::EForSale)(atoi((*(iter++)).c_str()));
-	S32 price = atoi((*(iter++)).c_str());
+	sale_type = static_cast<LLSaleInfo::EForSale>(std::stoi((*(iter++))));
+	S32 price = std::stoi(*(iter++));
 	LLSaleInfo sale_info(sale_type, price);
 	setSaleInfo(sale_info);
 	
@@ -1411,6 +1418,10 @@ LLSD LLInventoryCategory::asLLSD() const
     return sd;
 }
 
+bool LLInventoryCategory::isPreferredTypeRoot() const
+{
+	return (mPreferredType == LLFolderType::FT_ROOT_INVENTORY || mPreferredType == 9);
+}
 
 // virtual
 void LLInventoryCategory::packMessage(LLMessageSystem* msg) const

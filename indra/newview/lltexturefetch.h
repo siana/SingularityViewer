@@ -43,6 +43,7 @@
 #include "lltextureinfo.h"
 #include "llapr.h"
 #include "llstat.h"
+#include "llviewertexture.h"
 
 class LLViewerTexture;
 class LLTextureFetchWorker;
@@ -68,7 +69,7 @@ public:
 	void shutDownTextureCacheThread() ; //called in the main thread after the TextureCacheThread shuts down.
 	void shutDownImageDecodeThread() ;  //called in the main thread after the ImageDecodeThread shuts down.
 
-	bool createRequest(const std::string& url, const LLUUID& id, const LLHost& host, F32 priority,
+	bool createRequest(FTType f_type, const std::string& url, const LLUUID& id, const LLHost& host, F32 priority,
 					   S32 w, S32 h, S32 c, S32 discard, bool needs_aux, bool can_use_http);
 	void deleteRequest(const LLUUID& id, bool cancel);
 	void deleteAllRequests();
@@ -162,10 +163,10 @@ private:
 	map_t mRequestMap;
 
 	// Set of requests that require network data
-	typedef std::set<LLUUID> queue_t;
+	typedef uuid_set_t queue_t;
 	queue_t mNetworkQueue;
 	queue_t mHTTPTextureQueue;
-	typedef std::map<LLHost,std::set<LLUUID> > cancel_queue_t;
+	typedef std::map<LLHost,uuid_set_t > cancel_queue_t;
 	cancel_queue_t mCancelQueue;
 	LLTextureInfo mTextureInfo;
 
@@ -176,7 +177,7 @@ private:
 	// is logically tied to LLQueuedThread's list of
 	// QueuedRequest instances and so must be covered by the
 	// same locks.
-	typedef std::vector<TFRequest *> command_queue_t;
+	typedef std::deque<TFRequest *> command_queue_t;
 	command_queue_t mCommands;
 
 	// If true, modifies some behaviors that help with QA tasks.

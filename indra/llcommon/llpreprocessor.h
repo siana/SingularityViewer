@@ -109,9 +109,9 @@
 
 #endif
 
-// Check for C++11 support
-#if __cplusplus >= 201100L || _MSC_VER >= 1800
-#  define LL_CPP11
+// Require C++11 support
+#if __cplusplus < 201100L && _MSC_VER < 1800
+#error C++11 support is required to build this project.
 #endif
 
 #if LL_WINDOWS
@@ -211,11 +211,7 @@
 #endif
 #endif
 
-#if defined(LL_WINDOWS) || __cplusplus >= 201103L
-#  define LL_TYPEOF(exp) decltype(exp)
-#else
-#  define LL_TYPEOF(exp) typeof(exp)
-#endif
+#define LL_TYPEOF(exp) decltype(exp)
 
 #define LL_TO_STRING_HELPER(x) #x
 #define LL_TO_STRING(x) LL_TO_STRING_HELPER(x)
@@ -226,8 +222,8 @@
 #if LL_WINDOWS
 #define LL_COMPILE_TIME_MESSAGE(msg) __pragma(message(LL_FILE_LINENO_MSG(msg)))
 #else
-// no way to get gcc 4.2 to print a user-defined diagnostic message only when a macro is used
-#define LL_COMPILE_TIME_MESSAGE(msg)
+#define PRAGMA_MSG(x) _Pragma(#x)
+#define LL_COMPILE_TIME_MESSAGE(msg) PRAGMA_MSG(message msg)
 #endif
 
 #endif	//	not LL_LINDEN_PREPROCESSOR_H

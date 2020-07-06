@@ -110,7 +110,7 @@ LLViewerAssetStats::PerRegionStats::reset()
 	}
 	mFPS.reset();
 	
-	mTotalTime = 0;
+	mTotalTime = U64Microseconds(0);
 	mStartTimestamp = LLViewerAssetStatsFF::get_timestamp();
 }
 
@@ -315,9 +315,9 @@ LLViewerAssetStats::asLLSD(bool compact_output)
 				slot[enq_tag] = LLSD(S32(stats.mRequests[i].mEnqueued.getCount()));
 				slot[deq_tag] = LLSD(S32(stats.mRequests[i].mDequeued.getCount()));
 				slot[rcnt_tag] = LLSD(S32(stats.mRequests[i].mResponse.getCount()));
-				slot[rmin_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMin() * 1.0e-6));
-				slot[rmax_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMax() * 1.0e-6));
-				slot[rmean_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMean() * 1.0e-6));
+				slot[rmin_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMin().valueInUnits<LLUnits::Seconds>()));
+				slot[rmax_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMax().valueInUnits<LLUnits::Seconds>()));
+				slot[rmean_tag] = LLSD(F64(stats.mRequests[i].mResponse.getMean().valueInUnits<LLUnits::Seconds>()));
 			}
 		}
 
@@ -334,13 +334,13 @@ LLViewerAssetStats::asLLSD(bool compact_output)
 		grid_from_region_handle(it->first, &grid_x, &grid_y);
 		reg_stat["grid_x"] = LLSD::Integer(grid_x);
 		reg_stat["grid_y"] = LLSD::Integer(grid_y);
-		reg_stat["duration"] = LLSD::Real(stats.mTotalTime * 1.0e-6);		
+		reg_stat["duration"] = LLSD::Real(stats.mTotalTime.valueInUnits<LLUnits::Seconds>());		
 		regions.append(reg_stat);
 	}
 
 	LLSD ret = LLSD::emptyMap();
 	ret["regions"] = regions;
-	ret["duration"] = LLSD::Real((now - mResetTimestamp) * 1.0e-6);
+	ret["duration"] = LLSD::Real((now - mResetTimestamp).valueInUnits<LLUnits::Seconds>());
 	
 	return ret;
 }
@@ -524,88 +524,31 @@ asset_type_to_category(const LLViewerAssetType::EType at, bool with_http, bool i
 	//  - gestures
 	//  - everything else.
 	//
-	llassert_always(50 == LLViewerAssetType::AT_COUNT);
 
 	// Multiple asset definitions are floating around so this requires some
 	// maintenance and attention.
-	static const LLViewerAssetStats::EViewerAssetCategories asset_to_bin_map[LLViewerAssetType::AT_COUNT] =
-		{
-			LLViewerAssetStats::EVACTextureTempHTTPGet,			// (0) AT_TEXTURE
-			LLViewerAssetStats::EVACSoundUDPGet,				// AT_SOUND
-			LLViewerAssetStats::EVACOtherGet,					// AT_CALLINGCARD
-			LLViewerAssetStats::EVACOtherGet,					// AT_LANDMARK
-			LLViewerAssetStats::EVACOtherGet,					// AT_SCRIPT
-			LLViewerAssetStats::EVACWearableUDPGet,				// AT_CLOTHING
-			LLViewerAssetStats::EVACOtherGet,					// AT_OBJECT
-			LLViewerAssetStats::EVACOtherGet,					// AT_NOTECARD
-			LLViewerAssetStats::EVACOtherGet,					// AT_CATEGORY
-			LLViewerAssetStats::EVACOtherGet,					// AT_ROOT_CATEGORY
-			LLViewerAssetStats::EVACOtherGet,					// (10) AT_LSL_TEXT
-			LLViewerAssetStats::EVACOtherGet,					// AT_LSL_BYTECODE
-			LLViewerAssetStats::EVACOtherGet,					// AT_TEXTURE_TGA
-			LLViewerAssetStats::EVACWearableUDPGet,				// AT_BODYPART
-			LLViewerAssetStats::EVACOtherGet,					// AT_TRASH
-			LLViewerAssetStats::EVACOtherGet,					// AT_SNAPSHOT_CATEGORY
-			LLViewerAssetStats::EVACOtherGet,					// AT_LOST_AND_FOUND
-			LLViewerAssetStats::EVACSoundUDPGet,				// AT_SOUND_WAV
-			LLViewerAssetStats::EVACOtherGet,					// AT_IMAGE_TGA
-			LLViewerAssetStats::EVACOtherGet,					// AT_IMAGE_JPEG
-			LLViewerAssetStats::EVACGestureUDPGet,				// (20) AT_ANIMATION
-			LLViewerAssetStats::EVACGestureUDPGet,				// AT_GESTURE
-			LLViewerAssetStats::EVACOtherGet,					// AT_SIMSTATE
-			LLViewerAssetStats::EVACOtherGet,					// AT_FAVORITE
-			LLViewerAssetStats::EVACOtherGet,					// AT_LINK
-			LLViewerAssetStats::EVACOtherGet,					// AT_LINK_FOLDER
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// (30)
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// (40)
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					//
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// 
-			LLViewerAssetStats::EVACOtherGet,					// AT_MESH
-																// (50)
-		};
-	
-	if (at < 0 || at >= LLViewerAssetType::AT_COUNT)
+	switch (at)
 	{
+	case LLAssetType::AT_TEXTURE:
+		return is_temp ? with_http ? LLViewerAssetStats::EVACTextureTempHTTPGet : LLViewerAssetStats::EVACTextureTempUDPGet
+			: with_http ? LLViewerAssetStats::EVACTextureTempHTTPGet : LLViewerAssetStats::EVACTextureNonTempUDPGet;
+		break;
+	case LLAssetType::AT_SOUND:
+	case LLAssetType::AT_SOUND_WAV:
+		return LLViewerAssetStats::EVACSoundUDPGet;
+		break;
+	case LLAssetType::AT_CLOTHING:
+	case LLAssetType::AT_BODYPART:
+		return LLViewerAssetStats::EVACWearableUDPGet;
+		break;
+	case LLAssetType::AT_ANIMATION:
+	case LLAssetType::AT_GESTURE:
+		return LLViewerAssetStats::EVACGestureUDPGet;
+		break;
+	case LLAssetType::AT_LANDMARK:
+	default:
 		return LLViewerAssetStats::EVACOtherGet;
+		break;
 	}
-	LLViewerAssetStats::EViewerAssetCategories ret(asset_to_bin_map[at]);
-	if (LLViewerAssetStats::EVACTextureTempHTTPGet == ret)
-	{
-		// Indexed with [is_temp][with_http]
-		static const LLViewerAssetStats::EViewerAssetCategories texture_bin_map[2][2] =
-			{
-				{
-					LLViewerAssetStats::EVACTextureNonTempUDPGet,
-					LLViewerAssetStats::EVACTextureNonTempHTTPGet,
-				},
-				{
-					LLViewerAssetStats::EVACTextureTempUDPGet,
-					LLViewerAssetStats::EVACTextureTempHTTPGet,
-				}
-			};
-
-		ret = texture_bin_map[is_temp][with_http];
-	}
-	return ret;
 }
-
 } // anonymous namespace

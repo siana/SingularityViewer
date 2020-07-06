@@ -70,7 +70,7 @@ void LLCallbackList::addFunction( callback_t func, void *data)
 }
 
 
-BOOL LLCallbackList::containsFunction( callback_t func, void *data)
+bool LLCallbackList::containsFunction( callback_t func, void *data)
 {
 	callback_pair_t t(func, data);
 	callback_list_t::iterator iter = std::find(mCallbackList.begin(), mCallbackList.end(), t);
@@ -85,7 +85,7 @@ BOOL LLCallbackList::containsFunction( callback_t func, void *data)
 }
 
 
-BOOL LLCallbackList::deleteFunction( callback_t func, void *data)
+bool LLCallbackList::deleteFunction( callback_t func, void *data)
 {
 	callback_pair_t t(func, data);
 	callback_list_t::iterator iter = std::find(mCallbackList.begin(), mCallbackList.end(), t);

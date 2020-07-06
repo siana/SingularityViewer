@@ -37,18 +37,12 @@ class AORemoteCtrl : public LLPanel
 {
 public:
 	AORemoteCtrl();
-	virtual ~AORemoteCtrl();
-	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void draw();
+	BOOL postBuild() override;
 
 private:
 
 	void build();
-
-	static void onClickToggleAO(void* data);
-	static void onClickToggleAOSit(void* data);
-	static void onClickShowAO(void* data);
-	static void onClickPopupBtn(void* data);
+	void onClickPopupBtn();
 };
 
 #endif // AOREMOTECTRL_H

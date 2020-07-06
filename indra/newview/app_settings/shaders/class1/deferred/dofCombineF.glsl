@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
 
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -31,34 +31,34 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-uniform sampler2DRect diffuseRect;
-uniform sampler2DRect lightMap;
+uniform sampler2D diffuseRect;
+uniform sampler2D lightMap;
 
 uniform mat4 inv_proj;
-uniform vec2 screen_res;
 
 uniform float max_cof;
 uniform float res_scale;
 uniform float dof_width;
 uniform float dof_height;
+uniform vec2 kern_scale;
 
 VARYING vec2 vary_fragcoord;
 
-vec4 dofSample(sampler2DRect tex, vec2 tc)
+vec4 dofSample(sampler2D tex, vec2 tc)
 {
 	tc.x = min(tc.x, dof_width);
 	tc.y = min(tc.y, dof_height);
 
-	return texture2DRect(tex, tc);
+	return texture2D(tex, tc);
 }
 
 void main() 
 {
-	vec2 tc = vary_fragcoord.xy;
+	vec2 tc = vary_fragcoord.xy * res_scale;
 	
-	vec4 dof = dofSample(diffuseRect, vary_fragcoord.xy*res_scale);
+	vec4 dof = dofSample(diffuseRect, tc);
 	
-	vec4 diff = texture2DRect(lightMap, vary_fragcoord.xy);
+	vec4 diff = texture2D(lightMap, vary_fragcoord.xy);
 
 	float a = min(abs(diff.a*2.0-1.0) * max_cof*res_scale*res_scale, 1.0);
 
@@ -67,10 +67,10 @@ void main()
 		float sc = a/res_scale;
 		
 		vec4 col;
-		col = texture2DRect(lightMap, vary_fragcoord.xy+vec2(sc,sc));
-		col += texture2DRect(lightMap, vary_fragcoord.xy+vec2(-sc,sc));
-		col += texture2DRect(lightMap, vary_fragcoord.xy+vec2(sc,-sc));
-		col += texture2DRect(lightMap, vary_fragcoord.xy+vec2(-sc,-sc));
+		col = texture2D(lightMap, vary_fragcoord.xy+vec2(sc,sc)*kern_scale);
+		col += texture2D(lightMap, vary_fragcoord.xy+vec2(-sc,sc)*kern_scale);
+		col += texture2D(lightMap, vary_fragcoord.xy+vec2(sc,-sc)*kern_scale);
+		col += texture2D(lightMap, vary_fragcoord.xy+vec2(-sc,-sc)*kern_scale);
 		
 		diff = mix(diff, col*0.25, a);
 	}

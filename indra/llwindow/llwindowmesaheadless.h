@@ -35,7 +35,7 @@
 class LLWindowMesaHeadless : public LLWindow
 {
 public:
-	/*virtual*/ void show() {};
+	/*virtual*/ void show(bool) {};
 	/*virtual*/ void hide() {};
 	/*virtual*/ void close() {};
 	/*virtual*/ BOOL getVisible() {return FALSE;};
@@ -51,7 +51,7 @@ public:
 	/*virtual*/ BOOL setPosition(LLCoordScreen position) {return FALSE;};
 	/*virtual*/ BOOL setSizeImpl(LLCoordScreen size) {return FALSE;};
 	/*virtual*/ BOOL setSizeImpl(LLCoordWindow size) {return FALSE;};	
-	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, const LLCoordScreen * const posp = NULL) {return FALSE;};
+	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, std::function<void()> stopFn, std::function<void(bool)> restoreFn, const LLCoordScreen * const posp = NULL) {return FALSE;};
 	/*virtual*/ BOOL setCursorPosition(LLCoordWindow position) {return FALSE;};
 	/*virtual*/ BOOL getCursorPosition(LLCoordWindow *position) {return FALSE;};
 	/*virtual*/ void showCursor() {};

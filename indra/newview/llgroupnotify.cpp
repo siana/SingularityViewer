@@ -36,6 +36,7 @@
 
 #include "llfocusmgr.h"
 
+#include "llavataractions.h"
 #include "llbutton.h"
 #include "lliconctrl.h"
 #include "llfloaterchat.h"	// for add_chat_history()
@@ -94,15 +95,15 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 	mHasInventory(has_inventory),
 	mInventoryOffer(NULL)
 {
-	const S32 VPAD = 2;
-	const S32 TOP = getRect().getHeight() - 32; // Get past the top menu bar
-	const S32 BOTTOM_PAD = VPAD * 2;
-	const S32 BTN_TOP = BOTTOM_PAD + BTN_HEIGHT + VPAD;
-	const S32 RIGHT = getRect().getWidth() - HPAD - HPAD;
-	const S32 LINE_HEIGHT = 16;
+	constexpr S32 PAD = 2;
+	const S32 TOP = getRect().getHeight() - 28; // Get past the top menu bar
+	const S32 BOTTOM_PAD = PAD * 2;
+	const S32 BTN_TOP = BOTTOM_PAD + BTN_HEIGHT + PAD;
+	const S32 RIGHT = getRect().getWidth() - HPAD;
+	constexpr S32 LINE_HEIGHT = 16;
 
-	const S32 LABEL_WIDTH = 64;
-	const S32 ICON_WIDTH = 64;
+	constexpr S32 LABEL_WIDTH = 64;
+	constexpr S32 ICON_WIDTH = 64;
 
   	time_t timestamp = (time_t)time_stamp.secondsSinceEpoch();
  	if (!timestamp) time(&timestamp);
@@ -122,71 +123,75 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 	setBackgroundColor( gColors.getColor("GroupNotifyBoxColor") );
 
 	S32 y = TOP;
-	S32 x = HPAD + HPAD;
+	S32 x = ICON_WIDTH + HPAD + PAD;
 
+	static const auto text_color = gColors.getColor("GroupNotifyTextColor");
 	class NoticeText : public LLTextBox
 	{
 	public:
-		NoticeText(const std::string& name, const LLRect& rect, const std::string& text = LLStringUtil::null, const LLFontGL* font = NULL) 
+		NoticeText(const std::string& name, const LLRect& rect, const std::string& text = LLStringUtil::null, const LLFontGL* font = NULL)
 			: LLTextBox(name, rect, text, font)
 		{
 			setHAlign(LLFontGL::RIGHT);
 			setFontShadow(LLFontGL::DROP_SHADOW_SOFT);
 			setBorderVisible(FALSE);
-			setColor( gColors.getColor("GroupNotifyTextColor") );
-			setBackgroundColor( gColors.getColor("GroupNotifyBoxColor") );
+			setColor(text_color);
+			setBackgroundColor(LLColor4::transparent);
 		}
 	};
 
-	// Title
-	addChild(new NoticeText(std::string("title"),LLRect(x,y,RIGHT - HPAD,y - LINE_HEIGHT),LLTrans::getString("GroupNotifyGroupNotice"),LLFontGL::getFontSansSerifHuge()));
+	static LLStyleSP headerstyle = nullptr;
+	if (!headerstyle)
+	{
+		headerstyle = new LLStyle(true, text_color, LLStringUtil::null);
+		headerstyle->mBold = true;
+	}
+	const auto bottom = y - ICON_WIDTH;
 
-	y -= llfloor(1.5f*LINE_HEIGHT);
+	auto links = new LLTextEditor(std::string("group"), LLRect(x, y + 5, RIGHT, bottom), S32_MAX, LLStringUtil::null, nullptr, false, true); // Top adjustment to line up with icon
+	links->setBorderVisible(FALSE);
+	static const auto header_bg_color = gColors.getColor("GroupNotifyHeaderBGColor");
+	if (header_bg_color[VALPHA]) links->setReadOnlyFgColor(text_color);
+	links->setReadOnlyBgColor(header_bg_color);
+	links->setEnabled(false);
+	links->setTakesNonScrollClicks(TRUE);
+	links->setHideScrollbarForShortDocs(TRUE);
+	links->setWordWrap(TRUE);
 
-	x += HPAD + HPAD + ICON_WIDTH;
+	links->appendText(subject, false, false, headerstyle, false); // This is from a user, do not force replace.
+	links->appendText(time_buf, false, true, nullptr, true);
+	links->appendText(LLTrans::getString("GroupNotifyBy", LLSD().with("NAME", from_name).with("GROUP", group_name)), false, true, nullptr, true);
+	addChild(links);
 
-	std::stringstream from;
-	from << LLTrans::getString("GroupNotifySentBy") << " " + from_name << LLTrans::getString(",") + " " << group_name;
+	x = HPAD;
 
-	addChild(new NoticeText(std::string("group"),LLRect(x,y,RIGHT - HPAD,y - LINE_HEIGHT),from.str(),LLFontGL::getFontSansSerif()));
-	
-	y -= (LINE_HEIGHT + VPAD);
-	x = HPAD + HPAD;
-
-	// TODO: change this to be the group icon.
 	LLIconCtrl* icon = new LLIconCtrl(std::string("icon"),
-						  LLRect(x, y, x+ICON_WIDTH, y-ICON_WIDTH),
-						  group_insignia.isNull() ? "notify_box_icon.tga" : group_insignia.asString());
+						  LLRect(x, y, x+ICON_WIDTH, bottom),
+						  group_insignia.isNull() ? "icon_groupnotice.tga" : group_insignia.asString());
 
 	icon->setMouseOpaque(FALSE);
 	addChild(icon);
 
-	x += HPAD + HPAD + ICON_WIDTH;
+	y = bottom - PAD*2;
+
 	// If we have inventory with this message, leave room for the name.
-	S32 box_bottom = BTN_TOP + (mHasInventory ? (LINE_HEIGHT + 2*VPAD) : 0);
+	S32 box_bottom = BTN_TOP + (mHasInventory ? (LINE_HEIGHT + 2*PAD) : 0);
 
 	LLTextEditor* text = new LLViewerTextEditor(std::string("box"),
 		LLRect(x, y, RIGHT, box_bottom),
 		DB_GROUP_NOTICE_MSG_STR_LEN,
 		LLStringUtil::null,
 		LLFontGL::getFontSansSerif(),
-		FALSE);
+		FALSE,
+		true);
+	text->setBorderVisible(false);
 
-	static const LLStyleSP headerstyle(new LLStyle(true,LLColor4::black,"SansSerifBig"));
-	static const LLStyleSP datestyle(new LLStyle(true,LLColor4::black,"serif"));
+	static const LLStyleSP msgstyle(new LLStyle(true, LLColor4::grey4, LLStringUtil::null));
 
-	text->appendStyledText(subject + "\n",false,false,headerstyle);
-
-	text->appendStyledText(time_buf,false,false,datestyle);
-	// Sadly, our LLTextEditor can't handle both styled and unstyled text
-	// at the same time.  Hence this space must be styled. JC
-	text->appendColoredText(std::string(" "),false,false,LLColor4::grey4);
-	text->setParseHTML(TRUE);
-	text->appendColoredText(std::string("\n\n") + message,false,false,LLColor4::grey4);
+	text->appendText(message, false, false, msgstyle, false);
 
 	LLColor4 semi_transparent(1.0f,1.0f,1.0f,0.8f);
 	text->setCursor(0,0);
-	text->setEnabled(FALSE);
 	text->setWordWrap(TRUE);
 	//text->setTabStop(FALSE); // was interfering with copy-and-paste
 	text->setTabsToNextField(TRUE);
@@ -199,11 +204,11 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 	
 	addChild(text);
 
-	y = box_bottom - VPAD;
+	y = box_bottom - PAD;
 
 	if (mHasInventory)
 	{
-		addChild(new NoticeText(std::string("subjecttitle"),LLRect(x,y,x + LABEL_WIDTH,y - LINE_HEIGHT),LLTrans::getString("GroupNotifyAttached"),LLFontGL::getFontSansSerif()));
+		addChild(new NoticeText(std::string("subjecttitle"), LLRect(x,y,x + LABEL_WIDTH,y - LINE_HEIGHT), LLTrans::getString("GroupNotifyAttached") + ' ', LLFontGL::getFontSansSerif()));
 
 		LLUIImagePtr item_icon = LLInventoryIcon::getIcon(mInventoryOffer->mType,
 												LLInventoryType::IT_TEXTURE,
@@ -243,7 +248,7 @@ LLGroupNotifyBox::LLGroupNotifyBox(const std::string& subject,
 	S32 btn_width = 80;
 	S32 wide_btn_width = 136;
 	LLRect btn_rect;
-	x = 3 * HPAD;
+	x = 2 * HPAD;
 
 	btn_rect.setOriginAndSize(x,
 								BOTTOM_PAD,
@@ -294,7 +299,8 @@ LLGroupNotifyBox::~LLGroupNotifyBox()
 // virtual
 BOOL LLGroupNotifyBox::handleRightMouseDown(S32 x, S32 y, MASK mask)
 {
-	moveToBack();
+	if (!LLPanel::handleRightMouseDown(x, y, mask))
+		moveToBack();
 	return TRUE;
 }
 
@@ -366,10 +372,10 @@ bool LLGroupNotifyBox::onNewNotification(const LLSD& notify)
 
 		gNotifyBoxView->addChild(new LLGroupNotifyBox(payload["subject"].asString(),
 									payload["message"].asString(),
-									payload["sender_name"].asString(), 
+									payload.has("sender_id") ? LLAvatarActions::getSLURL(payload["sender_id"]) : payload["sender_name"].asString(), 
 									payload["group_id"].asUUID(), 
 									group_data.mInsigniaID, 
-									group_data.mName,
+									LLGroupActions::getSLURL(payload["group_id"].asUUID()),
 									notification->getDate(),
 									payload["inventory_offer"].isDefined(),
 									payload["inventory_name"].asString(),

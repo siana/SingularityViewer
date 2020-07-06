@@ -33,10 +33,6 @@
 
 #include "llerror.h"
 
-#include <boost/foreach.hpp>
-#include <boost/signals2.hpp>
-
-
 namespace LLMarketplaceInventoryNotifications
 {
 	typedef boost::signals2::signal<void (const LLSD& param)>	no_copy_payload_cb_signal_t;
@@ -54,7 +50,7 @@ namespace LLMarketplaceInventoryNotifications
 			llassert(!no_copy_payloads.empty());
 			llassert(no_copy_cb_action != NULL);
 			
-			BOOST_FOREACH(const LLSD& payload, no_copy_payloads)
+			for (const LLSD& payload : no_copy_payloads)
 			{
 				(*no_copy_cb_action)(payload);
 			}

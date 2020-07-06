@@ -152,10 +152,6 @@ LLMatrix4::LLMatrix4(const F32 roll, const F32 pitch, const F32 yaw)
 	mMatrix[3][3] = 1.f;
 }
 
-LLMatrix4::~LLMatrix4(void)
-{
-}
-
 // Clear and Assignment Functions
 
 const LLMatrix4& LLMatrix4::setZero()
@@ -272,6 +268,19 @@ const LLMatrix4&	LLMatrix4::invert(void)
 	mMatrix[VX][VW] = mMatrix[VY][VW] = mMatrix[VZ][VW] = 0.0f;
 	
 	return *this;
+}
+
+// Convenience func for simplifying comparison-heavy code by
+// intentionally stomping values in [-FLT_EPS,FLT_EPS] to 0.0f
+//
+void LLMatrix4::condition(void)
+{
+	U32 i;
+	U32 j;
+	for (i = 0; i < 3;i++)
+		for (j = 0; j < 3;j++)
+			mMatrix[i][j] = ((mMatrix[i][j] > -FLT_EPSILON)
+							  && (mMatrix[i][j] < FLT_EPSILON)) ? 0.0f : mMatrix[i][j];
 }
 
 LLVector4 LLMatrix4::getFwdRow4() const

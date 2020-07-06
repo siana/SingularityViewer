@@ -2,7 +2,7 @@
   <array>
 
     <map>
-      <key>default_grids_version</key><string>22</string>
+      <key>default_grids_version</key><string>23</string>
     </map>
 
     <!-- Second Life -->
@@ -11,7 +11,7 @@
       <key>gridname</key><string>Second Life</string>
       <key>platform</key><string>SecondLife</string>
       <key>loginuri</key><string>https://login.agni.lindenlab.com/cgi-bin/login.cgi</string>
-      <key>loginpage</key><string>http://viewer-login.agni.lindenlab.com/</string>
+      <key>loginpage</key><string>https://viewer-splash.secondlife.com/</string>
       <key>helperuri</key><string>https://secondlife.com/helpers/</string>
       <key>website</key><string>http://secondlife.com/</string>
       <key>support</key><string>http://secondlife.com/support/</string>
@@ -26,7 +26,7 @@
       <key>gridnick</key><string>secondlife_beta</string>
       <key>gridname</key><string>Second Life BETA</string>
       <key>helperuri</key><string>http://aditi-secondlife.webdev.lindenlab.com/helpers/</string>
-      <key>loginpage</key><string>http://viewer-login.agni.lindenlab.com/</string>
+      <key>loginpage</key><string>https://viewer-splash.secondlife.com/</string>
       <key>loginuri</key><string>https://login.aditi.lindenlab.com/cgi-bin/login.cgi</string>
       <key>password</key><string>http://secondlife.com/account/request.php</string>
       <key>platform</key><string>SecondLife</string>

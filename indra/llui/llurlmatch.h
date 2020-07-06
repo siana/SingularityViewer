@@ -30,8 +30,6 @@
 
 //#include "linden_common.h"
 
-#include <string>
-#include <vector>
 #include "llstyle.h"
 
 ///
@@ -62,6 +60,9 @@ public:
 	/// return a label that can be used for the display of this Url
 	std::string getLabel() const { return mLabel; }
 
+	/// return a right part of url which should be drawn in grey
+	std::string getQuery() const { return mQuery; }
+
 	/// return a message that could be displayed in a tooltip or status bar
 	std::string getTooltip() const { return mTooltip; }
 
@@ -69,7 +70,7 @@ public:
 	std::string getIcon() const { return mIcon; }
 
 	/// Return the color to render the displayed text
-	//LLStyle::Params getStyle() const { return mStyle; }
+	LLStyleSP getStyle() const { return mStyle; }
 
 	/// Return the name of a XUI file containing the context menu items
 	std::string getMenuName() const { return mMenuName; }
@@ -80,12 +81,15 @@ public:
 	/// Should this link text be underlined only when mouse is hovered over it?
 	bool underlineOnHoverOnly() const { return mUnderlineOnHoverOnly; }
 
+	/// Return true if Url is trusted.
+	bool isTrusted() const { return mTrusted; }
+
 	/// Change the contents of this match object (used by LLUrlRegistry)
 	void setValues(U32 start, U32 end, const std::string &url, const std::string &label,
-	               const std::string &tooltip, const std::string &icon,
-				   /*const LLStyle::Params& style, */const std::string &menu, 
+	               const std::string& query, const std::string &tooltip, const std::string &icon,
+				   const LLStyleSP& style, const std::string &menu, 
 				   const std::string &location, const LLUUID& id,
-				   bool underline_on_hover_only = false );
+				   bool underline_on_hover_only = false, bool trusted = false);
 
 	const LLUUID& getID() const { return mID; }
 private:
@@ -93,13 +97,15 @@ private:
 	U32         mEnd;
 	std::string mUrl;
 	std::string mLabel;
+	std::string mQuery;
 	std::string mTooltip;
 	std::string mIcon;
 	std::string mMenuName;
 	std::string mLocation;
 	LLUUID		mID;
-	//LLStyle::Params mStyle;
+	LLStyleSP mStyle;
 	bool		mUnderlineOnHoverOnly;
+	bool		mTrusted;
 };
 
 #endif

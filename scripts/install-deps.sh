@@ -15,7 +15,7 @@ if [ -f /etc/arch-release ]; then
 	else
 		pacman -S --asdeps ${DEPS}
 	fi
-elif [ -f /etc/lsb-release ]; then
+elif [ -f /etc/lsb-release ] || [ -f /etc/debian_version ]; then
 	$echo -e "\e[1;31mDebian/Ubuntu Linux detected!\e[0m"
 	DEPS="libapr1-dev libaprutil1-dev build-essential libboost-dev libc-ares-dev cmake libcurl4-openssl-dev libdb-dev libdbus-glib-1-dev libexpat1-dev fontconfig libalut-dev libfreetype6-dev libgoogle-perftools-dev libglib2.0-dev libgstreamer-plugins-base0.10-dev libgtk2.0-dev libhunspell-dev libjpeg-turbo8-dev libogg-dev libpng12-dev libvorbis-dev libopenal-dev libssl-dev libpcre3-dev libqtwebkit-dev libsdl1.2-dev"
 	for dep in $DEPS; do

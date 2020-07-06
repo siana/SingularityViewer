@@ -36,7 +36,6 @@
 
 // linden library includes
 #include "llclickaction.h"
-#include "lleconomy.h"
 #include "llerror.h"
 #include "llfontgl.h"
 #include "llflexibleobject.h"
@@ -84,6 +83,8 @@
 #include "llviewercontrol.h"
 #include "llmeshrepository.h"
 
+#include "llvoavatarself.h"
+
 #include <boost/bind.hpp>
 
 // "Features" Tab
@@ -92,7 +93,8 @@ BOOL	LLPanelVolume::postBuild()
 {
 	// Flexible Objects Parameters
 	{
-		getChild<LLCheckboxCtrl>("Flexible1D Checkbox Ctrl")->setCommitCallback(boost::bind(&LLPanelVolume::onCommitIsFlexible, this, _1, _2), NULL);
+		childSetCommitCallback("Animated Mesh Checkbox Ctrl", boost::bind(&LLPanelVolume::onCommitAnimatedMeshCheckbox, this, _1, _2), NULL);
+		childSetCommitCallback("Flexible1D Checkbox Ctrl", boost::bind(&LLPanelVolume::onCommitIsFlexible, this, _1, _2), NULL);
 		childSetCommitCallback("FlexNumSections",onCommitFlexible,this);
 		getChild<LLUICtrl>("FlexNumSections")->setValidateBeforeCommit(precommitValidate);
 		childSetCommitCallback("FlexGravity",onCommitFlexible,this);
@@ -228,6 +230,11 @@ void LLPanelVolume::getState( )
 	{
 		volobjp = (LLVOVolume *)objectp;
 	}
+	LLVOVolume *root_volobjp = NULL;
+	if (root_objectp && (root_objectp->getPCode() == LL_PCODE_VOLUME))
+	{
+		root_volobjp  = (LLVOVolume *)root_objectp;
+	}
 	
 	if( !objectp )
 	{
@@ -251,6 +258,8 @@ void LLPanelVolume::getState( )
 	BOOL editable = root_objectp->permModify() && !root_objectp->isPermanentEnforced();
 	BOOL single_volume = LLSelectMgr::getInstance()->selectionAllPCode( LL_PCODE_VOLUME )
 		&& LLSelectMgr::getInstance()->getSelection()->getObjectCount() == 1;
+	BOOL single_root_volume = LLSelectMgr::getInstance()->selectionAllPCode( LL_PCODE_VOLUME ) && 
+		LLSelectMgr::getInstance()->getSelection()->getRootObjectCount() == 1;
 
 	// Select Single Message
 	if (single_volume)
@@ -340,7 +349,57 @@ void LLPanelVolume::getState( )
 		getChildView("Light Focus")->setEnabled(false);
 		getChildView("Light Ambiance")->setEnabled(false);
 	}
-	
+
+    // Animated Mesh
+	BOOL is_animated_mesh = single_root_volume && root_volobjp && root_volobjp->isAnimatedObject();
+	getChild<LLUICtrl>("Animated Mesh Checkbox Ctrl")->setValue(is_animated_mesh);
+    BOOL enabled_animated_object_box = FALSE;
+    if (root_volobjp && root_volobjp == volobjp)
+    {
+        enabled_animated_object_box = single_root_volume && root_volobjp && root_volobjp->canBeAnimatedObject() && editable; 
+#if 0
+        if (!enabled_animated_object_box)
+        {
+            LL_INFOS() << "not enabled: srv " << single_root_volume << " root_volobjp " << (bool) root_volobjp << LL_ENDL;
+            if (root_volobjp)
+            {
+                LL_INFOS() << " cba " << root_volobjp->canBeAnimatedObject()
+                           << " editable " << editable << " permModify() " << root_volobjp->permModify()
+                           << " ispermenf " << root_volobjp->isPermanentEnforced() << LL_ENDL;
+            }
+        }
+#endif
+        if (enabled_animated_object_box && !is_animated_mesh && 
+            root_volobjp->isAttachment() && !gAgentAvatarp->canAttachMoreAnimatedObjects())
+        {
+            // Turning this attachment animated would cause us to exceed the limit.
+            enabled_animated_object_box = false;
+        }
+    }
+    getChildView("Animated Mesh Checkbox Ctrl")->setEnabled(enabled_animated_object_box);
+
+	//refresh any bakes
+	if (root_volobjp)
+	{
+		root_volobjp->refreshBakeTexture();
+
+		LLViewerObject::const_child_list_t& child_list = root_volobjp->getChildren();
+		for (const auto& iter : child_list)
+        {
+			LLViewerObject* objectp = iter;
+			if (objectp)
+			{
+				objectp->refreshBakeTexture();
+			}
+		}
+
+		if (gAgentAvatarp)
+		{
+			gAgentAvatarp->updateMeshVisibility();
+		}
+	}
+
+
 	// Flexible properties
 	BOOL is_flexible = volobjp && volobjp->isFlexible();
 	getChild<LLUICtrl>("Flexible1D Checkbox Ctrl")->setValue(is_flexible);
@@ -372,7 +431,7 @@ void LLPanelVolume::getState( )
 		getChildView("FlexForceY")->setEnabled(true);
 		getChildView("FlexForceZ")->setEnabled(true);
 
-		LLFlexibleObjectData *attributes = (LLFlexibleObjectData *)objectp->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
+		const LLFlexibleObjectData *attributes = objectp->getFlexibleObjectData();
 		
 		getChild<LLUICtrl>("FlexNumSections")->setValue((F32)attributes->getSimulateLOD());
 		getChild<LLUICtrl>("FlexGravity")->setValue(attributes->getGravity());
@@ -424,7 +483,7 @@ void LLPanelVolume::getState( )
 	mComboPhysicsShapeType->add(getString("None"), LLSD(1));
 
 	BOOL isMesh = FALSE;
-	LLSculptParams *sculpt_params = (LLSculptParams *)objectp->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+	const LLSculptParams *sculpt_params = objectp->getSculptParams();
 	if (sculpt_params)
 	{
 		U8 sculpt_type = sculpt_params->getSculptType();
@@ -739,7 +798,7 @@ void LLPanelVolume::onCommitFlexible( LLUICtrl* ctrl, void* userdata )
 		return;
 	}
 	
-	LLFlexibleObjectData *attributes = (LLFlexibleObjectData *)objectp->getParameterEntry(LLNetworkData::PARAMS_FLEXIBLE);
+	const LLFlexibleObjectData *attributes = objectp->getFlexibleObjectData();
 	if (attributes)
 	{
 		LLFlexibleObjectData new_attributes;
@@ -762,6 +821,52 @@ void LLPanelVolume::onCommitFlexible( LLUICtrl* ctrl, void* userdata )
 
 	// Values may fail validation
 	self->refresh();
+}
+
+void LLPanelVolume::onCommitAnimatedMeshCheckbox(LLUICtrl *, void*)
+{
+	LLViewerObject* objectp = mObject;
+	if (!objectp || (objectp->getPCode() != LL_PCODE_VOLUME))
+	{
+		return;
+    }
+	LLVOVolume *volobjp = (LLVOVolume *)objectp;
+	BOOL animated_mesh = getChild<LLUICtrl>("Animated Mesh Checkbox Ctrl")->getValue();
+    U32 flags = volobjp->getExtendedMeshFlags();
+    U32 new_flags = flags;
+    if (animated_mesh)
+    {
+        new_flags |= LLExtendedMeshParams::ANIMATED_MESH_ENABLED_FLAG;
+    }
+    else
+    {
+        new_flags &= ~LLExtendedMeshParams::ANIMATED_MESH_ENABLED_FLAG;
+    }
+    if (new_flags != flags)
+    {
+        volobjp->setExtendedMeshFlags(new_flags);
+    }
+
+	//refresh any bakes
+	if (volobjp)
+	{
+		volobjp->refreshBakeTexture();
+
+		LLViewerObject::const_child_list_t& child_list = volobjp->getChildren();
+		for (const auto& iter : child_list)
+        {
+			LLViewerObject* objectp = iter;
+			if (objectp)
+			{
+				objectp->refreshBakeTexture();
+			}
+		}
+
+		if (gAgentAvatarp)
+		{
+			gAgentAvatarp->updateMeshVisibility();
+		}
+	}
 }
 
 void LLPanelVolume::onCommitIsFlexible(LLUICtrl *, void*)

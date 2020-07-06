@@ -56,6 +56,7 @@ public:
 	LLPanelEditWearable( LLWearableType::EType type, LLFloaterCustomize* parent );
 	virtual ~LLPanelEditWearable();
 
+	void addLayerTabs(U32 index, U32 last);
 	/*virtual*/ BOOL 		postBuild();
 	/*virtual*/ BOOL		isDirty() const;	// LLUICtrl
 	/*virtual*/ void		draw();	
@@ -108,6 +109,8 @@ public:
 	void				onBtnCreateNew();
 	static bool			onSelectAutoWearOption(const LLSD& notification, const LLSD& response);
 
+	void				onMoveToLayer(bool closer);
+
 	void				onColorSwatchCommit(const LLUICtrl*);
 	void				onTexturePickerCommit(const LLUICtrl*);
 	void				setNewImageID(ETextureIndex te_index, LLUUID const& uuid);	//Singu note: this used to be part of onTexturePickerCommit.
@@ -137,7 +140,7 @@ private:
 											//a bazillion pointless (and not particularly valid) times. Deferring to draw effectively sorts it all out.
 
 	// Cached UI
-	LLUICtrl *mCreateNew, *mTakeOff, *mSexRadio, *mSave, *mSaveAs, *mRevert, *mNotWornT, *mNoModT, *mTitle, *mTitleLoading, *mPath, *mAvHeight;
+	LLUICtrl *mCreateNew, *mCreateNewLayer, *mTakeOff, *mArrowLeft, *mArrowRight, *mSexRadio, *mSave, *mSaveAs, *mRevert, *mNotWornT, *mNoModT, *mTitle, *mTitleLoading, *mPath, *mAvHeight;
 	LLView *mNotWornI, *mNoModI, *mSquare;
 	LLTabContainer* mTab;
 	std::vector<LLButton*> mSubpartBtns;

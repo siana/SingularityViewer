@@ -68,9 +68,6 @@ public:
 	void setSkyTex(LLSkyTex* const st) { mSkyTex = st; }
 
 	void renderSkyCubeFace(U8 side);
-	void renderHeavenlyBody(U8 hb, LLFace* face);
-	void renderSunHalo(LLFace* face);
-
 };
 
 #endif // LL_LLDRAWPOOLSKY_H

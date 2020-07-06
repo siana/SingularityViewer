@@ -255,7 +255,6 @@ U32 LLViewerJointMesh::drawShape( F32 pixelArea, BOOL first_pass, BOOL is_dummy)
 	//----------------------------------------------------------------
 	llassert( !(mTexture.notNull() && mLayerSet) );  // mutually exclusive
 
-	LLTexUnit::eTextureAddressMode old_mode = LLTexUnit::TAM_WRAP;
 	LLViewerTexLayerSet *layerset = dynamic_cast<LLViewerTexLayerSet*>(mLayerSet);
 	if (mTestImageName)
 	{
@@ -292,19 +291,13 @@ U32 LLViewerJointMesh::drawShape( F32 pixelArea, BOOL first_pass, BOOL is_dummy)
 	else
 	if ( !is_dummy && mTexture.notNull() )
 	{
-		if(mTexture->hasGLTexture())
-		{
-			old_mode = mTexture->getAddressMode();
-		}
 		gGL.getTexUnit(diffuse_channel)->bind(mTexture);
-		gGL.getTexUnit(diffuse_channel)->setTextureAddressMode(LLTexUnit::TAM_CLAMP);
 	}
 	else
 	{
 		gGL.getTexUnit(diffuse_channel)->bind(LLViewerTextureManager::getFetchedTexture(IMG_DEFAULT));
 	}
-	
-	
+
 	U32 mask = sRenderMask;
 
 	U32 start = mMesh->mFaceVertexOffset;
@@ -349,12 +342,6 @@ U32 LLViewerJointMesh::drawShape( F32 pixelArea, BOOL first_pass, BOOL is_dummy)
 		gGL.getTexUnit(diffuse_channel)->setTextureBlendType(LLTexUnit::TB_MULT);
 	}
 
-	if (mTexture.notNull() && !is_dummy)
-	{
-		gGL.getTexUnit(diffuse_channel)->bind(mTexture);
-		gGL.getTexUnit(diffuse_channel)->setTextureAddressMode(old_mode);
-	}
-
 	return triangle_count;
 }
 
@@ -384,7 +371,7 @@ void LLViewerJointMesh::updateFaceSizes(U32 &num_vertices, U32& num_indices, F32
 //-----------------------------------------------------------------------------
 // updateFaceData()
 //-----------------------------------------------------------------------------
-static LLFastTimer::DeclareTimer FTM_AVATAR_FACE("Avatar Face");
+static LLTrace::BlockTimerStatHandle FTM_AVATAR_FACE("Avatar Face");
 
 void LLViewerJointMesh::updateFaceData(LLFace *face, F32 pixel_area, BOOL damp_wind, bool terse_update)
 {
@@ -407,7 +394,7 @@ void LLViewerJointMesh::updateFaceData(LLFace *face, F32 pixel_area, BOOL damp_w
 	}
 
 
-	LLFastTimer t(FTM_AVATAR_FACE);
+	LL_RECORD_BLOCK_TIME(FTM_AVATAR_FACE);
 
 	LLStrider<LLVector3> verticesp;
 	LLStrider<LLVector3> normalsp;

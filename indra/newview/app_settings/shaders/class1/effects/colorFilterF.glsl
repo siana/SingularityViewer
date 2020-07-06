@@ -5,7 +5,7 @@
  * $License$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
  
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_color;
@@ -14,7 +14,7 @@ out vec4 frag_color;
 #endif
 
 
-uniform sampler2DRect tex0;
+uniform sampler2D tex0;
 uniform float brightness;
 uniform float contrast;
 uniform vec3  contrastBase;
@@ -34,7 +34,7 @@ float luminance(vec3 color)
 
 void main(void) 
 {
-	vec3 color = vec3(texture2DRect(tex0, vary_texcoord0.st));
+	vec3 color = vec3(texture2D(tex0, vary_texcoord0.st));
 
 	/// Apply gamma
 	color = pow(color, vec3(1.0/gamma));

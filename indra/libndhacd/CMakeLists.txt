@@ -33,3 +33,8 @@ set_source_files_properties(${libndhacd_HEADER_FILES}
 
 add_library( nd_hacdConvexDecomposition STATIC ${libndhacd_SOURCE_FILES} ${libndhacd_HEADER_FILES})
 
+target_link_libraries(
+    nd_hacdConvexDecomposition
+    PUBLIC
+    llcommon
+    )

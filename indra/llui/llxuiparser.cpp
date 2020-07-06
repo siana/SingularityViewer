@@ -38,8 +38,6 @@
 
 #include <fstream>
 #include <boost/tokenizer.hpp>
-#include <boost/bind.hpp>
-//#include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/classic_core.hpp>
 
 #include "lluicolor.h"
@@ -679,12 +677,12 @@ LLXUIParser::LLXUIParser()
 	}
 }
 
-LLFastTimer::DeclareTimer FTM_PARSE_XUI("XUI Parsing");
+static LLTrace::BlockTimerStatHandle FTM_PARSE_XUI("XUI Parsing");
 const LLXMLNodePtr DUMMY_NODE = new LLXMLNode();
 
 void LLXUIParser::readXUI(LLXMLNodePtr node, LLInitParam::BaseBlock& block, const std::string& filename, bool silent)
 {
-	LLFastTimer ft(FTM_PARSE_XUI);
+	LL_RECORD_BLOCK_TIME(FTM_PARSE_XUI);
 	mNameStack.clear();
 	mRootNodeName = node->getName()->mString;
 	mCurFileName = filename;
@@ -759,7 +757,7 @@ bool LLXUIParser::readXUIImpl(LLXMLNodePtr nodep, LLInitParam::BaseBlock& block)
 		// and if not, treat as a child element of the current node
 		// e.g. <button><rect left="10"/></button> will interpret <rect> as "button.rect"
 		// since there is no widget named "rect"
-		if (child_name.find(".") == std::string::npos) 
+		if (child_name.find('.') == std::string::npos) 
 		{
 			mNameStack.push_back(std::make_pair(child_name, true));
 			num_tokens_pushed++;
@@ -1353,9 +1351,9 @@ struct ScopedFile
 	{
 		if (!isOpen()) return 0;
 
-		S32 cur_pos = ftell(mFile);
+		size_t cur_pos = ftell(mFile);
 		fseek(mFile, 0L, SEEK_END);
-		S32 file_size = ftell(mFile);
+		size_t file_size = ftell(mFile);
 		fseek(mFile, cur_pos, SEEK_SET);
 		return file_size - cur_pos;
 	}
@@ -1366,7 +1364,9 @@ struct ScopedFile
 };
 LLSimpleXUIParser::LLSimpleXUIParser(LLSimpleXUIParser::element_start_callback_t element_cb)
 :	Parser(sSimpleXUIReadFuncs, sSimpleXUIWriteFuncs, sSimpleXUIInspectFuncs),
+	mParser(nullptr),
 	mCurReadDepth(0),
+	mCurAttributeValueBegin(nullptr),
 	mElementCB(element_cb)
 {
 	if (sSimpleXUIReadFuncs.empty())
@@ -1396,7 +1396,7 @@ LLSimpleXUIParser::~LLSimpleXUIParser()
 
 bool LLSimpleXUIParser::readXUI(const std::string& filename, LLInitParam::BaseBlock& block, bool silent)
 {
-	LLFastTimer ft(FTM_PARSE_XUI);
+	LL_RECORD_BLOCK_TIME(FTM_PARSE_XUI);
 
 	mParser = XML_ParserCreate(NULL);
 	XML_SetUserData(mParser, this);
@@ -1500,7 +1500,7 @@ void LLSimpleXUIParser::startElement(const char *name, const char **atts)
 	}
 	else
 	{	// compound attribute
-		if (child_name.find(".") == std::string::npos) 
+		if (child_name.find('.') == std::string::npos) 
 		{
 			mNameStack.push_back(std::make_pair(child_name, true));
 			num_tokens_pushed++;

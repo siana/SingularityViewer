@@ -54,7 +54,6 @@ LLSlider::LLSlider(
 	F32 min_value,
 	F32 max_value,
 	F32 increment,
-	BOOL volume,
 	const std::string& control_name)
 	:
 	LLUICtrl( name, rect, TRUE,	commit_callback, 
@@ -64,7 +63,6 @@ LLSlider::LLSlider(
 	mMinValue( min_value ),
 	mMaxValue( max_value ),
 	mIncrement( increment ),
-	mVolumeSlider( volume ),
 	mMouseOffset( 0 ),
 	mTrackColor(		LLUI::sColorsGroup->getColor( "SliderTrackColor" ) ),
 	mThumbOutlineColor(	LLUI::sColorsGroup->getColor( "SliderThumbOutlineColor" ) ),
@@ -72,9 +70,9 @@ LLSlider::LLSlider(
 	mMouseDownSignal( NULL ),
 	mMouseUpSignal( NULL )
 {
-	mThumbImage = LLUI::getUIImage("icn_slide-thumb_dark.tga");
-	mTrackImage = LLUI::getUIImage("icn_slide-groove_dark.tga");
-	mTrackHighlightImage = LLUI::getUIImage("icn_slide-highlight.tga");
+	mThumbImage = LLUI::getUIImage("SliderThumb_Off");
+	mTrackImage = LLUI::getUIImage("SliderTrack_Horiz");
+	mTrackHighlightImage = LLUI::getUIImage("SliderTrack_Horiz_Highlight");
 
 	// properly handle setting the starting thumb rect
 	// do it this way to handle both the operating-on-settings
@@ -172,7 +170,7 @@ BOOL LLSlider::handleMouseUp(S32 x, S32 y, MASK mask)
 
 	if( hasMouseCapture() )
 	{
-		gFocusMgr.setMouseCapture( NULL );
+		gFocusMgr.setMouseCapture(nullptr );
 
 		if (mMouseUpSignal)
 			(*mMouseUpSignal)( this, getValueF32() );
@@ -229,15 +227,12 @@ BOOL LLSlider::handleKeyHere(KEY key, MASK mask)
 	BOOL handled = FALSE;
 	switch(key)
 	{
-	case KEY_UP:
 	case KEY_DOWN:
-		// eat up and down keys to be consistent
-		handled = TRUE;
-		break;
 	case KEY_LEFT:
 		setValueAndCommit(getValueF32() - getIncrement());
 		handled = TRUE;
 		break;
+	case KEY_UP:
 	case KEY_RIGHT:
 		setValueAndCommit(getValueF32() + getIncrement());
 		handled = TRUE;
@@ -246,6 +241,16 @@ BOOL LLSlider::handleKeyHere(KEY key, MASK mask)
 		break;
 	}
 	return handled;
+}
+
+BOOL LLSlider::handleScrollWheel(S32 x, S32 y, S32 clicks)
+{
+	F32 old_val = getValueF32();
+	F32 new_val = old_val - clicks * getIncrement();
+	setValueAndCommit(new_val);
+	// Singu Note: We have to tell the viewer we're done dragging if it cares
+	if (mMouseUpSignal && old_val != new_val) (*mMouseUpSignal)(this, new_val);
+	return TRUE;
 }
 
 void LLSlider::draw()
@@ -276,7 +281,7 @@ void LLSlider::draw()
 		mThumbImage->drawBorder(mThumbRect, gFocusMgr.getFocusColor() % alpha, gFocusMgr.getFocusFlashWidth());
 	}
 
-	if( hasMouseCapture() )
+	if( hasMouseCapture() ) // currently clicking on slider
 	{
 		// Show ghost where thumb was before dragging began.
 		if (mThumbImage.notNull())
@@ -310,20 +315,11 @@ LLXMLNodePtr LLSlider::getXML(bool save_children) const
 {
 	LLXMLNodePtr node = LLUICtrl::getXML();
 
-	if (mVolumeSlider)
-	{
-		node->setName(LL_VOLUME_SLIDER_CTRL_TAG);
-	}
-	else
-	{
-		node->setName(LL_SLIDER_TAG);
-	}
-
+	node->setName(LL_SLIDER_TAG);
 	node->createChild("initial_val", TRUE)->setFloatValue(getInitialValue());
 	node->createChild("min_val", TRUE)->setFloatValue(getMinValue());
 	node->createChild("max_val", TRUE)->setFloatValue(getMaxValue());
 	node->createChild("increment", TRUE)->setFloatValue(getIncrement());
-	node->createChild("volume", TRUE)->setBoolValue(mVolumeSlider);
 
 	return node;
 }
@@ -358,17 +354,13 @@ LLView* LLSlider::fromXML(LLXMLNodePtr node, LLView *parent, class LLUICtrlFacto
 	F32 increment = 0.1f;
 	node->getAttributeF32("increment", increment);
 
-	BOOL volume = node->hasName("volume_slider") ? TRUE : FALSE;
-	node->getAttributeBOOL("volume", volume);
-
 	LLSlider* slider = new LLSlider("slider_bar",
 							rect,
 							NULL,
 							initial_value,
 							min_value,
 							max_value,
-							increment,
-							volume);
+							increment);
 
 	slider->initFromXML(node, parent);
 

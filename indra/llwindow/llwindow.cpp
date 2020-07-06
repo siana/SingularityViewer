@@ -49,15 +49,18 @@ LLSplashScreen *gSplashScreenp = NULL;
 BOOL gDebugClicks = FALSE;
 BOOL gDebugWindowProc = FALSE;
 
-const S32 gURLProtocolWhitelistCount = 4;
-const std::string gURLProtocolWhitelist[] = { "secondlife:", "http:", "https:", "data:"/*, "file:"*/ };
-
+bool isWhitelistedProtocol(const std::string& escaped_url) {
 // CP: added a handler list - this is what's used to open the protocol and is based on registry entry
 //	   only meaningful difference currently is that file: protocols are opened using http:
 //	   since no protocol handler exists in registry for file:
 //     Important - these lists should match - protocol to handler
 // Maestro: This list isn't referenced anywhere that I could find
 //const std::string gURLProtocolWhitelistHandler[] = { "http", "http", "https" };	
+	for (const auto& protocol : { "secondlife:", "http:", "https:", "data:", "mailto:" })
+		if (escaped_url.find(protocol) != std::string::npos)
+			return true;
+	return false;
+}
 
 
 S32 OSMessageBox(const std::string& text, const std::string& caption, U32 type)
@@ -73,7 +76,7 @@ S32 OSMessageBox(const std::string& text, const std::string& caption, U32 type)
 	S32 result = 0;
 #if LL_MESA_HEADLESS // !!! *FIX: (???)
 	LL_WARNS() << "OSMessageBox: " << text << LL_ENDL;
-	return OSBTN_OK;
+	result = OSBTN_OK;
 #elif LL_WINDOWS
 	result = OSMessageBoxWin32(text, caption, type);
 #elif LL_DARWIN
@@ -247,6 +250,48 @@ BOOL LLWindow::pasteTextFromPrimary(LLWString &dst)
 BOOL LLWindow::copyTextToPrimary(const LLWString &src)
 {
 	return FALSE; // fail
+}
+
+#if LL_WINDOWS
+#include <shellapi.h>
+#endif
+
+int LLWindow::ShellEx(const std::string& command)
+{
+#if LL_WINDOWS
+	llutf16string url_utf16 = L'"' + utf8str_to_utf16str(command) + L'"';
+	SHELLEXECUTEINFO sei = { sizeof( sei ) };
+	sei.fMask = SEE_MASK_NOASYNC;
+	sei.nShow = SW_SHOWNORMAL;
+	sei.lpVerb = L"open";
+	sei.lpFile = url_utf16.c_str();
+	const auto& code = ShellExecuteEx(&sei) ? 0 : GetLastError();
+#elif LL_DARWIN
+	CFURLRef urlRef;
+	CFStringRef stringRef = CFStringCreateWithCString(NULL, command.c_str(), kCFStringEncodingUTF8);
+	if (stringRef)
+	{
+		// This will succeed if the string is a full URL, including the http://
+		// Note that URLs specified this way need to be properly percent-escaped.
+		urlRef = CFURLCreateWithString(NULL, stringRef, NULL);
+
+		// Don't use CRURLCreateWithFileSystemPath -- only want valid URLs
+		CFRelease(stringRef);
+	}
+
+	OSStatus code;
+	if (urlRef)
+	{
+		code = LSOpenCFURLRef(urlRef, NULL);
+		CFRelease(urlRef);
+	}
+	else code = -1;
+#else // LL_LINUX or other modern unix, pray it has xdg-open
+	const auto& code = std::system(("xdg-open \"" + command + '"').c_str());
+#endif
+
+	if (code) LL_WARNS() << "Failed to open \"" << command << "\" return code: " << code << LL_ENDL;
+	return code;
 }
 
 // static

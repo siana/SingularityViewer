@@ -46,23 +46,16 @@
 #include "lltimer.h"
 #include "llsdserialize.h"
 #include "llsdutil.h"
-#include <boost/bind.hpp>
 #include <boost/circular_buffer.hpp>
 #include <boost/regex.hpp>
-#include <boost/foreach.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/range.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/type_traits/is_integral.hpp>
-#include <boost/type_traits/is_float.hpp>
 
 using namespace llsd;
 
 #if LL_WINDOWS
-#	define WIN32_LEAN_AND_MEAN
-#	include <winsock2.h>
-#	include <windows.h>
+#	include "llwin32headerslean.h"
 #   include <psapi.h>               // GetPerformanceInfo() et al.
+#	include <VersionHelpers.h>
 #elif LL_DARWIN
 #	include <errno.h>
 #	include <sys/sysctl.h>
@@ -95,8 +88,6 @@ const char MEMINFO_FILE[] = "/proc/meminfo";
 extern int errno;
 #endif
 
-
-static const S32 CPUINFO_BUFFER_SIZE = 16383;
 LLCPUInfo gSysCPU;
 
 // Don't log memory info any more often than this. It also serves as our
@@ -107,78 +98,6 @@ static const F32 MEM_INFO_THROTTLE = 20;
 // If we only triggered FrameWatcher logging when the session framerate
 // dropped below the login framerate, we'd have very little additional data.
 static const F32 MEM_INFO_WINDOW = 10*60;
-
-#if LL_WINDOWS
-// We cannot trust GetVersionEx function on Win8.1 , we should check this value when creating OS string
-static const U32 WINNT_WINBLUE = 0x0603;
-
-#ifndef DLLVERSIONINFO
-typedef struct _DllVersionInfo
-{
-    DWORD cbSize;
-    DWORD dwMajorVersion;
-    DWORD dwMinorVersion;
-    DWORD dwBuildNumber;
-    DWORD dwPlatformID;
-}DLLVERSIONINFO;
-#endif
-
-#ifndef DLLGETVERSIONPROC
-typedef int (FAR WINAPI *DLLGETVERSIONPROC) (DLLVERSIONINFO *);
-#endif
-
-bool get_shell32_dll_version(DWORD& major, DWORD& minor, DWORD& build_number)
-{
-	bool result = false;
-	const U32 BUFF_SIZE = 32767;
-	WCHAR tempBuf[BUFF_SIZE];
-	if(GetSystemDirectory((LPWSTR)&tempBuf, BUFF_SIZE))
-	{
-		
-		std::basic_string<WCHAR> shell32_path(tempBuf);
-
-		// Shell32.dll contains the DLLGetVersion function. 
-		// according to msdn its not part of the API
-		// so you have to go in and get it.
-		// http://msdn.microsoft.com/en-us/library/bb776404(VS.85).aspx
-		shell32_path += TEXT("\\shell32.dll");
-
-		HMODULE hDllInst = LoadLibrary(shell32_path.c_str());   //load the DLL
-		if(hDllInst) 
-		{  // Could successfully load the DLL
-			DLLGETVERSIONPROC pDllGetVersion;
-			/*
-			You must get this function explicitly because earlier versions of the DLL
-			don't implement this function. That makes the lack of implementation of the
-			function a version marker in itself.
-			*/
-			pDllGetVersion = (DLLGETVERSIONPROC) GetProcAddress(hDllInst, 
-																"DllGetVersion");
-
-			if(pDllGetVersion) 
-			{    
-				// DLL supports version retrieval function
-				DLLVERSIONINFO    dvi;
-
-				ZeroMemory(&dvi, sizeof(dvi));
-				dvi.cbSize = sizeof(dvi);
-				HRESULT hr = (*pDllGetVersion)(&dvi);
-
-				if(SUCCEEDED(hr)) 
-				{ // Finally, the version is at our hands
-					major = dvi.dwMajorVersion;
-					minor = dvi.dwMinorVersion;
-					build_number = dvi.dwBuildNumber;
-					result = true;
-				} 
-			} 
-
-			FreeLibrary(hDllInst);  // Release DLL
-		} 
-	}
-	return result;
-}
-#endif // LL_WINDOWS
 
 // Wrap boost::regex_match() with a function that doesn't throw.
 template <typename S, typename M, typename R>
@@ -212,221 +131,141 @@ static bool regex_search_no_exc(const S& string, M& match, const R& regex)
     }
 }
 
-#if LL_WINDOWS
-// GetVersionEx should not works correct with Windows 8.1 and the later version. We need to check this case 
-static bool	check_for_version(WORD wMajorVersion, WORD wMinorVersion, WORD wServicePackMajor)
-{
-    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
-    DWORDLONG        const dwlConditionMask = VerSetConditionMask(
-        VerSetConditionMask(
-        VerSetConditionMask(
-            0, VER_MAJORVERSION, VER_GREATER_EQUAL),
-               VER_MINORVERSION, VER_GREATER_EQUAL),
-               VER_SERVICEPACKMAJOR, VER_GREATER_EQUAL);
-
-    osvi.dwMajorVersion = wMajorVersion;
-    osvi.dwMinorVersion = wMinorVersion;
-    osvi.wServicePackMajor = wServicePackMajor;
-
-    return VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_SERVICEPACKMAJOR, dwlConditionMask) != FALSE;
-}
-#endif
-
-
 LLOSInfo::LLOSInfo() :
 	mMajorVer(0), mMinorVer(0), mBuild(0), mOSVersionString("")
 {
 
 #if LL_WINDOWS
+	bool is_server = IsWindowsServer();
+	std::string service_pack;
+	if (IsWindows10OrGreater())
+	{
+		if (is_server)
+		{
+			mOSStringSimple = "Microsoft Windows Server 2016 ";
+		}
+		else
+		{
+			mOSStringSimple = "Microsoft Windows 10 ";
+		}
+	}
+	else if (IsWindows8Point1OrGreater())
+	{
+		if (is_server)
+		{
+			mOSStringSimple = "Microsoft Windows Server 2012 R2 ";
+		}
+		else
+		{
+			mOSStringSimple = "Microsoft Windows 8.1 ";
+		}
+	}
+	else if (IsWindows8OrGreater())
+	{
+		if (is_server)
+		{
+			mOSStringSimple = "Microsoft Windows Server 2012 ";
+		}
+		else
+		{
+			mOSStringSimple = "Microsoft Windows 8 ";
+		}
+	}
+	else if (IsWindows7OrGreater())
+	{
+		if (is_server)
+		{
+			mOSStringSimple = "Microsoft Windows Server 2008 R2 ";
+		}
+		else
+		{
+			mOSStringSimple = "Microsoft Windows 7 ";
+		}
+		if (IsWindows7SP1OrGreater())
+		{
+			service_pack = "Service Pack 1 ";
+		}
+	}
+	else if (IsWindowsVistaOrGreater())
+	{
+		if (is_server)
+		{
+			mOSStringSimple = "Microsoft Windows Server 2008 ";
+		}
+		else
+		{
+			mOSStringSimple = "Microsoft Windows Vista ";
+		}
+		if (IsWindowsVistaSP2OrGreater())
+		{
+			service_pack = "Service Pack 2 ";
+		}
+		else if (IsWindowsVistaSP1OrGreater())
+		{
+			service_pack = "Service Pack 1 ";
+		}
+	}
+	else
+	{
+		mOSStringSimple = "Microsoft Windows (unrecognized) ";
+	}
+
+	///get native system info if available..
+	typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO); ///function pointer for loading GetNativeSystemInfo
+	SYSTEM_INFO si; //System Info object file contains architecture info
+	PGNSI pGNSI; //pointer object
+	ZeroMemory(&si, sizeof(SYSTEM_INFO)); //zero out the memory in information
+	pGNSI = (PGNSI)GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), "GetNativeSystemInfo"); //load kernel32 get function
+	if (NULL != pGNSI) //check if it has failed
+		pGNSI(&si); //success
+	else
+		GetSystemInfo(&si); //if it fails get regular system info 
+	//(Warning: If GetSystemInfo it may result in incorrect information in a WOW64 machine, if the kernel fails to load)
+
+	//msdn microsoft finds 32 bit and 64 bit flavors this way..
+	//http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx (example code that contains quite a few more flavors
+	//of windows than this code does (in case it is needed for the future)
+	if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_AMD64) //check for 64 bit
+	{
+		mOSStringSimple += "64-bit ";
+	}
+	else if (si.wProcessorArchitecture == PROCESSOR_ARCHITECTURE_INTEL)
+	{
+		mOSStringSimple += "32-bit ";
+	}
+
 	OSVERSIONINFOEX osvi;
 	BOOL bOsVersionInfoEx;
-	BOOL bShouldUseShellVersion = false;
-
 	// Try calling GetVersionEx using the OSVERSIONINFOEX structure.
 	ZeroMemory(&osvi, sizeof(OSVERSIONINFOEX));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
-	if(!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) &osvi)))
+	if (!(bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) &osvi)))
 	{
 		// If OSVERSIONINFOEX doesn't work, try OSVERSIONINFO.
-		osvi.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
-		if(!GetVersionEx( (OSVERSIONINFO *) &osvi))
-			return;
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+		bOsVersionInfoEx = GetVersionEx((OSVERSIONINFO *) &osvi);
 	}
-	mMajorVer = osvi.dwMajorVersion;
-	mMinorVer = osvi.dwMinorVersion;
-	mBuild = osvi.dwBuildNumber;
 
-	DWORD shell32_major, shell32_minor, shell32_build;
-	bool got_shell32_version = get_shell32_dll_version(shell32_major, 
-													   shell32_minor, 
-													   shell32_build);
-
-	switch(osvi.dwPlatformId)
+	
+	std::string tmpstr;
+	if (bOsVersionInfoEx)
 	{
-	case VER_PLATFORM_WIN32_NT:
-		{
-			// Test for the product.
-			if(osvi.dwMajorVersion <= 4)
-			{
-				mOSStringSimple = "Microsoft Windows NT ";
-			}
-			else if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 0)
-			{
-				mOSStringSimple = "Microsoft Windows 2000 ";
-			}
-			else if(osvi.dwMajorVersion ==5 && osvi.dwMinorVersion == 1)
-			{
-				mOSStringSimple = "Microsoft Windows XP ";
-			}
-			else if(osvi.dwMajorVersion == 5 && osvi.dwMinorVersion == 2)
-			{
-				 if(osvi.wProductType == VER_NT_WORKSTATION)
-					mOSStringSimple = "Microsoft Windows XP x64 Edition ";
-				 else
-					mOSStringSimple = "Microsoft Windows Server 2003 ";
-			}
-			else if(osvi.dwMajorVersion == 6 && osvi.dwMinorVersion <= 2)
-			{
-				if(osvi.dwMinorVersion == 0)
-				{
-					if(osvi.wProductType == VER_NT_WORKSTATION)
-						mOSStringSimple = "Microsoft Windows Vista ";
-					else
-						mOSStringSimple = "Windows Server 2008 ";
-				}
-				else if(osvi.dwMinorVersion == 1)
-				{
-					if(osvi.wProductType == VER_NT_WORKSTATION)
-						mOSStringSimple = "Microsoft Windows 7 ";
-					else
-						mOSStringSimple = "Windows Server 2008 R2 ";
-				}
-				else if(osvi.dwMinorVersion == 2)
-				{
-					if (check_for_version(HIBYTE(WINNT_WINBLUE), LOBYTE(WINNT_WINBLUE), 0))
-					{
-						mOSStringSimple = "Microsoft Windows 8.1 ";
-						bShouldUseShellVersion = true; // GetVersionEx failed, going to use shell version
-					}
-					else
-					{
-					if(osvi.wProductType == VER_NT_WORKSTATION)
-						mOSStringSimple = "Microsoft Windows 8 ";
-					else
-						mOSStringSimple = "Windows Server 2012 ";
-					}
-				}
-
-				///get native system info if available..
-				typedef void (WINAPI *PGNSI)(LPSYSTEM_INFO); ///function pointer for loading GetNativeSystemInfo
-				SYSTEM_INFO si; //System Info object file contains architecture info
-				PGNSI pGNSI; //pointer object
-				ZeroMemory(&si, sizeof(SYSTEM_INFO)); //zero out the memory in information
-				pGNSI = (PGNSI) GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")),  "GetNativeSystemInfo"); //load kernel32 get function
-				if(NULL != pGNSI) //check if it has failed
-					pGNSI(&si); //success
-				else 
-					GetSystemInfo(&si); //if it fails get regular system info 
-				//(Warning: If GetSystemInfo it may result in incorrect information in a WOW64 machine, if the kernel fails to load)
-
-				//msdn microsoft finds 32 bit and 64 bit flavors this way..
-				//http://msdn.microsoft.com/en-us/library/ms724429(VS.85).aspx (example code that contains quite a few more flavors
-				//of windows than this code does (in case it is needed for the future)
-				if ( si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_AMD64 ) //check for 64 bit
-				{
-					mOSStringSimple += "64-bit ";
-				}
-				else if (si.wProcessorArchitecture==PROCESSOR_ARCHITECTURE_INTEL )
-				{
-					mOSStringSimple += "32-bit ";
-				}
-			}
-			else   // Use the registry on early versions of Windows NT.
-			{
-				mOSStringSimple = "Microsoft Windows (unrecognized) ";
-
-				HKEY hKey;
-				WCHAR szProductType[80];
-				DWORD dwBufLen;
-				RegOpenKeyEx( HKEY_LOCAL_MACHINE,
-							L"SYSTEM\\CurrentControlSet\\Control\\ProductOptions",
-							0, KEY_QUERY_VALUE, &hKey );
-				RegQueryValueEx( hKey, L"ProductType", NULL, NULL,
-								(LPBYTE) szProductType, &dwBufLen);
-				RegCloseKey( hKey );
-				if ( lstrcmpi( L"WINNT", szProductType) == 0 )
-				{
-					mOSStringSimple += "Professional ";
-				}
-				else if ( lstrcmpi( L"LANMANNT", szProductType) == 0 )
-				{
-					mOSStringSimple += "Server ";
-				}
-				else if ( lstrcmpi( L"SERVERNT", szProductType) == 0 )
-				{
-					mOSStringSimple += "Advanced Server ";
-				}
-			}
-
-			std::string csdversion = utf16str_to_utf8str(osvi.szCSDVersion);
-			// Display version, service pack (if any), and build number.
-			std::string tmpstr;
-			if(osvi.dwMajorVersion <= 4)
-			{
-				tmpstr = llformat("version %d.%d %s (Build %d)",
-								  osvi.dwMajorVersion,
-								  osvi.dwMinorVersion,
-								  csdversion.c_str(),
-								  (osvi.dwBuildNumber & 0xffff));
-			}
-			else
-			{
-				tmpstr = !bShouldUseShellVersion ?  llformat("%s (Build %d)", csdversion.c_str(), (osvi.dwBuildNumber & 0xffff)):
-					llformat("%s (Build %d)", csdversion.c_str(), shell32_build);
-			}
-
-			mOSString = mOSStringSimple + tmpstr;
-		}
-		break;
-
-	case VER_PLATFORM_WIN32_WINDOWS:
-		// Test for the Windows 95 product family.
-		if(osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 0)
-		{
-			mOSStringSimple = "Microsoft Windows 95 ";
-			if ( osvi.szCSDVersion[1] == 'C' || osvi.szCSDVersion[1] == 'B' )
-			{
-                mOSStringSimple += "OSR2 ";
-			}
-		} 
-		if(osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 10)
-		{
-			mOSStringSimple = "Microsoft Windows 98 ";
-			if ( osvi.szCSDVersion[1] == 'A' )
-			{
-                mOSStringSimple += "SE ";
-			}
-		} 
-		if(osvi.dwMajorVersion == 4 && osvi.dwMinorVersion == 90)
-		{
-			mOSStringSimple = "Microsoft Windows Millennium Edition ";
-		}
-		mOSString = mOSStringSimple;
-		break;
+		mMajorVer = osvi.dwMajorVersion;
+		mMinorVer = osvi.dwMinorVersion;
+		mBuild = osvi.dwBuildNumber;
+		tmpstr = llformat("%s(Build %d)", service_pack.c_str(), mBuild);
 	}
-
-	std::string compatibility_mode;
-	if(got_shell32_version)
+	else
 	{
-		if((osvi.dwMajorVersion != shell32_major || osvi.dwMinorVersion != shell32_minor) && !bShouldUseShellVersion)
-		{
-			compatibility_mode = llformat(" compatibility mode. real ver: %d.%d (Build %d)", 
-											shell32_major,
-											shell32_minor,
-											shell32_build);
-		}
+		mMajorVer = 0;
+		mMinorVer = 0;
+		mBuild = 0;
+		tmpstr = llformat("%s(Build %d)", service_pack.c_str(), 0);
 	}
-	mOSString += compatibility_mode;
+
+	// Display version, service pack (if any), and build number.
+	mOSString = mOSStringSimple + tmpstr;
+	LLStringUtil::trim(mOSStringSimple);
 
 #elif LL_DARWIN
 	
@@ -668,8 +507,6 @@ const std::string& LLOSInfo::getOSVersionString() const
 	return mOSVersionString;
 }
 
-const S32 STATUS_SIZE = 8192;
-
 //static
 U32 LLOSInfo::getProcessVirtualSizeKB()
 {
@@ -677,6 +514,7 @@ U32 LLOSInfo::getProcessVirtualSizeKB()
 #if LL_WINDOWS
 #endif
 #if LL_LINUX
+#   define STATUS_SIZE 2048
 	LLFILE* status_filep = LLFile::fopen("/proc/self/status", "rb");
 	if (status_filep)
 	{
@@ -834,7 +672,7 @@ public:
 	// Store every integer type as LLSD::Integer.
 	template <class T>
 	void add(const LLSD::String& name, const T& value,
-			 typename boost::enable_if<boost::is_integral<T> >::type* = 0)
+			 typename std::enable_if<std::is_integral<T>::value>::type* = nullptr)
 	{
 		mStats[name] = LLSD::Integer(value);
 	}
@@ -842,7 +680,7 @@ public:
 	// Store every floating-point type as LLSD::Real.
 	template <class T>
 	void add(const LLSD::String& name, const T& value,
-			 typename boost::enable_if<boost::is_float<T> >::type* = 0)
+			 typename std::enable_if<std::is_floating_point<T>::value>::type* = nullptr)
 	{
 		mStats[name] = LLSD::Real(value);
 	}
@@ -864,28 +702,10 @@ LLMemoryInfo::LLMemoryInfo()
 	refresh();
 }
 
-#if LL_WINDOWS
-static U32 LLMemoryAdjustKBResult(U32 inKB)
-{
-	// Moved this here from llfloaterabout.cpp
-
-	//! \bug
-	// For some reason, the reported amount of memory is always wrong.
-	// The original adjustment assumes it's always off by one meg, however
-	// errors of as much as 2520 KB have been observed in the value
-	// returned from the GetMemoryStatusEx function.  Here we keep the
-	// original adjustment from llfoaterabout.cpp until this can be
-	// fixed somehow.
-	inKB += 1024;
-
-	return inKB;
-}
-#endif
-
-U32 LLMemoryInfo::getPhysicalMemoryKB() const
+U32Kilobytes LLMemoryInfo::getPhysicalMemoryKB() const
 {
 #if LL_WINDOWS
-	return LLMemoryAdjustKBResult(mStatsMap["Total Physical KB"].asInteger());
+	return U32Kilobytes(mStatsMap["Total Physical KB"].asInteger());
 
 #elif LL_DARWIN
 	// This might work on Linux as well.  Someone check...
@@ -895,17 +715,12 @@ U32 LLMemoryInfo::getPhysicalMemoryKB() const
 	size_t len = sizeof(phys);	
 	sysctl(mib, 2, &phys, &len, NULL, 0);
 	
-	return (U32)(phys >> 10);
+	return U64Bytes(phys);
 
 #elif LL_LINUX
 	U64 phys = 0;
 	phys = (U64)(getpagesize()) * (U64)(get_phys_pages());
-	return (U32)(phys >> 10);
-
-#elif LL_SOLARIS
-	U64 phys = 0;
-	phys = (U64)(getpagesize()) * (U64)(sysconf(_SC_PHYS_PAGES));
-	return (U32)(phys >> 10);
+	return U64Bytes(phys);
 
 #else
 	return 0;
@@ -913,32 +728,16 @@ U32 LLMemoryInfo::getPhysicalMemoryKB() const
 #endif
 }
 
-U32 LLMemoryInfo::getPhysicalMemoryClamped() const
-{
-	// Return the total physical memory in bytes, but clamp it
-	// to no more than U32_MAX
-	
-	U32 phys_kb = getPhysicalMemoryKB();
-	if (phys_kb >= 4194304 /* 4GB in KB */)
-	{
-		return U32_MAX;
-	}
-	else
-	{
-		return phys_kb << 10;
-	}
-}
-
 //static
-void LLMemoryInfo::getAvailableMemoryKB(U32& avail_physical_mem_kb, U32& avail_virtual_mem_kb)
+void LLMemoryInfo::getAvailableMemoryKB(U32Kilobytes& avail_physical_mem_kb, U32Kilobytes& avail_virtual_mem_kb)
 {
 #if LL_WINDOWS
-	// Sigh, this shouldn't be a static method, then we wouldn't have to
-	// reload this data separately from refresh()
-	LLSD statsMap(loadStatsMap());
+	MEMORYSTATUSEX state;
+	state.dwLength = sizeof(state);
+	GlobalMemoryStatusEx(&state);
 
-	avail_physical_mem_kb = statsMap["Avail Physical KB"].asInteger();
-	avail_virtual_mem_kb  = statsMap["Avail Virtual KB"].asInteger();
+	avail_physical_mem_kb = U64Bytes(state.ullAvailPhys);
+	avail_virtual_mem_kb  = U64Bytes(state.ullAvailVirtual);
 
 #elif LL_DARWIN
 	// mStatsMap is derived from vm_stat, look for (e.g.) "kb free":
@@ -955,8 +754,8 @@ void LLMemoryInfo::getAvailableMemoryKB(U32& avail_physical_mem_kb, U32& avail_v
 	// Pageins:                     2097212.
 	// Pageouts:                      41759.
 	// Object cache: 841598 hits of 7629869 lookups (11% hit rate)
-	avail_physical_mem_kb = -1 ;
-	avail_virtual_mem_kb = -1 ;
+	avail_physical_mem_kb = (U32Kilobytes)-1 ;
+	avail_virtual_mem_kb = (U32Kilobytes)-1 ;
 
 #elif LL_LINUX
 	// mStatsMap is derived from MEMINFO_FILE:
@@ -1007,15 +806,15 @@ void LLMemoryInfo::getAvailableMemoryKB(U32& avail_physical_mem_kb, U32& avail_v
 	// DirectMap4k:      434168 kB
 	// DirectMap2M:      477184 kB
 	// (could also run 'free', but easier to read a file than run a program)
-	avail_physical_mem_kb = -1 ;
-	avail_virtual_mem_kb = -1 ;
+	avail_physical_mem_kb = (U32Kilobytes)-1 ;
+	avail_virtual_mem_kb = (U32Kilobytes)-1 ;
 
 #else
 	//do not know how to collect available memory info for other systems.
 	//leave it blank here for now.
 
-	avail_physical_mem_kb = -1 ;
-	avail_virtual_mem_kb = -1 ;
+	avail_physical_mem_kb = (U32Kilobytes)-1 ;
+	avail_virtual_mem_kb = (U32Kilobytes)-1 ;
 #endif
 }
 
@@ -1029,7 +828,7 @@ void LLMemoryInfo::stream(std::ostream& s) const
 
 	// Max key length
 	size_t key_width(0);
-	BOOST_FOREACH(const MapEntry& pair, inMap(mStatsMap))
+	for (const MapEntry& pair : inMap(mStatsMap))
 	{
 		size_t len(pair.first.length());
 		if (len > key_width)
@@ -1039,7 +838,7 @@ void LLMemoryInfo::stream(std::ostream& s) const
 	}
 
 	// Now stream stats
-	BOOST_FOREACH(const MapEntry& pair, inMap(mStatsMap))
+	for (const MapEntry& pair : inMap(mStatsMap))
 	{
 		s << pfx << std::setw(key_width+1) << (pair.first + ':') << ' ';
 		LLSD value(pair.second);
@@ -1086,7 +885,7 @@ LLSD LLMemoryInfo::loadStatsMap()
 
 	DWORDLONG div = 1024;
 
-	stats.add("Percent Memory use", state.dwMemoryLoad/div);
+	stats.add("Percent Memory use", state.dwMemoryLoad);
 	stats.add("Total Physical KB",  state.ullTotalPhys/div);
 	stats.add("Avail Physical KB",  state.ullAvailPhys/div);
 	stats.add("Total page KB",      state.ullTotalPageFile/div);
@@ -1135,27 +934,33 @@ LLSD LLMemoryInfo::loadStatsMap()
 	stats.add("PrivateUsage KB",               pmem.PrivateUsage/div);
 
 #elif LL_DARWIN
-
-	const vm_size_t pagekb(vm_page_size / 1024);
+	vm_size_t page_size_kb;
+	if (host_page_size(mach_host_self(), &page_size_kb) != KERN_SUCCESS)
+	{
+		LL_WARNS() << "Unable to get host page size. Using default value." << LL_ENDL;
+		page_size_kb = 4096;
+	}
 	
+	page_size_kb = page_size_kb / 1024;
+
 	//
 	// Collect the vm_stat's
 	//
 	
 	{
-		vm_statistics_data_t vmstat;
-		mach_msg_type_number_t vmstatCount = HOST_VM_INFO_COUNT;
+		vm_statistics64_data_t vmstat;
+		mach_msg_type_number_t vmstatCount = HOST_VM_INFO64_COUNT;
 
-		if (host_statistics(mach_host_self(), HOST_VM_INFO, (host_info_t) &vmstat, &vmstatCount) != KERN_SUCCESS)
+		if (host_statistics64(mach_host_self(), HOST_VM_INFO64, (host_info64_t) &vmstat, &vmstatCount) != KERN_SUCCESS)
 	{
 			LL_WARNS("LLMemoryInfo") << "Unable to collect memory information" << LL_ENDL;
 		}
 		else
 		{
-			stats.add("Pages free KB",		pagekb * vmstat.free_count);
-			stats.add("Pages active KB",	pagekb * vmstat.active_count);
-			stats.add("Pages inactive KB",	pagekb * vmstat.inactive_count);
-			stats.add("Pages wired KB",		pagekb * vmstat.wire_count);
+			stats.add("Pages free KB",		page_size_kb * vmstat.free_count);
+			stats.add("Pages active KB",	page_size_kb * vmstat.active_count);
+			stats.add("Pages inactive KB",	page_size_kb * vmstat.inactive_count);
+			stats.add("Pages wired KB",		page_size_kb * vmstat.wire_count);
 
 			stats.add("Pages zero fill",		vmstat.zero_fill_count);
 			stats.add("Page reactivations",		vmstat.reactivations);
@@ -1204,20 +1009,20 @@ LLSD LLMemoryInfo::loadStatsMap()
 	//
 
 		{
-		task_basic_info_64_data_t taskinfo;
-		unsigned taskinfoSize = sizeof(taskinfo);
-		
-		if (task_info(mach_task_self(), TASK_BASIC_INFO_64, (task_info_t) &taskinfo, &taskinfoSize) != KERN_SUCCESS)
+			mach_task_basic_info_data_t taskinfo;
+			mach_msg_type_number_t task_count = MACH_TASK_BASIC_INFO_COUNT;
+			if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t) &taskinfo, &task_count) != KERN_SUCCESS)
 			{
-			LL_WARNS("LLMemoryInfo") << "Unable to collect task information" << LL_ENDL;
-				}
-				else
-				{
-			stats.add("Basic suspend count",					taskinfo.suspend_count);
-			stats.add("Basic virtual memory KB",				taskinfo.virtual_size / 1024);
-			stats.add("Basic resident memory KB",				taskinfo.resident_size / 1024);
-			stats.add("Basic new thread policy",				taskinfo.policy);
-		}
+				LL_WARNS("LLMemoryInfo") << "Unable to collect task information" << LL_ENDL;
+			}
+			else
+			{
+				stats.add("Basic virtual memory KB", taskinfo.virtual_size / 1024);
+				stats.add("Basic resident memory KB", taskinfo.resident_size / 1024);
+				stats.add("Basic max resident memory KB", taskinfo.resident_size_max / 1024);
+				stats.add("Basic new thread policy", taskinfo.policy);
+				stats.add("Basic suspend count", taskinfo.suspend_count);
+			}
 	}
 
 #elif LL_SOLARIS
@@ -1327,7 +1132,8 @@ public:
         // Hooking onto the "mainloop" event pump gets us one call per frame.
         mConnection(LLEventPumps::instance()
                     .obtain("mainloop")
-                    .listen("FrameWatcher", boost::bind(&FrameWatcher::tick, this, _1))),
+					.listen("FrameWatcher", std::bind(&FrameWatcher::tick, this, std::placeholders::_1))),
+
         // Initializing mSampleStart to an invalid timestamp alerts us to skip
         // trying to compute framerate on the first call.
         mSampleStart(-1),
@@ -1468,18 +1274,22 @@ BOOL gunzip_file(const std::string& srcfile, const std::string& dstfile)
 	const S32 UNCOMPRESS_BUFFER_SIZE = 32768;
 	BOOL retval = FALSE;
 	gzFile src = NULL;
-	U8 buffer[UNCOMPRESS_BUFFER_SIZE];
+	std::array<U8, UNCOMPRESS_BUFFER_SIZE> buffer;
 	LLFILE *dst = NULL;
 	S32 bytes = 0;
 	tmpfile = dstfile + ".t";
+#if LL_WINDOWS
+	src = gzopen_w(utf8str_to_utf16str(srcfile).c_str(), "rb");
+#else
 	src = gzopen(srcfile.c_str(), "rb");
+#endif
 	if (! src) goto err;
 	dst = LLFile::fopen(tmpfile, "wb");		/* Flawfinder: ignore */
 	if (! dst) goto err;
 	do
 	{
-		bytes = gzread(src, buffer, UNCOMPRESS_BUFFER_SIZE);
-		size_t nwrit = fwrite(buffer, sizeof(U8), bytes, dst);
+		bytes = gzread(src, buffer.data(), buffer.size());
+		size_t nwrit = fwrite(buffer.data(), sizeof(U8), bytes, dst);
 		if (nwrit < (size_t) bytes)
 		{
 			LL_WARNS() << "Short write on " << tmpfile << ": Wrote " << nwrit << " of " << bytes << " bytes." << LL_ENDL;
@@ -1501,19 +1311,23 @@ BOOL gzip_file(const std::string& srcfile, const std::string& dstfile)
 	const S32 COMPRESS_BUFFER_SIZE = 32768;
 	std::string tmpfile;
 	BOOL retval = FALSE;
-	U8 buffer[COMPRESS_BUFFER_SIZE];
+	std::array<U8, COMPRESS_BUFFER_SIZE> buffer;
 	gzFile dst = NULL;
 	LLFILE *src = NULL;
 	S32 bytes = 0;
 	tmpfile = dstfile + ".t";
+#if LL_WINDOWS
+	dst = gzopen_w(utf8str_to_utf16str(tmpfile).c_str(), "wb");
+#else
 	dst = gzopen(tmpfile.c_str(), "wb");		/* Flawfinder: ignore */
+#endif
 	if (! dst) goto err;
 	src = LLFile::fopen(srcfile, "rb");		/* Flawfinder: ignore */
 	if (! src) goto err;
 
-	while ((bytes = (S32)fread(buffer, sizeof(U8), COMPRESS_BUFFER_SIZE, src)) > 0)
+	while ((bytes = (S32)fread(buffer.data(), sizeof(U8), buffer.size(), src)) > 0)
 	{
-		if (gzwrite(dst, buffer, bytes) <= 0)
+		if (gzwrite(dst, buffer.data(), bytes) <= 0)
 		{
 			LL_WARNS() << "gzwrite failed: " << gzerror(dst, NULL) << LL_ENDL;
 			goto err;

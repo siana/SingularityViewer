@@ -30,6 +30,7 @@
 #include "lluuid.h"
 #include "llmd5.h"
 #include <string>
+#include <boost/unordered_map.hpp>
 #include <vector>
 
 class LLViewerInventoryCategory;
@@ -177,7 +178,7 @@ protected:
 	virtual void onAssetAdded(const LLUUID& asset_id) {}
 	virtual void done() = 0;
 
-	typedef std::vector<LLUUID> item_ref_t;
+	typedef uuid_vec_t item_ref_t;
 	item_ref_t mAddedItems;
 	item_ref_t mWatchedAssets;
 
@@ -256,7 +257,7 @@ protected:
 class LLInventoryCategoriesObserver : public LLInventoryObserver
 {
 public:
-	typedef boost::function<void()> callback_t;
+	typedef std::function<void()> callback_t;
 
 	LLInventoryCategoriesObserver() {};
 	virtual void changed(U32 mask);
@@ -284,7 +285,7 @@ protected:
 		LLUUID		mCatID;
 	};
 
-	typedef	std::map<LLUUID, LLCategoryData>	category_map_t;
+	typedef	boost::unordered_map<LLUUID, LLCategoryData>	category_map_t;
 	typedef category_map_t::value_type			category_map_value_t;
 
 	category_map_t				mCategoryMap;

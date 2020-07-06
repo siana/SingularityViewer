@@ -107,7 +107,7 @@ public:
 	void clear(U32 mask = 0xFFFFFFFF);
 	
 	//get applied viewport
-	void getViewport(S32* viewport);
+	void getViewport(LLRect& viewport);
 
 	//get X resolution
 	U32 getWidth() const { return mResX; }
@@ -152,9 +152,11 @@ protected:
 	U32 mResX;
 	U32 mResY;
 	std::vector<U32> mTex;
+	std::vector<LLImageGL::GLTextureName> mTexName;
 	std::vector<U32> mInternalFormat;
 	U32 mFBO;
 	LLRenderTarget* mPreviousFBO;
+	LLImageGL::GLTextureName mDepthName;
 	U32 mDepth;
 	bool mStencil;
 	bool mUseDepth;

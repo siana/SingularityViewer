@@ -76,6 +76,7 @@ public:
 
     bool quitRequested() { return mQuitRequested; }
     bool logoutRequestSent() { return mLogoutRequestSent; }
+	bool isSecondInstance() { return mSecondInstance; }
 
 	void writeDebugInfo(bool isStatic=true);
 
@@ -86,7 +87,7 @@ public:
 
 	virtual bool restoreErrorTrap() = 0; // Require platform specific override to reset error handling mechanism.
 	                                     // return false if the error trap needed restoration.
-	virtual void initCrashReporting(bool reportFreeze = false) = 0; // What to do with crash report?
+	void initCrashReporting(); // What to do with crash report?
 	static void handleViewerCrash(); // Hey! The viewer crashed. Do this, soon.
     
 	// Thread accessors
@@ -101,7 +102,7 @@ public:
 	
 	bool getPurgeCache() const { return mPurgeCache; }
 	
-	const std::string& getSecondLifeTitle() const; // The Second Life title.
+	std::string getSecondLifeTitle() const; // The Second Life title.
 	const std::string& getWindowTitle() const; // The window display name.
 
     void forceDisconnect(const std::string& msg); // Force disconnection, with a message to the user.
@@ -113,7 +114,7 @@ public:
     void loadNameCache();
     void saveNameCache();
 
-	void removeMarkerFile(bool leave_logout_marker = false);
+	void removeMarkerFiles();
 	
 	void removeDumpDir();
     // LLAppViewer testing helpers.
@@ -125,14 +126,13 @@ public:
     virtual void forceErrorSoftwareException();
     virtual void forceErrorDriverCrash();
 
-	// *NOTE: There are currently 3 settings files: 
-	// "Global", "PerAccount" and "CrashSettings"
+	// *NOTE: There are currently 2 settings files: 
+	// "Global", and "PerAccount"
 	// The list is found in app_settings/settings_files.xml
 	// but since they are used explicitly in code,
 	// the follow consts should also do the trick.
 	static const std::string sGlobalSettingsName; 
 	static const std::string sPerAccountSettingsName; 
-	static const std::string sCrashSettingsName; 
 
 	// Load settings from the location specified by loction_key.
 	// Key availale and rules for loading, are specified in 
@@ -158,6 +158,7 @@ public:
 	void handleLoginComplete();
 
     LLAllocator & getAllocator() { return mAlloc; }
+
 	// On LoginCompleted callback
 	typedef boost::signals2::signal<void (void)> login_completed_signal_t;
 	login_completed_signal_t mOnLoginCompleted;
@@ -172,7 +173,8 @@ public:
 	static void metricsSend(bool enable_reporting);
 protected:
 	virtual bool initWindow(); // Initialize the viewer's window.
-	virtual bool initLogging(); // Initialize log files, logging system, return false on failure.
+	virtual void initLoggingAndGetLastDuration(); // Initialize log files, logging system
+	void initLoggingInternal();
 	virtual void initConsole() {}; // Initialize OS level debugging console.
 	virtual bool initHardwareTest() { return true; } // A false result indicates the app should quit.
 	virtual bool initSLURLHandler();
@@ -189,7 +191,6 @@ private:
 	void initMaxHeapSize();
 	bool initThreads(); // Initialize viewer threads, return false on failure.
 	bool initConfiguration(); // Initialize settings from the command line/config file.
-
 	bool initCache(); // Initialize local client cache.
 	void checkMemory() ;
 
@@ -202,8 +203,9 @@ private:
 
 	void writeSystemInfo(); // Write system info to "debug_info.log"
 
-	bool anotherInstanceRunning(); 
-	void initMarkerFile(); 
+	void processMarkerFiles(); 
+	static void recordMarkerVersion(LLAPRFile& marker_file);
+	bool markerIsSameVersion(const std::string& marker_name) const;
     
     void idle(); 
     void idleShutdown();
@@ -226,8 +228,7 @@ private:
 	LLAPRFile mMarkerFile; // A file created to indicate the app is running.
 
 	std::string mLogoutMarkerFileName;
-	apr_file_t* mLogoutMarkerFile; // A file created to indicate the app is running.
-
+	LLAPRFile mLogoutMarkerFile; // A file created to indicate the app is running.
 	
 	LLOSInfo mSysOSInfo; 
 	bool mReportedCrash;
@@ -271,6 +272,7 @@ public:
 
 // consts from viewer.h
 const S32 AGENT_UPDATES_PER_SECOND  = 10;
+const S32 AGENT_FORCE_UPDATES_PER_SECOND  = 1;
 
 // Globals with external linkage. From viewer.h
 // *NOTE:Mani - These will be removed as the Viewer App Cleanup project continues.
@@ -303,13 +305,13 @@ extern LLPumpIO* gServicePump;
 // Is the Pacific time zone (aka server time zone)
 // currently in daylight savings time?
 extern BOOL gPacificDaylightTime;
-
-extern U64      gFrameTime;					// The timestamp of the most-recently-processed frame
-extern F32		gFrameTimeSeconds;			// Loses msec precision after ~4.5 hours...
-extern F32		gFrameIntervalSeconds;		// Elapsed time between current and previous gFrameTimeSeconds
+extern U64MicrosecondsImplicit	gStartTime;
+extern U64MicrosecondsImplicit	gFrameTime;					// The timestamp of the most-recently-processed frame
+extern F32SecondsImplicit		gFrameTimeSeconds;			// Loses msec precision after ~4.5 hours...
+extern F32SecondsImplicit		gFrameIntervalSeconds;		// Elapsed time between current and previous gFrameTimeSeconds
 extern F32		gFPSClamped;				// Frames per second, smoothed, weighted toward last frame
 extern F32		gFrameDTClamped;
-extern U64		gStartTime;
+
 extern U32 		gFrameStalls;
 
 extern LLTimer gRenderStartTime;
@@ -333,7 +335,7 @@ extern BOOL		gUseWireframe;
 extern LLVFS	*gStaticVFS;
 
 extern LLMemoryInfo gSysMemory;
-extern U64 gMemoryAllocated;
+extern U64Bytes gMemoryAllocated;
 
 extern std::string gLastVersionChannel;
 

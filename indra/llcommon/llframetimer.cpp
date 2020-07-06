@@ -43,7 +43,7 @@ F64 LLFrameTimer::sTotalSeconds =									// Current time in seconds since epoch
 		U64_to_F64(LLFrameTimer::sTotalTime) * USEC_TO_SEC_F64;
 F64 LLFrameTimer::sFrameTime = 0.0;									// Current time in seconds since application start, updated together with LLFrameTimer::sTotalTime.
 // Updated exactly once per frame:
-S32 LLFrameTimer::sFrameCount = 0;									// Current frame number (number of frames since application start).
+U64 LLFrameTimer::sFrameCount = 0;									// Current frame number (number of frames since application start).
 U64 LLFrameTimer::sPrevTotalTime = LLFrameTimer::sStartTotalTime;	// Previous (frame) time in microseconds since epoch, updated once per frame.
 U64 LLFrameTimer::sFrameDeltaTime = 0;								// Microseconds between last two calls to LLFrameTimer::updateFrameTimeAndCount.
 // Mutex for the above.

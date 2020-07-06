@@ -49,7 +49,11 @@ private:
 LLDirIterator::Impl::Impl(const std::string &dirname, const std::string &mask)
 	: mIsValid(false)
 {
+#if LL_WINDOWS
+	fs::path dir_path(utf8str_to_utf16str(dirname).c_str());
+#else
 	fs::path dir_path(dirname);
+#endif
 
 	bool is_dir = false;
 
@@ -58,11 +62,7 @@ LLDirIterator::Impl::Impl(const std::string &dirname, const std::string &mask)
 	{
 		is_dir = fs::is_directory(dir_path);
 	}
-#if BOOST_FILESYSTEM_VERSION >= 3
-	catch (fs::filesystem_error& e)
-#else
-	catch (fs::basic_filesystem_error<fs::path>& e)
-#endif
+	catch (const fs::filesystem_error& e)
 	{
 		LL_WARNS() << e.what() << LL_ENDL;
 		return;
@@ -79,13 +79,9 @@ LLDirIterator::Impl::Impl(const std::string &dirname, const std::string &mask)
 	{
 		mIter = fs::directory_iterator(dir_path);
 	}
-#if BOOST_FILESYSTEM_VERSION >= 3
-	catch (fs::filesystem_error& e)
-#else
-	catch (fs::basic_filesystem_error<fs::path>& e)
-#endif
+	catch (const fs::filesystem_error& e)
 	{
-		LL_ERRS() << e.what() << LL_ENDL;
+		LL_WARNS() << e.what() << LL_ENDL;
 		return;
 	}
 
@@ -101,7 +97,7 @@ LLDirIterator::Impl::Impl(const std::string &dirname, const std::string &mask)
 	}
 	catch (boost::regex_error& e)
 	{
-		LL_ERRS() << "\"" << exp << "\" is not a valid regular expression: "
+		LL_WARNS() << "\"" << exp << "\" is not a valid regular expression: "
 				<< e.what() << LL_ENDL;
 		return;
 	}
@@ -125,20 +121,26 @@ bool LLDirIterator::Impl::next(std::string &fname)
 
 	fs::directory_iterator end_itr; // default construction yields past-the-end
 	bool found = false;
-	while (mIter != end_itr && !found)
-	{
-		boost::smatch match;
-#if BOOST_FILESYSTEM_VERSION >= 3
-		std::string name = mIter->path().filename().string();
-#else
-		std::string name = mIter->path().filename();
-#endif
-		if ((found = boost::regex_match(name, match, mFilterExp)))
-		{
-			fname = name;
-		}
 
-		++mIter;
+	// Check if path is a directory.
+	try
+	{
+		while (mIter != end_itr && !found)
+		{
+			boost::smatch match;
+			std::string name = mIter->path().filename().string();
+			found = boost::regex_match(name, match, mFilterExp);
+			if (found)
+			{
+				fname = name;
+			}
+
+			++mIter;
+		}
+	}
+	catch (const fs::filesystem_error& e)
+	{
+		LL_WARNS() << e.what() << LL_ENDL;
 	}
 
 	return found;

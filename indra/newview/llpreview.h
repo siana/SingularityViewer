@@ -137,6 +137,8 @@ protected:
 	// for LLInventoryObserver 
 	virtual void changed(U32 mask);	
 	BOOL mDirty;
+
+public:
 	virtual const char *getTitleName() const { return "Preview"; }
 	
 protected:

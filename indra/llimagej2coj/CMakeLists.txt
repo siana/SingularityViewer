@@ -41,9 +41,11 @@ IF(WIN32)
 ENDIF(WIN32)
 
 add_library (llimagej2coj ${llimagej2coj_SOURCE_FILES})
-add_dependencies(llimagej2coj prepare)
+
 target_link_libraries(
     llimagej2coj
+    PUBLIC
+    llcommon
     ${OPENJPEG_LIBRARIES}
     )
 

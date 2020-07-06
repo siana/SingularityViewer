@@ -88,11 +88,9 @@ public:
 	void			changeCameraToDefault();
 	void			changeCameraToMouselook(BOOL animate = TRUE);
 	void			changeCameraToThirdPerson(BOOL animate = TRUE);
-	void			changeCameraToCustomizeAvatar();			// trigger transition animation
+	void			changeCameraToCustomizeAvatar(); // Trigger transition animation
 	F32				calcCustomizeAvatarUIOffset( const LLVector3d& camera_pos_global );
-	// Ventrella
-	void			changeCameraToFollow(BOOL animate = TRUE);
-	//end Ventrella
+	void			changeCameraToFollow(BOOL animate = TRUE); 	// Ventrella
 	BOOL			cameraThirdPerson() const		{ return (mCameraMode == CAMERA_MODE_THIRD_PERSON && mLastCameraMode == CAMERA_MODE_THIRD_PERSON); }
 	BOOL			cameraMouselook() const			{ return (mCameraMode == CAMERA_MODE_MOUSELOOK && mLastCameraMode == CAMERA_MODE_MOUSELOOK); }
 	BOOL			cameraCustomizeAvatar() const	{ return (mCameraMode == CAMERA_MODE_CUSTOMIZE_AVATAR /*&& !mCameraAnimating*/); }
@@ -162,6 +160,7 @@ private:
 	//--------------------------------------------------------------------
 public:
 	void			setUsingFollowCam(bool using_follow_cam);
+	bool 			isfollowCamLocked();
 private:
 	LLFollowCam 	mFollowCam; 			// Ventrella
 
@@ -214,18 +213,22 @@ public:
 	void			setCameraPosAndFocusGlobal(const LLVector3d& pos, const LLVector3d& focus, const LLUUID &object_id);
 	void			clearFocusObject();
 	void			setFocusObject(LLViewerObject* object);
+	void			setAllowChangeToFollow(BOOL focus) 	{ mAllowChangeToFollow = focus; }
+	void			setObjectTracking(BOOL track) 	{ mTrackFocusObject = track; }
 	const LLVector3d &getFocusGlobal() const		{ return mFocusGlobal; }
 	const LLVector3d &getFocusTargetGlobal() const	{ return mFocusTargetGlobal; }
 private:
 	LLVector3d		mCameraFocusOffset;				// Offset from focus point in build mode
 	LLVector3d		mCameraFocusOffsetTarget;		// Target towards which we are lerping the camera's focus offset
 	BOOL			mFocusOnAvatar;					
+	BOOL			mAllowChangeToFollow;
 	LLVector3d		mFocusGlobal;
 	LLVector3d		mFocusTargetGlobal;
 	LLPointer<LLViewerObject> mFocusObject;
 	F32				mFocusObjectDist;
 	LLVector3		mFocusObjectOffset;
 	F32				mFocusDotRadius; 				// Meters
+	BOOL			mTrackFocusObject;
 
 	//--------------------------------------------------------------------
 	// Lookat / Pointat

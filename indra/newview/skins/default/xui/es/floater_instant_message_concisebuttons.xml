@@ -30,25 +30,28 @@
 	<string name="inventory_item_offered">
 		Ofrecido un Ítem de Inventario
 	</string>
-	<flyout_button label="Perfil" name="instant_message_flyout">
+	<flyout_button label="Perfil" name="instant_message_flyout" left="200" width="190">
 		<flyout_button_item label="Perfil" name="profile_item"/>
 		<flyout_button_item label="Historial" name="history_btn"/>
 		<flyout_button_item label="Ofrecer Teleporte" name="profile_tele_btn"/>
 		<flyout_button_item label="Solicitar Teleporte" name="request_teleport_item"/>
 		<flyout_button_item label="Pagar" name="pay_item"/>
-		<flyout_button_item label="Invitar  a Grupo" name="group_invite_item"/>
+		<flyout_button_item label="Invitar a Grupo" name="group_invite_item"/>
 		<flyout_button_item label="Copiar SLURL" name="copy_slurl_item"/>
+		<flyout_button_item label="Añadir a la Conferencia" name="conference"/>
+		<flyout_button_item label="Denunciar Infracción" name="report"/>
 	</flyout_button>
+	<string name="find on map" value="Ubicar en el Mapa"/>
 	<string name="ding on" value="Timbre en Nuevos Mensajes (Encendido)"/>
-    <string name="ding off" value="Timbre en Nuevos Mensajes (Apagado)"/>
+	<string name="ding off" value="Timbre en Nuevos Mensajes (Apagado)"/>
 	<string name="rp mode on" value="Modo RP (Encendido)"/>
 	<string name="rp mode off" value="Modo RP (Apagado)"/>
 	<string name="add friend" value="Añadir Contacto"/>
 	<string name="remove friend" value="Eliminar Contacto"/>
-    <string name="mute" value="Ignorar"/>
-    <string name="unmute" value="No Ignorar"/>
-	<button label="Llamar" left_delta="67" name="start_call_btn" width="60"/>
-	<button label="Finalizar" name="end_call_btn" width="24"/>
+	<string name="mute" value="Ignorar"/>
+	<string name="unmute" value="No Ignorar"/>
+	<button label="Llamar" name="start_call_btn" left_delta="100" width="70"/>
+	<button label="Finalizar" name="end_call_btn" width="77"/>
 	<panel left_delta="16" name="speaker_controls" width="60">
 		<volume_slider name="speaker_volume" width="48"/>
 		<button label="" left_delta="42" name="mute_btn" tool_tip="Ignorar Voz" width="25"/>

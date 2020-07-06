@@ -117,7 +117,7 @@ public:
 			  const LLVector4 &pos);						// Initializes Matrix with Euler angles
 	LLMatrix4(const F32 roll, const F32 pitch, const F32 yaw);				// Initializes Matrix with Euler angles
 
-	~LLMatrix4(void);										// Destructor
+	~LLMatrix4() = default;									// Destructor
 
 	LLSD getValue() const;
 	void setValue(const LLSD&);
@@ -180,6 +180,11 @@ public:
 	const LLMatrix4& setTranslation(const LLVector4 &translation);
 	const LLMatrix4& setTranslation(const LLVector3 &translation);
 
+	// Convenience func for simplifying comparison-heavy code by
+	// intentionally stomping values [-FLT_EPS,FLT_EPS] to 0.0
+	//
+	void condition(void);
+
 	///////////////////////////
 	//
 	// Get properties of a matrix
@@ -240,6 +245,8 @@ public:
 
 	friend std::ostream&	 operator<<(std::ostream& s, const LLMatrix4 &a);	// Stream a
 };
+
+static_assert(std::is_trivially_copyable<LLMatrix4>::value, "LLMatrix4 must be a trivially copyable type");
 
 inline const LLMatrix4&	LLMatrix4::setIdentity()
 {

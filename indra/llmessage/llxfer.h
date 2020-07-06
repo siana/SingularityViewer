@@ -54,7 +54,6 @@ class LLXfer
         S32 mChunkSize;
   
  public:
-	LLXfer *mNext;
 	U64 mID;
 	S32 mPacketNum;
 
@@ -90,7 +89,9 @@ class LLXfer
 	void init(S32 chunk_size);
 	virtual void cleanup();
 
-	virtual S32 startSend (U64 xfer_id, const LLHost &remote_host);
+	virtual S32 startSend(U64 xfer_id, const LLHost &remote_host);
+	virtual void closeFileHandle();
+	virtual S32 reopenFileHandle();
 	virtual void sendPacket(S32 packet_num);
 	virtual void sendNextPacket();
 	virtual void resendLastPacket();

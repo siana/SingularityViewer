@@ -30,13 +30,7 @@
 
 #include <vector>
 #include <list>
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
 #include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
-#include <boost/shared_ptr.hpp>
-#include <boost/type_traits/is_convertible.hpp>
-#include <boost/type_traits/is_enum.hpp>
 #include <boost/unordered_map.hpp>
 
 #include "llerror.h"
@@ -118,7 +112,7 @@ namespace LLInitParam
 
 	// wraps comparison operator between any 2 values of the same type
 	// specialize to handle cases where equality isn't defined well, or at all
-	template <typename T, bool IS_BOOST_FUNCTION = boost::is_convertible<T, boost::function_base>::value >
+	template <typename T, bool IS_BOOST_FUNCTION = std::is_convertible<T, boost::function_base>::value >
     struct ParamCompare 
 	{
     	static bool equals(const T &a, const T &b)
@@ -499,7 +493,7 @@ namespace LLInitParam
 
 		virtual ~Parser();
 
-		template <typename T> bool readValue(T& param, typename boost::disable_if<boost::is_enum<T> >::type* dummy = 0)
+		template <typename T> bool readValue(T& param, typename std::enable_if<!std::is_enum<T>::value>::type* dummy = 0)
 		{
 			parser_read_func_map_t::iterator found_it = mParserReadFuncs->find(&typeid(T));
 			if (found_it != mParserReadFuncs->end())
@@ -509,8 +503,8 @@ namespace LLInitParam
 
 			return false;
 		}
-			
-		template <typename T> bool readValue(T& param, typename boost::enable_if<boost::is_enum<T> >::type* dummy = 0)
+
+		template <typename T> bool readValue(T& param, typename std::enable_if<std::is_enum<T>::value>::type* dummy = nullptr)
 		{
 			parser_read_func_map_t::iterator found_it = mParserReadFuncs->find(&typeid(T));
 			if (found_it != mParserReadFuncs->end())
@@ -554,6 +548,7 @@ namespace LLInitParam
 		}
 
 		virtual std::string getCurrentElementName() = 0;
+		virtual std::string getCurrentFileName() = 0;
 		virtual void parserWarning(const std::string& message);
 		virtual void parserError(const std::string& message);
 		void setParseSilently(bool silent) { mParseSilently = silent; }
@@ -633,7 +628,7 @@ namespace LLInitParam
 		UserData*			mUserData;
 	};
 
-	typedef boost::shared_ptr<ParamDescriptor> ParamDescriptorPtr;
+	typedef std::shared_ptr<ParamDescriptor> ParamDescriptorPtr;
 
 	// each derived Block class keeps a static data structure maintaining offsets to various params
 	class LL_COMMON_API BlockDescriptor
@@ -1449,7 +1444,7 @@ namespace LLInitParam
 				++it)
 			{
 				std::string key = it->getValueName();
-				name_stack.push_back(std::make_pair(std::string(), true));
+				name_stack.emplace_back(std::string(), true);
 
 				if(key.empty())
 				// not parsed via name values, write out value directly
@@ -1501,7 +1496,7 @@ namespace LLInitParam
 
 		param_value_t& add()
 		{
-			mValues.push_back(value_t());
+			mValues.emplace_back(value_t());
 			Param::setProvided();
 			return mValues.back();
 		}

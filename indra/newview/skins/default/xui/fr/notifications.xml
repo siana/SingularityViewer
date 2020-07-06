@@ -2349,6 +2349,11 @@ Visiter les pages d'aide de Second Life.
 		<usetemplate ignoretext="Lors de la visite des pages d'aide de Second Life" name="okcancelignore" notext="Annuler" yestext="Aller"/>
 	</notification>
 
+	<notification name="ConfirmAddingChatParticipants">
+		Quand vous ajoutez une personne à une conversation existante, une nouvelle conversation est créée.  Tous les participants recevront les notifications de nouvelle conversation.
+		<usetemplate ignoretext="Confirmer l&apos;ajout de participants au chat" name="okcancelignore" notext="Annuler" yestext="OK"/>
+	</notification>
+
 	<notification name="ConfirmQuit">
 Etes-vous certain(e) de vouloir quitter ?
 		<usetemplate ignoretext="Lorsque vous quittez [APP_NAME]" name="okcancelignore" notext="Continuer" yestext="Quitter"/>
@@ -3019,11 +3024,6 @@ Gestes désactivés ayant le même mot-clé :
 [NAMES]
 	</notification>
 
-	<notification name="NoQuickTime">
-Le logiciel Apple QuickTime ne semble pas installé sur votre système.
-Pour voir les vidéos sur les terrains qui le permettent, allez sur le site de QuickTime (http://www.apple.com/fr/quicktime/download) et installez le lecteur QuickTime.
-	</notification>
-
   <notification
    icon="alertmodal.tga"
    name="MediaPluginFailed"
@@ -3360,7 +3360,7 @@ L'objet [OBJECTFROMNAME] appartenant à un utilisateur inconnu vous a donné un(
 	</notification>
 
 	<notification name="OfferFriendship">
-[NAME] vous demande de devenir son ami(e).
+[NAME_SLURL] vous demande de devenir son ami(e).
 
 [MESSAGE]
 
@@ -3376,7 +3376,7 @@ L'objet [OBJECTFROMNAME] appartenant à un utilisateur inconnu vous a donné un(
 	</notification>
 
 	<notification name="OfferFriendshipNoMessage">
-[NAME] vous demande de devenir son ami.
+[NAME_SLURL] vous demande de devenir son ami.
 
 (Par défaut, vous pourrez voir quand vous êtes les deux connecté(e)s).
 		<form name="form">
@@ -3697,6 +3697,8 @@ Une erreur est survenue pendant la connexion au chat vocal pour [VOICE_CHANNEL_N
 
 	<notification name="ServerVersionChanged">
 La région dans laquelle vous avez pénétré utilise une version de simulateur différente. C'est ballot, mais c'est la vie !
+Current simulator: [NEW_VERSION]
+Previous simulator: [OLD_VERSION]
 	</notification>
 
 	<notification name="UnableToOpenCommandURL">

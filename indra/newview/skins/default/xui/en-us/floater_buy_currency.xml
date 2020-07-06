@@ -46,7 +46,7 @@
 	</line_editor>
 	<text bottom_delta="0" follows="top|right" height="16" left_delta="85"
 	     name="currency_est"  width="180">
-		for approx. US$ [USD]
+		for approx. [REALCURRENCY] [USD]
 	</text>
 	<text bottom_delta="0" follows="top|right" height="16" left_delta="5"
 	     name="getting_data" width="180">
@@ -91,6 +91,6 @@ Increase the amount to buy.
 	<button bottom_delta="0" follows="bottom|left" height="20" label="Purchase"
 	     left_delta="-96" name="buy_btn" width="90" />
 	<string name="buy_currency">
-		Buy [CURRENCY] [LINDENS] for approx. US$ [USD]
+		Buy [CURRENCY] [LINDENS] for approx. [REALCURRENCY] [USD]
 	</string>
 </floater>

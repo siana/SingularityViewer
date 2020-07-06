@@ -97,7 +97,15 @@ struct affected_object
 class LocalBitmap
 {
 	public:
-		LocalBitmap(std::string filename);
+		struct Params : public LLInitParam::Block<Params>
+		{
+			Mandatory<std::string> fullpath;
+			Optional<bool> keep_updating;
+			Optional<S32> type;
+			Optional<LLUUID> id;
+			Params(const std::string& path = LLStringUtil::null);
+		};
+		LocalBitmap(const Params& p);
 		virtual ~LocalBitmap();
 		friend class LocalAssetBrowser;
 
@@ -127,25 +135,28 @@ class LocalBitmap
 		};
 
 	public: /* [information query functions] */
-		std::string getShortName();
-		std::string getFileName();
-		LLUUID      getID();
-		LLSD        getLastModified();
-		std::string getLinkStatus();
-		bool        getUpdateBool();
+		std::string getShortName() const;
+		std::string getFileName() const;
+		LLUUID      getID() const;
+		void        setID(const LLUUID&);
+		LLSD        getLastModified() const;
+		std::string getLinkStatus() const;
+		bool        getUpdateBool() const;
 		void        setType( S32 );
-		bool        getIfValidBool();
-		S32		    getType();
-		void		getDebugInfo();
+		bool        getIfValidBool() const;
+		S32		    getType() const;
+		void		getDebugInfo() const;
+		LLSD		asLLSD() const;
+
 
 	private: /* [maintenence functions] */
 		void updateSelf();
 		bool decodeSelf(LLImageRaw* rawimg);
 		void setUpdateBool();
 
-		std::vector<LLFace*>		 getFaceUsesThis(LLDrawable*);
+		std::vector<LLFace*>		 getFaceUsesThis(LLDrawable*) const;
 		std::vector<affected_object> getUsingObjects(bool seek_by_type = true,
-												     bool seek_textures = false, bool seek_sculptmaps = false);
+												     bool seek_textures = false, bool seek_sculptmaps = false) const;
 
 	protected: /* [basic properties] */
 		std::string    shortname;
@@ -173,9 +184,10 @@ class LocalBitmap
 
 class AIFilePicker;
 
-class LocalAssetBrowser
+class LocalAssetBrowser : public LLSingleton<LocalAssetBrowser>
 {
 	public:
+		const std::string getFileName() const;
 		LocalAssetBrowser();
 		virtual ~LocalAssetBrowser();
 		friend class FloaterLocalAssetBrowser;
@@ -183,6 +195,7 @@ class LocalAssetBrowser
 		static void UpdateTextureCtrlList(LLScrollListCtrl*);
 		static void setLayerUpdated(bool toggle) { mLayerUpdated = toggle; }
 		static void setSculptUpdated(bool toggle) { mSculptUpdated = toggle; }
+		static void add(const LocalBitmap& unit) { loaded_bitmaps.push_back(unit); }
 		static void AddBitmap();
 		static void AddBitmap_continued(AIFilePicker* filepicker);
 		static void DelBitmap( std::vector<LLScrollListItem*>, S32 column = BITMAPLIST_COL_ID );
@@ -241,6 +254,8 @@ private:
 	// Combobox type select
 	void onCommitTypeCombo();
 
+	void onUpdateID(const LLSD& val);
+
 	// Widgets
 	LLButton* mAddBtn;
 	LLButton* mDelBtn;
@@ -289,10 +304,10 @@ class LocalAssetBrowserTimer : public LLEventTimer
 	public:
 		LocalAssetBrowserTimer();
 		~LocalAssetBrowserTimer();
-		virtual BOOL tick();
+		BOOL tick() override;
 		void		 start();
 		void		 stop();
-		bool         isRunning();
+		bool         isRunning() const;
 };
 
 #endif

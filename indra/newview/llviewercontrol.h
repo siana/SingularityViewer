@@ -62,13 +62,8 @@ void create_graphics_group(LLControlGroup& group);
 // Read-only
 extern LLControlGroup gColors;
 
-// Saved at end of session
-extern LLControlGroup gCrashSettings;
-
 // Set after settings loaded
 extern std::string gLastRunVersion;
-extern std::string gCurrentVersion;
-
 
 bool handleCloudSettingsChanged(const LLSD& newvalue);
 

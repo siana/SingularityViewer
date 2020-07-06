@@ -38,7 +38,7 @@
 #include <iterator>
 
 #include "lldir.h"
-#include "sgversion.h"
+#include "llversioninfo.h"
 #include "llappviewer.h"
 #include "llviewercontrol.h"
 #include "llxmlrpcresponder.h"
@@ -128,8 +128,8 @@ void LLUserAuth::authenticate(
 	XMLRPC_VectorAppendString(params, "last", lastname.c_str(), 0);
 	XMLRPC_VectorAppendString(params, "web_login_key", web_login_key.getString().c_str(), 0);
 	XMLRPC_VectorAppendString(params, "start", start.c_str(), 0);
-	XMLRPC_VectorAppendString(params, "version", gCurrentVersion.c_str(), 0); // Includes channel name
-	XMLRPC_VectorAppendString(params, "channel", gVersionChannel, 0);
+	XMLRPC_VectorAppendString(params, "version", LLVersionInfo::getChannelAndVersion().c_str(), 0); // Includes channel name
+	XMLRPC_VectorAppendString(params, "channel", LLVersionInfo::getChannel().c_str(), 0);
 	XMLRPC_VectorAppendString(params, "platform", PLATFORM_STRING, 0);
 	XMLRPC_VectorAppendString(params, "platform_version", LLAppViewer::instance()->getOSInfo().getOSVersionString().c_str(), 0);
 
@@ -215,17 +215,13 @@ void LLUserAuth::authenticate(
 	XMLRPC_VectorAppendString(params, "last", lastname.c_str(), 0);
 	XMLRPC_VectorAppendString(params, "passwd", dpasswd.c_str(), 0);
 	XMLRPC_VectorAppendString(params, "start", start.c_str(), 0);
-	XMLRPC_VectorAppendString(params, "version", llformat("%d.%d.%d.%d", gVersionMajor, gVersionMinor, gVersionPatch, gVersionBuild).c_str(), 0);
+	XMLRPC_VectorAppendString(params, "version", LLVersionInfo::getVersion().c_str(), 0);
 	// Singu Note: At the request of Linden Lab we change channel sent to the login server in the following way:
 	// * If channel is "Singularity" we change it to "Singularity Release", due to their statistics system
 	//   not being able to distinguish just the release version
 	// * We append "64" to channel name on 64-bit for systems for the LL stats system to be able to produce independent
 	//   crash statistics depending on the architecture
-	std::string chan(gVersionChannel);
-	if (chan == "Singularity")
-	{
-		chan += " Release";
-	}
+	std::string chan(LLVersionInfo::getChannel());
 #if defined(_WIN64) || defined(__x86_64__)
 	chan += " 64";
 #endif

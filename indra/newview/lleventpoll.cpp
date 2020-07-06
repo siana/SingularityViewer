@@ -183,12 +183,31 @@ namespace
 	{
 		if (mDone) return;
 
-		// A HTTP_BAD_GATEWAY (502) error is our standard timeout response
-		// we get this when there are no events.
-		if ( mStatus == HTTP_BAD_GATEWAY )	
-		{
+		// Timeout
+		if (is_internal_http_error_that_warrants_a_retry(mStatus))
+		{ // A standard timeout response we get this when there are no events.
 			mErrorCount = 0;
 			makeRequest();
+		}
+		else if ( mStatus == HTTP_BAD_GATEWAY )
+		{ // LEGACY: A HTTP_BAD_GATEWAY (502) error is our standard timeout response
+		  // we get this when there are no events.
+			mErrorCount = 0;
+			makeRequest();
+		}
+		else if (mStatus == HTTP_NOT_FOUND)
+		{   // Event polling for this server has been canceled.  In
+			// some cases the server gets ahead of the viewer and will
+			// return a 404 error (Not Found) before the cancel event
+			// comes back in the queue
+			LL_WARNS("LLEventPollImpl") << "Canceling coroutine" << LL_ENDL;
+			stop();
+		}
+		else if (mCode != CURLE_OK)
+		{
+			/// Some LLCore or LIBCurl error was returned.  This is unlikely to be recoverable
+		    LL_WARNS("LLEventPollImpl") << "Critical error from poll request returned from libraries.  Canceling coroutine." << LL_ENDL;
+			stop();
 		}
 		else if (mErrorCount < MAX_EVENT_POLL_HTTP_ERRORS)
 		{
@@ -213,6 +232,7 @@ namespace
 			// They are essentially disconnected from the region even though some things may still work.
 			// Since things won't get better until they relog we force a disconnect now.
 
+			/* Singu Note: There's no reason to disconnect, just because this failed a few too many times
 			// *NOTE:Mani - The following condition check to see if this failing event poll
 			// is attached to the Agent's main region. If so we disconnect the viewer.
 			// Else... its a child region and we just leave the dead event poll stopped and 
@@ -222,6 +242,7 @@ namespace
 				LL_WARNS() << "Forcing disconnect due to stalled main region event poll."  << LL_ENDL;
 				LLAppViewer::instance()->forceDisconnect(LLTrans::getString("AgentLostConnection"));
 			}
+			*/
 		}
 	}
 

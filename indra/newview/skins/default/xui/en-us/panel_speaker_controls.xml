@@ -9,16 +9,16 @@
 			</combo_box>
 		</layout_panel>
 		<layout_panel auto_resize="true" bottom="0" can_resize="false" height="120" min_height="100" name="moderate_chat_panel" top_delta="0" user_resize="false" visible="true" width="140">
-			<scroll_list bottom="78" can_resize="false" column_padding="0" draw_heading="true" draw_stripes="false" follows="left|top|bottom|right" left="0" multi_select="true" name="speakers_list" right="140" search_column="1" sort_column="2" top="113" menu_num="0">
+			<name_list bottom="78" can_resize="false" column_padding="0" draw_heading="true" draw_stripes="false" follows="left|top|bottom|right" left="0" multi_select="true" name="speakers_list" right="140" search_column="1" sort_column="2" name_column_index="1" top="113">
 				<column name="icon_speaking_status" sort="speaking_status" width="20"/>
 				<column dynamicwidth="true" label="Name" name="speaker_name"/>
 				<column label="" name="speaking_status" width="0"/>
-			</scroll_list>
+			</name_list>
 			<panel border="false" bottom="0" can_resize="false" follows="left|bottom|right" height="77" left="0" name="speaker_controls" width="140">
 				<button bottom="-28" enabled="false" follows="left|top" height="20" image_overlay="icon_avatar_offline.tga" label="" left="4" name="profile_btn" right="34" scale_image="true"/>
 				<text bottom_delta="9" follows="left|top|right" left_delta="34" name="resident_name" valign="center" width="140">Rumplstiltskin Califragilistic</text>
-				<volume_slider bottom_delta="-29" follows="left|top" height="15" increment="0.05" initial_val="0.5" left="0" max_val="1.0" min_val="0.0" name="speaker_volume" width="110"/>
-				<button bottom_delta="0" height="20" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" label="" left_delta="110" name="mute_btn" tool_tip="Mute voice for this resident" width="25"/>
+				<slider bottom_delta="-29" follows="left|top" height="15" increment="0.05" show_text="true" can_edit_text="true" val_width="28" decimal_digits="2" initial_val="0.5" left="0" max_val="1.0" min_val="0.0" name="speaker_volume" width="110"/>
+				<button bottom_delta="0" height="20" image_selected="icn_speaker-muted_dark.tga" image_unselected="icn_speaker_dark.tga" scale_image="false" label="" left_delta="114" name="mute_btn" tool_tip="Mute voice for this resident" width="25"/>
 				<check_box bottom_delta="-25" enabled="false" follows="left|top" height="25" label="Mute Text" left="3" name="mute_text_btn"/>
 			</panel>
 		</layout_panel>

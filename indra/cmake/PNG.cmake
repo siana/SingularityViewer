@@ -9,11 +9,7 @@ if (STANDALONE)
 else (STANDALONE)
   use_prebuilt_binary(libpng)
   if (WINDOWS)
-    if(MSVC12)
-      set(PNG_LIBRARIES libpng16)
-    else(MSVC12)
-      set(PNG_LIBRARIES libpng15)
-    endif(MSVC12)
+    set(PNG_LIBRARIES libpng16)
   elseif(DARWIN)
     set(PNG_LIBRARIES png15)
   else(LINUX)
@@ -36,15 +32,5 @@ else (STANDALONE)
       set(PNG_LIBRARIES png16)
     endif ()
   endif()
-  if (WINDOWS)
-    set(PNG_INCLUDE_DIRS
-      ${LIBS_PREBUILT_DIR}/include/${PNG_LIBRARIES}
-      ${LIBS_PREBUILT_LEGACY_DIR}/include/${PNG_LIBRARIES}
-      )
-  else (WINDOWS)
-    set(PNG_INCLUDE_DIRS
-      ${LIBS_PREBUILT_DIR}/include/lib${PNG_LIBRARIES}
-      ${LIBS_PREBUILT_LEGACY_DIR}/include/lib${PNG_LIBRARIES}
-      )
-  endif (WINDOWS)
+    set(PNG_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/include/libpng16)
 endif (STANDALONE)

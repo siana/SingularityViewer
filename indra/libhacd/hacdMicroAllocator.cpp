@@ -436,7 +436,7 @@ public:
 
   }
 
-  ~MyMicroAllocator(void)
+  virtual ~MyMicroAllocator()
   {
     if ( mMicroChunks )
     {
@@ -746,7 +746,7 @@ public:
     mMicro = createMicroAllocator(this,defaultChunkSize);
   }
 
-  ~MyHeapManager(void)
+  virtual ~MyHeapManager()
   {
     releaseMicroAllocator(mMicro);
   }

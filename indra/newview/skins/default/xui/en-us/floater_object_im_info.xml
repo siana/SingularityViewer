@@ -42,11 +42,10 @@
 	     mouse_opaque="true" name="LabelOwnerNameTitle" v_pad="0" width="78">
     Owner:
   </text>
-  <text bevel_style="none" border_style="line" border_visible="false"
+  <name_box bevel_style="none" border_style="line" border_visible="false"
 			     border_thickness="0" bottom_delta="-10" enabled="true" follows="left|top"
 			     font="SansSerif" height="20" is_unicode="false" left="70" hover="true"
-			     max_length="254" mouse_opaque="true" name="OwnerName" font-style="UNDERLINE"
-			     width="200" hover_cursor="UI_CURSOR_HAND" text_color="TextLinkColor" hover_color="TextLinkHoverColor"/>
+			     max_length="254" mouse_opaque="true" name="OwnerName" width="200" rlv_sensitive="true"/>
   <text bottom_delta="-10" follows="left|top" font="SansSerif" h_pad="0" halign="left" height="10" left="10" name="LabelObjectID" width="78">
     Key:
   </text>

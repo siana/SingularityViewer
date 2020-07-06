@@ -398,7 +398,7 @@
 		  scale_image="false"
 		  tool_tip="Mute This Media"
 		  left_delta="5"
-		  bottom="-22"
+		  bottom="-20"
 		  draw_border="true"
 		  height="20"
 		  width="22" >
@@ -428,6 +428,26 @@
 		<slider.mouseleave_callback
 			function="MediaCtrl.HideVolumeSlider" />
 	  </slider>
+	</layout_panel>
+	<layout_panel
+		name="moap_stop"
+		mouse_opaque="false"
+		auto_resize="false"
+		user_resize="false"
+		height="28"
+		min_width="22"
+		width="22">
+	  <button
+		  name="stop_btn"
+		  follows="top"
+	          image_overlay="go-media-stop.png"
+		  label=""
+		  bottom="-22"
+		  height="22"
+		  tool_tip="Stop media"
+		  width="22">
+		<button.commit_callback function="MediaCtrl.MOAPStop" />
+	  </button>
 	</layout_panel>
 	<layout_panel
 		name="zoom_frame"

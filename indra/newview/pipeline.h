@@ -84,26 +84,25 @@ void glh_set_current_modelview(const LLMatrix4a& mat);
 const LLMatrix4a& glh_get_current_projection();
 void glh_set_current_projection(const LLMatrix4a& mat);
 
-extern LLFastTimer::DeclareTimer FTM_RENDER_GEOMETRY;
-extern LLFastTimer::DeclareTimer FTM_RENDER_GRASS;
-extern LLFastTimer::DeclareTimer FTM_RENDER_INVISIBLE;
-extern LLFastTimer::DeclareTimer FTM_RENDER_OCCLUSION;
-extern LLFastTimer::DeclareTimer FTM_RENDER_SHINY;
-extern LLFastTimer::DeclareTimer FTM_RENDER_SIMPLE;
-extern LLFastTimer::DeclareTimer FTM_RENDER_TERRAIN;
-extern LLFastTimer::DeclareTimer FTM_RENDER_TREES;
-extern LLFastTimer::DeclareTimer FTM_RENDER_UI;
-extern LLFastTimer::DeclareTimer FTM_RENDER_WATER;
-extern LLFastTimer::DeclareTimer FTM_RENDER_WL_SKY;
-extern LLFastTimer::DeclareTimer FTM_RENDER_ALPHA;
-extern LLFastTimer::DeclareTimer FTM_RENDER_CHARACTERS;
-extern LLFastTimer::DeclareTimer FTM_RENDER_BUMP;
-extern LLFastTimer::DeclareTimer FTM_RENDER_MATERIALS;
-extern LLFastTimer::DeclareTimer FTM_RENDER_FULLBRIGHT;
-extern LLFastTimer::DeclareTimer FTM_RENDER_GLOW;
-extern LLFastTimer::DeclareTimer FTM_STATESORT;
-extern LLFastTimer::DeclareTimer FTM_PIPELINE;
-extern LLFastTimer::DeclareTimer FTM_CLIENT_COPY;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_GEOMETRY;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_GRASS;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_OCCLUSION;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_SHINY;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_SIMPLE;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_TERRAIN;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_TREES;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_UI;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_WATER;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_WL_SKY;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_ALPHA;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_CHARACTERS;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_BUMP;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_MATERIALS;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_FULLBRIGHT;
+extern LLTrace::BlockTimerStatHandle FTM_RENDER_GLOW;
+extern LLTrace::BlockTimerStatHandle FTM_STATESORT;
+extern LLTrace::BlockTimerStatHandle FTM_PIPELINE;
+extern LLTrace::BlockTimerStatHandle FTM_CLIENT_COPY;
 
 
 LL_ALIGN_PREFIX(16)
@@ -116,8 +115,10 @@ public:
 	void destroyGL();
 	void restoreGL();
 	void resetVertexBuffers();
-	void doResetVertexBuffers();
+	void doResetVertexBuffers(bool forced = false);
 	void resizeScreenTexture();
+	void releaseOcclusionBuffers();
+	void releaseVertexBuffers();
 	void releaseGLBuffers();
 	void releaseLUTBuffers();
 	void releaseScreenBuffers();
@@ -198,6 +199,7 @@ public:
 	//get the object between start and end that's closest to start.
 	LLViewerObject* lineSegmentIntersectInWorld(const LLVector4a& start, const LLVector4a& end,
 												BOOL pick_transparent,
+												bool pick_rigged,
 												S32* face_hit,                          // return the face hit
 												LLVector4a* intersection = NULL,         // return the intersection point
 												LLVector2* tex_coord = NULL,            // return the texture coordinates of the intersection point
@@ -228,11 +230,8 @@ public:
 
 	void		enableShadows(const BOOL enable_shadows);
 
-// 	void		setLocalLighting(const BOOL local_lighting);
-// 	BOOL		isLocalLightingEnabled() const;
-	S32			setLightingDetail(S32 level);
-	S32			getLightingDetail() const { return mLightingDetail; }
-	S32			getMaxLightingDetail() const;
+	void		updateLocalLightingEnabled();
+	bool		isLocalLightingEnabled() const { return mLightingEnabled; }
 		
 	BOOL		canUseWindLightShaders() const;
 	BOOL		canUseWindLightShadersOnObjects() const;
@@ -252,11 +251,12 @@ public:
 	void createObjects(F32 max_dtime);
 	void createObject(LLViewerObject* vobj);
 	void processPartitionQ();
-	void updateGeom(F32 max_dtime);
+	void updateGeom(F32 max_dtime, LLCamera& camera);
 	void updateGL();
 	void rebuildPriorityGroups();
 	void rebuildGroups();
 	void clearRebuildGroups();
+	void clearRebuildDrawables();
 
 	//calculate pixel area of given box from vantage point of given camera
 	static F32 calcPixelArea(LLVector3 center, LLVector3 size, LLCamera& camera);
@@ -287,10 +287,10 @@ public:
 	void renderGeomDeferred(LLCamera& camera);
 	void renderGeomPostDeferred(LLCamera& camera, bool do_occlusion=true);
 	void renderGeomShadow(LLCamera& camera);
-	void bindDeferredShader(LLGLSLShader& shader, U32 light_index = 0, U32 noise_map = 0xFFFFFFFF);
+	void bindDeferredShader(LLGLSLShader& shader, LLRenderTarget* diffuse_source = NULL, LLRenderTarget* light_source = NULL);
 	void setupSpotLight(LLGLSLShader& shader, LLDrawable* drawablep);
 
-	void unbindDeferredShader(LLGLSLShader& shader);
+	void unbindDeferredShader(LLGLSLShader& shader, LLRenderTarget* diffuse_source = NULL, LLRenderTarget* light_source = NULL);
 	void renderDeferredLighting();
 	void renderDeferredLightingToRT(LLRenderTarget* target);
 	
@@ -312,16 +312,18 @@ public:
 
 	void resetLocalLights();		//Default all gl light parameters. Used upon restoreGL. Fixes light brightness problems on fullscren toggle
 	void calcNearbyLights(LLCamera& camera);
-	void setupHWLights(LLDrawPool* pool);
-	void setupAvatarLights(BOOL for_edit = FALSE);
-	void enableLights(U32 mask);
-	void enableLightsStatic();
-	void enableLightsDynamic();
-	void enableLightsAvatar();
-	void enableLightsPreview();
-	void enableLightsAvatarEdit(const LLColor4& color);
-	void enableLightsFullbright(const LLColor4& color);
-	void disableLights();
+	void gatherLocalLights();
+	void setupHWLights();
+	void updateHWLightMode(U8 mode);
+	U8 setupFeatureLights(U8 cur_count);
+	void enableLights(U32 mask, LLGLState<GL_LIGHTING>& light_state, const LLColor4* color = nullptr);
+	void enableLightsStatic(LLGLState<GL_LIGHTING>& light_state);
+	void enableLightsDynamic(LLGLState<GL_LIGHTING>& light_state);
+	void enableLightsAvatar(LLGLState<GL_LIGHTING>& light_state);
+	void enableLightsPreview(LLGLState<GL_LIGHTING>& light_state);
+	void enableLightsAvatarEdit(LLGLState<GL_LIGHTING>& light_state, const LLColor4& color);
+	void enableLightsFullbright(LLGLState<GL_LIGHTING>& light_state);
+	void disableLights(LLGLState<GL_LIGHTING>& light_state);
 
 	void shiftObjects(const LLVector3 &offset);
 
@@ -359,6 +361,14 @@ public:
 
 	void pushRenderDebugFeatureMask();
 	void popRenderDebugFeatureMask();
+
+	template <LLGLenum T>
+	LLGLStateIface* pushRenderPassState(U8 newState = LLGLStateIface::CURRENT_STATE) {
+		llassert_always(mInRenderPass);
+		LLGLStateIface* stateObject = new LLGLState<T>(newState);
+		mRenderPassStates.emplace_back(stateObject);
+		return stateObject;
+	}
 
 	static void toggleRenderType(U32 type);
 
@@ -409,6 +419,7 @@ public:
 
 	static bool isRenderDeferredCapable();
 	static bool isRenderDeferredDesired();
+	static void updateRenderDeferred();
 	static void refreshCachedSettings();
 
 	static void throttleNewMemoryAllocation(BOOL disable);
@@ -428,7 +439,14 @@ private:
 	void hideDrawable( LLDrawable *pDrawable );
 	void unhideDrawable( LLDrawable *pDrawable );
 
-	void drawFullScreenRect( U32 data_mask );
+	void drawFullScreenRect();
+
+	void clearRenderPassStates() {
+		while (!mRenderPassStates.empty()) {
+			mRenderPassStates.pop_back();
+		}
+		mInRenderPass = false;
+	}
 public:
 	enum {GPU_CLASS_MAX = 3 };
 
@@ -448,7 +466,6 @@ public:
 		RENDER_TYPE_MATERIALS					= LLDrawPool::POOL_MATERIALS,
 		RENDER_TYPE_AVATAR						= LLDrawPool::POOL_AVATAR,
 		RENDER_TYPE_TREE		= LLDrawPool::POOL_TREE,
-		RENDER_TYPE_INVISIBLE	= LLDrawPool::POOL_INVISIBLE,
 		RENDER_TYPE_VOIDWATER	= LLDrawPool::POOL_VOIDWATER,
 		RENDER_TYPE_WATER						= LLDrawPool::POOL_WATER,
  		RENDER_TYPE_ALPHA						= LLDrawPool::POOL_ALPHA,
@@ -456,8 +473,6 @@ public:
 		RENDER_TYPE_PASS_SIMPLE 				= LLRenderPass::PASS_SIMPLE,
 		RENDER_TYPE_PASS_GRASS					= LLRenderPass::PASS_GRASS,
 		RENDER_TYPE_PASS_FULLBRIGHT				= LLRenderPass::PASS_FULLBRIGHT,
-		RENDER_TYPE_PASS_INVISIBLE				= LLRenderPass::PASS_INVISIBLE,
-		RENDER_TYPE_PASS_INVISI_SHINY			= LLRenderPass::PASS_INVISI_SHINY,
 		RENDER_TYPE_PASS_FULLBRIGHT_SHINY		= LLRenderPass::PASS_FULLBRIGHT_SHINY,
 		RENDER_TYPE_PASS_SHINY					= LLRenderPass::PASS_SHINY,
 		RENDER_TYPE_PASS_BUMP					= LLRenderPass::PASS_BUMP,
@@ -557,6 +572,8 @@ public:
 	S32						 mTrianglesDrawn;
 	S32						 mNumVisibleNodes;
 
+	static S32				sCompiles;
+
 	static BOOL				sShowHUDAttachments;
 	static BOOL				sForceOldBakedUpload; // If true will not use capabilities to upload baked textures.
 	static S32				sUseOcclusion;  // 0 = no occlusion, 1 = read only, 2 = read/write
@@ -590,6 +607,7 @@ public:
 public:
 	//screen texture
 	LLRenderTarget			mScreen;
+	LLRenderTarget			mFinalScreen;
 	LLRenderTarget			mDeferredScreen;
 private:
 	LLRenderTarget			mFXAABuffer;
@@ -597,7 +615,6 @@ public:
 	LLRenderTarget			mDeferredDepth;
 private:
 	LLRenderTarget			mDeferredDownsampledDepth;
-	LLRenderTarget			mOcclusionDepth;
 	LLRenderTarget			mDeferredLight;
 public:
 	LLMultisampleBuffer		mSampleBuffer;
@@ -614,7 +631,6 @@ public:
 private:
 	//sun shadow map
 	LLRenderTarget			mShadow[6];
-	LLRenderTarget			mShadowOcclusion[6];
 	std::vector<LLVector3>	mShadowFrustPoints[4];
 public:
 	LLCamera				mShadowCamera[8];
@@ -641,9 +657,8 @@ private:
 	LLRenderTarget				mGlow[2];
 
 	//noise map
-	U32					mNoiseMap;
-	U32					mTrueNoiseMap;
-	U32					mLightFunc;
+	LLImageGL::GLTextureName	mNoiseMap;
+	LLImageGL::GLTextureName	mLightFunc;
 
 	LLColor4				mSunDiffuse;
 	LLVector3				mSunDir;
@@ -701,7 +716,6 @@ private:
 	
 	LLDrawable::drawable_set_t		mLights;
 	light_set_t						mNearbyLights; // lights near camera
-	LLColor4						mHWLightColors[8];
 	
 	/////////////////////////////////////////////
 	//
@@ -727,6 +741,9 @@ private:
 	LLViewerObject::vobj_list_t		mCreateQ;
 		
 	LLDrawable::drawable_set_t		mRetexturedList;
+
+	bool mInRenderPass;
+	std::vector< std::unique_ptr<LLGLStateIface> > mRenderPassStates;
 
 	//////////////////////////////////////////////////
 	//
@@ -771,7 +788,6 @@ private:
 	LLRenderPass*				mAlphaMaskPool;
 	LLRenderPass*				mFullbrightAlphaMaskPool;
 	LLRenderPass*				mFullbrightPool;
-	LLDrawPool*					mInvisiblePool;
 	LLDrawPool*					mGlowPool;
 	LLDrawPool*					mBumpPool;
 	LLDrawPool*					mMaterialsPool;
@@ -799,9 +815,11 @@ protected:
 
 	LLPointer<LLViewerFetchedTexture>	mFaceSelectImagep;
 	
+	std::vector<LLLightStateData>		mLocalLights;
+	U8						mHWLightCount;
+	U8						mLightMode;
 	U32						mLightMask;
-	U32						mLightMovingMask;
-	S32						mLightingDetail;
+	bool					mLightingEnabled;
 		
 	static BOOL				sRenderPhysicalBeacons;
 	static BOOL				sRenderMOAPBeacons;

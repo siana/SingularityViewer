@@ -64,6 +64,9 @@ public:
 	virtual void previewItem( void ) = 0;
 	virtual void selectItem(void) = 0;
 	virtual void showProperties(void) = 0;
+
+	virtual BOOL isItemWearable() const { return FALSE; }
+
 	virtual BOOL isItemRenameable() const = 0;
 	virtual BOOL renameItem(const std::string& new_name) = 0;
 	virtual void nameOrDescriptionChanged(void) const { }		// Singu note: Currently only used by LLWearableBridge.
@@ -75,7 +78,7 @@ public:
 	virtual void move( LLFolderViewEventListener* parent_listener ) = 0;
 	virtual BOOL isItemCopyable() const = 0;
 	virtual BOOL copyToClipboard() const = 0;
-	virtual void cutToClipboard() = 0;
+	virtual BOOL cutToClipboard() = 0;
 	virtual BOOL isClipboardPasteable() const = 0;
 	virtual void pasteFromClipboard(bool only_copies = false) = 0;
 	virtual void pasteLinkFromClipboard() = 0;

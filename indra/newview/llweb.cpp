@@ -47,7 +47,7 @@
 #include "llalertdialog.h"
 #include "llui.h"
 #include "lluri.h"
-#include "sgversion.h"
+#include "llversioninfo.h"
 #include "llviewercontrol.h"
 #include "llviewernetwork.h"
 #include "llviewerparcelmgr.h"
@@ -214,12 +214,12 @@ std::string LLWeb::expandURLSubstitutions(const std::string &url,
 										  const LLSD &default_subs)
 {
 	LLSD substitution = default_subs;
-	substitution["VERSION"] = gCurrentVersion;
-	substitution["VERSION_MAJOR"] = gVersionMajor;
-	substitution["VERSION_MINOR"] = gVersionMinor;
-	substitution["VERSION_PATCH"] = gVersionPatch;
-	substitution["VERSION_BUILD"] = gVersionBuild;
-	substitution["CHANNEL"] = gVersionChannel;
+	substitution["VERSION"] = LLVersionInfo::getVersion();
+	substitution["VERSION_MAJOR"] = LLVersionInfo::getMajor();
+	substitution["VERSION_MINOR"] = LLVersionInfo::getMinor();
+	substitution["VERSION_PATCH"] = LLVersionInfo::getPatch();
+	substitution["VERSION_BUILD"] = LLVersionInfo::getBuild();
+	substitution["CHANNEL"] = LLVersionInfo::getChannel();
 	const HippoGridInfo* grid(gHippoGridManager->getCurrentGrid());
 	std::string gridId(grid->isSecondLife() ? getLoginUriDomain() : grid->getGridName());
 	if (grid->isSecondLife())

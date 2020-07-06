@@ -54,16 +54,20 @@
 class LLVBOPool
 {
 public:
-	static U32 sBytesPooled;
-	static U32 sIndexBytesPooled;
-	
+	static U64 sBytesPooled;
+	static U64 sIndexBytesPooled;
+	static std::vector<U32> sPendingDeletions;
+
+	// Periodically call from render loop. Batches VBO deletions together in a single call.
+	static void deleteReleasedBuffers();
+
 	LLVBOPool(U32 vboUsage, U32 vboType);
 		
 	const U32 mUsage;
 	const U32 mType;
 
 	//size MUST be a power of 2
-	volatile U8* allocate(U32& name, U32 size, bool for_seed = false);
+	volatile U8* allocate(U32& name, U32 size, U32 seed = 0);
 	
 	//size MUST be the size provided to allocate that returned the given name
 	void release(U32 name, volatile U8* buffer, U32 size);
@@ -93,7 +97,6 @@ public:
 
 //============================================================================
 // base class 
-class LLPrivateMemoryPool;
 class LLVertexBuffer : public LLRefCount
 {
 public:
@@ -101,10 +104,10 @@ public:
 	{
 	public:
 		S32 mType;
-		S32 mIndex;
-		S32 mCount;
+		U32 mOffset;
+		U32 mLength;
 		
-		MappedRegion(S32 type, S32 index, S32 count);
+		MappedRegion(S32 type, U32 offset, U32 length);
 	};
 
 	LLVertexBuffer(const LLVertexBuffer& rhs)
@@ -126,7 +129,7 @@ public:
 	static LLVBOPool sStreamIBOPool;
 	static LLVBOPool sDynamicIBOPool;
 
-	static std::list<U32> sAvailableVAOName;
+	static std::vector<U32> sAvailableVAOName;
 	static U32 sCurVAOName;
 
 	static bool	sUseStreamDraw;
@@ -142,7 +145,7 @@ public:
 	static void cleanupClass();
 	static void setupClientArrays(U32 data_mask);
 	static void drawArrays(U32 mode, const std::vector<LLVector3>& pos, const std::vector<LLVector3>& norm);
-	static void drawElements(U32 mode, const LLVector4a* pos, const LLVector2* tc, S32 num_indices, const U16* indicesp);
+	static void drawElements(U32 mode, const S32 num_vertices, const LLVector4a* pos, const LLVector2* tc, S32 num_indices, const U16* indicesp);
 
  	static void unbind(); //unbind any bound vertex buffer
 
@@ -227,8 +230,6 @@ public:
 	volatile U8*		mapVertexBuffer(S32 type, S32 index, S32 count, bool map_range);
 	volatile U8*		mapIndexBuffer(S32 index, S32 count, bool map_range);
 
-	void bindForFeedback(U32 channel, U32 type, U32 index, U32 count);
-
 	// set for rendering
 	virtual void	setBuffer(U32 data_mask); 	// calls  setupVertexBuffer() if data_mask is not 0
 	void flush(); //flush pending data to GL memory
@@ -294,7 +295,9 @@ protected:
 	ptrdiff_t mAlignedOffset;
 	ptrdiff_t mAlignedIndexOffset;
 	S32		mSize;
+	U32		mResidentSize;
 	S32		mIndicesSize;
+	U32		mResidentIndicesSize;
 	U32		mTypeMask;
 
 	const S32		mUsage;			// GL usage
@@ -327,9 +330,6 @@ protected:
 
 	static S32 determineUsage(S32 usage);
 
-private:
-	static LLPrivateMemoryPool* sPrivatePoolp;
-
 public:
 	static S32 sCount;
 	static S32 sGLCount;
@@ -347,12 +347,15 @@ public:
 	static bool sVBOActive;
 	static bool sIBOActive;
 	static U32 sLastMask;
-	static U32 sAllocatedBytes;
-	static U32 sAllocatedIndexBytes;
+	static U64 sAllocatedBytes;
+	static U64 sAllocatedIndexBytes;
 	static U32 sVertexCount;
 	static U32 sIndexCount;
 	static U32 sBindCount;
 	static U32 sSetCount;
+
+private:
+	static LLVertexBuffer* sUtilityBuffer;
 };
 
 

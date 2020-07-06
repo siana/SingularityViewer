@@ -23,7 +23,7 @@
  * $/LicenseInfo$
  */
  
-//#extension GL_ARB_texture_rectangle : enable
+
 
 #ifdef DEFINE_GL_FRAGCOLOR
 out vec4 frag_data[3];
@@ -37,10 +37,6 @@ vec3 atmosTransport(vec3 inColor);
 uniform sampler2D bumpMap;   
 uniform sampler2D screenTex;
 uniform sampler2D refTex;
-uniform sampler2DRectShadow shadowMap0;
-uniform sampler2DRectShadow shadowMap1;
-uniform sampler2DRectShadow shadowMap2;
-uniform sampler2DRectShadow shadowMap3;
 uniform sampler2D noiseMap;
 
 uniform mat4 shadow_matrix[6];
@@ -58,7 +54,6 @@ uniform vec3 normScale;
 uniform float fresnelScale;
 uniform float fresnelOffset;
 uniform float blurMultiplier;
-uniform vec2 screen_res;
 uniform mat4 norm_mat; //region space to screen space
 
 //bigWave is (refCoord.w, view.w);
@@ -67,29 +62,7 @@ VARYING vec4 littleWave;
 VARYING vec4 view;
 VARYING vec4 vary_position;
 
-vec3 srgb_to_linear(vec3 cs)
-{
-	vec3 low_range = cs / vec3(12.92);
-	vec3 high_range = pow((cs+vec3(0.055))/vec3(1.055), vec3(2.4));
-	bvec3 lte = lessThanEqual(cs,vec3(0.04045));
-
-#ifdef OLD_SELECT
-	vec3 result;
-	result.r = lte.r ? low_range.r : high_range.r;
-	result.g = lte.g ? low_range.g : high_range.g;
-	result.b = lte.b ? low_range.b : high_range.b;
-    return result;
-#else
-	return mix(high_range, low_range, lte);
-#endif
-
-}
-
-vec2 encode_normal(vec3 n)
-{
-	float f = sqrt(8 * n.z + 8);
-	return n.xy / f + 0.5;
-}
+vec2 encode_normal(vec3 n);
 
 void main() 
 {

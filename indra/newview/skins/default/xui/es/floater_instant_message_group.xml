@@ -9,9 +9,6 @@
 	<string name="hang_up">
 		Abandonando Chat de Voz
 	</string>
-	<string name="voice_icon">
-		icn_voice-groupfocus.tga
-	</string>
 	<string name="title_string">
 		Mensaje Instantáneo con [NAME]
 	</string>
@@ -32,11 +29,12 @@
 	</string>
 	<layout_stack name="panels">
 		<layout_panel name="im_contents_panel">
-			<button label="Info del Grupo" name="group_info_btn" width="100"/>
-			<button label="Historial" name="history_btn" left_delta="100"/>
-			<button name="ding_btn" label="Timbre">
-			<button label="Unirse" name="start_call_btn"/>
-			<button label="Finalizar" name="end_call_btn"/>
+			<button label="Info Grupo" name="group_info_btn" width="80"/>
+			<button label="Historial" name="history_btn" left_delta="85" width="70"/>
+			<button name="ding_btn" label="Timbre" left_delta="75" width="55"/>
+			<check_box name="Support Check" label="Enviar Versión" tool_tip="Desmárcarlo para no enviar el número de versión (Build)"/>
+			<button label="Unir Llamada" name="start_call_btn" left_delta="60" width="105"/>
+			<button label="Finalizar" name="end_call_btn" width="85"/>
 			<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Pulsa aquí para mostrar/ocultar la lista de participantes activos en esta sesión de MI."/>
 			<button label="Enviar" name="send_btn"/>
 		</layout_panel>

@@ -15,6 +15,8 @@
       <flyout_button_item label="Request Teleport" name="request_teleport_item" value="3"/>
       <flyout_button_item label="Invite To Group" name="group_invite_item" value="5"/>
       <flyout_button_item label="Copy SLURL" name="copy_slurl_item" value="-1"/>
+      <flyout_button_item label="Add to Conference" name="conference" value="-4"/>
+      <flyout_button_item label="Report Abuse" name="report" value="-5"/>
     </flyout_button>
     <string name="find on map" value="Find on Map"/>
     <string name="ding on" value="Ding on new messages (On)"/>
@@ -25,10 +27,11 @@
     <string name="remove friend" value="Remove Friend"/>
     <string name="mute" value="Mute"/>
     <string name="unmute" value="Unmute"/>
+    <string name="focus" value="Focus"/>
     <button bottom_delta="0" follows="left|top" height="20" left_delta="81" width="50" name="tp_btn" label="TP"/>
     <button bottom_delta="0" follows="left|top" height="20" left_delta="50" width="50" name="pay_btn" label="Pay"/>
-    <button bottom_delta="0" follows="left|top" height="20" left_delta="50" width="50" name="history_btn" label="Log"/>
-	<button bottom="-37" follows="left|top" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Call" left_delta="50" name="start_call_btn" width="80"/>
+    <button bottom_delta="0" follows="left|top" height="20" left_delta="50" width="80" name="history_btn" label="History"/>
+    <button bottom="-37" follows="left|top" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Call" left_delta="80" name="start_call_btn" width="80"/>
 	<button bottom="-37" follows="top" height="20" image_overlay="icn_voice-call-end.tga" image_overlay_alignment="left" label="End" name="end_call_btn" visible="false" width="80"/>
 	<panel border="false" bottom="-34" follows="left|top" height="20" left_delta="80" name="speaker_controls" width="100">
 		<volume_slider bottom="0" follows="bottom" height="15" increment="0.05" initial_val="0.5" max_val="1.0" min_val="0.0" name="speaker_volume" width="56"/>

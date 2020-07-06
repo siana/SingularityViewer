@@ -17,9 +17,7 @@
 			
 			
 			<text name="partner_label" tool_tip="Second Life Partner. Weitere Informationen finden Sie auf www.secondlife.com/partner">Partner:</text>
-			<button label="i" label_selected="i" name="partner_info" tool_tip="Klicken Sie, um das Profil Ihres Partners anzuzeigen"/>
 			<button label="?" label_selected="?" name="partner_help"/>
-			<line_editor name="partner_edit" tool_tip="Second Life Partner. Weitere Informationen finden Sie auf www.secondlife.com/partner">[NAME]</line_editor>
 			<text name="Photo:">Foto:</text>
 			<texture_picker name="img" tool_tip="Klicken, um ein Bild auszuwählen"/>
 			

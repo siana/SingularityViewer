@@ -195,7 +195,7 @@ public:
 
 	void requestGroupLandInfo();
 
-	int getStoredContribution();
+	S32 getStoredContribution();
 	void setYourContributionTextField(int contrib);
 	void setYourMaxContributionTextBox(int max);
 
@@ -341,14 +341,14 @@ bool LLPanelGroupLandMoney::impl::applyContribution()
 
 // Retrieves the land contribution for this agent that is currently
 // stored in the database, NOT what is currently entered in the text field
-int LLPanelGroupLandMoney::impl::getStoredContribution()
+S32 LLPanelGroupLandMoney::impl::getStoredContribution()
 {
 	LLGroupData group_data;
 
 	group_data.mContribution = 0;
-	gAgent.getGroupData(mPanel.mGroupID, group_data);
+	bool found_group = gAgent.getGroupData(mPanel.mGroupID, group_data);
 
-	return group_data.mContribution;
+	return found_group ? group_data.mContribution : 0;
 }
 
 // Fills in the text field with the contribution, contrib

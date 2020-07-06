@@ -105,17 +105,6 @@ MACRO(ADD_BUILD_TEST_INTERNAL name parent libraries source_files)
     IF (NOT "$ENV{LD_LIBRARY_PATH}" STREQUAL "")
       SET(LD_LIBRARY_PATH "$ENV{LD_LIBRARY_PATH}:${LD_LIBRARY_PATH}")
     ENDIF (NOT "$ENV{LD_LIBRARY_PATH}" STREQUAL "")
-    ADD_CUSTOM_COMMAND(
-        OUTPUT ${TEST_OUTPUT}
-        COMMAND
-          ${CMAKE_COMMAND}
-            "-DLD_LIBRARY_PATH=${LD_LIBRARY_PATH}"
-            "-DTEST_CMD:STRING=${TEST_CMD}"
-            -P ${CMAKE_SOURCE_DIR}/cmake/RunBuildTest.cmake
-        DEPENDS ${name}_test
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        VERBATIM
-        )
 
     ADD_CUSTOM_TARGET(${name}_test_ok ALL DEPENDS ${TEST_OUTPUT})
     IF (${parent})

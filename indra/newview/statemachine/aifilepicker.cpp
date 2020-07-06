@@ -47,6 +47,8 @@
 #include "llwindowsdl.h"
 #endif
 
+AIFilePicker* AIFilePicker::activePicker = NULL;
+
 char const* AIFilePicker::state_str_impl(state_type run_state) const
 {
 	switch(run_state)
@@ -341,6 +343,7 @@ void AIFilePicker::open(std::string const& filename, ESaveFilter filter, std::st
 
 void AIFilePicker::initialize_impl(void)
 {
+	activePicker = this;
 	mCanceled = false;
 	if (mFilter.empty())
 	{
@@ -400,7 +403,7 @@ void AIFilePicker::multiplex_impl(state_type run_state)
 #if LL_WINDOWS || (LL_GTK && LL_X11)
 			std::ostringstream window_id_str;
 #if LL_WINDOWS
-			unsigned long window_id = (unsigned long)gViewerWindow->getPlatformWindow();
+			unsigned long window_id = (unsigned long)(intptr_t)gViewerWindow->getPlatformWindow();
 #else
 			unsigned long window_id = LLWindowSDL::get_SDL_XWindowID();
 #endif
@@ -452,6 +455,10 @@ void AIFilePicker::multiplex_impl(state_type run_state)
 
 void AIFilePicker::finish_impl(void)
 {
+	if (activePicker == this)
+	{
+		activePicker = NULL;
+	}
 	if (mPluginManager)
 	{
 		mPluginManager->destroyPlugin();

@@ -296,4 +296,15 @@
       <button.commit_callback
           function="TopObjects.Kick" />
     </button>
+    <button
+     follows="bottom|left"
+     height="20"
+     label="Focus on"
+     left_delta="110"
+     name="focus_on_btn"
+     bottom_delta="0"
+     width="110">
+      <button.commit_callback
+          function="TopObjects.CamToObject" />
+    </button>
 </floater>

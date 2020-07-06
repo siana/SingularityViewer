@@ -34,13 +34,15 @@
 #include "llcontrol.h"
 #include "lldir.h"
 #include "llwindow.h"
+#include "llxmlnode.h"
 
 extern LLControlGroup gSavedSettings;
 
 using std::string;
 using std::map;
 
-bool fontDescInitFromXML(LLXMLNodePtr node, LLFontDescriptor& desc);
+bool font_desc_init_from_xml(LLXMLNodePtr node, LLFontDescriptor& desc);
+bool init_from_xml(LLFontRegistry* registry, LLXMLNodePtr node);
 
 LLFontDescriptor::LLFontDescriptor():
 	mStyle(0)
@@ -163,14 +165,9 @@ LLFontDescriptor LLFontDescriptor::normalize() const
 	return LLFontDescriptor(new_name,new_size,new_style,getFileNames());
 }
 
-LLFontRegistry::LLFontRegistry(const string_vec_t& xui_paths,
-							   bool create_gl_textures)
+LLFontRegistry::LLFontRegistry(bool create_gl_textures)
 :	mCreateGLTextures(create_gl_textures)
 {
-	// Propagate this down from LLUICtrlFactory so LLRender doesn't
-	// need an upstream dependency on LLUI.
-	mXUIPaths = xui_paths;
-	
 	// This is potentially a slow directory traversal, so we want to
 	// cache the result.
 	mUltimateFallbackList = LLWindow::getDynamicFallbackFontList();
@@ -183,23 +180,27 @@ LLFontRegistry::~LLFontRegistry()
 
 bool LLFontRegistry::parseFontInfo(const std::string& xml_filename)
 {
-	bool success = false;  // Succeed if we find at least one XUI file
-	const string_vec_t& xml_paths = mXUIPaths;
+	bool success = false;  // Succeed if we find and read at least one XUI file
+	const string_vec_t xml_paths = gDirUtilp->findSkinnedFilenames(LLDir::XUI, xml_filename);
+	if (xml_paths.empty())
+	{
+		// We didn't even find one single XUI file
+		return false;
+	}
+
 	for (string_vec_t::const_iterator path_it = xml_paths.begin();
 		 path_it != xml_paths.end();
 		 ++path_it)
 	{
 		LLXMLNodePtr root;
-		std::string full_filename = gDirUtilp->findSkinnedFilename(*path_it, xml_filename);
-		bool parsed_file = LLXMLNode::parseFile(full_filename, root, NULL);
+		bool parsed_file = LLXMLNode::parseFile(*path_it, root, NULL);
 
 		if (!parsed_file)
 			continue;
 
 		if ( root.isNull() || ! root->hasName( "fonts" ) )
 		{
-			LL_WARNS() << "Bad font info file: "
-					<< full_filename << LL_ENDL;
+			LL_WARNS() << "Bad font info file: " << *path_it << LL_ENDL;
 			continue;
 		}
 
@@ -208,12 +209,12 @@ bool LLFontRegistry::parseFontInfo(const std::string& xml_filename)
 		if (root->hasName("fonts"))
 		{
 			// Expect a collection of children consisting of "font" or "font_size" entries
-			bool init_succ = initFromXML(root);
+			bool init_succ = init_from_xml(this, root);
 			success = success || init_succ;
 		}
 	}
-	if (success)
-		dump();
+	//if (success)
+	//	dump();
 
 	return success;
 }
@@ -224,14 +225,14 @@ std::string currentOsName()
 	return "Windows";
 #elif LL_DARWIN
 	return "Mac";
-#elif LL_SDL
+#elif LL_SDL || LL_MESA_HEADLESS
 	return "Linux";
 #else
 	return "";
 #endif
 }
 
-bool fontDescInitFromXML(LLXMLNodePtr node, LLFontDescriptor& desc)
+bool font_desc_init_from_xml(LLXMLNodePtr node, LLFontDescriptor& desc)
 {
 	if (node->hasName("font"))
 	{
@@ -264,14 +265,14 @@ bool fontDescInitFromXML(LLXMLNodePtr node, LLFontDescriptor& desc)
 		{
 			if (child_name == currentOsName())
 			{
-				fontDescInitFromXML(child, desc);
+				font_desc_init_from_xml(child, desc);
 			}
 		}
 	}
 	return true;
 }
 
-bool LLFontRegistry::initFromXML(LLXMLNodePtr node)
+bool init_from_xml(LLFontRegistry* registry, LLXMLNodePtr node)
 {
 	LLXMLNodePtr child;
 	
@@ -282,17 +283,17 @@ bool LLFontRegistry::initFromXML(LLXMLNodePtr node)
 		if (child->hasName("font"))
 		{
 			LLFontDescriptor desc;
-			bool font_succ = fontDescInitFromXML(child, desc);
+			bool font_succ = font_desc_init_from_xml(child, desc);
 			LLFontDescriptor norm_desc = desc.normalize();
 			if (font_succ)
 			{
 				// if this is the first time we've seen this font name,
 				// create a new template map entry for it.
-				const LLFontDescriptor *match_desc = getMatchingFontDesc(desc);
+				const LLFontDescriptor *match_desc = registry->getMatchingFontDesc(desc);
 				if (match_desc == NULL)
 				{
 					// Create a new entry (with no corresponding font).
-					mFontMap[norm_desc] = NULL;
+					registry->mFontMap[norm_desc] = NULL;
 				}
 				// otherwise, find the existing entry and combine data. 
 				else
@@ -307,8 +308,8 @@ bool LLFontRegistry::initFromXML(LLXMLNodePtr node)
 											desc.getFileNames().end());
 					LLFontDescriptor new_desc = *match_desc;
 					new_desc.getFileNames() = match_file_names;
-					mFontMap.erase(*match_desc);
-					mFontMap[new_desc] = NULL;
+					registry->mFontMap.erase(*match_desc);
+					registry->mFontMap[new_desc] = NULL;
 				}
 			}
 		}
@@ -319,7 +320,7 @@ bool LLFontRegistry::initFromXML(LLXMLNodePtr node)
 			if (child->getAttributeString("name",size_name) &&
 				child->getAttributeF32("size",size_value))
 			{
-				mFontSizes[size_name] = size_value;
+				registry->mFontSizes[size_name] = size_value;
 			}
 
 		}
@@ -425,7 +426,7 @@ LLFontGL *LLFontRegistry::createFont(const LLFontDescriptor& desc)
 	LLFontFreetype::font_vector_t fontlist;
 	LLFontGL *result = NULL;
 
-	// Snarf all fonts we can into fontlistp.  First will get pulled
+	// Snarf all fonts we can into fontlist.  First will get pulled
 	// off the list and become the "head" font, set to non-fallback.
 	// Rest will consitute the fallback list.
 	BOOL is_first_found = TRUE;
@@ -440,7 +441,7 @@ LLFontGL *LLFontRegistry::createFont(const LLFontDescriptor& desc)
 		++file_name_it)
 	{
 		LLFontGL *fontp = new LLFontGL;
-		std::string font_path = local_path + *file_name_it;
+		std::string font_path = gDirUtilp->add(local_path, *file_name_it);
 		// *HACK: Fallback fonts don't render, so we can use that to suppress
 		// creation of OpenGL textures for test apps. JC
 		BOOL is_fallback = !is_first_found || !mCreateGLTextures;
@@ -448,12 +449,12 @@ LLFontGL *LLFontRegistry::createFont(const LLFontDescriptor& desc)
 		if (!fontp->loadFace(font_path, extra_scale * point_size,
 							 LLFontGL::sVertDPI, LLFontGL::sHorizDPI, 2, is_fallback))
 		{
-			font_path = sys_path + *file_name_it;
+			font_path = gDirUtilp->add(sys_path, *file_name_it);
 
 			if (!fontp->loadFace(font_path, extra_scale * point_size,
 								 LLFontGL::sVertDPI, LLFontGL::sHorizDPI, 2, is_fallback))
 			{
-				LL_INFOS_ONCE("LLFontRegistry") << "Couldn't load font " << *file_name_it << LL_ENDL;
+				LL_INFOS_ONCE("LLFontRegistry") << "Couldn't load font " << *file_name_it << " from path " << font_path << LL_ENDL;
 				delete fontp;
 				fontp = NULL;
 			}
@@ -490,6 +491,7 @@ LLFontGL *LLFontRegistry::createFont(const LLFontDescriptor& desc)
 	{
 		LL_WARNS() << "createFont failed in some way" << LL_ENDL;
 	}
+
 	mFontMap[norm_desc] = result;
 	return result;
 }
@@ -532,19 +534,19 @@ void LLFontRegistry::destroyGL()
 
 LLFontGL *LLFontRegistry::getFont(const LLFontDescriptor& orig_desc)
 {
-	LLFontDescriptor norm_desc = orig_desc.normalize();
+	LLFontDescriptor desc = orig_desc.normalize();
 
-	font_reg_map_t::iterator it = mFontMap.find(norm_desc);
+	font_reg_map_t::iterator it = mFontMap.find(desc);
 	if (it != mFontMap.end())
 		return it->second;
 	else
 	{
-		LLFontGL *fontp = createFont(orig_desc);
+		LLFontGL *fontp = createFont(desc);
 		if (!fontp)
 		{
-			LL_WARNS() << "getFont failed, name " << orig_desc.getName()
-					<<" style=[" << ((S32) orig_desc.getStyle()) << "]"
-					<< " size=[" << orig_desc.getSize() << "]" << LL_ENDL;
+			LL_WARNS() << "getFont failed, name " << desc.getName()
+					<<" style=[" << ((S32) desc.getStyle()) << "]"
+					<< " size=[" << desc.getSize() << "]" << LL_ENDL;
 		}
 		return fontp;
 	}

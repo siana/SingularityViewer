@@ -4,7 +4,7 @@
     <text name="estate_text">Grundbesitz:</text>
     <text name="estate_name">(unbekannt)</text>
     <text name="owner_text">Estate owner:</text>
-    <text name="estate_owner">(unbekannt)</text>
+    <name_box name="estate_owner">(unbekannt)</name_box>
 
     
 

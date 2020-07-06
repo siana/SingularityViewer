@@ -46,7 +46,7 @@ public:
 	static void updateCovenantText(const std::string& string, const LLUUID& asset_id);
 	static void updateEstateName(const std::string& name);
 	static void updateLastModified(const std::string& text);
-	static void updateEstateOwnerName(const std::string& name);
+	static void updateEstateOwnerID(const LLUUID& id);
 };
 
 #endif

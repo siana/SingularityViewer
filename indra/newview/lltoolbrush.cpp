@@ -164,10 +164,10 @@ void LLToolBrushLand::modifyLandAtPointGlobal(const LLVector3d &pos_global,
 		//if(!is_changed) continue;
 
 		// Now to update the patch information so it will redraw correctly.
-		LLSurfacePatch *patchp= land.resolvePatchRegion(pos_region);
-		if (patchp)
+		auto& patchp = land.resolvePatchRegion(pos_region);
+		if (patchp && patchp->dirtyZ())
 		{
-			patchp->dirtyZ();
+			patchp->getSurface()->dirtySurfacePatch(patchp);
 		}
 
 		// Also force the property lines to update, normals to recompute, etc.
@@ -305,10 +305,10 @@ void LLToolBrushLand::modifyLandInSelectionGlobal()
 		//if(!is_changed) continue;
 
 		// Now to update the patch information so it will redraw correctly.
-		LLSurfacePatch *patchp= land.resolvePatchRegion(min_region);
-		if (patchp)
+		auto& patchp = land.resolvePatchRegion(min_region);
+		if (patchp && patchp->dirtyZ())
 		{
-			patchp->dirtyZ();
+			patchp->getSurface()->dirtySurfacePatch(patchp);
 		}
 
 		// Also force the property lines to update, normals to recompute, etc.

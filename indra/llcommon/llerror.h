@@ -72,7 +72,7 @@ const int LL_ERR_NOERR = 0;
 
 #endif // !_DEBUG
 
-static const std::string liru_assert_strip(const std::string& file) { return file.substr(1+file.substr(0, file.find_last_of("/\\")).find_last_of("/\\")); } //return foo/bar.cpp or perhaps foo\bar.cpp
+inline const std::string liru_assert_strip(const std::string& file) { return file.substr(1+file.substr(0, file.find_last_of("/\\")).find_last_of("/\\")); } //return foo/bar.cpp or perhaps foo\bar.cpp
 
 #define llassert_always_msg(func, msg) if (LL_UNLIKELY(!(func))) LL_ERRS() << "ASSERT (" << msg << ")\nfile:" << liru_assert_strip(__FILE__) << " line:" << std::dec << __LINE__ << LL_ENDL
 
@@ -353,8 +353,14 @@ typedef LLError::NoClassInfo _LL_CLASS_TO_LOG;
 
 // NEW Macros for debugging, allow the passing of a string tag
 
+#ifdef SHOW_DEBUG 
+#define DO_DEBUG_LOG
+#else
+#define DO_DEBUG_LOG if (false)
+#endif 
+
 // Pass comma separated list of tags (currently only supports up to 0, 1, or 2)
-#define LL_DEBUGS(...)	lllog(LLError::LEVEL_DEBUG, false, false, ##__VA_ARGS__)
+#define LL_DEBUGS(...)	DO_DEBUG_LOG lllog(LLError::LEVEL_DEBUG, false, false, ##__VA_ARGS__)
 #define LL_INFOS(...)	lllog(LLError::LEVEL_INFO, false, false, ##__VA_ARGS__)
 #define LL_WARNS(...)	lllog(LLError::LEVEL_WARN, false, false, ##__VA_ARGS__)
 #define LL_ERRS(...)	lllog(LLError::LEVEL_ERROR, false, false, ##__VA_ARGS__)
@@ -363,12 +369,12 @@ typedef LLError::NoClassInfo _LL_CLASS_TO_LOG;
 
 // Only print the log message once (good for warnings or infos that would otherwise
 // spam the log file over and over, such as tighter loops).
-#define LL_DEBUGS_ONCE(...)	lllog(LLError::LEVEL_DEBUG, true, false, ##__VA_ARGS__)
+#define LL_DEBUGS_ONCE(...)	DO_DEBUG_LOG lllog(LLError::LEVEL_DEBUG, true, false, ##__VA_ARGS__)
 #define LL_INFOS_ONCE(...)	lllog(LLError::LEVEL_INFO, true, false, ##__VA_ARGS__)
 #define LL_WARNS_ONCE(...)	lllog(LLError::LEVEL_WARN, true, false, ##__VA_ARGS__)
 
 // No function name
-#define LL_DEBUGS_NF(...)	lllog(LLError::LEVEL_DEBUG, false, true, ##__VA_ARGS__)
+#define LL_DEBUGS_NF(...)	DO_DEBUG_LOG {lllog(LLError::LEVEL_DEBUG, false, true, ##__VA_ARGS__)
 #define LL_INFOS_NF(...)	lllog(LLError::LEVEL_INFO, false, true, ##__VA_ARGS__)
 #define LL_WARNS_NF(...)	lllog(LLError::LEVEL_WARN, false, true, ##__VA_ARGS__)
 #define LL_ERRS_NF(...)	lllog(LLError::LEVEL_ERROR, false, true, ##__VA_ARGS__)

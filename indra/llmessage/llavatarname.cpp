@@ -139,7 +139,7 @@ void LLAvatarName::fromString(const std::string& full_name)
 		mLegacyLastName = full_name.substr(index+1);
 		if (mLegacyLastName != "Resident")
 		{
-			mUsername = mLegacyFirstName + "." + mLegacyLastName;
+			mUsername = mLegacyFirstName + '.' + mLegacyLastName;
 			mDisplayName = full_name;
 			LLStringUtil::toLower(mUsername);
 		}
@@ -184,7 +184,7 @@ std::string LLAvatarName::getCompleteName(bool linefeed) const
 			name = mDisplayName;
 			if (sUseUsernames)
 			{
-				name += (linefeed ? "\n(" : " (") + mUsername + ")";
+				name += (linefeed ? "\n(" : " (") + mUsername + ')';
 			}
 		}
 	}
@@ -238,7 +238,7 @@ std::string LLAvatarName::getUserName() const
 	}
 	else
 	{
-		name = mLegacyFirstName + " " + mLegacyLastName;
+		name = mLegacyFirstName + ' ' + mLegacyLastName;
 	}
 	return name;
 }

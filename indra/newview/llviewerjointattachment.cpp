@@ -83,15 +83,15 @@ U32 LLViewerJointAttachment::drawShape( F32 pixelArea, BOOL first_pass, BOOL is_
 {
 	if (LLVOAvatar::sShowAttachmentPoints)
 	{
-		LLGLDisable cull_face(GL_CULL_FACE);
+		LLGLDisable<GL_CULL_FACE> cull_face;
 		
 		gGL.color4f(1.f, 1.f, 1.f, 1.f);
-		gGL.begin(LLRender::QUADS);
+		gGL.begin(LLRender::TRIANGLE_STRIP);
 		{
 			gGL.vertex3f(-0.1f, 0.1f, 0.f);
 			gGL.vertex3f(-0.1f, -0.1f, 0.f);
-			gGL.vertex3f(0.1f, -0.1f, 0.f);
 			gGL.vertex3f(0.1f, 0.1f, 0.f);
+			gGL.vertex3f(0.1f, -0.1f, 0.f);
 		}gGL.end();
 	}
 	return 0;
@@ -359,6 +359,25 @@ void LLViewerJointAttachment::setOriginalPosition(LLVector3& position)
 {
 	mOriginalPos = position;
 	setPosition(position);
+}
+
+//-----------------------------------------------------------------------------
+// getNumAnimatedObjects()
+//-----------------------------------------------------------------------------
+S32 LLViewerJointAttachment::getNumAnimatedObjects() const
+{
+    S32 count = 0;
+	for (attachedobjs_vec_t::const_iterator iter = mAttachedObjects.begin();
+		 iter != mAttachedObjects.end();
+		 ++iter)
+	{
+		const LLViewerObject *attached_object = *iter;
+		if (attached_object->isAnimatedObject())
+		{
+			count++;
+		}
+	}
+	return count;
 }
 
 //-----------------------------------------------------------------------------

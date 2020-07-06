@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater name="ban_duration" title="Duración">
+	<!-- Liru make this a combo: Hours, Days, Weeks, Months -->
+	<combo_box name="ban_duration_combo">
+		<combo_item name="permanent" label="Permanente"/>
+		<combo_item name="hours" label="Horas"/>
+		<combo_item name="days" label="Días"/>
+		<combo_item name="weeks" label="Semanas"/>
+		<combo_item name="months" label="Meses"/>
+	</combo_box>
+	<spinner name="ban_duration"/>
+	<button label="OK" name="ok_btn"/>
+	<button label="Cancelar" name="cancel_btn"/>
+</floater>

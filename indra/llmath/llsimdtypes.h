@@ -50,7 +50,7 @@ __forceinline const __m128i _mm_castps_si128( const __m128 a ) { return reinterp
 class LLBool32
 {
 public:
-	inline LLBool32() {}
+	inline LLBool32() = default;
 	inline LLBool32(int rhs) : m_bool(rhs) {}
 	inline LLBool32(unsigned int rhs) : m_bool(rhs) {}
 	inline LLBool32(bool rhs) { m_bool = static_cast<const int>(rhs); }
@@ -70,7 +70,7 @@ private:
 class LLSimdScalar
 {
 public:
-	inline LLSimdScalar() {}
+	inline LLSimdScalar() = default;
 	inline LLSimdScalar(LLQuad q) 
 	{ 
 		mQ = q; 
@@ -120,5 +120,9 @@ public:
 private:
 	LLQuad mQ;
 };
+static_assert(std::is_trivial<LLBool32>::value, "LLBool32 must be a trivial type");
+static_assert(std::is_standard_layout<LLBool32>::value, "LLBool32 must be a standard layout type");
+static_assert(std::is_trivial<LLSimdScalar>::value, "LLSimdScalar must be a trivial type");
+static_assert(std::is_standard_layout<LLSimdScalar>::value, "LLSimdScalar must be a standard layout type");
 
 #endif //LL_SIMD_TYPES_H

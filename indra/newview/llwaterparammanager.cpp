@@ -76,6 +76,14 @@
 
 #include "llagentcamera.h"
 
+static LLStaticHashedString sLightNorm ("lightnorm");
+static LLStaticHashedString sCamPosLocal("camPosLocal");
+static LLStaticHashedString sWaterFogColor("waterFogColor");
+static LLStaticHashedString sWaterPlane("waterPlane");
+static LLStaticHashedString sWaterFogDensity("waterFogDensity");
+static LLStaticHashedString sWaterFogKS("waterFogKS");
+static LLStaticHashedString sDistanceMultiplier("distance_multiplier");
+
 LLWaterParamManager::LLWaterParamManager() :
 	mFogColor(22.f/255.f, 43.f/255.f, 54.f/255.f, 0.0f, 0.0f, "waterFogColor", "WaterFogColor"),
 	mFogDensity(4, "waterFogDensity", 2),
@@ -347,7 +355,7 @@ void LLWaterParamManager::applyParams(const LLSD& params, bool interpolate)
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_UPDATE_WATERPARAM("Update Water Params");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_WATERPARAM("Update Water Params");
 
 void LLWaterParamManager::updateShaderLinks()
 {
@@ -359,13 +367,13 @@ void LLWaterParamManager::updateShaderLinks()
 		if (shaders_iter->mProgramObject != 0
 			&& shaders_iter->mShaderGroup == LLGLSLShader::SG_WATER)
 		{
-			if(	glGetUniformLocationARB(shaders_iter->mProgramObject,"lightnorm")>=0		||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"camPosLocal")>=0		||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"waterFogColor")>=0	||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"waterPlane")>=0		||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"waterFogDensity")>=0	||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"waterFogKS")>=0		||
-				glGetUniformLocationARB(shaders_iter->mProgramObject,"distance_multiplier")>=0)
+			if(	shaders_iter->getUniformLocation(sLightNorm) >=0		||
+				shaders_iter->getUniformLocation(sCamPosLocal) >=0		||
+				shaders_iter->getUniformLocation(sWaterFogColor) >=0	||
+				shaders_iter->getUniformLocation(sWaterPlane) >=0		||
+				shaders_iter->getUniformLocation(sWaterFogDensity) >=0	||
+				shaders_iter->getUniformLocation(sWaterFogKS) >=0		||
+				shaders_iter->getUniformLocation(sDistanceMultiplier) >=0)
 			mShaderList.push_back(&(*shaders_iter));
 		}
 	}
@@ -373,7 +381,7 @@ void LLWaterParamManager::updateShaderLinks()
 
 void LLWaterParamManager::update(LLViewerCamera * cam)
 {
-	LLFastTimer ftm(FTM_UPDATE_WATERPARAM);
+	LL_RECORD_BLOCK_TIME(FTM_UPDATE_WATERPARAM);
 
 	// update the shaders and the menu
 	propagateParameters();

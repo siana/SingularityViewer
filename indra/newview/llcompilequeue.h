@@ -40,9 +40,10 @@
 #include "lluuid.h"
 
 #include "llfloater.h"
-#include "llscrolllistctrl.h"
 
 #include "llviewerinventory.h"
+
+class LLScrollListCtrl;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Class LLFloaterScriptQueue
@@ -58,20 +59,23 @@
 class LLFloaterScriptQueue : public LLFloater, public LLVOInventoryListener
 {
 public:
+	// find an instance by ID. Return NULL if it does not exist.
+	static LLFloaterScriptQueue* findInstance(const LLUUID& id);
+	LLFloaterScriptQueue(const std::string& name, const LLRect& rect,
+						 const std::string& title, const std::string& start_string);
+	virtual ~LLFloaterScriptQueue();
+
+	/*virtual*/ BOOL postBuild();
+
+	void setMono(bool mono) { mMono = mono; }
+
 	// addObject() accepts an object id.
 	void addObject(const LLUUID& id);
 
 	// start() returns TRUE if the queue has started, otherwise FALSE.
 	BOOL start();
 
-	// find an instance by ID. Return NULL if it does not exist.
-	static LLFloaterScriptQueue* findInstance(const LLUUID& id);
-
 protected:
-	LLFloaterScriptQueue(const std::string& name, const LLRect& rect,
-						 const std::string& title, const std::string& start_string);
-	virtual ~LLFloaterScriptQueue();
-
 	// This is the callback method for the viewer object currently
 	// being worked on.
 	/*virtual*/ void inventoryChanged(LLViewerObject* obj,
@@ -88,21 +92,25 @@ protected:
 	// returns true if this is done
 	BOOL isDone() const;
 
+	virtual BOOL startQueue();
+
 	// go to the next object. If no objects left, it falls out
 	// silently and waits to be killed by the deleteIfDone() callback.
 	BOOL nextObject();
 	BOOL popNext();
 
-	// Get this instances ID.
+	void setStartString(const std::string& s) { mStartString = s; }
+
+	// Get this instance's ID.
 	const LLUUID& getID() const { return mID; } 
-	
+
 protected:
 	// UI
 	LLScrollListCtrl* mMessages;
 	LLButton* mCloseBtn;
 
 	// Object Queue
-	std::vector<LLUUID> mObjectIDs;
+	uuid_vec_t mObjectIDs;
 	LLUUID mCurrentObjectID;
 	bool mDone;
 
@@ -110,6 +118,7 @@ protected:
 	static LLMap<LLUUID, LLFloaterScriptQueue*> sInstances;
 
 	std::string mStartString;
+	bool mMono;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,12 +142,15 @@ class LLFloaterCompileQueue : public LLFloaterScriptQueue
 public:
 	// Use this method to create a compile queue. Once created, it
 	// will be responsible for it's own destruction.
-	static LLFloaterCompileQueue* create(BOOL mono);
+	static LLFloaterCompileQueue* create(bool mono);
 
 	// remove any object in mScriptScripts with the matching uuid.
 	void removeItemByItemID(const LLUUID& item_id);
 
 	LLAssetUploadQueue* getUploadQueue() { return mUploadQueue; }
+
+	void experienceIdsReceived(const LLSD& content);
+	BOOL hasExperience(const LLUUID& id) const;
 
 protected:
 	LLFloaterCompileQueue(const std::string& name, const LLRect& rect);
@@ -148,21 +160,13 @@ protected:
 	virtual void handleInventory(LLViewerObject* viewer_obj,
 								 LLInventoryObject::object_list_t* inv);
 
+	static void requestAsset(struct LLScriptQueueData* datap, const LLSD& experience);
+
+
 	// This is the callback for when each script arrives
 	static void scriptArrived(LLVFS *vfs, const LLUUID& asset_id,
 								LLAssetType::EType type,
 								void* user_data, S32 status, LLExtStat ext_status);
-
-#if 0 //Client side compiling disabled.
-	static void onSaveTextComplete(const LLUUID& asset_id, void* user_data, S32 status, LLExtStat ext_status);
-
-	static void onSaveBytecodeComplete(const LLUUID& asset_id,
-									   void* user_data,
-									   S32 status, LLExtStat ext_status);
-
-	// compile the file given and save it out.
-	void compile(const std::string& filename, const LLUUID& asset_id);
-#endif
 	
 	// remove any object in mScriptScripts with the matching uuid.
 	void removeItemByAssetID(const LLUUID& asset_id);
@@ -173,12 +177,13 @@ protected:
 	// find InventoryItem given item id.
 	const LLInventoryItem* findItemByItemID(const LLUUID& item_id) const;
 
+	virtual BOOL startQueue();
 protected:
 	LLViewerInventoryItem::item_array_t mCurrentScripts;
 
 private:
-	BOOL mMono; // Compile to mono.
 	LLAssetUploadQueue* mUploadQueue;
+	uuid_list_t mExperienceIds;
 };
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

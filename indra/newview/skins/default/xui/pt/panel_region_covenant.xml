@@ -12,9 +12,9 @@
 	<text bottom_delta="-19" name="estate_owner_lbl">
 		Dono:
 	</text>
-	<text name="estate_owner_text">
+	<name_box name="estate_owner_text">
 		(nenhum)
-	</text>
+	</name_box>
 	<text name="estate_cov_lbl">
 		Corretagem:
 	</text>

@@ -28,8 +28,10 @@
 #ifndef LL_LLVOAVATARSELF_H
 #define LL_LLVOAVATARSELF_H
 
+#include "llavatarappearancedefines.h"
 #include "llviewertexture.h"
 #include "llvoavatar.h"
+#include <map>
 
 struct LocalTextureData;
 class LLInventoryCallback;
@@ -95,6 +97,7 @@ public:
 	// LLCharacter interface and related
 	//--------------------------------------------------------------------
 public:
+	/*virtual*/ bool 		hasMotionFromSource(const LLUUID& source_id);
 	/*virtual*/ void 		stopMotionFromSource(const LLUUID& source_id);
 	/*virtual*/ void 		requestStopMotion(LLMotion* motion);
 	/*virtual*/ LLJoint*	getJoint(const std::string &name);
@@ -117,8 +120,8 @@ private:
  *******************************************************************************/
 
 private:
-	LLUUID mInitialBakeIDs[6];
-	bool mInitialBakesLoaded;
+	LLUUID mInitialBakeIDs[LLAvatarAppearanceDefines::BAKED_NUM_INDICES];
+	//bool mInitialBakesLoaded;
 
 
 /********************************************************************************
@@ -266,17 +269,6 @@ public:
 	const LLUUID&		grabBakedTexture(LLAvatarAppearanceDefines::EBakedTextureIndex baked_index) const;
 	BOOL				canGrabBakedTexture(LLAvatarAppearanceDefines::EBakedTextureIndex baked_index) const;
 
-
-	//--------------------------------------------------------------------
-	// Scratch textures (used for compositing)
-	//--------------------------------------------------------------------
-public:
-	static void		deleteScratchTextures();
-private:
-	static S32 		sScratchTexBytes;
-	static LLMap< LLGLenum, LLGLuint*> sScratchTexNames;
-	static LLMap< LLGLenum, F32*> sScratchTexLastBindTime;
-
 /**                    Textures
  **                                                                            **
  *******************************************************************************/
@@ -307,9 +299,6 @@ protected:
 public:
 	void 				updateAttachmentVisibility(U32 camera_mode);
 	BOOL 				isWearingAttachment(const LLUUID& inv_item_id) const;
-	BOOL				attachmentWasRequested(const LLUUID& inv_item_id) const;
-	void				addAttachmentRequest(const LLUUID& inv_item_id);
-	void				removeAttachmentRequest(const LLUUID& inv_item_id);
 	LLViewerObject* 	getWornAttachment(const LLUUID& inv_item_id);
 	bool				getAttachedPointName(const LLUUID& inv_item_id, std::string& name) const;
 // [RLVa:KB] - Checked: 2009-12-18 (RLVa-1.1.0i) | Added: RLVa-1.1.0i
@@ -325,8 +314,6 @@ public:
 	boost::signals2::connection setAttachmentCallback(const attachment_signal_t::slot_type& cb);
 // [/RLVa:KB]
 private:
-	// Track attachments that have been requested but have not arrived yet.
-	mutable std::map<LLUUID,LLTimer> mAttachmentRequests;
 // [RLVa:KB] - Checked: 2012-07-28 (RLVa-1.4.7)
 	attachment_signal_t* mAttachmentSignal;
 // [/RLVa:KB]
@@ -354,11 +341,14 @@ public:
 	//--------------------------------------------------------------------
 	// Visibility
 	//--------------------------------------------------------------------
+
+	/* virtual */ bool shouldRenderRigged() const;
+
 public:
 	bool			sendAppearanceMessage(LLMessageSystem *mesgsys) const;
 
 	// -- care and feeding of hover height.
-	void 			setHoverIfRegionEnabled();
+	void 			setHoverIfRegionEnabled(bool send_update = true);
 	void			sendHoverHeight() const;
 	/*virtual*/ void setHoverOffset(const LLVector3& hover_offset, bool send_update=true);
 
@@ -383,7 +373,6 @@ public:
 public:	
 	static void		dumpTotalLocalTextureByteCount();
 	void			dumpLocalTextures() const;
-	static void		dumpScratchTextureByteCount();
 	void			dumpWearableInfo(LLAPRFile& outfile);
 
 	//--------------------------------------------------------------------

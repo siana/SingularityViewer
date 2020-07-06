@@ -61,7 +61,7 @@ public:
 	};
 	
 	// Empty default ctor
-	LLVector4Logical() {}
+	LLVector4Logical() = default;
 	
 	LLVector4Logical( const LLQuad& quad )
 	{
@@ -122,5 +122,7 @@ private:
 	
 	LLQuad mQ;
 };
+static_assert(std::is_trivial<LLVector4Logical>::value, "LLVector4Logical must be a trivial type");
+static_assert(std::is_standard_layout<LLVector4Logical>::value, "LLVector4Logical must be a standard layout type");
 
 #endif //LL_VECTOR4ALOGICAL_H

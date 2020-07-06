@@ -403,6 +403,9 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 		Clique para ativar no secondlife:// comando
 	</string>
 	<string name="CurrentURL" value="URL atual: [CurrentURL]"/>
+	<string name="TooltipEmail">
+		Clique para escrever um email
+	</string>
 	<string name="SLurlLabelTeleport">
 		Teletransportar para
 	</string>
@@ -426,6 +429,9 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 	</string>
 	<string name="SLappAgentRequestFriend">
 		Pedido de amizade
+	</string>
+	<string name="SLappAgentRemoveFriend">
+		Remoção de amigo
 	</string>
 	<string name="BUTTON_CLOSE_DARWIN">
 		Fechar (⌘W)
@@ -904,11 +910,27 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 	<string name="ControlYourCamera">
 		Controle sua camera
 	</string>
+	<string name="TeleportYourAgent">
+		Teletransportá-lo
+	</string>
+	<string name="ForceSitAvatar">
+		Forçar o avatar a sentar
+	</string>
 	<string name="AgentNameSubst">
 		(Você)
 	</string>
-	<string name="TeleportYourAgent">
-		Teletransportá-lo
+	<string name="JoinAnExperience"/>
+	<string name="SilentlyManageEstateAccess">
+		Suprimir alertas ao gerenciar listas de acesso ao terreno
+	</string>
+	<string name="OverrideYourAnimations">
+		Substituir suas animações padrão
+	</string>
+	<string name="ScriptReturnObjects">
+		Retornar objetos em seu nome
+	</string>
+	<string name="UnknownScriptPermission">
+		(desconhecido)!
 	</string>
 	<string name="SIM_ACCESS_PG">
 		Público geral
@@ -1150,14 +1172,12 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 	<string name="ok">
 		OK
 	</string>
-	<string name="GroupNotifyGroupNotice">
-		Anúncio de grupo
-	</string>
 	<string name="GroupNotifyGroupNotices">
 		Anúncios do grupo
 	</string>
-	<string name="GroupNotifySentBy">
-		Enviado por
+	<string name="GroupNotifyBy">
+por [NAME]
+en [GROUP]
 	</string>
 	<string name="GroupNotifyAttached">
 		Anexo:
@@ -1198,6 +1218,9 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 	<string name="BodyPartsRightLeg">
 		Perna direita
 	</string>
+	<string name="BodyPartsEnhancedSkeleton">
+		Esqueleto aprimorado
+	</string>
 	<string name="GraphicsQualityLow">
 		Baixo
 	</string>
@@ -1218,6 +1241,9 @@ Pessoas com contas gratuitas não poderão acessar o Second Life no momento para
 	</string>
 	<string name="FavoritesNoMatchingItems">
 		Arraste um marco para adicioná-lo aos seus favoritos.
+	</string>
+	<string name="MarketplaceNoMatchingItems">
+		Nenhum item correspondente encontrado. Verifique a ortografia de sua cadeia de pesquisa e tente novamente.
 	</string>
 	<string name="InventoryNoTexture">
 		Você não possui uma cópia desta textura no seu inventário
@@ -4321,6 +4347,15 @@ Denunciar abuso
 	<string name="texture_load_dimensions_error">
 		A imagem excede o limite [WIDTH]*[HEIGHT]
 	</string>
+	<string name="outfit_photo_load_dimensions_error">
+		O tamanho máx. do look é [WIDTH]*[HEIGHT]. Redimensione ou use outra imagem
+	</string>
+	<string name="outfit_photo_select_dimensions_error">
+		O tamanho máx. do look é [WIDTH]*[HEIGHT]. Selecione outra textura
+	</string>
+	<string name="outfit_photo_verify_dimensions_error">
+		Não foi possível confirmar as dimensões da foto. Aguarde até que o tamanho da foto seja exibido no seletor
+	</string>
 	<string name="words_separator" value=","/>
 	<string name="server_is_down">
 		Aconteceu algo inesperado, apesar de termos tentado impedir isso.
@@ -4351,6 +4386,9 @@ Denunciar abuso
 	</string>
 	<string name="LocalEstimateUSD">
 		US$ [AMOUNT]
+	</string>
+	<string name="Group Ban">
+		Banimento do grupo
 	</string>
 	<string name="Membership">
 		Plano
@@ -4774,8 +4812,17 @@ Tente colocar o caminho do editor entre aspas.
 	<string name="Command_Destinations_Label">
 		Destinos
 	</string>
+	<string name="Command_Facebook_Label">
+		Facebook
+	</string>
+	<string name="Command_Flickr_Label">
+		Flickr
+	</string>
 	<string name="Command_Gestures_Label">
 		Gestos
+	</string>
+	<string name="Command_Grid_Status_Label">
+		Status da grade
 	</string>
 	<string name="Command_HowTo_Label">
 		Como
@@ -4788,6 +4835,9 @@ Tente colocar o caminho do editor entre aspas.
 	</string>
 	<string name="Command_Marketplace_Label">
 		Mercado
+	</string>
+	<string name="Command_MarketplaceListings_Label">
+		Marketplace
 	</string>
 	<string name="Command_MiniMap_Label">
 		Mini Mapa
@@ -4813,6 +4863,9 @@ Tente colocar o caminho do editor entre aspas.
 	<string name="Command_Profile_Label">
 		Perfil
 	</string>
+	<string name="Command_Report_Abuse_Label">
+		Relatar abuso
+	</string>
 	<string name="Command_Search_Label">
 		Buscar
 	</string>
@@ -4821,6 +4874,9 @@ Tente colocar o caminho do editor entre aspas.
 	</string>
 	<string name="Command_Speak_Label">
 		Falar
+	</string>
+	<string name="Command_Twitter_Label">
+		Twitter
 	</string>
 	<string name="Command_View_Label">
 		Controles da câmera
@@ -4852,8 +4908,17 @@ Tente colocar o caminho do editor entre aspas.
 	<string name="Command_Destinations_Tooltip">
 		Destinos de interesse
 	</string>
+	<string name="Command_Facebook_Tooltip">
+		Publicar no Facebook
+	</string>
+	<string name="Command_Flickr_Tooltip">
+		Carregar no Flickr
+	</string>
 	<string name="Command_Gestures_Tooltip">
 		Gestos para seu avatar
+	</string>
+	<string name="Command_Grid_Status_Tooltip">
+		Mostrar status da grade atual
 	</string>
 	<string name="Command_HowTo_Tooltip">
 		Como executar tarefas comuns
@@ -4866,6 +4931,9 @@ Tente colocar o caminho do editor entre aspas.
 	</string>
 	<string name="Command_Marketplace_Tooltip">
 		Faça compras
+	</string>
+	<string name="Command_MarketplaceListings_Tooltip">
+		Venda suas criações
 	</string>
 	<string name="Command_MiniMap_Tooltip">
 		Mostrar quem está aqui
@@ -4891,6 +4959,9 @@ Tente colocar o caminho do editor entre aspas.
 	<string name="Command_Profile_Tooltip">
 		Edite ou visualize seu perfil
 	</string>
+	<string name="Command_Report_Abuse_Tooltip">
+		Relatar abuso
+	</string>
 	<string name="Command_Search_Tooltip">
 		Encontre lugares, eventos, pessoas
 	</string>
@@ -4899,6 +4970,9 @@ Tente colocar o caminho do editor entre aspas.
 	</string>
 	<string name="Command_Speak_Tooltip">
 		Fale com pessoas próximas usando seu microfone
+	</string>
+	<string name="Command_Twitter_Tooltip">
+		Twitter
 	</string>
 	<string name="Command_View_Tooltip">
 		Alterar o ângulo da câmera
@@ -4975,6 +5049,87 @@ Tente colocar o caminho do editor entre aspas.
 	<string name="UserDictionary">
 		[Usuário]
 	</string>
+	<string name="experience_tools_experience">
+		Experiência
+	</string>
+	<string name="ExperienceNameNull">
+		(nenhuma experiência)
+	</string>
+	<string name="ExperienceNameUntitled">
+		(experiência sem título)
+	</string>
+	<string name="Land-Scope">
+		Dentro do terreno
+	</string>
+	<string name="Grid-Scope">
+		Dentro da grade
+	</string>
+	<string name="Allowed_Experiences_Tab">
+		PERMITIDO
+	</string>
+	<string name="Blocked_Experiences_Tab">
+		BLOQUEADO
+	</string>
+	<string name="Contrib_Experiences_Tab">
+		COLABORADOR
+	</string>
+	<string name="Admin_Experiences_Tab">
+		ADMINISTRADOR
+	</string>
+	<string name="Recent_Experiences_Tab">
+		RECENTE
+	</string>
+	<string name="Owned_Experiences_Tab">
+		PRÓPRIAS
+	</string>
+	<string name="ExperiencesCounter">
+		([EXPERIENCES], máx. [MAXEXPERIENCES])
+	</string>
+	<string name="ExperiencePermission1">
+		assumir seus controles
+	</string>
+	<string name="ExperiencePermission3">
+		acionar animações no seu avatar
+	</string>
+	<string name="ExperiencePermission4">
+		anexar ao avatar
+	</string>
+	<string name="ExperiencePermission9">
+		rastrear sua câmera
+	</string>
+	<string name="ExperiencePermission10">
+		controlar sua câmera
+	</string>
+	<string name="ExperiencePermission11">
+		teletransportar você
+	</string>
+	<string name="ExperiencePermission12">
+		aceitar automaticamente permissões de experiência
+	</string>
+	<string name="ExperiencePermissionShortUnknown">
+		realizar uma operação desconhecida: [Permission]
+	</string>
+	<string name="ExperiencePermissionShort1">
+		Assumir o controle
+	</string>
+	<string name="ExperiencePermissionShort3">
+		Acionar animações
+	</string>
+	<string name="ExperiencePermissionShort4">
+		Anexar
+	</string>
+	<string name="ExperiencePermissionShort9">
+		Rastrear câmera
+	</string>
+	<string name="ExperiencePermissionShort10">
+		Controlar câmera
+	</string>
+	<string name="ExperiencePermissionShort11">
+		Teletransportar
+	</string>
+	<string name="ExperiencePermissionShort12">
+		Autorização
+	</string>
 	<string name="logging_calls_disabled_log_empty">
 		As conversas não estão sendo registradas. Para começar a manter um registro, selecione &quot;Salvar: apenas registro&quot; ou &quot;Salvar: registro e transcrições&quot; em Preferências&gt; Bate-papo.
 	</string>
@@ -4983,5 +5138,32 @@ Tente colocar o caminho do editor entre aspas.
 	</string>
 	<string name="logging_calls_enabled_log_empty">
 		Não há conversas registradas. Depois que você entrar em contato com alguém, ou alguém entrar em contato com você, um registro será exibido aqui.
+	</string>
+	<string name="loading_chat_logs">
+		Carregando...
+	</string>
+	<string name="na">
+		n/d
+	</string>
+	<string name="preset_combo_label">
+		-Lista vazia-
+	</string>
+	<string name="Default">
+		Padrão
+	</string>
+	<string name="none_paren_cap">
+		(nenhum)
+	</string>
+	<string name="no_limit">
+		Sem limite
+	</string>
+	<string name="Mav_Details_MAV_FOUND_DEGENERATE_TRIANGLES">
+		A forma física contém triângulos muito pequenos. Tente simplificar o modelo físico.
+	</string>
+	<string name="Mav_Details_MAV_CONFIRMATION_DATA_MISMATCH">
+		A forma física contém dados de confirmação ruins. Tente consertar o modelo físico.
+	</string>
+	<string name="Mav_Details_MAV_UNKNOWN_VERSION">
+		A forma física não tem a versão correta. Defina a versão correta para o modelo físico.
 	</string>
 </strings>

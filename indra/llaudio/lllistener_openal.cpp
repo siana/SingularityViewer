@@ -31,19 +31,13 @@
 #include "lllistener_openal.h"
 
 LLListener_OpenAL::LLListener_OpenAL()
+	: LLListener(),
+	  mRolloffFactor(1.f)
 {
-	init();
 }
 
 LLListener_OpenAL::~LLListener_OpenAL()
 {
-}
-
-void LLListener_OpenAL::init()
-{
-	// do inherited
-	LLListener::init();
-	mRolloffFactor = 1.0f;
 }
 
 void LLListener_OpenAL::translate(LLVector3 offset)
@@ -71,18 +65,20 @@ void LLListener_OpenAL::orient(LLVector3 up, LLVector3 at)
 
 void LLListener_OpenAL::commitDeferredChanges()
 {
-	ALfloat orientation[6];
-	orientation[0] = mListenAt.mV[0];
-	orientation[1] = mListenAt.mV[1];
-	orientation[2] = mListenAt.mV[2];
-	orientation[3] = mListenUp.mV[0];
-	orientation[4] = mListenUp.mV[1];
-	orientation[5] = mListenUp.mV[2];
+	ALfloat orientation[] = {
+		mListenAt.mV[0],
+		mListenAt.mV[1],
+		mListenAt.mV[2],
+		mListenUp.mV[0],
+		mListenUp.mV[1],
+		mListenUp.mV[2],
+	};
 
-	ALfloat velocity[3];
-	velocity[0] = mVelocity.mV[0];
-	velocity[1] = mVelocity.mV[1];
-	velocity[2] = mVelocity.mV[2];
+	ALfloat velocity[3] = {
+		mVelocity.mV[0],
+		mVelocity.mV[1],
+		mVelocity.mV[2],
+	};
 
 	alListenerfv(AL_ORIENTATION, orientation);
 	alListenerfv(AL_POSITION, mPosition.mV);

@@ -43,7 +43,7 @@ class LLButton;
 
 // NotifyBox - for notifications that require a response from the
 // user.  Replaces LLMessageBox.
-class LLGroupNotifyBox
+class LLGroupNotifyBox final
 :	public LLPanel,
 	public LLInitClass<LLGroupNotifyBox>
 {
@@ -70,10 +70,10 @@ protected:
 
 	/*virtual*/ ~LLGroupNotifyBox();
 
-	/*virtual*/ BOOL handleRightMouseDown(S32 x, S32 y, MASK mask);
+	/*virtual*/ BOOL handleRightMouseDown(S32 x, S32 y, MASK mask) override;
 
 	// Animate as sliding onto the screen.
-	/*virtual*/ void draw();
+	/*virtual*/ void draw() override;
 
 	void moveToBack();
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<menu label="Group" name="groups_menu">
+  <menu_item_call label="Show Profile" name="show_group">
+    <on_click function="List.ShowProfile"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Open Group Chat" name="im_group">
+    <on_click function="List.StartIM"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Call Group" name="call_group">
+    <on_click function="List.StartCall"/>
+    <on_enable function="List.EnableCall"/>
+    <on_enable function="List.EnableSingleSelected"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Activate Group" name="activate_group">
+    <on_click function="List.Activate"/>
+    <on_enable function="List.EnableSingleSelected"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Chat History" name="Chat History">
+    <on_click function="List.ShowLog"/>
+    <on_enable function="List.EnableAnySelected"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_call label="Join Group" name="join_group">
+    <on_click function="List.Join"/>
+    <on_visible function="List.NotInGroup"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Leave Group" name="leave_group">
+    <on_click function="List.Leave"/>
+    <on_visible function="List.IsInGroup"/>
+  </menu_item_call>
+  <menu_item_separator/>
+  <menu_item_call label="Copy Name" name="copy_name">
+    <on_click function="List.CopyNames"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy SLURL" name="copy_url">
+    <on_click function="List.CopySLURL"/>
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+  <menu_item_call label="Copy Key" name="copy_key">
+    <on_click function="List.CopyUUIDs" />
+    <on_visible function="List.EnableAnySelected"/>
+  </menu_item_call>
+</menu>

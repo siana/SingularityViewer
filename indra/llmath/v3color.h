@@ -100,6 +100,23 @@ public:
 
 	const LLColor3&	operator=(const LLColor4 &a);
 	
+    LL_FORCE_INLINE LLColor3 divide(const LLColor3 &col2)
+    {
+        return LLColor3(
+                mV[0] / col2.mV[0],
+                mV[1] / col2.mV[1],
+                mV[2] / col2.mV[2] );
+    }
+
+    LL_FORCE_INLINE LLColor3 color_norm() const
+    {
+        F32 l = length();
+        return LLColor3(
+                mV[0] / l,
+                mV[1] / l,
+                mV[2] / l );
+    }
+
 	friend std::ostream&	 operator<<(std::ostream& s, const LLColor3 &a);		// Print a
 	friend LLColor3 operator+(const LLColor3 &a, const LLColor3 &b);	// Return vector a + b
 	friend LLColor3 operator-(const LLColor3 &a, const LLColor3 &b);	// Return vector a minus b
@@ -122,6 +139,8 @@ public:
 	inline void clamp();
 	inline void exp();	// Do an exponential on the color
 };
+
+static_assert(std::is_trivially_copyable<LLColor3>::value, "LLColor3 must be a trivially copyable type");
 
 LLColor3 lerp(const LLColor3 &a, const LLColor3 &b, F32 u);
 

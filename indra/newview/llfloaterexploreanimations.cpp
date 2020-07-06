@@ -109,16 +109,16 @@ void LLFloaterExploreAnimations::draw()
 
 	gGL.getTexUnit(0)->bind(&mAnimPreview);
 
-	gGL.begin( LLRender::QUADS );
+	gGL.begin( LLRender::TRIANGLE_STRIP );
 	{
 		gGL.texCoord2f(0.f, 1.f);
 		gGL.vertex2i(mPreviewRect.mLeft, mPreviewRect.mTop);
 		gGL.texCoord2f(0.f, 0.f);
 		gGL.vertex2i(mPreviewRect.mLeft, mPreviewRect.mBottom);
-		gGL.texCoord2f(1.f, 0.f);
-		gGL.vertex2i(mPreviewRect.mRight, mPreviewRect.mBottom);
 		gGL.texCoord2f(1.f, 1.f);
 		gGL.vertex2i(mPreviewRect.mRight, mPreviewRect.mTop);
+		gGL.texCoord2f(1.f, 0.f);
+		gGL.vertex2i(mPreviewRect.mRight, mPreviewRect.mBottom);
 	}
 	gGL.end();
 

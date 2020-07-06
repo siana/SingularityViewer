@@ -257,16 +257,21 @@ void LLFloaterAvatarPicker::onBtnSelect()
 			uuid_vec_t			avatar_ids;
 			std::vector<LLAvatarName>	avatar_names;
 			getSelectedAvatarData(list, avatar_ids, avatar_names);
+			if (mCloseOnSelect) // Singu Note: Close before callback if we get here first, makes potential next dialog floater position correctly
+			{
+				mCloseOnSelect = FALSE;
+				close();
+			}
 			mSelectionCallback(avatar_ids, avatar_names);
 		}
 	}
 	getChild<LLScrollListCtrl>("SearchResults")->deselectAllItems(TRUE);
 	getChild<LLScrollListCtrl>("NearMe")->deselectAllItems(TRUE);
 	getChild<LLScrollListCtrl>("Friends")->deselectAllItems(TRUE);
-	if(mCloseOnSelect)
+	if (mCloseOnSelect)
 	{
 		mCloseOnSelect = FALSE;
-		close();		
+		close();
 	}
 }
 
@@ -396,47 +401,40 @@ void LLFloaterAvatarPicker::drawFrustum()
 		if (hasFocus() && frustumOrigin->isInVisibleChain() && mContextConeOpacity > 0.001f)
 		{
 			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-			LLGLEnable(GL_CULL_FACE);
-			gGL.begin(LLRender::QUADS);
+			LLGLEnable<GL_CULL_FACE> clip;
+			gGL.begin(LLRender::TRIANGLE_STRIP);
 			{
-				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
-				gGL.vertex2i(origin_rect.mLeft, origin_rect.mTop);
-				gGL.vertex2i(origin_rect.mRight, origin_rect.mTop);
-				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
-				gGL.vertex2i(local_rect.mRight, local_rect.mTop);
-				gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
-
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
 				gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
-				gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
-				gGL.vertex2i(origin_rect.mLeft, origin_rect.mBottom);
 				gGL.vertex2i(origin_rect.mLeft, origin_rect.mTop);
-
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
-				gGL.vertex2i(local_rect.mRight, local_rect.mBottom);
 				gGL.vertex2i(local_rect.mRight, local_rect.mTop);
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
 				gGL.vertex2i(origin_rect.mRight, origin_rect.mTop);
-				gGL.vertex2i(origin_rect.mRight, origin_rect.mBottom);
-
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
-				gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
 				gGL.vertex2i(local_rect.mRight, local_rect.mBottom);
 				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
 				gGL.vertex2i(origin_rect.mRight, origin_rect.mBottom);
+				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
+				gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
+				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
 				gGL.vertex2i(origin_rect.mLeft, origin_rect.mBottom);
+				gGL.color4f(0.f, 0.f, 0.f, mContextConeOutAlpha * mContextConeOpacity);
+				gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
+				gGL.color4f(0.f, 0.f, 0.f, mContextConeInAlpha * mContextConeOpacity);
+				gGL.vertex2i(origin_rect.mLeft, origin_rect.mTop);
 			}
 			gGL.end();
 		}
 
 		if (gFocusMgr.childHasMouseCapture(getDragHandle()))
 		{
-			mContextConeOpacity = lerp(mContextConeOpacity, gSavedSettings.getF32("PickerContextOpacity"), LLCriticalDamp::getInterpolant(mContextConeFadeTime));
+			mContextConeOpacity = lerp(mContextConeOpacity, gSavedSettings.getF32("PickerContextOpacity"), LLSmoothInterpolation::getInterpolant(mContextConeFadeTime));
 		}
 		else
 		{
-			mContextConeOpacity = lerp(mContextConeOpacity, 0.f, LLCriticalDamp::getInterpolant(mContextConeFadeTime));
+			mContextConeOpacity = lerp(mContextConeOpacity, 0.f, LLSmoothInterpolation::getInterpolant(mContextConeFadeTime));
 		}
 	}
 }

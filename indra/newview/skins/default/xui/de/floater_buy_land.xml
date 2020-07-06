@@ -7,7 +7,7 @@
 	<text name="estate_name_label">Grundbesitz:</text>
 	<text name="estate_name_text">(unbekannt)</text>
 	<text name="estate_owner_label">Grundbesitzer:</text>
-	<text name="estate_owner_text">(unbekannt)</text>
+	<name_box name="estate_owner_text">(unbekannt)</name_box>
 	<text name="resellable_changeable_label">Gekauftes Land in dieser Region:</text>
 	<text name="resellable_clause">Wiederverkauf möglich oder nicht möglich.</text>
 	<text name="changeable_clause">Darft oder darf nicht zusammengelegt/unterteilt werden.</text>

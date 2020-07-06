@@ -59,7 +59,7 @@ public:
 
 	void finishPaint();
 
-	GLuint getGLName();
+	GLuint getTexName();
 
 	LLVector3 map(U8 side, U16 v_val, U16 h_val) const;
 	BOOL project(F32& v_val, F32& h_val, BOOL& outside,

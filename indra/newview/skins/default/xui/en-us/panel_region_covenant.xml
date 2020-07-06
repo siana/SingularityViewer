@@ -25,12 +25,12 @@
 	     mouse_opaque="false" name="estate_owner_lbl" v_pad="0" width="100">
 		Owner:
 	</text>
-	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="-65" drop_shadow_visible="true" enabled="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="20" left="120"
 	     mouse_opaque="false" name="estate_owner_text" v_pad="0">
 		(none)
-	</text>
+	</name_box>
 	<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="-85" drop_shadow_visible="true" enabled="true" follows="left|top"
 	     font="SansSerifSmall" h_pad="0" halign="left" height="20" left="10"

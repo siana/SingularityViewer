@@ -38,9 +38,8 @@
 #include <iosfwd>
 #include <string>
 
-#include "llpreprocessor.h"
-
 #include "stdtypes.h"
+#include "llunits.h"
 
 /** 
  * @class LLDate
@@ -64,9 +63,9 @@ public:
 	/** 
 	 * @brief Construct a date from a seconds since epoch value.
 	 *
-	 * @pararm seconds_since_epoch The number of seconds since UTC epoch.
+	 * @param seconds_since_epoch The number of seconds since UTC epoch.
 	 */
-	LLDate(F64 seconds_since_epoch);
+	LLDate(F64SecondsImplicit seconds_since_epoch);
 
 	/** 
 	 * @brief Construct a date from a string representation
@@ -87,8 +86,8 @@ public:
 	std::string asRFC1123() const;
 	void toStream(std::ostream&) const;
 	bool split(S32 *year, S32 *month = NULL, S32 *day = NULL, S32 *hour = NULL, S32 *min = NULL, S32 *sec = NULL) const;
-	std::string toHTTPDateString (std::string fmt) const;
-	static std::string toHTTPDateString (tm * gmt, std::string fmt);
+	std::string toHTTPDateString (const std::string& fmt) const;
+	static std::string toHTTPDateString (tm * gmt, const std::string& fmt);
 	/** 
 	 * @brief Set the date from an ISO-8601 string.
 	 *
@@ -162,5 +161,7 @@ LL_COMMON_API std::ostream& operator<<(std::ostream& s, const LLDate& date);
 
 // Helper function to stream in a date
 LL_COMMON_API std::istream& operator>>(std::istream& s, LLDate& date);
+
+
 
 #endif // LL_LLDATE_H

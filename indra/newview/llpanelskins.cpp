@@ -116,8 +116,7 @@ void LLPanelSkins::refresh()
 						LLButton* b = getChild<LLButton>("custom_skin_preview");
 						std::string imagename = data["preview_image"].asString();
 						if(imagename == "" || imagename == " " || !LLFile::isfile(imagename)) imagename = "preview.png";
-						std::string imageprev(".."+gDirUtilp->getDirDelimiter()+
-							".."+gDirUtilp->getDirDelimiter()+
+						std::string imageprev(path_name+
 							data["folder_name"].asString()+gDirUtilp->getDirDelimiter()+
 							"textures"+gDirUtilp->getDirDelimiter()+
 							imagename);

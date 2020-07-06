@@ -36,9 +36,9 @@
 	<text name="event_runby_label">
 		Organizzato da:
 	</text>
-	<text name="event_runby" left="140" >
+	<name_box name="event_runby" left="140" >
 		(nessuno)
-	</text>
+	</name_box>
 	<text name="event_location_label">
 		Luogo:
 	</text>

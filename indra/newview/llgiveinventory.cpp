@@ -36,6 +36,7 @@
 #include "llagentdata.h"
 #include "llagentui.h"
 #include "llagentwearables.h"
+#include "llavataractions.h"
 #include "llfloaterchat.h" //for addChatHistory
 #include "llfloatertools.h" // for gFloaterTool
 #include "llhudeffecttrail.h"
@@ -55,7 +56,7 @@
 // MAX ITEMS is based on (sizeof(uuid)+2) * count must be < MTUBYTES
 // or 18 * count < 1200 => count < 1200/18 => 66. I've cut it down a
 // bit from there to give some pad.
-const S32 MAX_ITEMS = 42;
+const size_t MAX_ITEMS = 50;
 
 class LLGiveable : public LLInventoryCollectFunctor
 {
@@ -259,9 +260,9 @@ bool LLGiveInventory::doGiveInventoryCategory(const LLUUID& to_agent,
 									items,
 									LLInventoryModel::EXCLUDE_TRASH,
 									giveable);
-	S32 count = cats.size();
+	size_t count = cats.size();
 	bool complete = true;
-	for(S32 i = 0; i < count; ++i)
+	for(size_t i = 0; i < count; ++i)
 	{
 		if(!gInventory.isCategoryComplete(cats.at(i)->getUUID()))
 		{
@@ -331,7 +332,7 @@ void LLGiveInventory::logInventoryOffer(const LLUUID& to_agent, const LLUUID &im
 		      (!RlvUIEnabler::hasOpenProfile(to_agent)) )
 	{
 		// Log to chat history if the user didn't drop on an IM session or a profile to avoid revealing the name of the recipient
-		std::string strMsgName = "inventory_item_offered"; LLSD args; LLAvatarName avName;
+		std::string strMsgName = "inventory_item_offered-im"; LLSD args; LLAvatarName avName;
 		if (LLAvatarNameCache::get(to_agent, &avName))
 		{
 			args["NAME"] = RlvStrings::getAnonym(avName);
@@ -348,13 +349,9 @@ void LLGiveInventory::logInventoryOffer(const LLUUID& to_agent, const LLUUID &im
 	// If this item was given by drag-and-drop on avatar while IM panel wasn't open, log this action to IM history.
 	else
 	{
-		std::string full_name;
-		if (gCacheName->getFullName(to_agent, full_name))
-		{
-			LLChat chat(LLTrans::getString("inventory_item_offered_to") + " " + full_name);
-			chat.mSourceType = CHAT_SOURCE_SYSTEM;
-			LLFloaterChat::addChatHistory(chat);
-		}
+		LLChat chat(LLTrans::getString("inventory_item_offered_to") + ' ' + LLAvatarActions::getSLURL(to_agent));
+		chat.mSourceType = CHAT_SOURCE_SYSTEM;
+		LLFloaterChat::addChatHistory(chat);
 	}
 }
 
@@ -475,8 +472,8 @@ bool LLGiveInventory::handleCopyProtectedCategory(const LLSD& notification, cons
 											items,
 											LLInventoryModel::EXCLUDE_TRASH,
 											remove);
-			S32 count = items.size();
-			for(S32 i = 0; i < count; ++i)
+			size_t count = items.size();
+			for(size_t i = 0; i < count; ++i)
 			{
 				gInventory.deleteObject(items.at(i)->getUUID());
 			}
@@ -529,8 +526,8 @@ bool LLGiveInventory::commitGiveInventoryCategory(const LLUUID& to_agent,
 	// MAX ITEMS is based on (sizeof(uuid)+2) * count must be <
 	// MTUBYTES or 18 * count < 1200 => count < 1200/18 =>
 	// 66. I've cut it down a bit from there to give some pad.
- 	S32 count = items.size() + cats.size();
- 	if(count > MAX_ITEMS)
+	size_t count = items.size() + cats.size();
+	if (count > MAX_ITEMS)
   	{
 		LLNotificationsUtil::add("TooManyItems");
 		give_successful = false;
@@ -546,7 +543,7 @@ bool LLGiveInventory::commitGiveInventoryCategory(const LLUUID& to_agent,
 		LLAgentUI::buildFullname(name);
 		LLUUID transaction_id;
 		transaction_id.generate();
-		S32 bucket_size = (sizeof(U8) + UUID_BYTES) * (count + 1);
+		size_t bucket_size = (sizeof(U8) + UUID_BYTES) * (count + 1);
 		U8* bucket = new U8[bucket_size];
 		U8* pos = bucket;
 		U8 type = (U8)cat->getType();
@@ -554,7 +551,7 @@ bool LLGiveInventory::commitGiveInventoryCategory(const LLUUID& to_agent,
 		pos += sizeof(U8);
 		memcpy(pos, &(cat->getUUID()), UUID_BYTES);		/* Flawfinder: ignore */
 		pos += UUID_BYTES;
-		S32 i;
+		size_t i;
 		count = cats.size();
 		for(i = 0; i < count; ++i)
 		{

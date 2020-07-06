@@ -876,12 +876,9 @@ void BGFolderHttpHandler::httpFailure(void)
 
 	if (is_internal_http_error_that_warrants_a_retry(mStatus)) // timed out
 	{
-		for(LLSD::array_const_iterator folder_it = mRequestSD["folders"].beginArray();
-			folder_it != mRequestSD["folders"].endArray();
-			 ++folder_it)
+		for (auto const& entry : mRequestSD["folders"].array())
 		{
-			LLSD folder_sd(*folder_it);
-			LLUUID folder_id(folder_sd["folder_id"].asUUID());
+			LLUUID folder_id(entry["folder_id"].asUUID());
 			const BOOL recursive = getIsRecursive(folder_id);
 			fetcher->addRequestAtFront(folder_id, recursive, true);
 		}

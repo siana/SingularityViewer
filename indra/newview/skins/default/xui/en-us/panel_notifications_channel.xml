@@ -16,5 +16,5 @@
     </scroll_list>
     </layout_panel>
   </layout_stack>
-  <button name="header" label="" image="rounded_square.tga" left="0" bottom="-20" width="100" height="20" follows="left|right|top" toggle="true"/>
+  <button name="header" label="" image="Rounded_Square" left="0" bottom="-20" width="100" height="20" follows="left|right|top" toggle="true"/>
 </panel>

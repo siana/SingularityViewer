@@ -78,7 +78,7 @@ public:
 	std::string			mBanLimitFail;
 	std::string			mCannotBanYourself;
 
-	std::set<LLUUID>	mInviteeIDs;
+	uuid_set_t	mInviteeIDs;
 
 	void (*mCloseCallback)(void* data);
 	void* mCloseCallbackUserData;

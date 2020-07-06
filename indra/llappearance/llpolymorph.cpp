@@ -109,7 +109,7 @@ LLPolyMorphData::~LLPolyMorphData()
 BOOL LLPolyMorphData::loadBinary(LLFILE *fp, LLPolyMeshSharedData *mesh)
 {
 	S32 numVertices;
-	S32 numRead;
+	size_t numRead; // <alchemy/>
 
 	numRead = fread(&numVertices, sizeof(S32), 1, fp);
 	llendianswizzle(&numVertices, sizeof(S32), 1);
@@ -680,8 +680,8 @@ BOOL LLPolyMorphTarget::setInfo(LLPolyMorphTargetInfo* info)
 	if (!mMorphData)
 	{
 		const std::string driven_tag = "_Driven";
-		U32 pos = morph_param_name.find(driven_tag);
-		if (pos > 0)
+		size_t pos = morph_param_name.find(driven_tag);
+		if (pos != std::string::npos)
 		{
 			morph_param_name = morph_param_name.substr(0,pos);
 			mMorphData = mMesh->getMorphData(morph_param_name);
@@ -835,7 +835,7 @@ F32	LLPolyMorphTarget::getMaxDistortion()
 //-----------------------------------------------------------------------------
 // apply()
 //-----------------------------------------------------------------------------
-static LLFastTimer::DeclareTimer FTM_APPLY_MORPH_TARGET("Apply Morph");
+static LLTrace::BlockTimerStatHandle FTM_APPLY_MORPH_TARGET("Apply Morph");
 
 void LLPolyMorphTarget::apply( ESex avatar_sex )
 {
@@ -844,7 +844,7 @@ void LLPolyMorphTarget::apply( ESex avatar_sex )
 		return;
 	}
 
-	LLFastTimer t(FTM_APPLY_MORPH_TARGET);
+	LL_RECORD_BLOCK_TIME(FTM_APPLY_MORPH_TARGET);
 
 	mLastSex = avatar_sex;
 
@@ -937,7 +937,7 @@ void LLPolyMorphTarget::apply( ESex avatar_sex )
 		}
 
 		// now apply volume changes
-		for( volume_list_t::iterator iter = mVolumeMorphs.begin(); iter != mVolumeMorphs.end(); iter++ )
+		for( volume_list_t::iterator iter = mVolumeMorphs.begin(); iter != mVolumeMorphs.end(); ++iter )
 		{
 			LLPolyVolumeMorph* volume_morph = &(*iter);
 			LLVector3 scale_delta = volume_morph->mScale * delta_weight;
@@ -1027,6 +1027,20 @@ void	LLPolyMorphTarget::applyMask(U8 *maskTextureData, S32 width, S32 height, S3
 	apply(mLastSex);
 }
 
+void LLPolyMorphTarget::applyVolumeChanges(F32 delta_weight)
+{
+    // now apply volume changes
+    for( volume_list_t::iterator iter = mVolumeMorphs.begin(); iter != mVolumeMorphs.end(); ++iter )
+    {
+        LLPolyVolumeMorph* volume_morph = &(*iter);
+        LLVector3 scale_delta = volume_morph->mScale * delta_weight;
+        LLVector3 pos_delta = volume_morph->mPos * delta_weight;
+		
+        volume_morph->mVolume->setScale(volume_morph->mVolume->getScale() + scale_delta);
+        // SL-315
+        volume_morph->mVolume->setPosition(volume_morph->mVolume->getPosition() + pos_delta);
+    }
+}
 
 //-----------------------------------------------------------------------------
 // LLPolyVertexMask()

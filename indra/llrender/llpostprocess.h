@@ -34,6 +34,7 @@
 #define LL_POSTPROCESS_H
 
 #include <map>
+#include <boost/signals2.hpp>
 #include "llsd.h"
 #include "llrendertarget.h"
 
@@ -89,8 +90,8 @@ private:
 	U32 mNextDrawTarget;	//Need to pingpong between two rendertargets. Cannot sample target texture of currently bound FBO.
 							// However this is ONLY the case if fbos are actually supported, else swapping isn't needed.
 	LLRenderTarget mRenderTarget[2];
-	U32 mDepthTexture;
-	U32 mNoiseTexture ;
+	LLImageGL::GLTextureName mDepthTexture;
+	LLImageGL::GLTextureName mNoiseTexture ;
 	
 	U32 mScreenWidth;
 	U32 mScreenHeight;
@@ -102,6 +103,9 @@ private:
 	LLSD mSelectedEffectInfo;
 	//  The map of all availible effects
 	LLSD mAllEffectInfo;
+
+	typedef boost::signals2::signal<void(const std::string&)> selected_effect_changed_signal;
+	selected_effect_changed_signal mSelectedEffectChanged;
 
 public:
 	LLPostProcess(void);
@@ -144,6 +148,7 @@ public:
 	//  Setters
 	void setSelectedEffect(std::string const & effectName);
 	void setSelectedEffectValue(std::string const & setting, LLSD value);
+	auto setSelectedEffectChangeCallback(const selected_effect_changed_signal::slot_type& func) { return mSelectedEffectChanged.connect(func); }
 	void resetSelectedEffect();
 	void saveEffectAs(std::string const & effectName);
 };

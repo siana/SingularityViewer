@@ -32,9 +32,9 @@ To use voice, you must accept the license agreement.
 		 start_url="data:text/html,%3Chtml%3E%3Chead%3E%3C/head%3E%3Cbody text=%22000000%22%3E%3Ch2%3E Loading %3Ca%20target%3D%22_external%22%20href%3D%22http%3A//vivox.com/vivox_aup.html%22%3EVivox%20Acceptable%20Use%20Policy%3C/a%3E...%3C/h2%3E %3C/body%3E %3C/html%3E"
 	     width="568" word_wrap="true" />
   <string name="real_url">
-    http://replex-viewer.github.io/pages/vivox_aup.html
+    https://www.vivox.com/policies/acceptable_use.html
   </string>
   <string name="fallback_html">
-	vivox_aup.html
+    http://replex-viewer.github.io/pages/vivox_aup.html
   </string>
 </floater>

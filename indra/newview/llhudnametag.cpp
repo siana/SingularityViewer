@@ -112,7 +112,7 @@ LLHUDNameTag::LLHUDNameTag(const U8 type)
 {
 	LLPointer<LLHUDNameTag> ptr(this);
 	sTextObjects.insert(ptr);
-	mBubbleImage = LLUI::getUIImage("Rounded_Rect.png");
+	mBubbleImage = LLUI::getUIImage("Rounded_Rect");
 }
 
 LLHUDNameTag::~LLHUDNameTag()
@@ -281,8 +281,8 @@ void LLHUDNameTag::renderText(BOOL for_select)
 		gGL.getTexUnit(0)->enable(LLTexUnit::TT_TEXTURE);
 	}
 
-	LLGLState gls_blend(GL_BLEND, for_select ? FALSE : TRUE);
-	LLGLState gls_alpha(GL_ALPHA_TEST, for_select ? FALSE : TRUE);
+	LLGLState<GL_BLEND> gls_blend(for_select ? FALSE : TRUE);
+	LLGLState<GL_ALPHA_TEST> gls_alpha(for_select ? FALSE : TRUE);
 	gGL.setSceneBlendType(LLRender::BT_ALPHA);	//Workaround avoiding inheriting stale blendstate from... something.
 	
 	LLColor4 shadow_color(0.f, 0.f, 0.f, 1.f);
@@ -304,29 +304,14 @@ void LLHUDNameTag::renderText(BOOL for_select)
 
 	mOffsetY = lltrunc(mHeight * ((mVertAlignment == ALIGN_VERT_CENTER) ? 0.5f : 1.f));
 
+	LLUIImagePtr imagep = mBubbleImage;
+	
 // *TODO: make this a per-text setting
 	static const LLCachedControl<LLColor4> background_chat_color("BackgroundChatColor", LLColor4(0,0,0,1.f));
 	static const LLCachedControl<F32> chat_bubble_opacity("ChatBubbleOpacity", .5);
 	LLColor4 bg_color = background_chat_color;
 	bg_color.setAlpha(chat_bubble_opacity.get() * alpha_factor);
 
-	// maybe a no-op?
-	//const S32 border_height = 16;
-	//const S32 border_width = 16;
-	const S32 border_height = 8;
-	const S32 border_width = 8;
-
-	// *TODO move this into helper function
-	F32 border_scale = 1.f;
-
-	if (border_height * 2 > mHeight)
-	{
-		border_scale = (F32)mHeight / ((F32)border_height * 2.f);
-	}
-	if (border_width * 2 > mWidth)
-	{
-		border_scale = llmin(border_scale, (F32)mWidth / ((F32)border_width * 2.f));
-	}
 
 	// scale screen size of borders down
 	//RN: for now, text on hud objects is never occluded
@@ -336,34 +321,42 @@ void LLHUDNameTag::renderText(BOOL for_select)
 	
 	LLViewerCamera::getInstance()->getPixelVectors(mPositionAgent, y_pixel_vec, x_pixel_vec);
 
-	LLVector2 border_scale_vec((F32)border_width / (F32)mBubbleImage->getTextureWidth(), (F32)border_height / (F32)mBubbleImage->getTextureHeight());
 	LLVector3 width_vec = mWidth * x_pixel_vec;
 	LLVector3 height_vec = mHeight * y_pixel_vec;
-	LLVector3 scaled_border_width = (F32)llfloor(border_scale * (F32)border_width) * x_pixel_vec;
-	LLVector3 scaled_border_height = (F32)llfloor(border_scale * (F32)border_height) * y_pixel_vec;
 
 	mRadius = (width_vec + height_vec).magVec() * 0.5f;
 
 	LLCoordGL screen_pos;
 	LLViewerCamera::getInstance()->projectPosAgentToScreen(mPositionAgent, screen_pos, FALSE);
 
-	LLVector2 screen_offset;
-//	if (!mUseBubble)
-//	{
-//		screen_offset = mPositionOffset;
-//	}
-//	else
-//	{
-		screen_offset = updateScreenPos(mPositionOffset);
-//	}
+	LLVector2 screen_offset = updateScreenPos(mPositionOffset);
 
 	LLVector3 render_position = mPositionAgent  
 			+ (x_pixel_vec * screen_offset.mV[VX])
 			+ (y_pixel_vec * screen_offset.mV[VY]);
 
-//	if (mUseBubble)
+	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
+	LLRect screen_rect;
+	screen_rect.setCenterAndSize(0, static_cast<S32>(lltrunc(-mHeight / 2 + mOffsetY)), static_cast<S32>(lltrunc(mWidth)), static_cast<S32>(lltrunc(mHeight)));
+	imagep->draw3D(render_position, x_pixel_vec, y_pixel_vec, screen_rect, bg_color);
+	if (mLabelSegments.size())
 	{
-		LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
+		LLUIImagePtr rect_top_image = LLUI::getUIImage("Rounded_Rect_Top");
+		LLRect label_top_rect = screen_rect;
+		const S32 label_height = ll_round((mFontp->getLineHeight() * (F32)mLabelSegments.size() + (VERTICAL_PADDING / 3.f)));
+		label_top_rect.mBottom = label_top_rect.mTop - label_height;
+		LLColor4 label_top_color = text_color;
+		label_top_color.mV[VALPHA] = chat_bubble_opacity * alpha_factor;
+
+		rect_top_image->draw3D(render_position, x_pixel_vec, y_pixel_vec, label_top_rect, label_top_color);
+	}
+	
+	BOOL outside_width = llabs(mPositionOffset.mV[VX]) > mWidth * 0.5f;
+	BOOL outside_height = llabs(mPositionOffset.mV[VY] + (mVertAlignment == ALIGN_VERT_TOP ? mHeight * 0.5f : 0.f)) > mHeight * (mVertAlignment == ALIGN_VERT_TOP ? mHeight * 0.75f : 0.5f);
+
+	// draw line segments pointing to parent object
+	if (!mOffscreen && (outside_width || outside_height))
+	{
 		LLUI::pushMatrix();
 		{
 			LLVector3 bg_pos = render_position
@@ -371,46 +364,9 @@ void LLHUDNameTag::renderText(BOOL for_select)
 				- (width_vec / 2.f)
 				- (height_vec);
 			LLUI::translate(bg_pos.mV[VX], bg_pos.mV[VY], bg_pos.mV[VZ]);
-
-			if (for_select)
+			
+			/*LLUI::pushMatrix();
 			{
-				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-				S32 name = mSourceObject->mGLName;
-				LLColor4U coloru((U8)(name >> 16), (U8)(name >> 8), (U8)name);
-				gGL.color4ubv(coloru.mV);
-				gl_segmented_rect_3d_tex(border_scale_vec, scaled_border_width, scaled_border_height, width_vec, height_vec);
-				LLUI::popMatrix();
-				return;
-			}
-			else
-			{
-				gGL.getTexUnit(0)->bind(mBubbleImage->getImage());
-				
-				gGL.color4fv(bg_color.mV);
-				gl_segmented_rect_3d_tex(border_scale_vec, scaled_border_width, scaled_border_height, width_vec, height_vec);
-				
-				if ( mLabelSegments.size())
-				{
-					LLUI::pushMatrix();
-					{
-						gGL.color4f(text_color.mV[VX], text_color.mV[VY], text_color.mV[VZ], chat_bubble_opacity * alpha_factor);
-						LLVector3 label_height = (mFontp->getLineHeight() * mLabelSegments.size() + (VERTICAL_PADDING / 3.f)) * y_pixel_vec;
-						LLVector3 label_offset = height_vec - label_height;
-						LLUI::translate(label_offset.mV[VX], label_offset.mV[VY], label_offset.mV[VZ]);
-						gl_segmented_rect_3d_tex_top(border_scale_vec, scaled_border_width, scaled_border_height, width_vec, label_height);
-					}
-					LLUI::popMatrix();
-				}
-			}
-
-			BOOL outside_width = llabs(mPositionOffset.mV[VX]) > mWidth * 0.5f;
-			BOOL outside_height = llabs(mPositionOffset.mV[VY] + (mVertAlignment == ALIGN_VERT_TOP ? mHeight * 0.5f : 0.f)) > mHeight * (mVertAlignment == ALIGN_VERT_TOP ? mHeight * 0.75f : 0.5f);
-
-			// draw line segments pointing to parent object
-			if (!mOffscreen && (outside_width || outside_height))
-			{
-				LLUI::pushMatrix();
-				{
 					gGL.color4fv(bg_color.mV);
 					LLVector3 target_pos = -1.f * (mPositionOffset.mV[VX] * x_pixel_vec + mPositionOffset.mV[VY] * y_pixel_vec);
 					target_pos += (width_vec / 2.f);
@@ -419,67 +375,65 @@ void LLHUDNameTag::renderText(BOOL for_select)
 					target_pos -= 6.f * y_pixel_vec;
 					LLUI::translate(target_pos.mV[VX], target_pos.mV[VY], target_pos.mV[VZ]);
 					gl_segmented_rect_3d_tex(border_scale_vec, 3.f * x_pixel_vec, 3.f * y_pixel_vec, 6.f * x_pixel_vec, 6.f * y_pixel_vec);	
-				}
-				LLUI::popMatrix();
+			}
+			LLUI::popMatrix();*/
 
-				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-				LLGLDepthTest gls_depth(mZCompare ? GL_TRUE : GL_FALSE, GL_FALSE);
-				
-				LLVector3 box_center_offset;
-				box_center_offset = (width_vec * 0.5f) + (height_vec * 0.5f);
-				LLUI::translate(box_center_offset.mV[VX], box_center_offset.mV[VY], box_center_offset.mV[VZ]);
-				gGL.color4fv(bg_color.mV);
-				LLUI::setLineWidth(2.0);
-				gGL.begin(LLRender::LINES);
+			gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
+			LLGLDepthTest gls_depth(mZCompare ? GL_TRUE : GL_FALSE, GL_FALSE);
+			
+			LLVector3 box_center_offset;
+			box_center_offset = (width_vec * 0.5f) + (height_vec * 0.5f);
+			LLUI::translate(box_center_offset.mV[VX], box_center_offset.mV[VY], box_center_offset.mV[VZ]);
+			gGL.color4fv(bg_color.mV);
+			LLUI::setLineWidth(2.0);
+			gGL.begin(LLRender::LINES);
+			{
+				if (outside_width)
 				{
-					if (outside_width)
+					LLVector3 vert;
+					// draw line in x then y
+					if (mPositionOffset.mV[VX] < 0.f)
 					{
-						LLVector3 vert;
-						// draw line in x then y
-						if (mPositionOffset.mV[VX] < 0.f)
-						{
-							// start at right edge
-							vert = width_vec * 0.5f;
-							gGL.vertex3fv(vert.mV);
-						}
-						else
-						{
-							// start at left edge
-							vert = width_vec * -0.5f;
-							gGL.vertex3fv(vert.mV);
-						}
-						vert = -mPositionOffset.mV[VX] * x_pixel_vec;
-						gGL.vertex3fv(vert.mV);
-						gGL.vertex3fv(vert.mV);
-						vert -= mPositionOffset.mV[VY] * y_pixel_vec;
-						vert -= ((mVertAlignment == ALIGN_VERT_TOP) ? (height_vec * 0.5f) : LLVector3::zero);
+						// start at right edge
+						vert = width_vec * 0.5f;
 						gGL.vertex3fv(vert.mV);
 					}
 					else
 					{
-						LLVector3 vert;
-						// draw line in y then x
-						if (mPositionOffset.mV[VY] < 0.f)
-						{
-							// start at top edge
-							vert = (height_vec * 0.5f) - (mPositionOffset.mV[VX] * x_pixel_vec);
-							gGL.vertex3fv(vert.mV);
-						}
-						else
-						{
-							// start at bottom edge
-							vert = (height_vec * -0.5f)  - (mPositionOffset.mV[VX] * x_pixel_vec);
-							gGL.vertex3fv(vert.mV);
-						}
-						vert = -mPositionOffset.mV[VY] * y_pixel_vec - mPositionOffset.mV[VX] * x_pixel_vec;
-						vert -= ((mVertAlignment == ALIGN_VERT_TOP) ? (height_vec * 0.5f) : LLVector3::zero);
+						// start at left edge
+						vert = width_vec * -0.5f;
 						gGL.vertex3fv(vert.mV);
 					}
+					vert = -mPositionOffset.mV[VX] * x_pixel_vec;
+					gGL.vertex3fv(vert.mV);
+					gGL.vertex3fv(vert.mV);
+					vert -= mPositionOffset.mV[VY] * y_pixel_vec;
+					vert -= ((mVertAlignment == ALIGN_VERT_TOP) ? (height_vec * 0.5f) : LLVector3::zero);
+					gGL.vertex3fv(vert.mV);
 				}
-				gGL.end();
-				LLUI::setLineWidth(1.0);
-
+				else
+				{
+					LLVector3 vert;
+					// draw line in y then x
+					if (mPositionOffset.mV[VY] < 0.f)
+					{
+					// start at top edge
+						vert = (height_vec * 0.5f) - (mPositionOffset.mV[VX] * x_pixel_vec);
+						gGL.vertex3fv(vert.mV);
+					}
+					else
+					{
+						// start at bottom edge
+						vert = (height_vec * -0.5f)  - (mPositionOffset.mV[VX] * x_pixel_vec);
+						gGL.vertex3fv(vert.mV);
+					}
+					vert = -mPositionOffset.mV[VY] * y_pixel_vec - mPositionOffset.mV[VX] * x_pixel_vec;
+					vert -= ((mVertAlignment == ALIGN_VERT_TOP) ? (height_vec * 0.5f) : LLVector3::zero);
+					gGL.vertex3fv(vert.mV);
+				}
 			}
+			gGL.end();
+			LLUI::setLineWidth(1.0);
 		}
 		LLUI::popMatrix();
 	}
@@ -1011,7 +965,7 @@ void LLHUDNameTag::updateAll()
 //		{
 //			continue;
 //		}
-		(*this_object_it)->mPositionOffset = lerp((*this_object_it)->mPositionOffset, (*this_object_it)->mTargetPositionOffset, LLCriticalDamp::getInterpolant(POSITION_DAMPING_TC));
+		(*this_object_it)->mPositionOffset = lerp((*this_object_it)->mPositionOffset, (*this_object_it)->mTargetPositionOffset, LLSmoothInterpolation::getInterpolant(POSITION_DAMPING_TC));
 	}
 }
 
@@ -1102,15 +1056,16 @@ void LLHUDNameTag::reshape()
 
 F32 LLHUDNameTag::LLHUDTextSegment::getWidth(const LLFontGL* font)
 {
-	std::map<const LLFontGL*, F32>::iterator iter = mFontWidthMap.find(font);
-	if (iter != mFontWidthMap.end())
+	// Singu note: Reworked hotspot. Less indirection
+	if (mFontWidthMap[0].first == font)
 	{
-		return iter->second;
+		return mFontWidthMap[0].second;
 	}
-	else
+	else if (mFontWidthMap[1].first == font)
 	{
-		F32 width = font->getWidthF32(mText.c_str());
-		mFontWidthMap[font] = width;
-		return width;
+		return mFontWidthMap[1].second;
 	}
+	F32 width = font->getWidthF32(mText.c_str());
+	mFontWidthMap[mFontWidthMap[0].first != nullptr] = std::make_pair(font, width);
+	return width;
 }

@@ -58,6 +58,7 @@ public:
 	 * Show group information panel.
 	 */
 	static void show(const LLUUID& group_id);
+	static void showProfiles(const uuid_vec_t& group_ids);
 
 	/**
 	 * Show group information panel, with specific tab open.
@@ -120,6 +121,11 @@ public:
 	 * See LLGroupMgr::sendGroupMembersRequest
 	 */
 	static bool isAvatarMemberOfGroup(const LLUUID& group_id, const LLUUID& avatar_id);
+
+	/**
+	 * @return slurl string from group ID
+	 */
+	static std::string getSLURL(const LLUUID& id);
 
 private:
 	static bool onJoinGroup(const LLSD& notification, const LLSD& response);

@@ -260,7 +260,7 @@ class mediaPluginTest : public LLPluginClassMediaOwner
 
 				glEnable( GL_TEXTURE_2D );
 				glColor3f( 1.0f, 1.0f, 1.0f );
-				glBegin( GL_QUADS );
+				glBegin( GL_TRIANGLE_STRIP );
 				if(mAppTextureCoordsOpenGL)
 				{
 					// Render the texture as per opengl coords (where 0,0 is at the lower left)
@@ -270,11 +270,11 @@ class mediaPluginTest : public LLPluginClassMediaOwner
 					glTexCoord2d( 0 , media_texture_y );
 					glVertex2d( 0, mAppWindowHeight);
 
+					glTexCoord2d(media_texture_x, 0);
+					glVertex2d(mAppWindowWidth, 0);
+
 					glTexCoord2d( media_texture_x, media_texture_y );
 					glVertex2d( mAppWindowWidth , mAppWindowHeight);
-
-					glTexCoord2d( media_texture_x, 0 );
-					glVertex2d( mAppWindowWidth, 0 );
 				}
 				else
 				{
@@ -285,11 +285,11 @@ class mediaPluginTest : public LLPluginClassMediaOwner
 					glTexCoord2d( 0 , 0 );
 					glVertex2d( 0, mAppWindowHeight);
 
+					glTexCoord2d(media_texture_x, media_texture_y);
+					glVertex2d(mAppWindowWidth, 0);
+
 					glTexCoord2d( media_texture_x, 0 );
 					glVertex2d( mAppWindowWidth , mAppWindowHeight);
-
-					glTexCoord2d( media_texture_x, media_texture_y );
-					glVertex2d( mAppWindowWidth, 0 );
 				}
 				glEnd();
 

@@ -19,6 +19,8 @@
       <flyout_button_item label="Pay" name="pay_item" value="4"/>
       <flyout_button_item label="Invite To Group" name="group_invite_item" value="5"/>
       <flyout_button_item label="Copy SLURL" name="copy_slurl_item" value="-1"/>
+      <flyout_button_item label="Add to Conference" name="conference" value="-4"/>
+      <flyout_button_item label="Report Abuse" name="report" value="-5"/>
     </flyout_button>
     <string name="find on map" value="Find on Map"/>
     <string name="ding on" value="Ding on new messages (On)"/>
@@ -29,6 +31,7 @@
     <string name="remove friend" value="Remove Friend"/>
     <string name="mute" value="Mute"/>
     <string name="unmute" value="Unmute"/>
+    <string name="focus" value="Focus"/>
 	<button bottom="-20" follows="right|top" height="20" image_overlay="icn_voice-call-start.tga" image_overlay_alignment="left" label="Call" left_delta="81" name="start_call_btn" width="60"/>
 	<button bottom="-20" follows="right|top" height="20" image_overlay="icn_voice-call-end.tga" image_overlay_alignment="left" scale_image="true" label="End" name="end_call_btn" width="24"/>
 	<panel mouse_opaque="false" border="false" bottom="-20" follows="right|top" height="20" left_delta="16" name="speaker_controls" width="60">

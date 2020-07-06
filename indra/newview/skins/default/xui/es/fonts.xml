@@ -1,36 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <fonts>
-
-  <font name="default" comment="archivos de fuentes por defecto (Respaldos Globales)"/>
-  
-  <font name="SansSerif" comment="Nombre de la fuente san-serif (Nombre del archivo Truetype)"/>
-
-  <font name="SansSerifBold" comment="Nombre de la fuente bold sans-serif"/>
-
-  <font name="Monospace" comment="Nombre de la fuente monospace"/>
-
-  <font name="DejaVu" comment="Nombre de la fuente DejaVu"/>
-
-  <font name="DejaVu" comment="Nombre de la fuente DejaVu (Negrita)"/>
-
-  <font name="DejaVu" comment="Nombre de la fuente DejaVu (itálica)"/>
-
-  <font name="DejaVu" comment="Nombre de la fuente DejaVu (Itálica negrita)"/>
-
-  <font name="Helvetica" comment="Nombre de la fuente Helvetica"/>
-
-  <font name="Helvetica" comment="Nombre de la fuente Helvetica (Negrita)"/>
-
-  <font name="Helvetica" comment="Nombre de la fuente Helvetica (itálica)"/>
-
-  <font name="Helvetica" comment="Nombre de la fuente Helvetica (Negrita Itálica)"/>
-
-  <font name="OverrideTest" comment=" Nombre de la fuente de prueba de sobreescritura"/>
-
-  <font_size name="Monospace" comment="Tamaño de la fuente monospaced  (puntos, o 1/72 de una pulgada)"/>
-  <font_size name="Huge" comment="Tamaño de la fuente grande (puntos, o 1/72 de una pulgada)"/>
-  <font_size name="Large" comment="Tamaño de la fuente larga (puntos, o 1/72 de una pulgada)"/>
-  <font_size name="Medium" comment="Tamaño de la fuente media (puntos, o 1/72 de  una pulgada)"/>
-  <font_size name="Small" comment="Tamaño de la fuente pequeña (puntos, o 1/72 de una pulgada)"/>
+	<font name="default" comment="archivos de fuentes por defecto (Respaldos Globales)"/>
+	<font name="SansSerifBold" comment="Nombre de la fuente sans-serif (Negrita)"/>
+	<font name="SansSerif" comment="Nombre de la fuente san-serif (Nombre del archivo Truetype)"/>
+	<font name="SansSerif" comment="Nombre de la fuente bold sans-serif (Negrita)"/>
+	<font name="SansSerif" comment="Nombre de la fuente sans-serif (Itálica)"/>
+	<font name="SansSerif" comment="Nombre de la fuente sans-serif (Itálica Negrita)"/>
+	<font name="Monospace" comment="Nombre de la fuente monospace"/>
+	<font name="DejaVu" comment="Nombre de la fuente DejaVu"/>
+	<font name="DejaVu" comment="Nombre de la fuente DejaVu (Negrita)"/>
+	<font name="DejaVu" comment="Nombre de la fuente DejaVu (itálica)"/>
+	<font name="DejaVu" comment="Nombre de la fuente DejaVu (Itálica negrita)"/>
+	<font name="Helvetica" comment="Nombre de la fuente Helvetica"/>
+	<font name="Helvetica" comment="Nombre de la fuente Helvetica (Negrita)"/>
+	<font name="Helvetica" comment="Nombre de la fuente Helvetica (itálica)"/>
+	<font name="Helvetica" comment="Nombre de la fuente Helvetica (Itálica Negrita)"/>
+	<font name="OverrideTest" comment=" Nombre de la fuente de prueba de sobreescritura"/>
+	<font_size name="Monospace" comment="Tamaño de la fuente monospaced  (puntos, o 1/72 de una pulgada)"/>
+	<font_size name="Huge" comment="Tamaño de la fuente grande (puntos, o 1/72 de una pulgada)"/>
+	<font_size name="Large" comment="Tamaño de la fuente larga (puntos, o 1/72 de una pulgada)"/>
+	<font_size name="Medium" comment="Tamaño de la fuente media (puntos, o 1/72 de  una pulgada)"/>
+	<font_size name="Small" comment="Tamaño de la fuente pequeña (puntos, o 1/72 de una pulgada)"/>
 </fonts>
 

@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
  /** 
  * @file llvoiceclient.cpp
  * @brief Voice client delegation class implementation.
@@ -51,7 +53,7 @@ public:
 	// requests will be throttled from a non-trusted browser
 	LLVoiceHandler() : LLCommandHandler("voice", UNTRUSTED_THROTTLE) {}
 
-	bool handle(const LLSD& params, const LLSD& query_map, LLMediaCtrl* web)
+	bool handle(const LLSD& params, const LLSD& query_map, LLMediaCtrl* web) override
 	{
 		if (params[0].asString() == "effects")
 		{
@@ -111,8 +113,8 @@ std::string LLVoiceClientStatusObserver::status2string(LLVoiceClientStatusObserv
 
 LLVoiceClient::LLVoiceClient()
 	:
-	mVoiceModule(NULL),
-	m_servicePump(NULL),
+	mVoiceModule(nullptr),
+	m_servicePump(nullptr),
 	mVoiceEffectEnabled(LLCachedControl<bool>(gSavedSettings, "VoiceMorphingEnabled", true)),
 	mVoiceEffectDefault(LLCachedControl<std::string>(gSavedPerAccountSettings, "VoiceEffectDefault", "00000000-0000-0000-0000-000000000000")),
 	mPTTDirty(true),
@@ -153,18 +155,17 @@ void LLVoiceClient::userAuthorized(const std::string& user_id, const LLUUID &age
 	}
 	else
 	{
-		mVoiceModule = NULL;
+		mVoiceModule = nullptr;
 		return;
 	}
 	mVoiceModule->init(m_servicePump);
 	mVoiceModule->userAuthorized(user_id, agentID);
 }
 
-
 void LLVoiceClient::terminate()
 {
 	if (mVoiceModule) mVoiceModule->terminate();
-	mVoiceModule = NULL;
+	mVoiceModule = nullptr;
 }
 
 const LLVoiceVersionInfo LLVoiceClient::getVersion()
@@ -192,7 +193,10 @@ void LLVoiceClient::updateSettings()
 
 	updateMicMuteLogic();
 
-	if (mVoiceModule) mVoiceModule->updateSettings();
+	if (mVoiceModule)
+    {
+        mVoiceModule->updateSettings();
+    }
 }
 
 //--------------------------------------------------
@@ -305,7 +309,7 @@ const LLVoiceDeviceList& LLVoiceClient::getRenderDevices()
 //--------------------------------------------------
 // participants
 
-void LLVoiceClient::getParticipantList(std::set<LLUUID> &participants)
+void LLVoiceClient::getParticipantList(uuid_set_t &participants)
 {
 	if (mVoiceModule)
 	{
@@ -313,7 +317,7 @@ void LLVoiceClient::getParticipantList(std::set<LLUUID> &participants)
 	}
 	else
 	{
-		participants = std::set<LLUUID>();
+		participants = uuid_set_t();
 	}
 }
 
@@ -394,24 +398,36 @@ void LLVoiceClient::setNonSpatialChannel(
 	const std::string &uri,
 	const std::string &credentials)
 {
-	if (mVoiceModule) mVoiceModule->setNonSpatialChannel(uri, credentials);
+	if (mVoiceModule)
+    {
+        mVoiceModule->setNonSpatialChannel(uri, credentials);
+    }
 }
 
 void LLVoiceClient::setSpatialChannel(
 	const std::string &uri,
 	const std::string &credentials)
 {
-	if (mVoiceModule) mVoiceModule->setSpatialChannel(uri, credentials);
+	if (mVoiceModule)
+    {
+        mVoiceModule->setSpatialChannel(uri, credentials);
+    }
 }
 
 void LLVoiceClient::leaveNonSpatialChannel()
 {
-	if (mVoiceModule) mVoiceModule->leaveNonSpatialChannel();
+	if (mVoiceModule)
+    {
+        mVoiceModule->leaveNonSpatialChannel();
+	}
 }
 
 void LLVoiceClient::leaveChannel(void)
 {
-	if (mVoiceModule) mVoiceModule->leaveChannel();
+	if (mVoiceModule)
+    {
+        mVoiceModule->leaveChannel();
+	}
 }
 
 std::string LLVoiceClient::getCurrentChannel()
@@ -497,7 +513,10 @@ bool LLVoiceClient::voiceEnabled()
 
 void LLVoiceClient::setVoiceEnabled(bool enabled)
 {
-	if (mVoiceModule) mVoiceModule->setVoiceEnabled(enabled);
+	if (mVoiceModule)
+    {
+        mVoiceModule->setVoiceEnabled(enabled);
+	}
 }
 
 void LLVoiceClient::updateMicMuteLogic()
@@ -637,31 +656,32 @@ void LLVoiceClient::keyDown(KEY key, MASK mask)
 		return;
 	}
 
-	if(!mPTTIsMiddleMouse)
+	if(!mPTTIsMiddleMouse && mPTTKey != KEY_NONE)
 	{
-		bool down = (mPTTKey != KEY_NONE)
-		&& gKeyboard->getKeyDown(mPTTKey);
-		inputUserControlState(down);
+		bool down = gKeyboard->getKeyDown(mPTTKey);
+		if (down)
+		{
+			inputUserControlState(down);
+		}
 	}
 
 }
 void LLVoiceClient::keyUp(KEY key, MASK mask)
 {
-	if(!mPTTIsMiddleMouse)
+	if(!mPTTIsMiddleMouse && mPTTKey != KEY_NONE)
 	{
-		bool down = (mPTTKey != KEY_NONE)
-		&& gKeyboard->getKeyDown(mPTTKey);
-		inputUserControlState(down);
+		bool down = gKeyboard->getKeyDown(mPTTKey);
+		if (!down)
+		{
+			inputUserControlState(down);
+		}
 	}
 }
 void LLVoiceClient::middleMouseState(bool down)
 {
 	if(mPTTIsMiddleMouse)
 	{
-		if(mPTTIsMiddleMouse)
-		{
 			inputUserControlState(down);
-		}
 	}
 }
 
@@ -840,10 +860,11 @@ LLVoiceEffectInterface* LLVoiceClient::getVoiceEffectInterface() const
 class LLViewerRequiredVoiceVersion : public LLHTTPNode
 {
 	static BOOL sAlertedUser;
-	virtual void post(
+
+	void post(
 					  LLHTTPNode::ResponsePtr response,
 					  const LLSD& context,
-					  const LLSD& input) const
+					  const LLSD& input) const override
 	{
 		//You received this messsage (most likely on region cross or
 		//teleport)
@@ -870,10 +891,10 @@ class LLViewerRequiredVoiceVersion : public LLHTTPNode
 
 class LLViewerParcelVoiceInfo : public LLHTTPNode
 {
-	virtual void post(
+	void post(
 					  LLHTTPNode::ResponsePtr response,
 					  const LLSD& context,
-					  const LLSD& input) const
+					  const LLSD& input) const override
 	{
 		//the parcel you are in has changed something about its
 		//voice information

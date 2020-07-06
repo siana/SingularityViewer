@@ -113,7 +113,6 @@ protected:
 	PermissionMask		mNonImmediateFilterPermMask;
 	BOOL				mNoCopyLandmarkSelected;
 	F32					mContextConeOpacity;
-	LLSaveFolderState*	mSavedFolderState;
 };
 
 #endif  // LL_FLOATERLANDMARK_H

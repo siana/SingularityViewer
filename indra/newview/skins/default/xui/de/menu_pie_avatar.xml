@@ -11,11 +11,13 @@
 		<menu_item_call label="Karte geben" name="Give Card"/>
 		<menu_item_call label="Gruppeneinladung..." name="Invite..."/>
 		<pie_menu label="Werkzeuge" name="Tools">
+			<menu_item_call label="Neu laden" name="Reload Textures"/>
+			<menu_item_call label="Skelett resetten" name="Reset Skeleton"/>
+			<menu_item_call label="Skelett und Animationen resetten" name="Reset Skeleton And Animations"/>
 			<menu_item_call label="S. Count" name="ScriptCount"/>
 			<menu_item_call label="UUID kopieren" name="CopyUUID"/>
 			<menu_item_call label="Client ID" name="ClientID"/>
 			<menu_item_call label="Nicht anzeigen" name="Derender"/>
-      <menu_item_call label="Neu laden" name="Reload Textures"/>
 		</pie_menu>
 		<menu_item_call label="Hinauswerfen" name="Eject..."/>
 		

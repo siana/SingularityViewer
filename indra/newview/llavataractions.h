@@ -27,6 +27,8 @@
 #ifndef LL_LLAVATARACTIONS_H
 #define LL_LLAVATARACTIONS_H
 
+#include <boost/unordered_set.hpp>
+
 class LLAvatarName;
 class LLInventoryPanel;
 class LLFloater;
@@ -232,12 +234,17 @@ public:
 	 */
 	static void buildResidentsString(const uuid_vec_t& avatar_uuids, std::string& residents_string);
 
-	static std::set<LLUUID> getInventorySelectedUUIDs();
+	static uuid_set_t getInventorySelectedUUIDs();
 
 	/**
 	 * Copy the selected avatar's UUID to clipboard
 	 */
 	static void copyUUIDs(const uuid_vec_t& id);
+
+	/**
+	 * @return slurl string from agent ID
+	 */
+	static std::string getSLURL(const LLUUID& id);
 
 private:
 	static bool callbackAddFriendWithMessage(const LLSD& notification, const LLSD& response);

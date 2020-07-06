@@ -29,16 +29,15 @@ out vec4 frag_color;
 #define frag_color gl_FragColor
 #endif
 
-//#extension GL_ARB_texture_rectangle : enable
+
 
 uniform sampler2D glowMap;
-uniform sampler2DRect screenMap;
+uniform sampler2D screenMap;
 
 VARYING vec2 vary_texcoord0;
-VARYING vec2 vary_texcoord1;
 
 void main() 
 {
-	frag_color = texture2D(glowMap, vary_texcoord1.xy) +
-					texture2DRect(screenMap, vary_texcoord0.xy);
+	frag_color = texture2D(glowMap, vary_texcoord0.xy) +
+					texture2D(screenMap, vary_texcoord0.xy);
 }

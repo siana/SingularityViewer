@@ -43,9 +43,6 @@ sul tuo avatar. In alternativa, puoi crearne una nuova ed indossarla.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Forma del corpo:
-			</text>
 			<button label="Crea una nuova forma del corpo" label_selected="Crea una nuova forma del corpo" name="Create New" width="190"/>
 			<button left="95" width="72" label="Salva" label_selected="Salva" name="Save"/>
 			<button left="171" label="Salva come..." label_selected="Salva come..." name="Save As"/>
@@ -76,9 +73,6 @@ In alternativa, puoi crearne una nuova da zero ed indossarla.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Pelle:
 			</text>
 			<texture_picker width="96" label="Tatuaggi: testa" name="Head Tattoos" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<texture_picker width="96" label="Tatuaggi: superiori" name="Upper Tattoos" tool_tip="Clicca per scegliere un&apos;immagine"/>
@@ -115,9 +109,6 @@ In alternativa, puoi crearne di nuovi da zero ed indossarli.
 			<text name="no modify instructions">
 				Non hai il permesso per modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Capelli:
-			</text>
 			<texture_picker label="Texture" name="Texture" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<button label="Crea nuovi capelli" label_selected="Crea nuovi capelli" name="Create New"/>
 			<button left="95" width="72" label="Salva" label_selected="Salva" name="Save"/>
@@ -146,9 +137,6 @@ In alternativa, puoi crearne di nuovi da zero ed indossarli.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Occhi:
 			</text>
 			<texture_picker label="Iride" name="Iris" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<button label="Crea nuovi occhi" label_selected="Crea nuovi occhi" name="Create New"/>
@@ -187,9 +175,6 @@ In alternativa, puoi crearne una nuova da zero ed indossarla.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Camicia:
-			</text>
 		</panel>
 		<panel label="Pantaloni" name="Pants">
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
@@ -221,9 +206,6 @@ In alternativa, puoi crearne uno paio nuovo da zero ed indossarlo.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Pantaloni:
-			</text>
 		</panel>
 		<panel label="Scarpe" name="Shoes">
 			<text name="title">
@@ -247,9 +229,6 @@ In alternativa, puoi crearne uno paio nuovo da zero ed indossarlo.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Scarpe:
 			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere un colore"/>
@@ -282,9 +261,6 @@ In alternativa, puoi crearne uno paio nuovo da zero ed indossarlo.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Calze:
-			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere un colore"/>
 			<button label="Crea nuove calze" label_selected="Crea nuove calze" name="Create New" />
@@ -315,9 +291,6 @@ In alternativa, puoi crearne una nuova da zero ed indossarla.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Giacca:
 			</text>
 			<texture_picker width="96" label="Tessuto: superiore" name="Upper Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<texture_picker width="96" label="Tessuto: inferiore" name="Lower Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
@@ -351,9 +324,6 @@ In alternativa, puoi crearne un paio nuovo da zero ed indossarlo.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Guanti:
-			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere il colore"/>
 			<button label="Crea nuovi guanti" label_selected="Crea nuovi guanti" name="Create New"/>
@@ -384,9 +354,6 @@ In alternativa, puoi crearne una nuovo da zero ed indossarla.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Canottiera:
 			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere il colore"/>
@@ -419,9 +386,6 @@ In alternativa, puoi crearne una paio nuovo da zero ed indossarlo.
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
 			</text>
-			<text name="Item Action Label" right="89">
-				Mutande:
-			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere il colore"/>
 			<button label="Crea nuove mutande" label_selected="Crea nuove mutande" name="Create New"/>
@@ -452,9 +416,6 @@ In alternativa, puoi crearne una nuova da zero ed indossarla.
 			</text>
 			<text name="no modify instructions">
 				Non hai il permesso di modificare questo indumento.
-			</text>
-			<text name="Item Action Label" right="89">
-				Gonna:
 			</text>
 			<texture_picker label="Tessuto" name="Fabric" tool_tip="Clicca per scegliere un&apos;immagine"/>
 			<color_swatch label="Colore/Tinta" name="Color/Tint" tool_tip="Clicca per scegliere il colore"/>

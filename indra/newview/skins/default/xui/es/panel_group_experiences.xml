@@ -1,0 +1,4 @@
+<panel name="experiences_tab" label="Experiencias">
+	<string name="help_text">Las experiencias asociadas al grupo se listan	aquí en el caso de haber alguna.</string>
+	<text name="panel_header">Experiencias del grupo</text>
+</panel>

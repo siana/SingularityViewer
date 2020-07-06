@@ -35,10 +35,6 @@
 #include "llkeyframemotion.h"
 #include "llquantize.h"
 #include "llstl.h"
-#include "llapr.h"
-
-
-//using namespace std;
 
 #define INCHES_TO_METERS 0.02540005f
 
@@ -219,9 +215,8 @@ ELoadStatus LLBVHLoader::loadTranslationTable(const char *fileName)
 	//--------------------------------------------------------------------
 	std::string path = gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS,fileName);
 
-	LLAPRFile infile(path, LL_APR_R);
-	apr_file_t *fp = infile.getFileHandle();
-	if (!fp)
+	llifstream infstream(path);
+	if (!infstream.is_open())
 		return E_ST_NO_XLT_FILE;
 
 	LL_INFOS() << "NOTE: Loading translation table: " << fileName << LL_ENDL;
@@ -233,7 +228,7 @@ ELoadStatus LLBVHLoader::loadTranslationTable(const char *fileName)
 	//--------------------------------------------------------------------
 	// load header
 	//--------------------------------------------------------------------
-	if ( ! getLine(fp) )
+	if ( ! getLine(infstream) )
 		return E_ST_EOF;
 	if ( strncmp(mLine, "Translations 1.0", 16) )
 		return E_ST_NO_XLT_HEADER;
@@ -243,7 +238,7 @@ ELoadStatus LLBVHLoader::loadTranslationTable(const char *fileName)
 	//--------------------------------------------------------------------
 	BOOL loadingGlobals = FALSE;
 	Translation *trans = NULL;
-	while ( getLine(fp) )
+	while ( getLine(infstream) )
 	{
 		//----------------------------------------------------------------
 		// check the 1st token on the line to determine if it's empty or a comment
@@ -660,7 +655,7 @@ ELoadStatus LLBVHLoader::loadTranslationTable(const char *fileName)
 
 	}
 
-	infile.close() ;
+	infstream.close() ;
 	return E_ST_OK;
 }
 
@@ -1337,13 +1332,9 @@ void LLBVHLoader::reset()
 //------------------------------------------------------------------------
 // LLBVHLoader::getLine()
 //------------------------------------------------------------------------
-BOOL LLBVHLoader::getLine(apr_file_t* fp)
+BOOL LLBVHLoader::getLine(llifstream& stream)
 {
-	if (apr_file_eof(fp) == APR_EOF)
-	{
-		return FALSE;
-	}
-	if ( apr_file_gets(mLine, BVH_PARSER_LINE_SIZE, fp) == APR_SUCCESS)
+	if (stream.getline(mLine, BVH_PARSER_LINE_SIZE))
 	{
 		mLineNumber++;
 		return TRUE;

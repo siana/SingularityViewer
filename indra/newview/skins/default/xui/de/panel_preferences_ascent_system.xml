@@ -3,8 +3,10 @@
   <tab_container label="System" name="Ascent System">
 
     <panel label="Generell" name="User Interface">
-      <check_box label="Teleport mit Doppelklick erlauben" tool_tip="Doppelklick auf eine Person oder Ort teleportiert dich dorthin" name="double_click_teleport_check"/>
-	<check_box label="Kamera nach Teleport zurücksetzen" tool_tip="Platziert die Kamera nach einem Teleport in der Standardposition" name="center_after_teleport_check"/>
+      <text name="double_click_text" value="Doppelklick"/>
+      <check_box label="Teleport" tool_tip="Doppelklick auf eine Person oder Ort teleportiert dich dorthin" name="double_click_teleport_check"/>
+      <check_box label="Autopilot" tool_tip="Doppelklick auf etwas lässt den Avatar dorthin laufen." name="double_click_autopilot_check"/>
+      <check_box label="Kamera nach Teleport zurücksetzen" tool_tip="Platziert die Kamera nach einem Teleport in der Standardposition" name="center_after_teleport_check"/>
       <check_box label="TP Ziel um halbe Avatargrösse erhöhen" tool_tip="Versucht den TP so zu platzieren dass der Avatar genau am Zielpunkt ankommt" name="offset_teleport_check"/>
       <check_box name="clear_beacon_after_tp" label="Lösche roten Ankunftsmarker nach Teleport"/>
       <check_box name="fly_after_tp" label="Nach Teleport immer fliegen" tool_tip="Vermeide Fallen aus großer Höhe durch automatisches Fliegen nach Teleport"/>
@@ -25,7 +27,7 @@
       <spinner label="Draw Distance stepping Interval:" name="speed_rez_interval"/>
       <text name="speed_rez_seconds">Sekunden</text>
       <check_box name="use_web_profiles" label="Benutze Web-Profile anstelle der alten V1 Profile" tool_tip="Kann auf bestimmten Grids nicht verfügbar sein"/>
-      <check_box name="use_web_search" label="Use web-based search instead of legacy v1 search" tool_tip="Kann auf bestimmten Grids nicht verfügbar sein"/>
+      <check_box name="use_web_search" label="Benutze Webbasierte Suche anstatt alter V1 Suche" tool_tip="Kann auf bestimmten Grids nicht verfügbar sein"/>
     </panel>
 
     <panel label="Kommandozeile" name="Command Line">
@@ -62,7 +64,7 @@
       <check_box label="Selbe Position auf neuer Region" name="map_to_keep_pos"/>
       <text name="cmd_line_text_13">Teleport zu Avatar (Befehl: cmd name)</text>
       <line_editor tool_tip="Die Syntax dieses Befehls erlaubt partielle Avatarnamen und unterscheidet nicht zwischen Groß- und Kleinschreibung." name="AscentCmdLineTP2"/>
-      <text name="cmd_line_text_14">Setzt gefälschten Abwesend-Status (Benutzung: cmd)</text>
+      <text name="cmd_line_text_14">Setzt vorgetäuschten Abwesend-Status (Benutzung: cmd)</text>
       
     </panel>
 

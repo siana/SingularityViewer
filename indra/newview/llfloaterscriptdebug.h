@@ -35,6 +35,7 @@
 
 #include "llmultifloater.h"
 
+class LLChat;
 class LLTextEditor;
 class LLUUID;
 
@@ -45,7 +46,7 @@ public:
 	virtual void onClose(bool app_quitting) { setVisible(FALSE); }
 	virtual BOOL postBuild();
     static void show(const LLUUID& object_id);
-	static void addScriptLine(const std::string &utf8mesg, const std::string &user_name, const LLColor4& color, const LLUUID& source_id);
+	static void addScriptLine(LLChat& chat, const LLColor4& color);
 
 protected:
 	LLFloaterScriptDebug();
@@ -67,7 +68,7 @@ public:
 						S32 min_width, S32 min_height, BOOL drag_on_left,
 						BOOL minimizable, BOOL close_btn);
 
-	void addLine(const std::string &utf8mesg, const std::string &user_name, const LLColor4& color);
+	void addLine(const LLChat& chat, std::string message, const LLColor4& color);
 
 	static LLFloaterScriptDebugOutput* show(const LLUUID& object_id);
 	static LLFloaterScriptDebugOutput* getFloaterByID(const LLUUID& id);

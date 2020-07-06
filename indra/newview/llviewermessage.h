@@ -70,6 +70,11 @@ enum InventoryOfferResponse
 BOOL can_afford_transaction(S32 cost);
 void give_money(const LLUUID& uuid, LLViewerRegion* region, S32 amount, BOOL is_group = FALSE,
 				S32 trx_type = TRANS_GIFT, const std::string& desc = LLStringUtil::null);
+void send_join_group_response(const LLUUID& group_id,
+							  const LLUUID& transaction_id,
+							  bool accept_invite,
+							  S32 fee,
+							  bool use_offline_cap);
 
 void process_logout_reply(LLMessageSystem* msg, void**);
 void process_layer_data(LLMessageSystem *mesgsys, void **user_data);
@@ -102,6 +107,7 @@ void process_health_message(LLMessageSystem *mesgsys, void **user_data);
 void process_sim_stats(LLMessageSystem *mesgsys, void **user_data);
 void process_shooter_agent_hit(LLMessageSystem* msg, void** user_data);
 void process_avatar_animation(LLMessageSystem *mesgsys, void **user_data);
+void process_object_animation(LLMessageSystem *mesgsys, void **user_data);
 void process_avatar_appearance(LLMessageSystem *mesgsys, void **user_data);
 void process_camera_constraint(LLMessageSystem *mesgsys, void **user_data);
 void process_avatar_sit_response(LLMessageSystem *mesgsys, void **user_data);
@@ -203,7 +209,6 @@ void process_decline_callingcard(LLMessageSystem* msg, void**);
 
 // Message system exception prototypes
 void invalid_message_callback(LLMessageSystem*, void*, EMessageException);
-
 
 void process_initiate_download(LLMessageSystem* msg, void**);
 void start_new_inventory_observer();

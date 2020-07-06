@@ -33,12 +33,7 @@
 #include "lltimer.h"
 //#include "llmemory.h"
 
-const char* fallbackEngineInfoLLImageJ2CImpl()
-{
-	static std::string version_string = std::string("OpenJPEG: ") + opj_version();
-	return version_string.c_str();
-}
-
+// Factory function: see declaration in llimagej2c.cpp
 LLImageJ2CImpl* fallbackCreateLLImageJ2CImpl()
 {
 	return new LLImageJ2COJ();
@@ -48,6 +43,13 @@ void fallbackDestroyLLImageJ2CImpl(LLImageJ2CImpl* impl)
 {
 	delete impl;
 	impl = NULL;
+}
+
+const char* fallbackEngineInfoLLImageJ2CImpl()
+{
+	static std::string version_string = std::string("OpenJPEG: ")
+		+ opj_version();
+	return version_string.c_str();
 }
 
 // Return string from message, eliminating final \n if present
@@ -108,22 +110,57 @@ LLImageJ2COJ::~LLImageJ2COJ()
 
 BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decode_time, S32 first_channel, S32 max_channel_count)
 {
-	//
-	// FIXME: Get the comment field out of the texture
-	//
-
 	LLTimer decode_timer;
 
+	/* Extract metadata */
+	/* ---------------- */
+	U8* c_data = base.getData();
+	size_t c_size =  base.getDataSize();
+	size_t position = 0;
+	
+	while (position < 1024 && position < (c_size - 7)) // the comment field should be in the first 1024 bytes.
+	{
+		if (c_data[position] == 0xff && c_data[position + 1] == 0x64)
+		{
+			U8 high_byte = c_data[position + 2];
+			U8 low_byte = c_data[position + 3];
+			S32 c_length = (high_byte * 256) + low_byte; // This size also counts the markers, 00 01 and itself
+			if (c_length > 200) // sanity check
+			{
+				// While comments can be very long, anything longer then 200 is suspect.
+				break;
+			}
+			
+			if (position + 2 + c_length > c_size)
+			{
+				// comment extends past end of data, corruption, or all data not retrived yet.
+				break;
+			}
+			
+			// if the comment block does not end at the end of data, check to see if the next
+			// block starts with 0xFF
+			if (position + 2 + c_length < c_size && c_data[position + 2 + c_length] != 0xff)
+			{
+				// invalied comment block
+				break;
+			}
+			
+			// extract the comment minus the markers, 00 01
+			raw_image.mComment.assign((char*)c_data + position + 6, c_length - 4);
+			break;
+		}
+		++position;
+	}
+	
 	opj_dparameters_t parameters;	/* decompression parameters */
-	opj_event_mgr_t event_mgr;		/* event manager */
-	opj_image_t *image = NULL;
+	opj_event_mgr_t event_mgr = { };		/* event manager */
+	opj_image_t *image = nullptr;
 
-	opj_dinfo_t* dinfo = NULL;	/* handle to a decompressor */
-	opj_cio_t *cio = NULL;
+	opj_dinfo_t* dinfo = nullptr;	/* handle to a decompressor */
+	opj_cio_t *cio = nullptr;
 
 
 	/* configure the event callbacks (not required) */
-	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
 	event_mgr.error_handler = error_callback;
 	event_mgr.warning_handler = warning_callback;
 	event_mgr.info_handler = info_callback;
@@ -168,19 +205,7 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 	opj_setup_decoder(dinfo, &parameters);
 
 	/* open a byte stream */
-#if 0
-	std::vector<U8> data(base.getData(), base.getData()+base.getDataSize());
-	S32 size = data.size();
-	if (data[size-1] == 0xFF) {
-		data.push_back((U8)0xD9);
-	} else if (data[size-2] != 0xFF || data[size-1] != 0xD9) {
-		data.push_back((U8)0xFF);
-		data.push_back((U8)0xD9);
-	}
-	cio = opj_cio_open((opj_common_ptr)dinfo, &data[0], data.size());
-#else
 	cio = opj_cio_open((opj_common_ptr)dinfo, base.getData(), base.getDataSize());
-#endif
 
 	/* decode the stream and fill the image structure */
 	image = opj_decode(dinfo, cio);
@@ -199,20 +224,11 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 	// dereference the array.
 	if(!image || !image->numcomps)
 	{
-		LL_WARNS("Texture") << "ERROR -> decodeImpl: failed to decode image!" << LL_ENDL;
+		LL_DEBUGS("Texture") << "ERROR -> decodeImpl: failed to decode image!" << LL_ENDL;
 		if (image)
 		{
 			opj_image_destroy(image);
 		}
-#if 0
-		std::stringstream filename;
-		filename << "err" << (int)base.getRawDiscardLevel() << "_" << rand() << ".jp2";
-		FILE* file = fopen(filename.str().c_str(), "wb");
-		if (file) {
-			fwrite(base.getData(), base.getDataSize(), 1, file);
-			fclose(file);
-		}
-#endif
 		base.decodeFailed();
 		return TRUE; // done
 	}
@@ -222,7 +238,6 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 	{
 		if (image->comps[i].factor != base.getRawDiscardLevel())
 		{
-			LL_WARNS("Texture") <<  "Expected discard level not reached!" << LL_ENDL;			
 			// if we didn't get the discard level we're expecting, fail
 			opj_image_destroy(image);
 			base.decodeFailed();
@@ -262,6 +277,13 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 	S32 height = ceildivpow2(image->y1 - image->y0, f);
 	raw_image.resize(width, height, channels);
 	U8 *rawp = raw_image.getData();
+	if (!rawp)
+	{
+		opj_image_destroy(image);
+		base.setLastError("Memory error");
+		base.decodeFailed();
+		return true; // done
+	}
 
 	// first_channel is what channel to start copying from
 	// dest is what channel to copy to.  first_channel comes from the
@@ -283,9 +305,11 @@ BOOL LLImageJ2COJ::decodeImpl(LLImageJ2C &base, LLImageRaw &raw_image, F32 decod
 		}
 		else // Some rare OpenJPEG versions have this bug.
 		{
-			LL_WARNS("Texture") << "ERROR -> decodeImpl: failed to decode image! (NULL comp data - OpenJPEG bug)" << LL_ENDL;
-			opj_image_destroy(image);
-			
+			LL_DEBUGS("Texture") << "ERROR -> decodeImpl: failed to decode image! (NULL comp data - OpenJPEG bug)" << LL_ENDL;
+			if (image)
+			{
+				opj_image_destroy(image);
+			}
 			base.decodeFailed();
 			return TRUE; // done
 		}
@@ -302,14 +326,13 @@ BOOL LLImageJ2COJ::encodeImpl(LLImageJ2C &base, const LLImageRaw &raw_image, con
 {
 	const S32 MAX_COMPS = 5;
 	opj_cparameters_t parameters;	/* compression parameters */
-	opj_event_mgr_t event_mgr;		/* event manager */
+	opj_event_mgr_t event_mgr = { };		/* event manager */
 
 
 	/* 
 	configure the event callbacks (not required)
 	setting of each callback is optional 
 	*/
-	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
 	event_mgr.error_handler = error_callback;
 	event_mgr.warning_handler = warning_callback;
 	event_mgr.info_handler = info_callback;
@@ -354,7 +377,7 @@ BOOL LLImageJ2COJ::encodeImpl(LLImageJ2C &base, const LLImageRaw &raw_image, con
 	//
 	OPJ_COLOR_SPACE color_space = CLRSPC_SRGB;
 	opj_image_cmptparm_t cmptparm[MAX_COMPS];
-	opj_image_t * image = NULL;
+	opj_image_t * image = nullptr;
 	S32 numcomps = llmin((S32)raw_image.getComponents(), MAX_COMPS);
 	S32 width = raw_image.getWidth();
 	S32 height = raw_image.getHeight();
@@ -398,7 +421,7 @@ BOOL LLImageJ2COJ::encodeImpl(LLImageJ2C &base, const LLImageRaw &raw_image, con
 	/* ---------------------------- */
 
 	int codestream_length;
-	opj_cio_t *cio = NULL;
+	opj_cio_t *cio = nullptr;
 
 	/* get a J2K compressor handle */
 	opj_cinfo_t* cinfo = opj_create_compress(CODEC_J2K);
@@ -411,14 +434,14 @@ BOOL LLImageJ2COJ::encodeImpl(LLImageJ2C &base, const LLImageRaw &raw_image, con
 
 	/* open a byte stream for writing */
 	/* allocate memory for all tiles */
-	cio = opj_cio_open((opj_common_ptr)cinfo, NULL, 0);
+	cio = opj_cio_open((opj_common_ptr)cinfo, nullptr, 0);
 
 	/* encode the image */
-	bool bSuccess = opj_encode(cinfo, cio, image, NULL);
+	bool bSuccess = opj_encode(cinfo, cio, image, nullptr);
 	if (!bSuccess)
 	{
 		opj_cio_close(cio);
-		LL_WARNS("Texture") << "Failed to encode image." << LL_ENDL;
+		LL_DEBUGS("Texture") << "Failed to encode image." << LL_ENDL;
 		return FALSE;
 	}
 	codestream_length = cio_tell(cio);
@@ -520,15 +543,14 @@ BOOL LLImageJ2COJ::getMetadata(LLImageJ2C &base)
 	// Do it the old and slow way, decode the image with openjpeg
 
 	opj_dparameters_t parameters;	/* decompression parameters */
-	opj_event_mgr_t event_mgr;		/* event manager */
-	opj_image_t *image = NULL;
+	opj_event_mgr_t event_mgr = { };		/* event manager */
+	opj_image_t *image = nullptr;
 
-	opj_dinfo_t* dinfo = NULL;	/* handle to a decompressor */
-	opj_cio_t *cio = NULL;
+	opj_dinfo_t* dinfo = nullptr;	/* handle to a decompressor */
+	opj_cio_t *cio = nullptr;
 
 
 	/* configure the event callbacks (not required) */
-	memset(&event_mgr, 0, sizeof(opj_event_mgr_t));
 	event_mgr.error_handler = error_callback;
 	event_mgr.warning_handler = warning_callback;
 	event_mgr.info_handler = info_callback;

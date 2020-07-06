@@ -30,35 +30,35 @@ float calcPointLightOrSpotLight(vec3 v, vec3 n, vec4 lp, vec3 ln, float la, floa
 vec3 atmosAmbient(vec3 light);
 vec3 atmosAffectDirectionalLight(float lightIntensity);
 vec3 scaleDownLight(vec3 light);
-vec3 scaleUpLight(vec3 light);
+
 
 uniform vec4 light_position[8];
 uniform vec3 light_direction[8];
-uniform vec3 light_attenuation[8]; 
+uniform vec3 light_attenuation[8];
 uniform vec3 light_diffuse[8];
 
 vec4 sumLights(vec3 pos, vec3 norm, vec4 color, vec4 baseLight)
 {
 	vec4 col = vec4(0.0, 0.0, 0.0, color.a);
-	
+
 	// Collect normal lights (need to be divided by two, as we later multiply by 2)
-	
+
 	// Collect normal lights
+	col.rgb += light_diffuse[1].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[1], light_direction[1], light_attenuation[1].x, light_attenuation[1].z);
 	col.rgb += light_diffuse[2].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[2], light_direction[2], light_attenuation[2].x, light_attenuation[2].z);
 	col.rgb += light_diffuse[3].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[3], light_direction[3], light_attenuation[3].x, light_attenuation[3].z);
 	col.rgb += light_diffuse[4].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[4], light_direction[4], light_attenuation[4].x, light_attenuation[4].z);
 	col.rgb += light_diffuse[5].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[5], light_direction[5], light_attenuation[5].x, light_attenuation[5].z);
 	col.rgb += light_diffuse[6].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[6], light_direction[6], light_attenuation[6].x, light_attenuation[6].z);
 	col.rgb += light_diffuse[7].rgb*calcPointLightOrSpotLight(pos.xyz, norm, light_position[7], light_direction[7], light_attenuation[7].x, light_attenuation[7].z);
-	col.rgb += light_diffuse[1].rgb*calcDirectionalLight(norm, light_position[1].xyz);
 	col.rgb = scaleDownLight(col.rgb);
 
 	// Add windlight lights
-	col.rgb += atmosAffectDirectionalLight(calcDirectionalLight(norm, light_position[0].xyz));
 	col.rgb += atmosAmbient(baseLight.rgb);
+	col.rgb += atmosAffectDirectionalLight(calcDirectionalLight(norm, light_position[0].xyz));
 
 	col.rgb = min(col.rgb*color.rgb, 1.0);
-	
-	return col;	
+
+	return col;
 }
 

@@ -31,16 +31,7 @@
 #include "lldictionary.h"
 #include "llinventorytype.h"
 #include "llsingleton.h"
-
-class LLTranslationBridge
-{
-public:
-	// clang needs this to be happy
-	virtual ~LLTranslationBridge() {}
-
-	virtual std::string getString(const std::string &xml_desc) = 0;
-};
-
+#include "llinvtranslationbrdg.h"
 
 class LLWearableType
 {
@@ -63,16 +54,18 @@ public:
 		WT_ALPHA	  = 13,
 		WT_TATTOO	  = 14,
 		WT_PHYSICS	  = 15,
-		WT_UNKNOWN	  = 16,	// Singu note: used for corrupt wearables that do not have their type set in the inventory database.
+		WT_UNIVERSAL  = 16,
+		WT_UNKNOWN	  = 17,	// Singu note: used for corrupt wearables that do not have their type set in the inventory database.
 							// While all the above values are serialized and stored in the database, this value is local only:
-							// When a new item with value 16 is added by upstream, just increase this value to 17 (and WT_COUNT to 18).
-		WT_COUNT	  = 17,
+							// When a new item with value 17 is added by upstream, just increase this value to 18 (and WT_COUNT to 19).
+							// Keep WT_UNKNOWN and WT_COUNT in sync with llinventory.cpp
+		WT_COUNT	  = 18,
 
 		WT_INVALID	  = 255,
 		WT_NONE		  = -1,
 	};
 
-	static void			initClass(LLTranslationBridge* trans); // initializes static members
+	static void			initClass(LLTranslationBridge::ptr_t &trans); // initializes static members
 	static void			cleanupClass(); // initializes static members
 
 	static const std::string& 			getTypeName(EType type);

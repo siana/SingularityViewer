@@ -41,11 +41,11 @@ private:
 	ALFloaterRegionTracker(const LLSD& key);
 	virtual ~ALFloaterRegionTracker();
 public:
-	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void onOpen(/*const LLSD& key*/);
-	/*virtual*/ void onClose(bool app_quitting);
-	/*virtual*/ void refresh();
-	/*virtual*/ BOOL tick();
+	BOOL postBuild() override;
+	void onOpen(/*const LLSD& key*/) override;
+	void onClose(bool app_quitting) override;
+	void refresh() override;
+	BOOL tick() override;
 	using LLFloaterSingleton<ALFloaterRegionTracker>::getInstance;
 
 private:
@@ -62,8 +62,8 @@ public:
 
 private:
 	LLSD mRegionMap;
-	LLButton* mRefreshRegionListBtn;
-	LLButton* mRemoveRegionBtn;
-	LLButton* mOpenMapBtn;
-	LLScrollListCtrl* mRegionScrollList;
+	LLButton* mRefreshRegionListBtn = nullptr;
+	LLButton* mRemoveRegionBtn = nullptr;
+	LLButton* mOpenMapBtn = nullptr;
+	LLScrollListCtrl* mRegionScrollList = nullptr;
 };

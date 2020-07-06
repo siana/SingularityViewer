@@ -32,10 +32,6 @@
 #include "llevents.h"
 #include "stdtypes.h"
 #include "lltimer.h"
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
 
 /**
  * Generic base class
@@ -52,6 +48,9 @@ public:
 
     /// Post an event to all listeners
     virtual bool post(const LLSD& event) = 0;
+
+private:
+    LLTempBoundListener mSource;
 };
 
 /**
@@ -89,7 +88,7 @@ public:
     LLEventTimeoutBase(LLEventPump& source);
 
     /// Callable, can be constructed with boost::bind()
-    typedef boost::function<void()> Action;
+    typedef std::function<void()> Action;
 
     /**
      * Start countdown timer for the specified number of @a seconds. Forward

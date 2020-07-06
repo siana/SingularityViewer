@@ -1,4 +1,6 @@
 # -*- cmake -*-
+
+include(Variables)
 include(Prebuilt)
 
 if (NOT (STANDALONE OR DARWIN))
@@ -8,3 +10,5 @@ if (NOT (STANDALONE OR DARWIN))
     ${LIBS_PREBUILT_LEGACY_DIR}/include
     )
 endif (NOT (STANDALONE OR DARWIN))
+
+include(FindOpenGL)

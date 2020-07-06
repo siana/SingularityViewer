@@ -52,6 +52,7 @@
 				&quot;http://secondlife.com/app/search/index.php?&quot;
 			</string>
 		</panel>
+		<panel label="Tutto" name="web_panel"/>
 		<panel label="Inserzioni" name="classified_panel">
 			<string name="searching_text">
 				Ricerca in corso...

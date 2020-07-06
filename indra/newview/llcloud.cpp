@@ -515,6 +515,10 @@ void LLCloudLayer::connectNeighbor(LLCloudLayer *cloudp, U32 direction)
 		return;
 	}
 
+	if (mNeighbors[direction])
+	{
+		mNeighbors[direction]->mNeighbors[gDirOpposite[direction]] = NULL;
+	}
 	mNeighbors[direction] = cloudp;
 	if (cloudp)
 		mNeighbors[direction]->mNeighbors[gDirOpposite[direction]] = this;

@@ -179,7 +179,6 @@ void LLPrefsChatImpl::apply()
 	gSavedSettings.setColor4("BackgroundChatColor", childGetValue("background"));
 
 	gSavedSettings.setColor4("HTMLLinkColor", childGetValue("links"));
-	LLTextEditor::setLinkColor(childGetValue("links"));
 
 	gSavedSettings.setBOOL("ArrowKeysMoveAvatar", childGetValue("arrow_keys_move_avatar_check"));
 	gSavedSettings.setBOOL("ChatShowTimestamps", childGetValue("show_timestamps_check"));

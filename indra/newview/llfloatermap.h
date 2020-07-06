@@ -58,6 +58,8 @@ public:
 // [/RLVa:KB]
 
 private:
+	friend class OverlayToggle;
+	friend class LLScaleMap;
 	LLFloaterMap(const LLSD& key = LLSD());
 	LLNetMap*		mPanelMap;
 };

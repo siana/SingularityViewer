@@ -46,17 +46,17 @@ class LLLineEditor;
 class LLButton;
 class LLImageJPEG;
 
-class LLFloaterPostcard 
+class LLFloaterPostcard final
 : public LLFloater
 {
 public:
 	LLFloaterPostcard(LLImageJPEG* jpeg, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global, int index);
-	/*virtual*/ ~LLFloaterPostcard();
+	/*virtual*/ ~LLFloaterPostcard() override;
 
-	/*virtual*/ void init();
-	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void draw();
-	/*virtual*/ void onClose(bool app_quitting);
+	void init();
+	/*virtual*/ BOOL postBuild() override;
+	/*virtual*/ void draw() override;
+	/*virtual*/ void onClose(bool app_quitting) override;
 
 	static LLFloaterPostcard* showFromSnapshot(LLImageJPEG *jpeg, LLViewerTexture *img, const LLVector2& img_scale, const LLVector3d& pos_taken_global, int index);
 

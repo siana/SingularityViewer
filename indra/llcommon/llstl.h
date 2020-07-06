@@ -37,7 +37,11 @@
 #include <algorithm>
 #include <utility>
 #include <vector>
+#include <list>
+#include <set>
+#include <map>
 #include <typeinfo>
+#include "stdtypes.h"
 
 // Use to compare the first element only of a pair
 // e.g. typedef std::set<std::pair<int, Data*>, compare_pair<int, Data*> > some_pair_set_t; 
@@ -221,14 +225,7 @@ template <typename T>
 //Singu note: This has been generalized to support a broader range of map-esque containers
 inline bool is_in_map(const T& inmap, typename T::key_type const& key)
 {
-	if(inmap.find(key) == inmap.end())
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+	return inmap.find(key) != inmap.end();
 }
 
 // Similar to get_ptr_in_map, but for any type with a valid T(0) constructor.
@@ -267,6 +264,24 @@ inline typename T::mapped_type get_ptr_in_map(const T& inmap, typename T::key_ty
 {
 	return get_if_there(inmap,key,NULL);
 };
+
+template <typename T, typename P>
+inline typename T::iterator get_in_vec(T& invec, P pred)
+{
+	return std::find_if(invec.begin(), invec.end(), pred);
+}
+
+template <typename T, typename K>
+inline typename T::value_type::second_type& get_val_in_pair_vec(T& invec, K key)
+{
+	auto it = get_in_vec(invec, [&key](typename T::value_type& e) { return e.first == key; });
+	if (it == invec.end())
+	{
+		invec.emplace_back(key, typename T::value_type::second_type());
+		return invec.back().second;
+	}
+	return it->second;
+}
 
 // Useful for replacing the removeObj() functionality of LLDynamicArray
 // Example:
@@ -321,24 +336,11 @@ inline bool vector_replace_with_last(T& invec, typename T::value_type const& val
 
 // Append N elements to the vector and return a pointer to the first new element.
 template <typename T>
-inline T* vector_append(std::vector<T>& invec, S32 N)
+inline T* vector_append(std::vector<T>& invec, size_t N)
 {
-	U32 sz = invec.size();
+	size_t sz = invec.size();
 	invec.resize(sz+N);
 	return &(invec[sz]);
-}
-
-template <typename T>
-inline void vector_shrink_to_fit(std::vector<T>& invec)
-{
-	//For Windows: We always assume vs2010 or later, which support this c++11 feature with no configuration needed.
-	//For GCC: __cplusplus >= 201103L indicates C++11 support. __GXX_EXPERIMENTAL_CXX0X being set indicates experimental c++0x support. C++11 support replaces C++0x support.
-	//		   std::vector::shrink_to_fit was added to GCCs C++0x implementation in version 4.5.0.
-#if defined(LL_WINDOWS) || __cplusplus >= 201103L || (defined(__GXX_EXPERIMENTAL_CXX0X) && __GNUC_MINOR__ >= 5)
-	invec.shrink_to_fit();
-#else
-	std::vector<T>(invec).swap(invec);
-#endif
 }
 
 // call function f to n members starting at first. similar to std::for_each
@@ -535,18 +537,8 @@ llbind2nd(const _Operation& __oper, const _Tp& __x)
 inline
 bool before(const std::type_info* lhs, const std::type_info* rhs)
 {
-#if LL_LINUX && defined(__GNUC__) && ((__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 4))
-	// If we're building on Linux with gcc, and it's either gcc 3.x or
-	// 4.{0,1,2,3}, then we have to use a workaround. Note that we use gcc on
-	// Mac too, and some people build with gcc on Windows (cygwin or mingw).
-	// On Linux, different load modules may produce different type_info*
-	// pointers for the same type. Have to compare name strings to get good
-	// results.
-	return strcmp(lhs->name(), rhs->name()) < 0;
-#else  // not Linux, or gcc 4.4+
-	// Just use before(), as we normally would
-	return lhs->before(*rhs);
-#endif
+    // Just use before(), as we normally would
+    return lhs->before(*rhs) ? true : false;
 }
 
 /**

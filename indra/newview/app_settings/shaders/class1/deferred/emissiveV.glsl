@@ -46,16 +46,11 @@ VARYING vec2 vary_texcoord0;
 
 void main()
 {
-	//transform vertex
-	vec4 vert = vec4(position.xyz, 1.0);
-	vec4 pos = (modelview_matrix * vert);
 	passTextureIndex();
 
 	gl_Position = modelview_projection_matrix*vec4(position.xyz, 1.0);
 	
 	vary_texcoord0 = (texture_matrix0 * vec4(texcoord0,0,1)).xy;
-	
-	calcAtmospherics(pos.xyz);
 	
 	vertex_color = emissive;
 

@@ -63,7 +63,7 @@ public:
 
 	void apply();
 	void cancel();
-	void setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email);
+	void setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified);
 	void enableHistory();
 
 	static void onClickLogPath(void* user_data);
@@ -193,13 +193,6 @@ void LLPrefsIMImpl::apply()
 		if((new_im_via_email != mOriginalIMViaEmail)
 		   ||(new_hide_online != mOriginalHideOnlineStatus))
 		{
-			LLMessageSystem* msg = gMessageSystem;
-			msg->newMessageFast(_PREHASH_UpdateUserInfo);
-			msg->nextBlockFast(_PREHASH_AgentData);
-			msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-			msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-			msg->nextBlockFast(_PREHASH_UserData);
-			msg->addBOOLFast(_PREHASH_IMViaEMail, new_im_via_email);
 			// This hack is because we are representing several different 	 
 			// possible strings with a single checkbox. Since most users 	 
 			// can only select between 2 values, we represent it as a 	 
@@ -212,8 +205,7 @@ void LLPrefsIMImpl::apply()
 				//Update showonline value, otherwise multiple applys won't work
 				mOriginalHideOnlineStatus = new_hide_online;
 			} 	 
-			msg->addString("DirectoryVisibility", mDirectoryVisibility);
-			gAgent.sendReliableMessage();
+			gAgent.sendAgentUpdateUserInfo(new_im_via_email, mDirectoryVisibility);
 		}
 	}
 	else
@@ -227,7 +219,7 @@ void LLPrefsIMImpl::apply()
 	}
 }
 
-void LLPrefsIMImpl::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email)
+void LLPrefsIMImpl::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified)
 {
 	mGotPersonalInfo = true;
 	mOriginalIMViaEmail = im_via_email;
@@ -254,8 +246,13 @@ void LLPrefsIMImpl::setPersonalInfo(const std::string& visibility, bool im_via_e
 
 	childSetValue("online_visibility", mOriginalHideOnlineStatus); 	 
 	childSetLabelArg("online_visibility", "[DIR_VIS]", mDirectoryVisibility);
-	childEnable("send_im_to_email");
-	childSetValue("send_im_to_email", im_via_email);
+	if (auto child = getChildView("send_im_to_email"))
+	{
+		child->setValue(im_via_email);
+		child->setEnabled(is_verified);
+		if (!is_verified)
+			child->setToolTip(getString("email_unverified_tooltip"));
+	}
 	childEnable("log_instant_messages");
 	childEnable("log_chat");
 	childEnable("log_instant_messages_timestamp");
@@ -332,9 +329,9 @@ void LLPrefsIM::cancel()
 	impl.cancel();
 }
 
-void LLPrefsIM::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email)
+void LLPrefsIM::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified)
 {
-	impl.setPersonalInfo(visibility, im_via_email, email);
+	impl.setPersonalInfo(visibility, im_via_email, email, is_verified);
 }
 
 LLPanel* LLPrefsIM::getPanel()

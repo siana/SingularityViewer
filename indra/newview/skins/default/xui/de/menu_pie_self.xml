@@ -24,15 +24,18 @@
 		<pie_menu label="HUD" name="Object Detach HUD"/>
 		
 		<pie_menu label="Abnehmen" name="Object Detach"/>
+		<pie_menu label="Mehr abnehmen" name="Object Detach More"/>
 		
 		<menu_item_call label="Alles abnehmen" name="Detach All"/>
 	</pie_menu>
   <pie_menu label="Werkzeuge" name="Tools">
       <menu_item_call label="Neu laden" name="Reload Textures"/>
-	  <menu_item_call label="Animationen" name="Anims..."/>
+      <menu_item_call label="Skelett reset"name="Reset Skeleton"/>
+      <menu_item_call label="Anim. reset" name="Reset Skeleton And Animations"/>
+	  <menu_item_call label="Animationen..." name="Anims..."/>
 	  <menu_item_call label="S. Count" name="ScriptCount"/>
 	  <menu_item_call label="Skript-Info" name="Script Info"/>
-    <menu_item_call label="Debug" name="Debug Layers"/>
+    <!--menu_item_call label="Debug" name="Debug Layers"/-->
     <menu_item_call label="UUID kopieren" name="CopyUUID"/>
     <menu_item_call label="Save OBJ..." name="Save OBJ..."/>
   </pie_menu>

@@ -149,6 +149,8 @@ class LLVector3
 		static BOOL parseVector3(const std::string& buf, LLVector3* value);
 };
 
+static_assert(std::is_trivially_copyable<LLVector3>::value, "LLVector3 must be a trivially copyable type");
+
 typedef LLVector3 LLSimLocalVec;
 
 // Non-member functions 
@@ -163,6 +165,8 @@ LLVector3 inverse_projected_vec(const LLVector3 &a, const LLVector3 &b); // Retu
 LLVector3 parallel_component(const LLVector3 &a, const LLVector3 &b); // Returns vector a projected on vector b (same as projected_vec)
 LLVector3 orthogonal_component(const LLVector3 &a, const LLVector3 &b); // Returns component of vector a not parallel to vector b (same as projected_vec)
 LLVector3 lerp(const LLVector3 &a, const LLVector3 &b, F32 u); // Returns a vector that is a linear interpolation between a and b
+LLVector3 point_to_box_offset(LLVector3& pos, const LLVector3* box); // Displacement from query point to nearest point on bounding box.
+bool box_valid_and_non_zero(const LLVector3* box);
 
 inline LLVector3::LLVector3(void)
 {
@@ -199,7 +203,7 @@ inline LLVector3::LLVector3(const LLVector3 &copy)
 // checker
 inline BOOL LLVector3::isFinite() const
 {
-	return (llfinite(mV[VX]) && llfinite(mV[VY]) && llfinite(mV[VZ]));
+	return (std::isfinite(mV[VX]) && std::isfinite(mV[VY]) && std::isfinite(mV[VZ]));
 }
 
 

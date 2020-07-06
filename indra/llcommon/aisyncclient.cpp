@@ -90,7 +90,7 @@
 bool operator==(AISyncKey const& key1, AISyncKey const& key2)
 {
   // Test if these keys match based on time.
-  if (std::abs((S32)(key1.mStartFrameCount - key2.mStartFrameCount)) > 1 &&
+  if (std::abs((S64)(key1.mStartFrameCount - key2.mStartFrameCount)) > 1 &&
 	  std::abs(key1.mFrameTimer.getStartTime() - key2.mFrameTimer.getStartTime()) >= sSyncKeyExpirationTime)
   {
 	return false;
@@ -420,7 +420,7 @@ void AISyncServerMap::remove_server(AISyncServer* server)
 #include <boost/io/ios_state.hpp>
 
 //static
-U32 LLFrameTimer::sFrameCount;
+U64 LLFrameTimer::sFrameCount;
 
 double innerloop_count = 0;
 

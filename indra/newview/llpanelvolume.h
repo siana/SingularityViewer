@@ -67,7 +67,8 @@ public:
 	static void 	onCommitLight(			LLUICtrl* ctrl, void* userdata);
 	void			onCommitIsFlexible(		LLUICtrl* ctrl, void* userdata);
 	static void 	onCommitFlexible(		LLUICtrl* ctrl, void* userdata);
-	static void     onCommitPhysicsParam(       LLUICtrl* ctrl, void* userdata);
+	void			onCommitAnimatedMeshCheckbox(LLUICtrl* ctrl, void* userdata);
+	static void		onCommitPhysicsParam(       LLUICtrl* ctrl, void* userdata);
 
 	void		onLightCancelColor(const LLSD& data);
 	void		onLightSelectColor(const LLSD& data);

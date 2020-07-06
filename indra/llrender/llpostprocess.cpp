@@ -35,6 +35,7 @@
 #include "llpostprocess.h"
 
 #include "lldir.h"
+#include "llcontrol.h"
 #include "llfasttimer.h"
 #include "llgl.h"
 #include "llglslshader.h"
@@ -67,9 +68,9 @@ static LLStaticHashedString sVignettRadius("vignette_radius");
 static LLStaticHashedString sVignetteDarkness("vignette_darkness");
 static LLStaticHashedString sVignetteDesaturation("vignette_desaturation");
 static LLStaticHashedString sVignetteChromaticAberration("vignette_chromatic_aberration");
-static LLStaticHashedString sScreenRes("screen_res");
 
 static LLStaticHashedString sHorizontalPass("horizontalPass");
+static LLStaticHashedString sKern("kern");
 
 static LLStaticHashedString sPrevProj("prev_proj");
 static LLStaticHashedString sInvProj("inv_proj");
@@ -262,7 +263,6 @@ public:
 		getShader().uniform1f(sVignetteDarkness, mDarkness);
 		getShader().uniform1f(sVignetteDesaturation, mDesaturation);
 		getShader().uniform1f(sVignetteChromaticAberration, mChromaticAberration);
-		getShader().uniform2fv(sScreenRes, 1, screen_rect.mV);
 		return QUAD_NORMAL;
 	}
 };
@@ -284,13 +284,18 @@ public:
 	/*virtual*/ S32 getDepthChannel()	const	{ return -1; }
 	/*virtual*/ QuadType preDraw()
 	{
+		LLVector2 screen_rect = LLPostProcess::getInstance()->getDimensions();
+
 		mPassLoc = getShader().getUniformLocation(sHorizontalPass);
+		LLVector4 vec[] = { LLVector4(1.3846153846f, 3.2307692308f, 0.f, 0.f) / screen_rect.mV[VX], LLVector4( 0.f,0.f, 1.3846153846f, 3.2307692308f ) / screen_rect.mV[VY] };
+		getShader().uniform4fv(sKern, LL_ARRAY_SIZE(vec), (GLfloat*)vec);
 		return QUAD_NORMAL;
 	}
 	/*virtual*/ bool draw(U32 pass) 
 	{
 		if((S32)pass > mNumPasses*2)
 			return false;
+		gGL.syncShaders();
 		glUniform1iARB(mPassLoc, (pass-1) % 2);
 		return true;
 	}
@@ -322,7 +327,6 @@ public:
 
 		getShader().uniformMatrix4fv(sPrevProj, 1, GL_FALSE, prev_proj.getF32ptr());
 		getShader().uniformMatrix4fv(sInvProj, 1, GL_FALSE, inv_proj.getF32ptr());
-		getShader().uniform2fv(sScreenRes, 1, screen_rect.mV);
 		getShader().uniform1i(sBlurStrength, mStrength);
 		
 		return QUAD_NORMAL;
@@ -352,41 +356,44 @@ LLPostProcess::LLPostProcess(void) :
 	mShaders.push_back(new LLPosterizeShader());
 
 	/*  Do nothing.  Needs to be updated to use our current shader system, and to work with the move into llrender.*/
-	std::string pathName(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", XML_FILENAME));
-	LL_DEBUGS("AppInit", "Shaders") << "Loading PostProcess Effects settings from " << pathName << LL_ENDL;
-
-	llifstream effectsXML(pathName);
-
-	if (effectsXML)
+	auto load_effects = [&](const std::string& pathName)
 	{
-		LLPointer<LLSDParser> parser = new LLSDXMLParser();
+		LL_DEBUGS("AppInit", "Shaders") << "Loading PostProcess Effects settings from " << pathName << LL_ENDL;
+		llifstream effectsXML(pathName);
 
-		parser->parse(effectsXML, mAllEffectInfo, LLSDSerialize::SIZE_UNLIMITED);
-	}
+		if (effectsXML)
+		{
+			LLPointer<LLSDParser> parser = new LLSDXMLParser();
+			parser->parse(effectsXML, mAllEffectInfo, LLSDSerialize::SIZE_UNLIMITED);
+		}
+	};
+	load_effects(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", XML_FILENAME));
+	load_effects(gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "windlight", XML_FILENAME));
 
-	if (!mAllEffectInfo.has("default"))
-		mAllEffectInfo["default"] = LLSD::emptyMap();
+	auto setting = gSavedSettings.getControl("SinguPostProcessDefault");
+	setting->getSignal()->connect(std::bind(&LLPostProcess::setSelectedEffect, this, std::bind(&LLSD::asStringRef, std::placeholders::_2)));
+	const auto& str = setting->get().asStringRef();
+	if (!mAllEffectInfo.has(str))
+		mAllEffectInfo[str] = LLSD::emptyMap();
 
-	LLSD& defaults = mAllEffectInfo["default"];
+	LLSD& defaults = mAllEffectInfo[str];
 
-	for(std::list<LLPointer<LLPostProcessShader> >::iterator it=mShaders.begin();it!=mShaders.end();++it)
+	// Add defaults for all missing effects
+	for(auto& shader : mShaders)
 	{
-		LLSD shader_defaults = (*it)->getDefaults();
+		const LLSD shader_defaults = shader->getDefaults();
 		for (LLSD::map_const_iterator it2 = defaults.beginMap();it2 != defaults.endMap();++it2)
 		{
 			if(!defaults.has(it2->first))
 				defaults[it2->first]=it2->second;
 		}
 	}
-	for(std::list<LLPointer<LLPostProcessShader> >::iterator it=mShaders.begin();it!=mShaders.end();++it)
-	{
-		(*it)->loadSettings(defaults);
-	}
-	setSelectedEffect("default");
+	setSelectedEffect(str);
 }
 
 LLPostProcess::~LLPostProcess(void)
 {
+	gSavedSettings.setString("SinguPostProcessDefault", mSelectedEffectName);
 	destroyGL() ;
 }
 
@@ -411,11 +418,22 @@ void LLPostProcess::initialize(unsigned int width, unsigned int height)
 		mVBO->getVertexStrider(v);
 		mVBO->getTexCoord0Strider(uv1);
 		mVBO->getTexCoord1Strider(uv2);
-	
-		v[0] = LLVector3( uv2[0] = uv1[0] = LLVector2(0, 0) );
-		v[1] = LLVector3( uv2[1] = uv1[1] = LLVector2(0, mScreenHeight) );
-		v[2] = LLVector3( uv2[2] = uv1[2] = LLVector2(mScreenWidth, 0) );
-		v[3] = LLVector3( uv2[3] = uv1[3] = LLVector2(mScreenWidth, mScreenHeight) );
+
+		uv2[0] = uv1[0] = LLVector2(0, 0);
+		uv2[1] = uv1[1] = LLVector2(0, 1);
+		uv2[2] = uv1[2] = LLVector2(1, 0);
+		uv2[3] = uv1[3] = LLVector2(1, 1);
+
+		LLVector3 vec1[4] = {
+			 LLVector3(0, 0, 0),
+			 LLVector3(0, mScreenHeight, 0),
+			 LLVector3(mScreenWidth, 0, 0),
+			 LLVector3(mScreenWidth, mScreenHeight, 0) };
+
+		v[0] = vec1[0];
+		v[1] = vec1[1];
+		v[2] = vec1[2];
+		v[3] = vec1[3];
 
 		mVBO->flush();
 	}
@@ -424,26 +442,22 @@ void LLPostProcess::initialize(unsigned int width, unsigned int height)
 
 void LLPostProcess::createScreenTextures()
 {
-	const LLTexUnit::eTextureType type = LLTexUnit::TT_RECT_TEXTURE;
+	const LLTexUnit::eTextureType type = LLTexUnit::TT_TEXTURE;
 
 	mRenderTarget[0].allocate(mScreenWidth,mScreenHeight,GL_RGBA,FALSE,FALSE,type,FALSE);
 	if(mRenderTarget[0].getFBO())//Only need pingpong between two rendertargets if FBOs are supported.
 		mRenderTarget[1].allocate(mScreenWidth,mScreenHeight,GL_RGBA,FALSE,FALSE,type,FALSE);
 	stop_glerror();
 
-	if(mDepthTexture)
-	{
-		LLImageGL::deleteTextures(1, &mDepthTexture);
-		mDepthTexture = 0;
-	}
+	mDepthTexture.reset();
 
 	for(std::list<LLPointer<LLPostProcessShader> >::iterator it=mShaders.begin();it!=mShaders.end();++it)
 	{
 		if((*it)->getDepthChannel()>=0)
 		{
-			LLImageGL::generateTextures(1, &mDepthTexture);
-			gGL.getTexUnit(0)->bindManual(type, mDepthTexture);
-			LLImageGL::setManualImage(LLTexUnit::getInternalType(type), 0, GL_DEPTH_COMPONENT24, mScreenWidth, mScreenHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL, false);
+			mDepthTexture = LLImageGL::createTextureName();
+			gGL.getTexUnit(0)->bindManual(type, mDepthTexture->getTexName());
+			LLImageGL::setManualImage(LLTexUnit::getInternalType(type), 0, GL_DEPTH_COMPONENT24, mScreenWidth, mScreenHeight, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT);
 			stop_glerror();
 			gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_POINT);
 			gGL.getTexUnit(0)->setTextureAddressMode(LLTexUnit::TAM_CLAMP);
@@ -463,18 +477,12 @@ void LLPostProcess::createNoiseTexture()
 		}
 	}
 
-	if(mNoiseTexture)
-	{
-		LLImageGL::deleteTextures(1, &mNoiseTexture);
-		mNoiseTexture = 0;
-	}
-
-	LLImageGL::generateTextures(1, &mNoiseTexture);
+	mNoiseTexture = LLImageGL::createTextureName();
 	stop_glerror();
-	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, mNoiseTexture);
+	gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, mNoiseTexture->getTexName());
 	stop_glerror();
 
-	LLImageGL::setManualImage(GL_TEXTURE_2D, 0, GL_LUMINANCE8, NOISE_SIZE, NOISE_SIZE, GL_LUMINANCE, GL_UNSIGNED_BYTE, &buffer[0], false);
+	LLImageGL::setManualImage(GL_TEXTURE_2D, 0, GL_LUMINANCE8, NOISE_SIZE, NOISE_SIZE, GL_LUMINANCE, GL_UNSIGNED_BYTE, &buffer[0]);
 
 	stop_glerror();
 	gGL.getTexUnit(0)->setTextureFilteringOption(LLTexUnit::TFO_BILINEAR);
@@ -486,25 +494,22 @@ void LLPostProcess::destroyGL()
 {
 	mRenderTarget[0].release();
 	mRenderTarget[1].release();
-	if(mDepthTexture)
-		LLImageGL::deleteTextures(1, &mDepthTexture);
-	mDepthTexture=0;
-	if(mNoiseTexture)
-		LLImageGL::deleteTextures(1, &mNoiseTexture);
+	mDepthTexture.reset();
+	mNoiseTexture.reset();
 	mNoiseTexture=0 ;
 	mVBO = NULL ;
 }
 
 /*static*/void LLPostProcess::cleanupClass()
 {
-	if(instanceExists())
-		getInstance()->destroyGL() ;
+	if (instanceExists())
+		deleteSingleton();
 }
 
 void LLPostProcess::copyFrameBuffer()
 {
 	mRenderTarget[!!mRenderTarget[0].getFBO()].bindTexture(0,0);
-	glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB,0,0,0,0,0,mScreenWidth, mScreenHeight);
+	glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,mScreenWidth, mScreenHeight);
 	stop_glerror();
 
 	if(mDepthTexture)
@@ -513,8 +518,8 @@ void LLPostProcess::copyFrameBuffer()
 		{
 			if((*it)->isEnabled() && (*it)->getDepthChannel()>=0)
 			{
-				gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mDepthTexture);
-				glCopyTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB,0,0,0,0,0,mScreenWidth, mScreenHeight);
+				gGL.getTexUnit(0)->bindManual(LLTexUnit::TT_TEXTURE, mDepthTexture->getTexName());
+				glCopyTexSubImage2D(GL_TEXTURE_2D,0,0,0,0,0,mScreenWidth, mScreenHeight);
 				stop_glerror();
 				break;
 			}
@@ -525,7 +530,7 @@ void LLPostProcess::copyFrameBuffer()
 
 void LLPostProcess::bindNoise(U32 channel)
 {
-	gGL.getTexUnit(channel)->bindManual(LLTexUnit::TT_TEXTURE,mNoiseTexture);
+	gGL.getTexUnit(channel)->bindManual(LLTexUnit::TT_TEXTURE,mNoiseTexture->getTexName());
 }
 
 void LLPostProcess::renderEffects(unsigned int width, unsigned int height)
@@ -556,7 +561,7 @@ void LLPostProcess::doEffects(void)
 
 	//Disable depth. Set blendmode to replace.
 	LLGLDepthTest depth(GL_FALSE,GL_FALSE);
-	LLGLEnable blend(GL_BLEND);
+	LLGLEnable<GL_BLEND> blend;
 	gGL.setSceneBlendType(LLRender::BT_REPLACE);
 
 	/// Change to an orthogonal view
@@ -594,7 +599,7 @@ void LLPostProcess::applyShaders(void)
 			S32 color_channel = (*it)->getColorChannel();
 			S32 depth_channel = (*it)->getDepthChannel();
 			if(depth_channel >= 0)
-				gGL.getTexUnit(depth_channel)->bindManual(LLTexUnit::TT_RECT_TEXTURE, mDepthTexture);
+				gGL.getTexUnit(depth_channel)->bindManual(LLTexUnit::TT_TEXTURE, mDepthTexture->getTexName());
 			U32 pass = 1;
 
 			(*it)->bindShader();
@@ -639,11 +644,11 @@ void LLPostProcess::drawOrthoQuad(QuadType type)
 		mVBO->getTexCoord1Strider(uv2);
 
 		float offs[2] = {
-			/*ll_round*/(((float) rand() / (float) RAND_MAX) * (float)NOISE_SIZE)/float(NOISE_SIZE),
-			/*ll_round*/(((float) rand() / (float) RAND_MAX) * (float)NOISE_SIZE)/float(NOISE_SIZE) };
+			/*ll_round*/((float) rand() / (float) RAND_MAX),
+			/*ll_round*/((float) rand() / (float) RAND_MAX) };
 		float scale[2] = {
-			(float)mScreenWidth * mNoiseTextureScale,
-			(float)mScreenHeight * mNoiseTextureScale };
+			((float)mScreenWidth * mNoiseTextureScale),
+			((float)mScreenHeight * mNoiseTextureScale) };
 
 		uv2[0] = LLVector2(offs[0],offs[1]);
 		uv2[1] = LLVector2(offs[0],offs[1]+scale[1]);
@@ -661,10 +666,11 @@ void LLPostProcess::setSelectedEffect(std::string const & effectName)
 {
 	mSelectedEffectName = effectName;
 	mSelectedEffectInfo = mAllEffectInfo[effectName];
-	for(std::list<LLPointer<LLPostProcessShader> >::iterator it=mShaders.begin();it!=mShaders.end();++it)
+	for(auto shader : mShaders)
 	{
-		(*it)->loadSettings(mSelectedEffectInfo);
+		shader->loadSettings(mSelectedEffectInfo);
 	}
+	mSelectedEffectChanged(mSelectedEffectName);
 }
 
 void LLPostProcess::setSelectedEffectValue(std::string const & setting, LLSD value)
@@ -700,8 +706,9 @@ void LLPostProcess::resetSelectedEffect()
 void LLPostProcess::saveEffectAs(std::string const & effectName)
 {
 	mAllEffectInfo[effectName] = mSelectedEffectInfo;
+	mSelectedEffectChanged(mSelectedEffectName); // Might've changed, either way update the lists
 
-	std::string pathName(gDirUtilp->getExpandedFilename(LL_PATH_APP_SETTINGS, "windlight", XML_FILENAME));
+	std::string pathName(gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "windlight", XML_FILENAME));
 	//LL_INFOS() << "Saving PostProcess Effects settings to " << pathName << LL_ENDL;
 
 	llofstream effectsXML(pathName);

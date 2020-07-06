@@ -52,7 +52,15 @@ LLMakeOutfitDialog::LLMakeOutfitDialog(bool modal) : LLModalDialog(LLStringUtil:
 	// Build list of check boxes
 	for (S32 i = 0; i < LLWearableType::WT_COUNT; i++)
 	{
-		std::string name = std::string("checkbox_") + LLWearableType::getTypeLabel((LLWearableType::EType)i);
+		std::string label = LLWearableType::getTypeLabel((LLWearableType::EType)i);
+		std::string name = std::string("checkbox_") + label;
+		std::string labellower = label;
+		labellower[0] = tolower(labellower[0]);
+		std::string namelower = std::string("checkbox_") + labellower;
+		if (findChild<LLView>(namelower))
+		{
+			name = namelower;
+		}
 		mCheckBoxList.push_back(std::make_pair(name, i));
 		// Hide undergarments from teens
 		if (gAgent.isTeen() && ((LLWearableType::WT_UNDERSHIRT == (LLWearableType::EType)i) || (LLWearableType::WT_UNDERPANTS == (LLWearableType::EType)i)))

@@ -86,6 +86,12 @@
 			</string>
 		</panel>
 		<!-- ======================== -->
+		<panel label="Todos" name="web_panel">
+			<button left_delta="27" width="200" label="Abrir Búsqueda en Navegador Web" name="web_search_floater_btn"/>
+			<string name="loading_text">Cargando...</string>
+			<string name="done_text">Hecho</string>
+		</panel>
+		<!-- ======================== -->
 		<panel label="Clasificados" name="classified_panel">
 			<string name="searching_text">
 				Buscando...
@@ -471,12 +477,6 @@
 			<string name="done_text">Hecho</string>
 			<string name="redirect_404_url">[APP_SITE]/404</string>
 			<string name="default_search_page">https://marketplace.secondlife.com/?lang=es-ES</string>
-		</panel>
-		<!-- ======================== -->
-		<panel label="Web" name="web_panel">
-			<button left_delta="27" width="200" label="Abrir Búsqueda en Navegador Web" name="web_search_floater_btn"/>
-			<string name="loading_text">Cargando...</string>
-			<string name="done_text">Hecho</string>
 		</panel>
 	</tab_container>
 	<panel name="classified_details_panel"/>

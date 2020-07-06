@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+	<context_menu label="Propietario" name="Object Owner Submenu">
+		<menu_item_call label="Enviar MI..." name="send_im"/>
+		<menu name="Actions" label="Acciones">
+			<menu_item_call label="Perfil" name="Profile"/>
+			<menu_item_call label="Perfil Web" name="Web Profile"/>
+			<menu_item_call label="Pagar" name="Pay"/>
+			<menu_item_call label="Llamar" name="Call"/>
+			<menu_item_call label="Ofrecer Amistad" name="Add Friend"/>
+			<menu_item_call label="Quitar Amistad" name="Remove Friend"/>
+			<menu_item_call label="Invitar a un Grupo" name="Invite To Group"/>
+			<menu_item_call label="Seguir" name="Follow"/>
+			<menu_item_call label="Mover A" name="Move To"/>
+			<menu_item_call label="Ofrecer Teleporte" name="Offer Teleport"/>
+			<menu_item_call label="Teleportar A" name="Teleport To"/>
+			<menu_item_call label="Solicitar Teleporte" name="Request Teleport"/>
+			<menu_item_call label="Encontar en el Mapa" name="Find on Map"/>
+			<menu_item_call label="Compartir" name="Share"/>
+			<menu_item_call label="Historial de Chat" name="Chat History"/>
+			<menu_item_call label="Rastrear/No Rastrear" name="Track/Untrack"/>
+			<menu_item_call label="Enfocar" name="Focus"/>
+		</menu>
+		<menu name="Copiar">
+			<menu_item_call label="Nombre" name="copy_name"/>
+			<menu_item_call label="SLURL" name="url_copy"/>
+			<menu_item_call label="UUID" name="key_copy"/>
+		</menu>
+		<menu label="Moderación" name="Moderation" create_jump_keys=""/>
+		<menu_item_call label="Silenciar" name="Mute"/>
+		<menu_item_call label="Quitar silencio" name="Unmute"/>
+		<menu_item_call label="Prohibir en el grupo" name="Ban From Group"/>
+		<menu_item_call label="Denuncair Infracción" name="Report Abuse"/>
+		<menu_item_call label="Congelar" name="Freeze"/>
+		<menu_item_call label="Expulsar/Prohibir en la Parcela" name="Eject/Ban from Parcel"/>
+		<menu_item_call label="Expulsar del estado" name="Eject from estate"/>
+		<menu_item_call label="Expulsar y prohibir del estado" name="Eject and ban from estate"/>
+	</menu>
+</context_menu>

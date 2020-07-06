@@ -62,8 +62,10 @@ public:
 		IT_ANIMATION = 19,
 		IT_GESTURE = 20,
 		IT_MESH = 22,
-		IT_COUNT = 23,
+		IT_SETTINGS = 25,
+		IT_COUNT = 26,
 
+		IT_UNKNOWN = 255,
 		IT_NONE = -1
 	};
 
@@ -98,6 +100,7 @@ public:
 		ICONNAME_CLOTHING_SKIRT,
 		ICONNAME_CLOTHING_ALPHA,
 		ICONNAME_CLOTHING_TATTOO,
+		ICONNAME_CLOTHING_UNIVERSAL,
 
 		ICONNAME_ANIMATION,
 		ICONNAME_GESTURE,
@@ -108,8 +111,14 @@ public:
 		ICONNAME_LINKFOLDER,
 		ICONNAME_MESH,
 
+		ICONNAME_SETTINGS,
+		ICONNAME_SETTINGS_SKY,
+		ICONNAME_SETTINGS_WATER,
+		ICONNAME_SETTINGS_DAY,
+
 		ICONNAME_CLOTHING_UNKNOWN,
 		ICONNAME_INVALID,
+		ICONNAME_UNKNOWN,
 		ICONNAME_COUNT,
 		ICONNAME_NONE = -1
 	};
@@ -126,6 +135,8 @@ public:
 
 	// true if this type cannot have restricted permissions.
 	static bool cannotRestrictPermissions(EType type);
+
+    static bool showInWorldPermissions(EType type);
 
 private:
 	// don't instantiate or derive one of these objects

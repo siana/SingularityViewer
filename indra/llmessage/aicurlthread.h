@@ -45,7 +45,7 @@ class PollSet;
 
 // For ordering a std::set with AICurlEasyRequest objects.
 struct AICurlEasyRequestCompare {
-  bool operator()(AICurlEasyRequest const& h1, AICurlEasyRequest const& h2) { return h1.get() < h2.get(); }
+  bool operator()(AICurlEasyRequest const& h1, AICurlEasyRequest const& h2) const { return h1.get() < h2.get(); }
 };
 
 //-----------------------------------------------------------------------------

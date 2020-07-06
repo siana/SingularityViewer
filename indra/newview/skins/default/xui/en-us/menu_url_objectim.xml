@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu
+ layout="topleft"
+ label="Object"
+ name="Url Popup">
+  <menu filename="menu_url_object_owner.xml"/>
+  <menu name="URL Actions" label="URL Actions">
+    <menu_item_call
+     label="Object Profile..."
+     layout="topleft"
+     name="show_object">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Execute" />
+    </menu_item_call>
+    <menu_item_call
+     label="Block..."
+     layout="topleft"
+     name="block_object">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Block" />
+    </menu_item_call>
+    <menu_item_call
+     label="Unblock"
+     layout="topleft"
+     name="unblock_object">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Unblock" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Show on Map"
+     layout="topleft"
+     name="show_on_map">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="ShowOnMap" />
+    </menu_item_call>
+    <menu_item_call
+     label="Teleport to Object URL Location"
+     layout="topleft"
+     name="teleport_to_object">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Teleport" />
+    </menu_item_call>
+  </menu>
+  <menu name="Object" label="Object">
+    <menu_item_call label="Cam To" name="Cam To">
+      <on_click function="List.Object.CamTo"/>
+      <on_visible function="List.IsNearby"/>
+    </menu_item_call>
+    <menu_item_call label="Follow" name="Follow">
+      <on_click function="List.Follow"/>
+      <on_visible function="List.IsNearby"/>
+    </menu_item_call>
+    <menu_item_call label="Move To" name="Move To">
+      <on_click function="List.GoTo"/>
+      <on_visible function="List.IsNearby"/>
+    </menu_item_call>
+    <menu_item_call label="Teleport To (current location)" name="Teleport To (current location)">
+      <on_click function="List.TeleportTo"/>
+      <on_visible function="List.IsNearby"/>
+    </menu_item_call>
+    <menu_item_call label="Sit On" name="Sit On">
+      <on_click function="List.Object.Sit"/>
+      <on_visible function="List.IsNearby"/>
+    </menu_item_call>
+    <menu_item_call label="Pay" name="Pay">
+      <on_click function="List.Object.Pay"/>
+      <on_visible function="List.Object.EnablePay"/>
+    </menu_item_call>
+    <menu_item_call label="Touch" name="Touch">
+      <on_click function="List.Object.Touch"/>
+      <on_visible function="List.Object.EnableTouch"/>
+    </menu_item_call>
+    <menu_item_call label="Edit" name="Edit">
+      <on_click function="List.Object.Edit" userdata="true"/>
+      <on_visible function="List.Object.CanEdit" userdata="true"/>
+    </menu_item_call>
+    <menu_item_call label="Add to Selection" name="Add to Selection">
+      <on_click function="List.Object.Edit" userdata=""/>
+      <on_visible function="List.Object.CanEdit" userdata=""/>
+    </menu_item_call>
+    <menu_item_separator/>
+    <menu_item_call label="Derender" name="Derender">
+      <on_click function="List.Object.Derender"/>
+    </menu_item_call>
+  </menu>
+  <menu name="Copy" label="Copy">
+    <menu_item_call
+     label="Name"
+     layout="topleft"
+     name="url_copy_label">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyLabel" />
+    </menu_item_call>
+    <menu_item_call
+     label="SLURL"
+     layout="topleft"
+     name="url_copy">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyUrl" />
+    </menu_item_call>
+  <menu_item_call label="Key" name="key_copy">
+    <menu_item_call.on_click function="List.CopyUUIDs"/>
+  </menu_item_call>
+  </menu>
+  <menu_item_call label="Select All" name="Select All">
+    <on_click function="Text" userdata="SelectAll"/>
+  </menu_item_call>
+</context_menu>

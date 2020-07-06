@@ -12,9 +12,9 @@
 	<text name="owner_text">
 		Propietario del estado:
 	</text>
-	<text name="estate_owner">
+	<name_box name="estate_owner">
 		(desconocido)
-	</text>
+	</name_box>
 	<check_box label="Permitir el acceso público" name="externally_visible_check"/>
 	<button label="?" name="externally_visible_help"/>	
 	<check_box label="Permitir el chat de voz" name="voice_chat_check"/>
@@ -32,40 +32,6 @@
 	</text>
 	<check_box label="Han aportado la información de pago." name="limit_payment" tool_tip="Para poder acceder a este estado los Residentes deben haber aportado información de pago en su cuenta. Para más información, ver support.secondlife.com."/>
 	<check_box label="Son mayores de 18 años" name="limit_age_verified" tool_tip="Para poder acceder a este estado, los Residentes deben ser mayores de 18 años. Para más información, consulta support.secondlife.com."/>
-	<text name="estate_manager_label">
-		Administradores del estado:
-	</text>
-	<button label="?" name="estate_manager_help"/>	
-	<text name="allow_resident_label">
-		Residentes autorizados:
-	</text>
-	<button label="?" name="allow_resident_help"/>
-
-    <!-- Estate Managers buttons -->
-	<button label="Añadir..." name="add_estate_manager_btn"/>
-	<button label="Quitar..." name="remove_estate_manager_btn"/>
-
-    <!-- Allowed Residents buttons -->
-	<button label="Añadir..." name="add_allowed_avatar_btn"/>	 
-	<button label="Quitar..." name="remove_allowed_avatar_btn"/>
-
-	<text name="allow_group_label">
-		Grupos autorizados:
-	</text>
-	<button label="?" name="allow_group_help"/>	
-	<text name="ban_resident_label">
-		Residentes con el acceso prohibido:
-	</text>
-	<button label="?" name="ban_resident_help" right="476"/>
-
-    <!-- Allowed Groups buttons -->
-	<button label="Añadir..." name="add_allowed_group_btn"/>	 
-	<button label="Quitar..." name="remove_allowed_group_btn"/>
-
-    <!-- Banned Residents buttons -->
-	<button label="Añadir..." name="add_banned_avatar_btn"/>	 
-	<button label="Quitar..." name="remove_banned_avatar_btn"/>
-
 	<button label="Enviar un mensaje al estado..." name="message_estate_btn"/>
 	<button label="Expulsar a un Residente del estado..." name="kick_user_from_estate_btn"/>
 </panel>

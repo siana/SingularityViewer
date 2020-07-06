@@ -441,7 +441,7 @@ bool LLHUDEffectPointAt::calcTargetPosition()
 
 	mTargetPos -= mSourceObject->getRenderPosition();
 
-	if (!llfinite(mTargetPos.lengthSquared()))
+	if (!std::isfinite(mTargetPos.lengthSquared()))
 	{
 		return false;
 	}

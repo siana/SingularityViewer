@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<panel border="true" bottom="0" height="466" label="Members &amp; Roles" left="1"
+<panel border="true" bottom="0" height="466" label="Members" left="1"
      name="roles_tab" width="418">
 	<string name="default_needs_apply_text">
 		There are unapplied changes on the current sub-tab.

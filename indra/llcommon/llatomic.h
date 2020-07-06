@@ -50,7 +50,7 @@
 #include "boost/atomic.hpp"
 template<typename T>
 struct impl_atomic_type { typedef boost::atomic<T> type; };
-#elif defined(USE_STD_ATOMIC) && defined(LL_CPP11)
+#elif defined(USE_STD_ATOMIC)
 #include <atomic>
 template<typename T>
 struct impl_atomic_type { typedef std::atomic<T> type; };

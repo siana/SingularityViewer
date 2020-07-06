@@ -12,6 +12,7 @@
 		<menu_item_call label="Kopie nehmen" name="Take Copy"/>
 		<pie_menu label="HUD anhängen" name="Object Attach HUD"/>
 		<pie_menu label="Anhängen" name="Object Attach"/>
+		<pie_menu label="Mehr anhängen" name="Object Attach More" />
 		<menu_item_call label="Zurückgeben..." name="Return..."/>
 		<pie_menu label="Mehr" name="Rate Menu">
 			

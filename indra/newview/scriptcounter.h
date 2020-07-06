@@ -33,19 +33,19 @@
 
 #include "llvoinventorylistener.h"
 
-class ScriptCounter : public LLInstanceTracker<ScriptCounter, LLUUID>, public LLVOInventoryListener
+class ScriptCounter final : public LLInstanceTracker<ScriptCounter, LLUUID>, public LLVOInventoryListener
 {
 public:
 	ScriptCounter(bool do_delete, LLViewerObject* object);
 	~ScriptCounter();
 
-	/*virtual*/ void inventoryChanged(LLViewerObject* obj, LLInventoryObject::object_list_t* inv, S32, void*);
+	void inventoryChanged(LLViewerObject* obj, LLInventoryObject::object_list_t* inv, S32, void*) override;
 	void requestInventories();
+	static void processScriptRunningReply(LLMessageSystem* msg);
 
 private:
 	void requestInventoriesFor(LLViewerObject* object);
 	void requestInventoryFor(LLViewerObject* object);
-	friend void process_script_running_reply(LLMessageSystem* msg, void**);
 	void processRunningReply(LLMessageSystem* msg);
 	void summarize(); // Check if finished, if so, output and destroy.
 

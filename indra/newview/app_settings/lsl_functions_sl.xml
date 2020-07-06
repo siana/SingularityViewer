@@ -305,6 +305,10 @@
    <map/>
    <key>llStopAnimation</key>
    <map/>
+   <key>llStartObjectAnimation</key>
+   <map/>
+   <key>llStopObjectAnimation</key>
+   <map/>
    <key>llPointAt</key>
    <map/>
    <key>llStopPointAt</key>
@@ -1047,6 +1051,29 @@
    <key>llGetMinScaleFactor</key>
    <map/>
    <key>llGetMaxScaleFactor</key>
+   <map/>
+<!-- Experience Tools new functions -->
+   <key>llAgentInExperience</key>
+   <map/>
+   <key>llGetExperienceDetails</key>
+   <map/>
+   <key>llRequestExperiencePermissions</key>
+   <map/>
+   <key>llReadKeyValue</key>
+   <map/>
+   <key>llCreateKeyValue</key>
+   <map/>
+   <key>llUpdateKeyValue</key>
+   <map/>
+   <key>llDeleteKeyValue</key>
+   <map/>
+   <key>llDataSizeKeyValue</key>
+   <map/>
+   <key>llKeysKeyValue</key>
+   <map/>
+   <key>llKeyCountKeyValue</key>
+   <map/>
+   <key>llGetExperienceErrorMessage</key>
    <map/>
   </map>
 </llsd>

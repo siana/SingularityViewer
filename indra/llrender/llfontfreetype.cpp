@@ -31,11 +31,8 @@
 
 // Freetype stuff
 #include <ft2build.h>
-
-// For some reason, this won't work if it's not wrapped in the ifdef
-#ifdef FT_FREETYPE_H
 #include FT_FREETYPE_H
-#endif
+
 
 #include "llerror.h"
 #include "llimage.h"
@@ -104,7 +101,6 @@ LLFontGlyphInfo::LLFontGlyphInfo(U32 index)
 
 LLFontFreetype::LLFontFreetype()
 :	mFontBitmapCachep(new LLFontBitmapCache),
-	mValid(FALSE),
 	mAscender(0.f),
 	mDescender(0.f),
 	mLineHeight(0.f),
@@ -112,6 +108,7 @@ LLFontFreetype::LLFontFreetype()
 	mFTFace(NULL),
 	mRenderGlyphCount(0),
 	mAddGlyphCount(0),
+	mStyle(0),
 	mPointSize(0)
 {
 }
@@ -184,8 +181,8 @@ BOOL LLFontFreetype::loadFace(const std::string& filename, const F32 point_size,
 	mDescender = -mFTFace->descender * pixels_per_unit;
 	mLineHeight = mFTFace->height * pixels_per_unit;
 
-	S32 max_char_width = ll_round(0.5f + (x_max - x_min));
-	S32 max_char_height = ll_round(0.5f + (y_max - y_min));
+	S32 max_char_width = ll_pos_round(0.5f + (x_max - x_min));
+	S32 max_char_height = ll_pos_round(0.5f + (y_max - y_min));
 
 	mFontBitmapCachep->init(components, max_char_width, max_char_height);
 
@@ -203,6 +200,19 @@ BOOL LLFontFreetype::loadFace(const std::string& filename, const F32 point_size,
 
 	mName = filename;
 	mPointSize = point_size;
+
+	mStyle = LLFontGL::NORMAL;
+	if(mFTFace->style_flags & FT_STYLE_FLAG_BOLD)
+	{
+		mStyle |= LLFontGL::BOLD;
+		mStyle &= ~LLFontGL::NORMAL;
+	}
+
+	if(mFTFace->style_flags & FT_STYLE_FLAG_ITALIC)
+	{
+		mStyle |= LLFontGL::ITALIC;
+		mStyle &= ~LLFontGL::NORMAL;
+	}
 
 	return TRUE;
 }
@@ -266,7 +276,7 @@ F32 LLFontFreetype::getXAdvance(const LLFontGlyphInfo* glyph) const
 
 F32 LLFontFreetype::getXKerning(llwchar char_left, llwchar char_right) const
 {
-	if (mFTFace == NULL)
+	if (mFTFace == nullptr)
 		return 0.0;
 
 	//llassert(!mIsFallback);
@@ -285,7 +295,7 @@ F32 LLFontFreetype::getXKerning(llwchar char_left, llwchar char_right) const
 
 F32 LLFontFreetype::getXKerning(const LLFontGlyphInfo* left_glyph_info, const LLFontGlyphInfo* right_glyph_info) const
 {
-	if (mFTFace == NULL)
+	if (mFTFace == nullptr)
 		return 0.0;
 
 	U32 left_glyph = left_glyph_info ? left_glyph_info->mGlyphIndex : 0;
@@ -474,9 +484,11 @@ void LLFontFreetype::renderGlyph(const U32 glyph_index) const
 	if (mFTFace == NULL)
 		return;
 
-	llassert_always(! FT_Load_Glyph(mFTFace, glyph_index, FT_LOAD_DEFAULT));
-
-	llassert_always(! FT_Render_Glyph(mFTFace->glyph, gFontRenderMode) );
+	if (FT_Load_Glyph(mFTFace, glyph_index, FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT) != 0)
+	{
+		// If glyph fails to load and/or render, render a fallback character
+		llassert_always(!FT_Load_Char(mFTFace, L'?', FT_LOAD_RENDER | FT_LOAD_TARGET_LIGHT));
+	}
 
 	mRenderGlyphCount++;
 }
@@ -534,6 +546,16 @@ const std::string &LLFontFreetype::getName() const
 const LLPointer<LLFontBitmapCache> LLFontFreetype::getFontBitmapCache() const
 {
 	return mFontBitmapCachep;
+}
+
+void LLFontFreetype::setStyle(U8 style)
+{
+	mStyle = style;
+}
+
+U8 LLFontFreetype::getStyle() const
+{
+	return mStyle;
 }
 
 void LLFontFreetype::setSubImageLuminanceAlpha(const U32 x, const U32 y, const U32 bitmap_num, const U32 width, const U32 height, const U8 *data, S32 stride) const

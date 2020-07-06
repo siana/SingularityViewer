@@ -185,7 +185,7 @@ void ReplySender::flush()
 }
 
 
-typedef std::set<LLUUID>					AskQueue;
+typedef uuid_set_t					AskQueue;
 typedef std::list<PendingReply*>			ReplyQueue;
 typedef std::map<LLUUID,U32>				PendingQueue;
 typedef std::map<LLUUID, LLCacheNameEntry*> Cache;
@@ -261,6 +261,8 @@ LLCacheName::~LLCacheName()
 {
 	delete &impl;
 }
+
+const ReverseCache& LLCacheName::getReverseMap() const { return impl.mReverseCache; }
 
 LLCacheName::Impl::Impl(LLMessageSystem* msg)
 	: mMsg(msg), mUpstreamHost(LLHost::invalid)

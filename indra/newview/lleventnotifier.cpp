@@ -39,11 +39,57 @@
 
 #include "llnotify.h"
 #include "lleventinfo.h"
-#include "llfloaterdirectory.h"
+#include "llfloaterevent.h"
 #include "llfloaterworldmap.h"
 #include "llagent.h"
 #include "llappviewer.h"	// for gPacificDaylightTime
+#include "llcommandhandler.h"	// secondlife:///app/... support
 #include "llviewercontrol.h"
+
+class LLEventHandler : public LLCommandHandler
+{
+public:
+	// requires trusted browser to trigger
+	LLEventHandler() : LLCommandHandler("event", UNTRUSTED_THROTTLE) { }
+	bool handle(const LLSD& params, const LLSD& query_map,
+				LLMediaCtrl* web)
+	{
+		if (params.size() < 2)
+		{
+			return false;
+		}
+		std::string event_command = params[1].asString();
+		S32 event_id = params[0].asInteger();
+		if (event_command == "about" || event_command == "details")
+		{
+			LLFloaterEventInfo::show(event_id);
+			return true;
+		}
+		else if(event_command == "notify")
+		{
+			// we're adding or removing a notification, so grab the date, name and notification bool
+			if (params.size() < 3)
+			{
+				return false;
+			}
+			if(params[2].asString() == "enable")
+			{
+				gEventNotifier.add(event_id);
+				// tell the server to modify the database as this was a slurl event notification command
+				gEventNotifier.serverPushRequest(event_id, true);
+			}
+			else
+			{
+				gEventNotifier.remove(event_id);
+			}
+			return true;
+		}
+
+		return false;
+	}
+};
+LLEventHandler gEventHandler;
+
 
 LLEventNotifier gEventNotifier;
 
@@ -104,8 +150,7 @@ bool LLEventNotifier::handleResponse(U32 eventId, LLVector3d eventPos, const LLS
 		gFloaterWorldMap->trackLocation(eventPos);
 		break;
 	case 1:
-		gDisplayEventHack = TRUE;
-		LLFloaterDirectory::showEvents(eventId);
+		LLFloaterEventInfo::show(eventId);
 		break;
 	case 2:
 		break;

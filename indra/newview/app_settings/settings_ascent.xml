@@ -91,6 +91,17 @@
 		  <key>Value</key>
 		  <integer>1</integer>
 		</map>
+		<key>ProfileNameSystem</key>
+		<map>
+		  <key>Comment</key>
+		  <string>For a name displayed on its profile. 0 = Old Style, 1 = Display Names and Username, 2 = Displayname only, 3 = Old Style (Display Name)</string>
+		  <key>Persist</key>
+		  <integer>1</integer>
+		  <key>Type</key>
+		  <string>S32</string>
+		  <key>Value</key>
+		  <integer>1</integer>
+		</map>
 		<key>RadarNameSystem</key>
 		<map>
 		  <key>Comment</key>
@@ -134,6 +145,28 @@
       <string>String</string>
       <key>Value</key>
       <string>/resync</string>
+    </map>
+    <key>AlchemyChatCommandSetChatChannel</key>
+    <map>
+      <key>Comment</key>
+      <string>Command to set nearby chat channel</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>/setchannel</string>
+    </map>
+    <key>AlchemyChatCommandSetHome</key>
+    <map>
+      <key>Comment</key>
+      <string>Command to set the avatar home</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>String</string>
+      <key>Value</key>
+      <string>/sethome</string>
     </map>
     <key>AlchemyConnectToNeighbors</key>
     <map>
@@ -201,6 +234,17 @@
       <key>Value</key>
       <integer>1</integer>
     </map>
+    <key>AlchemyNearbyChatChannel</key>
+    <map>
+      <key>Comment</key>
+      <string>Chat channel used for sending nearby chat from the viewer</string>
+      <key>Persist</key>
+      <integer>0</integer>
+      <key>Type</key>
+      <string>S32</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>AlchemyRainbowEffects</key>
     <map>
       <key>Comment</key>
@@ -243,7 +287,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>Default.tga</string>
+      <string>Altocumulus.tga</string>
     </map>
 		<key>AscentPowerfulWizard</key>
 		<map>
@@ -521,6 +565,17 @@
 			<key>Value</key>
 			<integer>1</integer>
 		</map>
+        <key>AlchemyDisableSimCamConstraint</key>
+        <map>
+          <key>Comment</key>
+          <string>Disable the push the simulator applies when camera collides with objects</string>
+          <key>Persist</key>
+          <integer>1</integer>
+          <key>Type</key>
+          <string>Boolean</string>
+          <key>Value</key>
+          <integer>0</integer>
+        </map>
 		<key>AscentFlyAlwaysEnabled</key>
 		<map>
 			<key>Comment</key>
@@ -763,6 +818,17 @@
 			<key>Value</key>
 			<string>key2name</string>
 		</map>
+                <key>AscentCmdLineKeyToNameNameSystem</key>
+                <map>
+                  <key>Comment</key>
+		  <string>For key to name command defined by AscentCmdLineKeyToName, the format to show the key's name in. 0 = Old Style, 1 = Display Names and Username, 2 = Displayname only, 3 = Old Style (Display Name)</string>
+		  <key>Persist</key>
+		  <integer>1</integer>
+		  <key>Type</key>
+		  <string>S32</string>
+		  <key>Value</key>
+		  <integer>1</integer>
+                </map>
 		<key>AscentCmdLineOfferTp</key>
 		<map>
 			<key>Comment</key>
@@ -818,6 +884,17 @@
 			<key>Value</key>
 			<string>/regionsay</string>
 		</map>
+		<key>SinguCmdLineSetting</key>
+		<map>
+			<key>Comment</key>
+			<string>Set or toggle debug settings from the chatbar.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>String</string>
+			<key>Value</key>
+			<string>/setdebug</string>
+		</map>
 		<key>SinguCmdLineURL</key>
 		<map>
 			<key>Comment</key>
@@ -828,17 +905,6 @@
 			<string>String</string>
 			<key>Value</key>
 			<string>/open</string>
-		</map>
-		<key>SinguCompleteNameProfiles</key>
-		<map>
-			<key>Comment</key>
-			<string>Use the complete name "Display Name (legacy.name)" in profiles, instead of following the choice set by PhoenixNameSystem.</string>
-			<key>Persist</key>
-			<integer>1</integer>
-			<key>Type</key>
-			<string>Boolean</string>
-			<key>Value</key>
-			<boolean>0</boolean>
 		</map>
 		<key>SinguDefaultEaseIn</key>
 		<map>
@@ -862,6 +928,39 @@
 			<key>Value</key>
 			<real>0</real>
 		</map>
+		<key>SinguFollowDistance</key>
+		<map>
+			<key>Comment</key>
+			<string>Distance at which to follow objects and avatars at, from menus that offer follow (minimum 0.5)</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>F32</string>
+			<key>Value</key>
+			<string>1.0</string>
+		</map>
+		<key>SinguLastKnownReleaseBuild</key>
+		<map>
+			<key>Comment</key>
+			<string>Latest known available verson.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>S32</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+		<key>SinguLastKnownAlphaBuild</key>
+		<map>
+			<key>Comment</key>
+			<string>Latest known available verson.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>S32</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
 		<key>SinguMotionResetsCamera</key>
 		<map>
 			<key>Comment</key>
@@ -872,6 +971,98 @@
 			<string>Boolean</string>
 			<key>Value</key>
 			<boolean>1</boolean>
+		</map>
+		<key>SinguMotionResetsCameraReset</key>
+		<map>
+			<key>Comment</key>
+			<string>Disable for the behavior Liru intended SinguMotionResetsCamera to have, wherein it doesn't reset every time you press escape, teleport, or whatever else! So you can walk around and your camera won't reset at all like it was  meant to be.
+RIP Latif Khalifa.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>1</boolean>
+		</map>
+		<key>SinguOwnerSayAsErrors</key>
+		<map>
+			<key>Comment</key>
+			<string>llOwnerSay will show up in the script error console instead of in chat.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>0</boolean>
+		</map>
+		<key>SinguPostProcessDefault</key>
+		<map>
+			<key>Comment</key>
+			<string>Default post process preset, changing this will change your active preset</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>String</string>
+			<key>Value</key>
+			<string>Default</string>
+		</map>
+		<key>SinguReplaceLinks</key>
+		<map>
+			<key>Comment</key>
+			<string>Whether or not to visually replace special links like SLURLs with labels where applicable.
+While having this on allows people to mislead you with links that look like other links, it also allows you to use SLURLs that appear as people's names and increasingly more scripts use this to run faster.
+You can always select the text, right click and select Copy Raw to copy the hidden contents of the link.
+Changing this setting only affects new text.</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<boolean>1</boolean>
+		</map>
+		<key>SupportChatDisplayBuild</key>
+		<map>
+			<key>Comment</key>
+			<string>Whether or not to display your current build (and its channel indicator) when you speak in identified support group chats</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>S32</string>
+			<key>Value</key>
+			<boolean>-1</boolean>
+		</map>
+		<key>WarnRecommendedUpdate</key>
+		<map>
+			<key>Comment</key>
+			<string>Enables recommended update notification dialog</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<integer>1</integer>
+		</map>
+		<key>WarnUrgentUpdate</key>
+		<map>
+			<key>Comment</key>
+			<string>Enables critical update notification dialog</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<integer>1</integer>
+		</map>
+		<key>WarnUrgentUpdateModal</key>
+		<map>
+			<key>Comment</key>
+			<string>Enables critical update modal dialog</string>
+			<key>Persist</key>
+			<integer>1</integer>
+			<key>Type</key>
+			<string>Boolean</string>
+			<key>Value</key>
+			<integer>1</integer>
 		</map>
 		<key>UseWebProfiles</key>
 		<map>
@@ -951,6 +1142,61 @@
       <key>Value</key>
       <real>3.5</real>
     </map>
+    <key>EmergencyTeleportSeconds</key>
+    <map>
+      <key>Comment</key>
+      <string>The remaining time left in seconds when to execute an emergency teleport out of a restarting region.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>U32</string>
+      <key>Value</key>
+      <integer>20</integer>
+    </map>
+    <key>LiruEnableWIPUI</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to enable UI components that probably don't work yet.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
+    <key>LiruFlashWhenMinimized</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to flash the taskbar when a message comes in while minimized.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruReceivedItemsNotify</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to spawn a notification in addition to the chat message when you receive items from the marketplace.</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
+    <key>LiruUseMarkedColor</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not to use the color of marks done on radar and minimap to color tags and chat from those individuals</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>1</integer>
+    </map>
     <key>OBJExportNotifyFailed</key>
     <map>
       <key>Comment</key>
@@ -984,6 +1230,17 @@
       <key>Value</key>
       <integer>0</integer>
     </map>
+    <key>SinguAlwaysUnderlineLinks</key>
+    <map>
+      <key>Comment</key>
+      <string>Enable to always underline new links in text editors (and any you hover over after enabling this)</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <integer>0</integer>
+    </map>
     <key>SingularitySplashPagePrefix</key>
     <map>
       <key>Comment</key>
@@ -993,7 +1250,7 @@
       <key>Type</key>
       <string>String</string>
       <key>Value</key>
-      <string>http://singularity-viewer.github.io</string>
+      <string></string>
     </map>
     <key>SingularitySplashPagePath</key>
     <map>
@@ -1018,6 +1275,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAboutLand</key>
     <map>
@@ -1029,6 +1288,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAboutRegion</key>
     <map>
@@ -1040,6 +1301,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleActiveSpeakers</key>
     <map>
@@ -1051,6 +1314,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAlwaysRun</key>
     <map>
@@ -1062,6 +1327,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAnimsExplorer</key>
     <map>
@@ -1073,6 +1340,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAO</key>
     <map>
@@ -1084,6 +1353,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAppearance</key>
     <map>
@@ -1095,6 +1366,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAreaSearch</key>
     <map>
@@ -1106,6 +1379,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAssetBlacklist</key>
     <map>
@@ -1117,6 +1392,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAutoReplace</key>
     <map>
@@ -1128,6 +1405,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleAvatar</key>
     <map>
@@ -1139,6 +1418,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleBeacons</key>
     <map>
@@ -1150,6 +1431,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleBuild</key>
     <map>
@@ -1161,6 +1444,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleBuyCurrency</key>
     <map>
@@ -1172,6 +1457,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleBuyLand</key>
     <map>
@@ -1183,6 +1470,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleCameraControls</key>
     <map>
@@ -1194,6 +1483,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleChatbar</key>
     <map>
@@ -1205,6 +1496,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleChatHistory</key>
     <map>
@@ -1216,6 +1509,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleCommunicate</key>
     <map>
@@ -1227,6 +1522,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleCommunicateIM</key>
     <map>
@@ -1238,6 +1535,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleComplaintReporter</key>
     <map>
@@ -1249,6 +1548,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDayCycle</key>
     <map>
@@ -1260,6 +1561,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDebugAvatar</key>
     <map>
@@ -1271,6 +1574,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDebugConsole</key>
     <map>
@@ -1282,6 +1587,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDebugSettings</key>
     <map>
@@ -1293,6 +1600,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDestinations</key>
     <map>
@@ -1304,6 +1613,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleDisplayName</key>
     <map>
@@ -1315,6 +1626,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleEditUI</key>
     <map>
@@ -1326,6 +1639,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleEnvSettings</key>
     <map>
@@ -1337,6 +1652,21 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>ToolbarVisibleExperiences</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not the button for the experiences floater is on the toolbar</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleFastTimers</key>
     <map>
@@ -1348,6 +1678,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleFly</key>
     <map>
@@ -1359,6 +1691,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleFontTest</key>
     <map>
@@ -1370,6 +1704,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleFrameConsole</key>
     <map>
@@ -1381,6 +1717,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleFriends</key>
     <map>
@@ -1392,6 +1730,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleGestures</key>
     <map>
@@ -1403,6 +1743,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleGodTools</key>
     <map>
@@ -1414,6 +1756,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleGridOptions</key>
     <map>
@@ -1425,6 +1769,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleGroups</key>
     <map>
@@ -1436,6 +1782,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleGroupTitles</key>
     <map>
@@ -1447,6 +1795,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <!-- Singu TODO: Re-implement f1 help.
     <key>ToolbarVisibleHelp</key>
@@ -1459,6 +1809,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     -->
     <key>ToolbarVisibleHelpTutorial</key>
@@ -1471,6 +1823,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleHTTPConsole</key>
     <map>
@@ -1482,6 +1836,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleInspect</key>
     <map>
@@ -1493,6 +1849,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleInventory</key>
     <map>
@@ -1504,6 +1862,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleInventoryFavs</key>
     <map>
@@ -1515,6 +1875,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleInventoryOutfits</key>
     <map>
@@ -1526,6 +1888,21 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>ToolbarVisibleInventoryReceivedItems</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not the button for received items is on the toolbar</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleJoystick</key>
     <map>
@@ -1537,17 +1914,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
-    </map>
-    <key>ToolbarVisibleLagMeter</key>
-    <map>
-      <key>Comment</key>
-      <string>Whether or not the button for lag meter is on the toolbar</string>
-      <key>Persist</key>
+      <key>IsCOA</key>
       <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <boolean>0</boolean>
     </map>
     <key>ToolbarVisibleLocalAssets</key>
     <map>
@@ -1559,6 +1927,34 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>ToolbarVisibleMarketplace</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not the button for marketplace is on the toolbar</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
+    </map>
+    <key>ToolbarVisibleMarketplaceListings</key>
+    <map>
+      <key>Comment</key>
+      <string>Whether or not the button for marketplace listings is on the toolbar</string>
+      <key>Persist</key>
+      <integer>1</integer>
+      <key>Type</key>
+      <string>Boolean</string>
+      <key>Value</key>
+      <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMeanEvents</key>
     <map>
@@ -1570,6 +1966,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMediaFilter</key>
     <map>
@@ -1581,6 +1979,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMediaTicker</key>
     <map>
@@ -1592,6 +1992,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMemLeak</key>
     <map>
@@ -1603,6 +2005,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMessageLog</key>
     <map>
@@ -1614,6 +2018,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMiniMap</key>
     <map>
@@ -1625,6 +2031,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMouselook</key>
     <map>
@@ -1636,6 +2044,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMovementControls</key>
     <map>
@@ -1647,6 +2057,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMuteList</key>
     <map>
@@ -1658,6 +2070,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleMyLand</key>
     <map>
@@ -1669,17 +2083,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
-    </map>
-    <key>ToolbarVisibleOutbox</key>
-    <map>
-      <key>Comment</key>
-      <string>Whether or not the button for outbox is on the toolbar</string>
-      <key>Persist</key>
+      <key>IsCOA</key>
       <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <boolean>0</boolean>
     </map>
     <key>ToolbarVisibleNotificationsConsole</key>
     <map>
@@ -1691,17 +2096,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
-    </map>
-    <key>ToolbarVisibleOutbox</key>
-    <map>
-      <key>Comment</key>
-      <string>Whether or not the button for the merchant outbox is on the toolbar</string>
-      <key>Persist</key>
+      <key>IsCOA</key>
       <integer>1</integer>
-      <key>Type</key>
-      <string>Boolean</string>
-      <key>Value</key>
-      <boolean>0</boolean>
     </map>
     <key>ToolbarVisibleOutfit</key>
     <map>
@@ -1713,6 +2109,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisiblePathfindingCharacters</key>
     <map>
@@ -1724,6 +2122,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisiblePathfindingLinksets</key>
     <map>
@@ -1735,6 +2135,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisiblePermPrefs</key>
     <map>
@@ -1746,6 +2148,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisiblePostProcess</key>
     <map>
@@ -1757,6 +2161,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisiblePreferences</key>
     <map>
@@ -1768,6 +2174,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleQuit</key>
     <map>
@@ -1779,6 +2187,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleRadar</key>
     <map>
@@ -1790,6 +2200,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleRegionDebugConsole</key>
     <map>
@@ -1801,6 +2213,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleRegionTracker</key>
     <map>
@@ -1812,6 +2226,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleScriptErrors</key>
     <map>
@@ -1823,6 +2239,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleScriptInfo</key>
     <map>
@@ -1834,6 +2252,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleSearch</key>
     <map>
@@ -1845,6 +2265,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleSit</key>
     <map>
@@ -1856,6 +2278,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleSnapshot</key>
     <map>
@@ -1867,6 +2291,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleSoundExplorer</key>
     <map>
@@ -1878,6 +2304,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleStatBar</key>
     <map>
@@ -1889,6 +2317,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleTeleportHistory</key>
     <map>
@@ -1900,6 +2330,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleTest</key>
     <map>
@@ -1911,6 +2343,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleTextureCategoryConsole</key>
     <map>
@@ -1922,6 +2356,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleTextureConsole</key>
     <map>
@@ -1933,6 +2369,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleTextureSizeConsole</key>
     <map>
@@ -1944,6 +2382,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleToolbarPrefs</key>
     <map>
@@ -1955,6 +2395,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleVelocity</key>
     <map>
@@ -1966,6 +2408,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleVoiceEffect</key>
     <map>
@@ -1977,6 +2421,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleWaterSettings</key>
     <map>
@@ -1988,6 +2434,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleWeb</key>
     <map>
@@ -1999,6 +2447,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleWindlight</key>
     <map>
@@ -2010,6 +2460,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleWorldMap</key>
     <map>
@@ -2021,6 +2473,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>1</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <!-- [RLVa:LF] -->
     <key>ToolbarVisibleRLVLocks</key>
@@ -2033,6 +2487,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleRLVRestrictions</key>
     <map>
@@ -2044,6 +2500,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <key>ToolbarVisibleRLVStrings</key>
     <map>
@@ -2055,6 +2513,8 @@
       <string>Boolean</string>
       <key>Value</key>
       <boolean>0</boolean>
+      <key>IsCOA</key>
+      <integer>1</integer>
     </map>
     <!-- [/RLVa:LF] -->
     </map>

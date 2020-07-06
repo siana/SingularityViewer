@@ -45,29 +45,50 @@
       <on_click function="List.InviteToGroup"/>
       <on_visible function="List.EnableAnySelected"/>
     </menu_item_call>
+    <menu_item_call label="Follow" name="Follow">
+      <on_click function="List.Follow"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
+    <menu_item_call label="Move To" name="Move To">
+      <on_click function="List.GoTo"/>
+      <on_visible function="List.EnableSingleSelected"/>
+    </menu_item_call>
     <menu_item_call label="Offer Teleport" name="Offer Teleport">
       <on_click function="List.OfferTeleport"/>
-      <on_enable function="List.EnableAnySelected"/>
+      <on_visible function="List.EnableSingleSelected"/>
     </menu_item_call>
     <menu_item_call label="Teleport To" name="Teleport To" shortcut="control|Enter">
-      <on_click function="Radar.TeleportTo"/>
-      <on_enable function="List.EnableSingleSelected"/>
+      <on_click function="List.TeleportTo"/>
+      <on_visible function="List.EnableSingleSelected"/>
     </menu_item_call>
     <menu_item_call label="Request Teleport" name="Request Teleport">
       <on_click function="List.RequestTeleport"/>
       <on_visible function="List.EnableSingleSelected"/>
     </menu_item_call>
+    <menu_item_call label="Find on Map" name="Find on Map">
+      <on_click function="List.Stalk"/>
+      <on_visible function="List.Stalkable"/>
+    </menu_item_call>
     <menu_item_call label="Share" name="Share">
       <on_click function="List.Share"/>
       <on_visible function="List.EnableSingleSelected"/>
     </menu_item_call>
+    <menu_item_call label="Chat History" name="Chat History">
+      <on_click function="List.ShowLog"/>
+      <on_visible function="List.EnableAnySelected"/>
+    </menu_item_call>
     <menu_item_call label="Track/Untrack" name="Track/Untrack">
       <on_click function="Radar.Track"/>
-      <on_enable function="List.EnableSingleSelected"/>
+      <on_visible function="List.EnableAnySelected"/>
     </menu_item_call>
+    <menu_item_separator/>
     <menu_item_call label="Copy Key" name="Copy Key">
       <on_click function="List.CopyUUIDs"/>
-      <on_enable function="List.EnableAnySelected"/>
+      <on_visible function="List.EnableAnySelected"/>
+    </menu_item_call>
+    <menu_item_call label="Copy Names" name="Copy Names">
+      <on_click function="List.CopyNames"/>
+      <on_visible function="List.EnableAnySelected"/>
     </menu_item_call>
     <menu_item_call label="Copy SLURL" name="Copy SLURL">
       <on_click function="List.CopySLURL"/>
@@ -95,6 +116,27 @@
     </menu_item_call>
     <menu_item_call label="Focus Previous Marked" name="Focus Previous Marked">
       <on_click function="Radar.FocusPrev" userdata="1"/>
+    </menu_item_call>
+  </menu>
+  <menu name="Mark" label="Mark">
+    <menu_item_call label="Red" name="Red">
+      <on_click function="MiniMap.setred" />
+    </menu_item_call>
+    <menu_item_call label="Green" name="Green">
+      <on_click function="MiniMap.setgreen" />
+    </menu_item_call>
+    <menu_item_call label="Blue" name="Blue">
+      <on_click function="MiniMap.setblue" />
+    </menu_item_call>
+    <menu_item_call label="Yellow" name="Yellow">
+      <on_click function="MiniMap.setyellow" />
+    </menu_item_call>
+    <menu_item_call label="Custom..." name="Custom">
+      <on_click function="MiniMap.setcustom" />
+    </menu_item_call>
+    <menu_item_call label="Unmark" name="Unmark">
+      <on_click function="MiniMap.setunmark" />
+      <on_enable function="MiniMap.enableunmark" />
     </menu_item_call>
   </menu>
   <menu label="Alerts" name="Alerts" create_jump_keys="true">
@@ -172,10 +214,6 @@
     </menu_item_call>
   </menu>
   <menu label="Hide Columns" name="Hide Columns" create_jump_keys="true">
-    <menu_item_check label="Mark" name="Mark">
-      <on_click function="ToggleControl" userdata="RadarColumnMarkHidden"/>
-      <on_check control="RadarColumnMarkHidden"/>
-    </menu_item_check>
     <menu_item_check label="Position" name="Position">
       <on_click function="ToggleControl" userdata="RadarColumnPositionHidden"/>
       <on_check control="RadarColumnPositionHidden"/>
@@ -191,6 +229,10 @@
     <menu_item_check label="Voice" name="Voice">
       <on_click function="ToggleControl" userdata="RadarColumnVoiceHidden"/>
       <on_check control="RadarColumnVoiceHidden"/>
+    </menu_item_check>
+    <menu_item_check label="Notes" name="Notes">
+      <on_click function="ToggleControl" userdata="RadarColumnNotesHidden"/>
+      <on_check control="RadarColumnNotesHidden"/>
     </menu_item_check>
     <menu_item_check label="Age" name="Age">
       <on_click function="ToggleControl" userdata="RadarColumnAgeHidden"/>

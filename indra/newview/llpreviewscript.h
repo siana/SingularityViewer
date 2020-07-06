@@ -81,8 +81,8 @@ public:
 	
 	void			initMenu();
 
-	virtual void	draw();
-	/*virtual*/	BOOL	postBuild();
+	void			draw() override;
+	BOOL			postBuild() override;
 	BOOL			canClose();
 	void			setEnableEditing(bool enable);
 
@@ -104,7 +104,6 @@ public:
 	static void		onClickForward(void* userdata);
 	static void		onBtnInsertSample(void*);
 	static void		onBtnInsertFunction(LLUICtrl*, void*);
-
 	// Singu TODO: modernize the menu callbacks and get rid of/update this giant block of static functions
 	static BOOL		hasChanged(void* userdata);
 	static void		onBtnSave(void*);
@@ -127,7 +126,9 @@ public:
 	static BOOL		enableSelectAllMenu(void* userdata);
 	static BOOL		enableDeselectMenu(void* userdata);
 
-	virtual bool	hasAccelerators() const { return true; }
+	bool			hasAccelerators() const override { return true; }
+	LLUUID			getAssociatedExperience() const;
+	void			setAssociatedExperience(const LLUUID& experience_id);
 
 private:
 	static bool		onHelpWebDialog(const LLSD& notification, const LLSD& response);
@@ -139,7 +140,7 @@ private:
 
 	void selectFirstError();
 
-	virtual BOOL handleKeyHere(KEY key, MASK mask);
+	BOOL handleKeyHere(KEY key, MASK mask) override;
 	
 	void enableSave(BOOL b) {mEnableSave = b;}
 
@@ -169,6 +170,7 @@ private:
 	BOOL			mEnableSave;
 	BOOL			mHasScriptData;
 	LLLiveLSLFile*	mLiveFile;
+	LLUUID			mAssociatedExperience;
 
 	LLScriptEdContainer* mContainer; // parent view
 
@@ -194,41 +196,37 @@ protected:
 	bool			onExternalChange(const std::string& filename);
 	virtual void	saveIfNeeded(bool sync = true) = 0;
 
-	LLTextEditor* getEditor() { return mScriptEd->mEditor; }
-	/*virtual*/ const char *getTitleName() const { return "Script"; }
+	LLTextEditor* getEditor() const { return mScriptEd->mEditor; }
+	/*virtual*/ const char *getTitleName() const override { return "Script"; }
 	// <edit>
-	/*virtual*/ BOOL canSaveAs() const;
-	/*virtual*/ void saveAs();
+	/*virtual*/ BOOL canSaveAs() const override;
+	/*virtual*/ void saveAs() override;
 	void saveAs_continued(AIFilePicker* filepicker);
 	// </edit>
 
 	LLScriptEdCore*		mScriptEd;
 };
 
-// Used to view and edit a LSL from your inventory.
-class LLPreviewLSL : public LLScriptEdContainer
+// Used to view and edit an LSL script from your inventory.
+class LLPreviewLSL final : public LLScriptEdContainer
 {
 public:
 	LLPreviewLSL(const std::string& name, const LLRect& rect, const std::string& title, const LLUUID& item_uuid );
 	virtual void callbackLSLCompileSucceeded();
 	virtual void callbackLSLCompileFailed(const LLSD& compile_errors);
 
-	/*virtual*/ BOOL postBuild();
+	/*virtual*/ BOOL postBuild() override;
+
 
 protected:
-	virtual BOOL canClose();
+	BOOL canClose() override;
 	void closeIfNeeded();
 
-	virtual void loadAsset();
-	/*virtual*/ void saveIfNeeded(bool sync = true);
+	void loadAsset() override;
+	/*virtual*/ void saveIfNeeded(bool sync = true) override;
 	void uploadAssetViaCaps(const std::string& url,
 							const std::string& filename, 
 							const LLUUID& item_id);
-#if 0 //Client side compiling disabled.
-	void uploadAssetLegacy(const std::string& filename,
-							const LLUUID& item_id,
-							const LLTransactionID& tid);
-#endif
 
 	static void onSearchReplace(void* userdata);
 	static void onLoad(void* userdata);
@@ -237,10 +235,6 @@ protected:
 	static void onLoadComplete(LLVFS *vfs, const LLUUID& uuid,
 							   LLAssetType::EType type,
 							   void* user_data, S32 status, LLExtStat ext_status);
-#if 0 //Client side compiling disabled.
-	static void onSaveComplete(const LLUUID& uuid, void* user_data, S32 status, LLExtStat ext_status);
-	static void onSaveBytecodeComplete(const LLUUID& asset_uuid, void* user_data, S32 status, LLExtStat ext_status);
-#endif
 
 protected:
 	static void* createScriptEdPanel(void* userdata);
@@ -254,8 +248,8 @@ protected:
 };
 
 
-// Used to view and edit an LSL that is attached to an object.
-class LLLiveLSLEditor : public LLScriptEdContainer
+// Used to view and edit an LSL script that is attached to an object.
+class LLLiveLSLEditor final : public LLScriptEdContainer
 {
 	friend class LLLiveLSLFile;
 public: 
@@ -269,29 +263,35 @@ public:
 											bool is_script_running);
 	virtual void callbackLSLCompileFailed(const LLSD& compile_errors);
 
-	/*virtual*/ BOOL postBuild();
+	/*virtual*/ BOOL postBuild() override;
 
 	void setIsNew() { mIsNew = TRUE; }
 
-private:
-	virtual BOOL canClose();
-	void closeIfNeeded();
-	virtual void draw();
+	static void setAssociatedExperience(LLHandle<LLLiveLSLEditor> editor, const LLSD& experience);
+	static void onToggleExperience(LLUICtrl* ui, void* userdata);
+	static void onViewProfile(LLUICtrl* ui, void* userdata);
 
-	virtual void loadAsset();
+	void setExperienceIds(const LLSD& experience_ids);
+	void buildExperienceList();
+	void updateExperiencePanel();
+	void requestExperiences();
+	void experienceChanged();
+	void addAssociatedExperience(const LLSD& experience);
+
+private:
+	BOOL canClose() override;
+	void closeIfNeeded();
+	void draw() override;
+
+	void loadAsset() override;
 	void loadAsset(BOOL is_new);
-	/*virtual*/ void saveIfNeeded(bool sync = true);
+	/*virtual*/ void saveIfNeeded(bool sync = true) override;
 	void uploadAssetViaCaps(const std::string& url,
-							const std::string& filename, 
+							const std::string& filename,
 							const LLUUID& task_id,
 							const LLUUID& item_id,
-							BOOL is_running);
-#if 0 //Client side compiling disabled.
-	void uploadAssetLegacy(const std::string& filename,
-						   LLViewerObject* object,
-						   const LLTransactionID& tid,
-						   BOOL is_running);
-#endif
+							BOOL is_running,
+							const LLUUID& experience_public_id);
 	BOOL monoChecked() const;
 
 
@@ -302,10 +302,6 @@ private:
 	static void onLoadComplete(LLVFS *vfs, const LLUUID& asset_uuid,
 							   LLAssetType::EType type,
 							   void* user_data, S32 status, LLExtStat ext_status);
-#if 0 //Client side compiling disabled.
-	static void onSaveTextComplete(const LLUUID& asset_uuid, void* user_data, S32 status, LLExtStat ext_status);
-	static void onSaveBytecodeComplete(const LLUUID& asset_uuid, void* user_data, S32 status, LLExtStat ext_status);
-#endif
 	static void onRunningCheckboxClicked(LLUICtrl*, void* userdata);
 	static void onReset(void* userdata);
 
@@ -316,6 +312,8 @@ private:
 	static void* createScriptEdPanel(void* userdata);
 
 	static void	onMonoCheckboxClicked(LLUICtrl*, void* userdata);
+
+    static void receiveExperienceIds(const struct LLCoroResponder& responder, LLHandle<LLLiveLSLEditor> parent);
 
 private:
 	bool mIsNew;
@@ -330,9 +328,16 @@ private:
 	S32 mPendingUploads;
 
 	BOOL getIsModifiable() const { return mIsModifiable; } // Evaluated on load assert
-	
+
 	LLCheckBoxCtrl*	mMonoCheckbox;
 	BOOL mIsModifiable;
+
+
+	LLComboBox*		mExperiences;
+	LLCheckBoxCtrl*	mExperienceEnabled;
+	LLSD			mExperienceIds;
+
+	LLHandle<LLFloater> mExperienceProfile;
 };
 
 #endif  // LL_LLPREVIEWSCRIPT_H

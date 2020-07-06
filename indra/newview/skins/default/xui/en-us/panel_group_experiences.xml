@@ -1,0 +1,6 @@
+<panel border="true" bottom="0" left="1" height="470" mouse_opaque="true" name="experiences_tab" label="Experiences" follows="all" width="418">
+  <string name="help_text">Experiences associated with the group are listed here, if there are any.</string>
+  <button bottom="-24" height="16" label="?" left="391" name="help_button" width="20"/>
+  <text bottom="-20" follows="top|left" font="SansSerifBig" height="16" left="7" width="150" name="panel_header">Group Experiences</text>
+  <panel bottom_delta="-472" height="464" width="409" left="5" follows="all" filename="panel_experiences.xml"/>
+</panel>

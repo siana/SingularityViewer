@@ -381,10 +381,9 @@ std::string LLSDArgsMapper::formatlist(const LLSD& list)
 {
     std::ostringstream out;
     const char* delim = "";
-    for (LLSD::array_const_iterator li(list.beginArray()), lend(list.endArray());
-         li != lend; ++li)
+    for (auto const& entry : list.array())
     {
-        out << delim << li->asString();
+        out << delim << entry.asString();
         delim = ", ";
     }
     return out.str();
@@ -449,7 +448,7 @@ struct LLEventDispatcher::ParamsDispatchEntry: public LLEventDispatcher::Dispatc
     virtual void call(const std::string& desc, const LLSD& event) const
     {
         LLSDArgsSource src(desc, event);
-        mInvoker(boost::bind(&LLSDArgsSource::next, boost::ref(src)));
+        mInvoker(std::bind(&LLSDArgsSource::next, std::ref(src)));
     }
 };
 
@@ -494,10 +493,9 @@ struct LLEventDispatcher::MapParamsDispatchEntry: public LLEventDispatcher::Para
     {
         // Build the set of all param keys, then delete the ones that are
         // optional. What's left are the ones that are required.
-        for (LLSD::array_const_iterator pi(params.beginArray()), pend(params.endArray());
-             pi != pend; ++pi)
+        for (auto const& entry : params.array())
         {
-            mRequired[pi->asString()] = LLSD();
+            mRequired[entry.asString()] = LLSD();
         }
 
         if (defaults.isArray() || defaults.isUndefined())

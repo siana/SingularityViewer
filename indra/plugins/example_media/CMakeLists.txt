@@ -28,14 +28,6 @@ include_directories(
 
 ### media_plugin_example
 
-if(NOT WORD_SIZE EQUAL 32)
-	if(WINDOWS)
-		# add_definitions(/FIXED:NO)
-	else(WINDOWS) # not windows therefore gcc LINUX and DARWIN
-		add_definitions(-fPIC)
-	endif(WINDOWS)
-endif (NOT WORD_SIZE EQUAL 32)
-
 set(media_plugin_example_SOURCE_FILES
     media_plugin_example.cpp
     )
@@ -45,18 +37,14 @@ add_library(media_plugin_example
     ${media_plugin_example_SOURCE_FILES}
 )
 
+set_target_properties(media_plugin_example PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
 target_link_libraries(media_plugin_example
   ${LLPLUGIN_LIBRARIES}
   ${MEDIA_PLUGIN_BASE_LIBRARIES}
   ${LLCOMMON_LIBRARIES}
   ${EXAMPLE_PLUGIN_LIBRARIES}
   ${PLUGIN_API_WINDOWS_LIBRARIES}
-)
-
-add_dependencies(media_plugin_example
-  ${LLPLUGIN_LIBRARIES}
-  ${MEDIA_PLUGIN_BASE_LIBRARIES}
-  ${LLCOMMON_LIBRARIES}
 )
 
 if (WINDOWS)

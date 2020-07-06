@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="active_speakers" title="Persone con voice attivo">
 	<panel name="active_speakers_panel">
-		<scroll_list name="speakers_list">
+		<name_list name="speakers_list">
 			<column label="Nome" name="speaker_name"/>
-		</scroll_list>
+		</name_list>
 		<panel name="volume_container">
 			<button label="" name="mute_btn" tool_tip="Muta il voice di questa persona"/>
 		</panel>

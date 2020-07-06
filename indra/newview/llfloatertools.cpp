@@ -538,36 +538,74 @@ void LLFloaterTools::refresh()
 	else
 #endif
 	{
-		F32 link_cost  = LLSelectMgr::getInstance()->getSelection()->getSelectedLinksetCost();
-		S32 link_count = LLSelectMgr::getInstance()->getSelection()->getRootObjectCount();
-
-		// Added in Link Num value -HgB
-		S32 prim_count = LLSelectMgr::getInstance()->getEditSelection()->getObjectCount();
-		std::string value_string;
-		bool edit_linked(gSavedSettings.getBOOL("EditLinkedParts"));
-		if (edit_linked && prim_count == 1) //Selecting a single prim in "Edit Linked" mode, show link number
+		auto selection = LLSelectMgr::getInstance()->getSelection();
+		F32 link_cost  = selection->getSelectedLinksetCost();
+		S32 link_count = selection->getRootObjectCount();
+		S32 prim_count = selection->getObjectCount();
+		auto child = getChild<LLUICtrl>("link_num_obj_count");
+		auto selected_face = -1;
+		if (auto node = prim_count == 1 ? *selection->begin() : nullptr)
+		//for (const auto& node : selection) // All selected objects
 		{
-			link_cost = LLSelectMgr::getInstance()->getSelection()->getSelectedObjectCost();
-			childSetTextArg("link_num_obj_count", "[DESC]", std::string("Link number:"));
-
-			LLViewerObject* selected = LLSelectMgr::getInstance()->getSelection()->getFirstObject();
-			if (selected && selected->getRootEdit())
+			// TODO: Count selected faces? What use is there for this?
+			if (node->getTESelectMask() == 0xFFFFFFFF) // All faces selected
 			{
-				LLViewerObject::child_list_t children = selected->getRootEdit()->getChildren();
-				if (children.empty())
+				selected_face = -2; // Multiple
+			}
+			if (const auto& obj = node->getObject()) // This node's object
+			{
+				//if (!obj->isSelected()) continue;
+				const auto& numTEs = obj->getNumTEs();
+				for (S32 te = 0; selected_face != -2 && te < numTEs; ++te) // Faces
 				{
-					value_string = "0"; // An unlinked prim is "link 0".
-				}
-				else
-				{
-					children.push_front(selected->getRootEdit()); // need root in the list too
-					S32 index = 1;
-					for (LLViewerObject::child_list_t::iterator iter = children.begin(); iter != children.end(); ++iter, ++index)
+					if (!node->isTESelected(te)) continue;
+					if (selected_face != -1)
 					{
-						if ((*iter)->isSelected())
+						selected_face = -2; // Multiple
+					}
+					else selected_face = te;
+				}
+			}
+			//if (selected_face == -2) break;
+		}
+		// Added in Link Num value -HgB
+		std::string value_string;
+		bool edit_linked(mCheckSelectIndividual->getValue());
+		if (mRadioSelectFace->getValue() || selected_face > 0) // In select faces mode, show either multiple or the face number, otherwise only show if single face selected
+		{
+			child->setTextArg("[DESC]", getString("Selected Face:"));
+			if (selected_face < 0)
+			{
+				value_string = LLTrans::getString(selected_face == -1 && !prim_count ? "None" : "multiple_textures");
+			}
+			else LLResMgr::getInstance()->getIntegerString(value_string, selected_face);
+		}
+		else if (edit_linked && prim_count == 1) //Selecting a single prim in "Edit Linked" mode, show link number
+		{
+			link_cost = selection->getSelectedObjectCost();
+			child->setTextArg("[DESC]", getString("Link number:"));
+
+			if (LLViewerObject* selected = selection->getFirstObject())
+			{
+				if (auto root = selected->getRootEdit())
+				{
+					LLViewerObject::child_list_t children = root->getChildren();
+					if (children.empty())
+					{
+						value_string = "0"; // An unlinked prim is "link 0".
+					}
+					else
+					{
+						children.push_front(selected->getRootEdit()); // need root in the list too
+						S32 index = 1;
+						for (const auto& child : children)
 						{
-							LLResMgr::getInstance()->getIntegerString(value_string, index);
-							break;
+							if (child->isSelected())
+							{
+								LLResMgr::getInstance()->getIntegerString(value_string, index);
+								break;
+							}
+							++index;
 						}
 					}
 				}
@@ -575,16 +613,16 @@ void LLFloaterTools::refresh()
 		}
 		else if (edit_linked)
 		{
-			childSetTextArg("link_num_obj_count", "[DESC]", std::string("Selected prims:"));
+			child->setTextArg("[DESC]", getString("Selected prims:"));
 			LLResMgr::getInstance()->getIntegerString(value_string, prim_count);
-			link_cost = LLSelectMgr::getInstance()->getSelection()->getSelectedObjectCost();
+			link_cost = selection->getSelectedObjectCost();
 		}
 		else
 		{
-			childSetTextArg("link_num_obj_count", "[DESC]", std::string("Selected objects:"));
+			child->setTextArg("[DESC]", getString("Selected objects:"));
 			LLResMgr::getInstance()->getIntegerString(value_string, link_count);
 		}
-		childSetTextArg("link_num_obj_count", "[NUM]", value_string);
+		child->setTextArg("[NUM]", value_string);
 
 		/* Singu Note: We're not using this yet because we have no place to put it
 		LLCrossParcelFunctor func;
@@ -610,18 +648,17 @@ void LLFloaterTools::refresh()
 			}
 		}
 
-		LLStringUtil::format_map_t selection_args;
-		selection_args["OBJ_COUNT"] = llformat("%.1d", prim_count);
-		selection_args["LAND_IMPACT"] = llformat(edit_linked ? "%.2f" : "%.0f", link_cost);
+		auto sel_count = getChild<LLTextBox>("selection_count");
+		bool have_selection = !selection->isEmpty();
+		if (have_selection)
+		{
+			LLStringUtil::format_map_t selection_args;
+			selection_args["OBJ_COUNT"] = llformat("%.1d", prim_count);
+			selection_args["LAND_IMPACT"] = llformat(edit_linked ? "%.2f" : "%.0f", link_cost);
 
-		std::ostringstream selection_info;
-
-		selection_info << getString("status_selectcount", selection_args);
-
-		getChild<LLTextBox>("selection_count")->setText(selection_info.str());
-
-		bool have_selection = !LLSelectMgr::getInstance()->getSelection()->isEmpty();
-		childSetVisible("selection_count",  have_selection);
+			sel_count->setText(getString("status_selectcount", selection_args));
+		}
+		sel_count->setVisible(have_selection);
 		//childSetVisible("remaining_capacity", have_selection);
 		childSetVisible("selection_empty", !have_selection);
 	}
@@ -1346,8 +1383,8 @@ void LLFloaterTools::getMediaState()
 		for ( ; iter != end; ++iter)
 		{
 			LLSelectNode* node = *iter;
-			LLVOVolume* object = dynamic_cast<LLVOVolume*>(node->getObject());
-			if (NULL != object)
+			LLVOVolume* object = node ? node->getObject()->asVolume() : nullptr;
+			if (nullptr != object)
 			{
 				if (!object->permModify())
 				{

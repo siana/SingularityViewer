@@ -100,8 +100,10 @@ public:
 	// LLCheckBoxCtrl interface
 	virtual BOOL		toggle()				{ return mButton->toggleState(); }		// returns new state
 
-	void				setEnabledColor( const LLColor4 &color ) { mTextEnabledColor = color; }
-	void				setDisabledColor( const LLColor4 &color ) { mTextDisabledColor = color; }
+	void				setEnabledColor(const LLColor4 &color)    { mTextEnabledColor = color; setEnabled(getEnabled()); }
+	void				setDisabledColor( const LLColor4 &color ) { mTextDisabledColor = color; setEnabled(getEnabled()); }
+
+	void				setButtonColor(const LLColor4 &color)     { if (mButton) mButton->setColor(color); }
 
 	void				setLabel( const LLStringExplicit& label );
 	std::string			getLabel() const;

@@ -35,6 +35,7 @@
 
 // viewer includes
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llcompilequeue.h"
 #include "llfloaterbuycurrency.h"
 #include "statemachine/aifilepicker.h"
@@ -59,7 +60,6 @@
 
 // library includes
 #include "lldir.h"
-#include "lleconomy.h"
 #include "llfocusmgr.h"
 #include "llnotificationsutil.h"
 #include "llscrolllistctrl.h"
@@ -223,6 +223,27 @@ LLAssetUploadResponder::~LLAssetUploadResponder()
 	}
 }
 
+void on_failure(const LLAssetType::EType& mAssetType, const LLSD& mPostData, const LLSD& args)
+{
+	switch (mAssetType)
+	{
+	case LLAssetType::AT_NOTECARD:
+	{
+		if (LLPreviewNotecard* nc = (LLPreviewNotecard*)LLPreview::find(mPostData["item_id"]))
+			nc->setEnabled(true);
+		break;
+	}
+	case LLAssetType::AT_SCRIPT:
+	case LLAssetType::AT_LSL_TEXT:
+	case LLAssetType::AT_LSL_BYTECODE:
+	{
+		if (LLPreviewLSL* lsl = (LLPreviewLSL*)LLPreview::find(mPostData["item_id"]))
+			lsl->callbackLSLCompileFailed(LLSD().with(0, "Upload Failure:").with(1, args["REASON"]));
+		break;
+	}
+	default: break;
+	}
+}
 // virtual
 void LLAssetUploadResponder::httpFailure()
 {
@@ -245,6 +266,7 @@ void LLAssetUploadResponder::httpFailure()
 			LLNotificationsUtil::add("CannotUploadReason", args);
 			break;
 	}
+	on_failure(mAssetType, mPostData, args);
 	LLUploadDialog::modalUploadFinished();
 }
 
@@ -304,7 +326,11 @@ void LLAssetUploadResponder::uploadFailure(const LLSD& content)
 	// deal with L$ errors
 	if (reason == "insufficient funds")
 	{
-		S32 price = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
+		S32 price;
+		if (content.has("upload_price"))
+			price = content["upload_price"];
+		else
+			LLAgentBenefitsMgr::current().findUploadCost(mAssetType, price);
 		LLFloaterBuyCurrency::buyCurrency("Uploading costs", price);
 	}
 	else
@@ -313,6 +339,7 @@ void LLAssetUploadResponder::uploadFailure(const LLSD& content)
 		args["FILE"] = (mFileName.empty() ? mVFileID.asString() : mFileName);
 		args["REASON"] = content["message"].asString();
 		LLNotificationsUtil::add("CannotUploadReason", args);
+		on_failure(mAssetType, mPostData, args);
 	}
 }
 
@@ -367,13 +394,14 @@ void LLNewAgentInventoryResponder::uploadComplete(const LLSD& content)
 
 	// Update L$ and ownership credit information
 	// since it probably changed on the server
-	if (asset_type == LLAssetType::AT_TEXTURE ||
+	if (content.has("upload_price"))
+		expected_upload_cost = content["upload_price"];
+	else if (asset_type == LLAssetType::AT_TEXTURE ||
 		asset_type == LLAssetType::AT_SOUND ||
 		asset_type == LLAssetType::AT_ANIMATION ||
 		asset_type == LLAssetType::AT_MESH)
 	{
-		expected_upload_cost = 
-			LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
+		LLAgentBenefitsMgr::current().findUploadCost(asset_type, expected_upload_cost);
 	}
 
 	LL_INFOS() << "Adding " << content["new_inventory_item"].asUUID() << " "

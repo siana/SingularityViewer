@@ -307,11 +307,11 @@ void LLVOWLSky::restoreGL()
 	gPipeline.markRebuild(mDrawable, LLDrawable::REBUILD_ALL, TRUE);
 }
 
-static LLFastTimer::DeclareTimer FTM_GEO_SKY("Sky Geometry");
+static LLTrace::BlockTimerStatHandle FTM_GEO_SKY("Sky Geometry");
 
 BOOL LLVOWLSky::updateGeometry(LLDrawable * drawable)
 {
-	LLFastTimer ftm(FTM_GEO_SKY);
+	LL_RECORD_BLOCK_TIME(FTM_GEO_SKY);
 	LLStrider<LLVector3>	vertices;
 	LLStrider<LLVector2>	texCoords;
 	LLStrider<U16>			indices;

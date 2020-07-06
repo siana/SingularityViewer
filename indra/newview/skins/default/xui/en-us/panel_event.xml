@@ -49,10 +49,10 @@
 	     name="event_runby_label">
 		Run By:
 	</text>
-	<text bottom_delta="0" follows="top|left" font="SansSerif" left="120"
+	<name_box bottom_delta="0" follows="top|left" font="SansSerif" left="120"
 	     name="event_runby">
 		(none)
-	</text>
+	</name_box>
 	<text bottom_delta="-16" follows="top|left" font="SansSerif" left="20"
 	     name="event_location_label">
 		Location:

@@ -301,6 +301,13 @@ BOOL LLDragHandle::handleMouseUp(S32 x, S32 y, MASK mask)
 	return TRUE;
 }
 
+void LLDragHandle::setTextColor(const LLColor4& color)
+{
+	if (mTitleBox)
+	{
+		mTitleBox->setColor(color);
+	}
+}
 
 BOOL LLDragHandle::handleHover(S32 x, S32 y, MASK mask)
 {

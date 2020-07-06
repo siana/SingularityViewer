@@ -56,25 +56,22 @@ namespace LLViewerDisplayName
 	void doNothing() { }
 }
 
-class LLSetDisplayNameResponder : public LLHTTPClient::ResponderIgnoreBody
+class LLSetDisplayNameResponder final : public LLHTTPClient::ResponderIgnoreBody
 {
 	LOG_CLASS(LLSetDisplayNameResponder);
 private:
 	// only care about errors
-	/*virtual*/ void httpFailure()
+	void httpFailure() override
 	{
-		LL_WARNS() << dumpResponse() << LL_ENDL;
-		LLViewerDisplayName::sSetDisplayNameSignal(false, "", LLSD());
+        LLViewerDisplayName::sSetDisplayNameSignal(false, LLStringUtil::null, LLSD());
 		LLViewerDisplayName::sSetDisplayNameSignal.disconnect_all_slots();
 	}
 
-	/*virtual*/ char const* getName(void) const { return "LLSetDisplayNameResponder"; }
+	char const* getName() const override { return "LLSetDisplayNameResponder"; }
 };
 
 void LLViewerDisplayName::set(const std::string& display_name, const set_name_slot_t& slot)
 {
-	// TODO: simple validation here
-
 	LLViewerRegion* region = gAgent.getRegion();
 	llassert(region);
 	std::string cap_url = region->getCapability("SetDisplayName");
@@ -93,7 +90,7 @@ void LLViewerDisplayName::set(const std::string& display_name, const set_name_sl
 	// Our display name will be in cache before the viewer's UI is available
 	// to request a change, so we can use direct lookup without callback.
 	LLAvatarName av_name;
-	if (!LLAvatarNameCache::get( gAgent.getID(), &av_name))
+	if (!LLAvatarNameCache::get(gAgent.getID(), &av_name))
 	{
 		slot(false, "name unavailable", LLSD());
 		return;
@@ -104,8 +101,6 @@ void LLViewerDisplayName::set(const std::string& display_name, const set_name_sl
 	change_array.append(av_name.getDisplayName());
 	change_array.append(display_name);
 	
-	LL_INFOS() << "Set name POST to " << cap_url << LL_ENDL;
-
 	// Record our caller for when the server sends back a reply
 	sSetDisplayNameSignal.connect(slot);
 	
@@ -117,14 +112,14 @@ void LLViewerDisplayName::set(const std::string& display_name, const set_name_sl
 	LLHTTPClient::post(cap_url, body, new LLSetDisplayNameResponder, headers);
 }
 
-class LLSetDisplayNameReply : public LLHTTPNode
+class LLSetDisplayNameReply final : public LLHTTPNode
 {
 	LOG_CLASS(LLSetDisplayNameReply);
 public:
 	/*virtual*/ void post(
 		LLHTTPNode::ResponsePtr response,
 		const LLSD& context,
-		const LLSD& input) const
+		const LLSD& input) const override
 	{
 		LLSD body = input["body"];
 
@@ -157,12 +152,12 @@ public:
 };
 
 
-class LLDisplayNameUpdate : public LLHTTPNode
+class LLDisplayNameUpdate final : public LLHTTPNode
 {
 	/*virtual*/ void post(
 		LLHTTPNode::ResponsePtr response,
 		const LLSD& context,
-		const LLSD& input) const
+		const LLSD& input) const override
 	{
 		LLSD body = input["body"];
 		LLUUID agent_id = body["agent_id"];
@@ -195,7 +190,7 @@ class LLDisplayNameUpdate : public LLHTTPNode
 		{
 			LLSD args;
 			args["OLD_NAME"] = old_display_name;
-			args["SLID"] = av_name.getUserName();
+			args["SLID"] = "secondlife:///app/agent/" + agent_id.asString() + "/username";
 			args["NEW_NAME"] = av_name.getDisplayName();
 			LLNotificationsUtil::add("DisplayNameUpdate", args);
 		}

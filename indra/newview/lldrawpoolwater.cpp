@@ -73,11 +73,11 @@ LLVector3 LLDrawPoolWater::sLightDir;
 LLDrawPoolWater::LLDrawPoolWater() :
 	LLFacePool(POOL_WATER)
 {
-	mHBTex[0] = LLViewerTextureManager::getFetchedTexture(gSunTextureID, TRUE, LLGLTexture::BOOST_UI);
+	mHBTex[0] = LLViewerTextureManager::getFetchedTexture(gSunTextureID, FTT_DEFAULT, TRUE, LLGLTexture::BOOST_UI);
 	gGL.getTexUnit(0)->bind(mHBTex[0]) ;
 	mHBTex[0]->setAddressMode(LLTexUnit::TAM_CLAMP);
 
-	mHBTex[1] = LLViewerTextureManager::getFetchedTexture(gMoonTextureID, TRUE, LLGLTexture::BOOST_UI);
+	mHBTex[1] = LLViewerTextureManager::getFetchedTexture(gMoonTextureID, FTT_DEFAULT, TRUE, LLGLTexture::BOOST_UI);
 	gGL.getTexUnit(0)->bind(mHBTex[1]);
 	mHBTex[1]->setAddressMode(LLTexUnit::TAM_CLAMP);
 
@@ -149,7 +149,7 @@ void LLDrawPoolWater::endPostDeferredPass(S32 pass)
 //===============================
 void LLDrawPoolWater::renderDeferred(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_WATER);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_WATER);
 	deferred_render = TRUE;
 	shade();
 	deferred_render = FALSE;
@@ -159,7 +159,7 @@ void LLDrawPoolWater::renderDeferred(S32 pass)
 
 void LLDrawPoolWater::render(S32 pass)
 {
-	LLFastTimer ftm(FTM_RENDER_WATER);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_WATER);
 	if (mDrawFace.empty() || LLDrawable::getCurrentFrame() <= 1)
 	{
 		return;
@@ -182,7 +182,7 @@ void LLDrawPoolWater::render(S32 pass)
 		return;
 	}
 
-	LLGLEnable blend(GL_BLEND);
+	LLGLEnable<GL_BLEND> blend;
 
 	if (mVertexShaderLevel > 0)
 	{
@@ -202,11 +202,12 @@ void LLDrawPoolWater::render(S32 pass)
 
 	LLFace* refl_face = voskyp->getReflFace();
 
-	gPipeline.disableLights();
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.disableLights(light_state);
 	
 	LLGLDepthTest gls_depth(GL_TRUE, GL_FALSE);
 
-	LLGLDisable cullFace(GL_CULL_FACE);
+	LLGLDisable<GL_CULL_FACE> cullFace;
 	
 	// Set up second pass first
 	mWaterImagep->addTextureStats(1024.f*1024.f);
@@ -253,7 +254,7 @@ void LLDrawPoolWater::render(S32 pass)
 	glClearStencil(1);
 	glClear(GL_STENCIL_BUFFER_BIT);
 	glClearStencil(0);
-	LLGLEnable gls_stencil(GL_STENCIL_TEST);
+	LLGLEnable<GL_STENCIL_TEST> gls_stencil;
 	glStencilOp(GL_KEEP, GL_REPLACE, GL_KEEP);
 	glStencilFunc(GL_ALWAYS, 0, 0xFFFFFFFF);
 
@@ -369,10 +370,10 @@ void LLDrawPoolWater::renderOpaqueLegacyWater()
 	// of no transparency.  And no face culling so
 	// that the underside of the water is also opaque.
 	LLGLDepthTest gls_depth(GL_TRUE, GL_TRUE);
-	LLGLDisable no_cull(GL_CULL_FACE);
-	LLGLDisable no_blend(GL_BLEND);
-
-	gPipeline.disableLights();
+	LLGLDisable<GL_CULL_FACE> no_cull;
+	LLGLDisable<GL_BLEND> no_blend;
+	LLGLState<GL_LIGHTING> light_state;
+	gPipeline.disableLights(light_state);
 
 	//Singu note: This is a hack around bizarre opensim behavior. The opaque water texture we get is pure white and only has one channel.
 	// This behavior is clearly incorrect, so we try to detect that case, purge it from the cache, and try to re-fetch the texture.
@@ -522,7 +523,7 @@ void LLDrawPoolWater::shade()
 		return;
 	}
 
-	LLGLDisable blend(GL_BLEND);
+	LLGLDisable<GL_BLEND> blend;
 
 	LLColor3 light_diffuse(0,0,0);
 	F32 light_exp = 0.0f;
@@ -649,14 +650,6 @@ void LLDrawPoolWater::shade()
 		sWaterFogColor.mV[3] = param_mgr->mDensitySliderValue;
 		shader->uniform4fv(LLShaderMgr::WATER_FOGCOLOR, 1, sWaterFogColor.mV);
 	}
-
-	F32 screenRes[] = 
-	{
-		1.f/gGLViewport[2],
-		1.f/gGLViewport[3]
-	};
-	shader->uniform2fv(LLShaderMgr::DEFERRED_SCREEN_RES, 1, screenRes);
-	stop_glerror();
 	
 	S32 diffTex = shader->enableTexture(LLShaderMgr::DIFFUSE_MAP);
 	stop_glerror();
@@ -708,8 +701,8 @@ void LLDrawPoolWater::shade()
 	}
 
 	{
-		LLGLEnable depth_clamp(gGLManager.mHasDepthClamp ? GL_DEPTH_CLAMP : 0);
-		LLGLDisable cullface(GL_CULL_FACE);
+		LLGLEnable<GL_DEPTH_CLAMP> depth_clamp(gGLManager.mHasDepthClamp);
+		LLGLDisable<GL_CULL_FACE> cullface;
 		for (std::vector<LLFace*>::iterator iter = mDrawFace.begin();
 			iter != mDrawFace.end(); iter++)
 		{

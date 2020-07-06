@@ -42,20 +42,21 @@
 #include "llfocusmgr.h"
 #include "rlvhandler.h"
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <boost/regex.hpp>
 
 // ----------------------------------------------------------------------------
 // Constants
 
-#define  X_I	1
-#define  Y_I	2
-#define  Z_I	0
-#define RX_I	4
-#define RY_I	5
-#define RZ_I	3
+constexpr auto  X_I = 1;
+constexpr auto  Y_I = 2;
+constexpr auto  Z_I = 0;
+constexpr auto RX_I = 4;
+constexpr auto RY_I = 5;
+constexpr auto RZ_I = 3;
 
 // minimum time after setting away state before coming back
-const F32 MIN_AFK_TIME = 2.f;
+constexpr F32 MIN_AFK_TIME = 2.f;
 
 F32  LLViewerJoystick::sLastDelta[] = {0,0,0,0,0,0,0};
 F32  LLViewerJoystick::sDelta[] = {0,0,0,0,0,0,0};
@@ -85,8 +86,7 @@ bool isOUYA(const std::string& desc) { return desc.find("OUYA") != std::string::
 
 bool isXboxLike(const std::string& desc)
 {
-	return desc.find("Xbox") != std::string::npos
-		|| isOUYA(desc);
+	return boost::algorithm::icontains(desc, "xbox") || isOUYA(desc);
 }
 
 bool isDS3Like(const std::string& desc)
@@ -111,13 +111,26 @@ enum DS3Keys
 	DS3_LOGO_KEY
 };
 
+void set_joystick_type(const S32& type)
+{
+	switch (type)
+	{
+	case 0: sType = SPACE_NAV; break;
+	case 1: case 2: sType = XBOX; break;
+	case 3: sType = DS3; break;
+	default: sType = UNKNOWN; break;
+	}
+}
+
 S32 get_joystick_type()
 {
-	if (sType == SPACE_NAV) return 0;
-	if (sType == XBOX) return isOUYA(LLViewerJoystick::getInstance()->getDescription()) ? 1 : 2;
-	if (sType == DS3) return 3;
-
-	return -1; // sType == NONE || sType == UNKNOWN
+	switch (sType)
+	{
+	case SPACE_NAV: return 0;
+	case XBOX: return isOUYA(LLViewerJoystick::getInstance()->getDescription()) ? 1 : 2;
+	case DS3: return 3;
+	default: return -1; // sType == NONE || sType == UNKNOWN
+	}
 }
 // </Singu>
 
@@ -126,8 +139,8 @@ S32 get_joystick_type()
 // should be.  It has to be equal to 3000 because the SpaceNavigator on Windows
 // refuses to respond to the DirectInput SetProperty call; it always returns 
 // values in the [-3000, 3000] range.
-#define MAX_SPACENAVIGATOR_INPUT  3000.0f
-#define MAX_JOYSTICK_INPUT_VALUE  MAX_SPACENAVIGATOR_INPUT
+constexpr auto MAX_SPACENAVIGATOR_INPUT = 3000.0f;
+constexpr auto MAX_JOYSTICK_INPUT_VALUE = MAX_SPACENAVIGATOR_INPUT;
 
 // -----------------------------------------------------------------------------
 void LLViewerJoystick::updateEnabled(bool autoenable)
@@ -1390,7 +1403,8 @@ void LLViewerJoystick::setSNDefaults(S32 type)
 	const float platformScaleAvXZ = 2.f;
 	const bool is_3d_cursor = true;
 #endif
-	
+
+	set_joystick_type(type); // Breaks resetting to default but allows declaring a new identity and button config for the controller
 	//gViewerWindow->alertXml("CacheWillClear");
 	const bool ouya = type == 1;
 	const bool xbox = ouya || type == 2;

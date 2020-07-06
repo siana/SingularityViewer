@@ -685,6 +685,23 @@ void parse_string();
 "STATUS_INTERNAL_ERROR"              { count(); yylval.ival = LSL_STATUS_INTERNAL_ERROR; return(INTEGER_CONSTANT); }
 "STATUS_WHITELIST_FAILED"            { count(); yylval.ival = LSL_STATUS_WHITELIST_FAILED; return(INTEGER_CONSTANT); }
 
+"XP_ERROR_NONE"                      { const char* sval= "no error";                                yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_THROTTLED"                 { const char* sval= "exceeded throttle";                       yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_EXPERIENCES_DISABLED"      { const char* sval= "experiences are disabled";                yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_INVALID_PARAMETERS"        { const char* sval= "invalid parameters";                      yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_NOT_PERMITTED"             { const char* sval= "operation not permitted";                 yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_NO_EXPERIENCE"             { const char* sval= "script not associated with an experience";yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_NOT_FOUND"                 { const char* sval= "not found";                               yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_INVALID_EXPERIENCE"        { const char* sval= "invalid experience";                      yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_EXPERIENCE_DISABLED"       { const char* sval= "experience is disabled";                  yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_EXPERIENCE_SUSPENDED"      { const char* sval= "experience is suspended";                 yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_UNKNOWN_ERROR"             { const char* sval= "unknown error";                           yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_QUOTA_EXCEEDED"            { const char* sval= "experience data quota exceeded";          yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_STORE_DISABLED"            { const char* sval= "key-value store is disabled";             yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_STORAGE_EXCEPTION"         { const char* sval= "key-value store communication failed";    yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_KEY_NOT_FOUND"             { const char* sval= "key doesn't exist";                       yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+"XP_ERROR_RETRY_UPDATE"              { const char* sval= "retry update";                            yylval.sval = new char[strlen(sval)+1]; strcpy(yylval.sval, sval); return(STRING_CONSTANT); }
+
 "PROFILE_SCRIPT_NONE"                { count(); yylval.ival = LSL_PROFILE_SCRIPT_NONE; return(INTEGER_CONSTANT); }
 "PROFILE_SCRIPT_MEMORY"              { count(); yylval.ival = LSL_PROFILE_SCRIPT_MEMORY; return(INTEGER_CONSTANT); }
 

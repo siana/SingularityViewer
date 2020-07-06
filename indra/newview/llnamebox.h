@@ -33,42 +33,34 @@
 #ifndef LL_LLNAMEBOX_H
 #define LL_LLNAMEBOX_H
 
-#include <set>
-
-#include "llview.h"
-#include "llstring.h"
-#include "llfontgl.h"
+#include "llnameui.h"
 #include "lltextbox.h"
 
-class LLNameBox
+class LLNameBox final
 :	public LLTextBox
+,	public LLNameUI
 {
 public:
-	virtual void initFromXML(LLXMLNodePtr node, LLView* parent);
+	LLXMLNodePtr getXML(bool save_children = true) const override final;
 	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 
-	virtual ~LLNameBox();
+	void displayAsLink(bool link) override final;
+	void setText(const std::string& text) override final { LLTextBox::setText(text); }
+	void setValue(const LLSD& value) override final { LLNameUI::setValue(value); }
+	LLSD getValue() const override final { return LLNameUI::getValue(); }
 
-	void setNameID(const LLUUID& name_id, BOOL is_group);
+	BOOL handleMouseDown(S32 x, S32 y, MASK mask) override final { return mClickForProfile && mAllowInteract && LLTextBox::handleMouseDown(x, y, mask); }
+	BOOL handleMouseUp(S32 x, S32 y, MASK mask) override final { return mClickForProfile && mAllowInteract && LLTextBox::handleMouseUp(x, y, mask); }
+	BOOL handleRightMouseDown(S32 x, S32 y, MASK mask) override final;
+	BOOL handleHover(S32 x, S32 y, MASK mask) override final;
 
-	void refresh(const LLUUID& id, const std::string& full_name, bool is_group);
-
-	static void refreshAll(const LLUUID& id, const std::string& full_name, bool is_group);
-
-protected:
-	LLNameBox (const std::string& name);
-	
-	friend class LLUICtrlFactory;
-private:
-	void setName(const std::string& name, BOOL is_group);
-
-	static std::set<LLNameBox*> sInstances;
-
-private:
-	LLUUID mNameID;
-	BOOL mLink;
-	std::string mInitialValue;
-
+	LLNameBox(const std::string& name,
+		const LLUUID& name_id = LLUUID::null,
+		const Type& type = AVATAR,
+		const std::string& loading = LLStringUtil::null,
+		bool rlv_sensitive = false,
+		const std::string& name_system = LLStringUtil::null,
+		bool click_for_profile = false);
 };
 
 #endif

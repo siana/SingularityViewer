@@ -12,29 +12,20 @@
 	<text name="LabelCreatorTitle">
 		Creador:
 	</text>
-	<text name="LabelCreatorName">
-		Nicole Linden
-	</text>
-	<button label="Perfil..." label_selected="" name="BtnCreator"/>
 	<text name="LabelOwnerTitle">
 		Propietario:
 	</text>
-	<text name="LabelOwnerName">
-		Thrax Linden
-	</text>
-	<button label="Perfil..." label_selected="" name="BtnOwner"/>
 	<text name="LabelLastOwnerTitle">
 		Últ. Propiet.:
 	</text>
-	<text name="LabelLastOwnerName">
-		Eraseunavezun Linden
-	</text>
-	<button label="Perfil..." label_selected="" name="BtnLastOwner"/>
 	<text name="LabelAcquiredTitle">
 		Adquirido:
 	</text>
 	<text name="LabelAcquiredDate">
 		Mie May 24 12:50:46 2006
+	</text>
+	<text name="LabelItemExperienceTitle" >
+        Experiencia:
 	</text>
 	<text name="OwnerLabel">
 		Puedes:
@@ -92,6 +83,7 @@
 		Precio:  [CURRENCY]
 	</text>
 	<line_editor name="Edit Cost"/>
+    <floater.string name="loading_experience">(cargando)</floater.string>
 	<string name="unknown">
 		(desconocido)
 	</string>

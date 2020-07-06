@@ -40,6 +40,7 @@
 #include "llpermissions.h"
 #include "lltimer.h"
 #include "v3math.h"
+#include "llsettingsdaycycle.h"
 
 // Grid out of which parcels taken is stepped every 4 meters.
 const F32 PARCEL_GRID_STEP_METERS	= 4.f;
@@ -58,6 +59,9 @@ const S32 PARCEL_MAX_ACCESS_LIST = 300;
 //Maximum number of entires in an update packet
 //for access/ban lists.
 const F32 PARCEL_MAX_ENTRIES_PER_PACKET = 48.f;
+
+// Maximum number of experiences
+const S32 PARCEL_MAX_EXPERIENCE_LIST = 24;
 
 // Weekly charge for listing a parcel in the directory
 const S32 PARCEL_DIRECTORY_FEE = 30;
@@ -105,6 +109,10 @@ const U32 RT_SELL	= 0x1 << 5;
 
 const S32 INVALID_PARCEL_ID = -1;
 
+const S32 INVALID_PARCEL_ENVIRONMENT_VERSION = -2;
+// if Region settings are used, parcel env. version is -1
+const S32 UNSET_PARCEL_ENVIRONMENT_VERSION = -1;
+
 // Timeouts for parcels
 // default is 21 days * 24h/d * 60m/h * 60s/m *1000000 usec/s = 1814400000000
 const U64 DEFAULT_USEC_CONVERSION_TIMEOUT = U64L(1814400000000);
@@ -136,9 +144,11 @@ class LLSD;
 class LLAccessEntry
 {
 public:
+
+	typedef std::map<LLUUID,LLAccessEntry> map;
+
 	LLAccessEntry()
-	:	mID(),
-		mTime(0),
+	:	mTime(0),
 		mFlags(0)
 	{}
 
@@ -147,8 +157,6 @@ public:
 	U32			mFlags;		// Not used - currently should always be zero
 };
 
-typedef std::map<LLUUID,LLAccessEntry>::iterator access_map_iterator;
-typedef std::map<LLUUID,LLAccessEntry>::const_iterator access_map_const_iterator;
 
 class LLParcel
 {
@@ -325,6 +333,9 @@ public:
 								const std::map<LLUUID,LLAccessEntry>& list);
 	void	unpackAccessEntries(LLMessageSystem* msg,
 								std::map<LLUUID,LLAccessEntry>* list);
+
+	void	unpackExperienceEntries(LLMessageSystem* msg, U32 type);
+
 
 	void	setAABBMin(const LLVector3& min)	{ mAABBMin = min; }
 	void	setAABBMax(const LLVector3& max)	{ mAABBMax = max; }
@@ -508,6 +519,13 @@ public:
 					{ return mRegionDenyAnonymousOverride; }
 	BOOL	getRegionDenyAgeUnverifiedOverride() const
 					{ return mRegionDenyAgeUnverifiedOverride; }
+    BOOL    getRegionAllowAccessOverride() const
+                    { return mRegionAllowAccessoverride; }
+    BOOL    getRegionAllowEnvironmentOverride() const
+                    { return mRegionAllowEnvironmentOverride; }
+    S32     getParcelEnvironmentVersion() const 
+                    { return mCurrentEnvironmentVersion; }
+
 
 	BOOL	getAllowGroupAVSounds()	const	{ return mAllowGroupAVSounds;	} 
 	BOOL	getAllowAnyAVSounds()	const	{ return mAllowAnyAVSounds;		}
@@ -593,6 +611,10 @@ public:
 	void	setRegionPushOverride(BOOL override) {mRegionPushOverride = override; }
 	void	setRegionDenyAnonymousOverride(BOOL override)	{ mRegionDenyAnonymousOverride = override; }
 	void	setRegionDenyAgeUnverifiedOverride(BOOL override)	{ mRegionDenyAgeUnverifiedOverride = override; }
+    void    setRegionAllowAccessOverride(BOOL override) { mRegionAllowAccessoverride = override; }
+    void    setRegionAllowEnvironmentOverride(BOOL override) { mRegionAllowEnvironmentOverride = override; }
+
+    void    setParcelEnvironmentVersion(S32 version) { mCurrentEnvironmentVersion = version; }
 
 	// Accessors for parcel sellWithObjects
 	void	setPreviousOwnerID(LLUUID prev_owner)	{ mPreviousOwnerID = prev_owner; }
@@ -602,7 +624,6 @@ public:
 	LLUUID	getPreviousOwnerID() const		{ return mPreviousOwnerID; }
 	BOOL	getPreviouslyGroupOwned() const	{ return mPreviouslyGroupOwned; }
 	BOOL	getSellWithObjects() const		{ return (mParcelFlags & PF_SELL_PARCEL_OBJECTS) ? TRUE : FALSE; }
-
 
 protected:
 	LLUUID mID;
@@ -674,9 +695,13 @@ protected:
 	BOOL				mRegionPushOverride;
 	BOOL				mRegionDenyAnonymousOverride;
 	BOOL				mRegionDenyAgeUnverifiedOverride;
+    BOOL                mRegionAllowAccessoverride;
+    BOOL                mRegionAllowEnvironmentOverride;
 	BOOL				mAllowGroupAVSounds;
 	BOOL				mAllowAnyAVSounds;
+    S32                 mCurrentEnvironmentVersion;
 	
+    bool                mIsDefaultDayCycle;
 	
 public:
 	// HACK, make private
@@ -687,6 +712,17 @@ public:
 	std::map<LLUUID,LLAccessEntry>	mBanList;
 	std::map<LLUUID,LLAccessEntry>	mTempBanList;
 	std::map<LLUUID,LLAccessEntry>	mTempAccessList;
+
+	typedef std::map<LLUUID, U32> xp_type_map_t;
+
+	void setExperienceKeyType(const LLUUID& experience_key, U32 type);
+	U32 countExperienceKeyType(U32 type);
+	U32 getExperienceKeyType(const LLUUID& experience_key)const;
+	LLAccessEntry::map getExperienceKeysByType(U32 type)const;
+	void clearExperienceKeysByType(U32 type);
+
+private:
+	xp_type_map_t mExperienceKeys;
 
 };
 

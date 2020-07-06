@@ -32,7 +32,6 @@
 #include "aixml.h"
 #include "llmd5.h"
 #include <boost/tokenizer.hpp>
-#include "aifile.h"
 
 //=============================================================================
 // Overview
@@ -263,7 +262,7 @@ void AIXMLElement::close_child(void)
   mIndentation -= 2;
 }
 
-AIXMLElement::~AIXMLElement()
+AIXMLElement::~AIXMLElement() noexcept(false)
 {
   if (mHasChildren)
   {
@@ -311,11 +310,10 @@ void AIXMLElement::child(LLDate const& element)
 //-----------------------------------------------------------------------------
 // AIXMLStream
 
-AIXMLStream::AIXMLStream(LLFILE* fp, bool standalone) : mOfs(fp)
+AIXMLStream::AIXMLStream(const std::string& filename, bool standalone) : mOfs(filename)
 {
-  char const* sp = standalone ? " standalone=\"yes\"" : "";
-  int rc = fprintf(fp, "<?xml version=\"1.0\" encoding=\"utf-8\"%s ?>\n", sp);
-  if (rc < 0 || ferror(fp))
+  mOfs << "<?xml version=\"1.0\" encoding=\"utf-8\"" << (standalone ? " standalone=\"yes\"" : LLStringUtil::null) << "?>\n";
+  if (!mOfs)
   {
 	// I don't think that errno is set to anything else but EBADF here,
 	// so there is not really any informative message to add here.
@@ -342,7 +340,6 @@ AIXMLParser::AIXMLParser(std::string const& filename, char const* file_desc, std
   AIArgs args;
   if (!mXmlTree.parseFile(filename, TRUE))
   {
-	AIFile dummy(filename, "rb");	// Check if the file can be opened at all (throws with a more descriptive error if not).
 	error = "AIXMLParser_Cannot_parse_FILEDESC_FILENAME";
   }
   else

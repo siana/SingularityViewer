@@ -1,3 +1,5 @@
+// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 /** 
  * @file llurlaction.cpp
  * @author Martin Reddy
@@ -24,13 +26,13 @@
  * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
-
 #include "linden_common.h"
 
 #include "llurlaction.h"
 #include "llview.h"
 #include "llwindow.h"
 #include "llurlregistry.h"
+
 
 // global state for the callback functions
 LLUrlAction::url_callback_t 		LLUrlAction::sOpenURLCallback;
@@ -83,18 +85,19 @@ void LLUrlAction::openURLExternal(std::string url)
 	}
 }
 
-void LLUrlAction::executeSLURL(std::string url)
+bool LLUrlAction::executeSLURL(std::string url, bool trusted_content)
 {
 	if (sExecuteSLURLCallback)
 	{
-		sExecuteSLURLCallback(url);
+		return sExecuteSLURLCallback(url, trusted_content);
 	}
+	return false;
 }
 
-void LLUrlAction::clickAction(std::string url)
+void LLUrlAction::clickAction(std::string url, bool trusted_content)
 {
 	// Try to handle as SLURL first, then http Url
-	if ( (sExecuteSLURLCallback) && !sExecuteSLURLCallback(url) )
+	if ( (sExecuteSLURLCallback) && !sExecuteSLURLCallback(url, trusted_content) )
 	{
 		if (sOpenURLCallback)
 		{
@@ -156,4 +159,87 @@ void LLUrlAction::showProfile(std::string url)
 			executeSLURL("secondlife:///app/" + cmd_str + "/" + id_str + "/about");
 		}
 	}
+}
+
+std::string LLUrlAction::getUserID(std::string url)
+{
+	LLURI uri(url);
+	LLSD path_array = uri.pathArray();
+	std::string id_str;
+	if (path_array.size() == 4)
+	{
+		id_str = path_array.get(2).asString();
+	}
+	return id_str;
+}
+
+std::string LLUrlAction::getObjectId(std::string url)
+{
+	LLURI uri(url);
+	LLSD path_array = uri.pathArray();
+	std::string id_str;
+	if (path_array.size() >= 3)
+	{
+		id_str = path_array.get(2).asString();
+	}
+	return id_str;
+}
+
+std::string LLUrlAction::getObjectName(std::string url)
+{
+	LLURI uri(url);
+	LLSD query_map = uri.queryMap();
+	std::string name;
+	if (query_map.has("name"))
+	{
+		name = query_map["name"].asString();
+	}
+	return name;
+}
+
+void LLUrlAction::sendIM(std::string url)
+{
+	std::string id_str = getUserID(url);
+	if (LLUUID::validate(id_str))
+	{
+		executeSLURL("secondlife:///app/agent/" + id_str + "/im");
+	}
+}
+
+void LLUrlAction::addFriend(std::string url)
+{
+	std::string id_str = getUserID(url);
+	if (LLUUID::validate(id_str))
+	{
+		executeSLURL("secondlife:///app/agent/" + id_str + "/requestfriend");
+	}
+}
+
+void LLUrlAction::removeFriend(std::string url)
+{
+	std::string id_str = getUserID(url);
+	if (LLUUID::validate(id_str))
+	{
+		executeSLURL("secondlife:///app/agent/" + id_str + "/removefriend");
+	}
+}
+
+void LLUrlAction::blockObject(std::string url)
+{
+	std::string object_id = getObjectId(url);
+	std::string object_name = getObjectName(url);
+	if (LLUUID::validate(object_id))
+	{
+		executeSLURL("secondlife:///app/agent/" + object_id + "/block/" + LLURI::escape(object_name));
+	}
+}
+
+void LLUrlAction::unblockObject(std::string url)
+{
+    std::string object_id = getObjectId(url);
+    std::string object_name = getObjectName(url);
+    if (LLUUID::validate(object_id))
+    {
+        executeSLURL("secondlife:///app/agent/" + object_id + "/unblock/" + object_name);
+    }
 }

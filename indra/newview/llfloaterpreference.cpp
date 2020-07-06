@@ -333,9 +333,9 @@ void LLPreferenceCore::onTabChanged(LLUICtrl* ctrl)
 }
 
 
-void LLPreferenceCore::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email)
+void LLPreferenceCore::setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified)
 {
-	mPrefsIM->setPersonalInfo(visibility, im_via_email, email);
+	mPrefsIM->setPersonalInfo(visibility, im_via_email, email, is_verified);
 }
 
 //////////////////////////////////////////////
@@ -408,15 +408,7 @@ void LLFloaterPreference::show(void*)
 
 	sInstance->open();		/* Flawfinder: ignore */
 
-	if(!gAgent.getID().isNull())
-	{
-		// we're logged in, so we can get this info.
-		gMessageSystem->newMessageFast(_PREHASH_UserInfoRequest);
-		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
-		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		gAgent.sendReliableMessage();
-	}
+	gAgent.sendAgentUserInfoRequest();
 
 	LLPanelLogin::setAlwaysRefresh(true);
 }
@@ -441,6 +433,8 @@ void LLFloaterPreference::onBtnOK()
 		close(false);
 
 		gSavedSettings.saveToFile( gSavedSettings.getString("ClientSettingsFile"), TRUE );
+		if (gAgentID.notNull())
+			gSavedPerAccountSettings.saveToFile( gSavedSettings.getString("PerAccountSettingsFile"), TRUE );
 	}
 	else
 	{
@@ -494,11 +488,11 @@ void LLFloaterPreference::onBtnCancel()
 
 
 // static
-void LLFloaterPreference::updateUserInfo(const std::string& visibility, bool im_via_email, const std::string& email)
+void LLFloaterPreference::updateUserInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified)
 {
-	if(sInstance && sInstance->mPreferenceCore)
+	if (sInstance && sInstance->mPreferenceCore)
 	{
-		sInstance->mPreferenceCore->setPersonalInfo(visibility, im_via_email, email);
+		sInstance->mPreferenceCore->setPersonalInfo(visibility, im_via_email, email, is_verified);
 	}
 }
 

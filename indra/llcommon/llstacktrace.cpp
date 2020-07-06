@@ -39,7 +39,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "windows.h"
+#include "llwin32headerslean.h"
 #include "Dbghelp.h"
 
 typedef USHORT NTAPI RtlCaptureStackBackTrace_Function(
@@ -73,8 +73,7 @@ bool ll_get_stack_trace(std::vector<std::string>& lines)
 	if(symbolsLoaded)
 	{
 		// create the frames to hold the addresses
-		void* frames[MAX_STACK_DEPTH];
-		memset(frames, 0, sizeof(void*)*MAX_STACK_DEPTH);
+		void* frames[MAX_STACK_DEPTH] = {0};
 		S32 depth = 0;
 
 		// get the addresses
@@ -110,7 +109,7 @@ bool ll_get_stack_trace(std::vector<std::string>& lines)
 			if(ret)
 			{
 				std::string file_name = line.FileName;
-				std::string::size_type index = file_name.rfind("\\");
+				std::string::size_type index = file_name.rfind('\\');
 				stack_line << file_name.substr(index + 1, file_name.size()) << ":" << line.LineNumber; 
 			}
 

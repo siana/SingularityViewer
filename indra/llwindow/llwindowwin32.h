@@ -27,10 +27,7 @@
 #ifndef LL_LLWINDOWWIN32_H
 #define LL_LLWINDOWWIN32_H
 
-// Limit Windows API to small and manageable set.
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <windows.h>
+#include "llwin32headerslean.h"
 
 #include "llwindow.h"
 #include "llwindowcallbacks.h"
@@ -43,7 +40,8 @@ typedef void (*LLW32MsgCallback)(const MSG &msg);
 class LLWindowWin32 : public LLWindow
 {
 public:
-	/*virtual*/ void show();
+	/*virtual*/ void postInitialized();
+	/*virtual*/ void show(bool focus = true);
 	/*virtual*/ void hide();
 	/*virtual*/ void close();
 	/*virtual*/ BOOL getVisible();
@@ -59,7 +57,7 @@ public:
 	/*virtual*/ BOOL setPosition(LLCoordScreen position);
 	/*virtual*/ BOOL setSizeImpl(LLCoordScreen size);
 	/*virtual*/ BOOL setSizeImpl(LLCoordWindow size);
-	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, const LLCoordScreen * const posp = NULL);
+	/*virtual*/ BOOL switchContext(BOOL fullscreen, const LLCoordScreen &size, const S32 vsync_mode, std::function<void()> stopFn, std::function<void(bool)> restoreFn, const LLCoordScreen * const posp = NULL);
 	/*virtual*/ BOOL setCursorPosition(LLCoordWindow position);
 	/*virtual*/ BOOL getCursorPosition(LLCoordWindow *position);
 	/*virtual*/ void showCursor();
@@ -111,7 +109,6 @@ public:
 	/*virtual*/ void setLanguageTextInput( const LLCoordGL & pos );
 	/*virtual*/ void updateLanguageTextInputArea();
 	/*virtual*/ void interruptLanguageTextInput();
-	void ShellEx(const std::string& command);
 	/*virtual*/ void spawnWebBrowser(const std::string& escaped_url, bool async);
 
 	/*virtual*/ void setTitle(const std::string &title);
@@ -129,10 +126,12 @@ protected:
 
 	void	initCursors();
 	void	initInputDevices();
+	void    initDPIAwareness();
+	void    getDPIScales(float& xDPIScale, float& yDPIScale);
 	HCURSOR loadColorCursor(LPCTSTR name);
 	BOOL	isValid();
 	void	moveWindow(const LLCoordScreen& position,const LLCoordScreen& size);
-	LLSD	getNativeKeyData();
+	virtual LLSD	getNativeKeyData();
 
 	// Changes display resolution. Returns true if successful
 	BOOL	setDisplayResolution(S32 width, S32 height, S32 bits, S32 refresh);
@@ -189,8 +188,9 @@ protected:
 	F32			mCurrentGamma;
 	U32			mFSAASamples;
 	S32			mVsyncMode;
-	WORD		mPrevGammaRamp[256*3];
-	WORD		mCurrentGammaRamp[256*3];
+	WORD		mPrevGammaRamp[3][256];
+	WORD		mCurrentGammaRamp[3][256];
+	BOOL		mCustomGammaSet;
 
 	LPWSTR		mIconResource;
 	BOOL		mMousePositionModified;
@@ -215,6 +215,14 @@ protected:
 	U32				mKeyCharCode;
 	U32				mKeyScanCode;
 	U32				mKeyVirtualKey;
+	U32				mRawMsg;
+	U32				mRawWParam;
+	U32				mRawLParam;
+
+	HMODULE         mUser32Lib;
+	HMODULE			mSHCoreLib;
+	HMONITOR(WINAPI *MonitorFromWindowFn)(HWND, DWORD);
+	HRESULT(WINAPI *GetDpiForMonitorFn)(HMONITOR, INT, UINT *, UINT *);
 
 	friend class LLWindowManager;
 };

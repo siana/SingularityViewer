@@ -16,8 +16,7 @@ public:
 	BOOL postBuild();
 	void refresh();
 	static LLFloaterBlacklist* getInstance() { return sInstance; };
-	
-	
+
 	/*This is the function to call to add anything to the blacklist, 
 	key is the asset ID
 	LLSD data is as follows: LLSD[entry_type] = LLAssetType::Etype, 
@@ -29,12 +28,9 @@ public:
 	*/
 	static void addEntry(LLUUID key, LLSD data);
 
-
-
-
-	static std::map<LLUUID,LLSD> blacklist_entries;
-	static std::vector<LLUUID> blacklist_textures;
-	static std::vector<LLUUID> blacklist_objects;
+	static boost::unordered_map<LLUUID,LLSD> blacklist_entries;
+	static uuid_vec_t blacklist_textures;
+	static uuid_vec_t blacklist_objects;
 		
 	static void loadFromSave();
 

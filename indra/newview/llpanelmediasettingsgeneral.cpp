@@ -467,7 +467,7 @@ bool LLPanelMediaSettingsGeneral::navigateHomeSelectedFace(bool only_if_current_
 	
 	bool all_face_media_navigated = false;
 	LLObjectSelectionHandle selected_objects =LLSelectMgr::getInstance()->getSelection();
-	selected_objects->getSelectedTEValue( &functor_navigate_media, all_face_media_navigated );
+	(void)selected_objects->getSelectedTEValue( &functor_navigate_media, all_face_media_navigated );
 	
 	// Note: we don't update the 'current URL' field until the media data itself changes
 

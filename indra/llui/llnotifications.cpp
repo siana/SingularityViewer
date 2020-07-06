@@ -74,8 +74,9 @@ private:
 	bool historyHandler(const LLSD& payload)
 	{
 		// we ignore "load" messages, but rewrite the persistence file on any other
+		// onDelete handes "delete" message, so skip that too.
 		std::string sigtype = payload["sigtype"];
-		if (sigtype != "load")
+		if (sigtype != "load" && sigtype !=  "delete")
 		{
 			savePersistentNotifications();
 		}
@@ -85,11 +86,15 @@ private:
 	// The history channel gets all notifications except those that have been cancelled
 	static bool historyFilter(LLNotificationPtr pNotification)
 	{
-		return !pNotification->isCancelled();
+		return pNotification->isPersistent() && !pNotification->isCancelled() && !pNotification->isRespondedTo() && !pNotification->isExpired();
 	}
 
 	void savePersistentNotifications()
 	{
+		if (mLoading)
+		{
+			return;
+		}
 		LL_INFOS() << "Saving open notifications to " << mFileName << LL_ENDL;
 
 		llofstream notify_file(mFileName.c_str());
@@ -104,6 +109,9 @@ private:
 		LLSD& data = output["data"];
 
 		AILOCK_mItems;
+
+		static LLCachedControl<S32> maxPersistentNotificaitons("MaxPersistentNotifications");
+
 		for (LLNotificationSet::iterator it = mItems.begin(); it != mItems.end(); ++it)
 		{
 			if (!LLNotificationTemplates::instance().templateExists((*it)->getName())) continue;
@@ -111,7 +119,15 @@ private:
 			// only store notifications flagged as persisting
 			LLNotificationTemplatePtr templatep = LLNotificationTemplates::instance().getTemplate((*it)->getName());
 			if (!templatep->mPersist) continue;
+			if ((*it)->isCancelled() || (*it)->isExpired() || (*it)->isRespondedTo()) continue;
 
+			if (data.size() >= maxPersistentNotificaitons)
+			{
+				LL_WARNS() << "Too many persistent notifications."
+					<< " Saved " << maxPersistentNotificaitons << " of " << mItems.size()
+					<< " persistent notifications." << LL_ENDL;
+				break;
+			}
 			data.append((*it)->asLLSD());
 		}
 
@@ -121,53 +137,75 @@ private:
 
 	void loadPersistentNotifications()
 	{
+		if (mLoading)
+		{
+			return;
+		}
+		mLoading = true;
 		LL_INFOS() << "Loading open notifications from " << mFileName << LL_ENDL;
 
-		llifstream notify_file(mFileName.c_str());
-		if (!notify_file.is_open()) 
+		while (true)
 		{
-			LL_WARNS() << "Failed to open " << mFileName << LL_ENDL;
-			return;
-		}
+			llifstream notify_file(mFileName.c_str());
+			if (!notify_file.is_open())
+			{
+				LL_WARNS() << "Failed to open " << mFileName << LL_ENDL;
+				break;
+			}
 
-		LLSD input;
-		LLPointer<LLSDParser> parser = new LLSDXMLParser();
-		if (parser->parse(notify_file, input, LLSDSerialize::SIZE_UNLIMITED) < 0)
-		{
-			LL_WARNS() << "Failed to parse open notifications" << LL_ENDL;
-			return;
-		}
+			LLSD input;
+			LLPointer<LLSDParser> parser = new LLSDXMLParser();
+			if (parser->parse(notify_file, input, LLSDSerialize::SIZE_UNLIMITED) < 0)
+			{
+				LL_WARNS() << "Failed to parse open notifications" << LL_ENDL;
+				break;
+			}
 
-		if (input.isUndefined()) return;
-		std::string version = input["version"];
-		if (version != NOTIFICATION_PERSIST_VERSION)
-		{
-			LL_WARNS() << "Bad open notifications version: " << version << LL_ENDL;
-			return;
-		}
-		LLSD& data = input["data"];
-		if (data.isUndefined()) return;
+			if (input.isUndefined()) return;
+			std::string version = input["version"];
+			if (version != NOTIFICATION_PERSIST_VERSION)
+			{
+				LL_WARNS() << "Bad open notifications version: " << version << LL_ENDL;
+				break;
+			}
+			LLSD& data = input["data"];
+			if (data.isUndefined()) break;
 
-		LLNotifications& instance = LLNotifications::instance();
-		for (LLSD::array_const_iterator notification_it = data.beginArray();
-			notification_it != data.endArray();
-			++notification_it)
-		{
-			instance.add(LLNotificationPtr(new LLNotification(*notification_it)));
+			S32 processed_notifications = 0;
+			static LLCachedControl<S32> maxPersistentNotificaitons("MaxPersistentNotifications");
+
+			LLNotifications& instance = LLNotifications::instance();
+			for (LLSD::array_const_iterator notification_it = data.beginArray();
+				notification_it != data.endArray();
+				++notification_it)
+			{
+				if (processed_notifications++ >= maxPersistentNotificaitons)
+				{
+					LL_WARNS() << "Too many persistent notifications."
+						<< " Processed " << maxPersistentNotificaitons << " of " << data.size() << " persistent notifications." << LL_ENDL;
+					break;
+				}
+				instance.add(LLNotificationPtr(new LLNotification(*notification_it)));
+				
+			}
+			break;
 		}
+		mLoading = false;
+		savePersistentNotifications();
 	}
 
 	//virtual
 	void onDelete(LLNotificationPtr pNotification)
 	{
-		// we want to keep deleted notifications in our log
-		AILOCK_mItems;
-		mItems.insert(pNotification);
-		
-		return;
+		{
+			AILOCK_mItems;
+			mItems.erase(pNotification); // Delete immediately.
+		}
+		savePersistentNotifications();
 	}
 	
 private:
+	bool mLoading = false;
 	std::string mFileName;
 };
 
@@ -277,6 +315,7 @@ LLNotificationForm::LLNotificationForm(const std::string& name, const LLXMLNodeP
 }
 
 LLNotificationForm::LLNotificationForm(const LLSD& sd)
+	: mIgnore(IGNORE_NO)
 {
 	if (sd.isArray())
 	{
@@ -284,7 +323,8 @@ LLNotificationForm::LLNotificationForm(const LLSD& sd)
 	}
 	else
 	{
-		LL_WARNS() << "Invalid form data " << sd << LL_ENDL;
+		if (!sd.isUndefined())
+			LL_WARNS() << "Invalid form data " << sd << LL_ENDL;
 		mFormData = LLSD::emptyArray();
 	}
 }
@@ -415,7 +455,7 @@ LLNotification::LLNotification(const LLNotification::Params& p) :
 	mTimestamp(p.timestamp), 
 	mSubstitutions(p.substitutions),
 	mPayload(p.payload),
-	mExpiresAt(0),
+	mExpiresAt(F64SecondsImplicit()),
 	mResponseFunctorName(p.functor_name),
 	mTemporaryResponder(p.mTemporaryResponder),
 	mRespondedTo(false),
@@ -891,7 +931,7 @@ bool LLNotificationChannelBase::updateItem(const LLSD& payload, LLNotificationPt
 		assert(!wasFound);
 		if (passesFilter)
 		{
-			LL_INFOS() << "Inserting " << pNotification->getName() << LL_ENDL;
+			//LL_INFOS() << "Inserting " << pNotification->getName() << LL_ENDL;
 			// not in our list, add it and say so
 			mItems.insert(pNotification);
 			abortProcessing = mChanged(payload);
@@ -903,9 +943,9 @@ bool LLNotificationChannelBase::updateItem(const LLSD& payload, LLNotificationPt
 		// if we have it in our list, pass on the delete, then delete it, else do nothing
 		if (wasFound)
 		{
+			onDelete(pNotification);
 			abortProcessing = mChanged(payload);
 			mItems.erase(pNotification);
-			onDelete(pNotification);
 		}
 	}
 	return abortProcessing;
@@ -1145,13 +1185,6 @@ void LLNotifications::createDefaultChannels()
 	LLNotificationChannel::buildChannel("Visible", "Ignore",
 		&LLNotificationFilters::includeEverything);
 
-	// create special history channel
-	//std::string notifications_log_file = gDirUtilp->getExpandedFilename ( LL_PATH_PER_SL_ACCOUNT, "open_notifications.xml" );
-	// use ^^^ when done debugging notifications serialization
-	std::string notifications_log_file = gDirUtilp->getExpandedFilename ( LL_PATH_USER_SETTINGS, "open_notifications.xml" );
-	// this isn't a leak, don't worry about the empty "new"
-	new LLNotificationHistoryChannel(notifications_log_file);
-
 	// connect action methods to these channels
 	LLNotifications::instance().getChannel("Expiration")->
 		connectChanged(boost::bind(&LLNotifications::expirationHandler, this, _1));
@@ -1161,6 +1194,14 @@ void LLNotifications::createDefaultChannels()
 		connectFailedFilter(boost::bind(&LLNotifications::failedUniquenessTest, this, _1));
 	LLNotifications::instance().getChannel("Ignore")->
 		connectFailedFilter(&handleIgnoredNotification);
+}
+
+void LLNotifications::onLoginCompleted()
+{
+	// create special history channel
+	std::string notifications_log_file = gDirUtilp->getExpandedFilename ( LL_PATH_PER_SL_ACCOUNT, "singu_open_notifications_" + gHippoGridManager->getCurrentGrid()->getGridName() + ".xml");
+	// this isn't a leak, don't worry about the empty "new"
+	new LLNotificationHistoryChannel(notifications_log_file );
 }
 
 static std::string sStringSkipNextTime("Skip this dialog next time");
@@ -1297,14 +1338,20 @@ LLXMLNodePtr LLNotificationTemplates::checkForXMLTemplate(LLXMLNodePtr item)
 
 bool LLNotificationTemplates::loadTemplates()
 {
-	const std::string xml_filename = "notifications.xml";
+	LL_INFOS() << "Reading notifications template" << LL_ENDL;
+	// Passing findSkinnedFilenames(constraint=LLDir::ALL_SKINS) makes it
+	// output all relevant pathnames instead of just the ones from the most
+	// specific skin.
+	std::vector<std::string> search_paths =
+		gDirUtilp->findSkinnedFilenames(LLDir::XUI, "notifications.xml", LLDir::ALL_SKINS);
+
+	std::string base_filename = search_paths.front();
 	LLXMLNodePtr root;
-	
-	BOOL success  = LLUICtrlFactory::getLayeredXMLNode(xml_filename, root);
+	BOOL success  = LLXMLNode::getLayeredXMLNode(root, search_paths);
 	
 	if (!success || root.isNull() || !root->hasName( "notifications" ))
 	{
-		LL_ERRS() << "Problem reading UI Notifications file: " << xml_filename << LL_ENDL;
+		LL_ERRS() << "Problem reading XML from UI Notifications file: " << base_filename << LL_ENDL;
 		return false;
 	}
 	
@@ -1337,7 +1384,7 @@ bool LLNotificationTemplates::loadTemplates()
 		if (!item->hasName("notification"))
 		{
             LL_WARNS() << "Unexpected entity " << item->getName()->mString << 
-                       " found in " << xml_filename << LL_ENDL;
+                       " found in notifications.xml [language=]" << LLUI::getLanguage() << LL_ENDL;
 			continue;
 		}
 	}
@@ -1347,14 +1394,20 @@ bool LLNotificationTemplates::loadTemplates()
 		
 bool LLNotifications::loadNotifications()
 {
-	const std::string xml_filename = "notifications.xml";
+	LL_INFOS() << "Reading notifications template" << LL_ENDL;
+	// Passing findSkinnedFilenames(constraint=LLDir::ALL_SKINS) makes it
+	// output all relevant pathnames instead of just the ones from the most
+	// specific skin.
+	std::vector<std::string> search_paths =
+		gDirUtilp->findSkinnedFilenames(LLDir::XUI, "notifications.xml", LLDir::ALL_SKINS);
+
+	std::string base_filename = search_paths.front();
 	LLXMLNodePtr root;
-	
-	BOOL success  = LLUICtrlFactory::getLayeredXMLNode(xml_filename, root);
+	BOOL success  = LLXMLNode::getLayeredXMLNode(root, search_paths);
 	
 	if (!success || root.isNull() || !root->hasName( "notifications" ))
 	{
-		LL_ERRS() << "Problem reading UI Notifications file: " << xml_filename << LL_ENDL;
+		LL_ERRS() << "Problem reading XML from UI Notifications file: " << base_filename << LL_ENDL;
 		return false;
 	}
 	

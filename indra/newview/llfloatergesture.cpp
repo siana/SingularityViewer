@@ -331,7 +331,7 @@ void LLFloaterGesture::onClickInventory(void* data)
 	if (!list) return;
 	const LLUUID& item_id = list->getCurrentID();
 
-	LLInventoryView* inv = LLInventoryView::showAgentInventory();
+	LLPanelMainInventory* inv = LLPanelMainInventory::showAgentInventory();
 	if (!inv) return;
 	inv->getPanel()->setSelection(item_id, TRUE);
 }

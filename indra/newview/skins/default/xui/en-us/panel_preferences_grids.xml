@@ -66,7 +66,7 @@
 		follows="left|top|right" border_visible="false" mouse_opaque="false"
 		drop_shadow_visible="true" border_drop_shadow_visible="false" />
   <button label="Refresh Grid URLs" enabled="true" name="btn_gridinfo"
-		height="18" width="100" left="120" bottom_delta="-22"
+		height="18" width="120" left="120" bottom_delta="-22"
 		halign="center" tool_tip="Retrieve all grid info from the given Login URI (overwriting the current URLs, see Advanced)"
 		follows="left|top" scale_image="true"
 	    font="SansSerifSmall" mouse_opaque="true" />
@@ -211,6 +211,9 @@
   font="SansSerifSmall"
   follows="left|top|right" border_visible="false" mouse_opaque="false"
   drop_shadow_visible="true" border_drop_shadow_visible="false" />
+   <!-- Partner URL -->
+  <text name="partner_label" height="10" width="100" left="12" bottom_delta="-20" follows="left|top" visible="false">Partner URL:</text>
+  <line_editor max_length="254" name="partner" handle_edit_keys_directly="true" height="18" left="120" right="-12" bottom_delta="-4" font="SansSerifSmall"  follows="left|top|right" visible="false"/>
   <!-- Search URL -->
   <text type="string" length="1" enabled="true" name="search_label"
   height="10" width="100" left="12" bottom_delta="-20" visible="false"
@@ -230,7 +233,7 @@
   <!-- Rendering Compatibility -->
   <check_box enabled="true" radio_style="false"
 		label="Rendering Compatibility" name="render_compat" visible="false"
-		height="18" left="115" bottom_delta="-35"
+		height="18" left="115" bottom_delta="-25"
 		h_pad="0" v_pad="0" halign="left"
 		font="SansSerifSmall"
 		follows="left|top" bg_visible="false" border_visible="false" mouse_opaque="true"

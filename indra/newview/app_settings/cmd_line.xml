@@ -211,12 +211,6 @@
       <string>NoHardwareProbe</string>
     </map>
 
-    <key>noquicktime</key>
-    <map>
-      <key>map-to</key>
-      <string>NoQuickTime</string>
-    </map>
-
     <key>nosound</key>
     <map>
       <key>map-to</key>

@@ -27,7 +27,7 @@
 #ifndef LL_LLINVENTORYMODEL_H
 #define LL_LLINVENTORYMODEL_H
 
-#include <map>
+#include <boost/unordered_map.hpp>
 #include <set>
 #include <string>
 #include <vector>
@@ -76,7 +76,7 @@ public:
 
 	typedef std::vector<LLPointer<LLViewerInventoryCategory> > cat_array_t;
 	typedef std::vector<LLPointer<LLViewerInventoryItem> > item_array_t;
-	typedef std::set<LLUUID> changed_items_t;
+	typedef uuid_set_t changed_items_t;
 
 	class FetchItemHttpHandler : public LLHTTPClient::ResponderWithResult
 	{
@@ -154,13 +154,13 @@ private:
 	// the inventory using several different identifiers.
 	// mInventory member data is the 'master' list of inventory, and
 	// mCategoryMap and mItemMap store uuid->object mappings. 
-	typedef std::map<LLUUID, LLPointer<LLViewerInventoryCategory> > cat_map_t;
-	typedef std::map<LLUUID, LLPointer<LLViewerInventoryItem> > item_map_t;
+	typedef boost::unordered_map<LLUUID, LLPointer<LLViewerInventoryCategory> > cat_map_t;
+	typedef boost::unordered_map<LLUUID, LLPointer<LLViewerInventoryItem> > item_map_t;
 	cat_map_t mCategoryMap;
 	item_map_t mItemMap;
 	// This last set of indices is used to map parents to children.
-	typedef std::map<LLUUID, cat_array_t*> parent_cat_map_t;
-	typedef std::map<LLUUID, item_array_t*> parent_item_map_t;
+	typedef boost::unordered_map<LLUUID, cat_array_t*> parent_cat_map_t;
+	typedef boost::unordered_map<LLUUID, item_array_t*> parent_item_map_t;
 	parent_cat_map_t mParentChildCategoryTree;
 	parent_item_map_t mParentChildItemTree;
 
@@ -192,14 +192,14 @@ private:
  **/
 
 	//--------------------------------------------------------------------
-	// Descendents
+	// Descendants
 	//--------------------------------------------------------------------
 public:
-	// Make sure we have the descendents in the structure.  Returns true
+	// Make sure we have the descendants in the structure.  Returns true
 	// if a fetch was performed.
 	bool fetchDescendentsOf(const LLUUID& folder_id) const;
 
-	// Return the direct descendents of the id provided.Set passed
+	// Return the direct descendants of the id provided.Set passed
 	// in values to NULL if the call fails.
 	//    NOTE: The array provided points straight into the guts of
 	//    this object, and should only be used for read operations, since
@@ -211,10 +211,10 @@ public:
 	void getDirectDescendentsOf(const LLUUID& cat_id,
 								cat_array_t*& categories) const;
 	
-	// Compute a hash of direct descendent names (for detecting child name changes)
+	// Compute a hash of direct descendant names (for detecting child name changes)
 	LLMD5 hashDirectDescendentNames(const LLUUID& cat_id) const;
 
-	// Starting with the object specified, add its descendents to the
+	// Starting with the object specified, add its descendants to the
 	// array provided, but do not add the inventory object specified
 	// by id. There is no guaranteed order. 
 	//    NOTE: Neither array will be erased before adding objects to it. 
@@ -340,7 +340,7 @@ public:
 	U32 updateItem(const LLViewerInventoryItem* item, U32 mask = 0);
 
 	// Change an existing item with the matching id or add
-	// the category. No notifcation will be sent to observers. This
+	// the category. No notification will be sent to observers. This
 	// method will only generate network traffic if the item had to be
 	// reparented.
 	//    NOTE: In usage, you will want to perform cache accounting
@@ -378,7 +378,7 @@ public:
 								   bool update_parent_version = true,
 								   bool do_notify_observers = true);
 
-	// Update model after all descendents removed from server.
+	// Update model after all descendants removed from server.
 	void onDescendentsPurgedFromServer(const LLUUID& object_id, bool fix_broken_links = true);
 
 	// Update model after an existing item gets updated on server.
@@ -417,15 +417,6 @@ public:
 	// Gets an iterator on an item vector knowing only the item UUID.
 	// Returns end() of the vector if not found.
 	static LLInventoryModel::item_array_t::iterator findItemIterByUUID(LLInventoryModel::item_array_t& items, const LLUUID& id);
-
-	// Saves current order of the passed items using inventory item sort field.
-	// Resets 'items' sort fields and saves them on server.
-	// Is used to save order for Favorites folder.
-	//void saveItemsOrder(const LLInventoryModel::item_array_t& items);
-
-	// Rearranges Landmarks inside Favorites folder.
-	// Moves source landmark before target one.
-	void rearrangeFavoriteLandmarks(const LLUUID& source_item_id, const LLUUID& target_item_id);
 
 	//--------------------------------------------------------------------
 	// Creation
@@ -476,7 +467,7 @@ public:
 		LLInitializedS32& operator++() { ++mValue; return *this; }
 		LLInitializedS32& operator--() { --mValue; return *this; }
 	};
-	typedef std::map<LLUUID, LLInitializedS32> update_map_t;
+	typedef boost::unordered_map<LLUUID, LLInitializedS32> update_map_t;
 
 	// Call when there are category updates.  Call them *before* the 
 	// actual update so the method can do descendent accounting correctly.
@@ -508,10 +499,12 @@ public:
 
 	// Call to explicitly update everyone on a new state.
 	void notifyObservers();
+
 	// Allows outsiders to tell the inventory if something has
 	// been changed 'under the hood', but outside the control of the
 	// inventory. The next notify will include that notification.
 	void addChangedMask(U32 mask, const LLUUID& referent);
+
 	const changed_items_t& getChangedIDs() const { return mChangedItemIDs; }
 	const changed_items_t& getAddedIDs() const { return mAddedItemIDs; }
 protected:
@@ -565,6 +558,7 @@ protected:
 	static bool loadFromFile(const std::string& filename,
 							 cat_array_t& categories,
 							 item_array_t& items,
+							 changed_items_t& cats_to_update,
 							 bool& is_cache_obsolete); 
 	static bool saveToFile(const std::string& filename,
 						   const cat_array_t& categories,
@@ -601,8 +595,8 @@ protected:
 	cat_array_t* getUnlockedCatArray(const LLUUID& id);
 	item_array_t* getUnlockedItemArray(const LLUUID& id);
 private:
-	std::map<LLUUID, bool> mCategoryLock;
-	std::map<LLUUID, bool> mItemLock;
+	boost::unordered_map<LLUUID, bool> mCategoryLock;
+	boost::unordered_map<LLUUID, bool> mItemLock;
 	
 	//--------------------------------------------------------------------
 	// Debugging

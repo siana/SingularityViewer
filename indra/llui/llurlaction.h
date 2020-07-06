@@ -28,11 +28,7 @@
 #ifndef LL_LLURLACTION_H
 #define LL_LLURLACTION_H
 
-#include <string>
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
+#include <functional>
 
 ///
 /// The LLUrlAction class provides a number of static functions that
@@ -60,7 +56,7 @@ public:
 	static void openURLExternal(std::string url);
 
 	/// execute the given secondlife: SLURL
-	static void executeSLURL(std::string url);
+	static bool executeSLURL(std::string url, bool trusted_content = true);
 
 	/// if the Url specifies an SL location, teleport there
 	static void teleportToLocation(std::string url);
@@ -69,7 +65,7 @@ public:
 	static void showLocationOnMap(std::string url);
 
 	/// perform the appropriate action for left-clicking on a Url
-	static void clickAction(std::string url);
+	static void clickAction(std::string url, bool trusted_content);
 
 	/// copy the label for a Url to the clipboard
 	static void copyLabelToClipboard(std::string url);
@@ -79,10 +75,18 @@ public:
 
 	/// if the Url specifies an SL command in the form like 'app/{cmd}/{id}/*', show its profile
 	static void showProfile(std::string url);
+	static std::string getUserID(std::string url);
+	static std::string getObjectName(std::string url);
+	static std::string getObjectId(std::string url);
+	static void sendIM(std::string url);
+	static void addFriend(std::string url);
+	static void removeFriend(std::string url);
+	static void blockObject(std::string url);
+	static void unblockObject(std::string url);
 
 	/// specify the callbacks to enable this class's functionality
-	typedef boost::function<void (const std::string&)> url_callback_t;
-	typedef boost::function<bool(const std::string& url)> execute_url_callback_t;
+	typedef std::function<void (const std::string&)> url_callback_t;
+	typedef std::function<bool(const std::string& url, bool trusted_content)> execute_url_callback_t;
 
 	static void	setOpenURLCallback(url_callback_t cb);
 	static void	setOpenURLInternalCallback(url_callback_t cb);

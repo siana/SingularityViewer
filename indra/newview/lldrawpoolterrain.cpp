@@ -61,7 +61,7 @@ int DebugDetailMap = 0;
 S32 LLDrawPoolTerrain::sDetailMode = 1;
 F32 LLDrawPoolTerrain::sDetailScale = DETAIL_SCALE;
 static LLGLSLShader* sShader = NULL;
-static LLFastTimer::DeclareTimer FTM_SHADOW_TERRAIN("Terrain Shadow");
+static LLTrace::BlockTimerStatHandle FTM_SHADOW_TERRAIN("Terrain Shadow");
 
 
 LLDrawPoolTerrain::LLDrawPoolTerrain(LLViewerTexture *texturep) :
@@ -74,20 +74,12 @@ LLDrawPoolTerrain::LLDrawPoolTerrain(LLViewerTexture *texturep) :
 	// Hack!
 	sDetailScale = 1.f/gSavedSettings.getF32("RenderTerrainScale");
 	sDetailMode = gSavedSettings.getS32("RenderTerrainDetail");
-	mAlphaRampImagep = LLViewerTextureManager::getFetchedTextureFromFile("alpha_gradient.tga", 
-													TRUE, LLGLTexture::BOOST_UI, 
-													LLViewerTexture::FETCHED_TEXTURE,
-													int_format, format,
-													LLUUID("e97cf410-8e61-7005-ec06-629eba4cd1fb"));
-
-	//gGL.getTexUnit(0)->bind(mAlphaRampImagep.get());
-	mAlphaRampImagep->setAddressMode(LLTexUnit::TAM_CLAMP);
 
 	m2DAlphaRampImagep = LLViewerTextureManager::getFetchedTextureFromFile("alpha_gradient_2d.j2c", 
+													FTT_LOCAL_FILE,
 													TRUE, LLGLTexture::BOOST_UI, 
 													LLViewerTexture::FETCHED_TEXTURE,
-													int_format, format,
-													LLUUID("38b86f85-2575-52a9-a531-23108d8da837"));
+													int_format, format);
 
 	//gGL.getTexUnit(0)->bind(m2DAlphaRampImagep.get());
 	m2DAlphaRampImagep->setAddressMode(LLTexUnit::TAM_CLAMP);
@@ -134,7 +126,7 @@ void LLDrawPoolTerrain::prerender()
 
 void LLDrawPoolTerrain::beginRenderPass( S32 pass )
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	LLFacePool::beginRenderPass(pass);
 
 	sShader = LLPipeline::sUnderWaterRender ? 
@@ -149,7 +141,7 @@ void LLDrawPoolTerrain::beginRenderPass( S32 pass )
 
 void LLDrawPoolTerrain::endRenderPass( S32 pass )
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	//LLFacePool::endRenderPass(pass);
 
 	if (mVertexShaderLevel > 1 && sShader->mShaderLevel > 0) {
@@ -165,7 +157,7 @@ S32 LLDrawPoolTerrain::getDetailMode()
 
 void LLDrawPoolTerrain::render(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	
 	if (mDrawFace.empty())
 	{
@@ -197,61 +189,45 @@ void LLDrawPoolTerrain::render(S32 pass)
 	}
 
 	LLGLSPipeline gls;
-	
-	if (mVertexShaderLevel > 1 && sShader->mShaderLevel > 0)
 	{
-		gPipeline.enableLightsDynamic();
+		LLGLState<GL_LIGHTING> light_state;
 
-		renderFullShader();
-	}
-	else
-	{
-		gPipeline.enableLightsStatic();
+		if (mVertexShaderLevel > 1 && sShader->mShaderLevel > 0)
+		{
+			gPipeline.enableLightsDynamic(light_state);
 
-		if (sDetailMode == 0)
+			renderFullShader();
+		}
+		else
 		{
-			renderSimple();
-		} 
-		else if (gGLManager.mNumTextureUnits < 4)
-		{
-			renderFull2TU();
-			gGL.setSceneBlendType(LLRender::BT_ALPHA);
-		} 
-		else 
-		{
-			renderFull4TU();
-			gGL.setSceneBlendType(LLRender::BT_ALPHA);
+			gPipeline.enableLightsStatic(light_state);
+
+			if (sDetailMode == 0)
+			{
+				renderSimple();
+			}
+			else if (gGLManager.mNumTextureUnits < 4)
+			{
+				renderFull2TU();
+				gGL.setSceneBlendType(LLRender::BT_ALPHA);
+			}
+			else
+			{
+				renderFull4TU();
+				gGL.setSceneBlendType(LLRender::BT_ALPHA);
+			}
 		}
 	}
 
 	// Special-case for land ownership feedback
-	static const LLCachedControl<bool> show_parcel_owners("ShowParcelOwners",false);
-	if (show_parcel_owners)
 	{
-		if (mVertexShaderLevel > 1)
-		{ //use fullbright shader for highlighting
-			LLGLSLShader* old_shader = sShader;
-			sShader->unbind();
-			sShader = &gHighlightProgram;
-			sShader->bind();
-			gGL.diffuseColor4f(1,1,1,1);
-			LLGLEnable polyOffset(GL_POLYGON_OFFSET_FILL);
-			glPolygonOffset(-1.0f, -1.0f);
-			renderOwnership();
-			sShader = old_shader;
-			sShader->bind();
-		}
-		else
-		{
-			gPipeline.disableLights();
-			renderOwnership();
-		}
+		hilightParcelOwners();
 	}
 }
 
 void LLDrawPoolTerrain::beginDeferredPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	LLFacePool::beginRenderPass(pass);
 
 	sShader = &gDeferredTerrainProgram;
@@ -261,24 +237,31 @@ void LLDrawPoolTerrain::beginDeferredPass(S32 pass)
 
 void LLDrawPoolTerrain::endDeferredPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	LLFacePool::endRenderPass(pass);
 	sShader->unbind();
 }
 
 void LLDrawPoolTerrain::renderDeferred(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TERRAIN);
 	if (mDrawFace.empty())
 	{
 		return;
 	}
+
 	renderFullShader();
+
+	// Special-case for land ownership feedback
+	{
+		hilightParcelOwners();
+	}
+
 }
 
 void LLDrawPoolTerrain::beginShadowPass(S32 pass)
 {
-	LLFastTimer t(FTM_SHADOW_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_SHADOW_TERRAIN);
 	LLFacePool::beginRenderPass(pass);
 	gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 	gDeferredShadowProgram.bind();
@@ -286,14 +269,14 @@ void LLDrawPoolTerrain::beginShadowPass(S32 pass)
 
 void LLDrawPoolTerrain::endShadowPass(S32 pass)
 {
-	LLFastTimer t(FTM_SHADOW_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_SHADOW_TERRAIN);
 	LLFacePool::endRenderPass(pass);
 	gDeferredShadowProgram.unbind();
 }
 
 void LLDrawPoolTerrain::renderShadow(S32 pass)
 {
-	LLFastTimer t(FTM_SHADOW_TERRAIN);
+	LL_RECORD_BLOCK_TIME(FTM_SHADOW_TERRAIN);
 	if (mDrawFace.empty())
 	{
 		return;
@@ -465,6 +448,29 @@ void LLDrawPoolTerrain::renderFullShader()
 	gGL.matrixMode(LLRender::MM_MODELVIEW);
 }
 
+void LLDrawPoolTerrain::hilightParcelOwners()
+{
+	static const LLCachedControl<bool> show_parcel_owners("ShowParcelOwners",false);
+	if (!show_parcel_owners) return;
+	if (mVertexShaderLevel > 1)
+	{ //use fullbright shader for highlighting
+		LLGLSLShader* old_shader = sShader;
+		sShader->unbind();
+		sShader = &gHighlightProgram;
+		sShader->bind();
+		gGL.diffuseColor4f(1,1,1,1);
+		LLGLEnable<GL_POLYGON_OFFSET_FILL> polyOffset;
+		gGL.setPolygonOffset(-1.0f, -1.0f);
+		renderOwnership();
+		sShader = old_shader;
+		sShader->bind();
+	}
+	else
+	{
+		renderOwnership();
+	}
+}
+
 void LLDrawPoolTerrain::renderFull4TU()
 {
 	// Hack! Get the region that this draw pool is rendering from!
@@ -608,7 +614,6 @@ void LLDrawPoolTerrain::renderFull4TU()
 	gGL.matrixMode(LLRender::MM_TEXTURE);
 	gGL.loadIdentity();
 	gGL.translatef(-1.f, 0.f, 0.f);
-  
 	gGL.matrixMode(LLRender::MM_MODELVIEW);
 
 	// Set alpha texture and do lighting modulation
@@ -617,7 +622,7 @@ void LLDrawPoolTerrain::renderFull4TU()
 
 	gGL.getTexUnit(0)->activate();
 	{
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		drawLoop();
 	}
 
@@ -743,7 +748,7 @@ void LLDrawPoolTerrain::renderFull2TU()
 
 	gGL.getTexUnit(0)->activate();
 	{
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		drawLoop();
 	}
 	//----------------------------------------------------------------------------
@@ -782,7 +787,7 @@ void LLDrawPoolTerrain::renderFull2TU()
 	gGL.getTexUnit(1)->setTextureAlphaBlend(LLTexUnit::TBO_REPLACE, LLTexUnit::TBS_PREV_ALPHA);
 
 	{
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		drawLoop();
 	}
 	
@@ -821,7 +826,7 @@ void LLDrawPoolTerrain::renderFull2TU()
 
 	gGL.getTexUnit(0)->activate();
 	{
-		LLGLEnable blend(GL_BLEND);
+		LLGLEnable<GL_BLEND> blend;
 		drawLoop();
 	}
 	

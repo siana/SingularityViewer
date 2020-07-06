@@ -34,6 +34,7 @@
 #define LL_TRANS_H
 
 #include <map>
+#include <set>
 
 /**
  * @brief String template loaded from strings.xml

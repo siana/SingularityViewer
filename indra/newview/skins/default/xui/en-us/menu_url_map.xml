@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<context_menu
+ layout="topleft"
+ label="Place"
+ name="Url Popup">
+    <menu_item_call
+     label="Show on Map"
+     layout="topleft"
+     name="show_on_map">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Execute" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Teleport to Location"
+     layout="topleft"
+     name="teleport_to_location">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="Teleport" />
+    </menu_item_call>
+    <menu_item_separator
+     layout="topleft" />
+    <menu_item_call
+     label="Copy SLURL to clipboard"
+     layout="topleft"
+     name="url_copy">
+        <menu_item_call.on_click
+         function="Text.Url" userdata="CopyUrl" />
+    </menu_item_call>
+  <menu_item_call label="Select All" name="Select All">
+    <on_click function="Text" userdata="SelectAll"/>
+  </menu_item_call>
+</context_menu>

@@ -55,14 +55,17 @@ public:
 	boost::signals2::connection getAll(const LLUUID& region_id, getall_callback_t::slot_type cb);
 	void put(const LLUUID& object_id, const U8 te, const LLMaterial& material);
 	void remove(const LLUUID& object_id, const U8 te);
-
-protected:
+	
+	//explicitly add new material to material manager
+	void setLocalMaterial(const LLUUID& region_id, LLMaterialPtr material_ptr);
+	
+private:
 	void clearGetQueues(const LLUUID& region_id);
 	bool isGetPending(const LLUUID& region_id, const LLMaterialID& material_id) const;
 	bool isGetAllPending(const LLUUID& region_id) const;
 	void markGetPending(const LLUUID& region_id, const LLMaterialID& material_id);
 	const LLMaterialPtr setMaterial(const LLUUID& region_id, const LLMaterialID& material_id, const LLSD& material_data);
-
+	void setMaterialCallbacks(const LLMaterialID& material_id, const LLMaterialPtr material_ptr);
 	static void onIdle(void*);
 	void processGetQueue();
 	void onGetResponse(bool success, const LLSD& content, const LLUUID& region_id);
@@ -72,15 +75,6 @@ protected:
 	void onPutResponse(bool success, const LLSD& content);
 	void onRegionRemoved(LLViewerRegion* regionp);
 
-protected:
-	typedef std::set<LLMaterialID> material_queue_t;
-	typedef std::map<LLUUID, material_queue_t> get_queue_t;
-	get_queue_t        mGetQueue;
-	typedef std::pair<const LLUUID, LLMaterialID> pending_material_t;
-	typedef std::map<const pending_material_t, F64> get_pending_map_t;
-	get_pending_map_t  mGetPending;
-	typedef std::map<LLMaterialID, get_callback_t*> get_callback_map_t;
-	get_callback_map_t mGetCallbacks;
 
 	// struct for TE-specific material ID query
 	class TEMaterialPair
@@ -108,22 +102,32 @@ protected:
 		bool   operator()(const TEMaterialPair& left, const TEMaterialPair& right) const { return left < right; }
 	};
 
+	typedef std::set<LLMaterialID> material_queue_t;
+	typedef std::map<LLUUID, material_queue_t> get_queue_t;
+	typedef std::pair<const LLUUID, LLMaterialID> pending_material_t;
+	typedef std::map<const pending_material_t, F64> get_pending_map_t;
+	typedef std::map<LLMaterialID, get_callback_t*> get_callback_map_t;
+
+
 	typedef boost::unordered_map<TEMaterialPair, get_callback_te_t*, TEMaterialPairHasher> get_callback_te_map_t;
-	get_callback_te_map_t mGetTECallbacks;
-
 	typedef std::set<LLUUID> getall_queue_t;
-	getall_queue_t        mGetAllQueue;
-	getall_queue_t        mGetAllRequested;
 	typedef std::map<LLUUID, F64> getall_pending_map_t;
-	getall_pending_map_t  mGetAllPending;
 	typedef std::map<LLUUID, getall_callback_t*> getall_callback_map_t;
-	getall_callback_map_t mGetAllCallbacks;
-
 	typedef std::map<U8, LLMaterial> facematerial_map_t;
 	typedef std::map<LLUUID, facematerial_map_t> put_queue_t;
-	put_queue_t mPutQueue;
 
-	material_map_t mMaterials;
+
+	get_queue_t				mGetQueue;
+	get_pending_map_t  mGetPending;
+	get_callback_map_t		mGetCallbacks;
+
+	get_callback_te_map_t	mGetTECallbacks;
+	getall_queue_t			mGetAllQueue;
+	getall_queue_t			mGetAllRequested;
+	getall_pending_map_t	mGetAllPending;
+	getall_callback_map_t	mGetAllCallbacks;
+	put_queue_t				mPutQueue;
+	material_map_t			mMaterials;
 
 	U32 getMaxEntries(const LLViewerRegion* regionp);
 };

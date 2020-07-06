@@ -64,6 +64,7 @@
 		<layout_panel name="skip_forward" >
 			<button name="skip_forward_btn" label="" tool_tip="Avanzar"/>
 		</layout_panel>
+		
 		<layout_panel name="media_volume">
 			<!-- Note: this is not quite right either...the mute button is not the -->
 			<!-- same as the others because it cannot have the "image_overlay" be  -->
@@ -72,6 +73,11 @@
 			<button name="media_mute_button" label="" tool_tip="Silenciar este Media"/>
 			<slider name="volume_slider" tool_tip="Volumen de Media"/>
 		</layout_panel>
+		
+		<layout_panel name="moap_stop" >
+			<button name="stop_btn" tool_tip="Detener media"/>
+		</layout_panel>
+	
 		<layout_panel name="zoom_frame">
 			<button name="zoom_frame_btn" label="" tool_tip="Zoom en el media"/>
 		</layout_panel>

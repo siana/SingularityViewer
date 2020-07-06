@@ -55,10 +55,8 @@
 
 #if LL_GSTREAMER010_ENABLED
 
-extern "C" {
 #include <gst/gst.h>
 #include <gst/gstelement.h>
-}
 
 #include "llmediaimplgstreamer.h"
 #include "llmediaimplgstreamertriviallogging.h"

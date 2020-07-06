@@ -20,8 +20,5 @@ else (STANDALONE)
     else (WINDOWS)
         set(CARES_LIBRARIES cares)
     endif (WINDOWS)
-    set(CARES_INCLUDE_DIRS
-      ${LIBS_PREBUILT_DIR}/include/ares
-      ${LIBS_PREBUILT_LEGACY_DIR}/include/ares
-      )
+    set(CARES_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/include/ares)
 endif (STANDALONE)

@@ -11,7 +11,7 @@
 	</text>	
 	<button name="buycurrency" tool_tip="Comprar dinero"/>
 	<text type="string" name="TimeText" tool_tip="Hora actual (Del Pacífico)">
-		24:00
+		12:00 AM
 	</text>
 	<string name="StatBarDaysOfWeek">
 		Domingo:Lunes:Martes:Miércoles:Jueves:Viernes:Sábado

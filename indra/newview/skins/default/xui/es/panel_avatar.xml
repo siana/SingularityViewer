@@ -7,7 +7,7 @@
 [PAYMENTINFO]
 [AGEVERIFICATION]
 			</string>
-			<flyout_button label="Copiar:" tool_tip="Copiar key al portapapeles, presiona la flecha para otras opciones de copia" name="copy_flyout">
+			<flyout_button label="Copiar:" tool_tip="Copiar UUID al portapapeles, presiona la flecha para otras opciones de copia" name="copy_flyout">
 				<flyout_button_item label="Copiar SLURL" name="copy_slurl_item"/>
 			</flyout_button>
 			<name_editor name="avatar_key"/>
@@ -15,27 +15,21 @@
 			<text name="Name:" >
 				Nombre:
 			</text>
-			<line_editor name="dnname"/>
 			<text name="online_yes">
 				En Línea
 			</text>
 			<text name="label">
 				Nacido:
 			</text>
-			<line_editor name="born"/>
 			<text name="label2">
 				Cuenta:
 			</text>
-			<view_border name="acct_border"/>
 			<text name="acct"/>
 			<text name="partner_label" tool_tip="Compañera/o en Second Life. Para más información ver www.secondlife.com/partner">
 				Compañera/o:
 			</text>
-			<button label="i" label_selected="i" name="partner_info" tool_tip="Pulsa para abrir el Perfil del Compañero/a" left_delta="75"/>
 			<button label="?" label_selected="?" name="partner_help"/>
-			<line_editor name="partner_edit" tool_tip="Compañera/o en Second Life partner. Para más información ver www.secondlife.com/partner">
-				[NAME]
-			</line_editor>
+			<name_editor name="partner_edit"/>
 			<text name="Photo:">
 				Foto:
 			</text>
@@ -59,13 +53,14 @@
 			<drop_target name="drop_target_rect" label="Suelta aquí un ítem de tu inventario." tool_tip="Arrastra hasta aquí ítems del inventario para dárselos a esta persona."/>
 			<check_box label="Mostrar en la Búsqueda" name="allow_publish" tool_tip="Publicar información del Perfil en la búsqueda."/>
 			<button label="?" label_selected="?" name="?"/>
-			<button label="Localizar en el Mapa" label_selected="Localizar en el Mapa" name="Find on Map" left="10" width="135"/>
-			<button label="Ofrecer Teleporte" label_selected="Ofrecer Teleporte" name="Offer Teleport..." left_delta="143" width="120"/>
-			<button label="Añadir como Amigo" label_selected="Añadir como Amigo" name="Add Friend..." left_delta="129" />
-			<button label="Pagar..." label_selected="Pagar..." name="Pay..." left="10"/>
-			<button label="Mensaje Instantáneo" label_selected="Mensaje Instantáneo" name="Instant Message..." tool_tip="Mensaje Instantáneo (IM)" left_delta="75"/>
-			<button label="Ignorar" label_selected="No Ignorar" name="Mute" left_delta="143" width="69"/>
-			<button label="Invitar al Grupo" label_selected="Invitar al Grupo" name="GroupInvite_Button" left_delta="74" width="110"/>
+			<button label="Localizar en Mapa" label_selected="Localizar en el Mapa" name="Find on Map" left="10" width="120"/>
+			<button label="Teleporte" label_selected="Teleporte" name="Offer Teleport..." left_delta="133" width="70"/>
+			<button label="Añadir Amigo" label_selected="Añadir Amigo" name="Add Friend..." left_delta="85" width="100"/>
+			<button label="Historial" name="Log" bottom="-452" left_delta="113" height="20"/>
+			<button label="Pagar..." label_selected="Pagar..." name="Pay..." bottom="-475" left="10"/>
+			<button label="Mensaje Instantáneo" label_selected="Mensaje Instantáneo" name="Instant Message..." tool_tip="Mensaje Instantáneo (IM)" bottom="-475" left_delta="75"/>
+			<button label="Ignorar" label_selected="No Ignorar" name="Mute" bottom="-475" left_delta="143" width="69"/>
+			<button label="Invitar al Grupo" label_selected="Invitar al Grupo" name="GroupInvite_Button" bottom="-475" left_delta="74" width="110"/>
 		</panel>
 		<!-- =========================== -->
 		<panel label="Web" name="WebProfile" width="400">

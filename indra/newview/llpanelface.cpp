@@ -1866,6 +1866,8 @@ void LLPanelFace::onCancelNormalTexture(const LLSD& data)
 	U8 bumpy = 0;
 	bool identical_bumpy = false;
 	LLSelectedTE::getBumpmap(bumpy, identical_bumpy);
+	LLUUID norm_map_id = mBumpyTextureCtrl->getImageAssetID();
+	bumpy = norm_map_id.isNull() ? bumpy : BUMPY_TEXTURE;
 	sendBump(bumpy);
 }
 
@@ -2162,6 +2164,15 @@ void LLPanelFace::LLSelectedTE::getTexId(LLUUID& id, bool& identical)
 	{
 		LLUUID get(LLViewerObject* object, S32 te_index)
 		{
+			LLTextureEntry *te = object->getTE(te_index);
+			if (te)
+			{
+				if ((te->getID() == IMG_USE_BAKED_EYES) || (te->getID() == IMG_USE_BAKED_HAIR) || (te->getID() == IMG_USE_BAKED_HEAD) || (te->getID() == IMG_USE_BAKED_LOWER) || (te->getID() == IMG_USE_BAKED_SKIRT) || (te->getID() == IMG_USE_BAKED_UPPER)
+					|| (te->getID() == IMG_USE_BAKED_LEFTARM) || (te->getID() == IMG_USE_BAKED_LEFTLEG) || (te->getID() == IMG_USE_BAKED_AUX1) || (te->getID() == IMG_USE_BAKED_AUX2) || (te->getID() == IMG_USE_BAKED_AUX3))
+				{
+					return te->getID();
+				}
+			}
 			LLUUID id;
 			LLViewerTexture* image = object->getTEImage(te_index);
 			if (image)
@@ -2171,10 +2182,9 @@ void LLPanelFace::LLSelectedTE::getTexId(LLUUID& id, bool& identical)
 
 			if (!id.isNull() && LLViewerMedia::textureHasMedia(id))
 			{
-				LLTextureEntry *te = object->getTE(te_index);
 				if (te)
 				{
-					LLViewerTexture* tex = te->getID().notNull() ? gTextureList.findImage(te->getID()) : NULL;
+					LLViewerTexture* tex = te->getID().notNull() ? gTextureList.findImage(te->getID(), TEX_LIST_STANDARD) : NULL;
 					if(!tex)
 					{
 						tex = LLViewerFetchedTexture::sDefaultImagep;

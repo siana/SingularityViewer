@@ -45,8 +45,8 @@
 #include "llviewercontrol.h"
 #include "llui.h"
 #include "llappviewer.h"
+#include "llfloatertos.h"
 #include "lltracker.h"
-#include "floatervoicelicense.h"
 #include "llstartup.h"
 
 #include "hippogridmanager.h"
@@ -303,8 +303,9 @@ void LLFirstUse::voiceLicenseAgreement()
 	{
 		gSavedSettings.setWarning("FirstVoiceLicense", FALSE);
 
-		FloaterVoiceLicense::getInstance()->open();
-		FloaterVoiceLicense::getInstance()->center();
+		auto inst = LLFloaterTOS::show(LLFloaterTOS::TOS_VOICE);
+		inst->open();
+		inst->center();
 	}
 	else // currently in STATE_LOGIN_VOICE_LICENSE when arriving here
 	{

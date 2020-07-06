@@ -124,11 +124,12 @@ LLColor4 LLColor4::cyan6(0.2f, 0.6f, 0.6f, 1.0f);
 // conversion
 LLColor4::operator const LLColor4U() const
 {
+	// Singu Note: Some optimization has been done here.
 	return LLColor4U(
-		(U8)llclampb(ll_round(mV[VRED]*255.f)),
-		(U8)llclampb(ll_round(mV[VGREEN]*255.f)),
-		(U8)llclampb(ll_round(mV[VBLUE]*255.f)),
-		(U8)llclampb(ll_round(mV[VALPHA]*255.f)));
+		(U8)llmin((S32)(llmax(0.f,mV[VRED]*255.f) + .5f), 255),
+		(U8)llmin((S32)(llmax(0.f,mV[VGREEN]*255.f) + .5f), 255),
+		(U8)llmin((S32)(llmax(0.f,mV[VBLUE]*255.f) + .5f), 255),
+		(U8)llmin((S32)(llmax(0.f,mV[VALPHA]*255.f) + .5f), 255));
 }
 
 LLColor4::LLColor4(const LLColor3 &vec, F32 a)

@@ -38,12 +38,13 @@
 #include "v3math.h"
 #include "v4coloru.h"
 #include "v4math.h"
-#include "llmatrix4a.h"
-#include "llalignedarray.h"
 #include "llstrider.h"
 #include "llpointer.h"
 #include "llglheaders.h"
+#include "llmatrix4a.h"
 #include "llrect.h"
+#include "llvector4a.h"
+#include <boost/align/aligned_allocator.hpp>
 
 class LLVertexBuffer;
 class LLCubeMap;
@@ -63,9 +64,7 @@ public:
 	typedef enum
 	{
 		TT_TEXTURE = 0,			// Standard 2D Texture
-		TT_RECT_TEXTURE,	// Non power of 2 texture
 		TT_CUBE_MAP,		// 6-sided cube map texture
-		//TT_MULTISAMPLE_TEXTURE, // see GL_ARB_texture_multisample  Do not use
 		TT_NONE 		// No texture type is currently enabled
 	} eTextureType;
 
@@ -200,7 +199,7 @@ public:
 	void setHasMipMaps(bool hasMips) { mHasMipMaps = hasMips; }
 
 protected:
-	S32					mIndex;
+	const S32			mIndex;
 	U32					mCurrTexture;
 	eTextureType		mCurrTexType;
 	eTextureBlendType	mCurrBlendType;
@@ -222,31 +221,25 @@ protected:
 	void setTextureCombiner(eTextureBlendOp op, eTextureBlendSrc src1, eTextureBlendSrc src2, bool isAlpha = false);
 };
 
-class LLLightState
+struct LLLightStateData
 {
-public:
-	LLLightState(S32 index);
+	LLLightStateData(bool notSun=true) :
+		mConstantAtten(1.f),
+		mLinearAtten(0.f),
+		mQuadraticAtten(0.f),
+		mSpotExponent(0.f),
+		mSpotCutoff(180.f)
+	{
+		if (!notSun)
+		{
+			mDiffuse.set(1, 1, 1, 1);
+			mSpecular.set(1, 1, 1, 1);
+		}
+		mPosition.set(0, 0, 1, 0);
+		mSpotDirection.set(0, 0, -1);
+	}
 
-	void enable();
-	void disable();
-	void setDiffuse(const LLColor4& diffuse);
-	void setAmbient(const LLColor4& ambient);
-	void setSpecular(const LLColor4& specular);
-	void setPosition(const LLVector4& position);
-	void setConstantAttenuation(const F32& atten);
-	void setLinearAttenuation(const F32& atten);
-	void setQuadraticAttenuation(const F32& atten);
-	void setSpotExponent(const F32& exponent);
-	void setSpotCutoff(const F32& cutoff);
-	void setSpotDirection(const LLVector3& direction);
-
-protected:
-	friend class LLRender;
-
-	S32 mIndex;
-	bool mEnabled;
 	LLColor4 mDiffuse;
-	LLColor4 mAmbient;
 	LLColor4 mSpecular;
 	LLVector4 mPosition;
 	LLVector3 mSpotDirection;
@@ -259,10 +252,51 @@ protected:
 	F32 mSpotCutoff;
 };
 
+class LLLightState
+{
+public:
+	LLLightState(S32 index);
+
+	void enable() { setEnabled(true); }
+	void disable() { setEnabled(false); }
+	void setState(LLLightStateData& state) {
+		setDiffuse(state.mDiffuse);
+		setSpecular(state.mSpecular);
+		setPosition(state.mPosition);
+		setConstantAttenuation(state.mConstantAtten);
+		setLinearAttenuation(state.mLinearAtten);
+		setQuadraticAttenuation(state.mQuadraticAtten);
+		setSpotExponent(state.mSpotExponent);
+		setSpotCutoff(state.mSpotCutoff);
+		setSpotDirection(state.mSpotDirection);
+	}
+	const LLColor4& getDiffuse() const { return mState.mDiffuse; }
+	void setDiffuse(const LLColor4& diffuse);
+	void setSpecular(const LLColor4& specular);
+	void setPosition(const LLVector4& position);
+	void setConstantAttenuation(const F32& atten);
+	void setLinearAttenuation(const F32& atten);
+	void setQuadraticAttenuation(const F32& atten);
+	void setSpotExponent(const F32& exponent);
+	void setSpotCutoff(const F32& cutoff);
+	void setSpotDirection(const LLVector3& direction);
+	void setEnabled(const bool enabled);
+
+protected:
+	friend class LLRender;
+
+	S32 mIndex;
+	LLLightStateData mState;
+	bool mEnabled;
+	LLMatrix4a mPosMatrix;
+	LLMatrix4a mSpotMatrix;
+};
+
 LL_ALIGN_PREFIX(16)
 class LLRender
 {
 	friend class LLTexUnit;
+	friend void check_blend_funcs();
 public:
 
 	enum eTexIndex
@@ -272,6 +306,13 @@ public:
 		SPECULAR_MAP,
 		NUM_TEXTURE_CHANNELS,
 	};
+
+	enum eVolumeTexIndex
+	{
+		LIGHT_TEX = 0,
+		SCULPT_TEX,
+		NUM_VOLUME_TEXTURE_CHANNELS,
+	};
 	
 	typedef enum {
 		TRIANGLES = 0,
@@ -280,7 +321,6 @@ public:
 		POINTS,
 		LINES,
 		LINE_STRIP,
-		QUADS,
 		LINE_LOOP,
 		NUM_MODES
 	} eGeomModes;
@@ -337,10 +377,101 @@ public:
 		MM_TEXTURE
 	} eMatrixMode;
 
+	typedef enum
+	{
+		PF_FRONT,
+		PF_BACK,
+		PF_FRONT_AND_BACK
+	} ePolygonFaceType;
+
+	typedef enum
+	{
+		PM_POINT,
+		PM_LINE,
+		PM_FILL
+	} ePolygonMode;
+
+	static const U8 NUM_LIGHTS = 8;
+
+	// Cache of global gl state. (excludes nested texunit/light states)
+	struct Context {
+		Context() :
+			texUnit(0),
+			color{ 1.f,1.f,1.f,1.f },
+			colorMask{ 0xf },
+			alphaFunc(CF_ALWAYS),
+			alphaVal(0.f),
+			blendColorSFactor(BF_ONE),
+			blendAlphaDFactor(BF_ZERO),
+			blendAlphaSFactor(BF_ONE),
+			blendColorDFactor(BF_ZERO),
+			lineWidth(1.f),
+			pointSize(1.f),
+			polygonMode{ PM_FILL, PM_FILL },
+			polygonOffset{ 0.f, 0.f },
+			viewPort(),
+			scissor()
+		{
+		}
+		U32				texUnit;
+		LLColor4		color;
+		U8				colorMask : 4;
+		eCompareFunc	alphaFunc;
+		F32				alphaVal;
+		eBlendFactor	blendColorSFactor;
+		eBlendFactor	blendColorDFactor;
+		eBlendFactor	blendAlphaSFactor;
+		eBlendFactor	blendAlphaDFactor;
+		F32				lineWidth;
+		F32				pointSize;
+		ePolygonMode	polygonMode[2];
+		F32				polygonOffset[2];
+		LLRect			viewPort;
+		LLRect			scissor;
+		void			printDiff(const Context& other) const
+		{
+			if (memcmp(this, &other, sizeof(other)) == 0)
+			{
+				return;
+			}
+#define PRINT_DIFF(prop) \
+			LL_INFOS() << #prop << ": " << other.prop; \
+			if (prop != other.prop) { LL_CONT << " -> " << prop; } \
+			LL_CONT << LL_ENDL;
+#define PRINT_DIFF_BIT(prop, bit) \
+			LL_INFOS() << #prop << "(1<<" << #bit << "): " << (other.prop&(1<<bit)); \
+			if ((prop&(1<<bit)) != (other.prop&(1<<bit))) { LL_CONT << " -> " << (prop&(1<<bit)); } \
+			LL_CONT << LL_ENDL;
+			PRINT_DIFF(texUnit);
+			PRINT_DIFF(color.mV[0]);
+			PRINT_DIFF(color.mV[1]);
+			PRINT_DIFF(color.mV[2]);
+			PRINT_DIFF(color.mV[3]);
+			PRINT_DIFF_BIT(colorMask, 0);
+			PRINT_DIFF_BIT(colorMask, 1);
+			PRINT_DIFF_BIT(colorMask, 2);
+			PRINT_DIFF_BIT(colorMask, 3);
+			PRINT_DIFF(alphaFunc);
+			PRINT_DIFF(blendColorSFactor);
+			PRINT_DIFF(blendColorDFactor);
+			PRINT_DIFF(blendAlphaSFactor);
+			PRINT_DIFF(blendAlphaDFactor);
+			PRINT_DIFF(lineWidth);
+			PRINT_DIFF(pointSize);
+			PRINT_DIFF(polygonMode[0]);
+			PRINT_DIFF(polygonMode[1]);
+			PRINT_DIFF(polygonOffset[0]);
+			PRINT_DIFF(polygonOffset[1]);
+			PRINT_DIFF(viewPort);
+			PRINT_DIFF(scissor);
+		}
+	};
+
 	LLRender();
 	~LLRender();
 	void init() ;
 	void shutdown();
+	void destroyGL();
 	
 	// Refreshes renderer state to the cached values
 	// Needed when the render context has changed and invalidated the current state
@@ -376,11 +507,15 @@ public:
 	const LLMatrix4a& getModelviewMatrix();
 	const LLMatrix4a& getProjectionMatrix();
 
+	void syncContextState();
 	void syncMatrices();
 	void syncLightState();
+	void syncShaders();
 
 	void translateUI(F32 x, F32 y, F32 z);
 	void scaleUI(F32 x, F32 y, F32 z);
+	// Rotates vertices, pre-translation/scale
+	void rotateUI(LLQuaternion& rot);
 	void pushUIMatrix();
 	void popUIMatrix();
 	void loadUIIdentity();
@@ -427,6 +562,18 @@ public:
 
 	void setAlphaRejectSettings(eCompareFunc func, F32 value = 0.01f);
 
+	void setPolygonMode(ePolygonFaceType type, ePolygonMode mode);
+	void setPolygonOffset(F32 factor, F32 bias);
+
+	void setViewport(S32 x, S32 y, U32 w, U32 h) { setViewport(LLRect(x, y + h, x + w, y)); };
+	void setViewport(const LLRect& rect);
+
+	void setScissor(S32 x, S32 y, U32 w, U32 h) { setScissor(LLRect(x, y + h, x + w, y)); };
+	void setScissor(const LLRect& rect);
+	const LLRect& getScissor() const { return mNewContext.scissor; }
+
+	void setShader(U32 shader) { mNextShader = shader; }
+
 	// applies blend func to both color and alpha
 	void blendFunc(eBlendFactor sfactor, eBlendFactor dfactor);
 	// applies separate blend functions to color and alpha
@@ -436,9 +583,13 @@ public:
 	LLLightState* getLight(U32 index);
 	void setAmbientLightColor(const LLColor4& color);
 
+	void setLineWidth(F32 line_width);
+	F32 getLineWidth() const { return mNewContext.lineWidth; }
+	void setPointSize(F32 point_size);
+
 	LLTexUnit* getTexUnit(U32 index);
 
-	U32	getCurrentTexUnitIndex(void) const { return mCurrTextureUnitIndex; }
+	U32	getCurrentTexUnitIndex(void) const { return mNewContext.texUnit; }
 
 	bool verifyTexUnitActive(U32 unitToVerify);
 
@@ -446,12 +597,16 @@ public:
 
 	void clearErrors();
 
+	const Context& getContextSnapshot() const { return mNewContext; }
+
 	struct Vertex
 	{
 		GLfloat v[3];
 		GLubyte c[4];
 		GLfloat uv[2];
 	};
+
+	void resetSyncHashes();
 
 public:
 	static U32 sUICalls;
@@ -465,18 +620,26 @@ private:
 	U32 mMatIdx[NUM_MATRIX_MODES];
 	U32 mMatHash[NUM_MATRIX_MODES];
 	LL_ALIGN_16(LLMatrix4a mMatrix[NUM_MATRIX_MODES][LL_MATRIX_STACK_DEPTH]);
-	U32 mCurMatHash[NUM_MATRIX_MODES];
+	U32 mCurLegacyMatHash[NUM_MATRIX_MODES];
 	U32 mLightHash;
+	U32 mCurLegacyLightHash;
+	U32 mLightPositionTransformHash[NUM_LIGHTS];
+	U32 mLightSpotTransformHash[NUM_LIGHTS];
+	U32 mCurLightPositionTransformHash[NUM_LIGHTS];
+	U32 mCurLightSpotTransformHash[NUM_LIGHTS];
+	LLVector4 mCurLightPosition[NUM_LIGHTS];
+	LLVector3 mCurSpotDirection[NUM_LIGHTS];
 	LLColor4 mAmbientLightColor;
+	U32 mCurShader;
+	U32 mNextShader;
 	
 	bool			mDirty;
-	U32				mQuadCycle;
+
+	Context mContext;
+	Context mNewContext;
+
 	U32				mCount;
 	U32				mMode;
-	U32				mCurrTextureUnitIndex;
-	bool				mCurrColorMask[4];
-	eCompareFunc			mCurrAlphaFunc;
-	F32				mCurrAlphaFuncVal;
 
 	LLPointer<LLVertexBuffer>	mBuffer;
 	LLStrider<LLVector4a>		mVerticesp;
@@ -486,15 +649,13 @@ private:
 	LLTexUnit*			mDummyTexUnit;
 	std::vector<LLLightState*> mLightState;
 
-	eBlendFactor mCurrBlendColorSFactor;
-	eBlendFactor mCurrBlendColorDFactor;
-	eBlendFactor mCurrBlendAlphaSFactor;
-	eBlendFactor mCurrBlendAlphaDFactor;
-
 	F32				mMaxAnisotropy;
 
-	LLAlignedArray<LLVector4a, 64> mUIOffset;
-	LLAlignedArray<LLVector4a, 64> mUIScale;
+	std::vector<LLVector4a, boost::alignment::aligned_allocator<LLVector4a, 64> > mUIOffset;
+	std::vector<LLVector4a, boost::alignment::aligned_allocator<LLVector4a, 64> > mUIScale;
+	std::vector<LLQuaternion> mUIRotation;
+
+	bool			mPrimitiveReset;
 } LL_ALIGN_POSTFIX(16);
 
 
@@ -503,7 +664,7 @@ extern LLMatrix4a gGLLastModelView;
 extern LLMatrix4a gGLLastProjection;
 extern LLMatrix4a gGLPreviousModelView;
 extern LLMatrix4a gGLProjection;
-extern S32 gGLViewport[4];
+extern LLRect gGLViewport;
 
 extern LLRender gGL;
 

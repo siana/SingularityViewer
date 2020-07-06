@@ -104,7 +104,6 @@ private:
 	
 	static LLPreviewTexture* sInstance;
 	static void			onClickProfile(void* userdata);
-	static void callbackLoadAvatarName(const LLUUID& id, const std::string& first, const std::string& last, BOOL is_group, void* data);
 
 	// This is stored off in a member variable, because the save-as
 	// button and drag and drop functionality need to know.

@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <menu name="media ctrl context menu">
+	<menu_item_call label="Deshacer" name="undo"/>
+	<menu_item_call label="Rehacer" layout="topleft"/>
+	<menu_item_call label="Copiar URL" name="copy_page_url"/>
 	<menu_item_call label="Cortar" name="Cut"/>
 	<menu_item_call label="Copiar" name="Copy"/>
 	<menu_item_call label="Pegar" name="Paste"/>
+	<menu_item_call label="Borrar" name="delete"/>
+	<menu_item_call label="Seleccionar Todo" name="select_all"/>
+	<menu_item_call label="Abrir Inspector Web" name="open_webinspector"/>
+	<menu_item_call label="Ver Código fuente" name="show_page_source"/>
 </menu>

@@ -78,7 +78,7 @@ public:
 			visible("visible", true),
 			value("value"),
 			tool_tip("tool_tip", ""),
-			format("format", ""),
+			format("format", "%D %T"),
 			font("font"/*, LLFontGL::getFontSansSerifSmall()*/),
 			font_color("font_color", LLColor4::black),
 			font_style("font-style"),

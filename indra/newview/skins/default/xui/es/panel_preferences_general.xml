@@ -20,7 +20,7 @@
 			Siempre
 		</combo_item>
 	</combo_box>
-	<combo_box name="namesystem_combobox">
+	<combo_box name="namesystem_combobox" width="166">
 		<combo_item name="Old Names">
 			Nombres Antiguos
 		</combo_item>
@@ -55,7 +55,7 @@
 	<text name="maturity_desired_prompt">
 		Quiero acceder a contenido 
 	</text>
-	<combo_box name="maturity_desired_combobox">
+	<combo_box name="maturity_desired_combobox" width="145">
 		<combo_item name="Desired_Adult">
 			PG, Moderado y Adulto
 		</combo_item>

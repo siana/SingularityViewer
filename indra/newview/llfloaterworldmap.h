@@ -169,8 +169,8 @@ private:
 	// enable/disable teleport destination coordinates 
 	void enableTeleportCoordsDisplay( bool enabled );
 
-	std::vector<LLUUID>	mLandmarkAssetIDList;
-	std::vector<LLUUID>	mLandmarkItemIDList;
+	uuid_vec_t	mLandmarkAssetIDList;
+	uuid_vec_t	mLandmarkItemIDList;
 
 	static const LLUUID	sHomeID;
 

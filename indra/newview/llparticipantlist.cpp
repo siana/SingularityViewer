@@ -30,11 +30,12 @@
 #include "llagent.h"
 #include "llmutelist.h"
 #include "llparticipantlist.h"
-#include "llscrolllistctrl.h"
-#include "llscrolllistitem.h"
+#include "llnamelistctrl.h"
 #include "llspeakers.h"
+#include "lluictrlfactory.h" // Edit: For menu duality
+#include "llviewermenu.h" // Edit: For menu duality
 #include "llviewerwindow.h"
-#include "llvoiceclient.h"
+#include "llvoicechannel.h" // Edit: For menu duality
 #include "llworld.h" // Edit: For ghost detection
 // [RLVa:KB]
 #include "rlvhandler.h"
@@ -43,7 +44,7 @@
 LLParticipantList::LLParticipantList(LLSpeakerMgr* data_source,
 									 bool show_text_chatters) :
 	mSpeakerMgr(data_source),
-	mAvatarList(NULL),
+	mAvatarList(nullptr),
 	mShowTextChatters(show_text_chatters),
 	mValidateSpeakerCallback(NULL)
 {
@@ -58,16 +59,31 @@ LLParticipantList::LLParticipantList(LLSpeakerMgr* data_source,
 	mSpeakerClearListener = new SpeakerClearListener(*this);
 	//mSpeakerModeratorListener = new SpeakerModeratorUpdateListener(*this);
 	mSpeakerMuteListener = new SpeakerMuteListener(*this);
-
+	mSpeakerBatchBeginListener = new SpeakerBatchBeginListener(*this);
+	mSpeakerBatchEndListener = new SpeakerBatchEndListener(*this);
+	mSpeakerSortingUpdateListener = new SpeakerSortingUpdateListener(*this);
 	mSpeakerMgr->addListener(mSpeakerAddListener, "add");
 	mSpeakerMgr->addListener(mSpeakerRemoveListener, "remove");
 	mSpeakerMgr->addListener(mSpeakerClearListener, "clear");
+	mSpeakerMgr->addListener(mSpeakerBatchBeginListener, "batch_begin");
+	mSpeakerMgr->addListener(mSpeakerBatchEndListener, "batch_end");
+	mSpeakerMgr->addListener(mSpeakerSortingUpdateListener, "update_sorting");
 	//mSpeakerMgr->addListener(mSpeakerModeratorListener, "update_moderator");
+}
+
+void LLParticipantList::setupContextMenu()
+{
+	if (mSpeakerMgr->getVoiceChannel() == LLVoiceChannelProximal::getInstance())
+	{
+		static LLMenuGL* menu = LLUICtrlFactory::getInstance()->buildMenu("menu_local_avs.xml", gMenuHolder);
+		mAvatarList->setContextMenu(menu);
+	}
+	else mAvatarList->setContextMenu(LFIDBearer::AVATAR);
 }
 
 BOOL LLParticipantList::postBuild()
 {
-	mAvatarList = getChild<LLScrollListCtrl>("speakers_list");
+	mAvatarList = getChild<LLNameListCtrl>("speakers_list");
 
 	mAvatarList->sortByColumn(gSavedSettings.getString("FloaterActiveSpeakersSortColumn"), gSavedSettings.getBOOL("FloaterActiveSpeakersSortAscending"));
 	mAvatarList->setDoubleClickCallback(boost::bind(&LLParticipantList::onAvatarListDoubleClicked, this));
@@ -92,6 +108,7 @@ BOOL LLParticipantList::postBuild()
 
 	// update speaker UI
 	handleSpeakerSelect();
+	setupContextMenu();
 
 	return true;
 }
@@ -103,25 +120,6 @@ LLParticipantList::~LLParticipantList()
 	mAvatarListRefreshConnection.disconnect();
 	mAvatarListReturnConnection.disconnect();
 	mAvatarListToggleIconsConnection.disconnect();
-
-	// It is possible Participant List will be re-created from LLCallFloater::onCurrentChannelChanged()
-	// See ticket EXT-3427
-	// hide menu before deleting it to stop enable and check handlers from triggering.
-	if(mParticipantListMenu && !LLApp::isExiting())
-	{
-		mParticipantListMenu->hide();
-	}
-
-	if (mParticipantListMenu)
-	{
-		delete mParticipantListMenu;
-		mParticipantListMenu = NULL;
-	}
-
-	mAvatarList->setContextMenu(NULL);
-	mAvatarList->setComparator(NULL);
-
-	delete mAvalineUpdater;
 	*/
 }
 
@@ -226,6 +224,11 @@ void LLParticipantList::handleSpeakerSelect()
 
 void LLParticipantList::refreshSpeakers()
 {
+	if (mUpdateTimer.getElapsedTimeF32() < .5f)
+	{
+		return;
+	}
+	mUpdateTimer.reset();
 	// store off current selection and scroll state to preserve across list rebuilds
 	const S32 scroll_pos = mAvatarList->getScrollInterface()->getScrollPos();
 
@@ -236,27 +239,42 @@ void LLParticipantList::refreshSpeakers()
 	// panel and hasn't been motionless for more than a few seconds. see DEV-6655 -MG
 	LLRect screen_rect;
 	localRectToScreen(getLocalRect(), &screen_rect);
-	mSpeakerMgr->update(!(screen_rect.pointInRect(gViewerWindow->getCurrentMouseX(), gViewerWindow->getCurrentMouseY()) && gMouseIdleTimer.getElapsedTimeF32() < 5.f));
+	bool resort_ok = !(screen_rect.pointInRect(gViewerWindow->getCurrentMouseX(), gViewerWindow->getCurrentMouseY()) && gMouseIdleTimer.getElapsedTimeF32() < 5.f);
+	mSpeakerMgr->update(resort_ok);
 
+	bool re_sort = false;
+	size_t start_pos = llmax(0, scroll_pos - 20);
+	size_t end_pos = scroll_pos + mAvatarList->getLinesPerPage() + 20;
 	std::vector<LLScrollListItem*> items = mAvatarList->getAllData();
+	if (start_pos >= items.size())
+	{
+		return;
+	}
+	size_t count = 0;
 	for (std::vector<LLScrollListItem*>::iterator item_it = items.begin(); item_it != items.end(); ++item_it)
 	{
+		
 		LLScrollListItem* itemp = (*item_it);
 		LLPointer<LLSpeaker> speakerp = mSpeakerMgr->findSpeaker(itemp->getUUID());
 		if (speakerp.isNull()) continue;
 
-		if (LLScrollListCell* icon_cell = itemp->getColumn(0))
+		++count;
+
+		// Color changes. Only perform for rows that are near or in the viewable area.
+		if (count > start_pos && count <= end_pos)
 		{
-			if (speakerp->mStatus == LLSpeaker::STATUS_MUTED)
+			if (LLScrollListCell* icon_cell = itemp->getColumn(0))
 			{
-				icon_cell->setValue("mute_icon.tga");
-				static const LLCachedControl<LLColor4> sAscentMutedColor("AscentMutedColor");
-				icon_cell->setColor(speakerp->mModeratorMutedVoice ? /*LLColor4::grey*/sAscentMutedColor : LLColor4(1.f, 71.f / 255.f, 71.f / 255.f, 1.f));
-			}
-			else
-			{
-				switch(llmin(2, llfloor((speakerp->mSpeechVolume / LLVoiceClient::OVERDRIVEN_POWER_LEVEL) * 3.f)))
+				if (speakerp->mStatus == LLSpeaker::STATUS_MUTED)
 				{
+					icon_cell->setValue("mute_icon.tga");
+					static const LLCachedControl<LLColor4> sAscentMutedColor("AscentMutedColor");
+					icon_cell->setColor(speakerp->mModeratorMutedVoice ? /*LLColor4::grey*/sAscentMutedColor : LLColor4(1.f, 71.f / 255.f, 71.f / 255.f, 1.f));
+				}
+				else
+				{
+					switch (llmin(2, llfloor((speakerp->mSpeechVolume / LLVoiceClient::OVERDRIVEN_POWER_LEVEL) * 3.f)))
+					{
 					case 0:
 						icon_cell->setValue("icn_active-speakers-dot-lvl0.tga");
 						break;
@@ -266,62 +284,68 @@ void LLParticipantList::refreshSpeakers()
 					case 2:
 						icon_cell->setValue("icn_active-speakers-dot-lvl2.tga");
 						break;
+					}
+					// non voice speakers have hidden icons, render as transparent
+					icon_cell->setColor(speakerp->mStatus > LLSpeaker::STATUS_VOICE_ACTIVE ? LLColor4::transparent : speakerp->mDotColor);
 				}
-				// non voice speakers have hidden icons, render as transparent
-				icon_cell->setColor(speakerp->mStatus > LLSpeaker::STATUS_VOICE_ACTIVE ? LLColor4::transparent : speakerp->mDotColor);
 			}
-		}
-		// update name column
-		if (LLScrollListCell* name_cell = itemp->getColumn(1))
-		{
-			if (speakerp->mStatus == LLSpeaker::STATUS_NOT_IN_CHANNEL)
+			// update name column
+			if (LLScrollListCell* name_cell = itemp->getColumn(1))
 			{
-				// draw inactive speakers in different color
-				static const LLCachedControl<LLColor4> sSpeakersInactive(gColors, "SpeakersInactive");
-				name_cell->setColor(sSpeakersInactive);
-			}
-			else
-			{
-				// <edit>
-				bool found = mShowTextChatters || speakerp->mID == gAgentID;
-				const LLWorld::region_list_t& regions = LLWorld::getInstance()->getRegionList();
-				for (LLWorld::region_list_t::const_iterator iter = regions.begin(); !found && iter != regions.end(); ++iter)
+				if (speakerp->mStatus == LLSpeaker::STATUS_NOT_IN_CHANNEL)
 				{
-					// Are they in this sim?
-					if (const LLViewerRegion* regionp = *iter)
-						if (std::find(regionp->mMapAvatarIDs.begin(), regionp->mMapAvatarIDs.end(), speakerp->mID) != regionp->mMapAvatarIDs.end())
-							found = true;
-				}
-				if (!found)
-				{
-					static const LLCachedControl<LLColor4> sSpeakersGhost(gColors, "SpeakersGhost");
-					name_cell->setColor(sSpeakersGhost);
+					// draw inactive speakers in different color
+					static const LLCachedControl<LLColor4> sSpeakersInactive(gColors, "SpeakersInactive");
+					name_cell->setColor(sSpeakersInactive);
 				}
 				else
-				// </edit>
 				{
-					static const LLCachedControl<LLColor4> sDefaultListText(gColors, "DefaultListText");
-					name_cell->setColor(sDefaultListText);
+					// <edit>
+					bool found = mShowTextChatters || speakerp->mID == gAgentID;
+					if (!found)
+					for (const LLViewerRegion* regionp : LLWorld::getInstance()->getRegionList())
+					{
+						// Are they in this sim?
+						if (std::find(regionp->mMapAvatarIDs.begin(), regionp->mMapAvatarIDs.end(), speakerp->mID) != regionp->mMapAvatarIDs.end())
+						{
+							found = true;
+							break;
+						}
+					}
+					if (!found)
+					{
+						static const LLCachedControl<LLColor4> sSpeakersGhost(gColors, "SpeakersGhost");
+						name_cell->setColor(sSpeakersGhost);
+					}
+					else
+						// </edit>
+					{
+						static const LLCachedControl<LLColor4> sDefaultListText(gColors, "DefaultListText");
+						name_cell->setColor(sDefaultListText);
+					}
 				}
 			}
-
+		}
+		// update name column. Need to update all rows to make name sorting behave correctly.
+		if (LLScrollListCell* name_cell = itemp->getColumn(1))
+		{
 			std::string speaker_name = speakerp->mDisplayName.empty() ? LLCacheName::getDefaultName() : speakerp->mDisplayName;
 			if (speakerp->mIsModerator)
-				speaker_name += " " + getString("moderator_label");
-			name_cell->setValue(speaker_name);
+				speaker_name += ' ' + getString("moderator_label");
+			if (name_cell->getValue().asString() != speaker_name)
+			{
+				re_sort = true;
+				name_cell->setValue(speaker_name);
+			}
 			static_cast<LLScrollListText*>(name_cell)->setFontStyle(speakerp->mIsModerator ? LLFontGL::BOLD : LLFontGL::NORMAL);
-		}
-		// update speaking order column
-		if (LLScrollListCell* speaking_status_cell = itemp->getColumn(2))
-		{
-			// since we are forced to sort by text, encode sort order as string
-			// print speaking ordinal in a text-sorting friendly manner
-			speaking_status_cell->setValue(llformat("%010d", speakerp->mSortIndex));
 		}
 	}
 
 	// we potentially modified the sort order by touching the list items
-	mAvatarList->setNeedsSort();
+	if (re_sort)
+	{
+		mAvatarList->setNeedsSortColumn(1);
+	}
 
 	// keep scroll value stable
 	mAvatarList->getScrollInterface()->setScrollPos(scroll_pos);
@@ -358,6 +382,7 @@ bool LLParticipantList::onRemoveItemEvent(LLPointer<LLOldEvents::LLEvent> event,
 bool LLParticipantList::onClearListEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
 {
 	mAvatarList->clearRows();
+	setupContextMenu();
 	return true;
 }
 
@@ -376,6 +401,44 @@ bool LLParticipantList::onSpeakerMuteEvent(LLPointer<LLOldEvents::LLEvent> event
 		childSetValue("moderator_allow_text", !speakerp->mModeratorMutedText);
 	}
 	return true;
+}
+
+void LLParticipantList::onSpeakerBatchBeginEvent()
+{
+	mAvatarList->setSortEnabled(false);
+}
+
+void LLParticipantList::onSpeakerBatchEndEvent()
+{
+	mAvatarList->setSortEnabled(true);
+}
+
+void LLParticipantList::onSpeakerSortingUpdateEvent()
+{
+	bool re_sort = false;
+	for (auto&& item : mAvatarList->getAllData())
+	{
+		// update speaking order column
+		if (LLScrollListCell* speaking_status_cell = item->getColumn(2))
+		{
+			LLPointer<LLSpeaker> speakerp = mSpeakerMgr->findSpeaker(item->getUUID());
+			if (speakerp)
+			{
+				re_sort = true;
+				std::string sort_index = llformat("%010d", speakerp->mSortIndex);
+				// since we are forced to sort by text, encode sort order as string
+				// print speaking ordinal in a text-sorting friendly manner
+				if (speaking_status_cell->getValue().asString() != sort_index)
+				{
+					speaking_status_cell->setValue(sort_index);
+				}
+			}
+		}
+	}
+	if (re_sort)
+	{
+		mAvatarList->setNeedsSortColumn(2);
+	}
 }
 
 void LLParticipantList::addAvatarIDExceptAgent(const LLUUID& avatar_id)
@@ -405,22 +468,16 @@ void LLParticipantList::adjustParticipant(const LLUUID& speaker_id)
 	LLPointer<LLSpeaker> speakerp = mSpeakerMgr->findSpeaker(speaker_id);
 	if (speakerp.isNull()) return;
 
-	LLSD row;
-	row["id"] = speaker_id;
-	LLSD& columns = row["columns"];
-	columns[0]["column"] = "icon_speaking_status";
-	columns[0]["type"] = "icon";
-	columns[0]["value"] = "icn_active-speakers-dot-lvl0.tga";
-
+	LLNameListItem::Params name_item;
+	name_item.value = speaker_id;
+	name_item.columns.add(LLScrollListCell::Params().column("icon_speaking_status").type("icon").value("icn_active-speakers-dot-lvl0.tga"));
 	const std::string& display_name = LLVoiceClient::getInstance()->getDisplayName(speaker_id);
-	columns[1]["column"] = "speaker_name";
-	columns[1]["type"] = "text";
-	columns[1]["value"] = display_name.empty() ? LLCacheName::getDefaultName() : display_name;
+	name_item.name = display_name;
+	name_item.columns.add(LLScrollListCell::Params().column("speaker_name").type("text").value(display_name));
+	name_item.columns.add(LLScrollListCell::Params().column("speaking_status").type("text")
+			.value(llformat("%010d", speakerp->mSortIndex))); // print speaking ordinal in a text-sorting friendly manner
 
-	columns[2]["column"] = "speaking_status";
-	columns[2]["type"] = "text";
-	columns[2]["value"] = llformat("%010d", speakerp->mSortIndex); // print speaking ordinal in a text-sorting friendly manner
-	mAvatarList->addElement(row);
+	mAvatarList->addNameItemRow(name_item);
 
 	// add listener to process moderation changes
 	speakerp->addListener(mSpeakerMuteListener);
@@ -466,6 +523,23 @@ bool LLParticipantList::SpeakerClearListener::handleEvent(LLPointer<LLOldEvents:
 bool LLParticipantList::SpeakerMuteListener::handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
 {
 	return mParent.onSpeakerMuteEvent(event, userdata);
+}
+
+bool LLParticipantList::SpeakerBatchBeginListener::handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+{
+	mParent.onSpeakerBatchBeginEvent();
+	return true;
+}
+bool LLParticipantList::SpeakerBatchEndListener::handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+{
+	mParent.onSpeakerBatchEndEvent();
+	return true;
+}
+
+bool LLParticipantList::SpeakerSortingUpdateListener::handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+{
+	mParent.onSpeakerSortingUpdateEvent();
+	return true;
 }
 
 // Singu Note: The following functions are actually of the LLParticipantListMenu class, but we haven't married lists with menus yet.

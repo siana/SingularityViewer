@@ -39,7 +39,6 @@
 
 class LLAvatarName;
 class LLIMSpeakerMgr;
-class LLIMInfo;
 class LLInventoryCategory;
 class LLInventoryItem;
 class LLLineEditor;
@@ -60,7 +59,7 @@ public:
 					 const LLUUID& session_id,
 					 const LLUUID& target_id,
 					 const EInstantMessage& dialog,
-					 const std::vector<LLUUID>& ids = std::vector<LLUUID>());
+					 const uuid_vec_t& ids = uuid_vec_t());
 	virtual ~LLFloaterIMPanel();
 
 	void onAvatarNameLookup(const LLAvatarName& avatar_name);
@@ -77,7 +76,7 @@ public:
 
 	// add target ids to the session. 
 	// Return TRUE if successful, otherwise FALSE.
-	bool inviteToSession(const std::vector<LLUUID>& agent_ids);
+	bool inviteToSession(const uuid_vec_t& agent_ids);
 
 	void addHistoryLine(const std::string &utf8msg, 
 						LLColor4 incolor = LLColor4::white, 
@@ -114,6 +113,7 @@ public:
 	{
 		P2P_SESSION,
 		GROUP_SESSION,
+		SUPPORT_SESSION,
 		ADHOC_SESSION
 	};
 	const SType& getSessionType() const { return mSessionType; }
@@ -125,8 +125,8 @@ public:
 	void sessionInitReplyReceived(const LLUUID& im_session_id);
 
 	// Handle other participant in the session typing.
-	void processIMTyping(const LLIMInfo* im_info, bool typing);
-	static void chatFromLogFile(LLLogChat::ELogLineType type, std::string line, void* userdata);
+	void processIMTyping(const LLUUID& from_id, BOOL typing);
+	void chatFromLogFile(LLLogChat::ELogLineType type, const std::string& line);
 
 	//show error statuses to the user
 	void showSessionStartError(const std::string& error_string);
@@ -141,7 +141,13 @@ public:
 	bool getSessionInitialized() const { return mSessionInitialized; }
 	bool mStartCallOnInitialize;
 
+protected:
+	friend class LLViewerObjectList;
+	void addDynamicFocus();
+	void removeDynamicFocus();
+
 private:
+	friend class LLSpeakerMgr;
 	// Called by UI methods.
 	void onSendMsg();
 
@@ -160,15 +166,20 @@ private:
 	// test if local agent can add agents.
 	bool isInviteAllowed() const;
 
+	void onAddButtonClicked();
+	void addSessionParticipants(const uuid_vec_t& uuids);
+	void addP2PSessionParticipants(const LLSD& notification, const LLSD& response, const uuid_vec_t& uuids);
+	bool canAddSelectedToChat(const uuid_vec_t& uuids) const;
+
 	// Called whenever the user starts or stops typing.
 	// Sends the typing state to the other user if necessary.
 	void setTyping(bool typing);
 
 	// Add the "User is typing..." indicator.
-	void addTypingIndicator(const std::string &name);
+	void addTypingIndicator(const LLUUID& from_id);
 
 	// Remove the "User is typing..." indicator.
-	void removeTypingIndicator(const LLIMInfo* im_info);
+	void removeTypingIndicator(const LLUUID& from_id = LLUUID::null);
 
 	void sendTypingState(bool typing);
 
@@ -180,8 +191,8 @@ private:
 
 	bool mSessionInitialized;
 
-	// Where does the "Starting session..." line start?
-	S32 mSessionStartMsgPos;
+	// Where does the "Starting session..." line start and how long is it?
+	std::pair<S32, S32> mSessionStartMsgPos;
 
 	SType mSessionType;
 
@@ -203,6 +214,7 @@ private:
 	//   inventory folder ==> first target id in list
 	//   911 ==> sender
 	LLUUID mOtherParticipantUUID;
+	uuid_vec_t mInitialTargetIDs;
 
 	EInstantMessage mDialog;
 

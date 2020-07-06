@@ -161,7 +161,7 @@ void LLPolyMeshSharedData::freeMeshData()
 //	mVertFaceMap.deleteAllData();
 }
 
-// compate_int is used by the qsort function to sort the index array
+// compare_int is used by the qsort function to sort the index array
 S32 compare_int(const void *a, const void *b);
 
 //-----------------------------------------------------------------------------
@@ -307,7 +307,11 @@ BOOL LLPolyMeshSharedData::loadMesh( const std::string& fileName )
 		//----------------------------------------------------------------
 		// File Header (seek past it)
 		//----------------------------------------------------------------
-		fseek(fp, 24, SEEK_SET);
+                if (fseek(fp, 24, SEEK_SET) != 0)
+                {
+                        LL_ERRS() << "can't seek past header from " << fileName << LL_ENDL;
+                        return FALSE;
+                }
 
 		//----------------------------------------------------------------
 		// HasWeights
@@ -605,7 +609,7 @@ BOOL LLPolyMeshSharedData::loadMesh( const std::string& fileName )
 			//-------------------------------------------------------------------------
 			char morphName[64+1];
 			morphName[sizeof(morphName)-1] = '\0'; // ensure nul-termination
-			while(fread(&morphName, sizeof(char), 64, fp) == 64)
+			while(fread(morphName, sizeof(char), 64, fp) == 64)
 			{
 				if (!strcmp(morphName, "End Morphs"))
 				{
@@ -629,10 +633,6 @@ BOOL LLPolyMeshSharedData::loadMesh( const std::string& fileName )
                                         mMorphData.insert(clone_morph_param_cleavage(morph_data,
                                                                                      .75f,
                                                                                      "Breast_Physics_LeftRight_Driven"));
-                                }
-
-                                if (!strcmp(morphName, "Breast_Female_Cleavage"))
-                                {
                                         mMorphData.insert(clone_morph_param_duplicate(morph_data,
 										      "Breast_Physics_InOut_Driven"));
                                 }
@@ -668,9 +668,6 @@ BOOL LLPolyMeshSharedData::loadMesh( const std::string& fileName )
                                         mMorphData.insert(clone_morph_param_direction(morph_data,
 										      LLVector3(0,0,0.05f),
 										      "Butt_Physics_UpDown_Driven"));
-                                }
-                                if (!strcmp(morphName, "Small_Butt"))
-                                {
                                         mMorphData.insert(clone_morph_param_direction(morph_data,
 										      LLVector3(0,0.03f,0),
 										      "Butt_Physics_LeftRight_Driven"));

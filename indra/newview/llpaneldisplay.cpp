@@ -472,9 +472,13 @@ void LLPanelDisplay::refreshEnabledState()
 	mWindowSizeLabel->setVisible(!isFullScreen);
 	mCtrlWindowSize->setVisible(!isFullScreen);
 
+	F32 mem_multiplier = gSavedSettings.getF32("RenderTextureMemoryMultiple");
+	S32Megabytes min_tex_mem = LLViewerTextureList::getMinVideoRamSetting();
+	S32Megabytes max_tex_mem = LLViewerTextureList::getMaxVideoRamSetting(false, mem_multiplier);
+
 	// Hardware tab
-	getChild<LLUICtrl>("GrapicsCardTextureMemory")->setMinValue(LLViewerTextureList::getMinVideoRamSetting());
-	getChild<LLUICtrl>("GrapicsCardTextureMemory")->setMaxValue(LLViewerTextureList::getMaxVideoRamSetting());
+	getChild<LLUICtrl>("GrapicsCardTextureMemory")->setMinValue(min_tex_mem.value());
+	getChild<LLUICtrl>("GrapicsCardTextureMemory")->setMaxValue(max_tex_mem.value());
 
 	if (!LLFeatureManager::getInstance()->isFeatureAvailable("RenderVBOEnable") ||
 		!gGLManager.mHasVertexBufferObject)
@@ -550,15 +554,16 @@ void LLPanelDisplay::refreshEnabledState()
 	if (render_deferred && wlatmos && shaders)
 	{
 		getChildView("fbo")->setEnabled(false);
-		getChildView("fbo")->setValue(true);
+		//getChildView("fbo")->setValue(true);
 		mCtrlAvatarVP->setEnabled(false);
-		gSavedSettings.setBOOL("RenderAvatarVP", true);
+		//gSavedSettings.setBOOL("RenderAvatarVP", true);
 	}
 	else
 	{
 		getChildView("fbo")->setEnabled(gGLManager.mHasFramebufferObject);
+		//getChildView("fbo")->setValue(gSavedSettings.getBOOL("RenderUseFBO"));
 		mCtrlAvatarVP->setEnabled(shaders);
-		if (!shaders) gSavedSettings.setBOOL("RenderAvatarVP", false);
+		//if (!shaders) gSavedSettings.setBOOL("RenderAvatarVP", false);
 	}
 
 	// now turn off any features that are unavailable
@@ -714,25 +719,23 @@ void LLPanelDisplay::cancel()
 
 void LLPanelDisplay::apply()
 {
-	U32 fsaa_value = childGetValue("fsaa").asInteger();
-	S32 vsync_value = childGetValue("vsync").asInteger();
-	bool fbo_value = childGetValue("fbo").asBoolean();
+	bool can_defer = LLFeatureManager::getInstance()->isFeatureAvailable("RenderDeferred");
 
+	S32 vsync_value = childGetValue("vsync").asInteger();
+	bool fbo_value = childGetValue("fbo").asBoolean() || (can_defer && mCtrlDeferred->getValue().asBoolean());
+	bool fbo_prior_value = mUseFBO || (can_defer && mDeferred );
+	U8 fsaa_value = fbo_value ? 0 : childGetValue("fsaa").asInteger();
+	U8 fsaa_prior_value = fbo_prior_value ? 0 : mFSAASamples;
 	LLWindow* window = gViewerWindow->getWindow();
 
 	if(vsync_value == -1 && !gGLManager.mHasAdaptiveVsync)
 		vsync_value = 0;
 
-	bool apply_fsaa_change = fbo_value ? false : (mFSAASamples != fsaa_value);
-
-	if(!apply_fsaa_change && (bool)mUseFBO != fbo_value)
-	{
-		apply_fsaa_change = fsaa_value != 0 || mFSAASamples != 0 ;
-	}
+	bool apply_fsaa_change = fsaa_value != fsaa_prior_value;
 
 	bool apply_vsync_change = vsync_value != mVsyncMode;
 
-	gSavedSettings.setU32("RenderFSAASamples", fsaa_value);
+	gSavedSettings.setU32("RenderFSAASamples", childGetValue("fsaa").asInteger());
 	gSavedSettings.setS32("SHRenderVsyncMode", vsync_value);
 
 	applyResolution();
@@ -751,14 +754,14 @@ void LLPanelDisplay::apply()
 		bool logged_in = (LLStartUp::getStartupState() >= STATE_STARTED);
 		LLCoordScreen size;
 		window->getSize(&size);
-		LLGLState::checkStates();
-		LLGLState::checkTextureChannels();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkTextureChannels();
 		gViewerWindow->changeDisplaySettings(window->getFullscreen(),
 												size,
 												vsync_value,
 												logged_in);
-		LLGLState::checkStates();
-		LLGLState::checkTextureChannels();
+		LLGLStateValidator::checkStates();
+		LLGLStateValidator::checkTextureChannels();
 	}
 }
 

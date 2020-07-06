@@ -43,9 +43,9 @@
 class LLView;
 
 
-extern LLFastTimer::DeclareTimer FTM_WIDGET_SETUP;
-extern LLFastTimer::DeclareTimer FTM_WIDGET_CONSTRUCTION;
-extern LLFastTimer::DeclareTimer FTM_INIT_FROM_PARAMS;
+extern LLTrace::BlockTimerStatHandle FTM_WIDGET_SETUP;
+extern LLTrace::BlockTimerStatHandle FTM_WIDGET_CONSTRUCTION;
+extern LLTrace::BlockTimerStatHandle FTM_INIT_FROM_PARAMS;
 
 // Build time optimization, generate this once in .cpp file
 #ifndef LLUICTRLFACTORY_CPP
@@ -161,10 +161,10 @@ private:
 			//return NULL;
 		}
 
-		{ LLFastTimer _(FTM_WIDGET_CONSTRUCTION);
+		{ LL_RECORD_BLOCK_TIME(FTM_WIDGET_CONSTRUCTION);
 			widget = new T(params);	
 		}
-		{ LLFastTimer _(FTM_INIT_FROM_PARAMS);
+		{ LL_RECORD_BLOCK_TIME(FTM_INIT_FROM_PARAMS);
 			widget->initFromParams(params);
 		}
 

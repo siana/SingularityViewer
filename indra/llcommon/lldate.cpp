@@ -4,69 +4,60 @@
  * @date 2006-02-05
  * @brief Implementation of the date class
  *
- * $LicenseInfo:firstyear=2006&license=viewergpl$
- * 
- * Copyright (c) 2006-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2006&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ * 
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
 #include "linden_common.h"
 #include "lldate.h"
 
-#include "apr_time.h"
-
 #include <time.h>
 #include <locale.h>
 #include <string>
 #include <iomanip>
+#include <iostream>
 #include <sstream>
 
-#include "llfasttimer.h"
 #include "lltimer.h"
 #include "llstring.h"
+#include "llfasttimer.h"
 
+#if defined(LL_WINDOWS) && !defined(timegm)
+#  define timegm _mkgmtime
+#endif
+
+#define EPOCH_STR "1970-01-01T00:00:00Z"
 static const F64 DATE_EPOCH = 0.0;
-
-static const F64 LL_APR_USEC_PER_SEC = 1000000.0;
-	// should be APR_USEC_PER_SEC, but that relies on INT64_C which
-	// isn't defined in glib under our build set up for some reason
-
+static std::string sPrevLocale = "";
 
 LLDate::LLDate() : mSecondsSinceEpoch(DATE_EPOCH)
-{
-}
+{}
 
 LLDate::LLDate(const LLDate& date) :
 	mSecondsSinceEpoch(date.mSecondsSinceEpoch)
-{
-}
+{}
 
-LLDate::LLDate(F64 seconds_since_epoch) :
-	mSecondsSinceEpoch(seconds_since_epoch)
-{
-}
+LLDate::LLDate(F64SecondsImplicit seconds_since_epoch) :
+	mSecondsSinceEpoch(seconds_since_epoch.value())
+{}
 
 LLDate::LLDate(const std::string& iso8601_date)
 {
@@ -95,34 +86,40 @@ std::string LLDate::asRFC1123() const
 	return toHTTPDateString (std::string ("%A, %d %b %Y %H:%M:%S GMT"));
 }
 
-LLFastTimer::DeclareTimer FT_DATE_FORMAT("Date Format");
+LLTrace::BlockTimerStatHandle FT_DATE_FORMAT("Date Format");
 
-std::string LLDate::toHTTPDateString (std::string fmt) const
+std::string LLDate::toHTTPDateString(const std::string& fmt) const
 {
-	LLFastTimer ft1(FT_DATE_FORMAT);
+	LL_RECORD_BLOCK_TIME(FT_DATE_FORMAT);
 	
-	time_t locSeconds = (time_t) mSecondsSinceEpoch;
-	struct tm * gmt = gmtime (&locSeconds);
+	std::time_t locSeconds = (std::time_t) mSecondsSinceEpoch;
+	std::tm * gmt = gmtime (&locSeconds);
+	if (!gmt)
+	{
+		LL_WARNS() << "The impossible has happened!" << LL_ENDL;
+		return LLStringExplicit(EPOCH_STR);
+	}
 	return toHTTPDateString(gmt, fmt);
 }
 
-std::string LLDate::toHTTPDateString (tm * gmt, std::string fmt)
+std::string LLDate::toHTTPDateString(tm * gmt, const std::string& fmt)
 {
-	LLFastTimer ft1(FT_DATE_FORMAT);
+	LL_RECORD_BLOCK_TIME(FT_DATE_FORMAT);
 
 	// avoid calling setlocale() unnecessarily - it's expensive.
-	static std::string prev_locale = "";
 	std::string this_locale = LLStringUtil::getLocale();
-	if (this_locale != prev_locale)
+	if (this_locale != sPrevLocale)
 	{
 		setlocale(LC_TIME, this_locale.c_str());
-		prev_locale = this_locale;
+		sPrevLocale = this_locale;
 	}
 
 	// use strftime() as it appears to be faster than std::time_put
-	char buffer[128];
-	strftime(buffer, 128, fmt.c_str(), gmt);
+	char buffer[128] = {};
+	if (std::strftime(buffer, sizeof(buffer), fmt.c_str(), gmt) == 0)
+		return LLStringExplicit(EPOCH_STR);
 	std::string res(buffer);
+
 #if LL_WINDOWS
 	// Convert from locale-dependant charset to UTF-8 (EXT-8524).
 	res = ll_convert_string_to_utf8_string(res);
@@ -132,12 +129,18 @@ std::string LLDate::toHTTPDateString (tm * gmt, std::string fmt)
 
 void LLDate::toStream(std::ostream& s) const
 {
-	apr_time_t time = (apr_time_t)(mSecondsSinceEpoch * LL_APR_USEC_PER_SEC);
+	std::ios::fmtflags f( s.flags() );
 	
-	apr_time_exp_t exp_time;
-	if (apr_time_exp_gmt(&exp_time, time) != APR_SUCCESS)
+	std::tm exp_time = {0};
+	std::time_t time = static_cast<std::time_t>(mSecondsSinceEpoch);
+
+#if LL_WINDOWS
+	if (gmtime_s(&exp_time, &time) != 0)
+#else
+	if (!gmtime_r(&time, &exp_time))
+#endif
 	{
-		s << "1970-01-01T00:00:00Z";
+		s << EPOCH_STR;
 		return;
 	}
 	
@@ -153,22 +156,29 @@ void LLDate::toStream(std::ostream& s) const
 	  << 'T' << std::setw(2) << (exp_time.tm_hour)
 	  << ':' << std::setw(2) << (exp_time.tm_min)
 	  << ':' << std::setw(2) << (exp_time.tm_sec);
-	if (exp_time.tm_usec > 0)
-	{
-		s << '.' << std::setw(2)
-		  << (int)(exp_time.tm_usec / (LL_APR_USEC_PER_SEC / 100));
-	}
 	s << 'Z'
 	  << std::setfill(' ');
+
+	s.flags( f );
 }
 
 bool LLDate::split(S32 *year, S32 *month, S32 *day, S32 *hour, S32 *min, S32 *sec) const
 {
-	apr_time_t time = (apr_time_t)(mSecondsSinceEpoch * LL_APR_USEC_PER_SEC);
+	std::tm exp_time = {0};
+	std::time_t time = static_cast<std::time_t>(mSecondsSinceEpoch);
 	
-	apr_time_exp_t exp_time;
-	if (apr_time_exp_gmt(&exp_time, time) != APR_SUCCESS)
+#if LL_WINDOWS
+	if (gmtime_s(&exp_time, &time) != 0)
+#else
+	if (!gmtime_r(&time, &exp_time))
+#endif
 	{
+		*year = 1970;
+		*month = 01;
+		*day = 01;
+		*hour = 00;
+		*min = 00;
+		*sec = 00;
 		return false;
 	}
 
@@ -201,60 +211,63 @@ bool LLDate::fromString(const std::string& iso8601_date)
 
 bool LLDate::fromStream(std::istream& s)
 {
-	struct apr_time_exp_t exp_time;
-	apr_int32_t tm_part;
+	std::tm time = {0};
 	int c;
-	
+#if LL_WINDOWS || LL_LINUX // GCC 4.8 lacks this Windows has broken std::get_time() Time for things to get ugly!
+	int32_t tm_part;
 	s >> tm_part;
-	exp_time.tm_year = tm_part - 1900;
+	time.tm_year = tm_part - 1900;
 	c = s.get(); // skip the hypen
 	if (c != '-') { return false; }
 	s >> tm_part;
-	exp_time.tm_mon = tm_part - 1;
+	time.tm_mon = tm_part - 1;
 	c = s.get(); // skip the hypen
 	if (c != '-') { return false; }
 	s >> tm_part;
-	exp_time.tm_mday = tm_part;
+	time.tm_mday = tm_part;
 	
 	c = s.get(); // skip the T
 	if (c != 'T') { return false; }
 	
 	s >> tm_part;
-	exp_time.tm_hour = tm_part;
+	time.tm_hour = tm_part;
 	c = s.get(); // skip the :
 	if (c != ':') { return false; }
 	s >> tm_part;
-	exp_time.tm_min = tm_part;
+	time.tm_min = tm_part;
 	c = s.get(); // skip the :
 	if (c != ':') { return false; }
 	s >> tm_part;
-	exp_time.tm_sec = tm_part;
+	time.tm_sec = tm_part;
 
-	// zero out the unused fields
-	exp_time.tm_usec = 0;
-	exp_time.tm_wday = 0;
-	exp_time.tm_yday = 0;
-	exp_time.tm_isdst = 0;
-	exp_time.tm_gmtoff = 0;
-
-	// generate a time_t from that
-	apr_time_t time;
-	if (apr_time_exp_gmt_get(&time, &exp_time) != APR_SUCCESS)
-	{
-		return false;
-	}
-	
-	F64 seconds_since_epoch = time / LL_APR_USEC_PER_SEC;
-
-	// check for fractional
 	c = s.peek();
 	if(c == '.')
 	{
 		F64 fractional = 0.0;
 		s >> fractional;
-		seconds_since_epoch += fractional;
 	}
 
+#else
+	std::string this_locale = LLStringUtil::getLocale();
+	if (this_locale != sPrevLocale)
+	{
+		setlocale(LC_TIME, this_locale.c_str());
+		sPrevLocale = this_locale;
+	}
+	
+	// Isn't stdlib nice?
+	s.imbue(std::locale(sPrevLocale.c_str()));
+	s >> std::get_time(&time, "%Y-%m-%dT%H:%M:%S");
+	if (s.fail())
+	{
+		return false;
+	}
+#endif
+	std::time_t tm = timegm(&time);
+	if (tm == -1)
+		return false;
+
+	F64 seconds_since_epoch = static_cast<F64>(tm);
 	c = s.peek(); // check for offset
 	if (c == '+' || c == '-')
 	{
@@ -270,7 +283,6 @@ bool LLDate::fromStream(std::istream& s)
 		{		
 			s >> offset_minutes;
 		}
-		
 		offset_in_seconds =  (offset_hours * 60 + offset_sign * offset_minutes) * 60;
 		seconds_since_epoch -= offset_in_seconds;
 	}
@@ -282,7 +294,7 @@ bool LLDate::fromStream(std::istream& s)
 
 bool LLDate::fromYMDHMS(S32 year, S32 month, S32 day, S32 hour, S32 min, S32 sec)
 {
-	struct apr_time_exp_t exp_time;
+	std::tm exp_time = {0};
 	
 	exp_time.tm_year = year - 1900;
 	exp_time.tm_mon = month - 1;
@@ -291,21 +303,11 @@ bool LLDate::fromYMDHMS(S32 year, S32 month, S32 day, S32 hour, S32 min, S32 sec
 	exp_time.tm_min = min;
 	exp_time.tm_sec = sec;
 
-	// zero out the unused fields
-	exp_time.tm_usec = 0;
-	exp_time.tm_wday = 0;
-	exp_time.tm_yday = 0;
-	exp_time.tm_isdst = 0;
-	exp_time.tm_gmtoff = 0;
-
-	// generate a time_t from that
-	apr_time_t time;
-	if (apr_time_exp_gmt_get(&time, &exp_time) != APR_SUCCESS)
-	{
+	std::time_t tm = timegm(&exp_time);
+	if (tm == -1)
 		return false;
-	}
 	
-	mSecondsSinceEpoch = time / LL_APR_USEC_PER_SEC;
+	mSecondsSinceEpoch = static_cast<F64>(tm);
 
 	return true;
 }

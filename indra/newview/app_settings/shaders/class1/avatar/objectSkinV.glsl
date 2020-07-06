@@ -26,7 +26,7 @@
 
 ATTRIBUTE vec4 weight4;  
 
-uniform mat3x4 matrixPalette[52];
+uniform mat3x4 matrixPalette[MAX_JOINTS_PER_MESH_OBJECT];
 uniform float maxWeight;
 
 mat4 getObjectSkinnedTransform()

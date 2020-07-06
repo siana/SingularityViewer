@@ -212,7 +212,7 @@ private:
 	std::string mFolder;
 
 	// Export texture list
-	typedef boost::unordered_set<LLUUID> textures_set_t;
+	typedef uuid_set_t textures_set_t;
 	textures_set_t mTexturesList;
 	textures_set_t mBadPermsTexturesList;
 

@@ -71,9 +71,9 @@
 #include "lluiimage.h"
 #include "llviewborder.h"
 
-LLFastTimer::DeclareTimer FTM_WIDGET_CONSTRUCTION("Widget Construction");
-LLFastTimer::DeclareTimer FTM_INIT_FROM_PARAMS("Widget InitFromParams");
-LLFastTimer::DeclareTimer FTM_WIDGET_SETUP("Widget Setup");
+LLTrace::BlockTimerStatHandle FTM_WIDGET_CONSTRUCTION("Widget Construction");
+LLTrace::BlockTimerStatHandle FTM_INIT_FROM_PARAMS("Widget InitFromParams");
+LLTrace::BlockTimerStatHandle FTM_WIDGET_SETUP("Widget Setup");
 
 const char XML_HEADER[] = "<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"yes\" ?>\n";
 
@@ -174,7 +174,7 @@ const std::vector<std::string>& LLUICtrlFactory::getXUIPaths()
 //-----------------------------------------------------------------------------
 bool LLUICtrlFactory::getLayeredXMLNode(const std::string &xui_filename, LLXMLNodePtr& root)
 {
-	std::string full_filename = gDirUtilp->findSkinnedFilename(sXUIPaths.front(), xui_filename);
+	std::string full_filename = gDirUtilp->findSkinnedFilenameBaseLang(LLDir::XUI, xui_filename);
 	if (full_filename.empty())
 	{
 		// try filename as passed in since sometimes we load an xml file from a user-supplied path
@@ -194,29 +194,21 @@ bool LLUICtrlFactory::getLayeredXMLNode(const std::string &xui_filename, LLXMLNo
 		LL_WARNS() << "Problem reading UI description file: " << full_filename << LL_ENDL;
 		return false;
 	}
+	
+	std::vector<std::string> paths =
+	gDirUtilp->findSkinnedFilenames(LLDir::XUI, xui_filename);
 
-	LLXMLNodePtr updateRoot;
-
-	std::vector<std::string>::const_iterator itor;
-
-	for (itor = sXUIPaths.begin(), ++itor; itor != sXUIPaths.end(); ++itor)
+	for ( auto& layer_filename : paths )
 	{
-		std::string nodeName;
-		std::string updateName;
-
-		std::string layer_filename = gDirUtilp->findSkinnedFilename((*itor), xui_filename);
-		if(layer_filename.empty())
-		{
-			// no localized version of this file, that's ok, keep looking
-			continue;
-		}
-
+		LLXMLNodePtr updateRoot;
 		if (!LLXMLNode::parseFile(layer_filename, updateRoot, NULL))
 		{
-			LL_WARNS() << "Problem reading localized UI description file: " << (*itor) + gDirUtilp->getDirDelimiter() + xui_filename << LL_ENDL;
+			LL_WARNS() << "Problem reading localized UI description file: " << layer_filename << LL_ENDL;
 			return false;
 		}
 
+		std::string updateName;
+		std::string nodeName;
 		updateRoot->getAttributeString("name", updateName);
 		root->getAttributeString("name", nodeName);
 
@@ -414,19 +406,19 @@ LLMenuGL *LLUICtrlFactory::buildMenu(const std::string &filename, LLView* parent
 	LLXMLNodePtr root;
 	LLMenuGL*    menu;
 
-	if (!LLUICtrlFactory::getLayeredXMLNode(filename, root))
+	if (!getLayeredXMLNode(filename, root))
 	{
-		return NULL;
+		return nullptr;
 	}
 
 	// root must be called panel
-	if( !root->hasName( "menu_bar" ) && !root->hasName( "menu" ))
+	if (!root->hasName("menu_bar") && !root->hasName("menu") && !root->hasName("context_menu"))
 	{
-		LL_WARNS() << "Root node should be named menu bar or menu in : " << filename << LL_ENDL;
-		return NULL;
+		LL_WARNS() << "Root node should be named menu bar or menu in: " << filename << LL_ENDL;
+		return nullptr;
 	}
 
-	if (root->hasName("menu"))
+	if (root->hasName("menu") || root->hasName("context_menu"))
 	{
 		menu = (LLMenuGL*)LLMenuGL::fromXML(root, parentp, this);
 	}
@@ -504,7 +496,7 @@ void LLUICtrlFactory::rebuild()
 		panelp->setFocus(FALSE);
 		panelp->deleteAllChildren();
 
-		buildPanel(panelp, filename.c_str(), &panelp->getFactoryMap());
+		buildPanel(panelp, filename, &panelp->getFactoryMap());
 		panelp->setVisible(visible);
 	}
 

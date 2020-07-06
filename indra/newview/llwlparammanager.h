@@ -205,11 +205,11 @@ public:
 	bool hasParamSet(const LLWLParamKey& key);
 
 	/// set the param in the list with a new param
-	bool setParamSet(const std::string& name, LLWLParamSet& param);
+	bool setParamSet(const std::string& name, LLWLParamSet& param,  LLEnvKey::EScope scope = LLEnvKey::SCOPE_LOCAL);
 	bool setParamSet(const LLWLParamKey& key, LLWLParamSet& param);
 	
 	/// set the param in the list with a new param
-	bool setParamSet(const std::string& name, LLSD const & param);
+	bool setParamSet(const std::string& name, LLSD const & param, LLEnvKey::EScope scope = LLEnvKey::SCOPE_LOCAL);
 	bool setParamSet(const LLWLParamKey& key, LLSD const & param);
 
 	/// gets rid of a parameter and any references to it

@@ -83,8 +83,6 @@ void LLDrawPoolGround::render(S32 pass)
 
 	LLFace *facep = mDrawFace[0];
 
-	gPipeline.disableLights();
-
 	LLOverrideFaceColor col(this, gSky.mVOSkyp->getGLFogColor());
 	facep->renderIndexed();
 	

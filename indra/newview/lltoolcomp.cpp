@@ -165,7 +165,7 @@ BOOL LLToolCompInspect::handleMouseDown(S32 x, S32 y, MASK mask)
 	else
 	{
 		mMouseDown = TRUE;
-		gViewerWindow->pickAsync(x, y, mask, pickCallback);
+		gViewerWindow->pickAsync(x, y, mask, pickCallback, FALSE, TRUE);
 		handled = TRUE;
 	}
 
@@ -275,7 +275,7 @@ BOOL LLToolCompTranslate::handleHover(S32 x, S32 y, MASK mask)
 BOOL LLToolCompTranslate::handleMouseDown(S32 x, S32 y, MASK mask)
 {
 	mMouseDown = TRUE;
-	gViewerWindow->pickAsync(x, y, mask, pickCallback, TRUE);
+	gViewerWindow->pickAsync(x, y, mask, pickCallback, TRUE, TRUE);
 	return TRUE;
 }
 
@@ -399,7 +399,7 @@ BOOL LLToolCompScale::handleHover(S32 x, S32 y, MASK mask)
 BOOL LLToolCompScale::handleMouseDown(S32 x, S32 y, MASK mask)
 {
 	mMouseDown = TRUE;
-	gViewerWindow->pickAsync(x, y, mask, pickCallback);
+	gViewerWindow->pickAsync(x, y, mask, pickCallback, FALSE, TRUE);
 	return TRUE;
 }
 
@@ -515,7 +515,7 @@ BOOL LLToolCompCreate::handleMouseDown(S32 x, S32 y, MASK mask)
 
 	if ( (mask == MASK_SHIFT) || (mask == MASK_CONTROL) )
 	{
-		gViewerWindow->pickAsync(x, y, mask, pickCallback);
+		gViewerWindow->pickAsync(x, y, mask, pickCallback, FALSE, TRUE);
 		handled = TRUE;
 	}
 	else
@@ -599,7 +599,7 @@ BOOL LLToolCompRotate::handleHover(S32 x, S32 y, MASK mask)
 BOOL LLToolCompRotate::handleMouseDown(S32 x, S32 y, MASK mask)
 {
 	mMouseDown = TRUE;
-	gViewerWindow->pickAsync(x, y, mask, pickCallback);
+	gViewerWindow->pickAsync(x, y, mask, pickCallback, FALSE, TRUE);
 	return TRUE;
 }
 
@@ -758,7 +758,7 @@ BOOL LLToolCompGun::handleHover(S32 x, S32 y, MASK mask)
 {
 	// *NOTE: This hack is here to make mouselook kick in again after
 	// item selected from context menu.
-	if ( mCur == mNull && !gPopupMenuView->getVisible() )
+	if (mCur == mNull)
 	{
 		LLSelectMgr::getInstance()->deselectAll();
 		setCurrentTool( (LLTool*) mGrab );

@@ -60,9 +60,12 @@ static const S32 ONE_LESS_THAN_NEIGHBOR	= -1;
 const S32 ABOVE_WATERLINE_ALPHA = 32;  // The alpha of water when the land elevation is above the waterline.
 
 class LLViewerRegion;
-class LLSurfacePatch;
 class LLBitPack;
 class LLGroupHeader;
+class LLSurfacePatch;
+
+typedef std::shared_ptr<LLSurfacePatch> surface_patch_ref;
+typedef std::weak_ptr<LLSurfacePatch> surface_patch_weak_ref;
 
 class LLSurface 
 {
@@ -82,7 +85,7 @@ public:
 	void setOriginGlobal(const LLVector3d &origin_global);
 
 	void connectNeighbor(LLSurface *neighborp, U32 direction);
-	void disconnectNeighbor(LLSurface *neighborp);
+	void disconnectNeighbor(LLSurface *neighborp, U32 direction);
 	void disconnectAllNeighbors();
 
 // <FS:CR> Aurora Sim
@@ -111,9 +114,9 @@ public:
 	F32 resolveHeightGlobal(const LLVector3d &position_global) const;
 	LLVector3 resolveNormalGlobal(const LLVector3d& v) const;				//  Returns normal to surface
 
-	LLSurfacePatch *resolvePatchRegion(const F32 x, const F32 y) const;
-	LLSurfacePatch *resolvePatchRegion(const LLVector3 &position_region) const;
-	LLSurfacePatch *resolvePatchGlobal(const LLVector3d &position_global) const;
+	const surface_patch_ref& resolvePatchRegion(const F32 x, const F32 y) const;
+	const surface_patch_ref& resolvePatchRegion(const LLVector3 &position_region) const;
+	const surface_patch_ref& resolvePatchGlobal(const LLVector3d &position_global) const;
 
 	// Update methods (called during idle, normally)
 	BOOL idleUpdate(F32 max_update_time);
@@ -136,7 +139,7 @@ public:
 
 	void dirtyAllPatches();	// Use this to dirty all patches when changing terrain parameters
 
-	void dirtySurfacePatch(LLSurfacePatch *patchp);
+	void dirtySurfacePatch(const surface_patch_ref& patchp);
 	LLVOWater *getWaterObj()						{ return mWaterObjp; }
 
 	static void setTextureSize(const S32 texture_size);
@@ -155,8 +158,6 @@ public:
 	F32 mOOGridsPerEdge;			// Inverse of grids per edge
 
 	S32 mPatchesPerEdge;			// Number of patches on one side of a region
-	S32 mNumberOfPatches;			// Total number of patches
-
 
 	// Each surface points at 8 neighbors (or NULL)
 	// +---+---+---+
@@ -166,7 +167,7 @@ public:
 	// +---+---+---+
 	// |SW | S | SE|
 	// +---+---+---+
-	LLSurface *mNeighbors[8]; // Adjacent patches
+	std::array<LLSurface*, 8> mNeighbors; // Adjacent patches
 
 	U32 mType;				// Useful for identifying derived classes
 	
@@ -191,11 +192,11 @@ protected:
 
 	//F32 updateTexture(LLSurfacePatch *ppatch);
 	
-	LLSurfacePatch *getPatch(const S32 x, const S32 y) const;
+	const surface_patch_ref& getPatch(const S32 x, const S32 y) const;
 
 protected:
 	LLVector3d	mOriginGlobal;		// In absolute frame
-	LLSurfacePatch *mPatchList;		// Array of all patches
+	std::vector< surface_patch_ref > mPatchList;		// Array of all patches
 
 	// Array of grid data, mGridsPerEdge * mGridsPerEdge
 	F32 *mSurfaceZ;
@@ -203,7 +204,7 @@ protected:
 	// Array of grid normals, mGridsPerEdge * mGridsPerEdge
 	LLVector3 *mNorm;
 
-	std::set<LLSurfacePatch *> mDirtyPatchList;
+	std::vector< std::pair<U32, surface_patch_weak_ref >  > mDirtyPatchList;
 
 
 	// The textures should never be directly initialized - use the setter methods!

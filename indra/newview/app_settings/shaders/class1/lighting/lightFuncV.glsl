@@ -43,16 +43,17 @@ float calcPointLightOrSpotLight(vec3 v, vec3 n, vec4 lp, vec3 ln, float la, floa
 	
 	//normalize light vector
 	lv *= 1.0/d;
+	//lv = normalize(lv);
 	
 	//distance attenuation
 	float da = clamp(1.0/(la * d), 0.0, 1.0);
 	
 	// spotlight coefficient.
-	float spot = max(dot(-ln, lv), is_pointlight);
+	float spot = max(dot(normalize(-ln), lv), is_pointlight);
 	da *= spot*spot; // GL_SPOT_EXPONENT=2
 
 	//angular attenuation
-	da *= calcDirectionalLight(n, lv);
+	da = max(lp.w * da * calcDirectionalLight(n, lv), (1.0 - lp.w) * calcDirectionalLight(n, lp.xyz));
 
 	return da;	
 }

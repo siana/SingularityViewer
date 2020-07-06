@@ -39,5 +39,9 @@ set_source_files_properties(${aistatemachine_HEADER_FILES}
 list(APPEND aistatemachine_SOURCE_FILES ${aistatemachine_HEADER_FILES})
 
 add_library (aistatemachine ${aistatemachine_SOURCE_FILES})
-add_dependencies(aistatemachine prepare)
 
+target_link_libraries(
+    aistatemachine
+    PUBLIC
+    llcommon
+    )

@@ -33,9 +33,12 @@
 #include "message.h"
 
 #include "llagent.h"
+#include "llviewerregion.h"
+
 #include "lltransfersourceasset.h"
 #include "lltransfertargetvfile.h"
 #include "llviewerassetstats.h"
+#include "llworld.h"
 
 ///----------------------------------------------------------------------------
 /// LLViewerAssetRequest
@@ -51,9 +54,10 @@
 class LLViewerAssetRequest : public LLAssetRequest
 {
 public:
-	LLViewerAssetRequest(const LLUUID &uuid, const LLAssetType::EType type)
+	LLViewerAssetRequest(const LLUUID &uuid, const LLAssetType::EType type, bool with_http)
 		: LLAssetRequest(uuid, type),
-		  mMetricsStartTime(0)
+		  mMetricsStartTime(0),
+		  mWithHTTP(with_http)
 		{
 		}
 	
@@ -66,23 +70,30 @@ public:
 			recordMetrics();
 		}
 
+	LLBaseDownloadRequest* getCopy()
+	{
+		return new LLViewerAssetRequest(*this);
+	}
+	bool operator==(const LLViewerAssetRequest& rhs) const { return mUUID == rhs.mUUID && mType == rhs.mType && mWithHTTP == rhs.mWithHTTP; }
+
 protected:
 	void recordMetrics()
 		{
-			if (mMetricsStartTime)
+			if (mMetricsStartTime.value())
 			{
 				// Okay, it appears this request was used for useful things.  Record
 				// the expected dequeue and duration of request processing.
-				LLViewerAssetStatsFF::record_dequeue_main(mType, false, false);
-				LLViewerAssetStatsFF::record_response_main(mType, false, false,
+				LLViewerAssetStatsFF::record_dequeue_main(mType, mWithHTTP, false);
+				LLViewerAssetStatsFF::record_response_main(mType, mWithHTTP, false,
 														   (LLViewerAssetStatsFF::get_timestamp()
 															- mMetricsStartTime));
-				mMetricsStartTime = 0;
+				mMetricsStartTime = (U32Seconds)0;
 			}
 		}
 	
 public:
 	LLViewerAssetStats::duration_t		mMetricsStartTime;
+	bool mWithHTTP;
 };
 
 ///----------------------------------------------------------------------------
@@ -113,7 +124,7 @@ void LLViewerAssetStorage::storeAssetData(
 	bool is_priority,
 	bool store_local,
 	bool user_waiting,
-	F64 timeout)
+	F64Seconds timeout)
 {
 	LLAssetID asset_id = tid.makeAssetID(gAgent.getSecureSessionID());
 	LL_DEBUGS("AssetStorage") << "LLViewerAssetStorage::storeAssetData (legacy) " << tid << ":" << LLAssetType::lookup(asset_type)
@@ -130,7 +141,6 @@ void LLViewerAssetStorage::storeAssetData(
 			LLVFile vfile(mVFS, asset_id, asset_type, LLVFile::READ);
 			S32 asset_size = vfile.getSize();
 
-
 			LLAssetRequest *req = new LLAssetRequest(asset_id, asset_type);
 			req->mUpCallback = callback;
 			req->mUserData = user_data;
@@ -138,7 +148,7 @@ void LLViewerAssetStorage::storeAssetData(
 			if (asset_size < 1)
 			{
 				// This can happen if there's a bug in our code or if the VFS has been corrupted.
-				LL_WARNS() << "LLViewerAssetStorage::storeAssetData()  Data _should_ already be in the VFS, but it's not! " << asset_id << LL_ENDL;
+				LL_WARNS("AssetStorage") << "LLViewerAssetStorage::storeAssetData()  Data _should_ already be in the VFS, but it's not! " << asset_id << LL_ENDL;
 				// LLAssetStorage metric: Zero size VFS
 				reportMetric( asset_id, asset_type, LLStringUtil::null, LLUUID::null, 0, MR_ZERO_SIZE, __FILE__, __LINE__, "The file didn't exist or was zero length (VFS - can't tell which)" );
 
@@ -179,7 +189,7 @@ void LLViewerAssetStorage::storeAssetData(
 				}
 				else
 				{
-					LL_WARNS() << "Probable corruption in VFS file, aborting store asset data" << LL_ENDL;
+					LL_WARNS("AssetStorage") << "Probable corruption in VFS file, aborting store asset data" << LL_ENDL;
 
 					// LLAssetStorage metric: VFS corrupt - bogus size
 					reportMetric( asset_id, asset_type, LLStringUtil::null, LLUUID::null, asset_size, MR_VFS_CORRUPTION, __FILE__, __LINE__, "VFS corruption" );
@@ -208,7 +218,7 @@ void LLViewerAssetStorage::storeAssetData(
 		}
 		else
 		{
-			LL_WARNS() << "AssetStorage: attempt to upload non-existent vfile " << asset_id << ":" << LLAssetType::lookup(asset_type) << LL_ENDL;
+			LL_WARNS("AssetStorage") << "AssetStorage: attempt to upload non-existent vfile " << asset_id << ":" << LLAssetType::lookup(asset_type) << LL_ENDL;
 			// LLAssetStorage metric: Zero size VFS
 			reportMetric( asset_id, asset_type, LLStringUtil::null, LLUUID::null, 0, MR_ZERO_SIZE, __FILE__, __LINE__, "The file didn't exist or was zero length (VFS - can't tell which)" );
 			if (callback)
@@ -219,7 +229,7 @@ void LLViewerAssetStorage::storeAssetData(
 	}
 	else
 	{
-		LL_WARNS() << "Attempt to move asset store request upstream w/o valid upstream provider" << LL_ENDL;
+		LL_WARNS("AssetStorage") << "Attempt to move asset store request upstream w/o valid upstream provider" << LL_ENDL;
 		// LLAssetStorage metric: Upstream provider dead
 		reportMetric( asset_id, asset_type, LLStringUtil::null, LLUUID::null, 0, MR_NO_UPSTREAM, __FILE__, __LINE__, "No upstream provider" );
 		if (callback)
@@ -238,7 +248,7 @@ void LLViewerAssetStorage::storeAssetData(
 	bool temp_file,
 	bool is_priority,
 	bool user_waiting,
-	F64 timeout)
+	F64Seconds timeout)
 {
 	if(filename.empty())
 	{
@@ -302,6 +312,7 @@ void LLViewerAssetStorage::storeAssetData(
 		{
 			// LLAssetStorage metric: Zero size
 			reportMetric( asset_id, asset_type, filename, LLUUID::null, 0, MR_ZERO_SIZE, __FILE__, __LINE__, "The file was zero length" );
+			fclose(fp);
 		}
 		else
 		{
@@ -342,10 +353,24 @@ void LLViewerAssetStorage::_queueDataRequest(
 	BOOL duplicate,
 	BOOL is_priority)
 {
+	queueRequestUDP(uuid, atype, callback, user_data, duplicate, is_priority);
+}
+void LLViewerAssetStorage::queueRequestUDP(
+	const LLUUID& uuid,
+	LLAssetType::EType atype,
+	LLGetAssetCallback callback,
+	void *user_data,
+	BOOL duplicate,
+	BOOL is_priority)
+{
+    LL_DEBUGS("ViewerAsset") << "Request asset via HTTP " << uuid << " type " << LLAssetType::lookup(atype) << LL_ENDL;
+
 	if (mUpstreamHost.isOk())
 	{
-		// stash the callback info so we can find it after we get the response message
-		LLViewerAssetRequest *req = new LLViewerAssetRequest(uuid, atype);
+		const auto region = gAgent.getRegion();
+		// Fallback on UDP if we have no cap or haven't received caps. This means missing some UDP-only region assets before caps received, but that's better for HTTP only.
+		bool with_http = !region || !region->capabilitiesReceived() || !region->getViewerAssetUrl().empty();
+		LLViewerAssetRequest *req = new LLViewerAssetRequest(uuid, atype, with_http);
 		req->mDownCallback = callback;
 		req->mUserData = user_data;
 		req->mIsPriority = is_priority;
@@ -355,26 +380,33 @@ void LLViewerAssetStorage::_queueDataRequest(
 			// are piggy-backing and will artificially lower averages.
 			req->mMetricsStartTime = LLViewerAssetStatsFF::get_timestamp();
 		}
-		
 		mPendingDownloads.push_back(req);
 	
+	    // This is the same as the current UDP logic - don't re-request a duplicate.
 		if (!duplicate)
 		{
-			// send request message to our upstream data provider
-			// Create a new asset transfer.
-			LLTransferSourceParamsAsset spa;
-			spa.setAsset(uuid, atype);
+			bool is_temp = false;
+			LLViewerAssetStatsFF::record_enqueue_main(atype, with_http, is_temp);
+			if (!with_http) // maintain this code for older grids
+			{
+				// send request message to our upstream data provider
+				// Create a new asset transfer.
+				LLTransferSourceParamsAsset spa;
+				spa.setAsset(uuid, atype);
 
-			// Set our destination file, and the completion callback.
-			LLTransferTargetParamsVFile tpvf;
-			tpvf.setAsset(uuid, atype);
-			tpvf.setCallback(downloadCompleteCallback, req);
+				// Set our destination file, and the completion callback.
+				LLTransferTargetParamsVFile tpvf;
+				tpvf.setAsset(uuid, atype);
+				tpvf.setCallback(downloadCompleteCallback, *req);
 
-			LL_DEBUGS("AssetStorage") << "Starting transfer for " << uuid << LL_ENDL;
-			LLTransferTargetChannel *ttcp = gTransferManager.getTargetChannel(mUpstreamHost, LLTCT_ASSET);
-			ttcp->requestTransfer(spa, tpvf, 100.f + (is_priority ? 1.f : 0.f));
-
-			LLViewerAssetStatsFF::record_enqueue_main(atype, false, false);
+				LL_DEBUGS("AssetStorage") << "Starting transfer for " << uuid << LL_ENDL;
+				LLTransferTargetChannel *ttcp = gTransferManager.getTargetChannel(mUpstreamHost, LLTCT_ASSET);
+				ttcp->requestTransfer(spa, tpvf, 100.f + (is_priority ? 1.f : 0.f));
+			}
+			else
+			{
+				LLViewerAssetStorage::assetRequestCoro(req, uuid, atype, callback, user_data);
+			}
 		}
 	}
 	else
@@ -386,5 +418,140 @@ void LLViewerAssetStorage::_queueDataRequest(
 			callback(mVFS, uuid, atype, user_data, LL_ERR_CIRCUIT_GONE, LL_EXSTAT_NO_UPSTREAM);
 		}
 	}
+}
+
+extern AIHTTPTimeoutPolicy HTTPGetResponder_timeout;
+class LLViewerAssetResponder : public LLHTTPClient::ResponderWithCompleted
+{
+public:
+	LLViewerAssetResponder(const LLUUID& id, LLAssetType::EType type) : LLHTTPClient::ResponderWithCompleted()
+	, uuid(id), atype(type)
+	{}
+private:
+	LLUUID uuid;
+	LLAssetType::EType atype;
+
+	void completedRaw(LLChannelDescriptors const& channels, buffer_ptr_t const& buffer) override
+	{
+		if (LLApp::isQuitting())
+		{
+			// Bail out if result arrives after shutdown has been started.
+			return;
+		}
+
+		LL_DEBUGS("ViewerAsset") << "request succeeded, url " << mURL << LL_ENDL;
+
+		S32 result_code = LL_ERR_NOERR;
+		LLExtStat ext_status = LL_EXSTAT_NONE;
+
+		if (!isGoodStatus(mStatus))
+		{
+			LL_DEBUGS("ViewerAsset") << "request failed, status " << mStatus << LL_ENDL;
+			result_code = LL_ERR_ASSET_REQUEST_FAILED;
+			ext_status = LL_EXSTAT_NONE;
+		}
+		else
+		{
+			std::string raw;
+			decode_raw_body(channels, buffer, raw);
+
+			S32 size = raw.size();
+			if (size > 0)
+			{
+				// This create-then-rename flow is modeled on
+				// LLTransferTargetVFile, which is what was used in the UDP
+				// case.
+				LLUUID temp_id;
+				temp_id.generate();
+				LLVFile vf(gAssetStorage->mVFS, temp_id, atype, LLVFile::WRITE);
+				vf.setMaxSize(size);
+				if (!vf.write((const U8*)raw.data(), size))
+				{
+					// TODO asset-http: handle error
+					LL_WARNS("ViewerAsset") << "Failure in vf.write()" << LL_ENDL;
+					result_code = LL_ERR_ASSET_REQUEST_FAILED;
+					ext_status = LL_EXSTAT_VFS_CORRUPT;
+				}
+				else if (!vf.rename(uuid, atype))
+				{
+					LL_WARNS("ViewerAsset") << "rename failed" << LL_ENDL;
+					result_code = LL_ERR_ASSET_REQUEST_FAILED;
+					ext_status = LL_EXSTAT_VFS_CORRUPT;
+				}
+			}
+			else
+			{
+				// TODO asset-http: handle invalid size case
+				LL_WARNS("ViewerAsset") << "bad size" << LL_ENDL;
+				result_code = LL_ERR_ASSET_REQUEST_FAILED;
+				ext_status = LL_EXSTAT_NONE;
+			}
+		}
+
+		// Clean up pending downloads and trigger callbacks
+		gAssetStorage->removeAndCallbackPendingDownloads(uuid, atype, uuid, atype, result_code, ext_status);
+	}
+	AIHTTPTimeoutPolicy const& getHTTPTimeoutPolicy() const override { return HTTPGetResponder_timeout; }
+	char const* getName() const override { return "assetRequestCoro"; }
+};
+
+void LLViewerAssetStorage::capsRecvForRegion(const LLUUID& uuid, LLAssetType::EType atype, const LLUUID& region_id)
+{
+    LLViewerRegion *regionp = LLWorld::instance().getRegionFromID(region_id);
+    if (!regionp)
+    {
+        LL_WARNS("ViewerAsset") << "region not found for region_id " << region_id << LL_ENDL;
+    }
+    else
+    {
+        mViewerAssetUrl = regionp->getViewerAssetUrl();
+    }
+
+    LL_WARNS_ONCE("ViewerAsset") << "capsRecv got event" << LL_ENDL;
+    LL_WARNS_ONCE("ViewerAsset") << "region " << gAgent.getRegion() << " mViewerAssetUrl " << mViewerAssetUrl << LL_ENDL;
+    if (mViewerAssetUrl.empty())
+    {
+        LL_WARNS_ONCE("ViewerAsset") << "asset request fails: caps received but no viewer asset cap found" << LL_ENDL;
+        auto result_code = LL_ERR_ASSET_REQUEST_FAILED;
+        auto ext_status = LL_EXSTAT_NONE;
+        removeAndCallbackPendingDownloads(uuid, atype, uuid, atype, result_code, ext_status);
+		return;
+    }
+    std::string url = getAssetURL(mViewerAssetUrl, uuid,atype);
+    LL_DEBUGS("ViewerAsset") << "request url: " << url << LL_ENDL;
+
+	LLHTTPClient::get(url, new LLViewerAssetResponder(uuid, atype));
+}
+
+void LLViewerAssetStorage::assetRequestCoro(
+    LLViewerAssetRequest *req,
+    const LLUUID uuid,
+    LLAssetType::EType atype,
+    LLGetAssetCallback callback,
+    void *user_data)
+{
+    if (!gAgent.getRegion())
+    {
+        LL_WARNS_ONCE("ViewerAsset") << "Asset request fails: no region set" << LL_ENDL;
+        auto result_code = LL_ERR_ASSET_REQUEST_FAILED;
+        auto ext_status = LL_EXSTAT_NONE;
+        removeAndCallbackPendingDownloads(uuid, atype, uuid, atype, result_code, ext_status);
+		return;
+    }
+    else if (!gAgent.getRegion()->capabilitiesReceived())
+    {
+        LL_WARNS_ONCE("ViewerAsset") << "Waiting for capabilities" << LL_ENDL;
+
+        gAgent.getRegion()->setCapabilitiesReceivedCallback(
+            boost::bind(&LLViewerAssetStorage::capsRecvForRegion, this, uuid, atype, _1));
+	}
+	else capsRecvForRegion(uuid, atype, gAgent.getRegion()->getRegionID());
+}
+
+std::string LLViewerAssetStorage::getAssetURL(const std::string& cap_url, const LLUUID& uuid, LLAssetType::EType atype)
+{
+    std::string type_name = LLAssetType::lookup(atype);
+    std::string url = cap_url + "/?" + type_name + "_id=" + uuid.asString();
+    return url;
 }
 

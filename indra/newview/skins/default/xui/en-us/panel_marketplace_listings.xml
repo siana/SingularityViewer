@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel
+  label="Marketplace"
+  name="Marketplace Panel"
+  follows="all"
+  layout="topleft"
+  width="308"
+  height="440">
+  <panel
+    name="tool_panel"
+    follows="left|top|right"
+    height="30"
+    width="308"
+    bottom="-30"
+    left="0">
+    <button
+      bottom="-30"
+      name="sort_btn"
+      label=""
+      tool_tip="View/sort options"
+      follows="bottom|top|left"
+      width="31"
+      height="25"
+      left="2"
+      menu_filename="menu_marketplace_view.xml"
+      image_overlay="Conv_toolbar_sort"
+      menu_position="bottomleft"/>
+    <button
+      name="add_btn"
+      tool_tip="Create a new listing folder"
+      follows="bottom|top|left"
+      width="31"
+      height="25"
+      bottom_delta="0"
+      left_delta="33"
+      label=""
+      image_overlay="Conv_toolbar_plus"/>
+    <button
+      name="audit_btn"
+      label="Check for Errors"
+      tool_tip="Check your marketplace listings"
+      follows="bottom|top|right"
+      width="120"
+      height="26"
+      bottom_delta="0"
+      left_delta="153"/>
+  </panel>
+  <panel
+    name="tab_container_panel"
+    follows="all"
+    layout="topleft"
+    default_tab_group="1"
+    width="308"
+    height="350">
+  <filter_editor
+    text_pad_left="10"
+    follows="left|top|right"
+    height="23"
+    label="Filter Marketplace Listings"
+    layout="topleft"
+    left="0"
+    max_length_chars="300"
+    name="filter_editor"
+    bottom="-23"
+    width="308" />
+  <tab_container
+    name="marketplace_filter_tabs"
+    follows="all"
+    layout="topleft"
+    bottom="-350"
+    left="0"
+    width="308"
+    height="320"
+    halign="center"
+    tab_height="30"
+    tab_group="1"
+    tab_position="top"
+    tab_min_width="10">
+    <inventory_panel label="All" name="All Items" filename="panel_marketplace_listings_inventory.xml"/>
+    <inventory_panel label="Active" name="Active Items" filename="panel_marketplace_listings_listed.xml"/>
+    <inventory_panel label="Inactive" name="Inactive Items" filename="panel_marketplace_listings_unlisted.xml"/>
+    <inventory_panel label="Unassociated" name="Unassociated Items" filename="panel_marketplace_listings_unassociated.xml"/>
+  </tab_container>
+  </panel>
+  <panel
+      name="marketplace_drop_zone"
+      mouse_opaque="false"
+      follows="bottom|left|right"
+      left="2"
+      width="306"
+      bottom_delta="-40"
+      height="40"
+      bg_opaque_image="Marketplace_Dropzone_Background"
+      border="true"
+      bevel_style="in"
+      visible="true">
+      <text 
+          name="marketplace_drop_zone_text"
+          type="string"
+          follows="bottom|left|right"
+          layout="topleft"
+          bottom="-32"
+          height="20"
+          left="2"
+          width="306"
+          halign="center"
+          font="SansSerifMedium"
+          font_shadow="hard"
+          valign="top">
+          Drop folders here to create new listings
+      </text>
+  </panel>
+</panel>

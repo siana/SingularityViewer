@@ -41,6 +41,7 @@
 #include "lldir.h"
 
 #include "llagent.h"
+#include "llagentui.h"
 #include "llui.h"
 #include "lllineeditor.h"
 #include "llviewertexteditor.h"
@@ -54,7 +55,6 @@
 #include "llviewerwindow.h"
 #include "llstatusbar.h"
 #include "llviewerregion.h"
-#include "lleconomy.h"
 #include "lltrans.h"
 
 #include "llgl.h"
@@ -103,11 +103,7 @@ void LLFloaterPostcard::init()
 	if(!gAgent.getID().isNull())
 	{
 		// we're logged in, so we can get this info.
-		gMessageSystem->newMessageFast(_PREHASH_UserInfoRequest);
-		gMessageSystem->nextBlockFast(_PREHASH_AgentData);
-		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-		gAgent.sendReliableMessage();
+		gAgent.sendAgentUserInfoRequest();
 	}
 
 	sInstances.insert(this);
@@ -128,7 +124,7 @@ BOOL LLFloaterPostcard::postBuild()
 	childDisable("from_form");
 
 	std::string name_string;
-	gAgent.buildFullname(name_string);
+	LLAgentUI::buildFullname(name_string);
 	childSetValue("name_form", LLSD(name_string));
 
 	LLTextEditor* MsgField = getChild<LLTextEditor>("msg_form");
@@ -233,7 +229,7 @@ void LLFloaterPostcard::onClose(bool app_quitting)
 	destroy();
 }
 
-class LLSendPostcardResponder : public LLAssetUploadResponder
+class LLSendPostcardResponder final : public LLAssetUploadResponder
 {
 private:
 	int mSnapshotIndex;
@@ -248,22 +244,22 @@ public:
 	{	
 	}
 	// *TODO define custom uploadFailed here so it's not such a generic message
-	/*virtual*/ void uploadComplete(const LLSD& content)
+	void uploadComplete(const LLSD& content) override final
 	{
 		// we don't care about what the server returns from this post, just clean up the UI
 		LLFloaterSnapshot::savePostcardDone(true, mSnapshotIndex);
 	}
-	/*virtual*/ void uploadFailure(const LLSD& content)
+	void uploadFailure(const LLSD& content) override final
 	{
 		LLAssetUploadResponder::uploadFailure(content);
 		LLFloaterSnapshot::savePostcardDone(false, mSnapshotIndex);
 	}
-	/*virtual*/ void httpFailure(void)
+	void httpFailure(void) override final
 	{
 		LLAssetUploadResponder::httpFailure();
 		LLFloaterSnapshot::savePostcardDone(false, mSnapshotIndex);
 	}
-	/*virtual*/ char const* getName(void) const { return "LLSendPostcardResponder"; }
+	char const* getName(void) const override final { return "LLSendPostcardResponder"; }
 };
 
 // static
@@ -273,7 +269,6 @@ void LLFloaterPostcard::onClickSend(void* data)
 	{
 		LLFloaterPostcard *self = (LLFloaterPostcard *)data;
 
-		std::string from(self->childGetValue("from_form").asString());
 		std::string to(self->childGetValue("to_form").asString());
 		
 		boost::regex emailFormat("[A-Za-z0-9.%+-_]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}(,[ \t]*[A-Za-z0-9.%+-_]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,})*");
@@ -281,12 +276,6 @@ void LLFloaterPostcard::onClickSend(void* data)
 		if (to.empty() || !boost::regex_match(to, emailFormat))
 		{
 			LLNotificationsUtil::add("PromptRecipientEmail");
-			return;
-		}
-
-		if (from.empty() || !boost::regex_match(from, emailFormat))
-		{
-			LLNotificationsUtil::add("PromptSelfEmail");
 			return;
 		}
 
@@ -349,10 +338,8 @@ void LLFloaterPostcard::uploadCallback(const LLUUID& asset_id, void *user_data, 
 // static
 void LLFloaterPostcard::updateUserInfo(const std::string& email)
 {
-	for (instance_list_t::iterator iter = sInstances.begin();
-		 iter != sInstances.end(); ++iter)
+	for (auto& instance : sInstances)
 	{
-		LLFloaterPostcard *instance = *iter;
 		const std::string& text = instance->childGetValue("from_form").asString();
 		if (text.empty())
 		{
@@ -416,7 +403,6 @@ void LLFloaterPostcard::sendPostcard()
 		// the capability already encodes: agent ID, region ID
 		body["pos-global"] = mPosTakenGlobal.getValue();
 		body["to"] = childGetValue("to_form").asString();
-		body["from"] = childGetValue("from_form").asString();
 		body["name"] = childGetValue("name_form").asString();
 		body["subject"] = childGetValue("subject_form").asString();
 		body["msg"] = childGetValue("msg_form").asString();

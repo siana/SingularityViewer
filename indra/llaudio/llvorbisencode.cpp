@@ -32,7 +32,6 @@
 #include "llerror.h"
 #include "llrand.h"
 #include "llmath.h"
-#include "llapr.h"
 
 //#if LL_DARWIN
 // MBW -- XXX -- Getting rid of SecondLifeVorbis for now -- no fmod means no name collisions.
@@ -81,18 +80,20 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 
 	error_msg.clear();
 
-	// ********************************
-	LLAPRFile infile ;
-	infile.open(in_fname,LL_APR_RB);
-	// ********************************
-	if (!infile.getFileHandle())
+	//********************************
+	llifstream instream(in_fname, std::ios::in | std::ios::binary);
+	//********************************
+	if (!instream.is_open())
 	{
 		error_msg = "CannotUploadSoundFile";
 		return(LLVORBISENC_SOURCE_OPEN_ERR);
 	}
 
-	infile.read(wav_header, 44);
-	physical_file_size = infile.seek(APR_END,0);
+	instream.read((char*)wav_header, 44);
+
+	instream.seekg(0, instream.end);
+	physical_file_size = (U32) instream.tellg();
+	instream.seekg(0, instream.beg);
 
 	if (strncmp((char *)&(wav_header[0]),"RIFF",4))
 	{
@@ -112,8 +113,8 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 	
 	while ((file_pos + 8)< physical_file_size)
 	{
-		infile.seek(APR_SET,file_pos);
-		infile.read(wav_header, 44);
+		instream.seekg(file_pos);
+		instream.read((char*)wav_header, 44);
 
 		chunk_length = ((U32) wav_header[7] << 24) 
 			+ ((U32) wav_header[6] << 16) 
@@ -122,7 +123,7 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 
 		if (chunk_length > physical_file_size - file_pos - 4)
 		{
-			infile.close();
+			instream.close();
 			error_msg = "SoundFileInvalidChunkSize";
 			return(LLVORBISENC_CHUNK_SIZE_ERR);
 		}
@@ -153,9 +154,9 @@ S32 check_for_invalid_wav_formats(const std::string& in_fname, std::string& erro
 		file_pos += (chunk_length + 8);
 		chunk_length = 0;
 	} 
-	// ****************
-	infile.close();
-	// ****************
+	//****************
+	instream.close();
+	//****************
 
 	if (!uncompressed_pcm)
 	{	
@@ -233,20 +234,18 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 
 	S32 data_left = 0;
 
-	LLAPRFile infile ;
-	infile.open(in_fname,LL_APR_RB);
-	if (!infile.getFileHandle())
+	llifstream instream(in_fname, std::ios::in | std::ios::binary);
+	if (!instream.is_open())
 	{
-		LL_WARNS() << "Couldn't open temporary ogg file for writing: " << in_fname
+		LL_WARNS() << "Couldn't open temporary ogg file for reading: " << in_fname
 			<< LL_ENDL;
 		return(LLVORBISENC_SOURCE_OPEN_ERR);
 	}
 
-	LLAPRFile outfile ;
-	outfile.open(out_fname,LL_APR_WPB);
-	if (!outfile.getFileHandle())
+	llofstream outstream(out_fname, std::ios::out | std::ios::binary | std::ios::trunc);
+	if (!outstream.is_open())
 	{
-		LL_WARNS() << "Couldn't open upload sound file for reading: " << in_fname
+		LL_WARNS() << "Couldn't open upload sound file for writing: " << in_fname
 			<< LL_ENDL;
 		return(LLVORBISENC_DEST_OPEN_ERR);
 	}
@@ -255,10 +254,10 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 	 U32 chunk_length = 0;
 	 U32 file_pos = 12;  // start at the first chunk (usually fmt but not always)
 	 
-	 while (infile.eof() != APR_EOF)
+	 while (!instream.eof())
 	 {
-		 infile.seek(APR_SET,file_pos);
-		 infile.read(wav_header, 44);
+		 instream.seekg(file_pos);
+		 instream.read((char*)wav_header, 44);
 		 
 		 chunk_length = ((U32) wav_header[7] << 24) 
 			 + ((U32) wav_header[6] << 16) 
@@ -278,7 +277,7 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 		 }
 	 	 else if (!(strncmp((char *)&(wav_header[0]),"data",4)))
 		 {
-			 infile.seek(APR_SET,file_pos+8);
+			 instream.seekg(file_pos + 8);
 			 // leave the file pointer at the beginning of the data chunk data
 			 data_left = chunk_length;			
 			 break;
@@ -351,8 +350,8 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 		 while(!eos){
 			 int result=ogg_stream_flush(&os,&og);
 			 if(result==0)break;
-			 outfile.write(og.header, og.header_len);
-			 outfile.write(og.body, og.body_len);
+			 outstream.write((char*)og.header, og.header_len);
+			 outstream.write((char*)og.body, og.body_len);
 		 }
 		 
 	 }
@@ -362,7 +361,8 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 	 {
 		 long bytes_per_sample = bits_per_sample/8;
 
-		 long bytes=(long)infile.read(readbuffer,llclamp((S32)(READ_BUFFER*num_channels*bytes_per_sample),0,data_left)); /* stereo hardwired here */
+		 instream.read((char*)readbuffer, llclamp((S32) (READ_BUFFER*num_channels*bytes_per_sample), 0, data_left)); /* stereo hardwired here */
+		 long bytes = (long) instream.gcount();
 		 
 		 if (bytes==0)
 		 {
@@ -470,8 +470,8 @@ S32 encode_vorbis_file(const std::string& in_fname, const std::string& out_fname
 				 if(result==0)
 				 	break;
 
-				 outfile.write(og.header, og.header_len);
-				 outfile.write(og.body, og.body_len);
+				 outstream.write((char*)og.header, og.header_len);
+				 outstream.write((char*)og.body, og.body_len);
 				 
 				 /* this could be set above, but for illustrative purposes, I do
 					it here (to show that vorbis does know where the stream ends) */

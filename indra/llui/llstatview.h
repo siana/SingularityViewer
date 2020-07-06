@@ -58,9 +58,10 @@ protected:
 	friend class LLUICtrlFactory;
 public:
 
-	LLStatBar *addStat(const std::string& name, LLStat *statp,
+	LLStatBar *addStat(const std::string& name, LLStat *statp, const LLStatBar::Parameters& parameters,
 					   const std::string& setting = std::string(), BOOL default_bar = FALSE, BOOL default_history = FALSE);
 	LLStatView *addStatView(LLStatView::Params& p);
+
 protected:
 	typedef std::vector<LLStatBar *> sb_vector_t;
 	sb_vector_t mStatBars;

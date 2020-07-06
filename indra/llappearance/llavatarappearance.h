@@ -35,6 +35,7 @@
 #include "llviewervisualparam.h"
 #include "llxmltree.h"
 
+#include <boost/container/flat_map.hpp> // <alchemy/>
 class LLTexLayerSet;
 class LLTexGlobalColor;
 class LLTexGlobalColorInfo;
@@ -66,9 +67,11 @@ public:
 	LLAvatarAppearance(LLWearableData* wearable_data);
 	virtual ~LLAvatarAppearance();
 
+	static void			initClass(const std::string& avatar_file_name, const std::string& skeleton_file_name); // initializes static members
 	static void			initClass(); // initializes static members
 	static void			cleanupClass();	// Cleanup data that's only init'd once per class.
 	virtual void 		initInstance(); // Called after construction to initialize the instance.
+	S32					mInitFlags;
 	virtual BOOL		loadSkeletonNode();
 	BOOL				loadMeshNodes();
 	BOOL				loadLayersets();
@@ -91,7 +94,7 @@ public:
 
 	/*virtual*/ const char*		getAnimationPrefix() { return "avatar"; }
 	/*virtual*/ LLVector3		getVolumePos(S32 joint_index, LLVector3& volume_offset);
-	/*virtual*/ LLJoint*		findCollisionVolume(U32 volume_id);
+	/*virtual*/ LLJoint*		findCollisionVolume(S32 volume_id);
 	/*virtual*/ S32				getCollisionVolumeID(std::string &name);
 	/*virtual*/ LLPolyMesh*		getHeadMesh();
 	/*virtual*/ LLPolyMesh*		getUpperBodyMesh();
@@ -132,6 +135,7 @@ protected:
 	virtual LLAvatarJoint*	createAvatarJoint() = 0;
 	virtual LLAvatarJoint*	createAvatarJoint(S32 joint_num) = 0;
 	virtual LLAvatarJointMesh*	createAvatarJointMesh() = 0;
+    void makeJointAliases(LLAvatarBoneInfo *bone_info);
 public:
 	F32					getPelvisToFoot() const { return mPelvisToFoot; }
 	/*virtual*/ LLJoint*	getRootJoint() { return mRoot; }
@@ -139,17 +143,27 @@ public:
 	LLVector3			mHeadOffset; // current head position
 	LLAvatarJoint		*mRoot;
 
-	typedef std::map<std::string, LLJoint*> joint_map_t;
+	typedef std::vector<std::pair<char[64], LLJoint*> > joint_map_t;
 	joint_map_t			mJointMap;
-	
+
+	typedef std::map<std::string, LLVector3> joint_state_map_t;
+	joint_state_map_t mLastBodySizeState;
+	joint_state_map_t mCurrBodySizeState;
+	void compareJointStateMaps(joint_state_map_t& last_state,
+                               joint_state_map_t& curr_state);
 	void				computeBodySize();
+
+public:
+	typedef std::vector<LLAvatarJoint*> avatar_joint_list_t;
+	const avatar_joint_list_t& getSkeleton() { return mSkeleton; }
+	typedef std::map<std::string, std::string> joint_alias_map_t;
+	const joint_alias_map_t& getJointAliases();
 
 
 protected:
 	static BOOL			parseSkeletonFile(const std::string& filename);
 	virtual void		buildCharacter();
 	virtual BOOL		loadAvatar();
-	virtual void		bodySizeChanged() = 0;
 
 	BOOL				setupBone(const LLAvatarBoneInfo* info, LLJoint* parent, S32 &current_volume_num, S32 &current_joint_num);
 	BOOL				allocateCharacterJoints(U32 num);
@@ -157,13 +171,20 @@ protected:
 protected:
 	void				clearSkeleton();
 	BOOL				mIsBuilt; // state of deferred character building
-	typedef std::vector<LLAvatarJoint*> avatar_joint_list_t;
+
 	avatar_joint_list_t	mSkeleton;
-	
+	LLVector3OverrideMap	mPelvisFixups;
+	joint_alias_map_t   mJointAliasMap;
+
 	//--------------------------------------------------------------------
 	// Pelvis height adjustment members.
 	//--------------------------------------------------------------------
 public:
+	void				addPelvisFixup( F32 fixup, const LLUUID& mesh_id );
+	void 				removePelvisFixup( const LLUUID& mesh_id );
+	bool 				hasPelvisFixup( F32& fixup, LLUUID& mesh_id ) const;
+	bool 				hasPelvisFixup( F32& fixup ) const;
+	
 	LLVector3			mBodySize;
 	LLVector3			mAvatarOffset;
 protected:
@@ -213,7 +234,7 @@ protected:
  **                    RENDERING
  **/
 public:
-	BOOL		mIsDummy; // for special views
+	BOOL		mIsDummy; // for special views and animated object controllers; local to viewer
 
 	//--------------------------------------------------------------------
 	// Morph masks
@@ -320,7 +341,7 @@ protected:
 		bool								mIsLoaded;
 		bool								mIsUsed;
 		LLAvatarAppearanceDefines::ETextureIndex 	mTextureIndex;
-		U32									mMaskTexName;
+		LLImageGL::GLTextureName			mMaskTexName;
 		// Stores pointers to the joint meshes that this baked texture deals with
 		avatar_joint_mesh_list_t			mJointMeshes;
 		morph_list_t						mMaskedMorphs;
@@ -337,6 +358,7 @@ protected:
 	// Collision volumes
 	//--------------------------------------------------------------------
 public:
+	S32			mNumBones;
 	std::vector<LLAvatarJointCollisionVolume*> mCollisionVolumes;
 protected:
 	BOOL		allocateCollisionVolumes(U32 num);

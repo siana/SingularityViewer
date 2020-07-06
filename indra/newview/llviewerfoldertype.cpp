@@ -27,6 +27,7 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llviewerfoldertype.h"
+#include "llcontrol.h"
 #include "lldictionary.h"
 #include "llmemory.h"
 #include "llvisualparam.h"
@@ -131,12 +132,16 @@ LLViewerFolderDictionary::LLViewerFolderDictionary()
 	addEntry(LLFolderType::FT_OUTFIT, 				new ViewerFolderEntry("New Outfit",				"inv_folder_outfit.tga",			"inv_folder_outfit.tga",		TRUE,		false));
 	addEntry(LLFolderType::FT_MY_OUTFITS, 			new ViewerFolderEntry("My Outfits",				"inv_folder_outfit.tga",			"inv_folder_outfit.tga",		TRUE,		false));
 	addEntry(LLFolderType::FT_MESH, 				new ViewerFolderEntry("Meshes",					"inv_folder_mesh.tga",				"inv_folder_mesh.tga",			FALSE,		false));
-	
+
+	//bool boxes_invisible = !gSavedSettings.getBOOL("InventoryOutboxMakeVisible");
 	addEntry(LLFolderType::FT_INBOX, 				new ViewerFolderEntry("Received Items",			"inv_folder_inbox.tga",				"inv_folder_inbox.tga",			FALSE,		false));
-	addEntry(LLFolderType::FT_OUTBOX, 				new ViewerFolderEntry("Merchant Outbox",		"inv_folder_outbox.tga",			"inv_folder_outbox.tga",		FALSE,		false));
+	addEntry(LLFolderType::FT_OUTBOX, 				new ViewerFolderEntry("Merchant Outbox",		"inv_folder_outbox.tga",			"inv_folder_outbox.tga",		FALSE,		true));
 
 	addEntry(LLFolderType::FT_BASIC_ROOT, 			new ViewerFolderEntry("Basic Root",				"inv_folder_plain_open.tga",		"inv_folder_plain_closed.tga",	FALSE,		false));
 
+	addEntry(LLFolderType::FT_MARKETPLACE_LISTINGS,	new ViewerFolderEntry("Marketplace Listings",	"inv_folder_plain_open.tga",		"inv_folder_plain_closed.tga",	FALSE,		true));
+	addEntry(LLFolderType::FT_MARKETPLACE_STOCK,	new ViewerFolderEntry("New Stock",				"Inv_StockFolderOpen",				"Inv_StockFolderClosed",		FALSE,		false,	"default"));
+	addEntry(LLFolderType::FT_MARKETPLACE_VERSION,	new ViewerFolderEntry("New Version",			"Inv_VersionFolderOpen",			"Inv_VersionFolderClosed",		FALSE,		false,	"default"));
 	addEntry(LLFolderType::FT_SUITCASE,				new ViewerFolderEntry("My Suitcase",			"inv_folder_plain_open.tga",		"inv_folder_plain_closed.tga",	FALSE,		false));
 
 	addEntry(LLFolderType::FT_NONE, 				new ViewerFolderEntry("New Folder",				"inv_folder_plain_open.tga",		"inv_folder_plain_closed.tga",	FALSE,		false,	"default"));

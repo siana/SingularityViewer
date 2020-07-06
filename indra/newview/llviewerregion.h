@@ -51,8 +51,8 @@
 #include "llhttpclient.h"
 
 // Surface id's
-#define LAND  1
-#define WATER 2
+//#define LAND  1
+//#define WATER 2
 const U32	MAX_OBJECT_CACHE_ENTRIES = 50000;
 
 // Region handshake flags
@@ -327,12 +327,15 @@ public:
 	bool meshRezEnabled() const;
 	bool meshUploadEnabled() const;
 
+	bool bakesOnMeshEnabled() const;
+
 	// has region received its simulator features list? Requires an additional query after caps received.
+	void requestSimulatorFeatures();
 	void setSimulatorFeaturesReceived(bool);
 	bool simulatorFeaturesReceived() const;
 	boost::signals2::connection setSimulatorFeaturesReceivedCallback(const caps_received_signal_t::slot_type& cb);
 
-	void getSimulatorFeatures(LLSD& info);	
+	void getSimulatorFeatures(LLSD& info) const;	
 	void setSimulatorFeatures(const LLSD& info);
 
 	
@@ -361,6 +364,7 @@ public:
 	void requestCacheMisses();
 	void addCacheMissFull(const U32 local_id);
 
+	void clearCachedVisibleObjects();
 	void dumpCache();
 
 	void unpackRegionHandshake();
@@ -370,8 +374,9 @@ public:
 
 	friend std::ostream& operator<<(std::ostream &s, const LLViewerRegion &region);
     /// implements LLCapabilityProvider
-    virtual std::string getDescription() const;
-	std::string getHttpUrl() const { return mHttpUrl ;}
+    virtual std::string getDescription() const override;
+
+    std::string getViewerAssetUrl() const { return mViewerAssetUrl; }
 
 	LLSpatialPartition* getSpatialPartition(U32 type);
 
@@ -392,6 +397,9 @@ public:
 	void resetMaterialsCapThrottle();
 	
 	U32 getMaxMaterialsPerTransaction() const;
+
+	void removeFromCreatedList(U32 local_id);
+	void addToCreatedList(U32 local_id);	
 public:
 	struct CompareDistance
 	{
@@ -428,8 +436,10 @@ public:
 	// positions stored in the first array so they're maintained separately until 
 	// we stop supporting the old CoarseLocationUpdate message.
 	std::vector<U32> mMapAvatars;
-	std::vector<LLUUID> mMapAvatarIDs;
+	uuid_vec_t mMapAvatarIDs;
 
+
+	LLFrameTimer &	getRenderInfoRequestTimer()			{ return mRenderInfoRequestTimer;		};
 private:
 	LLViewerRegionImpl * mImpl;
 
@@ -445,14 +455,14 @@ private:
 	BOOL mIsEstateManager;
 
 	U32		mPacketsIn;
-	U32		mBitsIn;
-	U32		mLastBitsIn;
+	U32Bits	mBitsIn,
+			mLastBitsIn;
 	U32		mLastPacketsIn;
 	U32		mPacketsOut;
 	U32		mLastPacketsOut;
 	S32		mPacketsLost;
 	S32		mLastPacketsLost;
-	U32		mPingDelay;
+	U32Milliseconds		mPingDelay;
 	F32		mDeltaTime;				// Time since last measurement of lastPackets, Bits, etc
 
 	U64		mRegionFlags;			// includes damage flags
@@ -472,7 +482,7 @@ private:
 	std::string mColoName;
 	std::string mProductSKU;
 	std::string mProductName;
-	std::string mHttpUrl ;
+	std::string mViewerAssetUrl;
 	
 	// Maps local ids to cache entries.
 	// Regions can have order 10,000 objects, so assume
@@ -499,7 +509,7 @@ private:
 	U32 mGamingFlags;
 	// the materials capability throttle
 	LLFrameTimer mMaterialsCapThrottleTimer;
-LLFrameTimer	mRenderInfoRequestTimer;
+	LLFrameTimer	mRenderInfoRequestTimer;
 };
 
 inline BOOL LLViewerRegion::getRegionProtocol(U64 protocol) const

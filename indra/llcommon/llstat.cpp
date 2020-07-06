@@ -152,7 +152,7 @@ F32 LLStat::getMax() const
 
 F32 LLStat::getMean() const
 {
-	F32 current_mean = getCurrent();
+	F32 current_mean = 0.f; // Don't double-count current.
 	S32 samples = 0;
 	for (S32 i = 0; i < (S32)mNumValues; i++)
 	{
@@ -169,10 +169,6 @@ F32 LLStat::getMean() const
 	if (samples != 0)
 	{
 		current_mean /= samples;
-	}
-	else
-	{
-		current_mean = 0.f;
 	}
 	return current_mean;
 }

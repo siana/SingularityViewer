@@ -198,7 +198,7 @@ inline const LLSD& LLWLParamSet::getAll()
 }
 
 inline void LLWLParamSet::setStarBrightness(float val) {
-	mParamValues["star_brightness"] = val;
+	set("star_brightness", val);
 }
 
 inline F32 LLWLParamSet::getStarBrightness() {
@@ -212,7 +212,6 @@ inline F32 LLWLParamSet::getSunAngle() {
 inline F32 LLWLParamSet::getEastAngle() {
 	return (F32) mParamValues["east_angle"].asReal();
 }
-
 
 inline void LLWLParamSet::setEnableCloudScrollX(bool val) {
 	mParamValues["enable_cloud_scroll"][0] = val;

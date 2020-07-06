@@ -2,6 +2,33 @@
 <menu
  name="media ctrl context menu">
   <menu_item_call
+   label="Undo"
+   layout="topleft"
+   name="undo">
+    <menu_item_call.on_click
+     function="Edit.Undo" />
+    <menu_item_call.on_enable
+     function="Edit.EnableUndo" />
+  </menu_item_call>
+  <menu_item_call
+   label="Redo"
+   layout="topleft"
+   name="redo">
+    <menu_item_call.on_click
+     function="Edit.Redo" />
+    <menu_item_call.on_enable
+     function="Edit.EnableRedo" />
+  </menu_item_call>
+  <menu_item_separator
+   layout="topleft"
+   name="undo_separator" />
+  <menu_item_call
+   label="Copy Page URL"
+   name="copy_page_url">
+    <menu_item_call.on_click
+     function="Copy.PageURL" />
+  </menu_item_call>
+  <menu_item_call
    label="Cut"
    layout="topleft"
    name="Cut">
@@ -27,5 +54,46 @@
      function="Edit.Paste" />
     <menu_item_call.on_enable
      function="Edit.EnablePaste" />
+  </menu_item_call>
+  <menu_item_call
+   label="Delete"
+   layout="topleft"
+   name="delete">
+    <menu_item_call.on_click
+     function="Edit.Delete" />
+    <menu_item_call.on_enable
+     function="Edit.EnableDelete" />
+  </menu_item_call>
+  <menu_item_separator
+   layout="topleft"
+   name="select_separator" />
+  <menu_item_call
+   label="Select All"
+   layout="topleft"
+   name="select_all">
+    <menu_item_call.on_click
+     function="Edit.SelectAll" />
+    <menu_item_call.on_enable
+     function="Edit.EnableSelectAll" />
+  </menu_item_call>
+  <menu_item_separator
+   layout="topleft"
+   name="debug_separator"
+   visible="false" />
+  <menu_item_call
+   label="Open Web Inspector"
+   layout="topleft"
+   name="open_webinspector"
+   visible="false">
+    <menu_item_call.on_click
+     function="Open.WebInspector" />
+  </menu_item_call>
+  <menu_item_call
+   label="Show Source"
+   layout="topleft"
+   name="show_page_source"
+   visible="false">
+    <menu_item_call.on_click
+     function="Open.ViewSource" />
   </menu_item_call>
 </menu>

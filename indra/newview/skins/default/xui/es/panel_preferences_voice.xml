@@ -5,7 +5,7 @@
 	</text>
 	<check_box label="Habilitar Chat de Voz" name="enable_voice_check"/>
 	<check_box name="enable_multivoice_check"/>
-	<string value="Permitir múltiples instancias de [APP_NAME] usar el voice simultáneamente (req. reiniciar)" name="multivoice_label"/>
+	<string value="Permitir a múltiples instancias usar voz simultáneamente (req. reiniciar)" name="multivoice_label"/>
 	<radio_group name="ear_location">
 		<radio_item name="0">
 			Escuchar chat de voz desde la posición de la cámara.

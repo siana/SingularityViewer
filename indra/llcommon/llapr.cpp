@@ -29,6 +29,7 @@
 #include "linden_common.h"
 #include "llapr.h"
 #include "llscopedvolatileaprpool.h"
+#include <limits>
 
 bool ll_apr_warn_status(apr_status_t status)
 {
@@ -150,7 +151,7 @@ apr_status_t LLAPRFile::open(const std::string& filename, apr_int32_t flags, BOO
 	return open(filename, flags, use_global_pool ? LLAPRFile::long_lived : LLAPRFile::short_lived);
 }
 // File I/O
-S32 LLAPRFile::read(void *buf, S32 nbytes)
+S32 LLAPRFile::read(void *buf, U64 nbytes)
 {
 	if(!mFile) 
 	{
@@ -167,12 +168,12 @@ S32 LLAPRFile::read(void *buf, S32 nbytes)
 	}
 	else
 	{
-		llassert_always(sz <= 0x7fffffff);
+		llassert_always(sz <= std::numeric_limits<apr_size_t>::max());
 		return (S32)sz;
 	}
 }
 
-S32 LLAPRFile::write(const void *buf, S32 nbytes)
+S32 LLAPRFile::write(const void *buf, U64 nbytes)
 {
 	if(!mFile) 
 	{
@@ -189,7 +190,7 @@ S32 LLAPRFile::write(const void *buf, S32 nbytes)
 	}
 	else
 	{
-		llassert_always(sz <= 0x7fffffff);
+		llassert_always(sz <= std::numeric_limits<apr_size_t>::max());
 		return (S32)sz;
 	}
 }

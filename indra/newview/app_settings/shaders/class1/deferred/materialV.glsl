@@ -46,7 +46,6 @@ uniform mat4 modelview_matrix;
 VARYING vec3 vary_position;
 #if HAS_SUN_SHADOW
 VARYING vec2 vary_fragcoord;
-uniform vec2 screen_res;
 #endif
 
 #endif
@@ -126,7 +125,6 @@ vary_normal  = n;
 #if HAS_NORMAL_MAP
 	vec3 t = normalize(normal_matrix * tangent.xyz);
 	vec3 b = cross(n,t)*tangent.w;
-	//vec3 t = cross(b,n) * binormal.w;
 	
 	vary_mat0 = vec3(t.x, b.x, n.x);
 	vary_mat1 = vec3(t.y, b.y, n.y);
@@ -144,7 +142,7 @@ vary_normal  = n;
 	vary_position = pos;
 #endif
 #if HAS_SUN_SHADOW
-	vary_fragcoord = (pos.xy*0.5+0.5)*screen_res;
+	vary_fragcoord = (pos.xy*0.5+0.5);
 #endif
 #endif
 }

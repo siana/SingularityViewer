@@ -12,9 +12,9 @@
 	<text bottom_delta="-19" name="estate_owner_lbl">
 		Propriétaire:
 	</text>
-	<text name="estate_owner_text">
+	<name_box name="estate_owner_text">
 		(aucun)
-	</text>
+	</name_box>
 	<text name="estate_cov_lbl">
 		Règlement:
 	</text>

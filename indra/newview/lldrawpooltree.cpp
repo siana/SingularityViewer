@@ -47,7 +47,7 @@
 
 S32 LLDrawPoolTree::sDiffTex = 0;
 static LLGLSLShader* shader = NULL;
-static LLFastTimer::DeclareTimer FTM_SHADOW_TREE("Tree Shadow");
+static LLTrace::BlockTimerStatHandle FTM_SHADOW_TREE("Tree Shadow");
 
 LLDrawPoolTree::LLDrawPoolTree(LLViewerTexture *texturep) :
 	LLFacePool(POOL_TREE),
@@ -68,7 +68,7 @@ void LLDrawPoolTree::prerender()
 
 void LLDrawPoolTree::beginRenderPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TREES);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TREES);
 		
 	if (LLPipeline::sUnderWaterRender)
 	{
@@ -87,21 +87,25 @@ void LLDrawPoolTree::beginRenderPass(S32 pass)
 	}
 	else
 	{
-		gPipeline.enableLightsDynamic();
 		gGL.setAlphaRejectSettings(LLRender::CF_GREATER, 0.5f);
 	}
 }
 
 void LLDrawPoolTree::render(S32 pass)
 {
-	LLFastTimer t(LLPipeline::sShadowRender ? FTM_SHADOW_TREE : FTM_RENDER_TREES);
+	LL_RECORD_BLOCK_TIME(LLPipeline::sShadowRender ? FTM_SHADOW_TREE : FTM_RENDER_TREES);
 
 	if (mDrawFace.empty())
 	{
 		return;
 	}
 
-	LLGLState test(GL_ALPHA_TEST, LLGLSLShader::sNoFixedFunction ? 0 : 1);
+	LLGLState<GL_ALPHA_TEST> test(LLGLSLShader::sNoFixedFunction ? 0 : 1);
+	LLGLState<GL_LIGHTING> light_state;
+	if (!LLGLSLShader::sNoFixedFunction)
+	{
+		gPipeline.enableLightsDynamic(light_state);
+	}
 	LLOverrideFaceColor color(this, 1.f, 1.f, 1.f, 1.f);
 
 	gGL.getTexUnit(sDiffTex)->bind(mTexturep);
@@ -165,7 +169,7 @@ void LLDrawPoolTree::render(S32 pass)
 
 void LLDrawPoolTree::endRenderPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TREES);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TREES);
 		
 	if (gPipeline.canUseWindLightShadersOnObjects())
 	{
@@ -183,7 +187,7 @@ void LLDrawPoolTree::endRenderPass(S32 pass)
 //============================================
 void LLDrawPoolTree::beginDeferredPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TREES);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TREES);
 		
 	shader = &gDeferredTreeProgram;
 	shader->bind();
@@ -197,7 +201,7 @@ void LLDrawPoolTree::renderDeferred(S32 pass)
 
 void LLDrawPoolTree::endDeferredPass(S32 pass)
 {
-	LLFastTimer t(FTM_RENDER_TREES);
+	LL_RECORD_BLOCK_TIME(FTM_RENDER_TREES);
 	
 	shader->unbind();
 }
@@ -207,11 +211,11 @@ void LLDrawPoolTree::endDeferredPass(S32 pass)
 //============================================
 void LLDrawPoolTree::beginShadowPass(S32 pass)
 {
-	LLFastTimer t(FTM_SHADOW_TREE);
+	LL_RECORD_BLOCK_TIME(FTM_SHADOW_TREE);
 
 	static const LLCachedControl<F32> render_deferred_offset("RenderDeferredTreeShadowOffset",1.f);
 	static const LLCachedControl<F32> render_deferred_bias("RenderDeferredTreeShadowBias",1.f);
-	glPolygonOffset(render_deferred_offset,render_deferred_bias);
+	gGL.setPolygonOffset(render_deferred_offset,render_deferred_bias);
 	gDeferredTreeShadowProgram.bind();
 	gDeferredTreeShadowProgram.setMinimumAlpha(0.5f);
 }
@@ -223,11 +227,11 @@ void LLDrawPoolTree::renderShadow(S32 pass)
 
 void LLDrawPoolTree::endShadowPass(S32 pass)
 {
-	LLFastTimer t(FTM_SHADOW_TREE);
+	LL_RECORD_BLOCK_TIME(FTM_SHADOW_TREE);
 
 	static const LLCachedControl<F32> render_deferred_offset("RenderDeferredSpotShadowOffset",1.f);
 	static const LLCachedControl<F32> render_deferred_bias("RenderDeferredSpotShadowBias",1.f);
-	glPolygonOffset(render_deferred_offset,render_deferred_bias);
+	gGL.setPolygonOffset(render_deferred_offset,render_deferred_bias);
 	gDeferredTreeShadowProgram.unbind();
 }
 

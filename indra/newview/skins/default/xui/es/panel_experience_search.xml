@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<panel name="panel_experiences_search" label="Buscar">
+	<string name="not_found">
+		&apos;[TEXT]&apos; no encontrado
+	</string>
+	<string name="no_results">
+		No hay resultados
+	</string>
+	<string name="searching">
+		Buscando...
+	</string>
+	<string name="loading">
+		Cargando...
+	</string>
+	<panel name="search_panel">
+		<text name="search_text">
+			Ingresa una parte del nombre:
+		</text>
+		<button label="Ir" name="find"/>
+		<text name="content_text">
+			Calificación de contenido Máxima:
+		</text>
+		<combo_box label="Moderado" name="maturity" width="120">
+			<combo_box.item label="Adulto" name="Adult"/>
+			<combo_box.item label="Moderado" name="Mature"/>
+			<combo_box.item label="General" name="PG"/>
+		</combo_box>
+		<scroll_list name="search_results">
+			<columns name="maturity" label=""/>
+			<columns name="experience_name" label="Nombre"/>
+			<columns name="owner" label="Propietario"/>
+		</scroll_list>
+
+		<button label="Aceptar" label_selected="Aceptar" name="ok_btn"/>
+		<button label="Cancelar" name="cancel_btn"/>
+		<button label="Ver Pefil" name="profile_btn"/>
+	</panel>
+</panel>

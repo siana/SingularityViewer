@@ -52,7 +52,7 @@
 LLFloaterPostProcess* LLFloaterPostProcess::sPostProcess = NULL;
 
 
-LLFloaterPostProcess::LLFloaterPostProcess() : LLFloater(std::string("Post-Process Floater"))
+LLFloaterPostProcess::LLFloaterPostProcess(const LLSD&) : LLFloater("Post-Process Floater")
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_post_process.xml");
 
@@ -91,24 +91,11 @@ LLFloaterPostProcess::LLFloaterPostProcess() : LLFloater(std::string("Post-Proce
 	getChild<LLUICtrl>("PPSaveEffect")->setCommitCallback(boost::bind(&LLFloaterPostProcess::onSaveEffect, this, editBox));
 
 	syncMenu();
+	LLPostProcess::instance().setSelectedEffectChangeCallback(boost::bind(&LLFloaterPostProcess::syncMenu, this));
 }
 
 LLFloaterPostProcess::~LLFloaterPostProcess()
 {
-
-
-}
-
-LLFloaterPostProcess* LLFloaterPostProcess::instance()
-{
-	// if we don't have our singleton instance, create it
-	if (!sPostProcess)
-	{
-		sPostProcess = new LLFloaterPostProcess();
-		sPostProcess->open();
-		sPostProcess->setFocus(TRUE);
-	}
-	return sPostProcess;
 }
 
 
@@ -122,8 +109,6 @@ void LLFloaterPostProcess::onLoadEffect(LLComboBox* comboBox)
 	LLSD::String effectName(comboBox->getSelectedValue().asString());
 
 	LLPostProcess::getInstance()->setSelectedEffect(effectName);
-
-	syncMenu();
 }
 
 void LLFloaterPostProcess::onSaveEffect(LLLineEditor* editBox)
@@ -139,7 +124,6 @@ void LLFloaterPostProcess::onSaveEffect(LLLineEditor* editBox)
 	else
 	{
 		LLPostProcess::getInstance()->saveEffectAs(effectName);
-		syncMenu();
 	}
 }
 
@@ -161,48 +145,40 @@ bool LLFloaterPostProcess::saveAlertCallback(const LLSD& notification, const LLS
 	if (option == 0)
 	{
 		LLPostProcess::getInstance()->saveEffectAs(notification["payload"]["effect_name"].asString());
-
-		syncMenu();
 	}
 	return false;
-}
-
-void LLFloaterPostProcess::show()
-{
-	// get the instance, make sure the values are synced
-	// and open the menu
-	LLFloaterPostProcess* postProcess = instance();
-	postProcess->syncMenu();
-	postProcess->open();
 }
 
 // virtual
 void LLFloaterPostProcess::onClose(bool app_quitting)
 {
 	// just set visibility to false, don't get fancy yet
-	if (sPostProcess)
-	{
-		sPostProcess->setVisible(FALSE);
-	}
+	if (app_quitting)
+		die();
+	else
+		setVisible(FALSE);
 }
 
-void LLFloaterPostProcess::syncMenu()
+void populatePostProcessList(LLComboBox* comboBox)
 {
-	// add the combo boxe contents
-	LLComboBox* comboBox = getChild<LLComboBox>("PPEffectsCombo");
-
 	comboBox->removeall();
 
-	LLSD::map_const_iterator currEffect;
-	for(currEffect = LLPostProcess::getInstance()->getAllEffectInfo().beginMap();
-		currEffect != LLPostProcess::getInstance()->getAllEffectInfo().endMap();
+	const auto& inst(LLPostProcess::instance());
+	for(auto currEffect = inst.getAllEffectInfo().beginMap(), end = inst.getAllEffectInfo().endMap();
+		currEffect != end;
 		++currEffect) 
 	{
 		comboBox->add(currEffect->first);
 	}
 
 	// set the current effect as selected.
-	comboBox->selectByValue(LLPostProcess::getInstance()->getSelectedEffectName());
+	comboBox->selectByValue(inst.getSelectedEffectName());
+}
+
+void LLFloaterPostProcess::syncMenu()
+{
+	// add the combo boxe contents
+	populatePostProcessList(getChild<LLComboBox>("PPEffectsCombo"));
 
 	const LLSD &tweaks = LLPostProcess::getInstance()->getSelectedEffectInfo();
 	//Iterate down all uniforms handled by post-process shaders. Update any linked ui elements.
@@ -214,7 +190,7 @@ void LLFloaterPostProcess::syncMenu()
 			//llsd["uniform"][1]=>"uniform[1]"
 			for(S32 i=0;i<it->second.size();++i)
 			{
-				childSetValue(it->first+"["+boost::lexical_cast<std::string>(i)+"]",it->second[i]);
+				childSetValue(it->first+'['+boost::lexical_cast<std::string>(i)+']',it->second[i]);
 			}
 		}
 		else

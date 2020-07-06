@@ -515,7 +515,7 @@ void LLFloaterWorldMap::draw()
 	}
 	else
 	{
-		if (mCompletingRegionName != "")
+		if (!mCompletingRegionName.empty())
 		{
 			F64 seconds = LLTimer::getElapsedSeconds();
 			double value = fmod(seconds, 2);
@@ -1097,7 +1097,7 @@ void LLFloaterWorldMap::clearLocationSelection(BOOL clear_ui)
 	}
 	//Singu Note: Don't do this. It basically 'eats' the first click onto void space if the previous tracked target was a valid sim. 
 	//LLWorldMap::getInstance()->cancelTracking(); 
-	mCompletingRegionName = "";
+	mCompletingRegionName.clear();
 }
 
 
@@ -1648,15 +1648,13 @@ void LLFloaterWorldMap::flyToAvatar()
 
 void LLFloaterWorldMap::updateSims(bool found_null_sim)
 {
-	if (mCompletingRegionName == "")
+	if (mCompletingRegionName.empty())
 	{
 		return;
 	}
 
 	LLScrollListCtrl *list = getChild<LLScrollListCtrl>("search_results");
 	list->operateOnAll(LLCtrlListInterface::OP_DELETE);
-	
-	S32 name_length = mCompletingRegionName.length();
 	
 	LLSD match;
 
@@ -1665,13 +1663,13 @@ void LLFloaterWorldMap::updateSims(bool found_null_sim)
 	std::vector<std::pair <U64, LLSimInfo*> > sim_info_vec(LLWorldMap::getInstance()->getRegionMap().begin(), LLWorldMap::getInstance()->getRegionMap().end());
 	std::sort(sim_info_vec.begin(), sim_info_vec.end(), SortRegionNames());
 
-	for (std::vector<std::pair <U64, LLSimInfo*> >::const_iterator it = sim_info_vec.begin(); it != sim_info_vec.end(); ++it)
+	for (const auto& sim_info_pair : sim_info_vec)
 	{
-		LLSimInfo* info = it->second;
+		LLSimInfo* info = sim_info_pair.second;
 		std::string sim_name_lower = info->getName();
 		LLStringUtil::toLower(sim_name_lower);
 
-		if (sim_name_lower.substr(0, name_length) == mCompletingRegionName)
+		if (sim_name_lower.find(mCompletingRegionName) != std::string::npos)
 		{
 			if (sim_name_lower == mCompletingRegionName)
 			{
@@ -1689,7 +1687,7 @@ void LLFloaterWorldMap::updateSims(bool found_null_sim)
 	
 	if (found_null_sim || match.isDefined())
 	{
-		mCompletingRegionName = "";
+		mCompletingRegionName.clear();
 	}
 	
 	if (num_results > 0)
@@ -1729,10 +1727,9 @@ void LLFloaterWorldMap::onCommitSearchResult()
 	}
 	LLStringUtil::toLower(sim_name);
 
-	std::map<U64, LLSimInfo*>::const_iterator it;
-	for (it = LLWorldMap::getInstance()->getRegionMap().begin(); it != LLWorldMap::getInstance()->getRegionMap().end(); ++it)
+	for (auto map_pair : LLWorldMap::getInstance()->getRegionMap())
 	{
-		LLSimInfo* info = it->second;
+		LLSimInfo* info = map_pair.second;
 		
 		if (info->isName(sim_name))
 		{

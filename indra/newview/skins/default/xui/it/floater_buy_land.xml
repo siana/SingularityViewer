@@ -21,9 +21,9 @@
 	<text name="estate_owner_label" width="120" right="575">
 		Proprietario della regione:
 	</text>
-	<text name="estate_owner_text" left="580" width="155">
+	<name_box name="estate_owner_text" left="580" width="155">
 		(sconosciuto)
-	</text>
+	</name_box>
 	<text name="resellable_changeable_label">
 		Terra acquistata in questa regione:
 	</text>

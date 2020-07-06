@@ -12,9 +12,9 @@
 	<text name="owner_text">
 		Proprietário do imóvel:
 	</text>
-	<text name="estate_owner">
+	<name_box name="estate_owner">
 		(desconhecido)
-	</text>
+	</name_box>
 	<check_box label="Usar Tempo global" name="use_global_time_check"/>
 	<button label="?" name="use_global_time_help"/>
 	<check_box label="Sol fixo" name="fixed_sun_check"/>

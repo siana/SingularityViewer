@@ -182,10 +182,10 @@ public:
     bool operator! () const { return ! mListener; }
 
     /// explicit accessor
-    const LLEventListener& getListener() const { return *mListener; }
+    const ::LLEventListener& getListener() const { return *mListener; }
 
     /// implicit conversion to LLEventListener
-    operator LLEventListener() const { return *mListener; }
+    operator ::LLEventListener() const { return *mListener; }
 
     /// allow calling directly
     bool operator()(const LLSD& event) const;
@@ -277,7 +277,7 @@ namespace LLEventDetail
     /// Any callable capable of connecting an LLEventListener to an
     /// LLStandardSignal to produce an LLBoundListener can be mapped to this
     /// signature.
-    typedef boost::function<LLBoundListener(const LLEventListener&)> ConnectFunc;
+    typedef boost::function<LLBoundListener(const ::LLEventListener&)> ConnectFunc;
 
     /// overload of visit_and_connect() when we have a string identifier available
     template <typename LISTENER>
@@ -547,7 +547,7 @@ private:
     virtual void reset();
 
 private:
-    virtual LLBoundListener listen_impl(const std::string& name, const LLEventListener&,
+    virtual LLBoundListener listen_impl(const std::string& name, const ::LLEventListener&,
                                         const NameList& after,
                                         const NameList& before);
     std::string mName;
@@ -845,7 +845,7 @@ namespace LLEventDetail
          * Visitor binds a reference to LLEventListener so we can track() any
          * shared_ptrs we find in the argument list.
          */
-        Visitor(LLEventListener& listener):
+        Visitor(::LLEventListener& listener):
             mListener(listener)
         {
         }
@@ -988,7 +988,7 @@ namespace LLEventDetail
 |*==========================================================================*/
 
         /// Bind a reference to the LLEventListener to call its track() method.
-        LLEventListener& mListener;
+        ::LLEventListener& mListener;
     };
 
     /**
@@ -1005,7 +1005,7 @@ namespace LLEventDetail
                                       const ConnectFunc& connect_func)
     {
         // Capture the listener
-        LLEventListener listener(raw_listener);
+        ::LLEventListener listener(raw_listener);
         // Define our Visitor, binding the listener so we can call
         // listener.track() if we discover any shared_ptr<Foo>.
         LLEventDetail::Visitor visitor(listener);

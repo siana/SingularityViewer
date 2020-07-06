@@ -57,6 +57,8 @@ public:
 	LLCacheName(LLMessageSystem* msg, const LLHost& upstream_host);
 	~LLCacheName();
 
+	const std::map<std::string, LLUUID>& getReverseMap() const;
+
 	// registers the upstream host
 	// for viewers, this is the currently connected simulator
 	// for simulators, this is the data server

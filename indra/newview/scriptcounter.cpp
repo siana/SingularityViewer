@@ -33,6 +33,7 @@
 
 #include "scriptcounter.h"
 
+#include "llavataractions.h"
 #include "llavatarnamecache.h"
 #include "llviewerregion.h"
 #include "llselectmgr.h"
@@ -43,15 +44,6 @@
 void cmdline_printchat(const std::string& message);
 
 LLVOAvatar* find_avatar_from_object( LLViewerObject* object );
-
-namespace
-{
-	void countedScriptsOnAvatar(LLStringUtil::format_map_t args, const LLAvatarName& av_name)
-	{
-		args["NAME"] = av_name.getNSName();
-		cmdline_printchat(LLTrans::getString("ScriptCountAvatar", args));
-	}
-}
 
 std::map<LLUUID, ScriptCounter*> ScriptCounter::sCheckMap;
 
@@ -82,22 +74,23 @@ void ScriptCounter::requestInventories()
 		LLVOAvatar* av = static_cast<LLVOAvatar*>(foo);
 
 		// Iterate through all the attachment points
-		for (LLVOAvatar::attachment_map_t::iterator i = av->mAttachmentPoints.begin(); i != av->mAttachmentPoints.end(); ++i)
+		for (const auto& i : av->mAttachmentPoints)
 		{
-			if (LLViewerJointAttachment* attachment = i->second)
+			if (LLViewerJointAttachment* attachment = i.second)
 			{
 				if (!attachment->getValid()) continue;
 
 				// Iterate through all the attachments on this point
-				for (LLViewerJointAttachment::attachedobjs_vec_t::const_iterator j = attachment->mAttachedObjects.begin(); j != attachment->mAttachedObjects.end(); ++j)
-					if (LLViewerObject* object = *j)
+				for (const auto& object : attachment->mAttachedObjects)
+					if (object)
 						requestInventoriesFor(object);
 			}
 		}
 	}
 	else // Iterate through all the selected objects
 	{
-		for (LLObjectSelection::valid_root_iterator i = LLSelectMgr::getInstance()->getSelection()->valid_root_begin(); i != LLSelectMgr::getInstance()->getSelection()->valid_root_end(); ++i)
+		auto selection = LLSelectMgr::getInstance()->getSelection();
+		for (auto i = selection->valid_root_begin(), end = selection->valid_root_end(); i != end; ++i)
 			if (LLSelectNode* selectNode = *i)
 				if (LLViewerObject* object = selectNode->getObject())
 					requestInventoriesFor(object);
@@ -111,10 +104,8 @@ void ScriptCounter::requestInventoriesFor(LLViewerObject* object)
 {
 	++objectCount;
 	requestInventoryFor(object);
-	LLViewerObject::child_list_t child_list = object->getChildren();
-	for (LLViewerObject::child_list_t::iterator i = child_list.begin(); i != child_list.end(); ++i)
+	for (auto child : object->getChildren())
 	{
-		LLViewerObject* child = *i;
 		if (child->isAvatar()) continue;
 		requestInventoryFor(child);
 	}
@@ -140,39 +131,53 @@ void ScriptCounter::inventoryChanged(LLViewerObject* obj, LLInventoryObject::obj
 
 	if (inv)
 	{
-		LLInventoryObject::object_list_t::const_iterator end = inv->end();
-		for (LLInventoryObject::object_list_t::const_iterator i = inv->begin(); i != end; ++i)
-			if (LLInventoryObject* asset = (*i))
-				if (asset->getType() == LLAssetType::AT_LSL_TEXT)
+		uuid_vec_t ids;
+
+		for (auto asset : *inv)
+		{
+			const LLUUID& id = asset->getUUID();
+			if (asset->getType() == LLAssetType::AT_LSL_TEXT && id.notNull())
+			{
+				++scriptcount;
+				if (doDelete)
+					ids.push_back(id);
+				else
 				{
-					++scriptcount;
-					if (doDelete)
-					{
-						const LLUUID& id = asset->getUUID();
-						if (id.notNull())
-						{
-							//LL_INFOS() << "Deleting script " << id << " in " << objid << LL_ENDL;
-							obj->removeInventory(id);
-							--i; // Avoid iteration when removing, everything has shifted
-							end = inv->end();
-						}
-					}
-					else
-					{
-						const LLUUID& id = asset->getUUID();
-						LLMessageSystem* msg = gMessageSystem;
-						msg->newMessageFast(_PREHASH_GetScriptRunning);
-						msg->nextBlockFast(_PREHASH_Script);
-						msg->addUUIDFast(_PREHASH_ObjectID, obj->getID());
-						msg->addUUIDFast(_PREHASH_ItemID, id);
-						msg->sendReliable(obj->getRegion()->getHost());
-						sCheckMap[id] = this;
-						++checking;
-					}
+					LLMessageSystem* msg = gMessageSystem;
+					msg->newMessageFast(_PREHASH_GetScriptRunning);
+					msg->nextBlockFast(_PREHASH_Script);
+					msg->addUUIDFast(_PREHASH_ObjectID, obj->getID());
+					msg->addUUIDFast(_PREHASH_ItemID, id);
+					msg->sendReliable(obj->getRegion()->getHost());
+					sCheckMap[id] = this;
+					++checking;
 				}
+			}
+		}
+
+		for (const auto& id : ids)
+		{
+			//LL_INFOS() << "Deleting script " << id << " in " << objid << LL_ENDL;
+			obj->removeInventory(id);
+		}
 	}
 
 	summarize();
+}
+
+void ScriptCounter::processScriptRunningReply(LLMessageSystem* msg)
+{
+	if (!sCheckMap.empty())
+	{
+		LLUUID item_id;
+		msg->getUUIDFast(_PREHASH_Script, _PREHASH_ItemID, item_id);
+		auto it = sCheckMap.find(item_id);
+		if (it != sCheckMap.end())
+		{
+			it->second->processRunningReply(msg);
+			sCheckMap.erase(it);
+		}
+	}
 }
 
 void ScriptCounter::processRunningReply(LLMessageSystem* msg)
@@ -199,7 +204,10 @@ void ScriptCounter::summarize()
 		args["RUNNING"] = stringize(mRunningCount);
 		args["MONO"] = stringize(mMonoCount);
 		if (foo->isAvatar())
-			LLAvatarNameCache::get(foo->getID(), boost::bind(countedScriptsOnAvatar, args, _2));
+		{
+			args["NAME"] = LLAvatarActions::getSLURL(foo->getID());
+			cmdline_printchat(LLTrans::getString("ScriptCountAvatar", args));
+		}
 		else
 			cmdline_printchat(LLTrans::getString(doDelete ? "ScriptDeleteObject" : "ScriptCountObject", args));
 

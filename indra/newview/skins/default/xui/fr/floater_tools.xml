@@ -110,27 +110,17 @@
 			<text name="Creator:">
 				Créateur :
 			</text>
-			<text name="Creator Name">
-				Thrax Linden
-			</text>
-			<button label="Profil" label_selected="Profil" name="button creator profile"/>
 			<text name="Owner:">
 				Propriétaire :
 			</text>
-		    <button label="Profil" label_selected="Profil" name="button last owner profile"/>
 			<text name="Last Owner:">
 				Dernier Proprio :
 			</text>
-			<text name="Owner Name">
-				Thrax Linden
-			</text>
-			<button label="Profil" label_selected="Profil" name="button owner profile"/>
 			<text name="Group:">
 				Groupe :
 			</text>
       <name_box initial_value="Chargement..." name="Group Name Proxy"></name_box>
 			<button label="Définir" label_selected="Définir" name="button set group"/>
-			<button label="Voir" name="button open group"/>
 			<text name="Permissions :">
 				Droits :
 			</text>

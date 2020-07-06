@@ -5,7 +5,7 @@
      name="floaterland" rect_control="FloaterLandRect5" title="About Land"
      width="460">
 	<tab_container bottom="-420" enabled="true" follows="left|top|right|bottom" height="400"
-	     left="1" mouse_opaque="false" name="landtab" tab_position="top" width="459">
+	     left="1" mouse_opaque="false" name="landtab" tab_position="top" tab_width="0" width="459">
 		<panel border="true" bottom="-349" enabled="true" follows="left|top|right|bottom"
 		     height="333" label="General" left="1" mouse_opaque="true"
 		     name="land_general_panel" width="458">
@@ -63,32 +63,25 @@
 			     mouse_opaque="true" name="Owner:" v_pad="0" width="92">
 				Owner:
 			</text>
-			<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-140" drop_shadow_visible="true" enabled="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="96"
 			     mouse_opaque="true" name="OwnerText" v_pad="0">
 				Leyla Linden
-			</text>
-			<button bottom="-140" enabled="true" follows="left|top" font="SansSerifSmall"
-			     halign="center" height="16" label="Profile..." label_selected="Profile..."
-			     left="350" mouse_opaque="true" name="Profile..." scale_image="true"
-			     width="90" />
+			</name_box>
 			<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-160" drop_shadow_visible="true" enabled="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="4"
 			     mouse_opaque="true" name="Group:" v_pad="0" width="92">
 				Group:
 			</text>
-			<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-162" drop_shadow_visible="true" enabled="false" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="96"
-			     mouse_opaque="true" name="GroupText" v_pad="0" width="250" />
+			     mouse_opaque="true" name="GroupText" v_pad="0" id_type="1"/>
 			<button bottom="-160" enabled="true" follows="left|top" font="SansSerifSmall"
 			     halign="center" height="16" label="Set..." label_selected="Set..."
-			     left="350" mouse_opaque="true" name="Set..." scale_image="true" width="50" />
-			<button bottom="-120" enabled="true" follows="left|top" font="SansSerifSmall"
-			     halign="center" height="16" label="Info"
-			     left="400" mouse_opaque="true" name="group_profile" scale_image="true" width="50" />
+			     left="350" mouse_opaque="true" name="Set..." scale_image="true" width="90" />
 			<check_box bottom="-180" enabled="false" follows="left|top" font="SansSerifSmall"
 			     height="16" initial_value="false" label="Allow Deed to Group" left="96"
 			     mouse_opaque="true" name="check deed" radio_style="false"
@@ -240,12 +233,6 @@
 			<string name="group_owned_text">
 				(Group Owned)
 			</string>
-			<string name="profile_text">
-				Profile...
-			</string>
-			<string name="info_text">
-				Info...
-			</string>
 			<string name="public_text">
 				(public)
 			</string>
@@ -287,12 +274,12 @@ Go to World menu > About Land or select another parcel to show its details.
 			     mouse_opaque="false" name="estate_owner_lbl" v_pad="0" width="100">
 				Owner:
 			</text>
-			<text type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box type="string" length="1" bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-60" drop_shadow_visible="true" enabled="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="20" left="120"
 			     mouse_opaque="false" name="estate_owner_text" v_pad="0">
 				(none)
-			</text>
+			</name_box>
 			<text_editor type="string" length="1" bottom="-175" embedded_items="false" enabled="false"
 			     follows="left|top|right|bottom" font="SansSerifSmall" height="115"
 			     left="120" max_length="65535" mouse_opaque="true" name="covenant_editor"
@@ -1349,6 +1336,7 @@ Select the thumbnail to choose a different texture.
 			<string name="1_second">1 second</string>
 			<string name="seconds">seconds</string>
 			<string name="remaining">remaining</string>
+			<string name="Always">Always</string>
 			<check_box bottom_delta="-20" enabled="true" follows="left|top" font="SansSerifSmall"
 			     height="16" initial_value="false" label="Allow Group Access: [GROUP]"
 			     left="8" mouse_opaque="true" name="GroupCheck" radio_style="false"
@@ -1377,13 +1365,16 @@ Select the thumbnail to choose a different texture.
 			<text bottom="-220" enabled="true" follows="left|right|top" font="SansSerifSmall"
 			     height="16" initial_value="false" label="Always Allow" left="20"
 			     mouse_opaque="true" name="AllowedText" radio_style="false" width="195">
-				Allowed Residents
+				Allowed ([COUNT], max [MAX])
 			</text>
 			<name_list allow_calling_card_drop="false" background_visible="true" bottom="-304"
-			     column_padding="0" draw_border="true" draw_heading="false" enabled="true"
-			     follows="top|bottom" heading_font="SansSerifSmall" heading_height="14"
+			     column_padding="0" draw_border="true" draw_heading="true" enabled="true"
+			     follows="top|bottom" heading_font="SansSerifSmall" heading_height="16"
 			     height="80" left="20" mouse_opaque="true" multi_select="true" name_system="LandManagementNameSystem"
-			     name="AccessList" tool_tip="([LISTED] listed, [MAX] max)" width="195" menu_num="0"/>
+			     name="AccessList" tool_tip="([LISTED] listed, [MAX] max)" width="195" menu_num="0">
+              <column label="Name" name="name" width="120"/>
+              <column label="Duration" name="duration" width="75"/>
+            </name_list>      
 			<button bottom_delta="-20" enabled="true" follows="bottom" font="SansSerifSmall"
 			     halign="center" height="16" label="Add..." label_selected="Add..."
 			     left_delta="5" mouse_opaque="true" name="add_allowed" scale_image="true"
@@ -1393,17 +1384,18 @@ Select the thumbnail to choose a different texture.
 			     left_delta="100" mouse_opaque="true" name="remove_allowed"
 			     scale_image="true" width="80" />
 			<text bottom="-220" enabled="true" follows="left|right|top" font="SansSerifSmall"
-			     height="16" initial_value="false"
-			     label="Ban" left="240" mouse_opaque="true"
-			     name="BanCheck" radio_style="false" width="195">
-			  Banned Residents
+			     height="16" left="240" mouse_opaque="true" name="BanCheck" width="195">
+			  Banned ([COUNT], max [MAX])
 			</text>
 			<name_list allow_calling_card_drop="false" background_visible="true" bottom="-304"
-			     column_padding="0" draw_border="true" draw_heading="false" enabled="true"
+			     column_padding="0" draw_border="true" draw_heading="true" enabled="true"
 			     follows="top|bottom" heading_font="SansSerifSmall"
-			     heading_height="14" height="80" left_delta="0" mouse_opaque="true"
+			     heading_height="16" height="80" left_delta="0" mouse_opaque="true"
 			     multi_select="true" name="BannedList" name_system="LandManagementNameSystem"
-			     tool_tip="([LISTED] listed, [MAX] max)" width="195" menu_num="0"/>
+			     tool_tip="([LISTED] listed, [MAX] max)" width="195" menu_num="0">
+              <column label="Name" name="name" width="120"/>
+              <column label="Duration" name="duration" width="75"/>
+            </name_list>      
 			<button bottom_delta="-20" enabled="true" follows="bottom" font="SansSerifSmall"
 			     halign="center" height="16" label="Add..." label_selected="Add..."
 			     left_delta="5" mouse_opaque="true" name="add_banned" scale_image="true"

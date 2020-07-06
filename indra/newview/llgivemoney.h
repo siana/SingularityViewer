@@ -81,14 +81,12 @@ private:
 
 protected:
 	money_callback mCallback;
-	LLTextBox* mObjectNameText;
 	LLUUID mTargetUUID;
 	BOOL mTargetIsObject;
 	BOOL mTargetIsGroup;
-	BOOL mHaveName;
 
-	LLButton* mQuickPayButton[MAX_PAY_BUTTONS];
-	S32 mQuickPayInfo[MAX_PAY_BUTTONS];
+	std::array<LLButton*, MAX_PAY_BUTTONS> mQuickPayButton;
+	std::array<S32, MAX_PAY_BUTTONS> mQuickPayInfo;
 	S32 mDefaultValue;
 
 	LLSafeHandle<LLObjectSelection> mObjectSelection;

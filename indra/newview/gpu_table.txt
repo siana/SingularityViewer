@@ -217,7 +217,6 @@ ATI Radeon RX700				.*ATI.*RX70.*								1		1
 ATI Radeon RX800				.*ATI.*Radeon *RX80.*						2		1
 ATI RS880M						.*ATI.*RS880M								1		1
 ATI Radeon RX9550				.*ATI.*RX9550.*								1		1
-ATI Radeon VE					.*ATI.*Radeon.*VE.*							0		0
 ATI Radeon X1000				.*ATI.*Radeon *X10.*						0		1
 ATI Radeon X1200				.*ATI.*Radeon *X12.*						0		1
 ATI Radeon X1300				.*ATI.*Radeon *X13.*						1		1
@@ -276,6 +275,9 @@ AMD RV730 (HD 4600)				.*RV730.*									3		1
 AMD RV740 (HD 4700)				.*RV740.*									3		1
 AMD RV770 (HD 4800)				.*RV770.*									3		1
 AMD RV790 (HD 4800)				.*RV790.*									3		1
+AMD Vega						.*(AMD|ATI).*Vega.*							3		1
+AMD Radeon VII					.*AMD.*Radeon ?VII.*						3		1
+AMD Radeon RX Series			.*ATI.*(Radeon|ASUS).* RX.*					3		1
 ATI 760G/Radeon 3000			.*ATI.*AMD 760G.*							1		1
 ATI 780L/Radeon 3000			.*ATI.*AMD 780L.*							1		1
 ATI Radeon DDR					.*ATI.*Radeon ?DDR.*						0		1
@@ -286,6 +288,7 @@ ATI FirePro 5000				.*ATI.*FirePro V5.*							3		1
 ATI FirePro 7000				.*ATI.*FirePro V7.*							3		1
 ATI FirePro M					.*ATI.*FirePro M.*							3		1
 ATI Technologies				.*ATI *Technologies.*						0		1
+ATI Radeon VE					.*ATI.*Radeon.*VE.*							0		0
 // This entry is last to work around the "R300" driver problem.
 ATI R300 (9700)					.*R300.*									1		1
 ATI Radeon						.*ATI.*(Diamond|Radeon).*					0		1
@@ -433,7 +436,17 @@ NVIDIA GTX 750					.*NVIDIA .*GTX *75.*						3		1
 NVIDIA GTX 760					.*NVIDIA .*GTX *76.*						3		1
 NVIDIA GTX 770					.*NVIDIA .*GTX *77.*						3		1
 NVIDIA GTX 780					.*NVIDIA .*GTX *78.*						3		1
+NVIDIA GTX 970					.*NVIDIA .*GTX *97.*						3		1
+NVIDIA GTX 980					.*NVIDIA .*GTX *98.*						3		1
+NVIDIA GTX 1050					.*NVIDIA.*GTX 105.*						3		1
+NVIDIA GTX 1060					.*NVIDIA.*GTX 106.*						3		1
+NVIDIA GTX 1070					.*NVIDIA.*GTX 107.*						3		1
+NVIDIA GTX 1080					.*NVIDIA.*GTX 108.*						3		1
+NVIDIA GTX 1650					.*NVIDIA.*GTX 165.*						3		1
+NVIDIA GTX 1660					.*NVIDIA.*GTX 166.*						3		1
 NVIDIA GTX TITAN				.*NVIDIA .*GTX *TITAN.*						3		1
+NVIDIA GeForce/Quadro RTX		.*(GeForce|Quadro) .*RTX.*					3		1
+NVIDIA RTX TITAN				.*NVIDIA .*RTX.*TITAN.*						3		1
 NVIDIA GT 7xxM					.*NVIDIA .*GT *7.*							3		1
 NVIDIA C51						.*NVIDIA .*C51.*							0		1
 NVIDIA G72						.*NVIDIA .*G72.*							1		1

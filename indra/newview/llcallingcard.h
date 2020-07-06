@@ -165,7 +165,7 @@ public:
 	 */
 	void addChangedMask(U32 mask, const LLUUID& referent);
 
-	const std::set<LLUUID>& getChangedIDs() { return mChangedBuddyIDs; }
+	const uuid_set_t& getChangedIDs() { return mChangedBuddyIDs; }
 
 	// Apply the functor to every buddy. Do not actually modify the
 	// buddy list in the functor or bad things will happen.
@@ -201,7 +201,7 @@ protected:
 
 	buddy_map_t mBuddyInfo;
 
-	typedef std::set<LLUUID> changed_buddy_t;
+	typedef uuid_set_t changed_buddy_t;
 	changed_buddy_t mChangedBuddyIDs;
 
 	typedef std::vector<LLFriendObserver*> observer_list_t;
@@ -229,7 +229,7 @@ public:
 	LLCollectProxyBuddies() {}
 	virtual ~LLCollectProxyBuddies() {}
 	virtual bool operator()(const LLUUID& buddy_id, LLRelationship* buddy);
-	typedef std::set<LLUUID> buddy_list_t;
+	typedef uuid_set_t buddy_list_t;
 	buddy_list_t mProxy;
 };
 

@@ -57,7 +57,7 @@
 #include "llinitparam.h"
 #include "lltreeiterators.h"
 #include "llfocusmgr.h"
-#include <boost/unordered_map.hpp>
+#include <boost/container/flat_map.hpp> // <alchemy/>
 #include "ailist.h"
 
 const U32	FOLLOWS_NONE	= 0x00;
@@ -235,7 +235,7 @@ private:
 
 private:
 	// widgets in general are not copyable
-	LLView(const LLView& other) {};
+	LLView(const LLView& other) = delete;
 public:
 #if LL_DEBUG
 	static BOOL sIsDrawing;
@@ -452,6 +452,7 @@ public:
 
 	// inherited from LLFocusableElement
 	/* virtual */ BOOL	handleKey(KEY key, MASK mask, BOOL called_from_parent);
+	/* virtual */ BOOL	handleKeyUp(KEY key, MASK mask, BOOL called_from_parent);
 	/* virtual */ BOOL	handleUnicodeChar(llwchar uni_char, BOOL called_from_parent);
 
 	virtual BOOL	handleDragAndDrop(S32 x, S32 y, MASK mask, BOOL drop,
@@ -517,7 +518,7 @@ public:
 	const child_list_t*	getChildList() const { return &mChildList; }
 	child_list_const_iter_t	beginChild() const { return mChildList.begin(); }
 	child_list_const_iter_t	endChild() const { return mChildList.end(); }
-	boost::unordered_map<const std::string, LLView*> mChildHashMap;
+	boost::container::flat_map<std::string, LLView*> mChildHashMap; // <alchemy/>
 
 	// LLMouseHandler functions
 	//  Default behavior is to pass events to children
@@ -657,6 +658,7 @@ public:
 	virtual void	handleReshape(const LLRect& rect, bool by_user);
 
 	virtual BOOL	handleKeyHere(KEY key, MASK mask);
+	virtual BOOL	handleKeyUpHere(KEY key, MASK mask);
 	virtual BOOL	handleUnicodeCharHere(llwchar uni_char);
 
 
@@ -681,6 +683,7 @@ protected:
 	void			logMouseEvent();
 
 	LLView*	childrenHandleKey(KEY key, MASK mask);
+	LLView*	childrenHandleKeyUp(KEY key, MASK mask);
 	LLView* childrenHandleUnicodeChar(llwchar uni_char);
 	LLView*	childrenHandleDragAndDrop(S32 x, S32 y, MASK mask,
 											  BOOL drop,

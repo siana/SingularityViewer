@@ -38,10 +38,10 @@
 	<text name="ShadersPrefText4">Ultra</text>
 	<text name="QualityText2">Higher Quality</text>
 <!-- Are these icons really necessary? 
-	<icon bottom="-89" height="14" image_name="rounded_square.tga" left="173" name="LowDivet" width="2"/>
-	<icon bottom="-89" height="14" image_name="rounded_square.tga" left_delta="44" name="MidDivet" width="2"/>
-	<icon bottom="-89" height="14" image_name="rounded_square.tga" left_delta="44" name="HighDivet" width="2"/>
-	<icon bottom="-89" height="14" image_name="rounded_square.tga" left_delta="44" name="UltraDivet" width="2"/>
+	<icon bottom="-89" height="14" image_name="Rounded_Square" left="173" name="LowDivet" width="2"/>
+	<icon bottom="-89" height="14" image_name="Rounded_Square" left_delta="44" name="MidDivet" width="2"/>
+	<icon bottom="-89" height="14" image_name="Rounded_Square" left_delta="44" name="HighDivet" width="2"/>
+	<icon bottom="-89" height="14" image_name="Rounded_Square" left_delta="44" name="UltraDivet" width="2"/>
 -->
 	
 	<check_box label="Benutzerdefiniert" name="CustomSettings"/>

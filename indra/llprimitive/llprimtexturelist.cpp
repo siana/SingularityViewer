@@ -137,7 +137,7 @@ S32 LLPrimTextureList::copyTexture(const U8 index, const LLTextureEntry& te)
 		// we're changing an existing entry
 	llassert(mEntryList[index]);
 	delete (mEntryList[index]);
-	if  (&te)
+	if  (te != LLTextureEntry::null)
 	{
 		mEntryList[index] = te.newCopy();
 	}
@@ -375,6 +375,16 @@ S32 LLPrimTextureList::setMaterialParams(const U8 index, const LLMaterialPtr pMa
 		return mEntryList[index]->setMaterialParams(pMaterialParams);
 	}
 	return TEM_CHANGE_NONE;
+}
+
+LLMaterialPtr LLPrimTextureList::getMaterialParams(const U8 index)
+{
+	if (index < mEntryList.size())
+	{
+		return mEntryList[index]->getMaterialParams();
+	}
+	
+	return LLMaterialPtr();
 }
 
 S32 LLPrimTextureList::size() const

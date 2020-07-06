@@ -111,7 +111,7 @@ public:
 	virtual void move(LLFolderViewEventListener* new_parent_bridge) {}
 	virtual BOOL isItemCopyable() const { return FALSE; }
 	virtual BOOL copyToClipboard() const;
-	virtual void cutToClipboard();
+	virtual BOOL cutToClipboard();
 	virtual BOOL isClipboardPasteable() const;
 	bool isClipboardPasteableAsCopy() const;
 	virtual BOOL isClipboardPasteableAsLink() const;
@@ -138,13 +138,14 @@ protected:
 	virtual void addDeleteContextMenuOptions(menuentry_vec_t &items,
 											 menuentry_vec_t &disabled_items);
 	virtual void addOpenRightClickMenuOption(menuentry_vec_t &items);
-	virtual void addOutboxContextMenuOptions(U32 flags,
+	virtual void addMarketplaceContextMenuOptions(U32 flags,
 											 menuentry_vec_t &items,
 											 menuentry_vec_t &disabled_items);
 protected:
 	LLInvFVBridge(LLInventoryPanel* inventory, LLFolderView* root, const LLUUID& uuid);
 
 	LLInventoryModel* getInventoryModel() const;
+	LLInventoryFilter* getInventoryFilter() const;
 	
 	BOOL isLinkedObjectInTrash() const; // Is this obj or its baseobj in the trash?
 	BOOL isLinkedObjectMissing() const; // Is this a linked obj whose baseobj is not in inventory?
@@ -152,8 +153,8 @@ protected:
 	BOOL isAgentInventory() const; // false if lost or in the inventory library
 	BOOL isCOFFolder() const;       // true if COF or descendant of
 	BOOL isInboxFolder() const;     // true if COF or descendant of   marketplace inbox
-	BOOL isOutboxFolderDirectParent() const;
-	const LLUUID getOutboxFolder() const;
+
+	BOOL isMarketplaceListingsFolder() const;     // true if descendant of Marketplace listings folder
 
 	virtual BOOL isItemPermissive() const;
 	static void changeItemParent(LLInventoryModel* model,
@@ -166,7 +167,10 @@ protected:
 									 BOOL restamp);
 	void removeBatchNoCheck(std::vector<LLFolderViewEventListener*>& batch);
 public:
-	BOOL isOutboxFolder() const;    // true if COF or descendant of   marketplace outbox
+
+	BOOL callback_cutToClipboard(const LLSD& notification, const LLSD& response);
+	BOOL perform_cutToClipboard();
+
 protected:
 	LLHandle<LLInventoryPanel> mInventoryPanel;
 	LLFolderView* mRoot;
@@ -177,6 +181,7 @@ protected:
 
 	void purgeItem(LLInventoryModel *model, const LLUUID &uuid);
 	virtual void buildDisplayName() const {}
+	void removeObject(LLInventoryModel* model, const LLUUID& uuid);
 };
 
 class AIFilePicker;
@@ -186,11 +191,11 @@ class AIFilePicker;
 // This class intended to build Folder View Bridge via LLInvFVBridge::createBridge.
 // It can be overridden with another way of creation necessary Inventory-Folder-View-Bridge.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-class LLInventoryFVBridgeBuilder
+class LLInventoryFolderViewModelBuilder
 {
 public:
-	LLInventoryFVBridgeBuilder() {}
- 	virtual ~LLInventoryFVBridgeBuilder() {}
+	LLInventoryFolderViewModelBuilder() {}
+ 	virtual ~LLInventoryFolderViewModelBuilder() {}
 	virtual LLInvFVBridge* createBridge(LLAssetType::EType asset_type,
 										LLAssetType::EType actual_asset_type,
 										LLInventoryType::EType inv_type,
@@ -246,8 +251,10 @@ public:
 		mWearables(FALSE)
 	{}
 
-	BOOL dragItemIntoFolder(LLInventoryItem* inv_item, BOOL drop);
-	BOOL dragCategoryIntoFolder(LLInventoryCategory* inv_category, BOOL drop);
+	BOOL dragItemIntoFolder(LLInventoryItem* inv_item, BOOL drop, BOOL user_confirm = TRUE);
+	BOOL dragCategoryIntoFolder(LLInventoryCategory* inv_category, BOOL drop, BOOL user_confirm = TRUE);
+	void callback_dropItemIntoFolder(const LLSD& notification, const LLSD& response, LLInventoryItem* inv_item);
+	void callback_dropCategoryIntoFolder(const LLSD& notification, const LLSD& response, LLInventoryCategory* inv_item);
 
     virtual void buildDisplayName() const;
 
@@ -262,8 +269,9 @@ public:
 	virtual LLUIImagePtr getIcon() const;
 	virtual LLUIImagePtr getIconOpen() const;
 	virtual LLUIImagePtr getIconOverlay() const;
-
 	static LLUIImagePtr getIcon(LLFolderType::EType preferred_type);
+	virtual std::string getLabelSuffix() const;
+	virtual LLFontGL::StyleFlags getLabelStyle() const;
 
 	virtual BOOL renameItem(const std::string& new_name);
 
@@ -332,10 +340,15 @@ public:
 	static LLHandle<LLFolderBridge> sSelf;
 	static void staticFolderOptionsMenu();
 
-private:
+protected:
+	void callback_pasteFromClipboard(const LLSD& notification, const LLSD& response, bool only_copies);
+	void perform_pasteFromClipboard(bool only_copies);
+	void gatherMessage(std::string& message, S32 depth, LLError::ELevel log_level);
+	LLUIImagePtr getFolderIcon(BOOL is_open) const;
 
 	bool				mCallingCards;
 	bool				mWearables;
+	std::string		mMessage;
 	LLRootHandle<LLFolderBridge> mHandle;
 };
 
@@ -421,6 +434,7 @@ public:
 					 const LLUUID& uuid) :
 		LLItemBridge(inventory, root, uuid) {}
 	virtual void openItem();
+	virtual void buildContextMenu(LLMenuGL& menu, U32 flags);
 };
 
 class LLGestureBridge : public LLItemBridge
@@ -467,6 +481,7 @@ public:
 	virtual LLUIImagePtr	getIcon() const;
 	virtual void			performAction(LLInventoryModel* model, std::string action);
 	virtual void			openItem();
+	virtual BOOL isItemWearable() const { return TRUE; }
 	virtual std::string getLabelSuffix() const;
 	virtual void			buildContextMenu(LLMenuGL& menu, U32 flags);
 	virtual BOOL renameItem(const std::string& new_name);
@@ -500,6 +515,7 @@ public:
 	virtual LLUIImagePtr getIcon() const;
 	virtual void	performAction(LLInventoryModel* model, std::string action);
 	virtual void	openItem();
+	virtual BOOL isItemWearable() const { return TRUE; }
 	virtual void	buildContextMenu(LLMenuGL& menu, U32 flags);
 	virtual std::string getLabelSuffix() const;
 	virtual BOOL renameItem(const std::string& new_name);
@@ -564,7 +580,6 @@ class LLMeshBridge : public LLItemBridge
 public:
 	virtual LLUIImagePtr getIcon() const;
 	virtual void openItem();
-	virtual void previewItem();
 	virtual void buildContextMenu(LLMenuGL& menu, U32 flags);
 
 protected:
@@ -628,11 +643,10 @@ public:
 };
 
 // Bridge builder to create Inventory-Folder-View-Bridge for Recent Inventory Panel
-class LLRecentInventoryBridgeBuilder : public LLInventoryFVBridgeBuilder
+class LLRecentInventoryBridgeBuilder : public LLInventoryFolderViewModelBuilder
 {
 public:
 	LLRecentInventoryBridgeBuilder() {}
-
 	// Overrides FolderBridge for Recent Inventory Panel.
 	// It use base functionality for bridges other than FolderBridge.
 	virtual LLInvFVBridge* createBridge(LLAssetType::EType asset_type,
@@ -643,6 +657,31 @@ public:
 		const LLUUID& uuid,
 		U32 flags = 0x00) const;
 };
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Marketplace Inventory Panel related classes
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class LLMarketplaceFolderBridge : public LLFolderBridge
+{
+public:
+	// Overloads some display related methods specific to folders in a marketplace floater context
+	LLMarketplaceFolderBridge(LLInventoryPanel* inventory,
+							  LLFolderView* root,
+							  const LLUUID& uuid);
+
+	virtual LLUIImagePtr getIcon() const;
+	virtual LLUIImagePtr getIconOpen() const;
+	virtual std::string getLabelSuffix() const;
+	virtual LLFontGL::StyleFlags getLabelStyle() const;
+
+private:
+	LLUIImagePtr getMarketplaceFolderIcon(BOOL is_open) const;
+	// Those members are mutable because they are cached variables to speed up display, not a state variables
+	mutable S32 m_depth;
+	mutable S32 m_stockCountCache;
+};
+
 
 void rez_attachment(LLViewerInventoryItem* item, 
 					LLViewerJointAttachment* attachment,
@@ -670,5 +709,9 @@ public:
     LLFolderViewGroupedItemBridge();
     virtual void groupFilterContextMenu(folder_view_item_deque& selected_items, LLMenuGL& menu);
 };
+
+// Helper functions to classify actions.
+bool isAddAction(const std::string& action);
+bool isRemoveAction(const std::string& action);
 
 #endif // LL_LLINVENTORYBRIDGE_H

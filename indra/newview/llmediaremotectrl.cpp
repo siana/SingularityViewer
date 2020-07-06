@@ -192,7 +192,7 @@ void LLMediaRemoteCtrl::enableMediaButtons()
 
 			play_media_enabled = true;
 			media_icon_color = LLUI::sColorsGroup->getColor( "IconEnabledColor" );
-
+			/* <HACK: Temporary fix until I know how to correctly catch messages from CEF. - Router Gray>
 			LLViewerMediaImpl::EMediaStatus status = LLViewerParcelMedia::getStatus();
 			switch(status)
 			{
@@ -216,6 +216,18 @@ void LLMediaRemoteCtrl::enableMediaButtons()
 				// inherit defaults above
 				break;
 			}
+			*/
+			if (LLViewerMedia::isParcelMediaPlaying())
+			{
+				stop_media_enabled = true;
+				play_media_enabled = false;
+			}
+			else
+			{
+				stop_media_enabled = false;
+				play_media_enabled = true;
+			}
+			// </HACK - Router Gray>
 		}
 	}
 	
@@ -277,7 +289,7 @@ void LLMediaRemoteCtrl::enableMediaButtons()
 				{
 					sLastTooltip = info_text;
 					LLChat chat;
-					chat.mText = getString("Now_playing") + " " + info_text;
+					chat.mText = getString("Now_playing") + ' ' + info_text;
 					chat.mSourceType = CHAT_SOURCE_SYSTEM;
 					// Lie to RLVa so it won't filter this
 					chat.mRlvLocFiltered = true;

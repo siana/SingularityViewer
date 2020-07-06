@@ -42,7 +42,7 @@
 #include "llanimationstates.h"
 #include "llstl.h"
 
-const S32 NUM_JOINT_SIGNATURE_STRIDES = LL_CHARACTER_MAX_JOINTS / 4;
+const S32 NUM_JOINT_SIGNATURE_STRIDES = LL_CHARACTER_MAX_ANIMATED_JOINTS / 4;
 const U32 MAX_MOTION_INSTANCES = 32;
 
 //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ LLMotionRegistry::~LLMotionRegistry()
 BOOL LLMotionRegistry::registerMotion( const LLUUID& id, LLMotionConstructor constructor )
 {
 	//	LL_INFOS() << "Registering motion: " << name << LL_ENDL;
-	return mMotionTable.insert(std::make_pair(id,constructor)).second;
+	return mMotionTable.emplace(id, constructor).second;
 }
 
 //-----------------------------------------------------------------------------
@@ -126,22 +126,22 @@ LLMotion* LLMotionRegistry::createMotion(LLUUID const& id, LLMotionController* c
 // Class Constructor
 //-----------------------------------------------------------------------------
 LLMotionController::LLMotionController()
-	: mIsSelf(FALSE),
-	  mTimeFactor(sCurrentTimeFactor),
+	: mTimeFactor(sCurrentTimeFactor),
 	  mCharacter(NULL),
+	  mAnimTime(0.f),
 	  mActiveMask(0),
 	  mDisableSyncing(0),
 	  mHidden(false),
 	  mHaveVisibleSyncedMotions(false),
 	  mPrevTimerElapsed(0.f),
-	  mAnimTime(0.f),
 	  mLastTime(0.0f),
 	  mHasRunOnce(FALSE),
 	  mPaused(FALSE),
-	  mPauseTime(0.f),
+	  mPausedFrame(0),
 	  mTimeStep(0.f),
 	  mTimeStepCount(0),
-	  mLastInterp(0.f)
+	  mLastInterp(0.f),
+	  mIsSelf(FALSE)
 {
 }
 
@@ -200,7 +200,7 @@ void LLMotionController::purgeExcessMotions()
 	}
 	//</singu>
 
-	std::set<LLUUID> motions_to_kill;
+	uuid_set_t motions_to_kill;
 
 	if (1)	// Singu: leave indentation alone...
 	{
@@ -220,7 +220,7 @@ void LLMotionController::purgeExcessMotions()
 	}
 	
 	// clean up all inactive, loaded motions
-	for (std::set<LLUUID>::iterator motion_it = motions_to_kill.begin();
+	for (auto motion_it = motions_to_kill.begin();
 		motion_it != motions_to_kill.end();
 		++motion_it)
 	{
@@ -467,7 +467,7 @@ BOOL LLMotionController::stopMotionLocally(const LLUUID &id, BOOL stop_immediate
 {
 	// if already inactive, return false
 	LLMotion *motion = findMotion(id);
-	return stopMotionInstance(motion, stop_immediate);
+	return stopMotionInstance(motion, stop_immediate||mPaused);
 }
 
 BOOL LLMotionController::stopMotionInstance(LLMotion* motion, BOOL stop_immediate)
@@ -517,8 +517,8 @@ void LLMotionController::updateAdditiveMotions()
 //-----------------------------------------------------------------------------
 void LLMotionController::resetJointSignatures()
 {
-	memset(&mJointSignature[0][0], 0, sizeof(U8) * LL_CHARACTER_MAX_JOINTS);
-	memset(&mJointSignature[1][0], 0, sizeof(U8) * LL_CHARACTER_MAX_JOINTS);
+	memset(&mJointSignature[0][0], 0, sizeof(U8) * LL_CHARACTER_MAX_ANIMATED_JOINTS);
+	memset(&mJointSignature[1][0], 0, sizeof(U8) * LL_CHARACTER_MAX_ANIMATED_JOINTS);
 }
 
 //-----------------------------------------------------------------------------
@@ -577,14 +577,12 @@ void LLMotionController::updateIdleActiveMotions()
 //-----------------------------------------------------------------------------
 // updateMotionsByType()
 //-----------------------------------------------------------------------------
-static LLFastTimer::DeclareTimer FTM_MOTION_ON_UPDATE("Motion onUpdate");
+static LLTrace::BlockTimerStatHandle FTM_MOTION_ON_UPDATE("Motion onUpdate");
 
 void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_type)
 {
 	BOOL update_result = TRUE;
-	U8 last_joint_signature[LL_CHARACTER_MAX_JOINTS];
-
-	memset(&last_joint_signature, 0, sizeof(U8) * LL_CHARACTER_MAX_JOINTS);
+	U8 last_joint_signature[LL_CHARACTER_MAX_ANIMATED_JOINTS] = {0};
 
 	// iterate through active motions in chronological order
 	for (motion_list_t::iterator iter = mActiveMotions.begin();
@@ -737,7 +735,7 @@ void LLMotionController::updateMotionsByType(LLMotion::LLMotionBlendType anim_ty
 
 			// perform motion update
 			{
-				LLFastTimer t(FTM_MOTION_ON_UPDATE);
+				LL_RECORD_BLOCK_TIME(FTM_MOTION_ON_UPDATE);
 				update_result = motionp->onUpdate(mAnimTime - motionp->mActivationTimestamp, last_joint_signature);
 			}
 		}
@@ -881,7 +879,7 @@ void LLMotionController::updateMotions(bool force_update)
             // Moreover, just rounding off to the nearest integer with ll_round(update_time / mTimeStep) makes a lot more sense:
             // it is the best we can do to get as close to what we should draw as possible.
             // However, mAnimTime may only be incremented; therefore make sure of that with the llmax.
-			S32 quantum_count = llmax(ll_round(update_time / mTimeStep), llceil(mAnimTime / mTimeStep));
+			S32 quantum_count = llmax(ll_pos_round(update_time / mTimeStep), llceil(mAnimTime / mTimeStep));
             //</singu>
 			if (quantum_count == mTimeStepCount)
 			{
@@ -1314,6 +1312,7 @@ void LLMotionController::pauseAllMotions()
 	{
 		//LL_INFOS() << "Pausing animations..." << LL_ENDL;
 		mPaused = TRUE;
+        mPausedFrame = LLFrameTimer::getFrameCount();
 	}
 	
 }

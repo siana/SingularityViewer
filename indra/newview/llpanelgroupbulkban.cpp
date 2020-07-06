@@ -49,8 +49,6 @@
 #include "lluictrlfactory.h"
 #include "llviewerwindow.h"
 
-#include <boost/foreach.hpp>
-
 LLPanelGroupBulkBan::LLPanelGroupBulkBan(const LLUUID& group_id) : LLPanelGroupBulk(group_id)
 {
 	// Pass on construction of this panel to the control factory.
@@ -131,7 +129,7 @@ void LLPanelGroupBulkBan::submit()
 		(*(mImplementation->mCloseCallback))(mImplementation->mCloseCallbackUserData);
 		return;
 	}
-	std::vector<LLUUID> banned_agent_list;	
+	uuid_vec_t banned_agent_list;	
 	std::vector<LLScrollListItem*> agents = mImplementation->mBulkAgentList->getAllData();
 	std::vector<LLScrollListItem*>::iterator iter = agents.begin();
 	for(;iter != agents.end(); ++iter)
@@ -155,7 +153,7 @@ void LLPanelGroupBulkBan::submit()
 	std::vector<LLAvatarName> banned_avatar_names;
 	std::vector<LLAvatarName> out_of_limit_names;
 	bool banning_self = FALSE;
-	std::vector<LLUUID>::iterator conflict = std::find(banned_agent_list.begin(), banned_agent_list.end(), gAgent.getID());
+	auto conflict = std::find(banned_agent_list.begin(), banned_agent_list.end(), gAgent.getID());
 	if (conflict != banned_agent_list.end())
 	{
 		banned_agent_list.erase(conflict);
@@ -163,10 +161,10 @@ void LLPanelGroupBulkBan::submit()
 	}
 	if (group_datap)
 	{
-		BOOST_FOREACH(const LLGroupMgrGroupData::ban_list_t::value_type& group_ban_pair, group_datap->mBanList)
+		for (const LLGroupMgrGroupData::ban_list_t::value_type& group_ban_pair : group_datap->mBanList)
 		{
 			const LLUUID& group_ban_agent_id = group_ban_pair.first;
-			std::vector<LLUUID>::iterator conflict = std::find(banned_agent_list.begin(), banned_agent_list.end(), group_ban_agent_id);
+			auto conflict = std::find(banned_agent_list.begin(), banned_agent_list.end(), group_ban_agent_id);
 			if (conflict != banned_agent_list.end())
 			{
 				LLAvatarName av_name;
@@ -184,8 +182,8 @@ void LLPanelGroupBulkBan::submit()
 		// Otherwise we have a possibility of cutting more then we need to.
 		if (banned_agent_list.size() > GB_MAX_BANNED_AGENTS - group_datap->mBanList.size())
 		{
-			std::vector<LLUUID>::iterator exeedes_limit = banned_agent_list.begin() + GB_MAX_BANNED_AGENTS - group_datap->mBanList.size();
-			for (std::vector<LLUUID>::iterator itor = exeedes_limit ; 
+			auto exeedes_limit = banned_agent_list.begin() + GB_MAX_BANNED_AGENTS - group_datap->mBanList.size();
+			for (auto itor = exeedes_limit ; 
 				itor != banned_agent_list.end(); ++itor)
 			{
 				LLAvatarName av_name;

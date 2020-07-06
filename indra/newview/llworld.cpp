@@ -172,6 +172,7 @@ LLViewerRegion* LLWorld::addRegion(const U64 &region_handle, const LLHost &host)
 {
 	LL_INFOS() << "Add region with handle: " << region_handle << " on host " << host << LL_ENDL;
 	LLViewerRegion *regionp = getRegionFromHandle(region_handle);
+	std::string seedUrl;
 	if (regionp)
 	{
 		LLHost old_host = regionp->getHost();
@@ -191,8 +192,11 @@ LLViewerRegion* LLWorld::addRegion(const U64 &region_handle, const LLHost &host)
 		}
 		if (!regionp->isAlive())
 		{
-			LL_WARNS() << "LLWorld::addRegion exists, but isn't alive" << LL_ENDL;
+			LL_WARNS() << "LLWorld::addRegion exists, but isn't alive. Removing old region and creating new" << LL_ENDL;
 		}
+
+		// Save capabilities seed URL
+		seedUrl = regionp->getCapability("Seed");
 
 		// Kill the old host, and then we can continue on and add the new host.  We have to kill even if the host
 		// matches, because all the agent state for the new camera is completely different.
@@ -227,6 +231,11 @@ LLViewerRegion* LLWorld::addRegion(const U64 &region_handle, const LLHost &host)
 	if (!regionp)
 	{
 		LL_ERRS() << "Unable to create new region!" << LL_ENDL;
+	}
+
+	if ( !seedUrl.empty() )
+	{
+		regionp->setCapability("Seed", seedUrl);
 	}
 
 	//Classic clouds
@@ -673,7 +682,7 @@ LLSurfacePatch * LLWorld::resolveLandPatchGlobal(const LLVector3d &pos_global)
 		return NULL;
 	}
 
-	return regionp->getLand().resolvePatchGlobal(pos_global);
+	return regionp->getLand().resolvePatchGlobal(pos_global).get();
 }
 
 
@@ -769,6 +778,17 @@ void LLWorld::updateRegions(F32 max_update_time)
 	}
 }
 
+
+void LLWorld::clearAllVisibleObjects()
+{
+	for (region_list_t::iterator iter = mRegionList.begin();
+		 iter != mRegionList.end(); ++iter)
+	{
+		//clear all cached visible objects.
+		(*iter)->clearCachedVisibleObjects();
+	}
+}
+
 void LLWorld::updateParticles()
 {
 	static const LLCachedControl<bool> freeze_time("FreezeTime",false);
@@ -841,7 +861,6 @@ LLCloudGroup* LLWorld::findCloudGroup(const LLCloudPuff &puff)
 	return NULL;
 }
 #endif
-
 
 void LLWorld::renderPropertyLines()
 {
@@ -1354,11 +1373,11 @@ void LLWorld::disconnectRegions()
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_ENABLE_SIMULATOR("Enable Sim");
+static LLTrace::BlockTimerStatHandle FTM_ENABLE_SIMULATOR("Enable Sim");
 
 void process_enable_simulator(LLMessageSystem *msg, void **user_data)
 {
-	LLFastTimer t(FTM_ENABLE_SIMULATOR);
+	LL_RECORD_BLOCK_TIME(FTM_ENABLE_SIMULATOR);
 
 	if (!gAgent.getRegion())
 		return;
@@ -1437,6 +1456,8 @@ public:
 					<< sim << LL_ENDL;
 			return;
 		}
+		LL_DEBUGS("CrossingCaps") << "Calling setSeedCapability from LLEstablishAgentCommunication::post. Seed cap == "
+				<< input["body"]["seed-capability"] << LL_ENDL;
 		regionp->setSeedCapability(input["body"]["seed-capability"]);
 	}
 };

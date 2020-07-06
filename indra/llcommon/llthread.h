@@ -201,7 +201,7 @@ protected:
 #include <boost/thread/condition_variable.hpp>
 typedef boost::recursive_mutex LLMutexImpl;
 typedef boost::condition_variable_any LLConditionVariableImpl;
-#elif defined(USE_STD_MUTEX) && LL_CPP11
+#elif defined(USE_STD_MUTEX)
 #include <mutex>
 typedef std::recursive_mutex LLMutexImpl;
 typedef std::condition_variable_any LLConditionVariableImpl;
@@ -269,7 +269,7 @@ public:
 	~LLMutex()
 	{}
 
-	void lock(LLFastTimer::DeclareTimer* timer = NULL)	// blocks
+	void lock(LLTrace::BlockTimerStatHandle* timer = NULL)	// blocks
 	{
 		if (inc_lock_if_recursive())
 			return;
@@ -384,7 +384,7 @@ public:
 #endif
 
 private:
-	void lock_main(LLFastTimer::DeclareTimer* timer);
+	void lock_main(LLTrace::BlockTimerStatHandle* timer);
 
 	bool inc_lock_if_recursive()
 	{

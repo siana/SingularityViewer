@@ -43,6 +43,10 @@ class LLVector2;
 class LLColor4U;
 class LLAgent;
 
+class LLSurfacePatch;
+typedef std::shared_ptr<LLSurfacePatch> surface_patch_ref;
+typedef std::weak_ptr<LLSurfacePatch> surface_patch_weak_ref;
+
 // A patch shouldn't know about its visibility since that really depends on the 
 // camera that is looking (or not looking) at it.  So, anything about a patch
 // that is specific to a camera should be in the class below.
@@ -64,26 +68,23 @@ public:
 
 
 
-class LLSurfacePatch 
+class LLSurfacePatch
 {
 public:
-	LLSurfacePatch();
+	LLSurfacePatch(LLSurface* surface, U32 side);
 	~LLSurfacePatch();
 
-	void reset(const U32 id);
-	void connectNeighbor(LLSurfacePatch *neighborp, const U32 direction);
+	void connectNeighbor(const surface_patch_ref& neighbor_patchp, const U32 direction);
 	void disconnectNeighbor(LLSurface *surfacep);
 
-	void setNeighborPatch(const U32 direction, LLSurfacePatch *neighborp);
+	void setNeighborPatch(const U32 direction, const surface_patch_ref& neighborp);
 	LLSurfacePatch *getNeighborPatch(const U32 direction) const;
-
-	void colorPatch(const U8 r, const U8 g, const U8 b);
 
 	BOOL updateTexture();
 
 	void updateVerticalStats();
 	void updateCompositionStats();
-	void updateNormals();
+	bool updateNormals();
 
 	void updateEastEdge();
 	void updateNorthEdge();
@@ -92,7 +93,7 @@ public:
 	void updateVisibility();
 	void updateGL();
 
-	void dirtyZ(); // Dirty the z values of this patch
+	bool dirtyZ(); // Dirty the z values of this patch
 	void setHasReceivedData();
 	BOOL getHasReceivedData() const;
 
@@ -139,17 +140,19 @@ public:
 	void setDataNorm(LLVector3 *data_norm)		{ mDataNorm = data_norm; }
 	F32 *getDataZ() const						{ return mDataZ; }
 
-	void dirty();			// Mark this surface patch as dirty...
+	bool dirty();								// Mark this surface patch as dirty...
 	void clearDirty()							{ mDirty = FALSE; }
 
 	void clearVObj();
+
+	U32 getSide() const							{ return mSide; }
 
 public:
 	BOOL mHasReceivedData;	// has the patch EVER received height data?
 	BOOL mSTexUpdate;		// Does the surface texture need to be updated?
 
 protected:
-	LLSurfacePatch *mNeighborPatches[8]; // Adjacent patches
+	std::weak_ptr<LLSurfacePatch>* mNeighborPatches[8]; // Adjacent patches
 	BOOL mNormalsInvalid[9];  // Which normals are invalid
 
 	BOOL mDirty;
@@ -183,6 +186,8 @@ protected:
 	U8 mConnectedEdge;		// This flag is non-zero iff patch is on at least one edge 
 							// of LLSurface that is "connected" to another LLSurface
 	U64 mLastUpdateTime;	// Time patch was last updated
+
+	U32 mSide; // Side relative to parent surface.
 
 	LLSurface *mSurfacep; // Pointer to "parent" surface
 };

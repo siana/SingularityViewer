@@ -45,23 +45,17 @@
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-LLStatBar::LLStatBar(const std::string& name, const LLRect& rect, const std::string& setting,
+LLStatBar::LLStatBar(const std::string& name, const LLRect& rect, LLStat* stat, const Parameters& parameters, const std::string& setting,
 					 BOOL default_bar, BOOL default_history)
 	:	LLView(name, rect, TRUE),
 		mSetting(setting),
 		mLabel(name),
-		mMinBar(0.f),
-		mMaxBar(50.f),
-		mStatp(NULL),
-		mTickSpacing(10.f),
-		mLabelSpacing(10.f),
-		mPrecision(0),
-		mUpdatesPerSec(5),
-		mPerSec(true),
-		mDisplayMean(true)
+		mParameters(parameters),
+		mStatp(stat),
+		mValue(0.f),
+		mMinShift(0),
+		mMaxShift(0)
 {
-	mValue = 0.f;
-
 	S32 mode = -1;
 	if (mSetting.length() > 0)
 	{
@@ -133,7 +127,7 @@ void LLStatBar::draw()
 
 	// Get the values.
 	F32 current, min, max, mean;
-	if (mPerSec)
+	if (mParameters.mPerSec)
 	{
 		current = mStatp->getCurrentPerSec();
 		min = mStatp->getMinPerSec();
@@ -149,9 +143,9 @@ void LLStatBar::draw()
 	}
 
 
-	if ((mUpdatesPerSec == 0.f) || (mUpdateTimer.getElapsedTimeF32() > 1.f/mUpdatesPerSec) || (mValue == 0.f))
+	if ((mParameters.mUpdatesPerSec == 0.f) || (mUpdateTimer.getElapsedTimeF32() > 1.f/mParameters.mUpdatesPerSec) || (mValue == 0.f))
 	{
-		if (mDisplayMean)
+		if (mParameters.mDisplayMean)
 		{
 			mValue = mean;
 		}
@@ -170,22 +164,20 @@ void LLStatBar::draw()
 	S32 tick_width = 1;
 	S32 left, top, right, bottom;
 
-	F32 value_scale = max_width/(mMaxBar - mMinBar);
+	F32 value_scale = max_width/((mParameters.mMaxBar + mMaxShift) - (mParameters.mMinBar + mMinShift));
 
 	LLFontGL::getFontMonospace()->renderUTF8(mLabel, 0, 0, getRect().getHeight(), LLColor4(1.f, 1.f, 1.f, 1.f),
 							LLFontGL::LEFT, LLFontGL::TOP);
 
-	std::string value_format;
+
 	std::string value_str;
-	if (!mUnitLabel.empty())
+	if (!mParameters.mUnitLabel.empty())
 	{
-		value_format = llformat( "%%.%df%%s", mPrecision);
-		value_str = llformat( value_format.c_str(), mValue, mUnitLabel.c_str());
+		value_str = llformat( "%.*f%s", mParameters.mPrecision, mValue, mParameters.mUnitLabel.c_str());
 	}
 	else
 	{
-		value_format = llformat( "%%.%df", mPrecision);
-		value_str = llformat( value_format.c_str(), mValue);
+		value_str = llformat("%.*f", mParameters.mPrecision, mValue);
 	}
 
 	// Draw the value.
@@ -193,11 +185,8 @@ void LLStatBar::draw()
 		LLColor4(1.f, 1.f, 1.f, 0.5f),
 		LLFontGL::RIGHT, LLFontGL::TOP);
 
-	value_format = llformat( "%%.%df", mPrecision);
 	if (mDisplayBar)
 	{
-		std::string tick_label;
-
 		// Draw the tick marks.
 		F32 tick_value;
 		top = bar_top;
@@ -205,24 +194,23 @@ void LLStatBar::draw()
 
 		LLGLSUIDefault gls_ui;
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-		for (tick_value = mMinBar; tick_value <= mMaxBar; tick_value += mTickSpacing)
+		for (tick_value = mParameters.mMinBar + mMinShift; tick_value <= (mParameters.mMaxBar + mMaxShift); tick_value += mParameters.mTickSpacing)
 		{
-			left = llfloor((tick_value - mMinBar)*value_scale);
+			left = llfloor((tick_value - (mParameters.mMinBar + mMinShift))*value_scale);
 			right = left + tick_width;
 			gl_rect_2d(left, top, right, bottom, LLColor4(1.f, 1.f, 1.f, 0.1f));
 		}
 
 		// Draw the tick labels (and big ticks).
 		bottom = bar_top - bar_height - tick_height;
-		for (tick_value = mMinBar; tick_value <= mMaxBar; tick_value += mLabelSpacing)
+		for (tick_value = mParameters.mMinBar + mMinShift; tick_value <= (mParameters.mMaxBar + mMaxShift); tick_value += mParameters.mLabelSpacing)
 		{
-			left = llfloor((tick_value - mMinBar)*value_scale);
+			left = llfloor((tick_value - (mParameters.mMinBar + mMinShift))*value_scale);
 			right = left + tick_width;
 			gl_rect_2d(left, top, right, bottom, LLColor4(1.f, 1.f, 1.f, 0.25f));
 
-			tick_label = llformat( value_format.c_str(), tick_value);
 			// draw labels for the tick marks
-			LLFontGL::getFontMonospace()->renderUTF8(tick_label, 0, left - 1, bar_top - bar_height - tick_height,
+			LLFontGL::getFontMonospace()->renderUTF8(llformat("%.*f", mParameters.mPrecision, tick_value), 0, left - 1, bar_top - bar_height - tick_height,
 											 LLColor4(1.f, 1.f, 1.f, 0.5f),
 											 LLFontGL::LEFT, LLFontGL::TOP);
 		}
@@ -242,7 +230,7 @@ void LLStatBar::draw()
 			return;
 		}
 		// draw min and max
-		left = (S32) ((min - mMinBar) * value_scale);
+		left = (S32) ((min - (mParameters.mMinBar + mMinShift)) * value_scale);
 
 		if (left < 0)
 		{
@@ -250,7 +238,7 @@ void LLStatBar::draw()
 			LL_WARNS() << "Min:" << min << LL_ENDL;
 		}
 
-		right = (S32) ((max - mMinBar) * value_scale);
+		right = (S32) ((max - (mParameters.mMinBar + mMinShift)) * value_scale);
 		gl_rect_2d(left, top, right, bottom, LLColor4(1.f, 0.f, 0.f, 0.25f));
 
 		S32 num_values = mStatp->getNumValues() - 1;
@@ -263,42 +251,33 @@ void LLStatBar::draw()
 				{
 					continue;
 				}
-				if (mPerSec)
+				if (mParameters.mPerSec)
 				{
-					left = (S32)((mStatp->getPrevPerSec(i) - mMinBar) * value_scale);
-					right = (S32)((mStatp->getPrevPerSec(i) - mMinBar) * value_scale) + 1;
-					gl_rect_2d(left, bottom+i+1, right, bottom+i, LLColor4(1.f, 0.f, 0.f, 1.f));
+					left = (S32)((mStatp->getPrevPerSec(i) - (mParameters.mMinBar + mMinShift)) * value_scale);
+					gl_rect_2d(left, bottom+i+1, left+1, bottom+i, LLColor4(1.f, 0.f, 0.f, 1.f));
 				}
 				else
 				{
-					left = (S32)((mStatp->getPrev(i) - mMinBar) * value_scale);
-					right = (S32)((mStatp->getPrev(i) - mMinBar) * value_scale) + 1;
-					gl_rect_2d(left, bottom+i+1, right, bottom+i, LLColor4(1.f, 0.f, 0.f, 1.f));
+					left = (S32)((mStatp->getPrev(i) - (mParameters.mMinBar + mMinShift)) * value_scale);
+					gl_rect_2d(left, bottom+i+1, left + 1, bottom+i, LLColor4(1.f, 0.f, 0.f, 1.f));
 				}
 			}
 		}
 		else
 		{
 			// draw current
-			left = (S32) ((current - mMinBar) * value_scale) - 1;
-			right = (S32) ((current - mMinBar) * value_scale) + 1;
-			gl_rect_2d(left, top, right, bottom, LLColor4(1.f, 0.f, 0.f, 1.f));
+			left = (S32) ((current - (mParameters.mMinBar + mMinShift)) * value_scale) - 1;
+			gl_rect_2d(left, top, left + 2, bottom, LLColor4(1.f, 0.f, 0.f, 1.f));
 		}
 
 		// draw mean bar
 		top = bar_top + 2;
 		bottom = bar_top - bar_height - 2;
-		left = (S32) ((mean - mMinBar) * value_scale) - 1;
-		right = (S32) ((mean - mMinBar) * value_scale) + 1;
-		gl_rect_2d(left, top, right, bottom, LLColor4(0.f, 1.f, 0.f, 1.f));
+		left = (S32)((mean - (mParameters.mMinBar + mMinShift)) * value_scale) - 1;
+		gl_rect_2d(left, top, left + 2, bottom, LLColor4(0.f, 1.f, 0.f, 1.f));
 	}
 	
 	LLView::draw();
-}
-
-void LLStatBar::setUnitLabel(const std::string& unit_label)
-{
-	mUnitLabel = unit_label;
 }
 
 LLRect LLStatBar::getRequiredRect()

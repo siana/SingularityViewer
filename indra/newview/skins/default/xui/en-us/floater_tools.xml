@@ -8,6 +8,10 @@
     <floater.string name="status_selectcount">
         Primitives: [OBJ_COUNT], LI: [LAND_IMPACT]
     </floater.string>
+    <string name="Selected Face:" value="Selected Face:"/>
+    <string name="Link number:" value="Link number:"/>
+    <string name="Selected prims:" value="Selected prims:"/>
+    <string name="Selected objects:" value="Selected objects:"/>
     <floater.string
      name="status_remaining_capacity">
         Remaining capacity [LAND_CAPACITY].
@@ -59,7 +63,7 @@
 	     function="BuildTool.setTool"
 	     parameter="Land" />
 	</button>
-	<button name="mini_button" bottom="-40" left="245" height="22" width="22" control_name="LiruMiniBuildFloater" label="" image_selected="down_arrow.tga" image_unselected="up_arrow.tga" scale_image="true" toggle="true" tool_tip="Toggle tiny build floater"/>
+	<button name="mini_button" bottom="-20" left="216" height="20" width="20" control_name="LiruMiniBuildFloater" label="" image_selected="down_arrow.tga" image_unselected="up_arrow.tga" scale_image="true" toggle="true" tool_tip="Toggle tiny build floater"/>
 
 <!-- Focus panel -->
 
@@ -189,8 +193,8 @@
 	    font="SansSerifSmall" height="15" initial_value="true" label="Use Grid"
 	    left_delta="0" mouse_opaque="true" name="checkbox snap to grid" width="134" />
 	<button bottom_delta="0" follows="left|top" font="SansSerifSmall" halign="center"
-		valign="center" height="18" label="Options..." label_selected="Options..."
-		left_delta="64" mouse_opaque="true" name="Options..." scale_image="TRUE" width="75" >
+		valign="center" height="18" label="Options"
+		left_delta="68" mouse_opaque="true" name="Options..." scale_image="TRUE" width="68" >
 	 	<button.commit_callback
 	     		function="BuildTool.gridOptions"/>
 	</button>
@@ -450,48 +454,36 @@
 			     mouse_opaque="true" name="Creator:" v_pad="0" width="78">
 				Creator:
 			</text>
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-66" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-			     mouse_opaque="true" name="Creator Name" v_pad="0" width="88">
+			     mouse_opaque="true" name="Creator Name" v_pad="0" rlv_sensitive="true">
 		        Thrax Linden
-      		</text>
-      		<button bottom="-66" follows="top|right" font="SansSerifSmall" halign="center"
-			     height="16" label="Profile..." label_selected="Profile..." left_delta="94"
-			     mouse_opaque="true" name="button creator profile" scale_image="TRUE"
-			     width="78" />
+            </name_box>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-86" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
 			     mouse_opaque="true" name="Owner:" v_pad="0" width="78">
 				Owner:
 			</text>
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			     bottom="-86" drop_shadow_visible="true" follows="left|top"
 			     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-			     mouse_opaque="true" name="Owner Name" v_pad="0" width="88">
+			     mouse_opaque="true" name="Owner Name" v_pad="0" rlv_sensitive="true">
 		        Thrax Linden
-		    </text>
-		    <button bottom="-86" follows="top|right" font="SansSerifSmall" halign="center"
-			    height="16" label="Profile..." label_selected="Profile..." left_delta="94"
-			    mouse_opaque="true" name="button owner profile" scale_image="TRUE"
-			    width="78" />
+		    </name_box>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 				bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
 				font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
 				mouse_opaque="true" name="Last Owner:" v_pad="0" width="78">
 				Last Owner:
 			</text>
-			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+			<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 				bottom_delta="0" drop_shadow_visible="true" follows="left|top"
 				font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="78"
-				mouse_opaque="true" name="Last Owner Name" v_pad="0" width="88">
+				mouse_opaque="true" name="Last Owner Name" v_pad="0" rlv_sensitive="true">
 				Thrax Linden
-			</text>
-			<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-				height="16" label="Profile..." label_selected="Profile..." left_delta="94"
-				mouse_opaque="true" name="button last owner profile" scale_image="TRUE"
-				width="78" />
+			</name_box>
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 				bottom="-126" drop_shadow_visible="true" follows="left|top"
 				font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
@@ -505,13 +497,10 @@
 			    bottom="-126" 
 			    left_delta="78"
 			    name="Group Name Proxy"
-			    width="142"/>
+			    width="142" id_type="1"/>
 			<button bottom="-126" follows="top|right" font="SansSerifSmall" halign="center"
-			    height="16" label="Set" label_selected="Set..." left_delta="94"
+			    height="16" label="Set" label_selected="Set..." left_delta="142"
 			    mouse_opaque="true" name="button set group" scale_image="TRUE" width="30" />
-			<button bottom_delta="0" follows="top|right" font="SansSerifSmall" halign="center"
-			    height="16" label="View" label_selected="Open" left_delta="30"
-			    mouse_opaque="true" name="button open group" scale_image="TRUE" width="48" />
 			<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 			    bottom_delta="-20" drop_shadow_visible="true" follows="left|top"
 			    font="SansSerifSmall" h_pad="0" halign="left" height="16" left="10"
@@ -1170,12 +1159,20 @@
 			     mouse_opaque="true" name="edit_object" v_pad="0" width="252">
 				Edit object features:
 			</text>
-			<check_box bottom_delta="-26" follows="left|top" font="SansSerifSmall" height="16"
+            <check_box
+             height="15"
+             label="Animated Mesh"
+             left="10"
+             name="Animated Mesh Checkbox Ctrl"
+             tool_tip="Allows rigged mesh objects to be animated independently"
+             bottom_delta="-26"
+             width="121" />
+			<check_box bottom_delta="-20" follows="left|top" font="SansSerifSmall" height="16"
 			     initial_value="false" label="Flexible Path" left="10" mouse_opaque="true"
 			     name="Flexible1D Checkbox Ctrl"
 			     tool_tip="Allows object to flex about the Z axis. (Client-side only)"
 			     width="121" />
-			<spinner bottom_delta="-20" decimal_digits="0" follows="left|top" height="16"
+			<spinner bottom_delta="-21" decimal_digits="0" follows="left|top" height="16"
 			     increment="1" initial_val="2" label="Softness" label_width="55" left="10"
 			     max_val="3" min_val="0" mouse_opaque="true" name="FlexNumSections"
 			     width="118" />

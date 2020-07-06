@@ -10,7 +10,7 @@
 	<string name="default_text_label">Für Instant Message hier klicken.</string>
 	<layout_stack name="panels">
 		<layout_panel name="im_contents_panel">
-			<button label="Verlauf" name="history_btn"/>
+			<flyout_button label="Verlauf" name="instant_message_flyout"/>
 			<button label="Anrufen" name="start_call_btn"/>
 			<button label="Anruf beenden" name="end_call_btn"/>
 			<button label="&lt; &lt;" label_selected="&gt; &gt;" name="toggle_active_speakers_btn" tool_tip="Klicken Sie hier um eine Liste der aktiven Teilnehmer dieser IM-Sitzung anzuzeigen."/>

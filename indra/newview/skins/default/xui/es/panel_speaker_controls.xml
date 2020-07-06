@@ -15,11 +15,11 @@
 			</combo_box>
 		</layout_panel>
 		<layout_panel name="moderate_chat_panel">
-			<scroll_list name="speakers_list">
+			<name_list name="speakers_list">
 				<column name="icon_speaking_status"/>
 				<column label="Nombre" name="speaker_name"/>
 				<column label="" name="speaking_status"/>
-			</scroll_list>
+			</name_list>
 			<panel name="speaker_controls">
 				<button label="" name="profile_btn"/>
 				<text name="resident_name">

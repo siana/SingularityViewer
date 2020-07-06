@@ -53,18 +53,17 @@ LLAvatarJoint::LLAvatarJoint() :
 	init();
 }
 
+LLAvatarJoint::LLAvatarJoint(S32 joint_num) :
+    LLJoint(joint_num)
+{
+    init();
+}
+    
 LLAvatarJoint::LLAvatarJoint(const std::string &name, LLJoint *parent) :
 	LLJoint(name, parent)
 {
 	init();
 }
-
-LLAvatarJoint::LLAvatarJoint(S32 joint_num) :
-	LLJoint(joint_num)
-{
-	init();
-}
-
 
 void LLAvatarJoint::init()
 {
@@ -190,26 +189,26 @@ BOOL LLAvatarJoint::updateLOD(F32 pixel_area, BOOL activate)
 		 iter != mChildren.end(); ++iter)
 	{
 		LLAvatarJoint* joint = dynamic_cast<LLAvatarJoint*>(*iter);
-		if (!joint)
-			continue;
+		if (joint)
+		{
+			F32 jointLOD = joint->getLOD();
 
-		F32 jointLOD = joint->getLOD();
-		
-		if (found_lod || jointLOD == DEFAULT_AVATAR_JOINT_LOD)
-		{
-			// we've already found a joint to enable, so enable the rest as alternatives
-			lod_changed |= joint->updateLOD(pixel_area, TRUE);
-		}
-		else
-		{
-			if (pixel_area >= jointLOD || sDisableLOD)
+			if (found_lod || jointLOD == DEFAULT_AVATAR_JOINT_LOD)
 			{
+				// we've already found a joint to enable, so enable the rest as alternatives
 				lod_changed |= joint->updateLOD(pixel_area, TRUE);
-				found_lod = TRUE;
 			}
 			else
 			{
-				lod_changed |= joint->updateLOD(pixel_area, FALSE);
+				if (pixel_area >= jointLOD || sDisableLOD)
+				{
+					lod_changed |= joint->updateLOD(pixel_area, TRUE);
+					found_lod = TRUE;
+				}
+				else
+				{
+					lod_changed |= joint->updateLOD(pixel_area, FALSE);
+				}
 			}
 		}
 	}
@@ -232,7 +231,7 @@ void LLAvatarJoint::setMeshesToChildren()
 {
 	removeAllChildren();
 	for (avatar_joint_mesh_list_t::iterator iter = mMeshParts.begin();
-		iter != mMeshParts.end(); iter++)
+		iter != mMeshParts.end(); ++iter)
 	{
 		addChild((*iter));
 	}

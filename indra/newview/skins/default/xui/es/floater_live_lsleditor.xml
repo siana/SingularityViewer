@@ -3,6 +3,7 @@
 	<button label="Restablecer" label_selected="Restablecer" name="Reset"/>
 	<check_box label="Ejecutándose" name="running"/>
 	<check_box label="Mono" name="mono"/>
+    <check_box label="Usar Experiencia" name="enable_xp" />
 	<string name="not_allowed">
 		No tienes permiso para ver este script.
 	</string>

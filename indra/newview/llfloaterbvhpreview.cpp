@@ -36,13 +36,13 @@
 #include "llbvhloader.h"
 #include "lldatapacker.h"
 #include "lldir.h"
-#include "lleconomy.h"
 #include "llnotificationsutil.h"
 #include "llvfile.h"
 #include "llapr.h"
 #include "llstring.h"
 
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llanimationstates.h"
 #include "llbbox.h"
 #include "llbutton.h"
@@ -144,14 +144,13 @@ std::string STATUS[] =
 // LLFloaterBvhPreview()
 //-----------------------------------------------------------------------------
 LLFloaterBvhPreview::LLFloaterBvhPreview(const std::string& filename, void* item) :
-	LLFloaterNameDesc(filename, item)
+	LLFloaterNameDesc(filename, item),
+	mItem(item), //<edit/>
+	mLastMouseX(0),
+	mLastMouseY(0),
+	mPlayButton(nullptr),
+	mStopButton(nullptr)
 {
-	//<edit>
-	mItem = item;
-	//<edit>
-	mLastMouseX = 0;
-	mLastMouseY = 0;
-
 	mIDList["Standing"] = ANIM_AGENT_STAND;
 	mIDList["Walking"] = ANIM_AGENT_FEMALE_WALK;
 	mIDList["Sitting"] = ANIM_AGENT_SIT_FEMALE;
@@ -230,7 +229,7 @@ BOOL LLFloaterBvhPreview::postBuild()
 		getChild<LLSlider>("priority")->setMaxValue(7);
 	}
 
-	childSetLabelArg("ok_btn", "[UPLOADFEE]", gHippoGridManager->getConnectedGrid()->getUploadFee());
+	childSetLabelArg("ok_btn", "[UPLOADFEE]", gHippoGridManager->getConnectedGrid()->formatFee(LLAgentBenefitsMgr::current().getAnimationUploadCost()));
 	childSetAction("ok_btn", onBtnOK, this);
 	setDefaultBtn();
 
@@ -353,7 +352,7 @@ BOOL LLFloaterBvhPreview::postBuild()
 		// pass animation data through memory buffer
 		loaderp->serialize(dp);
 		dp.reset();
-				success = motionp && motionp->deserialize(dp);
+				success = motionp && motionp->deserialize(dp, mMotionID);
 			}
 			else
 			{
@@ -412,7 +411,7 @@ BOOL LLFloaterBvhPreview::postBuild()
 				motionp = (LLKeyframeMotion*)mAnimPreview->getDummyAvatar()->createMotion(mMotionID);
 				LLDataPackerBinaryBuffer dp((U8*)file_buffer, file_size);
 				dp.reset();
-				success = motionp && motionp->deserialize(dp);
+				success = motionp && motionp->deserialize(dp, mMotionID);
 			}
 
 			raw_animatn.close();
@@ -524,16 +523,16 @@ void LLFloaterBvhPreview::draw()
 
 		gGL.getTexUnit(0)->bind(mAnimPreview);
 
-		gGL.begin( LLRender::QUADS );
+		gGL.begin( LLRender::TRIANGLE_STRIP );
 		{
 			gGL.texCoord2f(0.f, 1.f);
 			gGL.vertex2i(PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
 			gGL.texCoord2f(0.f, 0.f);
 			gGL.vertex2i(PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
-			gGL.texCoord2f(1.f, 0.f);
-			gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 			gGL.texCoord2f(1.f, 1.f);
 			gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_TEXTURE_HEIGHT);
+			gGL.texCoord2f(1.f, 0.f);
+			gGL.vertex2i(r.getWidth() - PREVIEW_HPAD, PREVIEW_HPAD + PREF_BUTTON_HEIGHT + PREVIEW_HPAD);
 		}
 		gGL.end();
 
@@ -1239,7 +1238,7 @@ void LLFloaterBvhPreview::onBtnOK(void* userdata)
 				std::string name = floaterp->getChild<LLUICtrl>("name_form")->getValue().asString();
 				std::string desc = floaterp->getChild<LLUICtrl>("description_form")->getValue().asString();
 				LLAssetStorage::LLStoreAssetCallback callback = NULL;
-				S32 expected_upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
+				S32 expected_upload_cost = LLAgentBenefitsMgr::current().getAnimationUploadCost();
 				void *userdata = NULL;
 
 				// <edit>
@@ -1269,7 +1268,9 @@ void LLFloaterBvhPreview::onBtnOK(void* userdata)
 						    0,
 						    LLFolderType::FT_NONE,
 						    LLInventoryType::IT_ANIMATION,
-						    LLFloaterPerms::getNextOwnerPerms("Uploads"), LLFloaterPerms::getGroupPerms("Uploads"), LLFloaterPerms::getEveryonePerms("Uploads"),
+						    LLFloaterPerms::getNextOwnerPerms("Uploads"),
+						    LLFloaterPerms::getGroupPerms("Uploads"),
+						    LLFloaterPerms::getEveryonePerms("Uploads"),
 						    name,
 						    callback, expected_upload_cost, userdata);
 				}
@@ -1309,17 +1310,10 @@ LLPreviewAnimation::LLPreviewAnimation(S32 width, S32 height) : LLViewerDynamicT
 	mCameraPitch = 0.f;
 	mCameraZoom = 1.f;
 
-	mDummyAvatar = (LLVOAvatar*)gObjectList.createObjectViewer(LL_PCODE_LEGACY_AVATAR, gAgent.getRegion());
-	mDummyAvatar->createDrawable(&gPipeline);
-	mDummyAvatar->mIsDummy = TRUE;
+	mDummyAvatar = (LLVOAvatar*)gObjectList.createObjectViewer(LL_PCODE_LEGACY_AVATAR, gAgent.getRegion(), LLViewerObject::CO_FLAG_UI_AVATAR);
 	mDummyAvatar->mSpecialRenderMode = 1;
-	mDummyAvatar->setPositionAgent(LLVector3::zero);
-	mDummyAvatar->slamPosition();
-	mDummyAvatar->updateJointLODs();
-	mDummyAvatar->updateGeometry(mDummyAvatar->mDrawable);
 	mDummyAvatar->startMotion(ANIM_AGENT_STAND, BASE_ANIM_TIME_OFFSET);
 	mDummyAvatar->hideSkirt();
-	//gPipeline.markVisible(mDummyAvatar->mDrawable, *LLViewerCamera::getInstance());
 
 	// stop extraneous animations
 	mDummyAvatar->stopMotion( ANIM_AGENT_HEAD_ROT, TRUE );

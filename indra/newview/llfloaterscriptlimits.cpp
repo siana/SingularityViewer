@@ -58,7 +58,7 @@
 // debug switches, won't work in release
 #ifndef LL_RELEASE_FOR_DOWNLOAD
 
-// dump responder replies to llinfos for debugging
+// dump responder replies to LL_INFOS() for debugging
 //#define DUMP_REPLIES_TO_LLINFOS
 
 #ifdef DUMP_REPLIES_TO_LLINFOS
@@ -84,6 +84,8 @@ const S32 SIZE_OF_ONE_KB = 1024;
 
 LLFloaterScriptLimits::LLFloaterScriptLimits(const LLSD& seed)
 	: LLFloater(/*seed*/)
+	, mTab(nullptr)
+	, mInfoPanels()
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_script_limits.xml");
 }
@@ -752,6 +754,8 @@ void LLPanelScriptLimitsRegionMemory::setRegionDetails(LLSD content)
 
 			LLScrollListCell::Params cell_params;
 			//cell_params.font = LLFontGL::getFontSansSerif();
+			// Start out right justifying numeric displays
+			cell_params.font_halign = LLFontGL::RIGHT;
 
 			cell_params.column = "size";
 			cell_params.value = size;
@@ -761,6 +765,8 @@ void LLPanelScriptLimitsRegionMemory::setRegionDetails(LLSD content)
 			cell_params.value = urls;
 			item_params.columns.add(cell_params);
 
+			cell_params.font_halign = LLFontGL::LEFT;
+			// The rest of the columns are text to left justify them
 			cell_params.column = "name";
 			cell_params.value = name_buf;
 			item_params.columns.add(cell_params);
@@ -852,13 +858,20 @@ void LLPanelScriptLimitsRegionMemory::setRegionSummary(LLSD content)
 
 	if((mParcelMemoryUsed >= 0) && (mParcelMemoryMax >= 0))
 	{
-		S32 parcel_memory_available = mParcelMemoryMax - mParcelMemoryUsed;
-
 		LLStringUtil::format_map_t args_parcel_memory;
 		args_parcel_memory["[COUNT]"] = llformat ("%d", mParcelMemoryUsed);
-		args_parcel_memory["[MAX]"] = llformat ("%d", mParcelMemoryMax);
-		args_parcel_memory["[AVAILABLE]"] = llformat ("%d", parcel_memory_available);
-		std::string msg_parcel_memory = LLTrans::getString("ScriptLimitsMemoryUsed", args_parcel_memory);
+		std::string translate_message = "ScriptLimitsMemoryUsedSimple";
+
+		if (0 < mParcelMemoryMax)
+		{
+			S32 parcel_memory_available = mParcelMemoryMax - mParcelMemoryUsed;
+
+			args_parcel_memory["[MAX]"] = llformat ("%d", mParcelMemoryMax);
+			args_parcel_memory["[AVAILABLE]"] = llformat ("%d", parcel_memory_available);
+			translate_message = "ScriptLimitsMemoryUsed";
+		}
+
+		std::string msg_parcel_memory = LLTrans::getString(translate_message, args_parcel_memory);
 		getChild<LLUICtrl>("memory_used")->setValue(LLSD(msg_parcel_memory));
 	}
 
@@ -1243,10 +1256,12 @@ void LLPanelScriptLimitsAttachment::setAttachmentDetails(LLSD content)
 			element["columns"][0]["column"] = "size";
 			element["columns"][0]["value"] = llformat("%d", size);
 			element["columns"][0]["font"] = "SANSSERIF";
+			element["columns"][0]["halign"] = LLFontGL::RIGHT;
 
 			element["columns"][1]["column"] = "urls";
 			element["columns"][1]["value"] = llformat("%d", urls);
 			element["columns"][1]["font"] = "SANSSERIF";
+			element["columns"][1]["halign"] = LLFontGL::RIGHT;
 
 			element["columns"][2]["column"] = "name";
 			element["columns"][2]["value"] = name;
@@ -1333,14 +1348,20 @@ void LLPanelScriptLimitsAttachment::setAttachmentSummary(LLSD content)
 
 	if((mAttachmentMemoryUsed >= 0) && (mAttachmentMemoryMax >= 0))
 	{
-		S32 attachment_memory_available = mAttachmentMemoryMax - mAttachmentMemoryUsed;
-
 		LLStringUtil::format_map_t args_attachment_memory;
 		args_attachment_memory["[COUNT]"] = llformat ("%d", mAttachmentMemoryUsed);
-		args_attachment_memory["[MAX]"] = llformat ("%d", mAttachmentMemoryMax);
-		args_attachment_memory["[AVAILABLE]"] = llformat ("%d", attachment_memory_available);
-		std::string msg_attachment_memory = LLTrans::getString("ScriptLimitsMemoryUsed", args_attachment_memory);
-		getChild<LLUICtrl>("memory_used")->setValue(LLSD(msg_attachment_memory));
+		std::string translate_message = "ScriptLimitsMemoryUsedSimple";
+
+		if (0 < mAttachmentMemoryMax)
+		{
+			S32 attachment_memory_available = mAttachmentMemoryMax - mAttachmentMemoryUsed;
+
+			args_attachment_memory["[MAX]"] = llformat ("%d", mAttachmentMemoryMax);
+			args_attachment_memory["[AVAILABLE]"] = llformat ("%d", attachment_memory_available);
+			translate_message = "ScriptLimitsMemoryUsed";
+		}
+
+		getChild<LLUICtrl>("memory_used")->setValue(LLTrans::getString(translate_message, args_attachment_memory));
 	}
 
 	if((mAttachmentURLsUsed >= 0) && (mAttachmentURLsMax >= 0))

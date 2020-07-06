@@ -60,10 +60,6 @@ public:
 };
 #endif
 
-namespace google_breakpad {
-	class ExceptionHandler; // See exception_handler.h
-}
-
 class LL_COMMON_API LLApp : public LLOptionInterface
 {
 	friend class LLErrorThread;
@@ -233,21 +229,10 @@ public:
 	static void runErrorHandler(); // run shortly after we detect an error, ran in the relatively robust context of the LLErrorThread - preferred.
 	//@}
 	
-	// the maximum length of the minidump filename returned by getMiniDumpFilename()
-	static const U32 MAX_MINDUMP_PATH_LENGTH = 256;
-
-	// change the directory where Breakpad minidump files are written to
-	void setMiniDumpDir(const std::string &path);
     void setDebugFileNames(const std::string &path);
 
-	// Return the Google Breakpad minidump filename after a crash.
-	char *getMiniDumpFilename() { return mMinidumpPath; }
     std::string* getStaticDebugFile() { return &mStaticDebugFileName; }
     std::string* getDynamicDebugFile() { return &mDynamicDebugFileName; }
-
-	// Write out a Google Breakpad minidump file.
-	void writeMiniDump();
-
 
 #if !LL_WINDOWS
 	//
@@ -281,8 +266,6 @@ protected:
 	static BOOL sDisableCrashlogger; // Let the OS handle crashes for us.
 	std::wstring mCrashReportPipeStr;  //Name of pipe to use for crash reporting.
 
-    std::string mDumpPath;  //output path for google breakpad.  Dependency workaround.
-
 #if !LL_WINDOWS
 	static LLAtomicU32* sSigChildCount; // Number of SIGCHLDs received.
 	typedef std::map<pid_t, LLChildInfo> child_map; // Map key is a PID
@@ -290,16 +273,13 @@ protected:
 	static LLAppChildCallback sDefaultChildCallback;
 #endif
 
-	void startErrorThread();
-
 	/**
 	 * @brief This method is called at the end, just prior to deinitializing curl.
 	 */
 	void stopErrorThread();
 
 private:
-	// Contains the filename of the minidump file after a crash.
-	char mMinidumpPath[MAX_MINDUMP_PATH_LENGTH];
+	void startErrorThread();
     
     std::string mStaticDebugFileName;
     std::string mDynamicDebugFileName;
@@ -323,11 +303,8 @@ private:
 	std::vector<LLLiveFile*> mLiveFiles;
 	//@}
 
-private:
 	// the static application instance if it was created.
 	static LLApp* sApplication;
-	google_breakpad::ExceptionHandler * mExceptionHandler;
-
 
 #if !LL_WINDOWS
 	friend void default_unix_signal_handler(int signum, siginfo_t *info, void *);

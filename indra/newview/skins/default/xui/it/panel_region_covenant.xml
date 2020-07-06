@@ -12,9 +12,9 @@
 	<text name="estate_owner_lbl">
 		Proprietario:
 	</text>
-	<text name="estate_owner_text">
+	<name_box name="estate_owner_text">
 		(nessuno)
-	</text>
+	</name_box>
 	<text name="estate_cov_lbl">
 		Regolamento:
 	</text>

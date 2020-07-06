@@ -118,6 +118,8 @@ void LLFloaterGodTools::refreshAll()
 
 LLFloaterGodTools::LLFloaterGodTools()
 :	LLFloater(std::string("godtools floater")),
+	mPanelRegionTools(nullptr),
+	mPanelObjectTools(nullptr),
 	mCurrentHost(LLHost::invalid),
 	mUpdateTimer()
 {
@@ -554,7 +556,7 @@ void LLPanelRegionTools::onSaveState(void* userdata)
 		gMessageSystem->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
 		gMessageSystem->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
 		gMessageSystem->nextBlockFast(_PREHASH_DataBlock);
-		gMessageSystem->addStringFast(_PREHASH_Filename, NULL);
+		gMessageSystem->addStringFast(_PREHASH_Filename, nullptr);
 		gAgent.sendReliableMessage();
 	}
 }
@@ -1352,7 +1354,7 @@ void LLPanelRequestTools::onClickRequest()
 	if(dest == SELECTION)
 	{
 		std::string req =getChild<LLUICtrl>("request")->getValue();
-		req = req.substr(0, req.find_first_of(" "));
+		req = req.substr(0, req.find_first_of(' '));
 		std::string param = getChild<LLUICtrl>("parameter")->getValue();
 		LLSelectMgr::getInstance()->sendGodlikeRequest(req, param);
 	}
@@ -1399,11 +1401,11 @@ void LLPanelRequestTools::sendRequest(const LLHost& host)
 								  host,
 								  FALSE,
 								  terrain_download_done,
-								  NULL);
+								  nullptr);
 	}
 	else
 	{
-		req = req.substr(0, req.find_first_of(" "));
+		req = req.substr(0, req.find_first_of(' '));
 		sendRequest(req, getChild<LLUICtrl>("parameter")->getValue().asString(), host);
 	}
 }

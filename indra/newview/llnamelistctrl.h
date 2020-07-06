@@ -39,67 +39,68 @@ class LLAvatarName;
  * We don't use LLScrollListItem to be able to override getUUID(), which is needed
  * because the name list item value is not simply an UUID but a map (uuid, is_group).
  */
-class LLNameListItem : public LLScrollListItem, public LLHandleProvider<LLNameListItem>
+class LLNameListItem final : public LLScrollListItem, public LLHandleProvider<LLNameListItem>
 {
 public:
-	bool isGroup() const { return mIsGroup; }
-	void setIsGroup(bool is_group) { mIsGroup = is_group; }
-
-protected:
-	friend class LLNameListCtrl;
-
-	LLNameListItem( const LLScrollListItem::Params& p )
-	:	LLScrollListItem(p), mIsGroup(false)
-	{
-	}
-
-	LLNameListItem( const LLScrollListItem::Params& p, bool is_group )
-	:	LLScrollListItem(p), mIsGroup(is_group)
-	{
-	}
-
-private:
-	bool mIsGroup;
-};
-
-
-class LLNameListCtrl
-:	public LLScrollListCtrl, public LLInstanceTracker<LLNameListCtrl>
-{
-public:
-	typedef boost::signals2::signal<void(bool)> namelist_complete_signal_t;
-
-	typedef enum e_name_type
+	enum ENameType
 	{
 		INDIVIDUAL,
 		GROUP,
-		SPECIAL
-	} ENameType;
+		SPECIAL,
+		EXPERIENCE
+	};
 
 	// provide names for enums
-	struct NameTypeNames : public LLInitParam::TypeValuesHelper<LLNameListCtrl::ENameType, NameTypeNames>
+	struct NameTypeNames : public LLInitParam::TypeValuesHelper<ENameType, NameTypeNames>
 	{
 		static void declareValues();
 	};
 
-	struct NameItem : public LLInitParam::Block<NameItem, LLScrollListItem::Params>
+	struct Params : public LLInitParam::Block<Params, LLScrollListItem::Params>
 	{
 		Optional<std::string>				name;
 		Optional<ENameType, NameTypeNames>	target;
 
-		NameItem()
-		:	name("name"),
+		Params()
+			: name("name"),
 			target("target", INDIVIDUAL)
 		{}
 	};
+	ENameType getNameType() const { return mNameType; }
+	void setNameType(ENameType name_type) { mNameType = name_type; }
+
+protected:
+	friend class LLNameListCtrl;
+
+	LLNameListItem( const Params& p )
+	:	LLScrollListItem(p), mNameType(p.target)
+	{
+	}
+
+	LLNameListItem( const LLScrollListItem::Params& p, ENameType name_type)
+	:	LLScrollListItem(p), mNameType(name_type)
+	{
+	}
+
+private:
+	ENameType mNameType;
+};
+
+
+class LLNameListCtrl final
+:	public LLScrollListCtrl, public LLInstanceTracker<LLNameListCtrl>
+{
+public:
+	typedef boost::signals2::signal<void(bool)> namelist_complete_signal_t;
+	typedef LLNameListItem::Params NameItem;
 
 	struct NameColumn : public LLInitParam::ChoiceBlock<NameColumn>
 	{
 		Alternative<S32>				column_index;
 		Alternative<std::string>		column_name;
 		NameColumn()
-		:	column_name("name_column"),
-			column_index("name_column_index", 0)
+		:	column_index("name_column_index", 0),
+			column_name("name_column")
 		{}
 	};
 
@@ -118,17 +119,18 @@ protected:
 	}
 	friend class LLUICtrlFactory;
 public:
-	virtual LLXMLNodePtr getXML(bool save_children = true) const;
+	virtual LLXMLNodePtr getXML(bool save_children = true) const override;
 	static LLView* fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 
 	// Add a user to the list by name.  It will be added, the name 
 	// requested from the cache, and updated as necessary.
 	LLScrollListItem* addNameItem(const LLUUID& agent_id, EAddPosition pos = ADD_BOTTOM,
-					 BOOL enabled = TRUE, const std::string& suffix = LLStringUtil::null);
+					 BOOL enabled = TRUE, const std::string& suffix = LLStringUtil::null, const std::string& prefix = LLStringUtil::null);
 	LLScrollListItem* addNameItem(NameItem& item, EAddPosition pos = ADD_BOTTOM);
 
-	/*virtual*/ LLScrollListItem* addElement(const LLSD& element, EAddPosition pos = ADD_BOTTOM, void* userdata = NULL);
-	LLScrollListItem* addNameItemRow(const NameItem& value, EAddPosition pos = ADD_BOTTOM, const std::string& suffix = LLStringUtil::null);
+	/*virtual*/ LLScrollListItem* addElement(const LLSD& element, EAddPosition pos = ADD_BOTTOM, void* userdata = NULL) override;
+	LLScrollListItem* addNameItemRow(const NameItem& value, EAddPosition pos = ADD_BOTTOM, const std::string& suffix = LLStringUtil::null,
+																							const std::string& prefix = LLStringUtil::null);
 
 	// Add a user to the list by name.  It will be added, the name 
 	// requested from the cache, and updated as necessary.
@@ -139,22 +141,29 @@ public:
 
 	void removeNameItem(const LLUUID& agent_id);
 
+	LLScrollListItem* getNameItemByAgentId(const LLUUID& agent_id);
+
 	// LLView interface
 	/*virtual*/ BOOL	handleDragAndDrop(S32 x, S32 y, MASK mask,
 									  BOOL drop, EDragAndDropType cargo_type, void *cargo_data,
 									  EAcceptance *accept,
-									  std::string& tooltip_msg);
+									  std::string& tooltip_msg) override;
+	BOOL handleDoubleClick(S32 x, S32 y, MASK mask) override;
+
+	Type getSelectedType() const override final;
 
 	void setAllowCallingCardDrop(BOOL b) { mAllowCallingCardDrop = b; }
 
 	void sortByName(BOOL ascending);
 private:
-	void onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name, std::string suffix, LLHandle<LLNameListItem> item);
+	void onAvatarNameCache(const LLUUID& agent_id, const LLAvatarName& av_name, std::string suffix, std::string prefix, LLHandle<LLNameListItem> item);
+	void onGroupNameCache(const LLUUID& group_id, const std::string name, LLHandle<LLNameListItem> item);
 
 private:
 	S32    	 mNameColumnIndex;
+	//std::string		mNameColumn;
 	BOOL	 mAllowCallingCardDrop;
-	const LLCachedControl<S32> mNameSystem;
+	const LLCachedControl<S32> mNameSystem; // Singu Note: Instead of mShortNames
 	typedef std::map<LLUUID, boost::signals2::connection> avatar_name_cache_connection_map_t;
 	avatar_name_cache_connection_map_t mAvatarNameCacheConnections;
 
@@ -162,7 +171,7 @@ private:
 	namelist_complete_signal_t mNameListCompleteSignal;
 
 public:
-	boost::signals2::connection setOnNameListCompleteCallback(boost::function<void(bool)> onNameListCompleteCallback)
+	boost::signals2::connection setOnNameListCompleteCallback(std::function<void(bool)> onNameListCompleteCallback)
 	{
 		return mNameListCompleteSignal.connect(onNameListCompleteCallback);
 	}

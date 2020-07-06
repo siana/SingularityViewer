@@ -25,16 +25,10 @@
 			<text name="Owner:">
 				Propietario:
 			</text>
-			<text name="OwnerText">
-				Leyla Linden
-			</text>
-			<button label="Perfil..." label_selected="Perfil..." name="Profile..."/>
 			<text name="Group:">
 				Grupo:
 			</text>
-			<text name="GroupText"/>
 			<button label="Definir..." label_selected="Definir..." name="Set..."/>
-			<button bottom="-160"  label="Info" name="group_profile"/>
 			<check_box label="Permitir transferir al grupo" name="check deed" tool_tip="Un oficial del grupo puede transferir este terreno al grupo. El terreno será sostenido por el grupo en sus asignaciones de terreno."/>
 			<button label="Transferir..." label_selected="Transferir..." name="Deed..." tool_tip="Sólo puedes transferir un terreno si eres un oficial del grupo seleccionado."/>
 			<check_box label="El propietario hace una contribución transfiriendo" name="check contrib" tool_tip="Cuando el terreno se transfiere al grupo, el antiguo propietario contribuye con una asignación suficiente de terreno."/>
@@ -63,7 +57,7 @@
 				Reclamada:
 			</text>
 			<text name="DateClaimText">
-				Mar 15 Ago 13:47:25 2006
+				Mar Ago 15 13:47:25 2006
 			</text>
 			<text name="PriceLabel">
 				Superficie:
@@ -105,12 +99,6 @@
 			<string name="group_owned_text">
 				(Propiedad del Grupo)
 			</string>
-			<string name="profile_text">
-				Perfil...
-			</string>
-			<string name="info_text">
-				Información...
-			</string>
 			<string name="public_text">
 				(público)
 			</string>
@@ -139,14 +127,14 @@ Ve al Menú Mundo &gt; Acerca del terreno o selecciona otra parcela para ver sus
 			<text name="estate_owner_lbl">
 				Propietario:
 			</text>
-			<text name="estate_owner_text">
+			<name_box name="estate_owner_text">
 				(ninguno)
-			</text>
+			</name_box>
 			<text_editor name="covenant_editor">
 				No se ha aportado un contrato para este estado.
 			</text_editor>
 			<text name="covenant_timestamp_text">
-				Última modificación Mie 31 Dic 16:00:00 1969
+				Última modificación Mie Dic 31 16:00:00 1969
 			</text>
 			<text name="region_section_lbl">
 				Región:
@@ -552,7 +540,8 @@ Selecciona la miniatura para elegir una textura diferente.
 			<string name="1_minute">1 minuto</string>
 			<string name="1_second">1 segundo</string>
 			<string name="seconds">segundos</string>
-			<string name="remaining">restantes</string>			
+			<string name="remaining">restantes</string>
+			<string name="Always">Siempre</string>
 			<check_box label="Permitir Acceso al Grupo: [GROUP]" name="GroupCheck" tool_tip="Definir el Grupo en la pestaña General."/>
 			<check_box label="Vender pases para:" name="PassCheck" tool_tip="Permitir acceso temporario a esta parcela"/>
 			<combo_box name="pass_combo">
@@ -566,15 +555,21 @@ Selecciona la miniatura para elegir una textura diferente.
 			<spinner label="Precio en [CURRENCY]:" name="PriceSpin"/>
 			<spinner label="Horas de acceso:" name="HoursSpin"/>
 			<text label="Permitir siempre" name="AllowedText">
-				Residentes permitidos
+				Permitidos ([COUNT], máx [MAX])
 			</text>
-			<name_list name="AccessList" tool_tip="([LISTED] listados, [MAX] max)"/>
+			<name_list name="AccessList" tool_tip="([LISTED] listados, [MAX] máx)">
+				<column label="Nombre" name="name"/>
+				<column label="Duración" name="duration"/>
+            </name_list>     
 			<button label="Agregar..." label_selected="Agregar..." name="add_allowed"/>
 			<button label="Quitar" label_selected="Quitar" name="remove_allowed"/>
 			<text label="Ban" name="BanCheck">
-				Residentes prohibidos
+				Prohibidos ([COUNT], máx [MAX])
 			</text>
-			<name_list name="BannedList" tool_tip="([LISTED] listados, [MAX] max)"/>
+			<name_list name="BannedList" tool_tip="([LISTED] listados, [MAX] máx)">
+				<column label="Nombre" name="name"/>
+				<column label="Duración" name="duration"/>
+            </name_list>  
 			<button label="Agregar..." label_selected="Agregar..." name="add_banned"/>
 			<button label="Quitar" label_selected="Quitar" name="remove_banned"/>
 		</panel>

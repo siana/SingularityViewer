@@ -37,11 +37,11 @@
 	     width="100" word_wrap="true">
 		Estate Owner:
 	</text>
-	<text bottom_delta="0" follows="left|top"
+	<name_box bottom_delta="0" follows="left|top"
 	     font="SansSerifSmall" height="20" left="550" name="estate_owner_text"
 	     width="175">
 		(unknown)
-	</text>
+	</name_box>
 	<text follows="left|top" font="SansSerif" height="16"
 	     left="440" name="resellable_changeable_label" right="725"
 	     width="260" word_wrap="true">

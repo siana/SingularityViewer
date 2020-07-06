@@ -39,6 +39,8 @@
 #include "lluploadfloaterobservers.h"
 #include "aistatemachinethread.h"
 
+#include <absl/container/node_hash_map.h>
+
 #ifndef BOOST_FUNCTION_HPP_INCLUDED
 #include <boost/function.hpp>
 #define BOOST_FUNCTION_HPP_INCLUDED
@@ -90,54 +92,6 @@ public:
 	{
 		mRetries = 0;
 	}
-};
-
-class LLImportMaterial
-{
-public:
-	LLPointer<LLViewerFetchedTexture> mDiffuseMap;
-	std::string mDiffuseMapFilename;
-	std::string mDiffuseMapLabel;
-	std::string mBinding;
-	LLColor4 mDiffuseColor;
-	bool mFullbright;
-
-	bool operator<(const LLImportMaterial &params) const;
-
-	LLImportMaterial() 
-		: mFullbright(false) 
-	{ 
-		mDiffuseColor.set(1, 1, 1, 1);
-	}
-
-	LLImportMaterial(LLSD& data);
-
-	LLSD asLLSD();
-};
-
-class LLModelInstance 
-{
-public:
-	LLPointer<LLModel> mModel;
-	LLPointer<LLModel> mLOD[5];
-	
-	std::string mLabel;
-
-	LLUUID mMeshID;
-	S32 mLocalMeshID;
-
-	LLMatrix4 mTransform;
-	std::map<std::string, LLImportMaterial> mMaterial;
-
-	LLModelInstance(LLModel* model, const std::string& label, LLMatrix4& transform, std::map<std::string, LLImportMaterial>& materials)
-		: mModel(model), mLabel(label), mTransform(transform), mMaterial(materials)
-	{
-		mLocalMeshID = -1;
-	}
-
-	LLModelInstance(LLSD& data);
-
-	LLSD asLLSD();
 };
 
 class LLPhysicsDecomp : public LLThread
@@ -235,33 +189,42 @@ public:
 	
 	std::map<LLUUID, U32> mMeshHeaderSize;
 
-	class HeaderRequest
+	struct MeshRequest
+	{
+		LLTimer mTimer;
+		LLVolumeParams mMeshParams;
+		MeshRequest(const LLVolumeParams&  mesh_params) : mMeshParams(mesh_params)
+		{
+			mTimer.start();
+		}
+		virtual ~MeshRequest() {}
+		virtual void preFetch() {}
+		virtual bool fetch(U32& count) = 0;
+	};
+	class HeaderRequest : public MeshRequest
 	{ 
 	public:
-		const LLVolumeParams mMeshParams;
-
 		HeaderRequest(const LLVolumeParams&  mesh_params)
-			: mMeshParams(mesh_params)
-		{
-		}
-
+			: MeshRequest(mesh_params)
+		{}
+		bool fetch(U32& count);
 		bool operator<(const HeaderRequest& rhs) const
 		{
 			return mMeshParams < rhs.mMeshParams;
 		}
 	};
 
-	class LODRequest
+	class LODRequest : public MeshRequest
 	{
 	public:
-		LLVolumeParams  mMeshParams;
 		S32 mLOD;
 		F32 mScore;
 
 		LODRequest(const LLVolumeParams&  mesh_params, S32 lod)
-			: mMeshParams(mesh_params), mLOD(lod), mScore(0.f)
-		{
-		}
+			: MeshRequest(mesh_params), mLOD(lod), mScore(0.f)
+		{}
+		void preFetch();
+		bool fetch(U32& count);
 	};
 
 	struct CompareScoreGreater
@@ -298,25 +261,27 @@ public:
 	};
 
 	//set of requested skin info
-	std::set<LLUUID> mSkinRequests;
+	uuid_set_t mSkinRequests;
 	
 	//queue of completed skin info requests
 	std::queue<LLMeshSkinInfo> mSkinInfoQ;
+	LLMutex* mSkinInfoQMutex;
 
 	//set of requested decompositions
-	std::set<LLUUID> mDecompositionRequests;
+	uuid_set_t mDecompositionRequests;
 
 	//set of requested physics shapes
-	std::set<LLUUID> mPhysicsShapeRequests;
+	uuid_set_t mPhysicsShapeRequests;
 
 	//queue of completed Decomposition info requests
 	std::queue<LLModel::Decomposition*> mDecompositionQ;
+	LLMutex* mDecompositionQMutex;
 
 	//queue of requested headers
-	std::queue<HeaderRequest> mHeaderReqQ;
+	std::deque<std::pair<std::shared_ptr<MeshRequest>, F32> > mHeaderReqQ;
 
 	//queue of requested LODs
-	std::queue<LODRequest> mLODReqQ;
+	std::deque<std::pair<std::shared_ptr<MeshRequest>, F32> > mLODReqQ;
 
 	//queue of unavailable LODs (either asset doesn't exist or asset doesn't have desired LOD)
 	std::queue<LODRequest> mUnavailableQ;
@@ -333,6 +298,20 @@ public:
 	LLMeshRepoThread();
 	~LLMeshRepoThread();
 
+	void runQueue(std::deque<std::pair<std::shared_ptr<MeshRequest>, F32> >& queue, U32& count, S32& active_requests);
+	void runSet(uuid_set_t& set, std::function<bool (const LLUUID& mesh_id)> fn);
+	void pushHeaderRequest(const LLVolumeParams& mesh_params, F32 delay = 0)
+	{
+		std::shared_ptr<LLMeshRepoThread::MeshRequest> req;
+		req.reset(new LLMeshRepoThread::HeaderRequest(mesh_params));
+		mHeaderReqQ.push_back(std::make_pair(req, delay));
+	}
+	void pushLODRequest(const LLVolumeParams& mesh_params, S32 lod, F32 delay = 0)
+	{
+		std::shared_ptr<LLMeshRepoThread::MeshRequest> req;
+		req.reset(new LLMeshRepoThread::LODRequest(mesh_params, lod));
+		mLODReqQ.push_back(std::make_pair(req, delay));
+	}
 	virtual void run();
 
 	void lockAndLoadMeshLOD(const LLVolumeParams& mesh_params, S32 lod);
@@ -441,6 +420,7 @@ public:
 	void setFeeObserverHandle(LLHandle<LLWholeModelFeeObserver> observer_handle) { mFeeObserverHandle = observer_handle; }
 	void setUploadObserverHandle(LLHandle<LLWholeModelUploadObserver> observer_handle) { mUploadObserverHandle = observer_handle; }
 
+	LLViewerFetchedTexture* FindViewerTexture(const LLImportMaterial& material);
 private:
 	LLHandle<LLWholeModelFeeObserver> mFeeObserverHandle;
 	LLHandle<LLWholeModelUploadObserver> mUploadObserverHandle;
@@ -476,6 +456,53 @@ protected:
 	/*virtual*/ void multiplex_impl(state_type run_state);
 };
 
+// Params related to streaming cost, render cost, and scene complexity tracking.
+class LLMeshCostData
+{
+public:
+    LLMeshCostData();
+
+    bool init(const LLSD& header);
+    
+    // Size for given LOD
+    S32 getSizeByLOD(S32 lod);
+
+    // Sum of all LOD sizes.
+    S32 getSizeTotal();
+
+    // Estimated triangle counts for the given LOD.
+    F32 getEstTrisByLOD(S32 lod);
+    
+    // Estimated triangle counts for the largest LOD. Typically this
+    // is also the "high" LOD, but not necessarily.
+    F32 getEstTrisMax();
+
+    // Triangle count as computed by original streaming cost
+    // formula. Triangles in each LOD are weighted based on how
+    // frequently they will be seen.
+    // This was called "unscaled_value" in the original getStreamingCost() functions.
+    F32 getRadiusWeightedTris(F32 radius);
+
+    // Triangle count used by triangle-based cost formula. Based on
+    // triangles in highest LOD plus potentially partial charges for
+    // lower LODs depending on complexity.
+    F32 getEstTrisForStreamingCost();
+
+    // Streaming cost. This should match the server-side calculation
+    // for the corresponding volume.
+    F32 getRadiusBasedStreamingCost(F32 radius);
+
+    // New streaming cost formula, currently only used for animated objects.
+    F32 getTriangleBasedStreamingCost();
+
+private:
+    // From the "size" field of the mesh header. LOD 0=lowest, 3=highest.
+    std::vector<S32> mSizeByLOD;
+
+    // Estimated triangle counts derived from the LOD sizes. LOD 0=lowest, 3=highest.
+    std::vector<F32> mEstTrisByLOD;
+};
+
 class LLMeshRepository
 {
 public:
@@ -490,13 +517,20 @@ public:
 	static U32 sCacheBytesWritten;
 	static U32 sPeakKbps;
 	
-	static F32 getStreamingCost(LLSD& header, F32 radius, S32* bytes = NULL, S32* visible_bytes = NULL, S32 detail = -1, F32 *unscaled_value = NULL);
+	// Estimated triangle count of the largest LOD
+	F32 getEstTrianglesMax(LLUUID mesh_id);
+	F32 getEstTrianglesStreamingCost(LLUUID mesh_id);
+	F32 getStreamingCostLegacy(LLUUID mesh_id, F32 radius, S32* bytes = NULL, S32* visible_bytes = NULL, S32 detail = -1, F32 *unscaled_value = NULL);
+	static F32 getStreamingCostLegacy(LLSD& header, F32 radius, S32* bytes = NULL, S32* visible_bytes = NULL, S32 detail = -1, F32 *unscaled_value = NULL);
+	bool getCostData(LLUUID mesh_id, LLMeshCostData& data);
+	static bool getCostData(LLSD& header, LLMeshCostData& data);
 
 	LLMeshRepository();
 
 	void init();
 	void shutdown();
 
+	void unregisterMesh(LLVOVolume* volume);
 	//mesh management functions
 	S32 loadMesh(LLVOVolume* volume, const LLVolumeParams& mesh_params, S32 detail = 0, S32 last_lod = -1);
 	
@@ -528,10 +562,10 @@ public:
 
 	S32 getMeshSize(const LLUUID& mesh_id, S32 lod);
 
-	typedef std::map<LLVolumeParams, std::set<LLUUID> > mesh_load_map;
+	typedef std::map<LLVolumeParams, std::vector<LLVOVolume*> > mesh_load_map;
 	mesh_load_map mLoadingMeshes[4];
 
-	typedef boost::unordered_map<LLUUID, LLMeshSkinInfo> skin_map;
+	typedef absl::node_hash_map<LLUUID, LLMeshSkinInfo> skin_map;
 	skin_map mSkinMap;
 
 	typedef std::map<LLUUID, LLModel::Decomposition*> decomposition_map;
@@ -542,20 +576,20 @@ public:
 	std::vector<LLMeshRepoThread::LODRequest> mPendingRequests;
 	
 	//list of mesh ids awaiting skin info
-	typedef std::map<LLUUID, std::set<LLUUID> > skin_load_map;
+	typedef std::map<LLUUID, uuid_set_t > skin_load_map;
 	skin_load_map mLoadingSkins;
 
 	//list of mesh ids that need to send skin info fetch requests
 	std::queue<LLUUID> mPendingSkinRequests;
 
 	//list of mesh ids awaiting decompositions
-	std::set<LLUUID> mLoadingDecompositions;
+	uuid_set_t mLoadingDecompositions;
 
 	//list of mesh ids that need to send decomposition fetch requests
 	std::queue<LLUUID> mPendingDecompositionRequests;
 	
 	//list of mesh ids awaiting physics shapes
-	std::set<LLUUID> mLoadingPhysicsShapes;
+	uuid_set_t mLoadingPhysicsShapes;
 
 	//list of mesh ids that need to send physics shape fetch requests
 	std::queue<LLUUID> mPendingPhysicsShapeRequests;
@@ -588,9 +622,11 @@ public:
 	void updateInventory(inventory_data data);
 
 	std::string mGetMeshCapability;
-
 };
 
 extern LLMeshRepository gMeshRepo;
+
+const F32 ANIMATED_OBJECT_BASE_COST = 15.0f;
+const F32 ANIMATED_OBJECT_COST_PER_KTRI = 1.5f;
 
 #endif

@@ -24,7 +24,7 @@
  * that you have read and understood your obligations described above,
  * and agree to abide by those obligations.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
+ * ALL SOURCE CODE IS PROVIDED "AS IS." THE AUTHOR MAKES NO
  * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
  * COMPLETENESS OR PERFORMANCE.
  * $/LicenseInfo$
@@ -54,15 +54,13 @@ public:
 	enum ETOSType
 	{
 		TOS_TOS = 0,
-		TOS_CRITICAL_MESSAGE = 1
+		TOS_CRITICAL_MESSAGE = 1,
+		TOS_VOICE = 2
 	};
 
-	// Asset_id is overwritten with LLUUID::null when agree is clicked.
-	static LLFloaterTOS* show(ETOSType type, const std::string & message);
+	static LLFloaterTOS* show(ETOSType type, const std::string& message = LLStringUtil::null);
 
 	BOOL postBuild();
-	
-	virtual void draw();
 
 	static void		updateAgree( LLUICtrl *, void* userdata );
 	static void		onContinue( void* userdata );
@@ -74,12 +72,9 @@ public:
 	/*virtual*/ void handleMediaEvent(LLPluginClassMedia* self, EMediaEvent event);
 
 private:
-	// Asset_id is overwritten with LLUUID::null when agree is clicked.
-	LLFloaterTOS(ETOSType type, const std::string & message);
+	LLFloaterTOS(ETOSType type, const std::string& message);
 
-private:
 	ETOSType		mType;
-	std::string		mMessage;
 	int				mLoadCompleteCount;
 
 	static LLFloaterTOS* sInstance;

@@ -39,6 +39,7 @@
 		</menu_item_call>
 		<pie_menu label="Attach HUD" name="Object Attach HUD" />
 		<pie_menu label="Attach" name="Object Attach" />
+    <pie_menu label="Attach More" name="Object Attach More" />
 		<menu_item_call enabled="false" label="Return..." mouse_opaque="true" name="Return...">
 			<on_click function="Object.Return" />
 			<on_enable function="Object.EnableReturn" />
@@ -73,8 +74,12 @@
 				<menu_item_call enabled="true" hidden="false" label="Data" mouse_opaque="true" name="Data">
 					<on_click function="Object.Data" />
 				</menu_item_call>
-				<menu_item_separator />
-				<menu_item_separator />
+        <menu_item_call label="Go To" name="Go To">
+	  <on_click function="GoToObject" />
+        </menu_item_call>
+        <menu_item_call label="Follow" name="Follow">
+          <on_click function="Object.Follow"/>
+        </menu_item_call>
 				<menu_item_separator />
         <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
           <on_click function="Object.ReloadTextures" />

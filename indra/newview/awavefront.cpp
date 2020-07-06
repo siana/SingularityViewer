@@ -163,10 +163,11 @@ Wavefront::Wavefront(LLFace* face, LLPolyMesh* mesh, const LLXform* transform, c
 	if (transform_normals) Transform(normals, transform_normals);
 
 	const U32 pcount = mesh ? mesh->getNumFaces() : (vb->getNumIndices()/3); //indices
-	const U16 offset = face->getIndicesStart(); //indices
+	const U32 offset = face->getIndicesStart(); //indices
 	for (U32 i = 0; i < pcount; ++i)
 	{
-		triangles.push_back(tri(getIndices[i * 3  + offset] + start, getIndices[i * 3 + 1 + offset] + start, getIndices[i * 3 + 2 + offset] + start));
+		const auto off = i * 3 + offset;
+		triangles.push_back(tri(getIndices[off] + start, getIndices[off + 1] + start, getIndices[off + 2] + start));
 	}
 }
 
@@ -174,9 +175,9 @@ void Wavefront::Transform(vert_t& v, const LLXform* x) //recursive
 {
 	LLMatrix4 m;
 	x->getLocalMat4(m);
-	for (vert_t::iterator iterv = v.begin(); iterv != v.end(); ++iterv)
+	for (auto& i : v)
 	{
-		iterv->first = iterv->first * m;
+		i.first = i.first * m;
 	}
 
 	if (const LLXform* xp = x->getParent()) Transform(v, xp);
@@ -186,9 +187,9 @@ void Wavefront::Transform(vec3_t& v, const LLXform* x) //recursive
 {
 	LLMatrix4 m;
 	x->getLocalMat4(m);
-	for (vec3_t::iterator iterv = v.begin(); iterv != v.end(); ++iterv)
+	for (auto& i : v)
 	{
-		*iterv = *iterv * m;
+		i = i * m;
 	}
 
 	if (const LLXform* xp = x->getParent()) Transform(v, xp);
@@ -238,7 +239,7 @@ namespace
 		LLViewerObject* obj = node->getObject();
 		if (obj->isSculpted() && !obj->isMesh())
 		{
-			LLSculptParams *sculpt_params = (LLSculptParams *)obj->getParameterEntry(LLNetworkData::PARAMS_SCULPT);
+			const LLSculptParams *sculpt_params = obj->getSculptParams();
 			LLUUID sculpt_id = sculpt_params->getSculptTexture();
 
 			// Find inventory items with asset id of the sculpt map
@@ -252,9 +253,9 @@ namespace
 							asset_id_matches);
 
 			// See if any of the inventory items matching this sculpt id are exportable
-			for (U32 i = 0; i < items.size(); i++)
+			for (const auto& item : items)
 			{
-				const LLPermissions item_permissions = items[i]->getPermissions();
+				const LLPermissions item_permissions = item->getPermissions();
 				if (item_permissions.allowExportBy(gAgentID, LFSimFeatureHandler::instance().exportPolicy()))
 				{
 					return true;
@@ -269,9 +270,9 @@ namespace
 		}
 	}
 
-	class LFSaveSelectedObjects : public view_listener_t
+	class LFSaveSelectedObjects final : public view_listener_t
 	{
-		bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+		bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata) override
 		{
 			if (LLObjectSelectionHandle selection = LLSelectMgr::getInstance()->getSelection())
 			{
@@ -288,10 +289,10 @@ namespace
 				S32 included = 0;
 				for (LLObjectSelection::iterator iter = selection->begin(); iter != selection->end(); ++iter)
 				{
-					total++;
+					++total;
 					LLSelectNode* node = *iter;
 					if (!can_export_node(node)) continue;
-					included++;
+					++included;
 					wfsaver->Add(node->getObject());
 				}
 				if (wfsaver->obj_v.empty())
@@ -322,12 +323,12 @@ void WavefrontSaver::Add(const LLVOAvatar* av_vo) //adds attachments, too!
 {
 	offset = -av_vo->getRenderPosition();
 	avatar_joint_list_t vjv = av_vo->mMeshLOD;
-	for (avatar_joint_list_t::const_iterator itervj = vjv.begin(); itervj != vjv.end(); ++itervj)
+	for (const auto& itervj : vjv)
 	{
-		const LLViewerJoint* vj = dynamic_cast<LLViewerJoint*>(*itervj);
+		const auto* vj = dynamic_cast<const LLViewerJoint*>(itervj);
 		if (!vj || vj->mMeshParts.empty()) continue;
 
-		LLViewerJointMesh* vjm = dynamic_cast<LLViewerJointMesh*>(vj->mMeshParts[0]); //highest LOD
+		auto* vjm = dynamic_cast<LLViewerJointMesh*>(vj->mMeshParts[0]); //highest LOD
 		if (!vjm) continue;
 
 		vjm->updateJointGeometry();
@@ -355,21 +356,19 @@ void WavefrontSaver::Add(const LLVOAvatar* av_vo) //adds attachments, too!
 			Add(Wavefront(face, pm, NULL, &normfix));
 	}
 
-	for (LLVOAvatar::attachment_map_t::const_iterator iter = av_vo->mAttachmentPoints.begin(); iter != av_vo->mAttachmentPoints.end(); ++iter)
+	for (const auto& ap : av_vo->mAttachmentPoints)
 	{
-		LLViewerJointAttachment* ja = iter->second;
+		LLViewerJointAttachment* ja = ap.second;
 		if (!ja) continue;
 
-		for (LLViewerJointAttachment::attachedobjs_vec_t::iterator itero = ja->mAttachedObjects.begin(); itero != ja->mAttachedObjects.end(); ++itero)
+		for (const auto& o : ja->mAttachedObjects)
 		{
-			LLViewerObject* o = *itero;
 			if (!o) continue;
 
 			std::vector<LLViewerObject*> prims;
 			o->addThisAndAllChildren(prims);
-			for (std::vector<LLViewerObject* >::iterator iterc = prims.begin(); iterc != prims.end(); ++iterc)
+			for (const auto& c : prims)
 			{
-				const LLViewerObject* c = *iterc;
 				if (!c) continue;
 				if (LLSelectNode* n = LLSelectMgr::getInstance()->getSelection()->findNode(const_cast<LLViewerObject*>(c)))
 				{
@@ -400,9 +399,9 @@ void WavefrontSaver::Add(const LLVOAvatar* av_vo) //adds attachments, too!
 }
 namespace
 {
-	class LFSaveSelectedAvatar : public view_listener_t
+	class LFSaveSelectedAvatar final : public view_listener_t
 	{
-		bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata)
+		bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata) override
 		{
 			if (const LLVOAvatar* avatar = find_avatar_from_object(LLSelectMgr::getInstance()->getSelection()->getPrimaryObject()))
 			{
@@ -446,49 +445,48 @@ bool WavefrontSaver::saveFile(LLFILE* fp)
 
 	int num = 0;
 	int index = 0;
-	for (std::vector<Wavefront>::iterator w_iter = obj_v.begin(); w_iter != obj_v.end(); ++w_iter)
+	for (const auto& obj : obj_v)
 	{
 		int count = 0;
 
-		std::string name = (*w_iter).name;
+		std::string name = obj.name;
 		if (name.empty()) name = llformat("%d", num++);
 
-		vert_t vertices = (*w_iter).vertices;
-		vec3_t normals = (*w_iter).normals;
-		tri_t triangles = (*w_iter).triangles;
+		auto& vertices = obj.vertices;
+		auto& normals = obj.normals;
+		auto& triangles = obj.triangles;
 
 		//Write Object
-		write_or_bust(fp, "o " + name + "\n");
+		write_or_bust(fp, "o " + name + '\n');
 
 		//Write vertices; swap axes if necessary
 		static const LLCachedControl<bool> swapYZ("OBJExportSwapYZ", false);
 		const double xm = swapYZ ? -1.0 : 1.0;
 		const int y = swapYZ ? 2 : 1;
 		const int z = swapYZ ? 1 : 2;
-		for (vert_t::iterator v_iter = vertices.begin(); v_iter != vertices.end(); ++v_iter)
+		for (const auto& vert : vertices)
 		{
 			++count;
-			const LLVector3 v = v_iter->first + offset;
+			const LLVector3 v = vert.first + offset;
 			write_or_bust(fp, llformat("v %f %f %f\n",v[0] * xm, v[y], v[z]));
 		}
 
-		for (vec3_t::iterator n_iter = normals.begin(); n_iter != normals.end(); ++n_iter)
+		for (const auto& n : normals)
 		{
-			const LLVector3 n = *n_iter;
 			write_or_bust(fp, llformat("vn %f %f %f\n",n[0] * xm, n[y], n[z]));
 		}
 
-		for (vert_t::iterator v_iter = vertices.begin(); v_iter != vertices.end(); ++v_iter)
+		for (const auto& vert : vertices)
 		{
-			write_or_bust(fp, llformat("vt %f %f\n", v_iter->second[0], v_iter->second[1]));
+			write_or_bust(fp, llformat("vt %f %f\n", vert.second[0], vert.second[1]));
 		}
 
 		//Write triangles
-		for (tri_t::iterator t_iter = triangles.begin(); t_iter != triangles.end(); ++t_iter)
+		for (const auto& triangle : triangles)
 		{
-			const int f1 = t_iter->v0 + index + 1;
-			const int f2 = t_iter->v1 + index + 1;
-			const int f3 = t_iter->v2 + index + 1;
+			const int f1 = triangle.v0 + index + 1;
+			const int f2 = triangle.v1 + index + 1;
+			const int f3 = triangle.v2 + index + 1;
 			write_or_bust(fp, llformat("f %d/%d/%d %d/%d/%d %d/%d/%d\n",
 										  f1,f1,f1,f2,f2,f2,f3,f3,f3));
 		}

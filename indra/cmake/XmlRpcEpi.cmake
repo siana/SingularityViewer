@@ -8,9 +8,13 @@ if (STANDALONE)
   include(FindXmlRpcEpi)
 else (STANDALONE)
     use_prebuilt_binary(xmlrpc-epi)
-    set(XMLRPCEPI_LIBRARIES xmlrpc-epi)
-    set(XMLRPCEPI_INCLUDE_DIRS
-      ${LIBS_PREBUILT_DIR}/include
-      ${LIBS_PREBUILT_LEGACY_DIR}/include
-      )
+    if (WINDOWS)
+        set(XMLRPCEPI_LIBRARIES
+            debug xmlrpc-epid
+            optimized xmlrpc-epi
+        )
+    else (WINDOWS)
+        set(XMLRPCEPI_LIBRARIES xmlrpc-epi)
+    endif (WINDOWS)
+    set(XMLRPCEPI_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/include)
 endif (STANDALONE)

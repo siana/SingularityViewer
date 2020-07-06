@@ -337,7 +337,7 @@ U32 LLVOTree::processUpdateMessage(LLMessageSystem *mesgsys,
 	//  Load Species-Specific data 
 	//
 	static const S32 MAX_TREE_TEXTURE_VIRTUAL_SIZE_RESET_INTERVAL = 32 ; //frames.
-	mTreeImagep = LLViewerTextureManager::getFetchedTexture(sSpeciesTable[mSpecies]->mTextureID, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE);
+	mTreeImagep = LLViewerTextureManager::getFetchedTexture(sSpeciesTable[mSpecies]->mTextureID, FTT_DEFAULT, TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE);
 	mTreeImagep->setMaxVirtualSizeResetInterval(MAX_TREE_TEXTURE_VIRTUAL_SIZE_RESET_INTERVAL); //allow to wait for at most 16 frames to reset virtual size.
 
 	mBranchLength = sSpeciesTable[mSpecies]->mBranchLength;
@@ -548,7 +548,7 @@ LLDrawable* LLVOTree::createDrawable(LLPipeline *pipeline)
 const S32 LEAF_INDICES = 24;
 const S32 LEAF_VERTICES = 16;
 
-static LLFastTimer::DeclareTimer FTM_UPDATE_TREE("Update Tree");
+static LLTrace::BlockTimerStatHandle FTM_UPDATE_TREE("Update Tree");
 
 void LLVOTree::resetVertexBuffers()
 {
@@ -557,7 +557,7 @@ void LLVOTree::resetVertexBuffers()
 
 BOOL LLVOTree::updateGeometry(LLDrawable *drawable)
 {
-	LLFastTimer ftm(FTM_UPDATE_TREE);
+	LL_RECORD_BLOCK_TIME(FTM_UPDATE_TREE);
 
 	for(std::vector<LLPointer<LLDrawInfo> >::iterator iter = mDrawList.begin(); iter != mDrawList.end(); iter++)
 	{
@@ -1205,7 +1205,7 @@ void LLVOTree::updateSpatialExtents(LLVector4a& newMin, LLVector4a& newMax)
 	mDrawable->setPositionGroup(pos);
 }
 
-BOOL LLVOTree::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end, S32 face, BOOL pick_transparent, S32 *face_hitp,
+BOOL LLVOTree::lineSegmentIntersect(const LLVector4a& start, const LLVector4a& end, S32 face, BOOL pick_transparent, BOOL pick_rigged, S32 *face_hitp,
 									  LLVector4a* intersection,LLVector2* tex_coord, LLVector4a* normal, LLVector4a* tangent)
 	
 {
@@ -1260,8 +1260,8 @@ U32 LLVOTree::getPartitionType() const
 	return LLViewerRegion::PARTITION_TREE; 
 }
 
-LLTreePartition::LLTreePartition()
-: LLSpatialPartition(0, FALSE, GL_DYNAMIC_DRAW_ARB)
+LLTreePartition::LLTreePartition(LLViewerRegion* regionp)
+: LLSpatialPartition(0, FALSE, GL_DYNAMIC_DRAW_ARB, regionp)
 {
 	mDrawableType = LLPipeline::RENDER_TYPE_TREE;
 	mPartitionType = LLViewerRegion::PARTITION_TREE;

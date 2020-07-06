@@ -36,6 +36,7 @@
 
 #include "llagent.h"
 #include "llavataractions.h"
+#include "llavatarnamecache.h"
 #include "llbutton.h"
 #include "llcombobox.h"
 #include "statemachine/aifilepicker.h"
@@ -229,23 +230,15 @@ void LLPreviewTexture::init()
 			childSetText("desc", item->getDescription());
 			getChild<LLLineEditor>("desc")->setPrevalidate(&LLLineEditor::prevalidatePrintableNotPipe);
 			childSetText("uuid", getItemID().asString());
-			childSetText("uploader", getItemCreatorName());
-			childSetText("uploadtime", getItemCreationDate());
 			childSetText("alphanote", LLTrans::getString("LoadingData"));
 		}
 	}
-	
+	childSetText("uploader", getItemCreatorName());
+	childSetText("uploadtime", getItemCreationDate());
+
 	childSetCommitCallback("combo_aspect_ratio", onAspectRatioCommit, this);
 	LLComboBox* combo = getChild<LLComboBox>("combo_aspect_ratio");
 	combo->setCurrentByIndex(0);
-}
-
-void LLPreviewTexture::callbackLoadAvatarName(const LLUUID& id, const std::string& first, const std::string& last, BOOL is_group, void* data)
-{
-	if (!sInstance) return;
-	std::ostringstream fullname;
-	fullname << first << " " << last;
-	sInstance->childSetText("uploader", fullname.str());
 }
 
 void LLPreviewTexture::draw()
@@ -282,7 +275,8 @@ void LLPreviewTexture::draw()
 
 			static const LLCachedControl<bool> use_rmse_auto_mask("SHUseRMSEAutoMask",false);
 			static const LLCachedControl<F32> auto_mask_max_rmse("SHAutoMaskMaxRMSE",.09f);
-			if (mAlphaMaskResult != mImage->getIsAlphaMask(use_rmse_auto_mask ? auto_mask_max_rmse : -1.f))
+			static const LLCachedControl<F32> auto_mask_max_mid("SHAutoMaskMaxMid", .25f);
+			if (mAlphaMaskResult != mImage->getIsAlphaMask(use_rmse_auto_mask ? auto_mask_max_rmse : -1.f, auto_mask_max_mid))
 			{
 				mAlphaMaskResult = !mAlphaMaskResult;
 				if (!mAlphaMaskResult)
@@ -485,17 +479,20 @@ std::string LLPreviewTexture::getItemCreationDate()
 		timeToFormattedString(item->getCreationDate(), gSavedSettings.getString("TimestampFormat"), time);
 		return time;
 	}
-	return getString("Unknown");
+	const LLDate date = mImage->getUploadTime();
+	return date.notNull() ? date.toHTTPDateString(gSavedSettings.getString("TimestampFormat"))
+		: getString("Unknown");
 }
 
 std::string LLPreviewTexture::getItemCreatorName()
 {
 	const LLViewerInventoryItem* item = getItem();
-	if(item)
+	const LLUUID& id = item ? item->getCreatorUUID() : mImage->getUploader();
+	if (id.notNull())
 	{
 		std::string name;
-		gCacheName->getFullName(item->getCreatorUUID(), name);
-		mCreatorKey = item->getCreatorUUID();
+		LLAvatarNameCache::getNSName(id, name);
+		mCreatorKey = id;
 		return name;
 	}
 	return getString("Unknown");
@@ -576,6 +573,14 @@ void LLPreviewTexture::updateDimensions()
 	}
 
 	
+	// Update the width/height display every time
+	if (mImage->getUploader().notNull())
+	{
+		// Singu Note: This is what Alchemy does, we may need it, but it might help if it didn't load in init.
+		childSetText("uploader", getItemCreatorName());
+		childSetText("uploadtime", getItemCreationDate());
+	}
+
 	if (!mUserResized)
 	{
 		// clamp texture size to fit within actual size of floater after attempting resize
@@ -685,7 +690,7 @@ void LLPreviewTexture::onAspectRatioCommit(LLUICtrl* ctrl, void* userdata)
 
 void LLPreviewTexture::loadAsset()
 {
-	mImage = LLViewerTextureManager::getFetchedTexture(mImageID, MIPMAP_TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE);
+	mImage = LLViewerTextureManager::getFetchedTexture(mImageID, FTT_DEFAULT, MIPMAP_TRUE, LLGLTexture::BOOST_NONE, LLViewerTexture::LOD_TEXTURE);
 	mImageOldBoostLevel = mImage->getBoostLevel();
 	mImage->setBoostLevel(LLGLTexture::BOOST_PREVIEW);
 	mImage->forceToSaveRawImage(0) ;

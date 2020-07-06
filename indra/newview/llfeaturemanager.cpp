@@ -421,6 +421,9 @@ void LLFeatureManager::parseGPUTable(std::string filename)
 	else
 	{
 		LL_WARNS("RenderInit") << "GPU '" << rawRenderer << "' not recognized" << LL_ENDL;
+		mGPUString = rawRenderer;
+		mGPUClass = EGPUClass::GPU_CLASS_3;
+		mGPUSupported = true;
 	}
 }
 
@@ -676,7 +679,7 @@ void LLFeatureManager::applyBaseMasks()
 	maskFeatures(gpustr);
 
 	// now mask cpu type ones
-	if (gSysMemory.getPhysicalMemoryClamped() <= 256*1024*1024)
+	if (gSysMemory.getPhysicalMemoryKB() <= U32Megabytes(256))
 	{
 		maskFeatures("RAM256MB");
 	}

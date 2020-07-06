@@ -200,9 +200,14 @@ LLView* LLComboBox::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *
 	// if we haven't already gotten a value from our control_name and
 	// if providing user text entry or descriptive label
 	// don't select an item under the hood
-	if (combo_box->getControlName().empty() && !combo_box->acceptsTextInput() && combo_box->mLabel.empty())
+	if (combo_box->getControlName().empty())
 	{
-		combo_box->selectFirstItem();
+		const auto text = combo_box->acceptsTextInput();
+		std::string label;
+		if (node->getAttributeString("label", label))
+			text ? combo_box->setLabel(label) : (void)combo_box->mList->selectItemByLabel(label, FALSE);
+		else if (!text && combo_box->mLabel.empty())
+			combo_box->selectFirstItem();
 	}
 
 	return combo_box;
@@ -436,12 +441,12 @@ void LLComboBox::setLabel(const LLStringExplicit& name)
 		{
 			if (!mSuppressTentative) mTextEntry->setTentative(mTextEntryTentative);
 		}
+		mTextEntry->setCursor(0); // Be scrolled to the beginning!
 	}
 	
 	if (!mAllowTextEntry)
 	{
-		mButton->setLabelUnselected(name);
-		mButton->setLabelSelected(name);
+		mButton->setLabel(name);
 	}
 }
 
@@ -459,9 +464,7 @@ void LLComboBox::updateLabel()
 	// the combo button label.
 	if (!mAllowTextEntry)
 	{
-		std::string label = getSelectedItemLabel();
-		mButton->setLabelUnselected(label);
-		mButton->setLabelSelected(label);
+		mButton->setLabel(getSelectedItemLabel());
 	}
 }
 
@@ -507,13 +510,16 @@ void LLComboBox::onFocusLost()
 
 void LLComboBox::setButtonVisible(BOOL visible)
 {
+	static LLUICachedControl<S32> drop_shadow_button ("DropShadowButton", 0);
+
 	mButton->setVisible(visible);
 	if (mTextEntry)
 	{
 		LLRect text_entry_rect(0, getRect().getHeight(), getRect().getWidth(), 0);
 		if (visible)
 		{
-			text_entry_rect.mRight -= llmax(8,mArrowImage->getWidth()) + 2 * LLUI::sConfigGroup->getS32("DropShadowButton");
+			S32 arrow_width = mArrowImage ? mArrowImage->getWidth() : 0;
+			text_entry_rect.mRight -= llmax(8,arrow_width) + 2 * drop_shadow_button;
 		}
 		//mTextEntry->setRect(text_entry_rect);
 		mTextEntry->reshape(text_entry_rect.getWidth(), text_entry_rect.getHeight(), TRUE);
@@ -552,18 +558,21 @@ S32 LLComboBox::getCurrentIndex() const
 
 void LLComboBox::updateLayout()
 {
+	static LLUICachedControl<S32> drop_shadow_button ("DropShadowButton", 0);
 	LLRect rect = getLocalRect();
 	if (mAllowTextEntry)
 	{
-		S32 shadow_size = LLUI::sConfigGroup->getS32("DropShadowButton");
-		mButton->setRect(LLRect( getRect().getWidth() - llmax(8,mArrowImage->getWidth()) - 2 * shadow_size,
+		S32 arrow_width = mArrowImage ? mArrowImage->getWidth() : 0;
+		S32 shadow_size = drop_shadow_button;
+		mButton->setRect(LLRect( getRect().getWidth() - llmax(8,arrow_width) - 2 * shadow_size,
 								rect.mTop, rect.mRight, rect.mBottom));
 		mButton->setTabStop(FALSE);
+		mButton->setHAlign(LLFontGL::HCENTER);
 
 		if (!mTextEntry)
 		{
 			LLRect text_entry_rect(0, getRect().getHeight(), getRect().getWidth(), 0);
-			text_entry_rect.mRight -= llmax(8,mArrowImage->getWidth()) + 2 * shadow_size;
+			text_entry_rect.mRight -= llmax(8,arrow_width) + 2 * drop_shadow_button;
 			// clear label on button
 			std::string cur_label = mButton->getLabelSelected();
 			mTextEntry = new LLLineEditor(std::string("combo_text_entry"),
@@ -712,6 +721,7 @@ void LLComboBox::showList()
 	mList->setVisible(TRUE);
 	
 	setUseBoundingRect(TRUE);
+//	updateBoundingRect();
 }
 
 void LLComboBox::hideList()
@@ -738,6 +748,7 @@ void LLComboBox::hideList()
 		{
 			gFocusMgr.setTopCtrl(NULL);
 		}
+//		updateBoundingRect();
 	}
 }
 
@@ -1023,9 +1034,7 @@ void LLComboBox::onTextEntry(LLLineEditor* line_editor)
 
 void LLComboBox::updateSelection()
 {
-	if(mSuppressAutoComplete) {
-		return;
-	}
+	if(mSuppressAutoComplete) return;
 
 	LLWString left_wstring = mTextEntry->getWText().substr(0, mTextEntry->getCursor());
 	// user-entered portion of string, based on assumption that any selected
@@ -1236,3 +1245,25 @@ BOOL LLComboBox::selectItemRange( S32 first, S32 last )
 	return mList->selectItemRange(first, last);
 }
 
+
+/* Singu Note: This isn't very necessary for now, let's not bother.
+static LLRegisterWidget<LLIconsComboBox> register_icons_combo_box("icons_combo_box");
+
+LLIconsComboBox::Params::Params()
+:	icon_column("icon_column", ICON_COLUMN),
+	label_column("label_column", LABEL_COLUMN)
+{}
+
+LLIconsComboBox::LLIconsComboBox(const LLIconsComboBox::Params& p)
+:	LLComboBox(p),
+	mIconColumnIndex(p.icon_column),
+	mLabelColumnIndex(p.label_column)
+{}
+
+const std::string LLIconsComboBox::getSelectedItemLabel(S32 column) const
+{
+	mButton->setImageOverlay(LLComboBox::getSelectedItemLabel(mIconColumnIndex), mButton->getImageOverlayHAlign());
+
+	return LLComboBox::getSelectedItemLabel(mLabelColumnIndex);
+}
+*/

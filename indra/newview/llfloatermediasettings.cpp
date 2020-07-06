@@ -43,10 +43,13 @@ LLFloaterMediaSettings* LLFloaterMediaSettings::sInstance = NULL;
 // 
 LLFloaterMediaSettings::LLFloaterMediaSettings(const LLSD& key)
 	: LLFloater(key),
-	mTabContainer(NULL),
-	mPanelMediaSettingsGeneral(NULL),
-	mPanelMediaSettingsSecurity(NULL),
-	mPanelMediaSettingsPermissions(NULL),
+	mOKBtn(nullptr),
+	mCancelBtn(nullptr),
+	mApplyBtn(nullptr),
+	mTabContainer(nullptr),
+	mPanelMediaSettingsGeneral(nullptr),
+	mPanelMediaSettingsSecurity(nullptr),
+	mPanelMediaSettingsPermissions(nullptr),
 	mWaitingToClose( false ),
 	mIdenticalHasMediaInfo( true ),
 	mMultipleMedia(false),

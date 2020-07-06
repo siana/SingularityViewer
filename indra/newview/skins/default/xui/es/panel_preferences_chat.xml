@@ -45,6 +45,7 @@
 	</text>
 	<check_box label="Cerrar barra de chat al presionar Intro" name="close_chat_on_return_check"/>
 	<check_box label="Las teclas de cursor siempre mueven al avatar al chatear" name="arrow_keys_move_avatar_check"/>
+	<check_box label="Las teclas alfanuméricas comienzan escritura en chat local" name="letter_keys_start_local_chat"/>
 	<check_box label="Mostrar horario en el chat local" name="show_timestamps_check"/>
 	<check_box label="Mostrar errores de scripts y avisos como chat regular" name="script_errors_as_chat"/>
 	<check_box label="Ejecutar animación de escribir al chatear" name="play_typing_animation"/>

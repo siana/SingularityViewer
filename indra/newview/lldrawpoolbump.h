@@ -68,9 +68,9 @@ public:
 		
 	S32 numBumpPasses();
 	
-	void beginShiny(bool invisible = false);
-	void renderShiny(bool invisible = false);
-	void endShiny(bool invisible = false);
+	void beginShiny();
+	void renderShiny();
+	void endShiny();
 	
 	void beginFullbrightShiny();
 	void renderFullbrightShiny();
@@ -80,8 +80,8 @@ public:
 	void renderBump(U32 pass = LLRenderPass::PASS_BUMP);
 	void endBump(U32 pass = LLRenderPass::PASS_BUMP);
 
-	static void bindCubeMap(LLGLSLShader* shader, S32 shader_level, S32& diffuse_channel, S32& cube_channel, bool invisible);
-	static void unbindCubeMap(LLGLSLShader* shader, S32 shader_level, S32& diffuse_channel, S32& cube_channel, bool invisible);
+	static void bindCubeMap(LLGLSLShader* shader, S32 shader_level, S32& diffuse_channel, S32& cube_channel);
+	static void unbindCubeMap(LLGLSLShader* shader, S32 shader_level, S32& diffuse_channel, S32& cube_channel);
 
 	virtual S32 getNumDeferredPasses();
 	/*virtual*/ void beginDeferredPass(S32 pass);
@@ -172,31 +172,5 @@ private:
 };
 
 extern LLBumpImageList gBumpImageList;
-
-class LLDrawPoolInvisible : public LLDrawPoolBump
-{
-public:
-	LLDrawPoolInvisible() : LLDrawPoolBump(LLDrawPool::POOL_INVISIBLE) { }
-
-	enum
-	{
-		VERTEX_DATA_MASK = LLVertexBuffer::MAP_VERTEX
-	};
-	
-	virtual U32 getVertexDataMask() { return VERTEX_DATA_MASK; }
-
-	virtual void prerender() { }
-
-	virtual void render(S32 pass = 0);
-	virtual void beginRenderPass( S32 pass ) { }
-	virtual void endRenderPass( S32 pass ) { }
-	virtual S32	 getNumPasses() {return 1;}
-
-	virtual S32 getNumDeferredPasses() { return 1; }
-	/*virtual*/ void beginDeferredPass(S32 pass);
-	/*virtual*/ void endDeferredPass(S32 pass);
-	/*virtual*/ void renderDeferred(S32 pass);
-};
-
 
 #endif // LL_LLDRAWPOOLBUMP_H

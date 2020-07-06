@@ -30,7 +30,7 @@
 // This file contains various stuff for handling gl extensions and other gl related stuff.
 
 #include <string>
-#include <boost/unordered_map.hpp>
+#include <vector>
 #include <list>
 
 #include "llerror.h"
@@ -41,6 +41,7 @@
 #include "llmatrix4a.h"
 #include "llplane.h"
 #include "llgltypes.h"
+#include "llrender.h"
 #include "llinstancetracker.h"
 
 #include "llglheaders.h"
@@ -93,7 +94,6 @@ public:
 	BOOL mHasSync;
 	BOOL mHasMapBufferRange;
 	BOOL mHasFlushBufferRange;
-	BOOL mHasPBuffer;
 	BOOL mHasShaderObjects;
 	BOOL mHasVertexShader;
 	BOOL mHasFragmentShader;
@@ -103,7 +103,6 @@ public:
 	BOOL mHasPointParameters;
 	BOOL mHasDrawBuffers;
 	BOOL mHasDepthClamp;
-	BOOL mHasTextureRectangle;
 	BOOL mHasTransformFeedback;
 	S32 mMaxIntegerSamples;
 
@@ -112,14 +111,17 @@ public:
 	BOOL mHasARBEnvCombine;
 	BOOL mHasCubeMap;
 	BOOL mHasDebugOutput;
-
+	BOOL mHasGpuShader5;
 	BOOL mHasAdaptiveVsync;
 	BOOL mHasTextureSwizzle;
+
+	bool mHasTextureCompression;
 
 	// Vendor-specific extensions
 	BOOL mIsATI;
 	BOOL mIsNVIDIA;
 	BOOL mIsIntel;
+	BOOL mIsHD3K;
 	BOOL mIsGF2or4MX;
 	BOOL mIsGF3;
 	BOOL mIsGFFX;
@@ -135,7 +137,6 @@ public:
 	BOOL mHasRequirements;
 
 	// Misc extensions
-	BOOL mHasSeparateSpecularColor;
 
 	//whether this GPU is in the debug list.
 	BOOL mDebugGPU;
@@ -226,13 +227,13 @@ void clear_glerror();
 
 	//disable lighting for rendering hud objects
 	//INCORRECT USAGE
-	LLGLEnable lighting(GL_LIGHTING);
+	LLGLEnable<GL_LIGHTING> lighting;
 	renderHUD();
-	LLGLDisable lighting(GL_LIGHTING);
+	LLGLDisable<GL_LIGHTING> lighting;
 
 	//CORRECT USAGE
 	{
-		LLGLEnable lighting(GL_LIGHTING);
+		LLGLEnable<GL_LIGHTING> lighting;
 		renderHUD();
 	}
 
@@ -240,11 +241,9 @@ void clear_glerror();
 	is useful:
 
 	{
-		LLGLEnable lighting(light_hud ? GL_LIGHTING : 0);
+		LLGLEnable<GL_LIGHTING> lighting(light_hud);
 		renderHUD();
 	}
-
-	A LLGLState initialized with a parameter of 0 does nothing.
 
 	LLGLState works by maintaining a map of the current GL states, and ignoring redundant
 	enables/disables.  If a redundant call is attempted, it becomes a noop, otherwise,
@@ -254,59 +253,131 @@ void clear_glerror();
 	if the existing GL state does not match the expected GL state.
 
 */
-class LLGLState
-{
-public:
-	static void initClass();
-	static void restoreGL();
 
+struct LLGLStateStaticData
+{
+	const char* stateStr;
+	LLGLenum state;
+	bool currentState;
+	U32 depth;
+	char* activeInstance;
+	bool* disabler;
+};
+
+class LLGLStateValidator {
+public:
 	static void resetTextureStates();
 	static void dumpStates();
 	static void checkStates(const std::string& msg = "");
 	static void checkTextureChannels(const std::string& msg = "");
 	static void checkClientArrays(const std::string& msg = "", U32 data_mask = 0);
-	
-protected:
-	static boost::unordered_map<LLGLenum, LLGLboolean> sStateMap;
-	
+	static void checkState(LLGLStateStaticData& data);
+	static void initClass();
+	static void restoreGL();
+	static bool registerStateData(LLGLStateStaticData& data);
+private:
+	static std::vector<LLGLStateStaticData*> sStateDataVec;
+};
+
+class LLGLStateIface {
 public:
 	enum { CURRENT_STATE = -2 };
-	LLGLState(LLGLenum state, S32 enabled = CURRENT_STATE);
-	~LLGLState();
-	void setEnabled(S32 enabled);
-	void enable() { setEnabled(TRUE); }
-	void disable() { setEnabled(FALSE); }
-protected:
-	LLGLenum mState;
-	BOOL mWasEnabled;
-	BOOL mIsEnabled;
+	virtual ~LLGLStateIface() {}
+	virtual void enable() = 0;
+	virtual void disable() = 0;
 };
 
-// New LLGLState class wrappers that don't depend on actual GL flags.
-class LLGLEnableBlending : public LLGLState
+template <LLGLenum state>
+class LLGLState : public LLGLStateIface
 {
 public:
-	LLGLEnableBlending(bool enable);
+	
+	LLGLState(S8 newState = CURRENT_STATE)
+	{
+		++staticData.depth;
+		mPriorInstance = staticData.activeInstance;
+		staticData.activeInstance = (char*)this;
+		mPriorState = staticData.currentState;
+		setEnabled(newState);
+	}
+	virtual ~LLGLState()
+	{
+		llassert_always(staticData.activeInstance == (char*)this);
+		if (staticData.depth != 0)
+		{
+			staticData.activeInstance = mPriorInstance;
+			--staticData.depth;
+			if (gDebugGL) {
+				LLGLStateValidator::checkState(staticData);
+			}
+			setState(mPriorState);
+		}
+		else
+		{
+			llassert_always(mPriorInstance == nullptr);
+		}
+	}
+	
+	virtual void enable() { setEnabled(true); }
+	virtual void disable() { setEnabled(false); }
+
+	static LLGLStateStaticData staticData;
+	// Getter
+	static bool isEnabled() { return staticData.currentState && (!staticData.disabler || !*staticData.disabler); }
+	// For assertions. If feature is on or unsupported, return true.
+	static bool checkEnabled() { return (!staticData.disabler || !*staticData.disabler) ? staticData.currentState : true; }
+	// For assertions. If feature is off or unsupported, return true.
+	static bool checkDisabled() { return (!staticData.disabler || !*staticData.disabler) ? !staticData.currentState : true; }
+private:
+	char *mPriorInstance;
+	bool mPriorState;
+
+	void setEnabled(S32 newState)
+	{
+		llassert_always(staticData.activeInstance == (char*)this);
+		bool enabled = newState == CURRENT_STATE ? staticData.currentState : !!newState;
+		setState(enabled);
+	}
+
+	static void setState(bool enabled)
+	{
+		if (staticData.currentState != enabled && (!staticData.disabler || !*staticData.disabler))
+		{
+			gGL.flush();
+			staticData.currentState = enabled;
+			staticData.currentState ? glEnable(state) : glDisable(state);
+		}
+	}
+};
+#define initLLGLState(state, value, disabler_ptr) \
+	template <> \
+    LLGLStateStaticData LLGLState<state>::staticData = {#state, state, value, 0, nullptr, disabler_ptr}; \
+	bool registered_##state = LLGLStateValidator::registerStateData(LLGLState<state>::staticData);
+
+template <>
+class LLGLState<0> : public LLGLStateIface
+{
+	LLGLState(S8 newState = CURRENT_STATE) { }
+	virtual ~LLGLState() { }
+	virtual void enable() { }
+	virtual void disable() { }
+	static bool isEnabled() { return false; }
+	// For assertions. If feature is on or unsupported, return true.
+	static bool checkEnabled() { return true; }
+	// For assertions. If feature is off or unsupported, return true.
+	static bool checkDisabled() { return true; }
 };
 
-class LLGLEnableAlphaReject : public LLGLState
+template <LLGLenum state>
+struct LLGLEnable : public LLGLState<state>
 {
-public:
-	LLGLEnableAlphaReject(bool enable);
+	LLGLEnable(bool noskip = true) : LLGLState<state>(noskip ? TRUE : LLGLState<state>::CURRENT_STATE) {}
 };
 
-/// TODO: Being deprecated.
-class LLGLEnable : public LLGLState
+template <LLGLenum state>
+struct LLGLDisable : public LLGLState<state>
 {
-public:
-	LLGLEnable(LLGLenum state) : LLGLState(state, TRUE) {}
-};
-
-/// TODO: Being deprecated.
-class LLGLDisable : public LLGLState
-{
-public:
-	LLGLDisable(LLGLenum state) : LLGLState(state, FALSE) {}
+	LLGLDisable(bool noskip = true) : LLGLState<state>(noskip ? FALSE : LLGLState<state>::CURRENT_STATE) {}
 };
 
 /*
@@ -458,8 +529,6 @@ public:
 };
 
 #include "llglstates.h"
-
-void init_glstates();
 
 void parse_gl_version( S32* major, S32* minor, S32* release, std::string* vendor_specific, std::string* version_string );
 

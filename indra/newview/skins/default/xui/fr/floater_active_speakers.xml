@@ -2,9 +2,9 @@
 <floater name="active_speakers" title="Intervenants actifs">
   <layout_stack name="active_speakers_stack">
     <layout_panel name="active_speakers_panel">
-      <scroll_list name="speakers_list">
+      <name_list name="speakers_list">
         <column label="Nom" name="speaker_name"/>
-      </scroll_list>
+      </name_list>
       <button name="mute_btn" tool_tip="Ignorer ce résident"/>
     </layout_panel>
   </layout_stack>

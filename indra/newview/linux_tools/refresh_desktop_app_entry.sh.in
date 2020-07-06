@@ -15,7 +15,7 @@ function install_desktop_entry()
 Name=@VIEWER_BRANDING_ID@\n\
 Comment=Client for Online Virtual Worlds, such as Second Life\n\
 Exec=${installation_prefix}/@VIEWER_BRANDING_ID@\n\
-Icon=${installation_prefix}/@VIEWER_BRANDING_ID@_icon.png\n\
+Icon=${installation_prefix}/viewer_icon.png\n\
 Terminal=false\n\
 Type=Application\n\
 Categories=Application;Network;\n\

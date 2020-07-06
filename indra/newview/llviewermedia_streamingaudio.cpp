@@ -162,7 +162,7 @@ LLPluginClassMedia* LLStreamingAudio_MediaPlugins::initializeMedia(const std::st
 {
 	LLPluginClassMediaOwner* owner = NULL;
 	S32 default_size = 1; // audio-only - be minimal, doesn't matter
-	LLPluginClassMedia* media_source = LLViewerMediaImpl::newSourceFromMediaType(media_type, owner, default_size, default_size);
+	LLPluginClassMedia* media_source = LLViewerMediaImpl::newSourceFromMediaType(media_type, owner, default_size, default_size, 1.0);
 
 	if (media_source)
 	{

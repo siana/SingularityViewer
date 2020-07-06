@@ -4,13 +4,14 @@
 	<text name="grid_selector_label" >
 		Elegir un grid:
 	</text>
-	<button label="Predeterminado" name="btn_default"/>
-	<text name="default_grid">
+	<combo_box name="grid_selector" width="180" />
+	<button label="Predeterminado" name="btn_default" width="92" left_delta="190"/>
+	<text name="default_grid" left_delta="100">
 		([DEFAULT])
 	</text>
 	<!-- Buttons -->
 	<button label="Borrar" label_selected="Borrar"  name="btn_delete" tool_tip="Borrar de la lista el Grid seleccionado"/>
-	<button label="Añadir" name="btn_add" tool_tip="Agregar un nuevo Grid a la lista"/>
+	<button label="Crear" label_selected="Añadir" name="btn_add" tool_tip="Agregar un nuevo Grid a la lista"/>
 	<button label="Copiar" label_selected="Copiar" name="btn_copy" tool_tip="Crear una nueva entrada usando la seleccionada como plantilla"/>
 	<!-- Advanced -->
 	<button label="Avanzado" label_selected="Avanzado" name="btn_advanced"/>
@@ -29,7 +30,7 @@
 	</text>
 	<!-- Grid Message -->
 	<text name="gridmessage_label">
-		Información del Grid:
+		Info del Grid:
 	</text>
 	<!-- Advanced settings -->
 	<!-- Grid Splash Page -->
@@ -55,6 +56,10 @@
 	<!-- Password URL -->
 	<text name="password_label">
 		URL Contraseña:
+	</text>
+	<!-- Partner URL -->
+	<text name="partner_label" >
+		URL de Pareja:
 	</text>
 	<!-- Search URL -->
 	<text name="search_label">

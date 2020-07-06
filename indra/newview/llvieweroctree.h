@@ -44,6 +44,7 @@ class LLViewerOctreeEntryData;
 class LLViewerOctreeGroup;
 class LLViewerOctreeEntry;
 class LLViewerOctreePartition;
+class LLSpatialPartition;
 
 typedef LLOctreeListener<LLViewerOctreeEntry>	OctreeListener;
 	typedef LLTreeNode<LLViewerOctreeEntry>			TreeNode;
@@ -77,6 +78,7 @@ public:
 	typedef enum
 	{
 		LLDRAWABLE = 0,
+		LLVOCACHEENTRY,
 		NUM_DATA_TYPE
 	}eEntryDataType_t;
 
@@ -92,6 +94,9 @@ public:
 
 	LLViewerOctreeEntryData* getDrawable() const {return mData[LLDRAWABLE];}
 	bool                     hasDrawable() const {return mData[LLDRAWABLE] != NULL;}
+	LLViewerOctreeEntryData* getVOCacheEntry() const {return mData[LLVOCACHEENTRY];}
+	bool                     hasVOCacheEntry() const {return mData[LLVOCACHEENTRY] != NULL;}
+
 	const LLVector4a* getSpatialExtents() const {return mExtents;} 
 	const LLVector4a& getPositionGroup() const  {return mPositionGroup;}	
 	LLViewerOctreeGroup* getGroup()const        {return mGroup;}
@@ -105,7 +110,7 @@ private:
 
 private:
 	LLViewerOctreeEntryData*    mData[NUM_DATA_TYPE]; //do not use LLPointer here.
-	LLViewerOctreeGroup*        mGroup;
+	LLPointer<LLViewerOctreeGroup>        mGroup;
 
 	//aligned members
 	LL_ALIGN_16(LLVector4a		mExtents[2]);
@@ -208,6 +213,7 @@ public:
 	BOOL isVisible() const;
 	virtual BOOL isRecentlyVisible() const;
 	S32  getVisible(LLViewerCamera::eCameraID id) const {return mVisible[id];}
+	S32  getAnyVisible() const {return mAnyVisible;}
 	bool isEmpty() const { return mOctreeNode->isEmpty(); }
 
 	U32  getState()				   {return mState; }
@@ -217,14 +223,14 @@ public:
 	void clearState(U32 state)     {mState &= ~state;}	
 
 	//LISTENER FUNCTIONS
-	virtual void handleInsertion(const TreeNode* node, LLViewerOctreeEntry* obj);
-	virtual void handleRemoval(const TreeNode* node, LLViewerOctreeEntry* obj);
-	virtual void handleDestruction(const TreeNode* node);
-	virtual void handleStateChange(const TreeNode* node);
-	virtual void handleChildAddition(const OctreeNode* parent, OctreeNode* child);
-	virtual void handleChildRemoval(const OctreeNode* parent, const OctreeNode* child);
+	void handleInsertion(const TreeNode* node, LLViewerOctreeEntry* obj) override;
+	void handleRemoval(const TreeNode* node, LLViewerOctreeEntry* obj) override;
+	void handleDestruction(const TreeNode* node) override;
+	void handleChildAddition(const OctreeNode* parent, OctreeNode* child) override;
+	void handleChildRemoval(const OctreeNode* parent, const OctreeNode* child) final override;
 
 	OctreeNode*          getOctreeNode() {return mOctreeNode;}
+	const OctreeNode* getOctreeNode() const { return mOctreeNode; }
 	LLViewerOctreeGroup* getParent();
 
 	const LLVector4a* getBounds() const        {return mBounds;}
@@ -233,7 +239,7 @@ public:
 	const LLVector4a* getObjectExtents() const {return mObjectExtents;}
 
 	//octree wrappers to make code more readable
-	//element_list& getData() { return mOctreeNode->getData(); }	//unused
+	//element_list& getData() { return mOctreeNode->getData(); }
 	element_iter getDataBegin() { return mOctreeNode->getDataBegin(); }
 	element_iter getDataEnd() { return mOctreeNode->getDataEnd(); }
 	U32 getElementCount() const { return mOctreeNode->getElementCount(); }
@@ -253,6 +259,7 @@ protected:
 	LL_ALIGN_16(LLVector4a mExtents[2]); // extents (min, max) of this node and all its children
 	LL_ALIGN_16(LLVector4a mObjectExtents[2]); // extents (min, max) of objects in this node
 
+	S32 mAnyVisible; //latest visible to any camera
 	S32 mVisible[LLViewerCamera::NUM_CAMERAS];
 
 };
@@ -282,7 +289,7 @@ protected:
 	virtual ~LLOcclusionCullingGroup();
 
 public:
-	LLOcclusionCullingGroup(OctreeNode* node, LLViewerOctreePartition* part);
+	LLOcclusionCullingGroup(OctreeNode* node, LLSpatialPartition* part);
 	LLOcclusionCullingGroup(const LLOcclusionCullingGroup& rhs) : LLViewerOctreeGroup(rhs)
 	{
 		*this = rhs;
@@ -302,11 +309,12 @@ public:
 	U32  getLastOcclusionIssuedTime();
 
 	//virtual 
-	void handleChildAddition(const OctreeNode* parent, OctreeNode* child);
+	void handleChildAddition(const OctreeNode* parent, OctreeNode* child) override;
 
 	//virtual
 	BOOL isRecentlyVisible() const;
-	LLViewerOctreePartition* getSpatialPartition()const {return mSpatialPartition;}
+	//LLViewerOctreePartition* getSpatialPartition()const {return mSpatialPartition;}
+	BOOL isAnyRecentlyVisible() const;
 
 	static U32 getNewOcclusionQueryObjectName();
 	static void releaseOcclusionQueryObjectName(U32 name);
@@ -323,7 +331,8 @@ protected:
 
 	S32 mLODHash;
 
-	LLViewerOctreePartition* mSpatialPartition;
+	friend class LLViewerOctreePartition;
+	LLSpatialPartition* mSpatialPartition;
 	U32	mOcclusionQuery[LLViewerCamera::NUM_CAMERAS];
 
 public:
@@ -342,11 +351,13 @@ public:
 
 public:	
 	U32              mPartitionType;
-	U32 mDrawableType;
-	OctreeNode* mOctree;
-	BOOL mOcclusionEnabled; // if TRUE, occlusion culling is performed
-	U32 mLODSeed;
-	U32 mLODPeriod;	//number of frames between LOD updates for a given spatial group (staggered by mLODSeed)
+	U32              mDrawableType;
+	OctreeRoot*      mOctree;
+	LLViewerRegion*  mRegionp; // the region this partition belongs to.
+	BOOL             mOcclusionEnabled; // if TRUE, occlusion culling is performed
+	U32              mLODSeed;
+	U32              mLODPeriod;	//number of frames between LOD updates for a given spatial group (staggered by mLODSeed)
+	std::vector<LLOcclusionCullingGroup*> mGroups;
 };
 
 class LLViewerOctreeCull : public OctreeTraveler

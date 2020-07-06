@@ -2,31 +2,25 @@
  * @file llscrollbar.cpp
  * @brief Scrollbar UI widget
  *
- * $LicenseInfo:firstyear=2001&license=viewergpl$
- * 
- * Copyright (c) 2001-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2001&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
@@ -46,6 +40,7 @@
 #include "llwindow.h"
 #include "llcontrol.h"
 #include "llrender.h"
+#include "lluictrlfactory.h"
 
 LLScrollbar::LLScrollbar(
 		const std::string& name, LLRect rect,
@@ -402,7 +397,7 @@ BOOL LLScrollbar::handleHover(S32 x, S32 y, MASK mask)
 		}
 
 		getWindow()->setCursor(UI_CURSOR_ARROW);
-		LL_DEBUGS("UserInput") << "hover handled by " << getName() << " (active)" << LL_ENDL;		
+		LL_DEBUGS("UserInput") << "hover handled by " << getName() << " (active)" << LL_ENDL;
 		handled = TRUE;
 	}
 	else
@@ -414,7 +409,7 @@ BOOL LLScrollbar::handleHover(S32 x, S32 y, MASK mask)
 	if( !handled )
 	{
 		getWindow()->setCursor(UI_CURSOR_ARROW);
-		LL_DEBUGS("UserInput") << "hover handled by " << getName() << " (inactive)"  << LL_ENDL;		
+		LL_DEBUGS("UserInput") << "hover handled by " << getName() << " (inactive)"  << LL_ENDL;
 		handled = TRUE;
 	}
 
@@ -468,6 +463,13 @@ BOOL LLScrollbar::handleMouseUp(S32 x, S32 y, MASK mask)
 	return handled;
 }
 
+BOOL LLScrollbar::handleDoubleClick(S32 x, S32 y, MASK mask)
+{
+	// just treat a double click as a second click
+	return handleMouseDown(x, y, mask);
+}
+
+
 void LLScrollbar::reshape(S32 width, S32 height, BOOL called_from_parent)
 {
 	if (width == getRect().getWidth() && height == getRect().getHeight()) return;
@@ -502,16 +504,15 @@ void LLScrollbar::draw()
 	BOOL hovered = getEnabled() && !other_captor && (hasMouseCapture() || mThumbRect.pointInRect(local_mouse_x, local_mouse_y));
 	if (hovered)
 	{
-		mCurGlowStrength = lerp(mCurGlowStrength, mHoverGlowStrength, LLCriticalDamp::getInterpolant(0.05f));
+		mCurGlowStrength = lerp(mCurGlowStrength, mHoverGlowStrength, LLSmoothInterpolation::getInterpolant(0.05f));
 	}
 	else
 	{
-		mCurGlowStrength = lerp(mCurGlowStrength, 0.f, LLCriticalDamp::getInterpolant(0.05f));
+		mCurGlowStrength = lerp(mCurGlowStrength, 0.f, LLSmoothInterpolation::getInterpolant(0.05f));
 	}
 
-
 	// Draw background and thumb.
-	LLUIImage* rounded_rect_imagep = LLUI::getUIImage("rounded_square.tga");
+	LLUIImage* rounded_rect_imagep = LLUI::getUIImage("Rounded_Square");
 
 	if (!rounded_rect_imagep)
 	{
@@ -525,6 +526,9 @@ void LLScrollbar::draw()
 	}
 	else
 	{
+		// Thumb
+		LLRect outline_rect = mThumbRect;
+		outline_rect.stretch(2);
 		// Background
 		rounded_rect_imagep->drawSolid(mOrientation == HORIZONTAL ? SCROLLBAR_SIZE : 0, 
 			mOrientation == VERTICAL ? SCROLLBAR_SIZE : 0,
@@ -532,9 +536,6 @@ void LLScrollbar::draw()
 			mOrientation == VERTICAL ? getRect().getHeight() - 2 * SCROLLBAR_SIZE : getRect().getHeight(),
 			mTrackColor);
 
-		// Thumb
-		LLRect outline_rect = mThumbRect;
-		outline_rect.stretch(2);
 
 		if (gFocusMgr.getKeyboardFocus() == this)
 		{
@@ -635,4 +636,9 @@ void LLScrollbar::onLineUpBtnPressed( const LLSD& data )
 void LLScrollbar::onLineDownBtnPressed( const LLSD& data )
 {
 	changeLine( mStepSize, TRUE );
+}
+
+void LLScrollbar::setThickness(S32 thickness)
+{
+	mThickness = thickness < 0 ? SCROLLBAR_SIZE : thickness;
 }

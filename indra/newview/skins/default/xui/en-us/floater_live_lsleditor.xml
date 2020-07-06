@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <floater bottom="-668" can_close="true" can_drag_on_left="false" can_minimize="true"
-     can_resize="true" enabled="true" follows="left|top" height="550" left="306"
+     can_resize="true" enabled="true" follows="left|top" height="572" left="306"
      min_height="271" min_width="290" mouse_opaque="true" name="script ed float"
      rect_control="FloaterOpenObjectRect" title="Script: New Script" width="500" border_drop_shadow_visible="false" border_visible="false" bevel_style="none" border_style="line" border_thickness="0">
     <button bottom="-538" enabled="true" follows="right|bottom" font="SansSerif"
@@ -12,6 +12,32 @@
     <check_box bottom="-540" enabled="false" follows="left|bottom" font="SansSerif"
 	     height="18" hidden="false" initial_value="true" label="Mono" left="82"
 	     mouse_opaque="true" name="mono" radio_style="false" width="100" />
+    <check_box width="130"
+     height="21"
+     enabled="false"
+     left="12"
+     bottom_delta="-21"
+     follows="bottom|left"
+     label="Use Experience"
+     name="enable_xp" />
+    <combo_box
+     label=""
+     bottom_delta="0"
+     height="20"
+     left="149"
+     right="466"
+     follows="left|bottom|right"
+     visible="true"
+     name="Experiences..." />
+    <button label=""
+     name="view_profile"
+     image_overlay="arrow_right.tga"
+     height="20"
+     width="20"
+     right="486"
+     bottom_delta="0"
+     follows="right"
+     visible="false"/>
 	<panel bottom="-524" enabled="true" follows="left|top|right|bottom" height="506"
 	     left="1" name="script ed panel" width="497" border_drop_shadow_visible="false" border_visible="false" bevel_style="none" border_style="line" border_thickness="0" />
 	<string name="not_allowed">
@@ -20,4 +46,16 @@
 	<string name="script_running">
 		Running
 	</string>
+	<string name="experience_enabled">
+		Uncheck to remove the current experience
+	</string>
+	<string name="no_experiences">
+		You are not authorized for any experiences
+	</string>
+	<string name="add_experiences">
+		Select to add an experience
+	</string>
+  <string name="show_experience_profile">
+    Click to view the experience profile
+  </string>
 </floater>

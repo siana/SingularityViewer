@@ -606,15 +606,20 @@ void LLTransferManager::processTransferAbort(LLMessageSystem *msgp, void **)
 void LLTransferManager::reliablePacketCallback(void **user_data, S32 result)
 {
 	LLUUID *transfer_idp = (LLUUID *)user_data;
-	if (result)
+	if (result &&
+		transfer_idp != NULL)
 	{
-		LL_WARNS() << "Aborting reliable transfer " << *transfer_idp << " due to failed reliable resends!" << LL_ENDL;
 		LLTransferSource *tsp = gTransferManager.findTransferSource(*transfer_idp);
 		if (tsp)
 		{
+			LL_WARNS() << "Aborting reliable transfer " << *transfer_idp << " due to failed reliable resends!" << LL_ENDL;
 			LLTransferSourceChannel *tscp = tsp->mChannelp;
 			tsp->abortTransfer();
 			tscp->deleteTransfer(tsp);
+		}
+		else
+		{
+			LL_WARNS() << "Aborting reliable transfer " << *transfer_idp << " but can't find the LLTransferSource object" << LL_ENDL;
 		}
 	}
 	delete transfer_idp;
@@ -815,7 +820,7 @@ void LLTransferSourceChannel::updateTransfers()
 		gMessageSystem->addS32("Status", status);
 		gMessageSystem->addBinaryData("Data", datap, data_size);
 		sent_bytes = gMessageSystem->getCurrentSendTotal();
-		gMessageSystem->sendReliable(getHost(), LL_DEFAULT_RELIABLE_RETRIES, TRUE, 0.f,
+		gMessageSystem->sendReliable(getHost(), LL_DEFAULT_RELIABLE_RETRIES, TRUE, F32Seconds(0.f),
 									 LLTransferManager::reliablePacketCallback, (void**)cb_uuid);
 
 		// Do bookkeeping for the throttle
@@ -892,22 +897,26 @@ LLTransferSource *LLTransferSourceChannel::findTransferSource(const LLUUID &tran
 }
 
 
-BOOL LLTransferSourceChannel::deleteTransfer(LLTransferSource *tsp)
+void LLTransferSourceChannel::deleteTransfer(LLTransferSource *tsp)
 {
-
-	LLPriQueueMap<LLTransferSource *>::pqm_iter iter;
-	for (iter = mTransferSources.mMap.begin(); iter != mTransferSources.mMap.end(); iter++)
+	if (tsp)
 	{
-		if (iter->second == tsp)
+		LLPriQueueMap<LLTransferSource *>::pqm_iter iter;
+		for (iter = mTransferSources.mMap.begin(); iter != mTransferSources.mMap.end(); iter++)
 		{
-			delete tsp;
-			mTransferSources.mMap.erase(iter);
-			return TRUE;
+			if (iter->second == tsp)
+			{
+				delete tsp;
+				mTransferSources.mMap.erase(iter);
+				return;
+			}
 		}
-	}
 
-	LL_ERRS() << "Unable to find transfer source to delete!" << LL_ENDL;
-	return FALSE;
+		LL_WARNS() << "Unable to find transfer source id " 
+			<< tsp->getID()
+			<< " to delete!" 
+			<< LL_ENDL;
+	}
 }
 
 
@@ -1008,21 +1017,26 @@ LLTransferTarget *LLTransferTargetChannel::findTransferTarget(const LLUUID &tran
 }
 
 
-BOOL LLTransferTargetChannel::deleteTransfer(LLTransferTarget *ttp)
+void LLTransferTargetChannel::deleteTransfer(LLTransferTarget *ttp)
 {
-	tt_iter iter;
-	for (iter = mTransferTargets.begin(); iter != mTransferTargets.end(); iter++)
+	if (ttp)
 	{
-		if (*iter == ttp)
+		tt_iter iter;
+		for (iter = mTransferTargets.begin(); iter != mTransferTargets.end(); iter++)
 		{
-			delete ttp;
-			mTransferTargets.erase(iter);
-			return TRUE;
+			if (*iter == ttp)
+			{
+				delete ttp;
+				mTransferTargets.erase(iter);
+				return;
+			}
 		}
-	}
 
-	LL_ERRS() << "Unable to find transfer target to delete!" << LL_ENDL;
-	return FALSE;
+		LL_WARNS() << "Unable to find transfer target id " 
+			<< ttp->getID()
+			<< " to delete!" 
+			<< LL_ENDL;
+	}
 }
 
 
@@ -1246,9 +1260,13 @@ bool LLTransferTarget::addDelayedPacket(
 		size);
 
 #ifdef _DEBUG
-	if (mDelayedPacketMap.find(packet_id) != mDelayedPacketMap.end())
+    transfer_packet_map::iterator iter = mDelayedPacketMap.find(packet_id);
+	if (iter != mDelayedPacketMap.end())
 	{
-		LL_ERRS() << "Packet ALREADY in delayed packet map!" << LL_ENDL;
+        if (!(iter->second->mSize == size) && !(iter->second->mDatap == datap))
+        {
+            LL_ERRS() << "Packet ALREADY in delayed packet map!" << LL_ENDL;
+        }
 	}
 #endif
 

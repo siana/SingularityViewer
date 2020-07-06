@@ -32,7 +32,7 @@
 //#endif
 
 #if defined(LL_WINDOWS)
-//# include <windows.h>
+#include "llwin32headerslean.h"
 # include <psapi.h>
 #elif defined(LL_DARWIN)
 # include <sys/types.h>
@@ -50,11 +50,11 @@
 
 //static
 char* LLMemory::reserveMem = 0;
-U32 LLMemory::sAvailPhysicalMemInKB = U32_MAX ;
-U32 LLMemory::sMaxPhysicalMemInKB = 0;
-U32 LLMemory::sAllocatedMemInKB = 0;
-U32 LLMemory::sAllocatedPageSizeInKB = 0 ;
-U32 LLMemory::sMaxHeapSizeInKB = U32_MAX ;
+U32Kilobytes LLMemory::sAvailPhysicalMemInKB(U32_MAX);
+U32Kilobytes LLMemory::sMaxPhysicalMemInKB(0);
+U32Kilobytes LLMemory::sAllocatedMemInKB(0);
+U32Kilobytes LLMemory::sAllocatedPageSizeInKB(0);
+U32Kilobytes LLMemory::sMaxHeapSizeInKB(U32_MAX);
 BOOL LLMemory::sEnableMemoryFailurePrevention = FALSE;
 
 #if __DEBUG_PRIVATE_MEM__
@@ -93,45 +93,55 @@ void LLMemory::freeReserve()
 }
 
 //static 
-void LLMemory::initMaxHeapSizeGB(F32 max_heap_size_gb, BOOL prevent_heap_failure)
+void LLMemory::initMaxHeapSizeGB(F32Gigabytes max_heap_size, BOOL prevent_heap_failure)
 {
-	sMaxHeapSizeInKB = (U32)(max_heap_size_gb * 1024 * 1024) ;
+	sMaxHeapSizeInKB = max_heap_size;
 	sEnableMemoryFailurePrevention = prevent_heap_failure ;
 }
 
 //static 
 void LLMemory::updateMemoryInfo() 
 {
-#if LL_WINDOWS	
-	HANDLE self = GetCurrentProcess();
-	PROCESS_MEMORY_COUNTERS counters;
-	
-	if (!GetProcessMemoryInfo(self, &counters, sizeof(counters)))
+#if LL_WINDOWS
+	PROCESS_MEMORY_COUNTERS_EX counters;
+	counters.cb = sizeof(counters);
+
+	if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*) &counters, sizeof(counters)))
 	{
 		LL_WARNS() << "GetProcessMemoryInfo failed" << LL_ENDL;
-		return ;
+		return;
 	}
 
-	sAllocatedMemInKB = (U32)(counters.WorkingSetSize / 1024) ;
-	sAllocatedPageSizeInKB = (U32)(counters.PagefileUsage / 1024) ;
+	sAllocatedMemInKB = U64Bytes(counters.WorkingSetSize);
+	sAllocatedPageSizeInKB = (counters.PagefileUsage != 0) ? U64Bytes(counters.PagefileUsage) : U64Bytes(counters.PrivateUsage);
 
-	U32 avail_phys, avail_virtual;
-	LLMemoryInfo::getAvailableMemoryKB(avail_phys, avail_virtual) ;
-	sMaxPhysicalMemInKB = llmin(avail_phys + sAllocatedMemInKB, sMaxHeapSizeInKB);
-
-	if(sMaxPhysicalMemInKB > sAllocatedMemInKB)
+	MEMORYSTATUSEX memorystat;
+	memorystat.dwLength = sizeof(memorystat);
+	if (!GlobalMemoryStatusEx(&memorystat))
 	{
-		sAvailPhysicalMemInKB = sMaxPhysicalMemInKB - sAllocatedMemInKB ;
+		LL_WARNS() << "GlobalMemoryStatusEx failed" << LL_ENDL;
+		return;
+	}
+#if (defined(_WIN64) || defined(__amd64__) || defined(__x86_64__))
+	sMaxPhysicalMemInKB = U64Bytes(memorystat.ullTotalPhys);
+	sAvailPhysicalMemInKB = U64Bytes(memorystat.ullAvailPhys);
+#else
+	sMaxPhysicalMemInKB = llmin(U32Kilobytes(U64Bytes(memorystat.ullTotalPhys)), sMaxHeapSizeInKB);
+	if (sMaxPhysicalMemInKB > sAllocatedMemInKB)
+	{
+		sAvailPhysicalMemInKB = U64Bytes(memorystat.ullAvailPhys);;
 	}
 	else
 	{
-		sAvailPhysicalMemInKB = 0 ;
+		sAvailPhysicalMemInKB = U32Kilobytes(0);
 	}
+#endif
+
 #else
 	//not valid for other systems for now.
-	sAllocatedMemInKB = (U32)(LLMemory::getCurrentRSS() / 1024) ;
-	sMaxPhysicalMemInKB = U32_MAX ;
-	sAvailPhysicalMemInKB = U32_MAX ;
+	sAllocatedMemInKB = U64Bytes(LLMemory::getCurrentRSS());
+	sMaxPhysicalMemInKB = U64Bytes(U32_MAX);
+	sAvailPhysicalMemInKB = U64Bytes(U32_MAX);
 #endif
 }
 
@@ -156,7 +166,7 @@ void* LLMemory::tryToAlloc(void* address, U32 size)
 	return address ;
 #else
 	return (void*)0x01 ; //skip checking
-#endif	
+#endif
 }
 
 //static 
@@ -184,8 +194,8 @@ void LLMemory::logMemoryInfo(BOOL update)
 //static 
 bool LLMemory::isMemoryPoolLow()
 {
-	static const U32 LOW_MEMEOY_POOL_THRESHOLD_KB = 64 * 1024 ; //64 MB for emergency use
-	const static U32 MAX_SIZE_CHECKED_MEMORY_BLOCK = 64 * 1024 * 1024 ; //64 MB
+	static const U32Megabytes LOW_MEMORY_POOL_THRESHOLD(64);
+	const static U32Megabytes MAX_SIZE_CHECKED_MEMORY_BLOCK(64);
 	static void* last_reserved_address = NULL ;
 
 	if(!sEnableMemoryFailurePrevention)
@@ -193,32 +203,32 @@ bool LLMemory::isMemoryPoolLow()
 		return false ; //no memory failure prevention.
 	}
 
-	if(sAvailPhysicalMemInKB < (LOW_MEMEOY_POOL_THRESHOLD_KB >> 2)) //out of physical memory
+	if(sAvailPhysicalMemInKB < (LOW_MEMORY_POOL_THRESHOLD / 4)) //out of physical memory
 	{
 		return true ;
 	}
 
-	if(sAllocatedPageSizeInKB + (LOW_MEMEOY_POOL_THRESHOLD_KB >> 2) > sMaxHeapSizeInKB) //out of virtual address space.
+	if(sAllocatedPageSizeInKB + (LOW_MEMORY_POOL_THRESHOLD / 4) > sMaxHeapSizeInKB) //out of virtual address space.
 	{
 		return true ;
 	}
 
-	bool is_low = (S32)(sAvailPhysicalMemInKB < LOW_MEMEOY_POOL_THRESHOLD_KB || 
-		sAllocatedPageSizeInKB + LOW_MEMEOY_POOL_THRESHOLD_KB > sMaxHeapSizeInKB) ;
+	bool is_low = (S32)(sAvailPhysicalMemInKB < LOW_MEMORY_POOL_THRESHOLD 
+						|| sAllocatedPageSizeInKB + LOW_MEMORY_POOL_THRESHOLD > sMaxHeapSizeInKB) ;
 
 	//check the virtual address space fragmentation
 	if(!is_low)
 	{
 		if(!last_reserved_address)
 		{
-			last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK) ;
+			last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK.value()) ;
 		}
 		else
 		{
-			last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK) ;
+			last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK.value()) ;
 			if(!last_reserved_address) //failed, try once more
 			{
-				last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK) ;
+				last_reserved_address = LLMemory::tryToAlloc(last_reserved_address, MAX_SIZE_CHECKED_MEMORY_BLOCK.value()) ;
 			}
 		}
 
@@ -229,33 +239,33 @@ bool LLMemory::isMemoryPoolLow()
 }
 
 //static 
-U32 LLMemory::getAvailableMemKB() 
+U32Kilobytes LLMemory::getAvailableMemKB() 
 {
-	return sAvailPhysicalMemInKB ;
+	return sAvailPhysicalMemInKB;
 }
 
 //static 
-U32 LLMemory::getMaxMemKB() 
+U32Kilobytes LLMemory::getMaxMemKB() 
 {
-	return sMaxPhysicalMemInKB ;
+	return sMaxPhysicalMemInKB;
 }
 
 //static 
-U32 LLMemory::getAllocatedMemKB() 
+U32Kilobytes LLMemory::getAllocatedMemKB() 
 {
-	return sAllocatedMemInKB ;
+	return sAllocatedMemInKB;
 }
 
 //----------------------------------------------------------------------------
 
 #if defined(LL_WINDOWS)
 
+//static 
 U64 LLMemory::getCurrentRSS()
 {
-	HANDLE self = GetCurrentProcess();
 	PROCESS_MEMORY_COUNTERS counters;
-	
-	if (!GetProcessMemoryInfo(self, &counters, sizeof(counters)))
+
+	if (!GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters)))
 	{
 		LL_WARNS() << "GetProcessMemoryInfo failed" << LL_ENDL;
 		return 0;
@@ -264,35 +274,7 @@ U64 LLMemory::getCurrentRSS()
 	return counters.WorkingSetSize;
 }
 
-//static 
-U32 LLMemory::getWorkingSetSize()
-{
-    PROCESS_MEMORY_COUNTERS pmc ;
-	U32 ret = 0 ;
-
-    if (GetProcessMemoryInfo( GetCurrentProcess(), &pmc, sizeof(pmc)) )
-	{
-		ret = pmc.WorkingSetSize ;
-	}
-
-	return ret ;
-}
-
 #elif defined(LL_DARWIN)
-
-/* 
-	The API used here is not capable of dealing with 64-bit memory sizes, but is available before 10.4.
-	
-	Once we start requiring 10.4, we can use the updated API, which looks like this:
-	
-	task_basic_info_64_data_t basicInfo;
-	mach_msg_type_number_t  basicInfoCount = TASK_BASIC_INFO_64_COUNT;
-	if (task_info(mach_task_self(), TASK_BASIC_INFO_64, (task_info_t)&basicInfo, &basicInfoCount) == KERN_SUCCESS)
-	
-	Of course, this doesn't gain us anything unless we start building the viewer as a 64-bit executable, since that's the only way
-	for our memory allocation to exceed 2^32.
-*/
-
 // 	if (sysctl(ctl, 2, &page_size, &size, NULL, 0) == -1)
 // 	{
 // 		LL_WARNS() << "Couldn't get page size" << LL_ENDL;
@@ -305,16 +287,15 @@ U32 LLMemory::getWorkingSetSize()
 U64 LLMemory::getCurrentRSS()
 {
 	U64 residentSize = 0;
-	task_basic_info_data_t basicInfo;
-	mach_msg_type_number_t  basicInfoCount = TASK_BASIC_INFO_COUNT;
-	if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&basicInfo, &basicInfoCount) == KERN_SUCCESS)
+	mach_task_basic_info_data_t basicInfo;
+	mach_msg_type_number_t  basicInfoCount = MACH_TASK_BASIC_INFO_COUNT;
+	if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&basicInfo, &basicInfoCount) == KERN_SUCCESS)
 	{
-		residentSize = basicInfo.resident_size;
-
-		// If we ever wanted it, the process virtual size is also available as:
-		// virtualSize = basicInfo.virtual_size;
-		
-//		LL_INFOS() << "resident size is " << residentSize << LL_ENDL;
+//		residentSize = basicInfo.resident_size;
+		// Although this method is defined to return the "resident set size,"
+		// in fact what callers want from it is the total virtual memory
+		// consumed by the application.
+		residentSize = basicInfo.virtual_size;
 	}
 	else
 	{
@@ -322,11 +303,6 @@ U64 LLMemory::getCurrentRSS()
 	}
 
 	return residentSize;
-}
-
-U32 LLMemory::getWorkingSetSize()
-{
-	return 0 ;
 }
 
 #elif defined(LL_LINUX)
@@ -340,7 +316,7 @@ U64 LLMemory::getCurrentRSS()
 	if (fp == NULL)
 	{
 		LL_WARNS() << "couldn't open " << statPath << LL_ENDL;
-		goto bail;
+		return rss;
 	}
 
 	// Eee-yew!	 See Documentation/filesystems/proc.txt in your
@@ -359,57 +335,11 @@ U64 LLMemory::getCurrentRSS()
 	
 	fclose(fp);
 
-bail:
 	return rss;
 }
-
-U32 LLMemory::getWorkingSetSize()
-{
-	return 0 ;
-}
-
-#elif LL_SOLARIS
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#define _STRUCTURED_PROC 1
-#include <sys/procfs.h>
-
-U64 LLMemory::getCurrentRSS()
-{
-	char path [LL_MAX_PATH];	/* Flawfinder: ignore */ 
-
-	sprintf(path, "/proc/%d/psinfo", (int)getpid());
-	int proc_fd = -1;
-	if((proc_fd = open(path, O_RDONLY)) == -1){
-		LL_WARNS() << "LLmemory::getCurrentRSS() unable to open " << path << ". Returning 0 RSS!" << LL_ENDL;
-		return 0;
-	}
-	psinfo_t proc_psinfo;
-	if(read(proc_fd, &proc_psinfo, sizeof(psinfo_t)) != sizeof(psinfo_t)){
-		LL_WARNS() << "LLmemory::getCurrentRSS() Unable to read from " << path << ". Returning 0 RSS!" << LL_ENDL;
-		close(proc_fd);
-		return 0;
-	}
-
-	close(proc_fd);
-
-	return((U64)proc_psinfo.pr_rssize * 1024);
-}
-
-U32 LLMemory::getWorkingSetSize()
-{
-	return 0 ;
-}
-
 #else
 
 U64 LLMemory::getCurrentRSS()
-{
-	return 0;
-}
-
-U32 LLMemory::getWorkingSetSize()
 {
 	return 0;
 }
@@ -425,7 +355,7 @@ LLMemTracker* LLMemTracker::sInstance = NULL ;
 
 LLMemTracker::LLMemTracker()
 {
-	mLastAllocatedMem = LLMemory::getWorkingSetSize() ;
+	mLastAllocatedMem = LLMemory::getCurrentRSS() ;
 	mCapacity = 128 ;	
 	mCurIndex = 0 ;
 	mCounter = 0 ;
@@ -478,7 +408,7 @@ void LLMemTracker::track(const char* function, const int line)
 		return ;
 	}
 
-	U32 allocated_mem = LLMemory::getWorkingSetSize() ;
+	U64 allocated_mem = LLMemory::getCurrentRSS() ;
 
 	LLMutexLock lock(mMutexp) ;
 

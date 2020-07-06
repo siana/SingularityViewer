@@ -80,13 +80,21 @@ BOOL JCFloaterAreaSearch::postBuild()
 	mResultList = getChild<LLScrollListCtrl>("result_list");
 	mResultList->setDoubleClickCallback(boost::bind(&JCFloaterAreaSearch::onDoubleClick,this));
 	mResultList->sortByColumn("Name", TRUE);
+	auto tp = getChild<LLButton>("TP");
+	auto look = getChild<LLButton>("Look");
+	mResultList->setCommitOnSelectionChange(true);
+	mResultList->setCommitCallback([=](LLUICtrl* ctrl, const LLSD& param){
+		bool enabled = mResultList->getNumSelected() == 1;
+		tp->setEnabled(enabled);
+		look->setEnabled(enabled);
+	});
 
 	mCounterText = getChild<LLTextBox>("counter");
 
 	getChild<LLButton>("Refresh")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::onRefresh,this));
 	getChild<LLButton>("Stop")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::onStop,this));
-	getChild<LLButton>("TP")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::teleportToSelected, this));
-	getChild<LLButton>("Look")->setClickedCallback(boost::bind(&JCFloaterAreaSearch::lookAtSelected, this));
+	tp->setClickedCallback(boost::bind(&JCFloaterAreaSearch::teleportToSelected, this));
+	look->setClickedCallback(boost::bind(&JCFloaterAreaSearch::lookAtSelected, this));
 
 	getChild<LLFilterEditor>("Name query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_NAME));
 	getChild<LLFilterEditor>("Description query chunk")->setCommitCallback(boost::bind(&JCFloaterAreaSearch::onCommitLine,this,_1,_2,LIST_OBJECT_DESC));
@@ -217,7 +225,7 @@ void JCFloaterAreaSearch::results()
 				LLUUID object_id = objectp->getID();
 				if(!requestIfNeeded(object_id))
 				{
-					std::map<LLUUID,ObjectData>::iterator it = mCachedObjects.find(object_id);
+					auto it = mCachedObjects.find(object_id);
 					if(it != mCachedObjects.end())
 					{
 						//LL_INFOS() << "all entries are \"\" or we have data" << LL_ENDL;
@@ -281,7 +289,7 @@ void JCFloaterAreaSearch::processObjectPropertiesFamily(LLMessageSystem* msg, vo
 	LLUUID object_id;
 	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_ObjectID, object_id);
 
-	std::set<LLUUID>::iterator it = floater->mPendingObjects.find(object_id);
+	auto it = floater->mPendingObjects.find(object_id);
 	if(it != floater->mPendingObjects.end())
 		floater->mPendingObjects.erase(it);
 	//else if(floater->mCachedObjects.count(object_id)) //Let entries update.
@@ -291,6 +299,7 @@ void JCFloaterAreaSearch::processObjectPropertiesFamily(LLMessageSystem* msg, vo
 	// We cache unknown objects (to avoid having to request them later)
 	// and requested objects.
 	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_OwnerID, data->owner_id);
+	if (auto obj = gObjectList.findObject(object_id)) obj->mOwnerID = data->owner_id; // Singu Note: Try to get Owner whenever possible
 	msg->getUUIDFast(_PREHASH_ObjectData, _PREHASH_GroupID, data->group_id);
 	msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Name, data->name);
 	msg->getStringFast(_PREHASH_ObjectData, _PREHASH_Description, data->desc);

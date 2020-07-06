@@ -54,9 +54,11 @@
 
 LLFloaterInspect::LLFloaterInspect(const LLSD&)
   : LLFloater(std::string("Inspect Object")),
+	mObjectList(nullptr),
 	mDirty(FALSE)
 {
 	mCommitCallbackRegistrar.add("Inspect.OwnerProfile",	boost::bind(&LLFloaterInspect::onClickOwnerProfile, this));
+	mCommitCallbackRegistrar.add("Inspect.LastOwnerProfile",	boost::bind(&LLFloaterInspect::onClickLastOwnerProfile, this));
 	mCommitCallbackRegistrar.add("Inspect.CreatorProfile",	boost::bind(&LLFloaterInspect::onClickCreatorProfile, this));
 	mCommitCallbackRegistrar.add("Inspect.SelectObject",	boost::bind(&LLFloaterInspect::onSelectObject, this));
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_inspect.xml");
@@ -161,6 +163,36 @@ void LLFloaterInspect::onClickOwnerProfile()
 				return;
 // [/RLVa:KB]
 			LLAvatarActions::showProfile(owner_id);
+		}
+	}
+}
+
+void LLFloaterInspect::onClickLastOwnerProfile()
+{
+	if(mObjectList->getAllSelected().size() == 0) return;
+	LLScrollListItem* first_selected =mObjectList->getFirstSelected();
+
+	if (first_selected)
+	{
+		LLUUID selected_id = first_selected->getUUID();
+		struct f : public LLSelectedNodeFunctor
+		{
+			LLUUID obj_id;
+			f(const LLUUID& id) : obj_id(id) {}
+			virtual bool apply(LLSelectNode* node)
+			{
+				return (obj_id == node->getObject()->getID());
+			}
+		} func(selected_id);
+		LLSelectNode* node = mObjectSelection->getFirstNode(&func);
+		if(node)
+		{
+			const LLUUID& last_owner_id = node->mPermissions->getLastOwner();
+// [RLVa:KB] - Checked: 2010-08-25 (RLVa-1.2.2a) | Modified: RLVa-1.0.0e
+			if (gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMES) || gRlvHandler.hasBehaviour(RLV_BHVR_SHOWNAMETAGS))
+				if (last_owner_id == node->mPermissions->getOwner()) return;
+// [/RLVa:KB]
+			LLAvatarActions::showProfile(last_owner_id);
 		}
 	}
 }
@@ -370,7 +402,7 @@ void LLFloaterInspect::refresh()
 // <edit>
 void LLFloaterInspect::inventoryChanged(LLViewerObject* viewer_object, LLInventoryObject::object_list_t* inv, S32, void*)
 {
-	std::vector<LLUUID>::iterator iter = std::find(mQueue.begin(),mQueue.end(),viewer_object->getID());
+	auto iter = std::find(mQueue.begin(),mQueue.end(),viewer_object->getID());
 	if (viewer_object && inv && iter != mQueue.end())
 	{
 		U32 scripts = 0;

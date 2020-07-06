@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel name="ao_remote">
-	  <panel name="panel_bg_tab"/>
-	  <button label="AO Sits Off" label_selected="AO Sits On" name="ao_sit_btn"/>
+	<panel name="panel_bg_tab"/>
+		<button label="Forzar nadar" tool_tip="Las animaciones de vuelvo serán reemplazadas por animaciones de nado" name="ao_swim_btn"/>
+		<button label="Sentarse Off" label_selected="Sentarse  On" name="ao_sit_btn"/>
 	  <panel name="panel_ao_controls"/>
 </panel>

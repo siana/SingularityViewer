@@ -32,6 +32,7 @@
 #include "material_codes.h"
 
 // viewer includes
+#include "llagent.h"
 #include "llcriticaldamp.h"
 #include "llface.h"
 #include "lllightconstants.h"
@@ -49,13 +50,15 @@
 #include "llspatialpartition.h"
 #include "llviewerobjectlist.h"
 #include "llviewerwindow.h"
+#include "llcontrolavatar.h"
+#include "lldrawpoolavatar.h"
 
 const F32 MIN_INTERPOLATE_DISTANCE_SQUARED = 0.001f * 0.001f;
 const F32 MAX_INTERPOLATE_DISTANCE_SQUARED = 10.f * 10.f;
 const F32 OBJECT_DAMPING_TIME_CONSTANT = 0.06f;
 const F32 MIN_SHADOW_CASTER_RADIUS = 2.0f;
 
-static LLFastTimer::DeclareTimer FTM_CULL_REBOUND("Cull Rebound");
+static LLTrace::BlockTimerStatHandle FTM_CULL_REBOUND("Cull Rebound");
 
 extern bool gShiftFrame;
 
@@ -111,6 +114,28 @@ void LLDrawable::init()
 	LLViewerOctreeEntry* entry = NULL;
 	setOctreeEntry(entry);
 	initVisible(sCurVisible - 2);//invisible for the current frame and the last frame.
+}
+
+void LLDrawable::unload()
+{
+	LLVOVolume *pVVol = getVOVolume();
+	pVVol->setNoLOD();
+
+	for (S32 i = 0; i < getNumFaces(); i++)
+	{
+		LLFace* facep = getFace(i);
+		if (facep->isState(LLFace::RIGGED))
+		{
+			LLDrawPoolAvatar* pool = (LLDrawPoolAvatar*)facep->getPool();
+			if (pool) {
+				pool->removeRiggedFace(facep);
+			}
+			facep->setVertexBuffer(NULL);
+		}
+		facep->clearState(LLFace::RIGGED);
+	}
+
+	pVVol->markForUpdate(TRUE);
 }
 
 // static
@@ -199,16 +224,16 @@ BOOL LLDrawable::isLight() const
 	}
 }
 
-static LLFastTimer::DeclareTimer FTM_CLEANUP_DRAWABLE("Cleanup Drawable");
-static LLFastTimer::DeclareTimer FTM_DEREF_DRAWABLE("Deref");
-static LLFastTimer::DeclareTimer FTM_DELETE_FACES("Faces");
+static LLTrace::BlockTimerStatHandle FTM_CLEANUP_DRAWABLE("Cleanup Drawable");
+static LLTrace::BlockTimerStatHandle FTM_DEREF_DRAWABLE("Deref");
+static LLTrace::BlockTimerStatHandle FTM_DELETE_FACES("Faces");
 
 void LLDrawable::cleanupReferences()
 {
-	LLFastTimer t(FTM_CLEANUP_DRAWABLE);
+	LL_RECORD_BLOCK_TIME(FTM_CLEANUP_DRAWABLE);
 	
 	{
-		LLFastTimer t(FTM_DELETE_FACES);
+		LL_RECORD_BLOCK_TIME(FTM_DELETE_FACES);
 		std::for_each(mFaces.begin(), mFaces.end(), DeletePointer());
 		mFaces.clear();
 	}
@@ -220,7 +245,7 @@ void LLDrawable::cleanupReferences()
 	removeFromOctree();
 
 	{
-		LLFastTimer t(FTM_DEREF_DRAWABLE);
+		LL_RECORD_BLOCK_TIME(FTM_DEREF_DRAWABLE);
 		// Cleanup references to other objects
 		mVObjp = NULL;
 		mParent = NULL;
@@ -265,14 +290,14 @@ S32 LLDrawable::findReferences(LLDrawable *drawablep)
 	return count;
 }
 
-static LLFastTimer::DeclareTimer FTM_ALLOCATE_FACE("Allocate Face", true);
+static LLTrace::BlockTimerStatHandle FTM_ALLOCATE_FACE("Allocate Face", true);
 
 LLFace*	LLDrawable::addFace(LLFacePool *poolp, LLViewerTexture *texturep)
 {
 	
 	LLFace *face;
 	{
-		LLFastTimer t(FTM_ALLOCATE_FACE);
+		LL_RECORD_BLOCK_TIME(FTM_ALLOCATE_FACE);
 		face = new LLFace(this, mVObjp);
 	}
 
@@ -300,7 +325,7 @@ LLFace*	LLDrawable::addFace(const LLTextureEntry *te, LLViewerTexture *texturep)
 	LLFace *face;
 
 	{
-		LLFastTimer t(FTM_ALLOCATE_FACE);
+		LL_RECORD_BLOCK_TIME(FTM_ALLOCATE_FACE);
 		face = new LLFace(this, mVObjp);
 	}
 
@@ -512,7 +537,8 @@ void LLDrawable::makeStatic(BOOL warning_enabled)
 	if (isState(ACTIVE) && 
 		!isState(ACTIVE_CHILD) && 
 		!mVObjp->isAttachment() && 
-		!mVObjp->isFlexible())
+		!mVObjp->isFlexible() &&
+		!mVObjp->isAnimatedObject())
 	{
 		clearState(ACTIVE | ANIMATED_CHILD);
 
@@ -581,7 +607,7 @@ F32 LLDrawable::updateXform(BOOL undamped)
 
 	if (damped && isVisible())
 	{
-		F32 lerp_amt = llclamp(LLCriticalDamp::getInterpolant(OBJECT_DAMPING_TIME_CONSTANT), 0.f, 1.f);
+		F32 lerp_amt = llclamp(LLSmoothInterpolation::getInterpolant(OBJECT_DAMPING_TIME_CONSTANT), 0.f, 1.f);
 		LLVector3 new_pos = lerp(old_pos, target_pos, lerp_amt);
 		dist_squared = dist_vec_squared(new_pos, target_pos);
 
@@ -604,6 +630,9 @@ F32 LLDrawable::updateXform(BOOL undamped)
 		{
 			// snap to final position (only if no target omega is applied)
 			dist_squared = 0.0f;
+			//set target scale here, because of dist_squared = 0.0f remove object from move list
+			mCurrentScale = target_scale; // Animesh+
+
 			if (getVOVolume() && !isRoot())
 			{ //child prim snapping to some position, needs a rebuild
 				gPipeline.markRebuild(this, LLDrawable::REBUILD_POSITION, TRUE);
@@ -622,9 +651,15 @@ F32 LLDrawable::updateXform(BOOL undamped)
 
 	LLVector3 vec = mCurrentScale-target_scale;
 	
+	//It's a very important on each cycle on Drawable::update form(), when object remained in move
+	//, list update the CurrentScale member, because if do not do that, it remained in this list forever 
+	//or when the delta time between two frames a become a sufficiently large (due to interpolation) 
+	//for overcome the MIN_INTERPOLATE_DISTANCE_SQUARED.
+	mCurrentScale = target_scale; // Animesh+
+	
 	if (vec*vec > MIN_INTERPOLATE_DISTANCE_SQUARED)
 	{ //scale change requires immediate rebuild
-		mCurrentScale = target_scale;
+		//mCurrentScale = target_scale; // Animesh-
 		gPipeline.markRebuild(this, LLDrawable::REBUILD_POSITION, TRUE);
 	}
 	else if (!isRoot() && 
@@ -655,6 +690,10 @@ F32 LLDrawable::updateXform(BOOL undamped)
 	mXform.setRotation(target_rot);
 	mXform.setScale(LLVector3(1,1,1)); //no scale in drawable transforms (IT'S A RULE!)
 	mXform.updateMatrix();
+	if (isRoot() && mVObjp->isAnimatedObject() && mVObjp->getControlAvatar())
+	{
+		mVObjp->getControlAvatar()->matchVolumeTransform();
+	}
 
 	if (mSpatialBridge)
 	{
@@ -724,7 +763,7 @@ BOOL LLDrawable::updateMoveUndamped()
 
 	if (!isState(LLDrawable::INVISIBLE))
 	{
-		BOOL moved = (dist_squared > 0.001f);	
+		BOOL moved = (dist_squared > 0.001f && dist_squared < 255.99f);	// Animesh added 255.99f cap
 		moveUpdatePipeline(moved);
 		mVObjp->updateText();
 	}
@@ -758,7 +797,7 @@ BOOL LLDrawable::updateMoveDamped()
 
 	if (!isState(LLDrawable::INVISIBLE))
 	{
-		BOOL moved = (dist_squared > 0.001f);
+		BOOL moved = (dist_squared > 0.001f && dist_squared < 128.0f); // Animesh added 128.0f cap
 		moveUpdatePipeline(moved);
 		mVObjp->updateText();
 	}
@@ -825,6 +864,28 @@ void LLDrawable::updateDistance(LLCamera& camera, bool force_update)
 						facep->mDistance = v * camera.getAtAxis();
 					}
 				}
+			}
+
+			// MAINT-7926 Handle volumes in an animated object as a special case
+			// SL-937: add dynamic box handling for rigged mesh on regular avatars.
+			//if (volume->getAvatar() && volume->getAvatar()->isControlAvatar())
+			if (volume->getAvatar())
+			{
+				const LLVector3* av_box = volume->getAvatar()->getLastAnimExtents();
+				LLVector3d cam_pos = gAgent.getPosGlobalFromAgent(LLViewerCamera::getInstance()->getOrigin());
+				LLVector3 cam_region_pos = LLVector3(cam_pos - volume->getRegion()->getOriginGlobal());
+
+				LLVector3 cam_to_box_offset = point_to_box_offset(cam_region_pos, av_box);
+				mDistanceWRTCamera = llmax(0.01f, ll_round(cam_to_box_offset.magVec(), 0.01f));
+				LL_DEBUGS("DynamicBox") << volume->getAvatar()->getFullname() 
+										<< " pos (ignored) " << pos
+										<< " cam pos " << cam_pos
+										<< " cam region pos " << cam_region_pos
+										<< " box " << av_box[0] << "," << av_box[1] 
+										<< " -> dist " << mDistanceWRTCamera
+										<< LL_ENDL;
+				mVObjp->updateLOD();
+				return;
 			}
 		}
 		else
@@ -939,9 +1000,7 @@ void LLDrawable::updateSpatialExtents()
 	if (mVObjp)
 	{
 		const LLVector4a* exts = getSpatialExtents();
-		LLVector4a extents[2];
-		extents[0] = exts[0];
-		extents[1] = exts[1];
+		LLVector4a extents[2] = { exts[0], exts[1] };
 
 		mVObjp->updateSpatialExtents(extents[0], extents[1]);
 		setSpatialExtents(extents[0], extents[1]);
@@ -1080,20 +1139,28 @@ LLSpatialPartition* LLDrawable::getSpatialPartition()
 		retval = gPipeline.getSpatialPartition((LLViewerObject*) mVObjp);
 	}
 	else if (isRoot())
-	{	//must be an active volume
+	{
+		if (mSpatialBridge && (mSpatialBridge->asPartition()->mPartitionType == LLViewerRegion::PARTITION_HUD) != mVObjp->isHUDAttachment())
+		{
+			// remove obsolete bridge
+			mSpatialBridge->markDead();
+			setSpatialBridge(NULL);
+		}
+		//must be an active volume
 		if (!mSpatialBridge)
 		{
+			// Spatial bridge ctors self-register...
 			if (mVObjp->isHUDAttachment())
 			{
-				setSpatialBridge(new LLHUDBridge(this));
+				setSpatialBridge(new LLHUDBridge(this, getRegion()));
 			}
 			else if (mVObjp->isAttachment())
 			{
-				setSpatialBridge(new LLAttachmentBridge(this));
+				setSpatialBridge(new LLAttachmentBridge(this, getRegion()));
 			}
 			else
 			{
-				setSpatialBridge(new LLVolumeBridge(this));
+				setSpatialBridge(new LLVolumeBridge(this, getRegion()));
 			}
 		}
 		return mSpatialBridge->asPartition();
@@ -1116,9 +1183,9 @@ LLSpatialPartition* LLDrawable::getSpatialPartition()
 // Spatial Partition Bridging Drawable
 //=======================================
 
-LLSpatialBridge::LLSpatialBridge(LLDrawable* root, BOOL render_by_group, U32 data_mask) :
+LLSpatialBridge::LLSpatialBridge(LLDrawable* root, BOOL render_by_group, U32 data_mask, LLViewerRegion* regionp) : 
 	LLDrawable(root->getVObj()),
-	LLSpatialPartition(data_mask, render_by_group, GL_STREAM_DRAW_ARB)
+	LLSpatialPartition(data_mask, render_by_group, GL_STREAM_DRAW_ARB, regionp)
 {
 	mBridge = this;
 	mDrawable = root;
@@ -1168,7 +1235,7 @@ void LLSpatialBridge::updateSpatialExtents()
 	LLSpatialGroup* root = (LLSpatialGroup*) mOctree->getListener(0);
 	
 	{
-		LLFastTimer ftm(FTM_CULL_REBOUND);
+		LL_RECORD_BLOCK_TIME(FTM_CULL_REBOUND);
 		root->rebound();
 	}
 	
@@ -1529,11 +1596,7 @@ void LLSpatialBridge::cleanupReferences()
 	LLDrawable::cleanupReferences();
 	if (mDrawable)
 	{
-		/*
-		
-		DON'T DO THIS -- this should happen through octree destruction
-
-		mDrawable->setSpatialGroup(NULL);
+		mDrawable->setGroup(NULL);
 		if (mDrawable->getVObj())
 		{
 			LLViewerObject::const_child_list_t& child_list = mDrawable->getVObj()->getChildren();
@@ -1541,17 +1604,18 @@ void LLSpatialBridge::cleanupReferences()
 				 iter != child_list.end(); iter++)
 			{
 				LLViewerObject* child = *iter;
-				LLDrawable* drawable = child->mDrawable;					
+				LLDrawable* drawable = child->mDrawable;
 				if (drawable)
 				{
-					drawable->setSpatialGroup(NULL);
+					drawable->setGroup(NULL);
 				}
 			}
-		}*/
+		}
 
-		LLDrawable* drawablep = mDrawable;
-		mDrawable = NULL;
-		drawablep->setSpatialBridge(NULL);
+		LLPointer<LLSpatialBridge> bridgep = mDrawable->getSpatialBridge();
+		mDrawable->setSpatialBridge(nullptr);
+		mDrawable = nullptr;
+		bridgep = nullptr;
 	}
 }
 
@@ -1627,8 +1691,8 @@ void LLDrawable::updateFaceSize(S32 idx)
 	}
 }
 
-LLBridgePartition::LLBridgePartition()
-: LLSpatialPartition(0, FALSE, 0) 
+LLBridgePartition::LLBridgePartition(LLViewerRegion* regionp)
+: LLSpatialPartition(0, FALSE, 0, regionp) 
 { 
 	mDrawableType = LLPipeline::RENDER_TYPE_VOLUME;
 	mPartitionType = LLViewerRegion::PARTITION_BRIDGE;
@@ -1636,14 +1700,14 @@ LLBridgePartition::LLBridgePartition()
 	mSlopRatio = 0.25f;
 }
 
-LLAttachmentPartition::LLAttachmentPartition()
-: LLBridgePartition()
+LLAttachmentPartition::LLAttachmentPartition(LLViewerRegion* regionp)
+: LLBridgePartition(regionp)
 {
 	mDrawableType = LLPipeline::RENDER_TYPE_AVATAR;
 }
 
-LLHUDBridge::LLHUDBridge(LLDrawable* drawablep)
-: LLVolumeBridge(drawablep)
+LLHUDBridge::LLHUDBridge(LLDrawable* drawablep, LLViewerRegion* regionp)
+: LLVolumeBridge(drawablep, regionp)
 {
 	mDrawableType = LLPipeline::RENDER_TYPE_HUD;
 	mPartitionType = LLViewerRegion::PARTITION_HUD;

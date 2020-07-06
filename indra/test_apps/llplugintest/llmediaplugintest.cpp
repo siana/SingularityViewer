@@ -394,12 +394,14 @@ void LLMediaPluginTest::drawGeometry( int panel, bool selected )
 		}
 	}
 
-	glBegin( GL_QUADS );
+	glBegin( GL_TRIANGLE_STRIP );
+	int indexes[] = { 0, 1, 3, 2 };
 	for( int corner = 0; corner < 4; ++corner )
 	{
-		glTexCoord2f( texture_coords[ corner * 2 ], texture_coords[ corner * 2 + 1 ] );
-		GLfloat x = base_vertex_pos[ corner * 2 ] + panel_x * ( 1.0 + spacing ) - offset_x + spacing / 2.0f;
-		GLfloat y = base_vertex_pos[ corner * 2 + 1 ] + panel_y * ( 1.0 + spacing ) - offset_y + spacing / 2.0f;
+		int idx = indexes[corner];
+		glTexCoord2f( texture_coords[ idx * 2 ], texture_coords[idx * 2 + 1 ] );
+		GLfloat x = base_vertex_pos[ idx * 2 ] + panel_x * ( 1.0 + spacing ) - offset_x + spacing / 2.0f;
+		GLfloat y = base_vertex_pos[ idx * 2 + 1 ] + panel_y * ( 1.0 + spacing ) - offset_y + spacing / 2.0f;
 
 		glVertex3f( x, y, 0.0f );
 	};

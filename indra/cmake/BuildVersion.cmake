@@ -1,81 +1,55 @@
 # -*- cmake -*-
+# Construct the viewer version number based on the indra/VIEWER_VERSION file
 
-# Read version components from the header file.
-file(STRINGS ${LIBS_OPEN_DIR}/llcommon/llversionviewer.h.in lines
-   REGEX " LL_VERSION_")
-foreach(line ${lines})
-  string(REGEX REPLACE ".*LL_VERSION_([A-Z]+).*" "\\1" comp "${line}")
-  string(REGEX REPLACE ".* = ([0-9]+);.*" "\\1" value "${line}")
-  set(v${comp} "${value}")
-endforeach(line)
+if (NOT DEFINED VIEWER_SHORT_VERSION) # will be true in indra/, false in indra/newview/
+    set(VIEWER_VERSION_BASE_FILE "${CMAKE_CURRENT_SOURCE_DIR}/newview/VIEWER_VERSION.txt")
 
-execute_process(
-    COMMAND git rev-list HEAD
-    OUTPUT_VARIABLE GIT_REV_LIST_STR
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+    if ( EXISTS ${VIEWER_VERSION_BASE_FILE} )
+        file(STRINGS ${VIEWER_VERSION_BASE_FILE} VIEWER_SHORT_VERSION REGEX "^[0-9]+\\.[0-9]+\\.[0-9]+")
+        string(REGEX REPLACE "^([0-9]+)\\.[0-9]+\\.[0-9]+" "\\1" VIEWER_VERSION_MAJOR ${VIEWER_SHORT_VERSION})
+        string(REGEX REPLACE "^[0-9]+\\.([0-9]+)\\.[0-9]+" "\\1" VIEWER_VERSION_MINOR ${VIEWER_SHORT_VERSION})
+        string(REGEX REPLACE "^[0-9]+\\.[0-9]+\\.([0-9]+)" "\\1" VIEWER_VERSION_PATCH ${VIEWER_SHORT_VERSION})
 
-if(GIT_REV_LIST_STR)
-  string(REPLACE "\n" ";" GIT_REV_LIST ${GIT_REV_LIST_STR})
-else()
-  string(REPLACE "\n" ";" GIT_REV_LIST "")
-endif()
+        if (DEFINED ENV{revision})
+           set(VIEWER_VERSION_REVISION $ENV{revision})
+           message("Revision (from environment): ${VIEWER_VERSION_REVISION}")
 
-if(GIT_REV_LIST)
-  list(LENGTH GIT_REV_LIST vBUILD)
-else()
-  set(vBUILD 99)
-endif()
+        else (DEFINED ENV{revision})
+          execute_process(
+                       COMMAND git rev-list HEAD
+                       OUTPUT_VARIABLE GIT_REV_LIST_STR
+                       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                       OUTPUT_STRIP_TRAILING_WHITESPACE
+                       )
 
-configure_file(
-    ${CMAKE_SOURCE_DIR}/llcommon/llversionviewer.h.in
-    ${CMAKE_SOURCE_DIR}/llcommon/llversionviewer.h
-)
+            if(GIT_REV_LIST_STR)
+              string(REPLACE "\n" ";" GIT_REV_LIST ${GIT_REV_LIST_STR})
+            else()
+              string(REPLACE "\n" ";" GIT_REV_LIST "")
+            endif()
 
-if (WINDOWS)
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/res/viewerRes.rc.in
-       ${CMAKE_SOURCE_DIR}/newview/res/viewerRes.rc
-   )
-endif (WINDOWS)
+            if(GIT_REV_LIST)
+              list(LENGTH GIT_REV_LIST VIEWER_VERSION_REVISION)
+            else(GIT_REV_LIST)
+              set(VIEWER_VERSION_REVISION 99)
+            endif(GIT_REV_LIST)
+        endif (DEFINED ENV{revision})
+        message("Building '${VIEWER_CHANNEL}' Version ${VIEWER_SHORT_VERSION}.${VIEWER_VERSION_REVISION}")
+    else ( EXISTS ${VIEWER_VERSION_BASE_FILE} )
+        message(SEND_ERROR "Cannot get viewer version from '${VIEWER_VERSION_BASE_FILE}'") 
+    endif ( EXISTS ${VIEWER_VERSION_BASE_FILE} )
 
-if (DARWIN)
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/English.lproj/InfoPlist.strings.in
-       ${CMAKE_SOURCE_DIR}/newview/English.lproj/InfoPlist.strings
-   )
-endif (DARWIN)
+    if ("${VIEWER_VERSION_REVISION}" STREQUAL "")
+      message("Ultimate fallback, revision was blank or not set: will use 0")
+      set(VIEWER_VERSION_REVISION 0)
+    endif ("${VIEWER_VERSION_REVISION}" STREQUAL "")
 
-if (LINUX)
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/wrapper.sh.in
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/wrapper.sh
-       @ONLY
-   )
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/handle_secondlifeprotocol.sh.in
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/handle_secondlifeprotocol.sh
-       @ONLY
-   )
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/install.sh.in
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/install.sh
-       @ONLY
-   )
-   configure_file(
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/refresh_desktop_app_entry.sh.in
-       ${CMAKE_SOURCE_DIR}/newview/linux_tools/refresh_desktop_app_entry.sh
-       @ONLY
-   )
-endif (LINUX)
-
-
-# Compose the version.
-set(${ROOT_PROJECT_NAME}_VERSION "${vMAJOR}.${vMINOR}.${vPATCH}.${vBUILD}")
-if (${ROOT_PROJECT_NAME}_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")
-  message(STATUS "Version is ${${ROOT_PROJECT_NAME}_VERSION}")
-else (${ROOT_PROJECT_NAME}_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")
-  message(FATAL_ERROR "Could not determine version (${${ROOT_PROJECT_NAME}_VERSION})")
-endif (${ROOT_PROJECT_NAME}_VERSION MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+\\.[0-9]+$")
-
+    set(VIEWER_CHANNEL_VERSION_DEFINES
+        "LL_VIEWER_CHANNEL=\"${VIEWER_CHANNEL}\""
+        "LL_VIEWER_CHANNEL_GRK=L\"${VIEWER_CHANNEL_GRK}\""
+        "LL_VIEWER_VERSION_MAJOR=${VIEWER_VERSION_MAJOR}"
+        "LL_VIEWER_VERSION_MINOR=${VIEWER_VERSION_MINOR}"
+        "LL_VIEWER_VERSION_PATCH=${VIEWER_VERSION_PATCH}"
+        "LL_VIEWER_VERSION_BUILD=${VIEWER_VERSION_REVISION}"
+        )
+endif (NOT DEFINED VIEWER_SHORT_VERSION)

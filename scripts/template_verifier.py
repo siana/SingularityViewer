@@ -1,33 +1,27 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """\
 @file template_verifier.py
 @brief Message template compatibility verifier.
 
-$LicenseInfo:firstyear=2007&license=viewergpl$
-
-Copyright (c) 2007-2009, Linden Research, Inc.
-
+$LicenseInfo:firstyear=2007&license=viewerlgpl$
 Second Life Viewer Source Code
-The source code in this file ("Source Code") is provided by Linden Lab
-to you under the terms of the GNU General Public License, version 2.0
-("GPL"), unless you have obtained a separate licensing agreement
-("Other License"), formally executed by you and Linden Lab.  Terms of
-the GPL can be found in doc/GPL-license.txt in this distribution, or
-online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+Copyright (C) 2010, Linden Research, Inc.
 
-There are special exceptions to the terms and conditions of the GPL as
-it is applied to this Source Code. View the full text of the exception
-in the file doc/FLOSS-exception.txt in this software distribution, or
-online at
-http://secondlifegrid.net/programs/open_source/licensing/flossexception
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation;
+version 2.1 of the License only.
 
-By copying, modifying or distributing this software, you acknowledge
-that you have read and understood your obligations described above,
-and agree to abide by those obligations.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
 
-ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
-WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
-COMPLETENESS OR PERFORMANCE.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
 $/LicenseInfo$
 """
 
@@ -72,14 +66,15 @@ add_indra_lib_path()
 import optparse
 import os
 import urllib
+import hashlib
 
 from indra.ipc import compatibility
 from indra.ipc import tokenstream
 from indra.ipc import llmessage
 
 def getstatusall(command):
-    """ Like commands.getstatusoutput, but returns stdout and
-    stderr separately(to get around "killed by signal 15" getting
+    """ Like commands.getstatusoutput, but returns stdout and 
+    stderr separately(to get around "killed by signal 15" getting 
     included as part of the file).  Also, works on Windows."""
     (input, out, err) = os.popen3(command, 't')
     status = input.close() # send no input to the command
@@ -146,7 +141,7 @@ def fetch(url):
         return open(file_name).read()
     else:
         # *FIX: this doesn't throw an exception for a 404, and oddly enough the sl.com 404 page actually gets parsed successfully
-        return ''.join(urllib.urlopen(url).readlines())
+        return ''.join(urllib.urlopen(url).readlines())   
 
 def cache_master(master_url):
     """Using the url for the master, updates the local cache, and returns an url to the local cache."""
@@ -203,8 +198,13 @@ def getuser():
         import getpass
         return getpass.getuser()
     except ImportError:
-        import win32api
-        return win32api.GetUserName()
+        import ctypes
+        MAX_PATH = 260                  # according to a recent WinDef.h
+        name = ctypes.create_unicode_buffer(MAX_PATH)
+        namelen = ctypes.c_int(len(name)) # len in chars, NOT bytes
+        if not ctypes.windll.advapi32.GetUserNameW(name, ctypes.byref(namelen)):
+            raise ctypes.WinError()
+        return name.value
 
 def local_master_cache_filename():
     """Returns the location of the master template cache (which is in the system tempdir)
@@ -229,11 +229,14 @@ http://wiki.secondlife.com/wiki/Template_verifier.py
 """)
     parser.add_option(
         '-u', '--master_url', type='string', dest='master_url',
-        default='http://secondlife.com/app/message_template/master_message_template.msg',
+        default='http://git.alchemyviewer.org/alchemy/master-message-template/raw/master/message_template.msg',
         help="""The url of the master message template.""")
     parser.add_option(
         '-c', '--cache_master', action='store_true', dest='cache_master',
         default=False,  help="""Set to true to attempt use local cached copy of the master template.""")
+    parser.add_option(
+        '-f', '--force', action='store_true', dest='force_verification',
+        default=False, help="""Set to true to skip the sha_1 check and force template verification.""")
 
     options, args = parser.parse_args(sysargs)
 
@@ -251,7 +254,7 @@ http://wiki.secondlife.com/wiki/Template_verifier.py
     elif len(args) == 1:
         master_url = None
         current_filename = args[0]
-        print "master:", options.master_url
+        print "master:", options.master_url 
         print "current:", current_filename
         current_url = 'file://%s' % current_filename
     # nothing specified, use defaults for everything
@@ -263,15 +266,25 @@ http://wiki.secondlife.com/wiki/Template_verifier.py
 
     if master_url is None:
         master_url = options.master_url
-
+        
     if current_url is None:
         current_filename = local_template_filename()
         print "master:", options.master_url
         print "current:", current_filename
         current_url = 'file://%s' % current_filename
 
-    # retrieve the contents of the local template and check for syntax
+    # retrieve the contents of the local template
     current = fetch(current_url)
+    hexdigest = hashlib.sha1(current).hexdigest()
+    if not options.force_verification:
+        # Early exist if the template hasn't changed.
+        sha_url = "%s.sha1" % current_url
+        current_sha = fetch(sha_url)
+        if hexdigest == current_sha:
+            print "Message template SHA_1 has not changed."
+            sys.exit(0)
+
+    # and check for syntax
     current_parsed = llmessage.parseTemplateString(current)
 
     if options.cache_master:
@@ -291,7 +304,7 @@ http://wiki.secondlife.com/wiki/Template_verifier.py
             print "Syntax-checking the local template ONLY, no compatibility check is being run."
             print "Cause: %s\n\n" % e
             return 0
-
+        
     acceptable, compat = compare(
         master_parsed, current_parsed, options.mode)
 
@@ -302,9 +315,17 @@ http://wiki.secondlife.com/wiki/Template_verifier.py
 
     if acceptable:
         explain("--- PASS ---", compat)
+        if options.force_verification == False:
+            print "Updating sha1 to %s" % hexdigest
+            sha_filename = "%s.sha1" % current_filename
+            sha_file = open(sha_filename, 'w')
+            sha_file.write(hexdigest)
+            sha_file.close()
     else:
         explain("*** FAIL ***", compat)
         return 1
 
 if __name__ == '__main__':
     sys.exit(run(sys.argv[1:]))
+
+

@@ -22,35 +22,55 @@
 
 #include "lffloaterinvpanel.h"
 
+#include <boost/algorithm/string/erase.hpp>
+
 #include "llinventorypanel.h"
 #include "lluictrlfactory.h"
 
 
-LFFloaterInvPanel::LFFloaterInvPanel(const LLUUID& cat_id, LLInventoryModel* model, const std::string& name)
-: LLInstanceTracker<LFFloaterInvPanel, LLUUID>(cat_id)
+LFFloaterInvPanel::LFFloaterInvPanel(const LLSD& cat, const std::string& name, LLInventoryModel* model)
+: LLInstanceTracker<LFFloaterInvPanel, LLSD>(cat)
 {
-	mCommitCallbackRegistrar.add("InvPanel.Search", boost::bind(&LLInventoryPanel::setFilterSubString, boost::ref(mPanel), _2));
+	// Setup the floater first
+	auto mPanel = new LLInventoryPanel("inv_panel", LLInventoryPanel::DEFAULT_SORT_ORDER, cat, LLRect(), model ? model : &gInventory, true);
+
+	// Load from XUI
+	mCommitCallbackRegistrar.add("InvPanel.Search", boost::bind(&LLInventoryPanel::setFilterSubString, mPanel, _2));
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_inv_panel.xml");
+
+	// Now set the title
+	const auto& title = name.empty() ? gInventory.getCategory(mPanel->getRootFolderID())->getName() : name;
+	setTitle(title);
+
+	// Figure out a unique name for our rect control
+	const auto rect_control = llformat("FloaterInv%sRect", boost::algorithm::erase_all_copy(title, " ").data());
+	if (!gSavedSettings.controlExists(rect_control)) // If we haven't existed before, create it
+	{
+		S32 left, top;
+		gFloaterView->getNewFloaterPosition(&left, &top);
+		LLRect rect = getRect();
+		rect.translate(left - rect.mLeft, top - rect.mTop);
+		gSavedSettings.declareRect(rect_control, rect, "Rectangle for " + title + " window");
+	}
+	setRectControl(rect_control);
+	applyRectControl(); // Set our initial rect to the stored (or just created) control
+
+	// Now take care of the children
 	LLPanel* panel = getChild<LLPanel>("placeholder_panel");
-	mPanel = new LLInventoryPanel("inv_panel", LLInventoryPanel::DEFAULT_SORT_ORDER, cat_id.asString(), panel->getRect(), model, true);
+	mPanel->setRect(panel->getRect());
+	mPanel->setOrigin(0, 0);
 	mPanel->postBuild();
 	mPanel->setFollows(FOLLOWS_ALL);
 	mPanel->setEnabled(true);
-	addChild(mPanel);
-	removeChild(panel);
-	setTitle(name);
-}
-
-LFFloaterInvPanel::~LFFloaterInvPanel()
-{
-	delete mPanel;
+	mPanel->removeBorder();
+	panel->addChild(mPanel);
 }
 
 // static
-void LFFloaterInvPanel::show(const LLUUID& cat_id, LLInventoryModel* model, const std::string& name)
+void LFFloaterInvPanel::show(const LLSD& cat, const std::string& name, LLInventoryModel* model)
 {
-	LFFloaterInvPanel* floater = LFFloaterInvPanel::getInstance(cat_id);
-	if (!floater) floater = new LFFloaterInvPanel(cat_id, model, name);
+	LFFloaterInvPanel* floater = LFFloaterInvPanel::getInstance(cat);
+	if (!floater) floater = new LFFloaterInvPanel(cat, name, model);
 	floater->open();
 }
 
@@ -63,22 +83,25 @@ void LFFloaterInvPanel::closeAll()
 	{
 		cache.push_back(&*i);
 	}
-	// Now close all panels, without using instance_iter iterators.
-	for (std::vector<LFFloaterInvPanel*>::iterator i = cache.begin(); i != cache.end(); ++i)
+	// Now close all, without using instance_iter iterators.
+	for (auto& floater : cache)
 	{
-		(*i)->close();
+		floater->close();
 	}
 }
 
-// virtual
 BOOL LFFloaterInvPanel::handleKeyHere(KEY key, MASK mask)
 {
-	if (!mPanel->hasFocus() && mask == MASK_NONE && (key == KEY_RETURN || key == KEY_DOWN))
+	if (mask == MASK_NONE && (key == KEY_RETURN || key == KEY_DOWN))
 	{
-		mPanel->setFocus(true);
-		if (LLFolderView* root = mPanel->getRootFolder())
-			root->scrollToShowSelection();
-		return true;
+		auto& mPanel = *getChild<LLInventoryPanel>("inv_panel");
+		if (!mPanel.hasFocus())
+		{
+			mPanel.setFocus(true);
+			if (LLFolderView* root = mPanel.getRootFolder())
+				root->scrollToShowSelection();
+			return true;
+		}
 	}
 
 	return LLFloater::handleKeyHere(key, mask);

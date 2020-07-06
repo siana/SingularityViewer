@@ -33,72 +33,43 @@
 #ifndef LL_LLPREVIEWLANDMARK_H
 #define LL_LLPREVIEWLANDMARK_H
 
-#include <deque>
-
-#include "lllandmark.h"
-
-#include "llfloater.h"
-#include "llmap.h"
-#include "llstring.h"
-#include "lluuid.h"
-#include "v3dmath.h"
-#include "v4coloru.h"
-
-#include "llhudtext.h"
 #include "llpreview.h"
 
 class LLIconCtrl;
-class LLInventoryItem;
-class LLLandmarkList;
-class LLLineEditor;
-class LLMessageSystem;
-class LLPreviewLandmark;
 class LLPanelPlace;
+class LLLandmark;
 
-const S32 PREVIEW_LANDMARK_NUM_COLORS = 6;
-
-typedef std::deque< LLPreviewLandmark* > LLPreviewLandmarkList;
-
-class LLPreviewLandmark : public LLPreview
+class LLPreviewLandmark final : public LLPreview
 {
 public:
 	LLPreviewLandmark(const std::string& name, const LLRect& rect, const std::string& title,
 					  const LLUUID& item_uuid,
 					  BOOL show_keep_discard = FALSE,
-					  LLViewerInventoryItem* inv_item = NULL);
+					  LLViewerInventoryItem* inv_item = nullptr);
 	virtual ~LLPreviewLandmark();
 
-	/*virtual*/ void			draw();
+	/*virtual*/ void			draw() override;
 
 	const std::string&				getName() const;
 	const LLColor4&				getMarkerColor() const;
 
 	LLVector3d getPositionGlobal() const;
 
-	//static S32 getNumInstances() { return LLPreviewLandmark::sOrderedInstances.getLength(); }
-	//static const LLPreviewLandmark* getFirst() { return LLPreviewLandmark::sOrderedInstances.getFirstData(); }
-	//static const LLPreviewLandmark* getNext() { return LLPreviewLandmark::sOrderedInstances.getNextData(); }
-
 	static void* createPlaceDetail(void* userdata);
 
-	/*virtual*/ void loadAsset();
-	/*virtual*/ EAssetStatus getAssetStatus();
+	/*virtual*/ void loadAsset() override;
+	/*virtual*/ EAssetStatus getAssetStatus() override;
 
 protected:
 	void getDegreesAndDist(F32* degrees, F64* horiz_dist, F64* vert_dist) const;
 
-	virtual const char *getTitleName() const { return "Landmark"; }
+	const char *getTitleName() const override { return "Landmark"; }
 
 private:
-//	void renderBeacon();
-//	LLPointer<LLHUDText> mBeaconText;
-
 	LLIconCtrl*	mIconLandmark;
 	LLPanelPlace* mPlacePanel;
 	LLLandmark* mLandmark;
 	LLColor4 mMarkerColor;
-
-	static LLPreviewLandmarkList sOrderedInstances;
 };
 
 #endif

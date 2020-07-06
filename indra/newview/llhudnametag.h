@@ -63,14 +63,14 @@ protected:
 		{}
 		F32 getWidth(const LLFontGL* font);
 		const LLWString& getText() const { return mText; }
-		void clearFontWidthMap() { mFontWidthMap.clear(); }
+		void clearFontWidthMap() { mFontWidthMap[0].first = nullptr; mFontWidthMap[1].first = nullptr; }
 		
 		LLColor4				mColor;
 		LLFontGL::StyleFlags	mStyle;
 		const LLFontGL*			mFont;
 	private:
 		LLWString				mText;
-		std::map<const LLFontGL*, F32> mFontWidthMap;
+		std::pair<const LLFontGL*, F32> mFontWidthMap[2];
 	};
 
 public:

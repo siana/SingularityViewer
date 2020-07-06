@@ -92,8 +92,9 @@
 #include <boost/utility.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/type_traits.hpp>
 #include <boost/signals2.hpp>
-
+#include <boost/range.hpp>
 // we want to minimize external dependencies, but this one is important
 #include "llsd.h"
 #include "llinstancetracker.h"
@@ -102,6 +103,7 @@
 #include "llavatarname.h"
 #include "llevents.h"
 #include "llfunctorregistry.h"
+#include "llinitparam.h"
 #include "llui.h"
 #include "llxmlnode.h"
 #include "llnotificationptr.h"
@@ -131,6 +133,70 @@ class LLNotificationForm
 	LOG_CLASS(LLNotificationForm);
 
 public:
+	struct FormElementBase : public LLInitParam::Block<FormElementBase>
+	{
+		Optional<std::string>	name;
+		Optional<bool>			enabled;
+
+		FormElementBase();
+	};
+
+	struct FormIgnore : public LLInitParam::Block<FormIgnore, FormElementBase>
+	{
+		Optional<std::string>	text;
+		Optional<bool>			save_option;
+		Optional<std::string>	control;
+		Optional<bool>			invert_control;
+
+		FormIgnore();
+	};
+
+	struct FormButton : public LLInitParam::Block<FormButton, FormElementBase>
+	{
+		Mandatory<S32>			index;
+		Mandatory<std::string>	text;
+		Optional<std::string>	ignore;
+		Optional<bool>			is_default;
+
+		Mandatory<std::string>	type;
+
+		FormButton();
+	};
+
+	struct FormInput : public LLInitParam::Block<FormInput, FormElementBase>
+	{
+		Mandatory<std::string>	type;
+		Optional<S32>			width;
+		Optional<S32>			max_length_chars;
+		Optional<std::string>	text;
+
+		Optional<std::string>	value;
+		FormInput();
+	};
+
+	struct FormElement : public LLInitParam::ChoiceBlock<FormElement>
+	{
+		Alternative<FormButton> button;
+		Alternative<FormInput>	input;
+
+		FormElement();
+	};
+
+	struct FormElements : public LLInitParam::Block<FormElements>
+	{
+		Multiple<FormElement> elements;
+		FormElements();
+	};
+
+	struct Params : public LLInitParam::Block<Params>
+	{
+		Optional<std::string>	name;
+		Optional<FormIgnore>	ignore;
+		Optional<FormElements>	form_elements;
+
+		Params();
+	};
+
 	typedef enum e_ignore_type
 	{ 
 		IGNORE_NO,
@@ -730,6 +796,7 @@ public:
 	// OK to call more than once because it will reload
 	bool loadNotifications();
 	void createDefaultChannels();
+	void onLoginCompleted();
 
 	// we provide a collection of simple add notification functions so that it's reasonable to create notifications in one line
 	LLNotificationPtr add(const std::string& name,

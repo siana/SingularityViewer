@@ -224,7 +224,7 @@ bool LLURLRequest::configure(AICurlEasyRequest_wat const& curlEasyRequest_w)
 			curlEasyRequest_w->setopt(CURLOPT_HTTPGET, 1);
 
 			// Set Accept-Encoding to allow response compression
-			curlEasyRequest_w->setoptString(CURLOPT_ENCODING, mNoCompression ? "identity" : "");
+			curlEasyRequest_w->setopt(CURLOPT_ACCEPT_ENCODING, mNoCompression ? "identity" : nullptr);
 			rv = true;
 			break;
 
@@ -234,7 +234,7 @@ bool LLURLRequest::configure(AICurlEasyRequest_wat const& curlEasyRequest_w)
 			curlEasyRequest_w->setPut(mBodySize, mKeepAlive);
 
 			// Set Accept-Encoding to allow response compression
-			curlEasyRequest_w->setoptString(CURLOPT_ENCODING, mNoCompression ? "identity" : "");
+			curlEasyRequest_w->setopt(CURLOPT_ACCEPT_ENCODING, mNoCompression ? "identity" : nullptr);
 			rv = true;
 			break;
 			
@@ -243,7 +243,7 @@ bool LLURLRequest::configure(AICurlEasyRequest_wat const& curlEasyRequest_w)
 
 			curlEasyRequest_w->setPatch(mBodySize, mKeepAlive);
 			
-			curlEasyRequest_w->setoptString(CURLOPT_ENCODING, mNoCompression ? "identity" : "");
+			curlEasyRequest_w->setopt(CURLOPT_ACCEPT_ENCODING, mNoCompression ? "identity" : nullptr);
 			rv = true;
 			break;
 			
@@ -253,7 +253,7 @@ bool LLURLRequest::configure(AICurlEasyRequest_wat const& curlEasyRequest_w)
 			curlEasyRequest_w->setPost(mBodySize, mKeepAlive);
 
 			// Set Accept-Encoding to allow response compression
-			curlEasyRequest_w->setoptString(CURLOPT_ENCODING, mNoCompression ? "identity" : "");
+			curlEasyRequest_w->setopt(CURLOPT_ACCEPT_ENCODING, mNoCompression ? "identity" : nullptr);
 			rv = true;
 			break;
 

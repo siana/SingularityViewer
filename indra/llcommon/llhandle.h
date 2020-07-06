@@ -28,8 +28,7 @@
 #define LLHANDLE_H
 
 #include "llpointer.h"
-#include <boost/type_traits/is_convertible.hpp>
-#include <boost/utility/enable_if.hpp>
+#include <boost/throw_exception.hpp>
 
 /**
  * Helper object for LLHandle. Don't instantiate these directly, used
@@ -86,7 +85,7 @@ public:
 	LLHandle() : mTombStone(getDefaultTombStone()) {}
 
 	template<typename U>
-	LLHandle(const LLHandle<U>& other, typename boost::enable_if< typename boost::is_convertible<U*, T*> >::type* dummy = 0)
+	LLHandle(const LLHandle<U>& other, typename std::enable_if<std::is_convertible<U*, T*>::value>::type* dummy = nullptr)
 	: mTombStone(other.mTombStone)
 	{}
 
@@ -194,21 +193,20 @@ public:
 		return mHandle; 
 	}
 
-protected:
-	typedef LLHandle<T> handle_type_t;
-	LLHandleProvider() 
-	{
-		// provided here to enforce T deriving from LLHandleProvider<T>
-	} 
-
 	template <typename U>
-	LLHandle<U> getDerivedHandle(typename boost::enable_if< typename boost::is_convertible<U*, T*> >::type* dummy = 0) const
+	LLHandle<U> getDerivedHandle(typename std::enable_if<std::is_convertible<U*, T*>::value>::type* dummy = nullptr) const
 	{
 		LLHandle<U> downcast_handle;
 		downcast_handle.mTombStone = getHandle().mTombStone;
 		return downcast_handle;
 	}
 
+protected:
+	typedef LLHandle<T> handle_type_t;
+	LLHandleProvider() 
+	{
+		// provided here to enforce T deriving from LLHandleProvider<T>
+	} 
 
 private:
 	mutable LLRootHandle<T> mHandle;

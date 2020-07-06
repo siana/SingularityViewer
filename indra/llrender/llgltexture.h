@@ -49,6 +49,7 @@ public:
 	enum EBoostLevel
 	{
 		BOOST_NONE 			= 0,
+		BOOST_ALM			, //acts like NONE when ALM is on, max discard when ALM is off
 		BOOST_AVATAR_BAKED	,
 		BOOST_AVATAR		,
 		BOOST_CLOUDS		,
@@ -97,9 +98,9 @@ protected:
 	LOG_CLASS(LLGLTexture);
 
 public:
-	LLGLTexture(BOOL usemipmaps = TRUE);
-	LLGLTexture(const LLImageRaw* raw, BOOL usemipmaps) ;
-	LLGLTexture(const U32 width, const U32 height, const U8 components, BOOL usemipmaps) ;
+	LLGLTexture(BOOL usemipmaps = TRUE, bool allow_compresssion=false);
+	LLGLTexture(const LLImageRaw* raw, BOOL usemipmaps, bool allow_compresssion=false) ;
+	LLGLTexture(const U32 width, const U32 height, const U8 components, BOOL usemipmaps, bool allow_compresssion=false) ;
 
 	virtual void dump();	// debug info to llinfos
 
@@ -123,8 +124,7 @@ public:
 	BOOL       hasGLTexture() const ;
 	LLGLuint   getTexName() const ;		
 	BOOL       createGLTexture() ;
-	BOOL       createGLTexture(S32 discard_level, const LLImageRaw* imageraw, S32 usename = 0, BOOL to_create = TRUE, S32 category = LLGLTexture::OTHER);
-
+	BOOL       createGLTexture(S32 discard_level, const LLImageRaw* imageraw, LLImageGL::GLTextureName* usename = nullptr, BOOL to_create = TRUE, S32 category = LLGLTexture::OTHER);
 	void       setFilteringOption(LLTexUnit::eTextureFilterOptions option);
 	void       setExplicitFormat(LLGLint internal_format, LLGLenum primary_format, LLGLenum type_format = 0, BOOL swap_bytes = FALSE);
 	void       setAddressMode(LLTexUnit::eTextureAddressMode mode);
@@ -138,9 +138,9 @@ public:
 	S32        getDiscardLevel() const;
 	S8         getComponents() const;
 	BOOL       getBoundRecently() const;
-	S32        getTextureMemory() const ;
+	S32Bytes   getTextureMemory() const ;
 	LLGLenum   getPrimaryFormat() const;
-	BOOL       getIsAlphaMask(const F32 max_rmse) const ;
+	BOOL       getIsAlphaMask(const F32 max_rmse, const F32 max_mid) const ;
 	LLTexUnit::eTextureType getTarget(void) const ;
 	BOOL       getMask(const LLVector2 &tc);
 	F32        getTimePassedSinceLastBound();
@@ -168,7 +168,7 @@ public:
 
 private:
 	void cleanup();
-	void init();
+	void init(bool use_mipmaps, bool allow_compression);
 
 protected:
 	void setTexelsPerImage();
@@ -187,7 +187,8 @@ protected:
 
 	//GL texture
 	LLPointer<LLImageGL> mGLTexturep ;
-	S8 mDontDiscard;			// Keep full res version of this image (for UI, etc)
+	bool mDontDiscard;			// Keep full res version of this image (for UI, etc)
+	bool mAllowCompression;
 
 protected:
 	LLGLTextureState  mTextureState ;

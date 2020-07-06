@@ -112,14 +112,13 @@ public:
 	}
 
 	 //LISTENER FUNCTIONS
-	virtual void handleChildAddition(const LLOctreeNode<LLVolumeTriangle>* parent, 
-		LLOctreeNode<LLVolumeTriangle>* child);
-	virtual void handleStateChange(const LLTreeNode<LLVolumeTriangle>* node) { }
-	virtual void handleChildRemoval(const LLOctreeNode<LLVolumeTriangle>* parent, 
-			const LLOctreeNode<LLVolumeTriangle>* child) {	}
-	virtual void handleInsertion(const LLTreeNode<LLVolumeTriangle>* node, LLVolumeTriangle* tri) { }
-	virtual void handleRemoval(const LLTreeNode<LLVolumeTriangle>* node, LLVolumeTriangle* tri) { }
-	virtual void handleDestruction(const LLTreeNode<LLVolumeTriangle>* node) { }
+	void handleChildAddition(const LLOctreeNode<LLVolumeTriangle>* parent, 
+		LLOctreeNode<LLVolumeTriangle>* child) final override;
+	void handleChildRemoval(const LLOctreeNode<LLVolumeTriangle>* parent, 
+			const LLOctreeNode<LLVolumeTriangle>* child) final override { }
+	void handleInsertion(const LLTreeNode<LLVolumeTriangle>* node, LLVolumeTriangle* tri) final override { }
+	void handleRemoval(const LLTreeNode<LLVolumeTriangle>* node, LLVolumeTriangle* tri) final override { }
+	void handleDestruction(const LLTreeNode<LLVolumeTriangle>* node) final override { }
 	
 
 public:

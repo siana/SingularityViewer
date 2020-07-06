@@ -45,6 +45,7 @@
 #endif
 
 extern U32 gOctreeMaxCapacity;
+extern float gOctreeMinSize;
 extern U32 gOctreeReserveCapacity;
 #if LL_DEBUG
 #define LL_OCTREE_PARANOIA_CHECK 0
@@ -404,7 +405,7 @@ public:
 		F32 size = mSize[0];
 		F32 p_size = size * 2.f;
 
-		return (radius <= 0.001f && size <= 0.001f) ||
+		return (radius <= gOctreeMinSize && size <= gOctreeMinSize) ||
 				(radius <= p_size && radius > size);
 	}
 
@@ -425,7 +426,7 @@ public:
 	}
 
 	void accept(oct_traveler* visitor)				{ visitor->visit(this); }
-	virtual bool isLeaf() const						{ return mChildCount == 0; }
+	bool isLeaf() const								{ return mChildCount == 0; }
 	
 	U32 getElementCount() const						{ return mData.size(); }
 	bool isEmpty() const							{ return mData.size() == 0; }
@@ -498,7 +499,7 @@ public:
 		return node;
 	}
 	
-	virtual bool insert(T* data)
+	bool insert(T* data) override
 	{
 		OctreeGuard::checkGuarded(this);
 		if (data == NULL || data->getBinIndex() != -1)
@@ -511,7 +512,7 @@ public:
 		//is it here?
 		if (isInside(data->getPositionGroup()))
 		{
-			if (((getElementCount() < gOctreeMaxCapacity && contains(data->getBinRadius())) ||
+			if ((((getElementCount() < gOctreeMaxCapacity || getSize()[0] <= gOctreeMinSize) && contains(data->getBinRadius())) ||
 				(data->getBinRadius() > getSize()[0] &&	parent && parent->getElementCount() >= gOctreeMaxCapacity))) 
 			{ //it belongs here
 				/*mElementCount++;
@@ -537,7 +538,7 @@ public:
 					OctreeStats::getInstance()->realloc(old_cap,mData.capacity());
 #endif
 				
-				BaseType::insert(data);
+				LLOctreeNode<T>::notifyAddition(data);
 				return true;
 			}
 			else
@@ -566,8 +567,9 @@ public:
 				LLVector4a val;
 				val.setSub(center, getCenter());
 				val.setAbs(val);
-								
-				S32 lt = val.lessThan(LLVector4a::getEpsilon()).getGatheredBits() & 0x7;
+				LLVector4a min_diff(gOctreeMinSize);
+
+				S32 lt = val.lessThan(min_diff).getGatheredBits() & 0x7;
 
 				if( lt == 0x7 )
 				{
@@ -593,7 +595,7 @@ public:
 						OctreeStats::getInstance()->realloc(old_cap,mData.capacity());
 #endif
 					
-					BaseType::insert(data);
+					LLOctreeNode<T>::notifyAddition(data);
 					return true;
 				}
 
@@ -616,6 +618,7 @@ public:
 				}
 #endif
 
+				llassert(size[0] >= gOctreeMinSize*0.5f);
 				//make the new kid
 				child = new LLOctreeNode<T>(center, size, this);
 				addChild(child);
@@ -623,10 +626,7 @@ public:
 				child->insert(data);
 			}
 		}
-// Singu note: now that we allow wider range in octree, discard them here
-// if they fall out of range
-#if 0
-		else 
+		else if (parent)
 		{
 			//it's not in here, give it to the root
 			OCT_ERRS << "Octree insertion failed, starting over from root!" << LL_ENDL;
@@ -639,12 +639,15 @@ public:
 				parent = node->getOctParent();
 			}
 
-			if(node != this)
-			{
-				node->insert(data);
-			}
+			node->insert(data);
 		}
-#endif
+		else
+		{
+			// It's not in here, and we are root.
+			// LLOctreeRoot::insert() should have expanded
+			// root by now, something is wrong
+			OCT_ERRS << "Octree insertion failed! Root expansion failed." << LL_ENDL;
+		}
 
 		return false;
 	}
@@ -696,7 +699,7 @@ public:
 				(mData.size() > gOctreeReserveCapacity && mData.capacity() > gOctreeReserveCapacity + mData.size() - 1 - (mData.size() - gOctreeReserveCapacity - 1) % 4))
 			{
 				//Shrink to lowest possible (reserve)+4*i size.. Say reserve is 5, here are [size,capacity] pairs. [10,13],[9,9],[8,9],[7,9],[6,9],[5,5],[4,5],[3,5],[2,5],[1,5],[0,5]
-				vector_shrink_to_fit(mData);
+				mData.shrink_to_fit();
 			}
 #ifdef LL_OCTREE_STATS
 			if(old_cap != mData.capacity())
@@ -708,7 +711,7 @@ public:
 		checkAlive();
 	}
 
-	bool remove(T* data)
+	bool remove(T* data) final override
 	{
 		OctreeGuard::checkGuarded(this);
 		S32 i = data->getBinIndex();
@@ -849,10 +852,9 @@ public:
 
 		if (!silent)
 		{
-			for (U32 i = 0; i < this->getListenerCount(); i++)
+			for (auto& entry : this->mListeners)
 			{
-				oct_listener* listener = getOctListener(i);
-				listener->handleChildAddition(this, child);
+				((oct_listener*)entry.get())->handleChildAddition(this, child);
 			}
 		}
 	}
@@ -861,16 +863,17 @@ public:
 	{
 		OctreeGuard::checkGuarded(this);
 
-		for (U32 i = 0; i < this->getListenerCount(); i++)
+		oct_node* child = getChild(index);
+
+		for (auto& entry : this->mListeners)
 		{
-			oct_listener* listener = getOctListener(i);
-			listener->handleChildRemoval(this, getChild(index));
+			((oct_listener*)entry.get())->handleChildRemoval(this, child);
 		}
 
 		if (destroy)
 		{
-			mChild[index]->destroy();
-			delete mChild[index];
+			child->destroy();
+			delete child;
 		}
 
 		--mChildCount;
@@ -1012,7 +1015,7 @@ public:
 	}
 
 	// LLOctreeRoot::insert
-	bool insert(T* data)
+	bool insert(T* data) final override
 	{
 		if (data == NULL) 
 		{
@@ -1050,9 +1053,14 @@ public:
 			{
 				LLOctreeNode<T>::insert(data);
 			}
-			else
+			else if (node->isInside(data->getPositionGroup()))
 			{
 				node->insert(data);
+			}
+			else
+			{
+				// calling node->insert(data) will return us to root
+				OCT_ERRS << "Failed to insert data at child node" << LL_ENDL;
 			}
 		}
 		else if (this->getChildCount() == 0)
@@ -1087,6 +1095,8 @@ public:
 				size2.mul(2.f);
 				this->setSize(size2);
 				this->updateMinMax();
+
+				llassert(size[0] >= gOctreeMinSize);
 
 				//copy our children to a new branch
 				LLOctreeNode<T>* newnode = new LLOctreeNode<T>(center, size, this);

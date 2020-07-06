@@ -74,9 +74,6 @@ public:
 	
 protected:
 	// ui callbacks
-	void onClickCreator();
-	void onClickOwner();
-	void onClickLastOwner();
 	void onCommitName();
 	void onCommitDescription();
 	void onCommitPermissions();
@@ -88,6 +85,8 @@ protected:
 
 	void refreshFromItem(LLInventoryItem* item);
 	virtual void draw();
+
+	static void setAssociatedExperience(LLHandle<LLFloaterProperties> hInfo, const LLSD& experience);
 
 protected:
 	// The item id of the inventory item in question.

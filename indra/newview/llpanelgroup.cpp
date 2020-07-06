@@ -34,6 +34,7 @@
 #include "llpanelgroup.h"
 
 // Library includes
+#include "lfidbearer.h"
 #include "llbutton.h"
 #include "lltabcontainer.h"
 #include "lltextbox.h"
@@ -53,6 +54,9 @@
 #include "llpanelgrouproles.h"
 #include "llpanelgroupvoting.h"
 #include "llpanelgrouplandmoney.h"
+#include "llpanelgroupexperiences.h"
+
+#include "hippogridmanager.h"
 
 // static
 void* LLPanelGroupTab::createTab(void* data)
@@ -129,7 +133,7 @@ void LLPanelGroupTab::handleClickHelp()
 	}
 }
 
-void copy_profile_uri(const LLUUID& id, bool group);
+void copy_profile_uri(const LLUUID& id, const LFIDBearer::Type& type);
 
 LLPanelGroup::LLPanelGroup(const LLUUID& group_id)
 :	LLPanel("PanelGroup", LLRect(), FALSE),
@@ -153,6 +157,8 @@ LLPanelGroup::LLPanelGroup(const LLUUID& group_id)
 												&mID);
 	mFactoryMap["land_money_tab"]= LLCallbackMap(LLPanelGroupLandMoney::createTab,
 												 &mID);
+	mFactoryMap["experiences_tab"] = LLCallbackMap(LLPanelGroupExperiences::createTab,
+												&mID);
 	// Roles sub tabs
 	mFactoryMap["members_sub_tab"] = LLCallbackMap(LLPanelGroupMembersSubTab::createTab, &mID);
 	mFactoryMap["roles_sub_tab"] = LLCallbackMap(LLPanelGroupRolesSubTab::createTab, &mID);
@@ -161,7 +167,7 @@ LLPanelGroup::LLPanelGroup(const LLUUID& group_id)
 
 	LLGroupMgr::getInstance()->addObserver(this);
 
-	mCommitCallbackRegistrar.add("Group.CopyURI", boost::bind(copy_profile_uri, boost::ref(mID), true));
+	mCommitCallbackRegistrar.add("Group.CopyURI", boost::bind(copy_profile_uri, boost::ref(mID), LFIDBearer::GROUP));
 	// Pass on construction of this panel to the control factory.
 	LLUICtrlFactory::getInstance()->buildPanel(this, "panel_group.xml", &getFactoryMap());
 }
@@ -208,6 +214,14 @@ BOOL LLPanelGroup::postBuild()
 
 	if (mTabContainer)
 	{
+		// Group Voting no longer exists on SecondLife, hide it
+		if (gHippoGridManager->getConnectedGrid()->isSecondLife())
+		{
+			auto panel = mTabContainer->getPanelByName("voting_tab");
+			mTabContainer->removeTabPanel(panel);
+			delete panel;
+		}
+
 		//our initial tab selection was invalid, just select the
 		//first tab then or default to selecting the initial
 		//selected tab specified in the layout file

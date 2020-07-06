@@ -18,6 +18,7 @@
 		<column name="altitude" label="Alt." width="48" tool_tip="Altitude"/>
     <column name="activity" label="Act." width="24" tool_tip="Activity"/>
     <column name="voice" image_overlay="inv_item_sound.tga" width="24" tool_tip="Voice Status"/>
+    <column name="notes" image_overlay="inv_item_notecard.tga" width="24" tool_tip="Whether or not you've added notes to this avatar's profile"/>
 		<column name="age" label="Age" width="45" tool_tip="Age"/>
 		<column name="time" label="Time" width="52" tool_tip="Time since arrival in the sim."/>
     <column name="client" label="Client" width="80" dynamicwidth="true" tool_tip="Client the avatar is possibly using"/>
@@ -337,9 +338,10 @@
 				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnAltitudeHidden" name="hide_alt" label="Alt." tool_tip="Altitude"/>
 				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnActivityHidden" name="hide_act" label="Act." tool_tip="Activity"/>
 				<check_box follows="bottom|left" bottom_delta="-20" left="5" control_name="RadarColumnVoiceHidden" name="hide_voice" label="Voice" tool_tip="Voice Status"/>
+				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnNotesHidden" name="hide_notes" label="Notes" tool_tip="Notes Checkbox"/>
 				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnAgeHidden" name="hide_age" label="Age"/>
 				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnTimeHidden" name="hide_time" label="Time"/>
-				<check_box follows="bottom|left" bottom_delta="0" left_delta="70" control_name="RadarColumnClientHidden" name="hide_client" label="Client"/>
+				<check_box follows="bottom|left" bottom_delta="-20" left="5" control_name="RadarColumnClientHidden" name="hide_client" label="Client"/>
 		</panel>
 	</tab_container>
 	<string name="Out Of Range">Out Of Range</string>

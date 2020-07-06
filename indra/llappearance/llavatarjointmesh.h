@@ -49,7 +49,7 @@ class LLSkinJoint
 public:
 	LLSkinJoint();
 	~LLSkinJoint();
-	void setupSkinJoint( LLJoint *joint);
+	BOOL setupSkinJoint( LLJoint *joint);
 
 	LLJoint*		mJoint;
 	LLVector3		mRootToJointSkinOffset;
@@ -123,6 +123,9 @@ public:
 
 	// Sets up joint matrix data for rendering
 	void setupJoint(LLJoint* current_joint);
+
+	// Render time method to upload batches of joint matrices
+	void uploadJointMatrices();
 
 	// Sets ID for picking
 	void setMeshID( S32 id ) {mMeshID = id;}

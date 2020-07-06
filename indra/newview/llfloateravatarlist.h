@@ -79,7 +79,7 @@ enum ACTIVITY_TYPE
 	 * Update world position.
 	 * Affects age.
 	 */	
-	void setPosition(const LLVector3d& position, const F32& dist, bool drawn);
+	void setPosition(const LLVector3d& position, const F32& dist, bool drawn, bool flood = false);
 
 	const LLVector3d& getPosition() const { return mPosition; }
 
@@ -124,7 +124,7 @@ enum ACTIVITY_TYPE
 
 	bool isInList() const { return mIsInList; }
 
-	void toggleMark() { mMarked = !mMarked; }
+	void setMarked(bool marked) { mMarked = marked; }
 
 	struct uuidMatch
 	{
@@ -143,6 +143,7 @@ private:
 	bool mMarked;
 	bool mFocused;
 	bool mIsInList;
+	bool mNotes = false;
 	int mAge;
 
 	/**
@@ -202,7 +203,7 @@ public:
 	/**
 	 * @brief Updates the internal avatar list with the currently present avatars.
 	 */
-	void updateAvatarList(const class LLViewerRegion* region);
+	void updateAvatarList(const class LLViewerRegion* region, bool first = false);
 
 	/**
 	 * @brief Refresh avatar list (display)
@@ -239,20 +240,6 @@ public:
 	// when a line editor loses keyboard focus, it is committed.
 	// commit callbacks are named onCommitWidgetName by convention.
 	//void onCommitBaz(LLUICtrl* ctrl, void *userdata);
-	
-	enum AVATARS_COLUMN_ORDER
-	{
-		LIST_MARK,
-		LIST_AVATAR_NAME,
-		LIST_DISTANCE,
-		LIST_POSITION,
-		LIST_ALTITUDE,
-		LIST_ACTIVITY,
-		LIST_VOICE,
-		LIST_AGE,
-		LIST_TIME,
-		LIST_CLIENT,
-	};
 
 	typedef boost::function<void (LLAvatarListEntry*)> avlist_command_t;
 
@@ -264,7 +251,7 @@ public:
 	/**
 	 * @brief Focus camera on specified avatar
 	 */
-	void setFocusAvatar(const LLUUID& id);
+	static void setFocusAvatar(const LLUUID& id);
 
 	/**
 	 * @brief Focus camera on previous avatar
@@ -279,6 +266,7 @@ public:
 	void focusOnNext(bool marked_only);
 
 	void refreshTracker();
+	void trackAvatar(const LLUUID& agent_id);
 	void trackAvatar(const LLAvatarListEntry* entry) const;
 
 	/**
@@ -318,8 +306,6 @@ public:
 
 	static bool onConfirmRadarChatKeys(const LLSD& notification, const LLSD& response );
 
-	static void callbackIdle(void *userdata);
-
 	void doCommand(avlist_command_t cmd, bool single = false) const;
 
 	/**
@@ -330,14 +316,22 @@ public:
 	 */
 	void expireAvatarList(const std::list<LLUUID>& ids);
 	void updateAvatarSorting();
+	static bool isCleanup()
+	{
+		const auto& inst = getIfExists();
+		return inst && inst->mCleanup;
+	}
 
 private:
+	void setFocusAvatarInternal(const LLUUID& id);
+
 	/**
 	 * @brief Pointer to the avatar scroll list
 	 */
 	LLScrollListCtrl*			mAvatarList;
 	av_list_t	mAvatars;
 	bool		mDirtyAvatarSorting;
+	bool		mCleanup = false;
 
 	/**
 	 * @brief true when Updating

@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<floater
+ can_minimize="false"
+ can_tear_off="false"
+ can_resize="false"
+ can_drag_on_left="false"
+ can_close="true"
+ height="80"
+ layout="topleft"
+ name="ban_duration"
+ title="Duration"
+ single_instance="true"
+ width="180">
+   <!-- Liru make this a combo: Hours, Days, Weeks, Months -->
+   <combo_box name="ban_duration_combo" bottom="-40" left="10" height="20" width="100" initial_value="0">
+     <combo_item name="permanent" label="Permanent" value="0"/>
+     <combo_item name="hours" label="Hours" value="1"/>
+     <combo_item name="days" label="Days" value="2"/>
+     <combo_item name="weeks" label="Weeks" value="3"/>
+     <combo_item name="months" label="Months" value="4"/>
+   </combo_box>
+
+   <spinner
+    allow_digits_only="true"
+    decimal_digits="0"
+    follows="left|top"
+    height="20"
+    increment="1"
+    max_val="8766"
+    min_val="1"
+    initial_val="1"
+    name="ban_duration"
+    bottom_delta="-2"
+    left_delta="100"
+    width="60"/>
+
+   <button
+    follows="left|top"
+    height="23"
+    label="OK"
+    left="10"
+    name="ok_btn"
+    bottom_delta="-30"
+    width="80">
+   </button>
+   <button
+    follows="left|top"
+    height="23"
+    label="Cancel"
+    left_delta="80"
+    name="cancel_btn"
+    bottom_delta="0"
+    width="80">
+   </button>
+</floater>

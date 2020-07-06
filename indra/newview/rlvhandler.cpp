@@ -1035,7 +1035,7 @@ LLColor3 RlvHandler::camDrawColor() const
 				case LLAssetType::AT_CLOTHING:
 					{
 						// NOTE: without its asset we don't know what type the wearable is so we need to look at the item's flags instead
-						LLWearableType::EType wtType = (LLWearableType::EType)(pItem->getFlags() & LLInventoryItem::II_FLAGS_WEARABLES_MASK);
+						LLWearableType::EType wtType = (LLWearableType::EType)(pItem->getFlags() & LLInventoryItem::II_FLAGS_SUBTYPE_MASK);
 						LLViewerInventoryCategory* pFolder;
 						if ( (!isWearable(wtType)) ||
 							 ( (gAgent.getWearable(wtType)) && (!isRemovable(wtType)) ) || 
@@ -1791,16 +1791,22 @@ ERlvCmdRet RlvHandler::onForceRemAttach(const RlvCommand& rlvCmd) const
 	// @remattach=force         - force detach all attachments points
 	else if ( (rlvCmdOption.isAttachmentPointGroup()) || (rlvCmdOption.isEmpty()) )
 	{
-		for (LLVOAvatar::attachment_map_t::const_iterator itAttach = gAgentAvatarp->mAttachmentPoints.begin(); 
-				itAttach != gAgentAvatarp->mAttachmentPoints.end(); ++itAttach)
+		for (const auto& entryAttachPt : gAgentAvatarp->mAttachmentPoints)
 		{
-			const LLViewerJointAttachment* pAttachPt = itAttach->second;
-			if ( (pAttachPt) && (pAttachPt->getNumObjects()) &&
-				 ((rlvCmdOption.isEmpty()) || (rlvAttachGroupFromIndex(pAttachPt->getGroup()) == rlvCmdOption.getAttachmentPointGroup())) )
+			const LLViewerJointAttachment* pAttachPt = entryAttachPt.second;
+			if ( (pAttachPt) && (pAttachPt->getNumObjects()) && ((rlvCmdOption.isEmpty()) || (rlvAttachGroupFromIndex(pAttachPt->getGroup()) == rlvCmdOption.getAttachmentPointGroup())) )
 			{
 				RlvForceWear::instance().forceDetach(pAttachPt);
 			}
 		}
+		return RLV_RET_SUCCESS;
+	}
+	// @remattach:<uuid>=force - force detach a specific attachment
+	else if (rlvCmdOption.isUUID())
+	{
+		const LLViewerObject* pAttachObj = gObjectList.findObject(rlvCmdOption.getUUID());
+		if ( (pAttachObj) && (pAttachObj->isAttachment()) && (pAttachObj->permYouOwner()) )
+			RlvForceWear::instance().forceDetach(pAttachObj);
 		return RLV_RET_SUCCESS;
 	}
 	return RLV_RET_FAILED_OPTION;
@@ -1830,16 +1836,30 @@ ERlvCmdRet RlvHandler::onForceGroup(const RlvCommand& rlvCmd) const
 	}
 
 	LLUUID idGroup; bool fValid = false;
-	if (idGroup.set(rlvCmd.getOption()))
+	if ("none" == rlvCmd.getOption())
+	{
+		idGroup.setNull();
+		fValid = true;
+	}
+	else if (idGroup.set(rlvCmd.getOption()))
 	{
 		fValid = (idGroup.isNull()) || (gAgent.isInGroup(idGroup, true));
 	}
 	else
 	{
-		for (S32 idxGroup = 0, cntGroup = gAgent.mGroups.size(); (idxGroup < cntGroup) && (idGroup.isNull()); idxGroup++)
-			if (boost::iequals(gAgent.mGroups[idxGroup].mName, rlvCmd.getOption()))
-				idGroup = gAgent.mGroups[idxGroup].mID;
-		fValid = (idGroup.notNull()) || ("none" == rlvCmd.getOption());
+		bool fExactMatch = false;
+		for (const auto& groupData : gAgent.mGroups)
+		{
+			// NOTE: exact matches take precedence over partial matches; in case of partial matches the last match wins
+			if (boost::istarts_with(groupData.mName, rlvCmd.getOption()))
+			{
+				idGroup = groupData.mID;
+				fExactMatch = groupData.mName.length() == rlvCmd.getOption().length();
+				if (fExactMatch)
+					break;
+			}
+		}
+		fValid = idGroup.notNull();
 	}
 
 	if (fValid)
@@ -1955,27 +1975,21 @@ ERlvCmdRet RlvHandler::processReplyCommand(const RlvCommand& rlvCmd) const
 		case RLV_BHVR_GETATTACH:		// @getattach[:<layer>]=<channel>
 			eRet = onGetAttach(rlvCmd, strReply);
 			break;
-#ifdef RLV_EXTENSION_CMD_GETXXXNAMES
 		case RLV_BHVR_GETATTACHNAMES:	// @getattachnames[:<grp>]=<channel>
 		case RLV_BHVR_GETADDATTACHNAMES:// @getaddattachnames[:<grp>]=<channel>
 		case RLV_BHVR_GETREMATTACHNAMES:// @getremattachnames[:<grp>]=<channel>
 			eRet = onGetAttachNames(rlvCmd, strReply);
 			break;
-#endif // RLV_EXTENSION_CMD_GETXXXNAMES
 		case RLV_BHVR_GETOUTFIT:		// @getoutfit[:<layer>]=<channel>
 			eRet = onGetOutfit(rlvCmd, strReply);
 			break;
-#ifdef RLV_EXTENSION_CMD_GETXXXNAMES
 		case RLV_BHVR_GETOUTFITNAMES:	// @getoutfitnames=<channel>
 		case RLV_BHVR_GETADDOUTFITNAMES:// @getaddoutfitnames=<channel>
 		case RLV_BHVR_GETREMOUTFITNAMES:// @getremoutfitnames=<channel>
 			eRet = onGetOutfitNames(rlvCmd, strReply);
 			break;
-#endif // RLV_EXTENSION_CMD_GETXXXNAMES
 		case RLV_BHVR_FINDFOLDER:		// @findfolder:<criteria>=<channel>
-#ifdef RLV_EXTENSION_CMD_FINDFOLDERS
 		case RLV_BHVR_FINDFOLDERS:		// @findfolders:<criteria>=<channel>
-#endif // RLV_EXTENSION_CMD_FINDFOLDERS
 			eRet = onFindFolder(rlvCmd, strReply);
 			break;
 		case RLV_BHVR_GETPATH:			// @getpath[:<option>]=<channel>
@@ -2223,7 +2237,7 @@ ERlvCmdRet RlvHandler::onGetInvWorn(const RlvCommand& rlvCmd, std::string& strRe
 	RlvWearableItemCollector f(pFolder, RlvForceWear::ACTION_WEAR_REPLACE, RlvForceWear::FLAG_MATCHALL);
 	gInventory.collectDescendentsIf(pFolder->getUUID(), folders, items, FALSE, f, true);
 
-	rlv_wear_info wi = {0};
+	rlv_wear_info wi = {};
 
 	// Add all the folders to a lookup map 
 	std::map<LLUUID, rlv_wear_info> mapFolders;

@@ -66,7 +66,7 @@ public:
 	void		creditBalance(S32 credit);
 
 	// Request the latest currency balance from the server
-	static void sendMoneyBalanceRequest();
+	static void sendMoneyBalanceRequest(bool from_user = false);
 
 	void		setHealth(S32 percent);
 

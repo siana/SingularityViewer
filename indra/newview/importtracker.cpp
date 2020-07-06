@@ -17,7 +17,7 @@
 //#include "llsdserialize.h"
 #include "lltooldraganddrop.h"
 //#include "llassetuploadresponders.h"
-//#include "lleconomy.h"
+//#include "llagentbenefits.h"
 
 //#include "llfloaterperms.h"
 
@@ -635,7 +635,7 @@ void ImportTracker::send_inventory(LLSD& prim)
 							body["next_owner_mask"] = LLSD::Integer(U32_MAX);
 							body["group_mask"] = LLSD::Integer(U32_MAX);
 							body["everyone_mask"] = LLSD::Integer(U32_MAX);
-							body["expected_upload_cost"] = LLSD::Integer(LLGlobalEconomy::Singleton::getInstance()->getPriceUpload());
+							body["expected_upload_cost"] = LLAgentBenefits::current().getTextureUploadCost();
 							//cmdline_printchat("posting "+ data->assetid.asString());
 							LLHTTPClient::post(url, body, new JCImportInventoryResponder(body, data->assetid, data->type,data));
 							//error = TRUE;

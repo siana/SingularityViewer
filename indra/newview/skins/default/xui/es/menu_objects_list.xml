@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+	<context_menu label="Objetos" name="Objects">
+		<menu_item_call label="Enfocar" name="Cam To"/>
+		<menu_item_call label="Seguir" name="Follow"/>
+		<menu_item_call label="Mover A" name="Move To"/>
+		<menu_item_call label="Teleportar A" name="Teleport To"/>
+		<menu_item_call label="Sentarse" name="Sit On"/>
+		<menu_item_call label="Pagar" name="Pay"/>
+		<menu_item_call label="Tocar" name="Touch"/>
+		<menu_item_call label="Editar" name="Edit"/>
+		<menu_item_call label="Añadir a la Selección" name="Add to Selection"/>
+		<menu_item_call label="Desdibujar" name="Derender"/>
+		<menu_item_call label="Copiar UUID" name="Copy Key"/>
+		<menu_item_call label="Copiar Nombre" name="Copy Name"/>
+		<menu_item_call label="Copiar SLURL" name="Copy SLURL"/>
+	</menu>

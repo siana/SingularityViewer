@@ -35,7 +35,7 @@
       </text>
       <line_editor bevel_style="in" border_style="line" border_thickness="1" bottom_delta="-20"
            follows="left|bottom" font="SansSerifSmall" handle_edit_keys_directly="true"
-           height="20" left="4" max_length="16" mouse_opaque="true"
+           height="20" left="4" max_length="24" mouse_opaque="true"
            name="password_edit" select_all_on_focus_received="true" width="115" />
     </layout_panel>
     <layout_panel name="grids_panel" left="0" user_resize="false" auto_resize="false" width="143" min_width="0" visibility_control="ForceShowGrid">
@@ -79,6 +79,9 @@
   <check_box bottom="12" left="15" control_name="RememberName" follows="left|bottom" height="16" label="Save username" name="remember_name_check" width="158"/>
   <button bottom_delta="0" left="146" height="16" width="16" follows="left|bottom" image_overlay="inv_folder_trash.tga" scale_image="true" label="" tool_tip="Delete the currently selected remembered login info, if any." name="remove_login"/>
   <check_box bottom_delta="0" left="173" control_name="RememberPassword" follows="left|bottom" height="16" label="Save password" name="remember_check" width="158"/>
+
+  <icon name="fmod_logo" bottom="10" height="40" left="-341" width="152" follows="right|bottom" image_name="FMOD_Logo"/>
+  <text name="fmod_text" value="Powered By" bottom_delta="40" height="16" left_delta="36" width="84" follows="right|bottom" font="SansSerif" font_style="BOLD" font_size="Large"/>
 
 	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="45" drop_shadow_visible="true" follows="right|bottom"

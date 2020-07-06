@@ -49,7 +49,6 @@ public:
 		TEXTURE_MATRIX3,
 		OBJECT_PLANE_S,
 		OBJECT_PLANE_T,
-		VIEWPORT,
 		LIGHT_POSITION,
 		LIGHT_DIRECTION,
 		LIGHT_ATTENUATION,
@@ -124,7 +123,9 @@ public:
 		DEFERRED_SSAO_FACTOR,
 		DEFERRED_SSAO_FACTOR_INV,
 		DEFERRED_SSAO_EFFECT,
-		DEFERRED_SCREEN_RES,
+		DEFERRED_SSAO_SCALE,
+		DEFERRED_KERN_SCALE,
+		DEFERRED_NOISE_SCALE,
 		DEFERRED_NEAR_CLIP,
 		DEFERRED_SHADOW_OFFSET,
 		DEFERRED_SHADOW_BIAS,
@@ -138,7 +139,6 @@ public:
 		DEFERRED_SHADOW_TARGET_WIDTH,
 		DEFERRED_DOWNSAMPLED_DEPTH_SCALE,
 
-		FXAA_TC_SCALE,
 		FXAA_RCP_SCREEN_RES,
 		FXAA_RCP_FRAME_OPT,
 		FXAA_RCP_FRAME_OPT2,
@@ -228,29 +228,36 @@ DISPLAY_GAMMA,
 	virtual void initAttribsAndUniforms(void);
 
 	BOOL attachShaderFeatures(LLGLSLShader * shader);
-	void dumpObjectLog(GLhandleARB ret, BOOL warns = TRUE);
+	void dumpObjectLog(GLhandleARB ret, bool isProgram, bool warns = TRUE);
 	BOOL	linkProgramObject(GLhandleARB obj, BOOL suppress_errors = FALSE);
 	BOOL	validateProgramObject(GLhandleARB obj);
 	GLhandleARB loadShaderFile(const std::string& filename, S32 & shader_level, GLenum type, std::map<std::string, std::string>* defines = NULL, S32 texture_index_channels = -1);
+	void unloadShaders();
+	void unloadShaderObjects();
 
 	// Implemented in the application to actually point to the shader directory.
 	virtual std::string getShaderDirPrefix(void) = 0; // Pure Virtual
 
 	// Implemented in the application to actually update out of date uniforms for a particular shader
 	virtual void updateShaderUniforms(LLGLSLShader * shader) = 0; // Pure Virtual
+	virtual bool attachClassSharedShaders(LLGLSLShader& shader, S32 shader_class) = 0; // Pure Virtual
 
 public:
 	struct CachedObjectInfo
 	{
-		CachedObjectInfo(GLhandleARB handle, U32 level, GLenum type, std::map<std::string,std::string> *definitions) : 
-			mHandle(handle), mLevel(level), mType(type), mDefinitions(definitions ? *definitions : std::map<std::string,std::string>()){}
+		CachedObjectInfo(GLhandleARB handle, U32 level, GLenum type, U32 texture_index_channels, std::map<std::string,std::string> *definitions) : 
+			mHandle(handle), mLevel(level), mType(type), mIndexChannels(texture_index_channels), mDefinitions(definitions ? *definitions : std::map<std::string,std::string>()){}
 		GLhandleARB mHandle;	//Actual handle of the opengl shader object.
 		U32 mLevel;				//Level /might/ not be needed, but it's stored to ensure there's no change in behavior.
 		GLenum mType;			//GL_VERTEX_SHADER_ARB or GL_FRAGMENT_SHADER_ARB. Tracked because some utility shaders can be loaded as both types (carefully).
+		U32 mIndexChannels;     //LLShaderFeatures::mIndexedTextureChannels
 		std::map<std::string,std::string> mDefinitions;
 	};
 	// Map of shader names to compiled
 	std::multimap<std::string, CachedObjectInfo > mShaderObjects;	//Singu Note: Packing more info here. Doing such provides capability to skip unneeded duplicate loading..
+
+	// Map of program names linked
+	std::map<std::string, GLuint> mProgramObjects;
 
 	//global (reserved slot) shader parameters
 	std::vector<std::string> mReservedAttribs;
@@ -261,6 +268,7 @@ public:
 	std::map<std::string, std::string> mDefinitions;
 
 protected:
+	void cleanupShaderSources();
 
 	// our parameter manager singleton instance
 	static LLShaderMgr * sInstance;

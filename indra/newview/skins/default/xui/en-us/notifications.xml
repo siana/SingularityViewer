@@ -8,6 +8,10 @@
 		Always choose this option
   </global>
 
+  <global name="implicitclosebutton">
+		Close
+  </global>
+
   <template name="okbutton">
     <form>
       <button
@@ -29,6 +33,12 @@
     </form>
   </template>
 
+  <template name="notifyignore">
+    <form>
+      <ignore text="$ignoretext"/>
+    </form>
+  </template>
+
   <template name="okcancelbuttons">
     <form>
       <button
@@ -37,20 +47,6 @@
        name="OK"
        text="$yestext"/>
       <button
-       index="1"
-       name="Cancel"
-       text="$notext"/>
-    </form>
-  </template>
-
-  <template name="okcancelbuttonscanceldefault">
-    <form>
-      <button
-       index="0"
-       name="OK"
-       text="$yestext"/>
-      <button
-       default="true"
        index="1"
        name="Cancel"
        text="$notext"/>
@@ -86,6 +82,20 @@
     </form>
   </template>
 
+  <template name="okcancelignorecanceldefault">
+    <form>
+      <button
+       index="0"
+       name="OK"
+       text="$yestext"/>
+      <button
+       default="true"
+       index="1"
+       name="Cancel"
+       text="$notext"/>
+      <ignore text="$ignoretext"/>
+    </form>
+  </template>
   <template name="okhelpbuttons">
     <form>
       <button
@@ -134,88 +144,15 @@
   </template>
 
   <notification
-   icon="alert.tga"
-   name="AIAlert"
-   type="alert">
-[PAYLOAD]
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="AIAlertModal"
-   type="alertmodal">
-[PAYLOAD]
-  </notification>
-
-  <notification
-   icon="alert.tga"
-   name="MediaAlert"
-   type="alert">
-The owner of this parcel has requested the following [MEDIA_TYPE] URL to be loaded by your viewer:
-
-[URL]
-
-You may choose to allow or deny the corresponding domain or in-world scripted object server:
-
-[DOMAIN]
-
-"Allow" and "Deny" apply only for this session, while "Blacklist" and "Whitelist" apply forever.
-   <form name="form">
-    <button
-	 index="0"
-	 name="Allow"
-	 text="Allow"/>
-	<button
-	 index="1"
-	 name="Deny"
-	 text="Deny"/>
-	<button
-	 index="2"
-	 name="Blacklist"
-	 text="Blacklist"/>
-	<button
-	 index="3"
-	 name="Whitelist"
-	 text="Whitelist"/>
-   </form>
-  </notification>
-  
-  <notification
-   icon="alertmodal.tga"
-   name="AddToMediaList"
-   type="alertmodal">
-Enter a domain name to be added to the [LIST]:
-    <tag>confirm</tag>
-    <form name="form">
-      <input name="url" type="text" default="true" />
-      <button
-       default="true"
-       index="0"
-       name="Add"
-       text="Add"/>
-      <button
-       index="1"
-       name="Cancel"
-       text="Cancel"/>
-    </form>
-  </notification>
-
-  <notification
-   icon="notifytip.tga"
-   name="MediaBlocked"
-   type="notifytip">
-Media/audio URL blocked for [DOMAIN]
-  </notification>
-
-  <notification
    functor="GenericAcknowledge"
    icon="alertmodal.tga"
    name="MissingAlert"
-   label="Unknown Alert Message"
+   label="Unknown Notification Message"
    type="alertmodal">
-Your version of [APP_NAME] does not know how to display the alert message it just received.  Please verify that you have the latest [APP_NAME] installed.
+Your version of [APP_NAME] does not know how to display the notification it just received.  Please verify that you have the latest [APP_NAME] installed.
 
-Error details: The alert called &apos;[_NAME]&apos; was not found in notifications.xml.
+Error details: The notification called &apos;[_NAME]&apos; was not found in notifications.xml.
+    <tag>fail</tag>
     <usetemplate
      name="okbutton"
      yestext="OK"/>
@@ -228,6 +165,7 @@ Error details: The alert called &apos;[_NAME]&apos; was not found in notificatio
 Floater error: Could not find the following controls:
 
 [CONTROLS]
+    <tag>fail</tag>
     <usetemplate
      name="okbutton"
      yestext="OK"/>
@@ -238,6 +176,7 @@ Floater error: Could not find the following controls:
    name="TutorialNotFound"
    type="alertmodal">
 No tutorial is currently available.
+    <tag>fail</tag>
     <usetemplate
      name="okbutton"
      yestext="OK"/>
@@ -275,40 +214,36 @@ No tutorial is currently available.
 
   <notification
    icon="alertmodal.tga"
+   name="GenericAlertOK"
+   type="alertmodal">
+[MESSAGE]
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="BadInstallation"
    type="alertmodal">
 An error occurred while updating [APP_NAME]. Please download the latest version from the official download site.
+    <tag>fail</tag>
     <usetemplate
      name="okbutton"
-     yestext="Ok"/>
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="EmptyFirstNameMessage"
-   type="alertmodal">
-[GRIDNAME] requires a non-empty first name to login.
-Please try again.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="EmptyLastNameMessage"
-   type="alertmodal">
-[GRIDNAME] requires a non-empty last name to login.
-Please try again.
+     yestext="OK"/>
   </notification>
 
   <notification
    icon="alertmodal.tga"
    name="LoginFailedNoNetwork"
    type="alertmodal">
+    <tag>fail</tag>
 Could not connect to the [SECOND_LIFE_GRID].
 &apos;[DIAGNOSTIC]&apos;
 Make sure your Internet connection is working properly.
 	<usetemplate
      name="okbutton"
-     yestext="Ok"/>
+     yestext="OK"/>
   </notification>
 
   <notification
@@ -316,9 +251,10 @@ Make sure your Internet connection is working properly.
    name="MessageTemplateNotFound"
    type="alertmodal">
 Message Template [PATH] not found.
+   <tag>fail</tag>
 	<usetemplate
      name="okbutton"
-     yestext="Ok"/>
+     yestext="OK"/>
   </notification>
 
   <notification
@@ -332,6 +268,7 @@ Save changes to current clothing/body part?
      notext="Don&apos;t Save"
      yestext="Save"/>
   </notification>
+
   <notification
    icon="alertmodal.tga"
      name="ConfirmNoCopyToOutbox"
@@ -411,6 +348,7 @@ Initialization with the Marketplace failed because of a system or network error.
          yestext="OK"/>
   </notification>
     
+
   <notification
    icon="alertmodal.tga"
    name="MarketplaceURLChanged"
@@ -435,6 +373,247 @@ There is no marketplace on the region you've moved to.
          name="okignore"
          yestext="OK"/>
   </notification>
+
+    <notification
+   icon="OutboxStatus_Error"
+   name="StockPasteFailed"
+        type="alert">
+Copy or move to Stock Folder failed with error :
+
+&apos;[ERROR_CODE]&apos;
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="OutboxStatus_Error"
+   name="MerchantPasteFailed"
+        type="alert">
+Copy or move to Marketplace Listings failed with error :
+
+&apos;[ERROR_CODE]&apos;
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="OutboxStatus_Error"
+   name="MerchantTransactionFailed"
+        type="alert">
+The transaction with the Marketplace failed with the following error :
+
+        [ERROR_REASON][ERROR_DESCRIPTION]
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="OutboxStatus_Error"
+   name="MerchantUnprocessableEntity"
+        type="alert">
+We are unable to list this product or activate the version folder. Usually this is caused by missing information in the listing description form, but it may be due to errors in the folder structure. Either edit the listing or check the listing folder for errors.
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="OutboxStatus_Error"
+   name="MerchantListingFailed"
+        type="alert">
+Listing to Marketplace failed with error :
+
+&apos;[ERROR_CODE]&apos;
+
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+        icon="OutboxStatus_Error"
+        name="MerchantFolderActivationFailed"
+        type="alert">
+        Activating this version folder failed with error :
+
+        &apos;[ERROR_CODE]&apos;
+
+        <usetemplate
+        name="okbutton"
+        yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="MerchantForceValidateListing"
+   type="alertmodal">
+In order to create your listing, we fixed the hierarchy of your listing contents.
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Warn me that creating a listing fixes the hierarchy of the content"
+         name="okignore"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmMerchantActiveChange"
+   type="alertmodal">
+This action will change the active content of this listing. Do you want to continue?
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I change an active listing on the marketplace"
+         name="okcancelignore"
+         notext="Cancel"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmMerchantMoveInventory"
+   type="alertmodal">
+Items dragged to the Marketplace Listings window are moved from their original locations, not copied. Do you want to continue?
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I move an item from the inventory to the marketplace"
+         name="okcancelignore"
+         notext="Cancel"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmListingCutOrDelete"
+   type="alertmodal">
+Moving or deleting a listing folder will delete your Marketplace listing.
+If you would like to keep the Marketplace listing, move or delete the contents of the version folder you would like to modify.
+
+Do you want to continue?
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I move or delete a listing from the marketplace"
+         name="okcancelignore"
+         notext="Cancel"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmCopyToMarketplace"
+   type="alertmodal">
+You don't have permission to copy one or more of these items to the Marketplace. You can move them or leave them behind.
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I try to copy a selection containing no copy items to the marketplace"
+         name="yesnocancelbuttons"
+         yestext="Move item(s)"
+        notext="Don't move item(s)"
+         canceltext="Cancel"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmMerchantUnlist"
+   type="alertmodal">
+This action will unlist this listing. Do you want to continue?
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I unlist an active listing on the marketplace"
+         name="okcancelignore"
+         notext="Cancel"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="ConfirmMerchantClearVersion"
+   type="alertmodal">
+        This action will deactivate the version folder of the current listing. Do you want to continue?
+        <tag>confirm</tag>
+        <usetemplate
+         ignoretext="Confirm before I deactivate the version folder of a listing on the marketplace"
+         name="okcancelignore"
+         notext="Cancel"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="AlertMerchantListingNotUpdated"
+   type="alertmodal">
+This listing could not be updated.
+[[URL] Click here] to edit it on the Marketplace.
+        <usetemplate
+         name="okbutton"
+         yestext="OK"/>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="AlertMerchantListingCannotWear"
+   type="alertmodal">
+You cannot wear clothes or body parts that are in the Marketplace Listings folder.
+        <tag>fail</tag>
+    </notification>
+
+    <notification
+   icon="alertmodal.tga"
+   name="AlertMerchantListingInvalidID"
+   type="alertmodal">
+Invalid listing ID.
+        <tag>fail</tag>
+    </notification>
+
+    <notification
+     icon="alertmodal.tga"
+     name="AlertMerchantListingActivateRequired"
+     type="alertmodal">
+There are several or no version folders in this listing. You will need to select and activate one independently later.
+      <tag>confirm</tag>
+      <usetemplate
+       ignoretext="Alert about version folder activation when I create a listing with several version folders"
+       name="okignore"
+       yestext="OK"/>
+    </notification>
+
+    <notification
+     icon="alertmodal.tga"
+     name="AlertMerchantStockFolderSplit"
+     type="alertmodal">
+We have separated stock items of different types into separate stock folders, so your folder is arranged in a way that we can list it.
+      <tag>confirm</tag>
+      <usetemplate
+       ignoretext="Alert when stock folder is being split before being listed"
+       name="okignore"
+       yestext="OK"/>
+    </notification>
+
+    <notification
+     icon="alertmodal.tga"
+     name="AlertMerchantStockFolderEmpty"
+     type="alertmodal">
+We have unlisted your listing because the stock is empty. You need to add more units to the stock folder to list the listing again.
+      <tag>confirm</tag>
+      <usetemplate
+       ignoretext="Alert when a listing is unlisted because stock folder is empty"
+       name="okignore"
+       yestext="OK"/>
+    </notification>
+
+    <notification
+     icon="alertmodal.tga"
+     name="AlertMerchantVersionFolderEmpty"
+     type="alertmodal">
+We have unlisted your listing because the version folder is empty. You need to add items to the version folder to list the listing again.
+      <tag>confirm</tag>
+      <usetemplate
+       ignoretext="Alert when a listing is unlisted because version folder is empty"
+       name="okignore"
+       yestext="OK"/>
+    </notification>
 
     <notification
    icon="alertmodal.tga"
@@ -495,6 +674,26 @@ Save all changes to clothing/body parts?
      name="yesnocancelbuttons"
      notext="Don&apos;t Save"
      yestext="Save All"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="FriendsAndGroupsOnly"
+   type="alertmodal">
+    Non-friends won't know that you've chosen to ignore their calls and instant messages.
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="FavoritesOnLogin"
+   type="alertmodal">    
+    Note: When you turn on this option, anyone who uses this computer can see your list of favorite locations.
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
   </notification>
 
   <notification
@@ -795,9 +994,130 @@ You do not have enough [CURRENCY] to join this group.
 
   <notification
    icon="alertmodal.tga"
+   name="CreateGroupCost"
+   type="alertmodal">
+	  Creating this group will cost [COST].
+Groups need more than one member, or they are deleted forever.
+Please invite members within 48 hours.
+    <tag>group</tag>
+    <tag>funds</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="okcancelbuttons"
+     notext="Cancel"
+     yestext="Create group for [COST]"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupInaccessible"
+   type="alertmodal">
+This group is not accessible to you.
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupError"
+   type="alertmodal">
+Error processing your group membership request.
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupErrorReason"
+   type="alertmodal">
+Unable to join group: [reason]
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <tag>reason</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupTrialUser"
+   type="alertmodal">
+Sorry, trial users can't join groups.
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupMaxGroups"
+   type="alertmodal">
+You cannot join &apos;[group_name]&apos;:
+You are already a member of [group_count] groups, the maximum number allowed is [max_groups]
+    <tag>success</tag>
+    <tag>group_id</tag>
+    <tag>group_name</tag>
+    <tag>group_count</tag>
+    <tag>max_groups</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupClosedEnrollment"
+   type="alertmodal">
+You cannot join &apos;[group_name]&apos;:
+The group no longer has open enrollment.
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupSuccess"
+   type="alertmodal">
+You have been added to the group
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+  
+  <notification
+   icon="alertmodal.tga"
+   name="JoinGroupInsufficientFunds"
+   type="alertmodal">
+Unable to transfer the required [CURRENCY][membership_fee] membership fee.
+    <tag>group_id</tag>
+    <tag>success</tag>
+    <usetemplate
+       name="okbutton"
+       yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="LandBuyPass"
    type="alertmodal">
+   <tag>fail</tag>
 For [CURRENCY][COST] you can enter this land (&apos;[PARCEL_NAME]&apos;) for [TIME] hours.  Buy a pass?
+    <tag>funds</tag>
+    <tag>confirm</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -810,6 +1130,7 @@ For [CURRENCY][COST] you can enter this land (&apos;[PARCEL_NAME]&apos;) for [TI
    type="alertmodal">
 Sale price must be set to more than [CURRENCY]0 if selling to anyone.
 Please select an individual to sell to if selling for [CURRENCY]0.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -848,6 +1169,8 @@ Are you sure you want to return all objects shared with the group &apos;[NAME]&a
 *WARNING* This will delete the non-transferable objects deeded to the group!
 
 Objects: [N]
+    <tag>confirm</tag>
+    <tag>group</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -861,67 +1184,13 @@ Objects: [N]
 Are you sure you want to return all objects owned by the Resident &apos;[NAME]&apos; on this parcel of land back to their inventory?
 
 Objects: [N]
+    <tag>confirm</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
      yestext="OK"/>
   </notification>
 
-  <notification
- icon="alert.tga"
- name="ClickBuildConstants"
- type="alert">
-The following constants are accepted in this tab:
-
-PX  --  X-axis position
-PY  --  Y-axis position
-PZ  --  Z-axis position
-SX  --  X-axis size
-SY  --  Y-axis size
-SZ  --  Z-axis size
-RX  --  X-axis rotation
-RY  --  Y-axis rotation
-RZ  --  Z-axis rotation
-CB  --  Path cut begin
-CE  --  Path cut end
-HLW  --  Hollow size
-SKW  --  Skew
-PB  --  Slice/Dimple/Profile cut begin
-PE  --  Slice/Dimple/Profile cut end
-TB  --  Twist begin
-TE  --  Twist end
-SHX  --  X-axis top shear
-SHY  --  Y-axis top shear
-HLX  --  X-axis hole size
-HLY  --  Y-axis hole size
-TPX  --  X-axis taper
-TPY  --  Y-axis taper
-ROF  --  Radius offset
-REV  --  Revolutions
-
-PI  --  pi
-TWO_PI  --  2pi
-PI_BY_TWO  --  pi/2
-SQRT2  --  Square root of 2
-DEG_TO_RAD  --  DEG_TO_RAD conversion (pi/180)
-RAD_TO_DEG  --  RAD_TO_DEG conversion (180/pi)
-GRAVITY  --  -9.8
-
-*  --  Multiplication
-\  --  Division
-+  --  Addition
--  --  Subtraction
-
-For information about this feature, click "More Info".
-  <url option="1" name="url">
-    http://imprudenceviewer.org/wiki/Build_Math_Expressions
-  </url>
-  <usetemplate
-   name="okhelpbuttons"
-   yestext="OK"
-   helptext="More Info"/>
-</notification>
-  
   <notification
    icon="alertmodal.tga"
    name="ReturnObjectsOwnedBySelf"
@@ -1442,6 +1711,19 @@ Unable to download file
   </notification>
 
   <notification
+  name="MediaFileDownloadUnsupported"
+  label=""
+  type="alert">
+    <unique/>
+    <tag>confirm</tag>
+    You have requested a file download, which is not supported within [SECOND_LIFE].
+    <usetemplate
+     ignoretext="Warn about unsupported file downloads"
+     name="okignore"
+     yestext="OK"/>
+  </notification>
+  
+  <notification
    icon="alertmodal.tga"
    name="CannotWriteFile"
    type="alertmodal">
@@ -1868,6 +2150,18 @@ Unable to encode file: [FILE]
 
   <notification
    icon="alertmodal.tga"
+   name="CorruptedProtectedDataStore"
+   type="alertmodal">
+   We can't fill in your username and password.  This may happen when you change network setup
+
+  <tag>fail</tag>
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
    name="CorruptResourceFile"
    type="alertmodal">
 Corrupt resource file: [FILE]
@@ -1894,7 +2188,7 @@ Unable to create output file: [FILE]
    icon="alertmodal.tga"
    name="DoNotSupportBulkBVHAnimationUpload"
    type="alertmodal">
-We do not currently support bulk upload of BVH animation files.
+[APP_NAME] does not currently support bulk upload of BVH format animation files.
   <tag>fail</tag>
   </notification>
 
@@ -2016,7 +2310,7 @@ Your search terms were too short so no search was performed.
    icon="notifytip.tga"
    name="CouldNotTeleportReason"
    type="notifytip">
-Could not teleport.
+Teleport failed.
 [REASON]
   <tag>fail</tag>
   </notification>
@@ -2031,6 +2325,7 @@ Could not teleport.
    type="notifytip">
 Problem encountered processing your teleport request. You may need to log back in before you can teleport. If you continue to get this message, please check the Tech Support FAQ at:
 www.secondlife.com/support
+  <tag>fail</tag>
   </notification>
   <notification
    icon="notifytip.tga"
@@ -2038,59 +2333,69 @@ www.secondlife.com/support
    type="notifytip">
 Problem encountered processing your region crossing. You may need to log back in before you can cross regions. If you continue to get this message, please check the Tech Support FAQ at:
 www.secondlife.com/support
+  <tag>fail</tag>
   </notification>
   <notification
    icon="notifytip.tga"
    name="blocked_tport"
    type="notifytip">
 Sorry, teleport is currently blocked. Try again in a moment.  If you still cannot teleport, please log out and log back in to resolve the problem.
+  <tag>fail</tag>
   </notification>
   <notification
    icon="notifytip.tga"
    name="nolandmark_tport"
    type="notifytip">
 Sorry, but system was unable to locate landmark destination.
+  <tag>fail</tag>
   </notification>
   <notification
    icon="notifytip.tga"
    name="timeout_tport"
    type="notifytip">
+   <tag>fail</tag>
 Sorry, but system was unable to complete the teleport connection.  Try again in a moment.
   </notification>
   <notification
    icon="notifytip.tga"
    name="noaccess_tport"
    type="notifytip">
+   <tag>fail</tag>
 Sorry, you do not have access to that teleport destination.
   </notification>
   <notification
    icon="notifytip.tga"
    name="missing_attach_tport"
    type="notifytip">
+   <tag>fail</tag>
 Your attachments have not arrived yet. Try waiting for a few more seconds or log out and back in again before attempting to teleport.
   </notification>
   <notification
    icon="notifytip.tga"
    name="too_many_uploads_tport"
    type="notifytip">
+   <tag>fail</tag>
 The asset queue in this region is currently clogged so your teleport request will not be able to succeed in a timely manner. Please try again in a few minutes or go to a less busy area.
   </notification>
   <notification
    icon="notifytip.tga"
    name="expired_tport"
    type="notifytip">
+   <tag>fail</tag>
 Sorry, but the system was unable to complete your teleport request in a timely fashion. Please try again in a few minutes.
   </notification>
   <notification
    icon="notifytip.tga"
    name="expired_region_handoff"
    type="notifytip">
+   <tag>fail</tag>
 Sorry, but the system was unable to complete your region crossing in a timely fashion. Please try again in a few minutes.
   </notification>
   <notification
    icon="notifytip.tga"
    name="no_host"
    type="notifytip">
+   <tag>fail</tag>
 Unable to find teleport destination. The destination may be temporarily unavailable or no longer exists. Please try again in a few minutes.
   </notification>
   <notification
@@ -2705,7 +3010,7 @@ Please enter a higher price.
    icon="alertmodal.tga"
    name="ConfirmItemDeleteHasLinks"
    type="alertmodal">
-At least one of the items you has link items that point to it.  If you delete this item, its links will permanently stop working.  It is strongly advised to delete the links first.
+At least one of the items has links that point to it.  If you delete this item, its links will permanently stop working.  It is strongly advised to delete the links first.
 
 Are you sure you want to delete these items?
     <tag>confirm</tag>
@@ -2964,11 +3269,12 @@ You may want to set a new home location.
    icon="alertmodal.tga"
    name="ClothingLoading"
    type="notifytip">
+   <tag>fail</tag>
 Your clothing is still downloading.
 You can use [SECOND_LIFE] normally and other people will see you correctly.
     <form name="form">
       <ignore name="ignore"
-       text="When clothing is taking a long time to download"/>
+       text="Clothing is taking a long time to download"/>
     </form>
   </notification>
 
@@ -2980,7 +3286,6 @@ You can use [SECOND_LIFE] normally and other people will see you correctly.
 [APP_NAME] installation is complete.
 
 If this is your first time using [SECOND_LIFE], you will need to create an account before you can log in.
-Return to www.secondlife.com to create a new account?
     <tag>confirm</tag>
     <usetemplate
      name="okcancelbuttons"
@@ -3049,6 +3354,8 @@ Could not teleport to [SLURL] as it's on a different grid ([GRID]) than the curr
   <notification
    icon="notify.tga"
    name="GrantedModifyRights"
+   persist="true"
+   log_to_im="true"   
    type="notify">
 [NAME] has given you permission to edit their objects.
   </notification>
@@ -3056,6 +3363,8 @@ Could not teleport to [SLURL] as it's on a different grid ([GRID]) than the curr
   <notification
    icon="notify.tga"
    name="RevokedModifyRights"
+   persist="true"
+   log_to_im="true"   
    type="notify">
 Your privilege to modify [NAME]&apos;s objects has been revoked
   </notification>
@@ -3204,6 +3513,69 @@ You can only have [MAX_MANAGER] Estate Managers.
    name="OwnerCanNotBeDenied"
    type="alertmodal">
 Can&apos;t add estate owner to estate &apos;Banned Resident&apos; list.
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="ProblemAddingEstateManagerBanned"
+   type="alertmodal">
+Unable to add banned resident to estate manager list.
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="ProblemBanningEstateManager"
+   type="alertmodal">
+Unable to add estate manager [AGENT] to banned list.
+  </notification>
+  
+  <notification
+   icon="alertmodal.tga"
+   name="GroupIsAlreadyInList"
+   type="alertmodal">
+&lt;nolink&gt;[GROUP]&lt;/nolink&gt; is already in the Allowed Groups list.
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="AgentIsAlreadyInList"
+   type="alertmodal">
+[AGENT] is already in your [LIST_TYPE] list.
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="AgentsAreAlreadyInList"
+   type="alertmodal">
+[AGENT] are already in your [LIST_TYPE] list.
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="AgentWasAddedToList"
+   type="alertmodal">
+[AGENT] was added to [LIST_TYPE] list of [ESTATE].
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="AgentsWereAddedToList"
+   type="alertmodal">
+[AGENT] were added to [LIST_TYPE] list of [ESTATE].
+
+  </notification>
+      <notification
+   icon="alertmodal.tga"
+   name="AgentWasRemovedFromList"
+   type="alertmodal">
+[AGENT] was removed from [LIST_TYPE] list of [ESTATE].
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="AgentsWereRemovedFromList"
+   type="alertmodal">
+[AGENT] were removed from [LIST_TYPE] list of [ESTATE].
   </notification>
 
   <notification
@@ -3460,19 +3832,6 @@ Visit the [SECOND_LIFE] QA Wiki.
 Visit the [SECOND_LIFE] Public Issue Tracker, where you can report bugs and other issues.
     <usetemplate
      ignoretext="When launching web browser to view the Public Issue Tracker"
-     name="okcancelignore"
-     notext="Cancel"
-     yestext="Go to page"/>
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="WebLaunchSinguIssue"
-   type="alertmodal">
-Visit the [SHORT_APP_NAME] Issue Tracker, to report bugs and issues with [SHORT_APP_NAME] Viewer.
-Please be sure that your report won't be a duplicate of an existing one.
-    <usetemplate
-     ignoretext="When launching web browser to view [SHORT_APP_NAME] Issue Tracker"
      name="okcancelignore"
      notext="Cancel"
      yestext="Go to page"/>
@@ -4158,15 +4517,100 @@ Remove estate manager for this estate only or for [ALL_ESTATES]?
 
   <notification
    icon="alert.tga"
+   label="Select estate"
+   name="EstateAllowedExperienceAdd"
+   type="alert">
+    Add to allowed list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   label="Select estate"
+   name="EstateAllowedExperienceRemove"
+   type="alert">
+    Remove from allowed list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   label="Select estate"
+   name="EstateBlockedExperienceAdd"
+   type="alert">
+    Add to blocked list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   label="Select estate"
+   name="EstateBlockedExperienceRemove"
+   type="alert">
+    Remove from blocked list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   label="Select estate"
+   name="EstateTrustedExperienceAdd"
+   type="alert">
+    Add to key list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   label="Select estate"
+   name="EstateTrustedExperienceRemove"
+   type="alert">
+    Remove from key list for this estate only or for [ALL_ESTATES]?
+    <tag>confirm</tag>
+    <usetemplate
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="All Estates"
+     yestext="This Estate"/>
+  </notification>  
+
+  <notification
+   icon="alert.tga"
    label="Confirm Kick"
    name="EstateKickUser"
    type="alert">
 Kick [EVIL_USER] from this estate?
     <tag>confirm</tag>
     <usetemplate
-     name="okcancelbuttons"
-     notext="Cancel"
-     yestext="OK"/>
+     canceltext="Cancel"
+     name="yesnocancelbuttons"
+     notext="Kick Home"
+     yestext="Kick"/>
   </notification>
 
   <notification
@@ -4195,6 +4639,17 @@ Are you sure you want to change the Estate Covenant?
 
   <notification
    icon="alertmodal.tga"
+   name="EstateParcelAccessOverride"
+   type="alertmodal">
+Unchecking this option may remove restrictions that parcel owners have added to prevent griefing, maintain privacy, or protect underage residents from adult material. Please discuss with your parcel owners as needed.
+    <tag>confirm</tag>
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="RegionEntryAccessBlocked"
    type="alertmodal">
    <tag>fail</tag>
@@ -4202,6 +4657,13 @@ Are you sure you want to change the Estate Covenant?
 <usetemplate
      name="okbutton"
      yestext="OK"/>
+  </notification>
+
+  <notification
+    icon="alertmodal.tga"
+    name="SLM_UPDATE_FOLDER"
+    type="alertmodal">
+[MESSAGE]
   </notification>
 
   <notification
@@ -5118,6 +5580,7 @@ The buyer must agree to the covenant by ticking the check box before they will b
    type="alertmodal">
 Cannot buy objects from different owners at the same time.
 Please select only one object and try again.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5127,6 +5590,7 @@ Please select only one object and try again.
    type="alertmodal">
 Unable to buy the contents of more than one object at a time.
 Please select only one object and try again.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5136,6 +5600,7 @@ Please select only one object and try again.
    type="alertmodal">
 Cannot buy objects from different owners at the same time.
 Please select only one object and try again.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5148,6 +5613,8 @@ You will be able to:
  Modify: [MODIFYPERM]
  Copy: [COPYPERM]
  Resell or Give Away: [RESELLPERM]
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5164,6 +5631,8 @@ You will be able to:
  Modify: [MODIFYPERM]
  Copy: [COPYPERM]
  Resell or Give Away: [RESELLPERM]
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5180,6 +5649,8 @@ You will be able to:
  Modify: [MODIFYPERM]
  Copy: [COPYPERM]
  Resell or Give Away: [RESELLPERM]
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5196,6 +5667,8 @@ You will be able to:
  Modify: [MODIFYPERM]
  Copy: [COPYPERM]
  Resell or Give Away: [RESELLPERM]
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5208,6 +5681,8 @@ You will be able to:
    type="alertmodal">
 Buy contents from [OWNER] for [CURRENCY][PRICE]?
 They will be copied to your inventory.
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5220,6 +5695,8 @@ They will be copied to your inventory.
    type="alertmodal">
 Buy contents for [CURRENCY][PRICE]?
 They will be copied to your inventory.
+  <tag>confirm</tag>
+  <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5234,6 +5711,8 @@ This transaction will:
 [ACTION]
 
 Are you sure you want to proceed with this purchase?
+    <tag>confirm</tag>
+    <tag>funds</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5249,6 +5728,8 @@ This transaction will:
 
 Are you sure you want to proceed with this purchase?
 Please re-enter your password and click OK.
+    <tag>funds</tag>
+    <tag>confirm</tag>
     <form name="form">
       <input
        name="message"
@@ -5284,8 +5765,9 @@ You have selected &apos;no copy&apos; inventory items.
 These items will be moved to your inventory, not copied.
 
 Move the inventory item(s)?
+    <tag>confirm</tag>
     <usetemplate
-     ignoretext="When moving no-copy inventory from objects"
+     ignoretext="Warn me before I move &apos;no-copy&apos; items from an object"
      name="okcancelignore"
      notext="Cancel"
      yestext="OK"/>
@@ -5299,8 +5781,9 @@ You have selected &apos;no copy&apos; inventory items.  These items will be move
 Because this object is scripted, moving these items to your inventory may cause the script to malfunction.
 
 Move the inventory item(s)?
+    <tag>confirm</tag>
     <usetemplate
-     ignoretext="When moving no-copy inventory from scripted objects"
+     ignoretext="Warn me before I move &apos;no-copy&apos; items which might break a scripted object"
      name="okcancelignore"
      notext="Cancel"
      yestext="OK"/>
@@ -5310,10 +5793,10 @@ Move the inventory item(s)?
    icon="alert.tga"
    name="ClickActionNotPayable"
    type="alert">
-Warning: The Pay Object click action has been set, but it will only work if a script is added with a money() event.
+Warning: The &apos;Pay object&apos; click action has been set, but it will only work if a script is added with a money() event.
     <form name="form">
       <ignore name="ignore"
-       text="When Setting &apos;Pay&apos; on objects without money() events"/>
+       text="I set the action &apos;Pay object&apos; when building an object without a money() script"/>
     </form>
   </notification>
 
@@ -5329,6 +5812,7 @@ Payment stopped: the price paid does not match any of the pay buttons set for th
    name="OpenObjectCannotCopy"
    type="alertmodal">
 There are no items in this object that you are allowed to copy.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5337,7 +5821,7 @@ There are no items in this object that you are allowed to copy.
    type="alertmodal">
 Go to the [SECOND_LIFE] web site to see your account history?
     <usetemplate
-     ignoretext="When loading account history web page"
+     ignoretext="Launch my browser to see my account history"
      name="okcancelignore"
      notext="Cancel"
      yestext="Go to page"/>
@@ -5361,16 +5845,32 @@ Visit the [SECOND_LIFE] Support Web site?
    type="alertmodal">
 This grid has no link for support.
   </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="ConfirmAddingChatParticipants"
+   type="alertmodal">
+    <unique/>
+When you add a person to an existing conversation, a new conversation will be created.  All participants will receive new conversation notifications.
+    <tag>confirm</tag>
+    <usetemplate
+     ignoretext="Confirm adding chat paticipants"
+     name="okcancelignore"
+     notext="Cancel"
+     yestext="Ok"/>
+  </notification>
   
   <notification
    icon="alertmodal.tga"
    name="ConfirmQuit"
    type="alertmodal">
+    <unique/>
 Are you sure you want to quit?
+    <tag>confirm</tag>
     <usetemplate
-     ignoretext="When Quitting [APP_NAME]."
+     ignoretext="Confirm before I quit"
      name="okcancelignore"
-     notext="Continue"
+     notext="Don&apos;t Quit"
      yestext="Quit"/>
   </notification>
 
@@ -5408,6 +5908,7 @@ The resolution of this report applies only to this Region; Residents access to o
    type="alertmodal">
 Please select a category for this abuse report.
 Selecting a category helps us file and process abuse reports.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5416,6 +5917,7 @@ Selecting a category helps us file and process abuse reports.
    type="alertmodal">
 Please enter the name of the abuser.
 Entering an accurate value helps us file and process abuse reports.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5424,6 +5926,7 @@ Entering an accurate value helps us file and process abuse reports.
    type="alertmodal">
 Please enter the location where the abuse took place.
 Entering an accurate value helps us file and process abuse reports.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5432,6 +5935,7 @@ Entering an accurate value helps us file and process abuse reports.
    type="alertmodal">
 Please enter a summary of the abuse that took place.
 Entering an accurate summary helps us file and process abuse reports.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5441,16 +5945,8 @@ Entering an accurate summary helps us file and process abuse reports.
 Please enter a detailed description of the abuse that took place.
 Be as specific as you can, including names and the details of the incident you are reporting.
 Entering an accurate description helps us file and process abuse reports.
+  <tag>fail</tag>
   </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="HelpReportNope"
-   type="alertmodal">
-Do not meddle in the affairs of wizards, for they are subtle and quick to anger. - J.R.R. Tolkien
-
-Please choose a legitimate category if you actually have something to report.
-  </notification>  
 
   <notification
    icon="alertmodal.tga"
@@ -5477,6 +5973,7 @@ Thank you,
    type="alertmodal">
 The following required components are missing from [FLOATER]:
 [COMPONENTS]
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5486,6 +5983,7 @@ The following required components are missing from [FLOATER]:
    type="alert">
 There is already an object attached to this point on your body.
 Do you want to replace it with the selected object?
+    <tag>confirm</tag>
     <form name="form">
       <ignore name="ignore"
        save_option="true"
@@ -5502,6 +6000,14 @@ Do you want to replace it with the selected object?
        name="No"
        text="Cancel"/>
     </form>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="TooManyWearables"
+   type="alertmodal">
+    You can't wear a folder containing more than [AMOUNT] items.  You can change this limit in Advanced > Show Debug Settings > WearFolderLimit.
+    <tag>fail</tag>
   </notification>
 
   <notification
@@ -5535,6 +6041,7 @@ Would you like to leave Busy Mode before completing this transaction?
    name="ConfirmDeleteProtectedCategory"
    type="alertmodal">
 The folder &apos;[FOLDERNAME]&apos; is a system folder. Deleting system folders can cause instability.  Are you sure you want to delete it?
+    <tag>confirm</tag>
     <usetemplate
      ignoretext="Confirm before I delete a system folder"
      name="okcancelignore"
@@ -5546,9 +6053,10 @@ The folder &apos;[FOLDERNAME]&apos; is a system folder. Deleting system folders 
    icon="alertmodal.tga"
    name="ConfirmEmptyTrash"
    type="alertmodal">
-Are you sure you want to permanently remove the contents of your Trash folder?
+Are you sure you want to permanently delete the contents of your Trash?
+    <tag>confirm</tag>
     <usetemplate
-     ignoretext="When emptying your inventory trash folder"
+     ignoretext="Confirm before I empty the inventory Trash folder"
      name="okcancelignore"
      notext="Cancel"
      yestext="OK"/>
@@ -5570,6 +6078,7 @@ Are you sure you want to clear your browser cache?
    name="ConfirmClearCookies"
    type="alertmodal">
 Are you sure you want to clear your cookies?
+    <tag>confirm</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5581,6 +6090,7 @@ Are you sure you want to clear your cookies?
    name="ConfirmClearMediaUrlList"
    type="alertmodal">
 Are you sure you want to clear your list of saved URLs?
+    <tag>confirm</tag>
     <usetemplate
      name="okcancelbuttons"
      notext="Cancel"
@@ -5591,9 +6101,10 @@ Are you sure you want to clear your list of saved URLs?
    icon="alertmodal.tga"
    name="ConfirmEmptyLostAndFound"
    type="alertmodal">
-Are you sure you want to permanently remove the contents of your Lost And Found folder?
+Are you sure you want to permanently delete the contents of your Lost And Found?
+    <tag>confirm</tag>
     <usetemplate
-     ignoretext="When emptying your inventory Lost And Found folder"
+     ignoretext="Confirm before I empty the inventory Lost And Found folder"
      name="okcancelignore"
      notext="No"
      yestext="Yes"/>
@@ -5603,13 +6114,13 @@ Are you sure you want to permanently remove the contents of your Lost And Found 
    icon="alertmodal.tga"
    name="CopySLURL"
    type="alertmodal">
-The following SLURL has been copied to your clipboard:
+The following SLurl has been copied to your clipboard:
  [SLURL]
 
-Put it in a web page to give others easy access to this location or try it out yourself by pasting it into the address bar of your web browser.
+Link to this from a web page to give others easy access to this location, or try it out yourself by pasting it into the address bar of any web browser.
     <form name="form">
       <ignore name="ignore"
-       text="When copying a SLURL to your clipboard"/>
+       text="SLurl is copied to my clipboard"/>
     </form>
   </notification>
 
@@ -5640,6 +6151,7 @@ Do you wish to delete [SKY]?
    name="WLNoEditDefault"
    type="alertmodal">
 You cannot edit or delete a default preset.
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -5647,6 +6159,7 @@ You cannot edit or delete a default preset.
    name="WLMissingSky"
    type="alertmodal">
 This day cycle file references a missing sky file: [SKY].
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -6097,6 +6610,7 @@ You cannot edit or delete a default preset.
    type="notifytip">
 Unable to start a new chat session with [RECIPIENT].
 [REASON]
+  <tag>fail</tag>
     <usetemplate
      name="okbutton"
      yestext="OK"/>
@@ -6203,97 +6717,8 @@ Would you like to visit the [SECOND_LIFE] website to set this up?
    name="MissingString"
    type="alertmodal">
 The string [STRING_NAME] is missing from strings.xml
+  <tag>fail</tag>
   </notification>
-  
-  <notification
-   icon="alertmodal.tga"
-   name="GridsNoNick"
-   type="alertmodal">
-Cannot save new grid information.
-You need to specify a unique grid nickname.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="GridsNoLoginUri"
-   type="alertmodal">
-Cannot save new grid '[NAME]'.
-You need to specify a login URI.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="GridExists"
-   type="alertmodal">
-Cannot save new grid '[NAME]'.
-A grid with the same nickname already exists.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="GridInfoNoLoginUri"
-   type="alertmodal">
-A login URI is required to retrieve the grid info.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="HelpRenderCompat"
-   type="alertmodal">
-Builds with extended hollow or extended hole size do not render properly on other viewers. Please keep this option checked, if you want your builds looking properly in other viewers.
-  </notification>
-
-<notification
-   icon="alertmodal.tga"
-   name="ImportFailed"
-   type="alertmodal">
-Bad XML file. Import aborted.
-</notification>
-
-<notification
-   icon="notifytip.tga"
-   name="ExportAborted"
-   type="notifytip">
-The Object was deselected before the export could occur. Export aborted.
-</notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="ExportFailed"
-   type="alertmodal">
-Bad permissions for the exported object. Export aborted.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="ExportPartial"
-   type="alertmodal">
-Object exported. Some textures could not be saved due to: [REASON]
-  </notification>
-
-  <notification
-   icon="notifytip.tga"
-   name="ExportSuccessful"
-   type="notifytip">
-Export successful.
-  </notification>
-
-<notification
-   icon="alertmodal.tga"
-   name="ConfirmAbortBackup"
-   type="alertmodal">
-Are you sure you want to abort the current object backup operation?
-    <form name="form">
-      <button
-       index="0"
-       name="Yes"
-       text="Yes"/>
-      <button
-       index="1"
-       name="No"
-       text="No"/>
-    </form>
-</notification>
 
   <notification
    icon="notifytip.tga"
@@ -6325,6 +6750,13 @@ Cancelled Attach
 
   <notification
    icon="notifytip.tga"
+   name="CancelledFollow"
+   type="notifytip">
+Cancelled Follow
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
    name="ReplacedMissingWearable"
    type="notifytip">
 Replaced missing clothing/body part with default.
@@ -6343,7 +6775,7 @@ Topic: [SUBJECT], Message: [MESSAGE]
    log_to_chat="true"
    type="notifytip">
     <tag>friendship</tag>
-[NAME] is [STATUS]
+[secondlife:///app/agent/[ID]/about [NAME]] is [STATUS]
   </notification>
 
   <notification
@@ -6602,6 +7034,8 @@ You don&apos;t have permission to copy this.
   <notification
    icon="notifytip.tga"
    name="InventoryAccepted"
+   log_to_im="true"   
+   log_to_chat="false"
    type="notifytip">
 [NAME] received your inventory offer.
   </notification>
@@ -6609,6 +7043,8 @@ You don&apos;t have permission to copy this.
   <notification
    icon="notifytip.tga"
    name="InventoryDeclined"
+   log_to_im="true"   
+   log_to_chat="false"
    type="notifytip">
 [NAME] declined your inventory offer.
   </notification>
@@ -6672,6 +7108,7 @@ Some terms in your search query were excluded due to content restrictions as cla
    name="NoContentToSearch"
    type="notifytip">
 Please select at least one type of content to search (PG, Mature, or Adult).
+  <tag>fail</tag>
   </notification>
 
   <notification
@@ -6727,7 +7164,7 @@ Event Notification:
       <button
        index="2"
        name="Cancel"
-       text="Cancel"/>
+       text="Dismiss"/>
     </form>
   </notification>
 
@@ -6758,20 +7195,15 @@ Deactivated gestures with same trigger:
 
   <notification
    icon="notify.tga"
-   name="NoQuickTime"
-   persist="true"
-   type="notify">
-Apple&apos;s QuickTime software does not appear to be installed on your system.
-If you want to view streaming media on parcels that support it you should go to the QuickTime site (http://www.apple.com/quicktime) and install the QuickTime Player.
-  <tag>fail</tag>
-  </notification>
-
-  <notification
-   icon="notify.tga"
    name="NoPlugin"
    persist="true"
    type="notify">
 No Media Plugin was found to handle the "[MIME_TYPE]" mime type.  Media of this type will be unavailable.
+  <tag>fail</tag>
+    <unique>
+      <context>MIME_TYPE</context>
+    </unique>
+
   </notification>
   <notification
    icon="alertmodal.tga"
@@ -6784,7 +7216,7 @@ Please re-install the plugin or contact the vendor if you continue to experience
   <tag>fail</tag>
     <form name="form">
       <ignore name="ignore"
-       text="When a Media Plugin fails"/>
+       text="A Media Plugin fails to run"/>
     </form>
   </notification>
   <notification
@@ -6832,11 +7264,22 @@ The objects on the selected parcel that are NOT owned by you have been returned 
 
   <notification
    icon="notify.tga"
-   name="NotSafe"
+   name="ServerObjectMessage"
+   log_to_im="true"   
+   persist="true"
    type="notify">
-This land has damage enabled (&apos;not safe&apos;).
-You can be hurt here. If you die, you will be teleported to your home location.
+Message from [NAME]:
+&lt;nolink&gt;[MSG]&lt;/nolink&gt;
+  </notification>
+
+  <notification
+   icon="notify.tga"
+   name="NotSafe"
+   persist="true"
+   type="notify">
     <unique/>
+This land has damage enabled.
+You can be hurt here. If you die, you will be teleported to your home location.
   </notification>
 
   <notification
@@ -6844,9 +7287,10 @@ You can be hurt here. If you die, you will be teleported to your home location.
    name="NoFly"
    persist="true"
    type="notify">
-This land has flying disabled (&apos;no fly&apos;).
-You cannot fly here, without Always allow fly enabled from System preferences.
     <unique/>
+   <tag>fail</tag>
+This area has flying disabled.
+You can&apos;t fly here, without Always allow fly enabled from System preferences.
   </notification>
 
   <notification
@@ -6854,9 +7298,8 @@ You cannot fly here, without Always allow fly enabled from System preferences.
    name="PushRestricted"
    persist="true"
    type="notify">
-This land is &apos;No Pushing&apos;.
-You cannot push others here unless you own the land.
     <unique/>
+This area does not allow pushing. You can&apos;t push others here unless you own the land.
   </notification>
 
   <notification
@@ -6864,17 +7307,18 @@ You cannot push others here unless you own the land.
    name="NoVoice"
    persist="true"
    type="notify">
-This land has voice disabled.
     <unique/>
+This area has voice chat disabled. You won&apos;t be able to hear anyone talking.
+    <tag>voice</tag>
   </notification>
 
   <notification
    icon="notify.tga"
    name="NoBuild"
+   persist="true"
    type="notify">
-This land has building disabled (&apos;no build&apos;).
-You cannot create objects here.
     <unique/>
+This area has building disabled. You can&apos;t build or rez objects here.
   </notification>
 
   <notification
@@ -6882,7 +7326,7 @@ You cannot create objects here.
      name="PathfindingDirty"
      type="alert">
     <unique/>
-The region has pending pathfinding changes.  If you have build rights, you may rebake the region by clicking “Rebake”.
+The region has pending pathfinding changes.  If you have build rights, you may rebake the region by clicking on the “Rebake region” button.
     <usetemplate
      name="okcancelbuttons"
      yestext="Rebake"
@@ -6913,6 +7357,7 @@ The region has pending pathfinding changes.  If you have build rights, you may r
   <notification
    icon="notify.tga"
    name="SeeAvatars"
+   persist="true"
    type="notify">
     <unique/>    
 This parcel hides avatars and text chat from another parcel.   You can&apos;t see other residents outside the parcel, and those outside are not able to see you.  Regular text chat on channel 0 is also blocked.
@@ -6921,6 +7366,7 @@ This parcel hides avatars and text chat from another parcel.   You can&apos;t se
   <notification
    icon="notify.tga"
    name="ScriptsStopped"
+   persist="true"
    type="notify">
 An administrator has temporarily stopped scripts in this region.
   </notification>
@@ -6928,6 +7374,7 @@ An administrator has temporarily stopped scripts in this region.
   <notification
    icon="notify.tga"
    name="ScriptsNotRunning"
+   persist="true"
    type="notify">
 This region is not running any scripts.
   </notification>
@@ -6935,21 +7382,27 @@ This region is not running any scripts.
   <notification
    icon="notify.tga"
    name="NoOutsideScripts"
+   persist="true"
    type="notify">
-This land has outside scripts disabled (&apos;no outside scripts&apos;).
+   <tag>fail</tag>
+This land has outside scripts disabled.
+
 No scripts will work here except those belonging to the land owner.
   </notification>
 
   <notification
    icon="notify.tga"
    name="ClaimPublicLand"
+   persist="true"
    type="notify">
 You can only claim public land in the Region you&apos;re in.
+  <tag>fail</tag>
   </notification>
 
   <notification
    icon="notify.tga"
    name="RegionTPAccessBlocked"
+   persist="false"
    type="notify">
 You aren&apos;t allowed in that Region due to your maturity Rating. You may need to validate your age and/or install the latest Viewer.
 
@@ -6958,15 +7411,28 @@ Please go to the Knowledge Base for details on accessing areas with this maturit
 
   <notification
 	icon="notify.tga"
+   name="RegionAboutToShutdown"
+   persist="false"
+   type="notify">
+    <tag>fail</tag>
+    The region you're trying to enter is about to shut down.
+  </notification>
+
+  <notification
+	icon="notify.tga"
 	name="URBannedFromRegion"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 You are banned from the region.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoTeenGridAccess"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 Your account cannot connect to this teen grid region.
   </notification>
 
@@ -7009,34 +7475,43 @@ No destination region found.
   <notification
 	icon="notifytip.tga"
 	name="NotAllowedInDest"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 You are not allowed into the destination.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="RegionParcelBan"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 Cannot region cross into banned parcel. Try another way.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="TelehubRedirect"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 You have been redirected to a telehub.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="CouldntTPCloser"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 Could not teleport closer to destination.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="TPCancelled"
+   persist="true"
 	type="notifytip">
 Teleport cancelled.
   </notification>
@@ -7044,7 +7519,9 @@ Teleport cancelled.
   <notification
 	icon="notifytip.tga"
 	name="FullRegionTryAgain"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 The region you are attempting to enter is currently full.
 Please try again in a few moments.
   </notification>
@@ -7052,84 +7529,108 @@ Please try again in a few moments.
   <notification
 	icon="notify.tga"
 	name="GeneralFailure"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 General failure.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="RoutedWrongRegion"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 Routed to wrong region. Please try again.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoValidAgentID"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 No valid agent id.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoValidSession"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 No valid session id.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoValidCircuit"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 No valid circuit code.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoValidTimestamp"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 No valid timestamp.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="NoPendingConnection"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 Unable to create pending connection.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="InternalUsherError"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 Internal error attempting to connect agent usher.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="NoGoodTPDestination"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 Unable to find a good teleport destination in this region.
   </notification>
 
   <notification
 	icon="notify.tga"
 	name="InternalErrorRegionResolver"
+   persist="true"
 	type="notify">
+   <tag>fail</tag>
 Internal error attempting to activate region resolver.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="NoValidLanding"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 A valid landing point could not be found.
   </notification>
 
   <notification
 	icon="notifytip.tga"
 	name="NoValidParcel"
+   persist="true"
 	type="notifytip">
+   <tag>fail</tag>
 No valid parcel could be found.
   </notification>
 
@@ -7156,28 +7657,8 @@ An object named [OBJECTFROMNAME] owned by [NAME] has given you a [OBJECTTYPE] na
 
   <notification
    icon="notify.tga"
-   name="ObjectGiveItemUnknownUser"
-   type="notify">
-An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJECTTYPE] named [OBJECTNAME].
-    <form name="form">
-      <button
-       index="0"
-       name="Keep"
-       text="Keep"/>
-      <button
-       index="1"
-       name="Discard"
-       text="Discard"/>
-      <button
-       index="2"
-       name="Mute"
-       text="Mute"/>
-    </form>
-  </notification>
-
-  <notification
-   icon="notify.tga"
    name="UserGiveItem"
+   log_to_im ="true"
    type="notify">
 [NAME] has given you a [OBJECTTYPE] named &apos;[OBJECTNAME]&apos;.
 
@@ -7213,6 +7694,7 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
   <notification
    icon="notify.tga"
    name="GodMessage"
+   persist="true"
    type="notify">
 [NAME]
 
@@ -7222,7 +7704,9 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
   <notification
    icon="notify.tga"
    name="JoinGroup"
+   persist="true"
    type="notify">
+    <tag>group</tag>
 [MESSAGE]
     <form name="form">
       <button
@@ -7243,6 +7727,8 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
   <notification
    icon="notify.tga"
    name="TeleportOffered"
+   log_to_im="true"
+   log_to_chat="false"
    type="notify">
 [NAME] has offered to teleport you to their location:
 
@@ -7256,10 +7742,6 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
        index="1"
        name="Cancel"
        text="Cancel"/>
-      <button
-       index="3"
-       name="Profile"
-       text="Profile"/>
     </form>
   </notification>
 
@@ -7276,6 +7758,7 @@ An object named [OBJECTFROMNAME] owned by (an unknown user) has given you a [OBJ
   <notification
    icon="notify.tga"
    name="TeleportRequest"
+   log_to_im="true"
    type="notify">
 [NAME] is requesting to be teleported to your location.
 [MESSAGE]
@@ -7291,16 +7774,13 @@ Offer a teleport?
        index="1"
        name="No"
        text="No"/>
-      <button
-       index="3"
-       name="Profile"
-       text="Profile"/>
     </form>
   </notification>
 
   <notification
    icon="notify.tga"
    name="GotoURL"
+   persist="true"
    type="notify">
 [MESSAGE]
 [URL]
@@ -7319,8 +7799,11 @@ Offer a teleport?
   <notification
    icon="notify.tga"
    name="OfferFriendship"
+   log_to_im="true"
    type="notify">
-[NAME] is offering friendship.
+    <tag>friendship</tag>
+    <tag>confirm</tag>
+[NAME_SLURL] is offering friendship.
 
 [MESSAGE]
 
@@ -7338,22 +7821,25 @@ Offer a teleport?
        index="2"
        name="Ignore"
        text="Ignore"/>
-      <button index="3" name="Profile" text="Profile"/>
     </form>
   </notification>
 
   <notification
    icon="notify.tga"
    name="FriendshipOffered"
+   log_to_im="true"   
    type="notifytip">
+    <tag>friendship</tag>
 	You have offered friendship to [TO_NAME]
   </notification>
 
   <notification
    icon="notify.tga"
    name="OfferFriendshipNoMessage"
+   persist="true"
    type="notify">
-[NAME] is offering friendship.
+    <tag>friendship</tag>
+[NAME_SLURL] is offering friendship.
 
 (By default, you will be able to see each other&apos;s online status.)
     <form name="form">
@@ -7369,27 +7855,50 @@ Offer a teleport?
        index="2"
        name="Ignore"
        text="Ignore"/>
-      <button index="3" name="Profile" text="Profile"/>
     </form>
   </notification>
 
   <notification
    icon="notify.tga"
    name="FriendshipAccepted"
-   type="notify">
+   log_to_im="true"   
+   type="notifytip">
+    <tag>friendship</tag>
 [NAME] accepted your friendship offer.
   </notification>
 
   <notification
    icon="notify.tga"
    name="FriendshipDeclined"
-   type="notify">
+   log_to_im="true"   
+   persist="true"
+   type="notifytip">
+    <tag>friendship</tag>
 [NAME] declined your friendship offer.
+  </notification>
+
+  <notification
+   icon="notify.tga"
+   name="FriendshipAcceptedByMe"
+   log_to_im="true"   
+   type="notifytip">
+    <tag>friendship</tag>
+Accepted friendship offer from [NAME_SLURL]. [MESSAGE]
+  </notification>
+
+  <notification
+   icon="notify.tga"
+   name="FriendshipDeclinedByMe"
+   log_to_im="true"   
+   type="notifytip">
+    <tag>friendship</tag>
+Declined friendship offer from [NAME_SLURL]. [MESSAGE]
   </notification>
 
   <notification
    icon="alertmodal.tga"
    name="FriendshipDissolved"
+   log_to_im="true"
    type="alertmodal">
 [NAME] dissolved friendship.
   </notification>
@@ -7397,9 +7906,10 @@ Offer a teleport?
   <notification
    icon="notify.tga"
    name="OfferCallingCard"
+   persist="true"
    type="notify">
 [NAME] is offering their calling card.
-This will add a bookmark in your inventory so you can quickly IM this resident.
+This will add a bookmark in your inventory so you can quickly IM this Resident.
     <form name="form">
       <button
        index="0"
@@ -7439,6 +7949,7 @@ If you remain in this region you will be logged out.
   <notification
    icon="notify.tga"
    name="LoadWebPage"
+   show_toast="false"
    type="notify">
 Load web page [URL]?
 
@@ -7460,32 +7971,40 @@ From object: [OBJECTNAME], owner: [NAME]?
   <notification
    icon="notify.tga"
    name="FailedToFindWearableUnnamed"
+   persist="true"
    type="notify">
 Failed to find [TYPE] in database.
+  <tag>fail</tag>
   </notification>
 
   <notification
    icon="notify.tga"
    name="FailedToFindWearable"
+   persist="true"
    type="notify">
 Failed to find [TYPE] named [DESC] in database.
+  <tag>fail</tag>
   </notification>
 
   <notification
    icon="notify.tga"
    name="InvalidWearable"
+   persist="true"
    type="notify">
 The item you are trying to wear uses a feature that your Viewer can&apos;t read. Please consider using the latest [APP_NAME].
+  <tag>fail</tag>
   </notification>
 
   <notification
    icon="notify.tga"
    name="ScriptQuestion"
+   persist="true"
    type="notify">
 &apos;[OBJECTNAME]&apos;, an object owned by &apos;[NAME]&apos;, would like to:
 
 [QUESTIONS]
 Is this OK?
+  <tag>confirm</tag>
     <form name="form">
       <button
        index="0"
@@ -7502,22 +8021,172 @@ Is this OK?
     </form>
   </notification>
 
+
+
+  <notification
+    icon="alertmodal.tga"
+    name="ExperienceAcquireFailed"
+    type="alertmodal">
+Unable to acquire a new experience:
+    [ERROR_MESSAGE]
+    <tag>fail</tag>
+    <usetemplate
+      name="okbutton"
+      yestext="OK"/>
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="NotInGroupExperienceProfileMessage"
+    persist="false"
+    type="notify">
+    A change to the experience group was ignored because the owner is not a member of the selected group.
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="UneditableExperienceProfileMessage"
+    persist="false"
+    type="notify">
+    The uneditable field '[field]' was ignored when updating the experience profile.
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="RestrictedToOwnerExperienceProfileMessage"
+    persist="false"
+    type="notify">
+    Ignored changes to the field '[field]' which can only be set by the experience owner.
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="MaturityRatingExceedsOwnerExperienceProfileMessage"
+    persist="false"
+    type="notify">
+    You may not set the maturity rating of an experience higher than that of the owner.
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="RestrictedTermExperienceProfileMessage"
+    persist="false"
+    type="notify">
+    The following terms prevented the update of the experience profile name and/or description: [extra_info]
+  </notification>
+  
+  <notification
+    icon="notify.tga"
+    name="TeleportedHomeExperienceRemoved"
+    persist="false"
+    type="notify">
+    You have been teleported from the region [region_name] for removing the experience secondlife:///app/experience/[public_id]/profile and are no longer permitted in the region.
+    <form name="form">
+      <ignore name="ignore"
+              text="Kicked from region for removing an experience"/>
+    </form>
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="TrustedExperienceEntry"
+    persist="false"
+    type="notify">
+    You have been allowed into the region [region_name] by participating in the key experience secondlife:///app/experience/[public_id]/profile removing this experience may kick you from the region.
+    <form name="form">
+      <ignore name="ignore"
+              text="Allowed into a region by an experience"/>
+    </form>
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="TrustedExperiencesAvailable"
+    persist="false"
+    type="notify">
+You do not have access to this destination. You may be allowed into the region by Accepting an experience below:
+
+[EXPERIENCE_LIST]
+
+Other Key Experiences may be available.
+  </notification>
+    
+
+  <notification
+    icon="notify.tga"
+    name="ExperienceEvent"
+    persist="false"
+    type="notifytip">
+    An object was allowed to [EventType] by the secondlife:///app/experience/[public_id]/profile experience.
+    Owner: secondlife:///app/agent/[OwnerID]/inspect
+    Object Name: [ObjectName]
+    Parcel Name: [ParcelName]
+  </notification>
+
+  <notification
+    icon="notify.tga"
+    name="ExperienceEventAttachment"
+    persist="false"
+    type="notifytip">
+    An attachment was allowed to [EventType] by the secondlife:///app/experience/[public_id]/profile experience.
+    Owner: secondlife:///app/agent/[OwnerID]/inspect
+  </notification>
+  
+  <notification
+   icon="notify.tga"
+   name="ScriptQuestionExperience"
+   persist="false"
+   type="notify">
+&apos;[OBJECTNAME]&apos;, an object owned by &apos;[NAME]&apos;, requests your participation in the [GRID_WIDE] experience:
+
+[EXPERIENCE]
+
+Once permission is granted you will not see this message again for this experience unless it is revoked from the experience profile.
+
+Scripts associated with this experience will be able to do the following on regions where the experience is active: 
+
+[QUESTIONS]
+Is this OK?
+  <unique combine="combine_with_new">
+    <context>experience</context>
+  </unique>
+    <form name="form">
+      <button
+       index="3"
+       name="BlockExperience"
+       text="Never"/>
+      <button
+        index="2"
+        name="Mute"
+        text="Mute"/>
+      <button
+       index="0"
+       name="Yes"
+       text="Yes"/>
+      <button
+       index="1"
+       name="No"
+       text="No"/>
+    </form>
+  </notification>
+
   <notification
    icon="notify.tga"
    name="ScriptQuestionCaution"
-   priority="high"
+   priority="critical"
+   persist="true"
    type="notify">
-&apos;[OBJECTNAME]&apos;, an object owned by &apos;[NAME]&apos;, would like to:
+Warning: The object &apos;[OBJECTNAME]&apos; wants total access to your inworld [CURRENCY] account. If you allow access, it can remove funds from your account at any time, or empty your account completely, on an ongoing basis with no additional warnings.
 
-[QUESTIONS]
-If you do not trust this object and its creator, you should deny the request. For additional information, click the Details button.
+[FOOTERTEXT]
 
-Grant this request?
+Do not allow access if you do not fully understand why it wants access to your account.
+  <tag>confirm</tag>
     <form name="form">
       <button
        index="0"
        name="Grant"
-       text="Grant"/>
+       text="Allow"/>
       <button
        default="true"
        index="1"
@@ -7528,6 +8197,9 @@ Grant this request?
        name="Details"
        text="Details..."/>
     </form>
+    <footer>
+[FOOTERTEXT]
+    </footer>
   </notification>
 
   <notification
@@ -7537,6 +8209,10 @@ Grant this request?
 [NAME]&apos;s &apos;[TITLE]&apos; (ch[CHANNEL])
 [MESSAGE]
     <form name="form">
+      <button
+       index="-2"
+       name="Mute"
+       text="Mute"/>
       <button
        index="-1"
        name="Ignore"
@@ -7552,6 +8228,10 @@ Grant this request?
 [MESSAGE]
     <form name="form">
       <button
+       index="-2"
+       name="Mute"
+       text="Mute"/>
+      <button
        index="-1"
        name="Ignore"
        text="Ignore"/>
@@ -7562,11 +8242,15 @@ Grant this request?
    icon="notify.tga"
    name="ScriptTextBoxDialog"
    type="notify">
-    [NAME]&apos;s &apos;[TITLE]&apos;
+    [NAME]&apos;s &apos;[TITLE]&apos; (ch[CHANNEL])
     [MESSAGE]
     <form name="form">
       <input name="message">
       </input>
+      <button
+       index="-2"
+       name="Mute"
+       text="Mute"/>
       <button
        index="-1"
        name="Ignore"
@@ -7577,7 +8261,6 @@ Grant this request?
        text="Send"/>
     </form>
   </notification>
-  
 
   <notification
    icon="notify.tga"
@@ -7762,7 +8445,7 @@ You may only select up to [MAX_SELECT] items from this list.
 [NAME] is inviting you to a Voice Chat call.
 Click Accept to join the call or Decline to decline the invitation. Click Mute to mute this caller.
     <unique>
-      <context key="NAME"/>
+      <context>NAME</context>
     </unique>
     <form name="form">
       <button
@@ -7783,6 +8466,7 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
   <notification
    icon="notify.tga"
    name="AutoUnmuteByIM"
+   persist="true"
    type="notify">
 [NAME] was sent an instant message and has been automatically unmuted.
   </notification>
@@ -7790,6 +8474,7 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
   <notification
    icon="notify.tga"
    name="AutoUnmuteByMoney"
+   persist="true"
    type="notify">
 [NAME] was given money and has been automatically unmuted.
   </notification>
@@ -7797,6 +8482,7 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
   <notification
    icon="notify.tga"
    name="AutoUnmuteByInventory"
+   persist="true"
    type="notify">
 [NAME] was offered inventory and has been automatically unmuted.
   </notification>
@@ -7807,9 +8493,12 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
    type="notify">
 [NAME] has joined a Voice Chat call with the group [GROUP].
 Click Accept to join the call or Decline to decline the invitation. Click Mute to mute this caller.
+    <tag>group</tag>
+    <tag>confirm</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="NAME"/>
-      <context key="GROUP"/>
+      <context>NAME</context>
+      <context>GROUP</context>
     </unique>
     <form name="form">
       <button
@@ -7833,8 +8522,10 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
    type="notify">
 [NAME] has joined a Voice Chat call with a conference chat...
 Click Accept to join the call or Decline to decline the invitation. Click Mute to mute this user.
+  <tag>confirm</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="NAME"/>
+      <context>NAME</context>
     </unique>
     <form name="form">
       <button
@@ -7858,8 +8549,10 @@ Click Accept to join the call or Decline to decline the invitation. Click Mute t
    type="notify">
 [NAME] is inviting you to a conference chat.
 Click Accept to join the chat or Decline to decline the invitation. Click Mute to mute this user.
+  <tag>confirm</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="NAME"/>
+      <context>NAME</context>
     </unique>
     <form name="form">
       <button
@@ -7882,8 +8575,10 @@ Click Accept to join the chat or Decline to decline the invitation. Click Mute t
    name="VoiceChannelFull"
    type="notifytip">
 The voice call you are trying to join, [VOICE_CHANNEL_NAME], has reached maximum capacity. Please try again later.
+  <tag>fail</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7891,17 +8586,20 @@ The voice call you are trying to join, [VOICE_CHANNEL_NAME], has reached maximum
    icon="notifytip.tga"
    name="ProximalVoiceChannelFull"
    type="notifytip">
-We&apos;re sorry.  This area has reached maximum capacity for voice conversations.  Please try to use voice in another area.
     <unique/>
+    We&apos;re sorry.  This area has reached maximum capacity for voice conversations.  Please try to use voice in another area.
+    <tag>fail</tag>
+    <tag>voice</tag>
   </notification>
 
   <notification
    icon="notifytip.tga"
    name="VoiceChannelDisconnected"
    type="notifytip">
-You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnected to spatial voice chat.
+You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnected to Nearby Voice Chat.
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7909,9 +8607,10 @@ You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnect
    icon="notifytip.tga"
    name="VoiceChannelDisconnectedP2P"
    type="notifytip">
-[VOICE_CHANNEL_NAME] has ended the call.  You will now be reconnected to spatial voice chat.
+[VOICE_CHANNEL_NAME] has ended the call.  You will now be reconnected to Nearby Voice Chat.
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7919,9 +8618,11 @@ You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnect
    icon="notifytip.tga"
    name="P2PCallDeclined"
    type="notifytip">
-[VOICE_CHANNEL_NAME] has declined your call.  You will now be reconnected to spatial voice chat.
+[VOICE_CHANNEL_NAME] has declined your call.  You will now be reconnected to Nearby Voice Chat.
+    <tag>voice</tag>
+    <tag>fail</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7929,9 +8630,11 @@ You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnect
    icon="notifytip.tga"
    name="P2PCallNoAnswer"
    type="notifytip">
-[VOICE_CHANNEL_NAME] is not available to take your call.  You will now be reconnected to spatial voice chat.
+[VOICE_CHANNEL_NAME] is not available to take your call.  You will now be reconnected to Nearby Voice Chat.
+    <tag>fail</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7939,9 +8642,11 @@ You have been disconnected from [VOICE_CHANNEL_NAME].  You will now be reconnect
    icon="notifytip.tga"
    name="VoiceChannelJoinFailed"
    type="notifytip">
-Failed to connect to [VOICE_CHANNEL_NAME], please try again later.  You will now be reconnected to spatial voice chat.
+Failed to connect to [VOICE_CHANNEL_NAME], please try again later.  You will now be reconnected to Nearby Voice Chat.
+    <tag>fail</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -7950,8 +8655,10 @@ Failed to connect to [VOICE_CHANNEL_NAME], please try again later.  You will now
    icon="notifytip.tga"
    name="VoiceLoginRetry"
    type="notifytip">
-We are creating a voice channel for you. This may take up to one minute.
     <unique/>
+We are creating a voice channel for you. This may take up to one minute.
+  <tag>status</tag>
+  <tag>voice</tag>
   </notification>
 
   <notification
@@ -8008,13 +8715,16 @@ New Voice Morphs are available!
    icon="notifytip.tga"
    name="Cannot enter parcel: not a group member"
    type="notifytip">
-Cannot enter parcel, you are not a member of the appropriate group.
+   <tag>fail</tag>
+    <tag>group</tag>
+Only members of a certain group can visit this area.
   </notification>
 
   <notification
    icon="notifytip.tga"
    name="Cannot enter parcel: banned"
    type="notifytip">
+   <tag>fail</tag>
 Cannot enter parcel, you have been banned.
   </notification>
 
@@ -8022,6 +8732,7 @@ Cannot enter parcel, you have been banned.
    icon="notifytip.tga"
    name="Cannot enter parcel: not on access list"
    type="notifytip">
+   <tag>fail</tag>
 Cannot enter parcel, you are not on the access list.
   </notification>
 
@@ -8030,8 +8741,10 @@ Cannot enter parcel, you are not on the access list.
    name="VoiceNotAllowed"
    type="notifytip">
 You do not have permission to connect to voice chat for [VOICE_CHANNEL_NAME].
+  <tag>fail</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -8040,8 +8753,10 @@ You do not have permission to connect to voice chat for [VOICE_CHANNEL_NAME].
    name="VoiceCallGenericError"
    type="notifytip">
 An error has occurred while trying to connect to voice chat for [VOICE_CHANNEL_NAME].  Please try again later.
+  <tag>fail</tag>
+    <tag>voice</tag>
     <unique>
-      <context key="VOICE_CHANNEL_NAME"/>
+      <context>VOICE_CHANNEL_NAME</context>
     </unique>
   </notification>
 
@@ -8073,14 +8788,6 @@ Multiple SLurls were received from an untrusted browser within a short period.
 They will be blocked for a few seconds for your security.
   </notification>
 
-  <notification
-   duration="10"
-   icon="notifytip.tga"
-   name="ServerVersionChanged"
-   priority="high"
-   type="notifytip">
-The region you have entered is running a different simulator version. Click this message for details.
-  </notification>
      <notification
  icon="alertmodal.tga"
  name="ObjectMediaFailure"
@@ -8093,6 +8800,15 @@ Server Error: Media update or get failed.
          yestext="OK"/>
     </notification>
 
+    <notification
+        icon="alertmodal.tga"
+        name="FailedToGetBenefits"
+        type="alertmodal">
+      Unfortunately, we were unable to get benefits information for this session. This should not happen in a normal production environment. Please contact support. This session will not work normally and we recommend that you restart.
+      <usetemplate
+          name="okbutton"
+          yestext="OK"/>
+    </notification>
   <notification
    icon="notifytip.tga"
    name="ShareNotification"
@@ -8122,7 +8838,6 @@ See the log file for details.
     type="alert">
     Could not get region capability &apos;[CAPABILITY]&apos;.
   </notification>
-
 
   <notification
    icon="notifytip.tga"
@@ -8176,6 +8891,34 @@ Items successfully shared.
     Deed to group failed.
     <tag>group</tag>
     <tag>fail</tag>
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="ReleaseLandThrottled"
+   type="notifytip">
+The parcel [PARCEL_NAME] can not be abandoned at this time.
+   <tag>fail</tag>
+  </notification>
+	
+  <notification
+   icon="notifytip.tga"
+   name="ReleasedLandWithReclaim"
+   type="notifytip">
+The [AREA] m² parcel &apos;[PARCEL_NAME]&apos; has been released.
+
+You will have [RECLAIM_PERIOD] hours to reclaim for L$0 before it is set for sale to anyone.
+   <tag>fail</tag>
+  </notification>
+	
+  <notification
+   icon="notifytip.tga"
+   name="ReleasedLandNoReclaim"
+   type="notifytip">
+The [AREA] m² parcel &apos;[PARCEL_NAME]&apos; has been released.
+
+It is now available for purchase by anyone.
+   <tag>fail</tag>
   </notification>
 
   <notification
@@ -8236,6 +8979,26 @@ Avatar '[NAME]' entered appearance mode.
   </notification>
 
   <notification
+   icon="notifytip.tga"
+   name="AvatarRezLeftAppearanceNotification"
+   type="notifytip">
+( [EXISTENCE] seconds alive )
+Avatar '[NAME]' left appearance mode.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="NoConnect"
+   type="alertmodal">
+We're having trouble connecting using [PROTOCOL] [HOSTID].
+Please check your network and firewall setup.
+  <tag>fail</tag>
+    <usetemplate
+     name="okbutton"
+     yestext="OK"/>
+  </notification>
+
+  <notification
    icon="alertmodal.tga"
    name="NoVoiceConnect"
    type="alertmodal">
@@ -8252,13 +9015,6 @@ Please check your network and firewall setup.
      yestext="OK"/>
   </notification>
 
-  <notification
-   icon="notifytip.tga"
-   name="AvatarRezLeftAppearanceNotification"
-   type="notifytip">
-( [EXISTENCE] seconds alive )
-Avatar '[NAME]' left appearance mode.
-  </notification>
   <notification
    icon="notifytip.tga"
    name="AvatarRezLeftNotification"
@@ -8285,6 +9041,15 @@ You locally updated a [RESOLUTION] baked texture for '[BODYREGION]' after [TIME]
 
   <notification
    icon="alertmodal.tga"
+   name="CannotUploadTexture"
+   type="alertmodal">
+Unable to upload texture.
+[REASON]   
+  <tag>fail</tag>  
+  </notification>
+  
+  <notification
+   icon="alertmodal.tga"
    name="LivePreviewUnavailable"
    type="alert">
 
@@ -8295,24 +9060,6 @@ We cannot apply this texture immediately because it is no-copy and/or no-transfe
     yestext="OK"/>
   </notification>
 
-  <notification
-   icon="notify.tga"
-   name="FirstAO"
-   type="notify">
-    For instructions, make a new template in the AO. Use the toolbar to toggle the AO on/off.
-  </notification>
-
-  <notification
-   icon="alert.tga"
-   name="SGIncompleteAppearance"
-   type="alert">
-Sending incomplete appearance. You may appear to others as a cloud.
-
-Your shape, skin, hair or eyes might be defect.
-	<usetemplate
-	 name="okbutton"
-	 yestext="OK"/>
-  </notification>
 
   <notification
   name="PopupAttempt"
@@ -8329,93 +9076,6 @@ Your shape, skin, hair or eyes might be defect.
               name="open"
               text="Open pop-up window"/>
     </form>
-  </notification>
-
-  <notification
-  icon="alertmodal.tga"
-  label="All settings reset"
-  name="ResetSettingsComplete"
-  type="alertmodal">
-    Settings have been reset. You should relog to ensure this takes full effect.
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   label="Reset all settings"
-   name="ResetSystemSettingsPrompt"
-   type="alertmodal">
-    Resetting all settings may be helpful if you are experiencing problems; however, you will need to redo any changes you have made to the default configuration.
-
-    Would you like to reset system settings?
-    <form>
-      <button
-       index="0"
-       name="all"
-       text="OK"/>
-      <button
-       default="true"
-       index="3"
-       name="cancel"
-       text="Cancel"/>
-    </form>
-  </notification>
-
-
-  <notification
-    icon="alertmodal.tga"
-    label="Reset all settings"
-    name="ResetAllSettingsPrompt"
-    type="alertmodal">
-    Resetting all settings may be helpful if you are experiencing problems; however, you will need to redo any changes you have made to the default configuration.
-
-    Which settings would you like to reset?
-    <form>
-      <button
-       index="0"
-       name="all"
-       text="ALL"/>
-      <button
-       index="1"
-       name="system"
-       text="System"/>
-      <button
-       index="2"
-       name="user"
-       text="User"/>
-      <button
-       default="true"
-       index="3"
-       name="cancel"
-       text="Cancel"/>
-    </form>
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="BulkTemporaryUpload"
-   type="alertmodal">
-Would you like to bulk upload the files as temporary files?
-Only textures will upload as temporary on Agni and Aditi.
-
-WARNING: Each upload costs [UPLOADCOST] if it's not temporary
-    <usetemplate
-     name="yesnocancelbuttons"
-     notext="Permanent"
-     yestext="Temporary"
-     canceltext="Cancel"/>
-  </notification>
-
-  <notification
-   icon="alertmodal.tga"
-   name="BulkTemporaryUploadFree"
-   type="alertmodal">
-Would you like to bulk upload the files as temporary files?
-Only textures will upload as temporary on Agni and Aditi.
-    <usetemplate
-     name="yesnocancelbuttons"
-     notext="Permanent"
-     yestext="Temporary"
-     canceltext="Cancel"/>
   </notification>
 
   <notification
@@ -8566,6 +9226,174 @@ The site at &apos;[HOST_NAME]&apos; in realm &apos;[REALM]&apos; requires a user
               name="cancel"
               text="Cancel"/>
     </form>
+  </notification>
+
+  <notification
+ name="NoClassifieds"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Creation and editing of Classifieds is only available in Advanced mode. Would you like to quit and change modes? The mode selector can be found on the login screen.
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+    </notification>
+
+  <notification
+ name="NoGroupInfo"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Creation and editing of Groups is only available in Advanced mode. Would you like to quit and change modes? The mode selector can be found on the login screen.
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoPlaceInfo"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Viewing place profile is only available in Advanced mode. Would you like to quit and change modes? The mode selector can be found on the login screen.
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+  
+  <notification
+ name="NoPicks"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Creation and editing of Picks is only available in Advanced mode. Would you like to quit and change modes? The mode selector can be found on the login screen.
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoWorldMap"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Viewing of the world map is only available in Advanced mode. Would you like to quit and change modes? The mode selector can be found on the login screen.
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoVoiceCall"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Voice calls are only available in Advanced mode. Would you like to logout and change modes?
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoAvatarShare"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Sharing is only available in Advanced mode. Would you like to logout and change modes?
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+  
+  <notification
+ name="NoAvatarPay"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+	  Paying other residents is only available in Advanced mode. Would you like to logout and change modes?
+	  <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoInventory"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Viewing inventory is only available in Advanced mode. Would you like to logout and change modes?
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoAppearance"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    The appearance editor is only available in Advanced mode. Would you like to logout and change modes?
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+ name="NoSearch"
+ label=""
+ type="alertmodal">
+    <unique/>
+    <tag>fail</tag>
+    <tag>confirm</tag>
+    Search is only available in Advanced mode. Would you like to logout and change modes?
+    <usetemplate
+   name="okcancelbuttons"
+   yestext="Quit"
+   notext="Don't Quit"/>
+  </notification>
+
+  <notification
+    name="ConfirmHideUI"
+    label=""
+    type="alertmodal">
+    <unique/>
+    <tag>confirm</tag>
+    This action will hide all menu items and buttons. To get them back, click [SHORTCUT] again.
+    <usetemplate
+      name="okcancelignore"
+      yestext="OK"
+      notext="Cancel"
+      ignoretext="Confirm before hiding UI"/>
   </notification>
 
   <notification
@@ -9054,11 +9882,11 @@ You are no longer allowed here and have [EJECT_TIME] seconds to leave.
 
   <notification
    icon="alertmodal.tga"
-   name="NoEnterServerFull"
+   name="NoEnterRegionMaybeFull"
    type="notify">
    <tag>fail</tag>
-You can't enter this region because
-the server is full.
+You can't enter region "[NAME]".
+It may be full or restarting soon.
   </notification>
 
   <notification
@@ -9106,7 +9934,7 @@ You cannot copy your selection because you do not have permission to copy the ob
    name="NoTransNoSelCopy"
    type="notify">
    <tag>fail</tag>
-You cannot copy your selection because the object '[OBJ_NAME]' is not transferable.
+You cannot copy your selection because the object '[OBJ_NAME]' is not transferrable.
   </notification>
 
   <notification
@@ -9114,7 +9942,7 @@ You cannot copy your selection because the object '[OBJ_NAME]' is not transferab
    name="NoTransNoCopy"
    type="notify">
    <tag>fail</tag>
-You cannot copy your selection because the object '[OBJ_NAME]' is not transferable.
+You cannot copy your selection because the object '[OBJ_NAME]' is not transferrable.
   </notification>
 
   <notification
@@ -9122,7 +9950,7 @@ You cannot copy your selection because the object '[OBJ_NAME]' is not transferab
    name="NoPermsNoRemoval"
    type="notify">
    <tag>fail</tag>
-Removal of the object '[OBJ_NAME]' from the simulator is disallowed by the permissions system.
+Removal of the object '[OBJ_NAME]' from the region is disallowed by the permissions system.
   </notification>
 
   <notification
@@ -9393,7 +10221,7 @@ Unable to add script!
    name="AssetServerTimeoutObjReturn"
    type="notify">
    <tag>fail</tag>
-Asset server didn't respond in a timely fashion.  Object returned to sim.
+Asset server didn't respond in a timely fashion.  Object returned to region.
   </notification>
 
   <notification
@@ -9558,9 +10386,18 @@ Object uses too many physics resources -- its dynamics have been disabled.
   </notification>
 
   <notification
+   icon="alertmodal.tga"
+   name="EstateManagerFailedllTeleportHome"
+   persist="false"
+   type="notify">
+    <tag>fail</tag>
+The object '[OBJECT_NAME]' at [SLURL] cannot teleport estate managers home.
+  </notification>
+
+  <notification
    icon="notifytip.tga"
    name="TeleportedHomeByObjectOnParcel"
-   persist="true"
+   persist="false"
    type="notifytip">
    <tag>fail</tag>
 You have been teleported home by the object '[OBJECT_NAME]' on the parcel '[PARCEL_NAME]'
@@ -9569,7 +10406,7 @@ You have been teleported home by the object '[OBJECT_NAME]' on the parcel '[PARC
   <notification
    icon="notifytip.tga"
    name="TeleportedHomeByObject"
-   persist="true"
+   persist="false"
    type="notifytip">
    <tag>fail</tag>
 You have been teleported home by the object '[OBJECT_NAME]'
@@ -9581,6 +10418,9 @@ You have been teleported home by the object '[OBJECT_NAME]'
    type="notifytip">
    <tag>fail</tag>
 You have been teleported by an attachment on [ITEM_ID]
+   <usetemplate
+    ignoretext="Teleport: You have been teleported by an attachment"
+    name="notifyignore"/>
   </notification>
 
   <notification
@@ -9589,6 +10429,9 @@ You have been teleported by an attachment on [ITEM_ID]
    type="notifytip">
    <tag>fail</tag>
 You have been teleported by the object '[OBJECT_NAME]' on the parcel '[PARCEL_NAME]'
+   <usetemplate
+    ignoretext="Teleport: You have been teleported by an object on a parcel"
+    name="notifyignore"/>
   </notification>
 
   <notification
@@ -9821,6 +10664,14 @@ Cannot attach object because you do not have permission to move it.
    type="notify">
    <tag>fail</tag>
 Not enough script resources available to attach object!
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="CantAttachObjectBeingRemoved"
+   type="notify">
+    <tag>fail</tag>
+    Cannot attach object because it is already being removed.
   </notification>
 
   <notification
@@ -10431,6 +11282,43 @@ Cannot create large prims that intersect other players.  Please re-try when othe
 
   <notification
    icon="alertmodal.tga"
+   name="PreferenceChatClearLog"
+   type="alertmodal">
+    This will delete the logs of previous conversations, and any backups of that file.
+    <tag>confirm</tag>
+    <usetemplate
+     ignoretext="Confirm before I delete the log of previous conversations."
+     name="okcancelignore"
+     notext="Cancel"
+     yestext="OK"/>
+  </notification>
+    
+  <notification
+   icon="alertmodal.tga"
+   name="PreferenceChatDeleteTranscripts"
+   type="alertmodal">
+    This will delete the transcripts for all previous conversations. The list of past conversations will not be affected. All files with the suffixes .txt and txt.backup in the folder [FOLDER] will be deleted.
+    <tag>confirm</tag>
+    <usetemplate
+     ignoretext="Confirm before I delete transcripts."
+     name="okcancelignore"
+     notext="Cancel"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   name="PreferenceChatPathChanged"
+   type="alert">
+   Unable to move files. Restored previous path.
+    <usetemplate
+     ignoretext="Unable to move files. Restored previous path."
+     name="okignore"
+     yestext="OK"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="DefaultObjectPermissions"
    type="alert">
 There was a problem saving the default permissions due to the following reason: [REASON].  Please try setting the default permissions later.
@@ -10512,6 +11400,20 @@ the region &quot;[REGION]&quot;?
 
 <!-- Singu TODO: Migrate our special notifications to here -->
   <notification
+   icon="alert.tga"
+   name="AIAlert"
+   type="alert">
+[PAYLOAD]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="AIAlertModal"
+   type="alertmodal">
+[PAYLOAD]
+  </notification>
+
+  <notification
    icon="notifytip.tga"
    name="AntiSpamBlock"
    type="notifytip">
@@ -10522,9 +11424,77 @@ AntiSpam: Blocked [SOURCE] for spamming [TYPE]s [AMOUNT] times in [TIME] seconds
    icon="notifytip.tga"
    name="AntiSpamNewlineFlood"
    type="notifytip">
-AntiSpam: Blocked newline flood from [SOURCE] (over [AMOUNT] newlines).
+AntiSpam: Blocked newline flood from secondlife:///app/agent/[SOURCE]/about (over [AMOUNT] newlines).
   </notification>
 
+  <notification
+   icon="alertmodal.tga"
+   name="BulkTemporaryUpload"
+   type="alertmodal">
+Would you like to bulk upload the files as temporary files?
+
+WARNING: Each upload will cost its normal price, if it's not temporary
+    <usetemplate
+     name="yesnocancelbuttons"
+     notext="Permanent"
+     yestext="Temporary"
+     canceltext="Cancel"/>
+  </notification>
+
+  <notification
+ icon="alert.tga"
+ name="ClickBuildConstants"
+ type="alert">
+The following constants are accepted in this tab:
+
+PX  --  X-axis position
+PY  --  Y-axis position
+PZ  --  Z-axis position
+SX  --  X-axis size
+SY  --  Y-axis size
+SZ  --  Z-axis size
+RX  --  X-axis rotation
+RY  --  Y-axis rotation
+RZ  --  Z-axis rotation
+CB  --  Path cut begin
+CE  --  Path cut end
+HLW  --  Hollow size
+SKW  --  Skew
+PB  --  Slice/Dimple/Profile cut begin
+PE  --  Slice/Dimple/Profile cut end
+TB  --  Twist begin
+TE  --  Twist end
+SHX  --  X-axis top shear
+SHY  --  Y-axis top shear
+HLX  --  X-axis hole size
+HLY  --  Y-axis hole size
+TPX  --  X-axis taper
+TPY  --  Y-axis taper
+ROF  --  Radius offset
+REV  --  Revolutions
+
+PI  --  pi
+TWO_PI  --  2pi
+PI_BY_TWO  --  pi/2
+SQRT2  --  Square root of 2
+DEG_TO_RAD  --  DEG_TO_RAD conversion (pi/180)
+RAD_TO_DEG  --  RAD_TO_DEG conversion (180/pi)
+GRAVITY  --  -9.8
+
+*  --  Multiplication
+\  --  Division
++  --  Addition
+-  --  Subtraction
+
+For information about this feature, click "More Info".
+  <url option="1" name="url">
+    http://imprudenceviewer.org/wiki/Build_Math_Expressions
+  </url>
+  <usetemplate
+   name="okhelpbuttons"
+   yestext="OK"
+   helptext="More Info"/>
+</notification>
 
   <notification
    icon="alertmodal.tga"
@@ -10539,15 +11509,255 @@ Are you sure you want to delete the selected user?
 
   <notification
    icon="alertmodal.tga"
+   name="EmptyFirstNameMessage"
+   type="alertmodal">
+[GRIDNAME] requires a non-empty first name to login.
+Please try again.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="EmptyLastNameMessage"
+   type="alertmodal">
+[GRIDNAME] requires a non-empty last name to login.
+Please try again.
+  </notification>
+
+  <notification
+   icon="notify.tga"
+   name="FirstAO"
+   type="notify">
+    For instructions, make a new template in the AO. Use the toolbar to toggle the AO on/off.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GridsNoNick"
+   type="alertmodal">
+Cannot save new grid information.
+You need to specify a unique grid nickname.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GridsNoLoginUri"
+   type="alertmodal">
+Cannot save new grid '[NAME]'.
+You need to specify a login URI.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GridExists"
+   type="alertmodal">
+Cannot save new grid '[NAME]'.
+A grid with the same nickname already exists.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="GridInfoNoLoginUri"
+   type="alertmodal">
+A login URI is required to retrieve the grid info.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="HelpRenderCompat"
+   type="alertmodal">
+Builds with extended hollow or extended hole size do not render properly on other viewers. Please keep this option checked, if you want your builds looking properly in other viewers.
+  </notification>
+
+<notification
+   icon="alertmodal.tga"
+   name="ImportFailed"
+   type="alertmodal">
+Bad XML file. Import aborted.
+</notification>
+
+<notification
+   icon="notifytip.tga"
+   name="ExportAborted"
+   type="notifytip">
+The Object was deselected before the export could occur. Export aborted.
+</notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="ExportFailed"
+   type="alertmodal">
+Bad permissions for the exported object. Export aborted.
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="ExportPartial"
+   type="alertmodal">
+Object exported. Some textures could not be saved due to: [REASON]
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="ExportSuccessful"
+   type="notifytip">
+Export successful.
+  </notification>
+
+<notification
+   icon="alertmodal.tga"
+   name="ConfirmAbortBackup"
+   type="alertmodal">
+Are you sure you want to abort the current object backup operation?
+    <form name="form">
+      <button
+       index="0"
+       name="Yes"
+       text="Yes"/>
+      <button
+       index="1"
+       name="No"
+       text="No"/>
+    </form>
+</notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="HelpReportNope"
+   type="alertmodal">
+Do not meddle in the affairs of wizards, for they are subtle and quick to anger. - J.R.R. Tolkien
+
+Please choose a legitimate category if you actually have something to report.
+  </notification>  
+
+  <notification
+   icon="alert.tga"
+   name="MediaAlert"
+   type="alert">
+The owner of this parcel has requested the following [MEDIA_TYPE] URL to be loaded by your viewer:
+
+[URL]
+
+You may choose to allow or deny the corresponding domain or in-world scripted object server:
+
+[DOMAIN]
+
+"Allow" and "Deny" apply only for this session, while "Blacklist" and "Whitelist" apply forever.
+   <form name="form">
+    <button
+	 index="0"
+	 name="Allow"
+	 text="Allow"/>
+	<button
+	 index="1"
+	 name="Deny"
+	 text="Deny"/>
+	<button
+	 index="2"
+	 name="Blacklist"
+	 text="Blacklist"/>
+	<button
+	 index="3"
+	 name="Whitelist"
+	 text="Whitelist"/>
+   </form>
+  </notification>
+  
+  <notification
+   icon="alertmodal.tga"
+   name="AddToMediaList"
+   type="alertmodal">
+Enter a domain name to be added to the [LIST]:
+    <tag>confirm</tag>
+    <form name="form">
+      <input name="url" type="text" default="true" />
+      <button
+       default="true"
+       index="0"
+       name="Add"
+       text="Add"/>
+      <button
+       index="1"
+       name="Cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+  <notification
+   icon="notifytip.tga"
+   name="MediaBlocked"
+   type="notifytip">
+Media/audio URL blocked for [DOMAIN]
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
    name="RadarChatKeysRequest"
    type="alertmodal">
 An object owned by you has requested keys from your radar.
-Would you like to enable announcing keys to objects in the sim?
+Would you like to enable announcing keys to objects in the region?
     <usetemplate
      name="yesnocancelbuttons"
      yestext="Yes"
      notext="No"
      canceltext="No, don't ask again!"/>
+  </notification>
+
+  <notification
+    icon="alertmodal.tga"
+    label="Reset all settings"
+    name="ResetAllSettingsPrompt"
+    type="alertmodal">
+    Resetting all settings may be helpful if you are experiencing problems; however, you will need to redo any changes you have made to the default configuration.
+
+    Which settings would you like to reset?
+    <form>
+      <button
+       index="0"
+       name="all"
+       text="ALL"/>
+      <button
+       index="1"
+       name="system"
+       text="System"/>
+      <button
+       index="2"
+       name="user"
+       text="User"/>
+      <button
+       default="true"
+       index="3"
+       name="cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   label="Reset all settings"
+   name="ResetSystemSettingsPrompt"
+   type="alertmodal">
+    Resetting all settings may be helpful if you are experiencing problems; however, you will need to redo any changes you have made to the default configuration.
+
+    Would you like to reset system settings?
+    <form>
+      <button
+       index="0"
+       name="all"
+       text="OK"/>
+      <button
+       default="true"
+       index="3"
+       name="cancel"
+       text="Cancel"/>
+    </form>
+  </notification>
+
+  <notification
+  icon="alertmodal.tga"
+  label="All settings reset"
+  name="ResetSettingsComplete"
+  type="alertmodal">
+    Settings have been reset. You should relog to ensure this takes full effect.
   </notification>
 
   <notification
@@ -10560,6 +11770,29 @@ The object you're attempting to restore in world is no copy, if you do not have 
      name="okcancelignore"
      notext="Don't Rez!"
      yestext="Proceed?"/>
+  </notification>
+
+  <notification
+   duration="10"
+   icon="notifytip.tga"
+   name="ServerVersionChanged"
+   priority="high"
+   type="notifytip">
+The region you have entered is running a different simulator version.
+Current simulator: [NEW_VERSION]
+Previous simulator: [OLD_VERSION]
+  </notification>
+
+  <notification
+   icon="alert.tga"
+   name="SGIncompleteAppearance"
+   type="alert">
+Sending incomplete appearance. You may appear to others as a cloud.
+
+Your shape, skin, hair or eyes might be defect.
+	<usetemplate
+	 name="okbutton"
+	 yestext="OK"/>
   </notification>
 
   <notification
@@ -10582,4 +11815,98 @@ Do you wish to export anyway?
 Object successfully exported to: [FILENAME]
   </notification>
 
+  <notification
+   icon="alertmodal.tga"
+   name="SubmitCrashReports"
+   type="alertmodal">
+Would you like to help improve [SHORT_APP_NAME] by sending crash reports?
+
+(You can change your answer in Preferences -> General -> Crash reports)
+  <usetemplate
+   name="okcancelbuttons"
+   notext="No"
+   yestext="Yes"/>
+  </notification>
+
+  <notification
+   icon="alertmodal.tga"
+   name="SupportChatShowInfo"
+   type="alertmodal">
+You have just entered a [SHORT_APP_NAME] support group chat. To help provide support, [SHORT_APP_NAME] can prepend useful information to your messages. This can easily be toggled later via the checkbox in the support group chat.
+  <usetemplate
+   name="okcancelbuttons"
+   notext="Don't Bother"
+   yestext="I Consent!"/>
+  </notification>
+
+  <notification
+    icon="notifytip.tga"
+    label="Update Available"
+    name="RecommendedUpdate"
+    type="notify">
+A newer version, [RECOMMENDED_VER], is available for [SHORT_APP_NAME].
+
+Click [Visit Page] to open
+[URL]
+for information and download links for this new version.
+   <tag>confirm</tag>
+   <usetemplate
+    name="okcancelignorecanceldefault"
+    notext="Later"
+    yestext="Visit Page"
+    ignoretext="Ignore recommended update notification"/>
+  </notification>
+  <notification
+   icon="alert.tga"
+   label="Critical Update!"
+   name="UrgentUpdate"
+   priority="high"
+   type="notify">
+Your version of [SHORT_APP_NAME] is critically out of date!
+
+It is STRONGLY recommended to download a newer version of this viewer due to grid compatibility and/or security concerns.
+
+Click [Visit Page] to open
+[URL]
+for information and download links for newer versions.
+
+   <tag>confirm</tag>
+   <usetemplate
+    name="okcancelignorecanceldefault"
+    notext="Later"
+    yestext="Visit Page"
+    ignoretext="Ignore critical update notification"/>
+  </notification>
+  <notification
+   icon="alert.tga"
+   label="Critical Update"
+   name="UrgentUpdateModal"
+   priority="high"
+   type="alertmodal">
+Your version of [SHORT_APP_NAME] is critically out of date!
+
+It is STRONGLY recommended to download a newer version of this viewer due to grid compatibility and/or security concerns.
+
+Click [Visit Page] to open
+[URL]
+for information and download links for newer versions.
+   <tag>confirm</tag>
+   <usetemplate
+    name="okcancelignorecanceldefault"
+    notext="Later"
+    yestext="Visit Page"
+    ignoretext="Ignore critical update alert"/>
+  </notification>
+  <notification
+   icon="alertmodal.tga"
+   name="WebLaunchSinguIssue"
+   type="alertmodal">
+Visit the [SHORT_APP_NAME] Issue Tracker, to report bugs and issues with [SHORT_APP_NAME] Viewer.
+Please be sure that your report won't be a duplicate of an existing one.
+    <usetemplate
+     ignoretext="When launching web browser to view [SHORT_APP_NAME] Issue Tracker"
+     name="okcancelignore"
+     notext="Cancel"
+     yestext="Go to page"/>
+  </notification>
 </notifications>

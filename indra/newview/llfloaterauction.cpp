@@ -3,38 +3,31 @@
  * @author James Cook, Ian Wilkes
  * @brief Implementation of the auction floater.
  *
- * $LicenseInfo:firstyear=2004&license=viewergpl$
- * 
- * Copyright (c) 2004-2009, Linden Research, Inc.
- * 
+ * $LicenseInfo:firstyear=2004&license=viewerlgpl$
  * Second Life Viewer Source Code
- * The source code in this file ("Source Code") is provided by Linden Lab
- * to you under the terms of the GNU General Public License, version 2.0
- * ("GPL"), unless you have obtained a separate licensing agreement
- * ("Other License"), formally executed by you and Linden Lab.  Terms of
- * the GPL can be found in doc/GPL-license.txt in this distribution, or
- * online at http://secondlifegrid.net/programs/open_source/licensing/gplv2
+ * Copyright (C) 2010, Linden Research, Inc.
  * 
- * There are special exceptions to the terms and conditions of the GPL as
- * it is applied to this Source Code. View the full text of the exception
- * in the file doc/FLOSS-exception.txt in this software distribution, or
- * online at
- * http://secondlifegrid.net/programs/open_source/licensing/flossexception
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation;
+ * version 2.1 of the License only.
  * 
- * By copying, modifying or distributing this software, you acknowledge
- * that you have read and understood your obligations described above,
- * and agree to abide by those obligations.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
  * 
- * ALL LINDEN LAB SOURCE CODE IS PROVIDED "AS IS." LINDEN LAB MAKES NO
- * WARRANTIES, EXPRESS, IMPLIED OR OTHERWISE, REGARDING ITS ACCURACY,
- * COMPLETENESS OR PERFORMANCE.
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ *
+ * Linden Research, Inc., 945 Battery Street, San Francisco, CA  94111  USA
  * $/LicenseInfo$
  */
 
 #include "llviewerprecompiledheaders.h"
 #include "llfloaterauction.h"
 
-#include "lldir.h"
 #include "llgl.h"
 #include "llimagej2c.h"
 #include "llimagetga.h"
@@ -46,17 +39,21 @@
 
 #include "llagent.h"
 #include "llcombobox.h"
+#include "llmimetypes.h"
 #include "llnotifications.h"
-#include "llnotificationsutil.h"	
+#include "llnotificationsutil.h"
 #include "llviewertexturelist.h"
 #include "llviewerparcelmgr.h"
 #include "llviewerregion.h"
-#include "lluictrlfactory.h"
 #include "llviewerwindow.h"
 #include "llviewerdisplay.h"
 #include "llviewercontrol.h"
 #include "llui.h"
+#include "lluictrlfactory.h"
 #include "llrender.h"
+#include "llsdutil.h"
+#include "llsdutil_math.h"
+#include "lltrans.h"
 
 ///----------------------------------------------------------------------------
 /// Local function declarations, constants, enums, and typedefs
@@ -74,8 +71,8 @@ void auction_tga_upload_done(const LLUUID& asset_id,
 LLFloaterAuction* LLFloaterAuction::sInstance = NULL;
 
 // Default constructor
-LLFloaterAuction::LLFloaterAuction() :
-	LLFloater(std::string("floater_auction")),
+LLFloaterAuction::LLFloaterAuction()
+  : LLFloater(std::string("floater_auction")),
 	mParcelID(-1)
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_auction.xml");
@@ -86,13 +83,13 @@ LLFloaterAuction::LLFloaterAuction() :
 		onCommitControlSetting(gSavedSettings), (void*)"AuctionShowFence");
 
 	childSetAction("snapshot_btn", onClickSnapshot, this);
-	childSetAction("ok_btn", onClickOK, this);
+	childSetAction("ok_btn", onClickStartAuction, this);
 }
 
 // Destroys the object
 LLFloaterAuction::~LLFloaterAuction()
 {
-	sInstance = NULL;
+	sInstance = nullptr;
 }
 
 // static
@@ -104,12 +101,23 @@ void LLFloaterAuction::show()
 		sInstance->center();
 		sInstance->setFocus(TRUE);
 	}
-	sInstance->initialize();
 	sInstance->open();	/*Flawfinder: ignore*/
+}
+
+BOOL LLFloaterAuction::postBuild()
+{
+	return TRUE;
+}
+
+void LLFloaterAuction::onOpen()
+{
+	initialize();
 }
 
 void LLFloaterAuction::initialize()
 {
+	mParcelUpdateCapUrl.clear();
+
 	mParcelp = LLViewerParcelMgr::getInstance()->getParcelSelection();
 	LLViewerRegion* region = LLViewerParcelMgr::getInstance()->getSelectionRegion();
 	LLParcel* parcelp = mParcelp->getParcel();
@@ -117,28 +125,30 @@ void LLFloaterAuction::initialize()
 	{
 		mParcelHost = region->getHost();
 		mParcelID = parcelp->getLocalID();
+		mParcelUpdateCapUrl = region->getCapability("ParcelPropertiesUpdate");
 
-		childSetText("parcel_text", parcelp->getName());
-		childEnable("snapshot_btn");
-		childEnable("ok_btn");
+		getChild<LLUICtrl>("parcel_text")->setValue(parcelp->getName());
+		getChildView("snapshot_btn")->setEnabled(TRUE);
+		getChildView("ok_btn")->setEnabled(true);
 	}
 	else
 	{
 		mParcelHost.invalidate();
 		if(parcelp && parcelp->getForSale())
 		{
-			childSetText("parcel_text", getString("already for sale"));
+			getChild<LLUICtrl>("parcel_text")->setValue(getString("already for sale"));
 		}
 		else
 		{
-			childSetText("parcel_text", LLStringUtil::null);
+			getChild<LLUICtrl>("parcel_text")->setValue(LLStringUtil::null);
 		}
 		mParcelID = -1;
-		childSetEnabled("snapshot_btn", false);
-		childSetEnabled("ok_btn", false);
+		getChildView("snapshot_btn")->setEnabled(false);
+		getChildView("ok_btn")->setEnabled(false);
 	}
+
 	mImageID.setNull();
-	mImage = NULL;
+	mImage = nullptr;
 }
 
 void LLFloaterAuction::draw()
@@ -147,9 +157,10 @@ void LLFloaterAuction::draw()
 
 	if(!isMinimized() && mImage.notNull()) 
 	{
-		LLRect rect;
-		if (childGetRect("snapshot_icon", rect))
+		LLView* snapshot_icon = findChild<LLView>("snapshot_icon");
+		if (snapshot_icon)
 		{
+			LLRect rect = snapshot_icon->getRect();
 			{
 				gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
 				gl_rect_2d(rect, LLColor4(0.f, 0.f, 0.f, 1.f));
@@ -176,7 +187,7 @@ void LLFloaterAuction::onClickSnapshot(void* data)
 
 	LLPointer<LLImageRaw> raw = new LLImageRaw;
 
-	gForceRenderLandFence = self->childGetValue("fence_check").asBoolean();
+	gForceRenderLandFence = self->getChild<LLUICtrl>("fence_check")->getValue().asBoolean();
 	BOOL success = gViewerWindow->rawSnapshot(raw,
 											  gViewerWindow->getWindowWidth(),
 											  gViewerWindow->getWindowHeight(),
@@ -218,13 +229,13 @@ void LLFloaterAuction::onClickSnapshot(void* data)
 }
 
 // static
-void LLFloaterAuction::onClickOK(void* data)
+void LLFloaterAuction::onClickStartAuction(void* data)
 {
 	LLFloaterAuction* self = (LLFloaterAuction*)(data);
 
 	if(self->mImageID.notNull())
 	{
-		LLSD parcel_name = self->childGetValue("parcel_text");
+		LLSD parcel_name = self->getChild<LLUICtrl>("parcel_text")->getValue();
 
 	// create the asset
 		std::string* name = new std::string(parcel_name.asString());
@@ -257,11 +268,243 @@ void LLFloaterAuction::onClickOK(void* data)
 	msg->sendReliable(self->mParcelHost);
 
 	// clean up floater, and get out
-	self->mImageID.setNull();
-	self->mImage = NULL;
-	self->mParcelID = -1;
-	self->mParcelHost.invalidate();
-	self->close();
+	self->cleanupAndClose();
+}
+
+
+void LLFloaterAuction::cleanupAndClose()
+{
+	mImageID.setNull();
+	mImage = nullptr;
+	mParcelID = -1;
+	mParcelHost.invalidate();
+	close();
+}
+
+
+
+// static glue
+void LLFloaterAuction::onClickResetParcel(void* data)
+{
+	LLFloaterAuction* self = (LLFloaterAuction*)(data);
+	if (self)
+	{
+		self->doResetParcel();
+	}
+}
+
+
+// Reset all the values for the parcel in preparation for a sale
+void LLFloaterAuction::doResetParcel()
+{
+	LLParcel* parcelp = mParcelp->getParcel();
+	LLViewerRegion* region = LLViewerParcelMgr::getInstance()->getSelectionRegion();
+
+	if (parcelp
+		&& region
+		&& !mParcelUpdateCapUrl.empty())
+	{
+		LLSD body;
+		std::string empty;
+
+		// request new properties update from simulator
+		U32 message_flags = 0x01;
+		body["flags"] = ll_sd_from_U32(message_flags);
+
+		// Set all the default parcel properties for auction
+		body["local_id"] = parcelp->getLocalID();
+
+		U32 parcel_flags = PF_ALLOW_LANDMARK |
+						   PF_ALLOW_FLY	|
+						   PF_CREATE_GROUP_OBJECTS |
+						   PF_ALLOW_ALL_OBJECT_ENTRY |
+						   PF_ALLOW_GROUP_OBJECT_ENTRY |
+						   PF_ALLOW_GROUP_SCRIPTS |
+						   PF_RESTRICT_PUSHOBJECT |
+						   PF_SOUND_LOCAL |
+						   PF_ALLOW_VOICE_CHAT |
+						   PF_USE_ESTATE_VOICE_CHAN;
+
+		body["parcel_flags"] = ll_sd_from_U32(parcel_flags);
+
+		// Build a parcel name like "Ahern (128,128) PG 4032m"
+		std::ostringstream parcel_name;
+		LLVector3 center_point( parcelp->getCenterpoint() );
+		center_point.snap(0);		// Get rid of fractions
+		parcel_name << region->getName()
+					<< " ("
+					<< (S32) center_point.mV[VX]
+					<< ","
+					<< (S32) center_point.mV[VY]
+					<< ") "
+					<< region->getSimAccessString()
+					<< " "
+					<< parcelp->getArea()
+					<< "m";
+
+		std::string new_name(parcel_name.str());
+		body["name"] = new_name;
+		getChild<LLUICtrl>("parcel_text")->setValue(new_name);	// Set name in dialog as well, since it won't get updated otherwise
+
+		body["sale_price"] = (S32) 0;
+		body["description"] = empty;
+		body["music_url"] = empty;
+		body["media_url"] = empty;
+		body["media_desc"] = empty;
+		body["media_type"] = LLMIMETypes::getDefaultMimeType();
+		body["media_width"] = (S32) 0;
+		body["media_height"] = (S32) 0;
+		body["auto_scale"] = (S32) 0;
+		body["media_loop"] = (S32) 0;
+		body["obscure_media"] = (S32) 0; // OBSOLETE - no longer used
+		body["obscure_music"] = (S32) 0; // OBSOLETE - no longer used
+		body["media_id"] = LLUUID::null;
+		body["group_id"] = MAINTENANCE_GROUP_ID;	// Use maintenance group
+		body["pass_price"] = (S32) 10;		// Defaults to $10
+		body["pass_hours"] = 0.0f;
+		body["category"] = (U8) LLParcel::C_NONE;
+		body["auth_buyer_id"] = LLUUID::null;
+		body["snapshot_id"] = LLUUID::null;
+		body["user_location"] = ll_sd_from_vector3( LLVector3::zero );
+		body["user_look_at"] = ll_sd_from_vector3( LLVector3::zero );
+		body["landing_type"] = (U8) LLParcel::L_DIRECT;
+
+		LL_INFOS() << "Sending parcel update to reset for auction via capability to: "
+			<< mParcelUpdateCapUrl << LL_ENDL;
+		LLHTTPClient::post(mParcelUpdateCapUrl, body, new LLHTTPClient::ResponderIgnore());
+
+		// Send a message to clear the object return time
+		LLMessageSystem *msg = gMessageSystem;
+		msg->newMessageFast(_PREHASH_ParcelSetOtherCleanTime);
+		msg->nextBlockFast(_PREHASH_AgentData);
+		msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
+		msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
+		msg->nextBlockFast(_PREHASH_ParcelData);
+		msg->addS32Fast(_PREHASH_LocalID, parcelp->getLocalID());
+		msg->addS32Fast(_PREHASH_OtherCleanTime, 5);			// 5 minute object auto-return
+
+		msg->sendReliable(region->getHost());
+
+		// Clear the access lists
+		clearParcelAccessList(parcelp, region, AL_ACCESS);
+		clearParcelAccessList(parcelp, region, AL_BAN);
+		clearParcelAccessList(parcelp, region, AL_ALLOW_EXPERIENCE);
+		clearParcelAccessList(parcelp, region, AL_BLOCK_EXPERIENCE);
+	}
+}
+
+
+
+void LLFloaterAuction::clearParcelAccessList(LLParcel* parcel, LLViewerRegion* region, U32 list)
+{
+	if (!region || !parcel) return;
+
+	LLUUID transactionUUID;
+	transactionUUID.generate();
+
+	LLMessageSystem* msg = gMessageSystem;
+
+	msg->newMessageFast(_PREHASH_ParcelAccessListUpdate);
+	msg->nextBlockFast(_PREHASH_AgentData);
+	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID() );
+	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID() );
+	msg->nextBlockFast(_PREHASH_Data);
+	msg->addU32Fast(_PREHASH_Flags, list);
+	msg->addS32(_PREHASH_LocalID, parcel->getLocalID() );
+	msg->addUUIDFast(_PREHASH_TransactionID, transactionUUID);
+	msg->addS32Fast(_PREHASH_SequenceID, 1);			// sequence_id
+	msg->addS32Fast(_PREHASH_Sections, 0);				// num_sections
+
+	// pack an empty block since there will be no data
+	msg->nextBlockFast(_PREHASH_List);
+	msg->addUUIDFast(_PREHASH_ID,  LLUUID::null );
+	msg->addS32Fast(_PREHASH_Time, 0 );
+	msg->addU32Fast(_PREHASH_Flags,	0 );
+
+	msg->sendReliable( region->getHost() );
+}
+
+
+
+// static - 'Sell to Anyone' clicked, throw up a confirmation dialog
+void LLFloaterAuction::onClickSellToAnyone(void* data)
+{
+	LLFloaterAuction* self = (LLFloaterAuction*)(data);
+	if (self)
+	{
+		LLParcel* parcelp = self->mParcelp->getParcel();
+
+		// Do a confirmation
+		S32 sale_price = parcelp->getArea();	// Selling for L$1 per meter
+		S32 area = parcelp->getArea();
+
+		LLSD args;
+		args["LAND_SIZE"] = llformat("%d", area);
+		args["SALE_PRICE"] = llformat("%d", sale_price);
+		args["NAME"] = LLTrans::getString("Anyone");
+
+		LLNotification::Params params("ConfirmLandSaleChange");	// Re-use existing dialog
+		params.substitutions(args)
+			.functor/*.function*/(boost::bind(&LLFloaterAuction::onSellToAnyoneConfirmed, self, _1, _2));
+
+		params.name("ConfirmLandSaleToAnyoneChange");
+
+		// ask away
+		LLNotifications::instance().add(params);
+	}
+}
+
+
+// Sell confirmation clicked
+bool LLFloaterAuction::onSellToAnyoneConfirmed(const LLSD& notification, const LLSD& response)	
+{
+	S32 option = LLNotificationsUtil::getSelectedOption(notification, response);
+	if (option == 0)
+	{
+		doSellToAnyone();
+	}
+
+	return false;
+}
+
+
+
+// Reset all the values for the parcel in preparation for a sale
+void LLFloaterAuction::doSellToAnyone()
+{
+	LLParcel* parcelp = mParcelp->getParcel();
+	LLViewerRegion* region = LLViewerParcelMgr::getInstance()->getSelectionRegion();
+
+	if (parcelp
+		&& region
+		&& !mParcelUpdateCapUrl.empty())
+	{
+		LLSD body;
+
+		// request new properties update from simulator
+		U32 message_flags = 0x01;
+		body["flags"] = ll_sd_from_U32(message_flags);
+
+		// Set all the default parcel properties for auction
+		body["local_id"] = parcelp->getLocalID();
+
+		// Set 'for sale' flag
+		U32 parcel_flags = parcelp->getParcelFlags() | PF_FOR_SALE;
+		// Ensure objects not included
+		parcel_flags &= ~PF_FOR_SALE_OBJECTS;
+		body["parcel_flags"] = ll_sd_from_U32(parcel_flags);
+
+		body["sale_price"] = parcelp->getArea();	// Sell for L$1 per square meter
+		body["auth_buyer_id"] = LLUUID::null;		// To anyone
+
+		LL_INFOS() << "Sending parcel update to sell to anyone for L$1 via capability to: "
+			<< mParcelUpdateCapUrl << LL_ENDL;
+
+		LLHTTPClient::post(mParcelUpdateCapUrl, body, new LLHTTPClient::ResponderIgnore());
+
+		// clean up floater, and get out
+		cleanupAndClose();
+	}
 }
 
 

@@ -73,7 +73,7 @@ public:
 
 	LLTabContainer* getTabContainer() { return mTabContainer; }
 
-	void setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string&  email);
+	void setPersonalInfo(const std::string& visibility, bool im_via_email, const std::string&  email, bool is_verified);
 
 	static void onTabChanged(LLUICtrl* ctrl);
 
@@ -109,7 +109,7 @@ public:
 	static void show(void*);
 
 	// static data update, called from message handler
-	static void updateUserInfo(const std::string& visibility, bool im_via_email, const std::string& email);
+	static void updateUserInfo(const std::string& visibility, bool im_via_email, const std::string& email, bool is_verified = false);
 	
 	static void switchTab(S32 i);
 

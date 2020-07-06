@@ -4,21 +4,29 @@ project(llcommon)
 
 include(Cwdebug)
 include(00-Common)
+include(Linking)
 include(LLCommon)
+include(EXPAT)
 include(APR)
 include(Linking)
-include(GoogleBreakpad)
+include(Boost)
+include(OpenSSL)
+include(LLSharedLibs)
+include(Copy3rdPartyLibs)
+include(ZLIB)
+include(URIPARSER)
 
 include_directories(
     ${EXPAT_INCLUDE_DIRS}
     ${LLCOMMON_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIRS}
+    ${JSON_INCLUDE_DIR}
     ${ZLIB_INCLUDE_DIRS}
     ${BREAKPAD_INCLUDE_DIRECTORIES}
     )
 
 set(llcommon_SOURCE_FILES
     aialert.cpp
-    aifile.cpp
     aiframetimer.cpp
     aisyncclient.cpp
     aithreadid.cpp
@@ -32,6 +40,7 @@ set(llcommon_SOURCE_FILES
     llassettype.cpp
     llbase32.cpp
     llbase64.cpp
+    llcallbacklist.cpp
     llcommon.cpp
     llcommonutils.cpp
     llcoros.cpp
@@ -78,6 +87,7 @@ set(llcommon_SOURCE_FILES
     llrun.cpp
     llscopedvolatileaprpool.h
     llsd.cpp
+    llsdjson.cpp
     llsdparam.cpp
     llsdserialize.cpp
     llsdserialize_xml.cpp
@@ -94,6 +104,7 @@ set(llcommon_SOURCE_FILES
     llthreadsafequeue.cpp
     lltimer.cpp
     lluri.cpp
+    lluriparser.cpp
     lluuid.cpp
     llworkerthread.cpp
     metaclass.cpp
@@ -107,7 +118,6 @@ set(llcommon_HEADER_FILES
     CMakeLists.txt
 
     aialert.h
-    aifile.h
     aiframetimer.h
     airecursive.h
     aisyncclient.h
@@ -134,6 +144,7 @@ set(llcommon_HEADER_FILES
     llbase32.h
     llbase64.h
     llboost.h
+    llcallbacklist.h
     llchat.h
     llclickaction.h
     llcommon.h
@@ -202,6 +213,7 @@ set(llcommon_HEADER_FILES
     llrun.h
     llsafehandle.h
     llsd.h
+    llsdjson.h
     llsdparam.h
     llsdserialize.h
     llsdserialize_xml.h
@@ -226,10 +238,14 @@ set(llcommon_HEADER_FILES
     llthreadsafequeue.h
     lltimer.h
     lltreeiterators.h
+    llunits.h
+    llunittype.h
     lltypeinfolookup.h
     lluri.h
+    lluriparser.h
     lluuid.h
-    llversionviewer.h.in
+    llwin32headers.h
+    llwin32headerslean.h
     llworkerthread.h
     metaclass.h
     metaclasst.h
@@ -249,19 +265,32 @@ set_source_files_properties(${llcommon_HEADER_FILES}
                             PROPERTIES HEADER_FILE_ONLY TRUE)
 
 list(APPEND llcommon_SOURCE_FILES ${cwdebug_SOURCE_FILES})
+
 list(APPEND llcommon_SOURCE_FILES ${llcommon_HEADER_FILES})
 
-add_library (llcommon SHARED ${llcommon_SOURCE_FILES})
-if(WINDOWS)
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
-endif(WINDOWS)
-add_dependencies(llcommon prepare)
+if(LLCOMMON_LINK_SHARED)
+  add_library (llcommon SHARED ${llcommon_SOURCE_FILES})
+  if(WINDOWS)
+    # always generate llcommon.pdb, even for "Release" builds
+    set_target_properties(llcommon PROPERTIES LINK_FLAGS "/DEBUG")
+  endif(WINDOWS)
+  ll_stage_sharedlib(llcommon)
+else(LLCOMMON_LINK_SHARED)
+    add_library (llcommon ${llcommon_SOURCE_FILES})
+endif(LLCOMMON_LINK_SHARED)
+
+set_target_properties(llcommon PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+
 target_link_libraries(
     llcommon
-    ${BREAKPAD_EXCEPTION_HANDLER_LIBRARIES}
+    PUBLIC
+    absl::hash
     ${APRUTIL_LIBRARIES}
     ${APR_LIBRARIES}
     ${EXPAT_LIBRARIES}
+    ${CRYPTO_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${CRYPTO_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${WINDOWS_LIBRARIES}
     ${Boost_CONTEXT_LIBRARY}
@@ -269,6 +298,10 @@ target_link_libraries(
     ${Boost_THREAD_LIBRARY}
     ${Boost_SYSTEM_LIBRARY}
     ${CORESERVICES_LIBRARY}
+    ${URIPARSER_LIBRARY}
+    nlohmann_json::nlohmann_json
+    absl::strings
+    ${RT_LIBRARY}
     )
 
 if (DARWIN)
@@ -280,3 +313,5 @@ if (DARWIN)
         INSTALL_NAME_DIR "@executable_path/../Resources"
       )
 endif (DARWIN)
+
+add_dependencies(llcommon stage_third_party_libs)

@@ -307,7 +307,7 @@ void LLPanelGroupVoting::impl::setEnableVoteProposal()
 		if ( proposal_cell )
 		{
 			 //proposal text
-			mProposalText->setText(proposal_cell->getValue().asString());
+			mProposalText->setText(proposal_cell->getValue().asString(), false);
 		}
 		else
 		{	// Something's wrong... should have some text
@@ -556,7 +556,7 @@ void LLPanelGroupVoting::impl::setEnableHistoryItem()
 	const LLScrollListCell *cell = item->getColumn(5);
 	if (cell)
 	{
-		mVoteHistoryText->setText(cell->getValue().asString());
+		mVoteHistoryText->setText(cell->getValue().asString(), false);
 	}
 	else
 	{	// Something's wrong...

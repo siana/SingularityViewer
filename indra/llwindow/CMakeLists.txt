@@ -11,7 +11,6 @@
 project(llwindow)
 
 include(00-Common)
-include(DirectX)
 include(LLCommon)
 include(LLImage)
 include(LLMath)
@@ -144,11 +143,9 @@ if (llwindow_HEADER_FILES)
 endif (llwindow_HEADER_FILES)
   list(APPEND viewer_SOURCE_FILES ${viewer_HEADER_FILES})
 
-add_library (llwindow
+  add_library (llwindow
     ${llwindow_SOURCE_FILES}
     ${viewer_SOURCE_FILES}
     )
-add_dependencies(llwindow prepare)
-target_link_libraries (llwindow ${llwindow_LINK_LIBRARIES})
 
-
+target_link_libraries (llwindow PUBLIC llcommon ${llwindow_LINK_LIBRARIES})

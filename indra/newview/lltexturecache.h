@@ -105,7 +105,7 @@ public:
 	
 	void purgeCache(ELLPath location);
 	void setReadOnly(BOOL read_only) ;
-	S64 initCache(ELLPath location, S64 maxsize, BOOL texture_cache_mismatch);
+	U64 initCache(ELLPath location, U64 maxsize, BOOL texture_cache_mismatch);
 
 	handle_t readFromCache(const std::string& local_filename, const LLUUID& id, U32 priority, S32 offset, S32 size,
 						   ReadResponder* responder);
@@ -129,8 +129,8 @@ public:
 	// debug
 	S32 getNumReads() { return mReaders.size(); }
 	S32 getNumWrites() { return mWriters.size(); }
-	S64 getUsage() { return mTexturesSizeTotal; }
-	S64 getMaxUsage() { return sCacheMaxTexturesSize; }
+	S64Bytes getUsage() { return S64Bytes(mTexturesSizeTotal); }
+	S64Bytes getMaxUsage() { return S64Bytes(sCacheMaxTexturesSize); }
 	U32 getEntries() { return mHeaderEntriesInfo.mEntries; }
 	U32 getMaxEntries() { return sCacheMaxEntries; };
 	BOOL isInCache(const LLUUID& id) ;
@@ -193,7 +193,7 @@ private:
 	std::string mHeaderDataFileName;
 	EntriesInfo mHeaderEntriesInfo;
 	std::set<S32> mFreeList; // deleted entries
-	std::set<LLUUID> mLRU;
+	uuid_set_t mLRU;
 	typedef std::map<LLUUID,S32> id_map_t;
 	id_map_t mHeaderIDMap;
 
@@ -202,7 +202,7 @@ private:
 	typedef std::map<LLUUID,S32> size_map_t;
 	size_map_t mTexturesSizeMap;
 	S64 mTexturesSizeTotal;
-	LLAtomic32<BOOL> mDoPurge;
+	LLAtomic32<bool> mDoPurge;
 
 	typedef std::map<S32, Entry> idx_entry_map_t;
 	idx_entry_map_t mUpdatedEntryMap;

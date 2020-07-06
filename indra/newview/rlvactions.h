@@ -1,6 +1,6 @@
 /** 
  *
- * Copyright (c) 2009-2013, Kitty Barnett
+ * Copyright (c) 2009-2016, Kitty Barnett
  * 
  * The source code in this file is provided to you under the terms of the 
  * GNU Lesser General Public License, version 2.1, but WITHOUT ANY WARRANTY;
@@ -17,6 +17,7 @@
 #ifndef RLV_ACTIONS_H
 #define RLV_ACTIONS_H
 
+#include "llchat.h"
 #include "rlvdefines.h"
 
 // ============================================================================
@@ -33,6 +34,11 @@ public:
 	 * Returns true if the user is allowed to receive IMs from the specified sender (can be an avatar or a group)
 	 */
 	static bool canReceiveIM(const LLUUID& idSender);
+
+	/*
+	 * Returns true if the user is allowed to chat on the specified channel
+	 */
+	static bool canSendChannel(int nChannel);
 
 	/*
 	 * Returns true if the user is allowed to send IMs to the specified recipient (can be an avatar or a group)
@@ -52,6 +58,11 @@ public:
 	enum EShowNamesContext { SNC_TELEPORTOFFER = 0, SNC_TELEPORTREQUEST, SNC_COUNT };
 	static bool canShowName(EShowNamesContext eContext) { return (eContext < SNC_COUNT) ? !s_BlockNamesContexts[eContext] : false; }
 	static void setShowName(EShowNamesContext eContext, bool fShowName) { if ( (eContext < SNC_COUNT) && (isRlvEnabled()) ) { s_BlockNamesContexts[eContext] = !fShowName; } }
+
+	/*
+	 * Checks if the user is allowed to use the specified volume in (main) chat and returns the appropriate chat volume type
+	 */
+	static EChatType checkChatVolume(EChatType chatType);
 
 protected:
 	// Backwards logic so that we can initialize to 0 and it won't block when we forget to/don't check if RLVa is disabled
@@ -108,7 +119,7 @@ public:
 	static bool hasBehaviour(ERlvBehaviour eBhvr);
 
 	/*
-	 * Returns true if a - P2P or group - IM session is open with the specified UUID.
+	 * Returns true if a - P2P or group - IM session is open with the specified UUID
 	 */
 	static bool hasOpenP2PSession(const LLUUID& idAgent);
 	static bool hasOpenGroupSession(const LLUUID& idGroup);

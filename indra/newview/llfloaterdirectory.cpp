@@ -204,7 +204,6 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 {
 	sInstance = this;
 
-	mFindAllPanel = NULL;
 	mClassifiedPanel = NULL;
 	mEventsPanel = NULL;
 	mLandPanel = NULL;
@@ -248,7 +247,7 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 
 	factory_map["Panel Avatar"] = LLCallbackMap(createPanelAvatar, this);
 	
-	mCommitCallbackRegistrar.add("Search.WebFloater", boost::bind(&LLFloaterSearch::open, boost::bind(LLFloaterSearch::getInstance)));
+	mCommitCallbackRegistrar.add("Search.WebFloater", boost::bind(&LLFloaterSearch::open, boost::bind(&LLFloaterSearch::getInstance)));
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_directory.xml", &factory_map);
 	moveResizeHandlesToFront();
 
@@ -260,7 +259,12 @@ LLFloaterDirectory::LLFloaterDirectory(const std::string& name)
 	LLTabContainer* container = getChild<LLTabContainer>("Directory Tabs");
 	if (secondlife)
 	{
-		container->removeTabPanel(getChild<LLPanel>("find_all_old_panel")); // Not used
+		// Remove unused tabs
+		container->removeTabPanel(getChild<LLPanel>("find_all_old_panel"));
+		LLPanel* p = getChild<LLPanel>("find_all_panel");
+		container->removeTabPanel(p); // This should be at the end
+		p->setLabel(p->getString("classic_label")); // Give it a special label
+		container->addTabPanel(p, p->getLabel());
 	}
 	else
 	{
@@ -305,9 +309,7 @@ LLFloaterDirectory::~LLFloaterDirectory()
 // static
 void *LLFloaterDirectory::createFindAll(void* userdata)
 {
-	LLFloaterDirectory *self = (LLFloaterDirectory*)userdata;
-	self->mFindAllPanel = LLPanelDirFindAllInterface::create(self);
-	return self->mFindAllPanel;
+	return LLPanelDirFindAllInterface::create(static_cast<LLFloaterDirectory*>(userdata));
 }
 
 // static
@@ -452,23 +454,42 @@ void LLFloaterDirectory::requestClassifieds()
 	}
 }
 
-void LLFloaterDirectory::searchInAll(const std::string& search_text)
+void LLFloaterDirectory::search(const LLFloaterSearch::SearchQuery& search)
 {
 	start();
-	LLPanelDirFindAllInterface::search(sInstance->mFindAllPanel, search_text);
-	performQueryOn2("classified_panel", search_text);
-	performQueryOn2("events_panel", search_text);
-	performQueryOn2("groups_panel", search_text);
-	performQueryOn2("people_panel", search_text);
-	performQueryOn2("places_panel", search_text);
+	const std::string category(search.category());
+	const std::string search_text(search.query);
+	if (category.empty())
+	{
+		LLPanelDirFindAllInterface::search(sInstance, search);
+		performQueryOn2("classified_panel", search_text);
+		performQueryOn2("events_panel", search_text);
+		performQueryOn2("groups_panel", search_text);
+		performQueryOn2("people_panel", search_text);
+		performQueryOn2("places_panel", search_text);
+	}
+	else if (category == "all")
+		LLPanelDirFindAllInterface::search(sInstance, search, true);
+	else if (category == "people")
+		showPeople(search.query);
+	else if (category == "places")
+		showPlaces(search.query);
+	else if (category == "events")
+		showEvents(search.query);
+	else if (category == "groups")
+		showGroups(search.query);
+	/* Singu TODO: Wiki tab in secondlife legacy search floater?
+	else if (category == "wiki")
+		LLFloaterDirectory::showWiki(search.query);*/
+	else if (category == "destinations")
+		showDestinations();
+	else if (category == "classifieds")
+		showClassified(search.query);
+	else if (gHippoGridManager->getConnectedGrid()->isSecondLife())
+		LLPanelDirFindAllInterface::search(sInstance, search, true);
+	else
+		LLNotificationsUtil::add("UnsupportedCommandSLURL"); // Singu Note: Perhaps we should use a special notification here?
 }
-
-void LLFloaterDirectory::showFindAll(const std::string& search_text)
-{
-	showPanel(LFSimFeatureHandler::instance().searchURL().empty() ? "find_all_old_panel" : "find_all_panel");
-	LLPanelDirFindAllInterface::search(sInstance->mFindAllPanel, search_text);
-}
-
 
 void LLFloaterDirectory::showClassified(const LLUUID& classified_id)
 {
@@ -598,7 +619,7 @@ void LLFloaterDirectory::start()
 void LLFloaterDirectory::showPanel(const std::string& tabname)
 {
 	start();
-	sInstance->childShowTab("Directory Tabs", tabname);
+	sInstance->findChild<LLTabContainer>("Directory Tabs")->selectTabByName(tabname);
 	sInstance->focusCurrentPanel();
 }
 
@@ -616,7 +637,7 @@ void LLFloaterDirectory::toggleFind(void*)
 			|| (inst.destinationGuideURL().empty() && panel == "showcase_panel"))
 				panel = "find_all_old_panel";
 		}
-		else if (panel == "find_all_old_panel") panel = "find_all_panel";
+		else if (panel == "find_all_old_panel") panel = "web_panel";
 
 		showPanel(panel);
 

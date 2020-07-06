@@ -5,7 +5,7 @@
 	<menu_item_call label="Tocar" name="Attachment Object Touch">
 		<on_click function="Object.Touch" />
 		<on_enable function="Object.EnableTouch" userdata="Tocar" name="EnableTouch"/>
-	</menu_item_call>	
+	</menu_item_call>
 	<menu_item_call label="Pararse" name="Stand Up">
 		<on_click function="Self.SitOrStand"/>
 		<on_enable function="Self.EnableSitOrStand" userdata="Sentarse,Pararse"/>
@@ -18,16 +18,27 @@
 			<menu_item_call label="Reiniciar" name="Reset Scripts"/>
 			<menu_item_call label="Iniciar" name="Object Set Scripts to Running"/>
 			<menu_item_call label="Detener" name="Object Set Scripts to Not Running"/>
-			<menu_item_call label="Borrar" name="Remove Scripts From Selection"/> 
+			<menu_item_call label="Borrar" name="Remove Scripts From Selection"/>
 			<menu_item_call label="Conteo de Scripts" name="ScriptCount"/>
 			<menu_item_call label="Info de Script" name="Script Info"/>
-		</pie_menu>			
+		</pie_menu>
 		<menu_item_call label="Inspeccionar" name="Object Inspect"/>
 		<menu_item_call label="Datos" name="Data"/>
 		<menu_item_call label="Desdibujar" name="Derender"/>
 		<menu_item_call label="Recargar" name="Reload Textures"/>
+		<pie_menu label="Avatar" name="Avatar Tools">
+			<menu_item_call label="Recargar" name="Reload Textures"/>
+			<menu_item_call label="Reiniciar Esqueleto" name="Reset Skeleton"/>
+			<menu_item_call label="Reiniciar Animaciones" name="Reset Skeleton And Animations"/>
+			<menu_item_call label="Animaciones..." name="Anims..."/>
+			<menu_item_call label="Contar Scripts" name="ScriptCount"/>
+			<menu_item_call label="Info de Script" name="Script Info"/>
+			<menu_item_call label="Copiar UUID" name="CopyUUID"/>
+			<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
+		</pie_menu>
 		<menu_item_call label="Guardar OBJ..." name="Save OBJ..."/>
 		<menu_item_call label="Guardar DAE..." name="Save DAE..."/>
 	</pie_menu>
 	<menu_item_call label="Apariencia..." name="Appearance..."/>
-	<menu_item_call label="Editar..." name="Edit..."/></pie_menu>
+	<menu_item_call label="Editar..." name="Edit..."/>
+</pie_menu>

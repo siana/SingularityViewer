@@ -62,10 +62,11 @@ private:
 	bool mCustomizeAnim;
 	bool mAnnounceSnapshots;
 	bool mAnnounceStreamMetadata;
-	bool mUnfocusedFloatersOpaque;
-	bool mCompleteNameProfiles;
+	F32 mInactiveFloaterTransparency, mActiveFloaterTransparency;
 	bool mScriptErrorsStealFocus;
 	bool mConnectToNeighbors;
+	bool mRestartMinimized;
+	std::string mRestartSound;
 	//Tags\Colors
 	bool mAscentBroadcastTag;
 	std::string mReportClientUUID;

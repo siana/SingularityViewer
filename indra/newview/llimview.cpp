@@ -45,10 +45,12 @@
 
 #include "llagent.h"
 #include "llagentcamera.h"
+#include "llagentui.h"
 #include "llavataractions.h"
 #include "llavatarnamecache.h"
 #include "llfloaterchat.h"
 #include "llfloaterchatterbox.h"
+#include "llgroupactions.h"
 #include "llimpanel.h"
 #include "llmutelist.h"
 #include "llspeakers.h"
@@ -615,7 +617,7 @@ LLUUID LLIMMgr::addSession(
 	LLFloaterIMPanel* floater = findFloaterBySession(session_id);
 	if(!floater)
 	{
-		std::vector<LLUUID> ids;
+		uuid_vec_t ids;
 		ids.push_back(other_participant_id);
 
 		floater = createFloater(session_id, other_participant_id, name, dialog, ids, true);
@@ -659,7 +661,7 @@ LLUUID LLIMMgr::addSession(
 	const std::string& name,
 	EInstantMessage dialog,
 	const LLUUID& other_participant_id,
-	const std::vector<LLUUID>& ids)
+	const uuid_vec_t& ids)
 {
 	if (0 == ids.size())
 	{
@@ -791,41 +793,17 @@ void LLIMMgr::inviteToSession(
 
 	if ( !mPendingInvitations.has(session_id.asString()) )
 	{
-		if (caller_name.empty())
-		{
-			gCacheName->get(caller_id, true,  // voice
-				boost::bind(&LLIMMgr::onInviteNameLookup, _1, _2, _3, payload));
-		}
-		else
-		{
-			LLSD args;
-			args["NAME"] = caller_name;
-			args["GROUP"] = session_name;
+		LLSD args;
+		args["NAME"] = LLAvatarActions::getSLURL(caller_id);
+		args["GROUP"] = LLGroupActions::getSLURL(session_id);
 
-			LLNotifications::instance().add(notify_box_type, 
-					     args, 
-						 payload,
-						 &inviteUserResponse);
+		LLNotifications::instance().add(notify_box_type,
+				args,
+				payload,
+				&inviteUserResponse);
 
-		}
 		mPendingInvitations[session_id.asString()] = LLSD();
 	}
-}
-
-//static
-void LLIMMgr::onInviteNameLookup(const LLUUID& id, const std::string& full_name, bool is_group, LLSD payload)
-{
-	payload["caller_name"] = full_name;
-	payload["session_name"] = full_name;
-
-	LLSD args;
-	args["NAME"] = full_name;
-
-	LLNotifications::instance().add(
-		payload["notify_box_type"].asString(),
-		args, 
-		payload,
-		&inviteUserResponse);
 }
 
 void LLIMMgr::setFloaterOpen(BOOL set_open)
@@ -1050,7 +1028,7 @@ LLFloaterIMPanel* LLIMMgr::createFloater(
 	const LLUUID& other_participant_id,
 	const std::string& session_label,
 	const EInstantMessage& dialog,
-	const std::vector<LLUUID>& ids,
+	const uuid_vec_t& ids,
 	bool user_initiated)
 {
 	if (session_id.isNull())
@@ -1096,38 +1074,46 @@ bool LLIMMgr::isNonFriendSessionNotified(const LLUUID& session_id)
 	return mNotifiedNonFriendSessions.end() != mNotifiedNonFriendSessions.find(session_id);
 }
 
+std::string LLIMMgr::getOfflineMessage(const LLUUID& id)
+{
+	std::string full_name;
+	if (LLAvatarNameCache::getNSName(id, full_name))
+	{
+		LLUIString offline = LLTrans::getString("offline_message");
+		offline.setArg("[NAME]", full_name);
+		return offline;
+	}
+	return LLStringUtil::null;
+}
+
 void LLIMMgr::noteOfflineUsers(
 	LLFloaterIMPanel* floater,
-	const std::vector<LLUUID>& ids)
+	const uuid_vec_t& ids)
 {
-	S32 count = ids.size();
-	if(count == 0)
+	if(ids.empty())
 	{
 		const std::string& only_user = LLTrans::getString("only_user_message");
 		floater->addHistoryLine(only_user, gSavedSettings.getColor4("SystemChatColor"));
 	}
 	else
 	{
-		const LLRelationship* info = NULL;
+		const LLRelationship* info = nullptr;
 		LLAvatarTracker& at = LLAvatarTracker::instance();
-		for(S32 i = 0; i < count; ++i)
+		for(const auto& id : ids)
 		{
-			info = at.getBuddyInfo(ids.at(i));
-			std::string full_name;
-			if (info
-				&& !info->isOnline()
-				&& LLAvatarNameCache::getNSName(ids.at(i), full_name))
+			info = at.getBuddyInfo(id);
+			if (info && !info->isOnline())
 			{
-				LLUIString offline = LLTrans::getString("offline_message");
-				offline.setArg("[NAME]", full_name);
-				floater->addHistoryLine(offline, gSavedSettings.getColor4("SystemChatColor"));
+				auto offline(getOfflineMessage(id));
+				if (!offline.empty())
+					floater->addHistoryLine(offline, gSavedSettings.getColor4("SystemChatColor"));
 			}
 		}
 	}
 }
 
 void LLIMMgr::noteMutedUsers(LLFloaterIMPanel* floater,
-								  const std::vector<LLUUID>& ids)
+								  const uuid_vec_t& ids)
 {
 	// Don't do this if we don't have a mute list.
 	LLMuteList *ml = LLMuteList::getInstance();
@@ -1152,23 +1138,23 @@ void LLIMMgr::noteMutedUsers(LLFloaterIMPanel* floater,
 	}
 }
 
-void LLIMMgr::processIMTypingStart(const LLIMInfo* im_info)
+void LLIMMgr::processIMTypingStart(const LLUUID& from_id, const EInstantMessage im_type)
 {
-	processIMTypingCore(im_info, TRUE);
+	processIMTypingCore(from_id, im_type, TRUE);
 }
 
-void LLIMMgr::processIMTypingStop(const LLIMInfo* im_info)
+void LLIMMgr::processIMTypingStop(const LLUUID& from_id, const EInstantMessage im_type)
 {
-	processIMTypingCore(im_info, FALSE);
+	processIMTypingCore(from_id, im_type, FALSE);
 }
 
-void LLIMMgr::processIMTypingCore(const LLIMInfo* im_info, BOOL typing)
+void LLIMMgr::processIMTypingCore(const LLUUID& from_id, const EInstantMessage im_type, BOOL typing)
 {
-	LLUUID session_id = computeSessionID(im_info->mIMType, im_info->mFromID);
-	LLFloaterIMPanel* floater = findFloaterBySession(session_id);
-	if (floater)
+	LLUUID session_id = computeSessionID(im_type, from_id);
+	LLFloaterIMPanel* im_floater = findFloaterBySession(session_id);
+	if (im_floater)
 	{
-		floater->processIMTyping(im_info, typing);
+		im_floater->processIMTyping(from_id, typing);
 	}
 }
 
@@ -1289,10 +1275,10 @@ LLFloaterChatterBox* LLIMMgr::getFloater()
 	return LLFloaterChatterBox::getInstance(LLSD()); 
 }
 
-class LLViewerChatterBoxSessionStartReply : public LLHTTPNode
+class LLViewerChatterBoxSessionStartReply final : public LLHTTPNode
 {
 public:
-	virtual void describe(Description& desc) const
+	void describe(Description& desc) const override
 	{
 		desc.shortInfo("Used for receiving a reply to a request to initialize an ChatterBox session");
 		desc.postAPI();
@@ -1301,18 +1287,15 @@ public:
 		desc.source(__FILE__, __LINE__);
 	}
 
-	virtual void post(ResponsePtr response,
+	void post(ResponsePtr response,
 					  const LLSD& context,
-					  const LLSD& input) const
+	          const LLSD& input) const override
 	{
-		LLSD body;
-		LLUUID temp_session_id;
 		LLUUID session_id;
-		bool success;
 
-		body = input["body"];
-		success = body["success"].asBoolean();
-		temp_session_id = body["temp_session_id"].asUUID();
+		LLSD body = input["body"];
+		bool success = body["success"].asBoolean();
+		LLUUID temp_session_id = body["temp_session_id"].asUUID();
 
 		if ( success )
 		{
@@ -1350,10 +1333,10 @@ public:
 	}
 };
 
-class LLViewerChatterBoxSessionEventReply : public LLHTTPNode
+class LLViewerChatterBoxSessionEventReply final : public LLHTTPNode
 {
 public:
-	virtual void describe(Description& desc) const
+	void describe(Description& desc) const override
 	{
 		desc.shortInfo("Used for receiving a reply to a ChatterBox session event");
 		desc.postAPI();
@@ -1362,24 +1345,18 @@ public:
 		desc.source(__FILE__, __LINE__);
 	}
 
-	virtual void post(ResponsePtr response,
+	void post(ResponsePtr response,
 					  const LLSD& context,
-					  const LLSD& input) const
+	          const LLSD& input) const override
 	{
-		LLUUID session_id;
-		bool success;
-
 		LLSD body = input["body"];
-		success = body["success"].asBoolean();
-		session_id = body["session_id"].asUUID();
+		bool success = body["success"].asBoolean();
+		LLUUID session_id = body["session_id"].asUUID();
 
 		if ( !success )
 		{
 			//throw an error dialog
-			LLFloaterIMPanel* floater = 
-				gIMMgr->findFloaterBySession(session_id);
-
-			if (floater)
+			if (auto* floater =  gIMMgr->findFloaterBySession(session_id))
 			{
 				floater->showSessionEventError(
 					body["event"].asString(),
@@ -1392,46 +1369,40 @@ public:
 class LLViewerForceCloseChatterBoxSession: public LLHTTPNode
 {
 public:
-	virtual void post(ResponsePtr response,
+	void post(ResponsePtr response,
 					  const LLSD& context,
-					  const LLSD& input) const
+	          const LLSD& input) const override
 	{
-		LLUUID session_id;
-		std::string reason;
+		LLUUID session_id = input["body"]["session_id"].asUUID();
+		std::string reason = input["body"]["reason"].asString();
 
-		session_id = input["body"]["session_id"].asUUID();
-		reason = input["body"]["reason"].asString();
-
-		LLFloaterIMPanel* floater =
-			gIMMgr ->findFloaterBySession(session_id);
-
-		if ( floater )
+		if (auto* floater = gIMMgr ->findFloaterBySession(session_id))
 		{
 			floater->showSessionForceClose(reason);
 		}
 	}
 };
 
-class LLViewerChatterBoxSessionAgentListUpdates : public LLHTTPNode
+class LLViewerChatterBoxSessionAgentListUpdates final : public LLHTTPNode
 {
 public:
-	virtual void post(
+	void post(
 		ResponsePtr responder,
 		const LLSD& context,
-		const LLSD& input) const
+		const LLSD& input) const override
 	{
 		const LLUUID& session_id = input["body"]["session_id"].asUUID();
 		gIMMgr->processAgentListUpdates(session_id, input["body"]);
 	}
 };
 
-class LLViewerChatterBoxSessionUpdate : public LLHTTPNode
+class LLViewerChatterBoxSessionUpdate final : public LLHTTPNode
 {
 public:
-	virtual void post(
+	void post(
 		ResponsePtr responder,
 		const LLSD& context,
-		const LLSD& input) const
+		const LLSD& input) const override
 	{
 		LLUUID session_id = input["body"]["session_id"].asUUID();
 		LLFloaterIMPanel* im_floater = gIMMgr->findFloaterBySession(session_id);
@@ -1452,21 +1423,21 @@ void leave_group_chat(const LLUUID& from_id, const LLUUID& session_id)
 {
 	// Tell the server we've left group chat
 	std::string name;
-	gAgent.buildFullname(name);
+	LLAgentUI::buildFullname(name);
 	pack_instant_message(gMessageSystem, gAgentID, false, gAgentSessionID, from_id,
 		name, LLStringUtil::null, IM_ONLINE, IM_SESSION_LEAVE, session_id);
 	gAgent.sendReliableMessage();
 	gIMMgr->removeSession(session_id);
 }
 
-class LLViewerChatterBoxInvitation : public LLHTTPNode
+class LLViewerChatterBoxInvitation final : public LLHTTPNode
 {
 public:
 
-	virtual void post(
+	void post(
 		ResponsePtr response,
 		const LLSD& context,
-		const LLSD& input) const
+		const LLSD& input) const override
 	{
 		//for backwards compatiblity reasons...we need to still
 		//check for 'text' or 'voice' invitations...bleh
@@ -1596,10 +1567,9 @@ public:
 			LLFloaterChat::addChat(chat, TRUE, is_this_agent);
 
 			//K now we want to accept the invitation
-			std::string url = gAgent.getRegion()->getCapability(
-				"ChatSessionRequest");
+			std::string url = gAgent.getRegionCapability("ChatSessionRequest");
 
-			if ( url != "" )
+			if (!url.empty())
 			{
 				LLSD data;
 				data["method"] = "accept invitation";

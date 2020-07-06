@@ -271,18 +271,18 @@ class mediaSimpleTest
 
 			glEnable( GL_TEXTURE_2D );
 			glColor3f( 1.0f, 1.0f, 1.0f );
-			glBegin( GL_QUADS );
+			glBegin( GL_TRIANGLE_STRIP );
 				glTexCoord2f( 1.0f, 1.0f );
 				glVertex2d( mAppWindowWidth, 0 );
 
 				glTexCoord2f( 0.0f, 1.0f );
 				glVertex2d( 0, 0 );
 
+				glTexCoord2f(1.0f, .0f);
+				glVertex2d(mAppWindowWidth, mAppWindowHeight);
+
 				glTexCoord2f( 0.0f, 0.0f );
 				glVertex2d( 0, mAppWindowHeight );
-
-				glTexCoord2f( 1.0f, .0f );
-				glVertex2d( mAppWindowWidth, mAppWindowHeight );
 			glEnd();
 
 			glMatrixMode( GL_TEXTURE );

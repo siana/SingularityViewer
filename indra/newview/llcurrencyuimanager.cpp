@@ -387,6 +387,7 @@ void LLCurrencyUIManager::Impl::updateUI()
 	}
 
 	mPanel.childSetTextArg("currency_est", "[USD]", llformat("%#.2f", mSiteCurrencyEstimatedCost / 100.0));
+	mPanel.childSetTextArg("currency_est", "[REALCURRENCY]", gHippoGridManager->getConnectedGrid()->getRealCurrencySymbol());
 	mPanel.childSetVisible("currency_est", mSiteCurrencyEstimated && mUserCurrencyBuy > 0);
 
 	if (mPanel.childIsEnabled("buy_btn")

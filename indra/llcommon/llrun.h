@@ -56,7 +56,7 @@ public:
 	/**
 	 * @brief The pointer to a runnable.
 	 */
-	typedef boost::shared_ptr<LLRunnable> run_ptr_t;
+	typedef std::shared_ptr<LLRunnable> run_ptr_t;
 
 	/**
 	 * @brief The handle for use in the API.
@@ -93,7 +93,7 @@ public:
 	 *
 	 * @return Returns the number of runnables run.
 	 */
-	S32 run();
+	size_t run();
 
 	/** 
 	 * @brief Add a runnable to the run list.

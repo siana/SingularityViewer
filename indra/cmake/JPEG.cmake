@@ -19,8 +19,5 @@ else (STANDALONE)
   elseif (WINDOWS)
     set(JPEG_LIBRARIES jpeglib)
   endif (LINUX)
-  set(JPEG_INCLUDE_DIRS
-    ${LIBS_PREBUILT_DIR}/include
-    ${LIBS_PREBUILT_LEGACY_DIR}/include
-    )
+  set(JPEG_INCLUDE_DIRS ${LIBS_PREBUILT_DIR}/include)
 endif (STANDALONE)

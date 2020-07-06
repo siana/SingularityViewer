@@ -34,10 +34,10 @@
 #define LL_LLTEXTUREINFODETAILS_H
 
 #include "lluuid.h"
+#include "llunits.h"
 
-class LLTextureInfoDetails
+struct LLTextureInfoDetails
 {
-public:
 	enum LLRequestType
 	{
 		REQUEST_TYPE_NONE,
@@ -45,11 +45,11 @@ public:
 		REQUEST_TYPE_UDP
 	};
 
-	U32 mStartTime;
-	U32 mCompleteTime;
-	U32 mOffset;
-	U32 mSize;
-	LLRequestType mType;
+	U32Microseconds	mStartTime,
+					mCompleteTime;
+	U32				mOffset;
+	U32Bytes		mSize;
+	LLRequestType	mType;
 
 	LLTextureInfoDetails();
 };

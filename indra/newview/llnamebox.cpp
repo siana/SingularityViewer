@@ -33,114 +33,93 @@
 #include "llviewerprecompiledheaders.h"
 
 #include "llnamebox.h"
-
-#include "llerror.h"
-#include "llfontgl.h"
-#include "llui.h"
-#include "llviewercontrol.h"
-#include "lluuid.h"
-
-#include "llcachename.h"
-#include "llagent.h"
-
-// statics
-std::set<LLNameBox*> LLNameBox::sInstances;
+#include "llwindow.h"
 
 static LLRegisterWidget<LLNameBox> r("name_box");
 
-
-LLNameBox::LLNameBox(const std::string& name)
-:	LLTextBox(name, LLRect(), "" , NULL, TRUE)
+LLNameBox::LLNameBox(const std::string& name,
+	const LLUUID& name_id,
+	const Type& type,
+	const std::string& loading,
+	bool rlv_sensitive,
+	const std::string& name_system,
+	bool click_for_profile)
+: LLNameUI(loading, rlv_sensitive, name_id, type, name_system, click_for_profile)
+, LLTextBox(name, LLRect(), LLStringUtil::null, nullptr, TRUE)
 {
-	mNameID = LLUUID::null;
-	mLink = false;
-	//mParseHTML = mLink; // STORM-215
-	mInitialValue = "(retrieving)";
-	LLNameBox::sInstances.insert(this);
-	setText(LLStringUtil::null);
+	setClickedCallback(boost::bind(&LLNameUI::showProfile, this));
+	if (!name_id.isNull())
+	{
+		setNameID(name_id, type);
+	}
+	else setText(mInitialValue);
 }
 
-LLNameBox::~LLNameBox()
+void LLNameBox::displayAsLink(bool link)
 {
-	LLNameBox::sInstances.erase(this);
-}
-
-void LLNameBox::setNameID(const LLUUID& name_id, BOOL is_group)
-{
-	mNameID = name_id;
-
-	std::string name;
-	BOOL got_name = FALSE;
-
-	if (!is_group)
-	{
-		got_name = gCacheName->getFullName(name_id, name);
-	}
-	else
-	{
-		got_name = gCacheName->getGroupName(name_id, name);
-	}
-
-	// Got the name already? Set it.
-	// Otherwise it will be set later in refresh().
-	if (got_name)
-		setName(name, is_group);
-	else
-		setText(mInitialValue);
-}
-
-void LLNameBox::refresh(const LLUUID& id, const std::string& full_name, bool is_group)
-{
-	if (id == mNameID)
-	{
-		setName(full_name, is_group);
-	}
-}
-
-void LLNameBox::refreshAll(const LLUUID& id, const std::string& full_name, bool is_group)
-{
-	std::set<LLNameBox*>::iterator it;
-	for (it = LLNameBox::sInstances.begin();
-		 it != LLNameBox::sInstances.end();
-		 ++it)
-	{
-		LLNameBox* box = *it;
-		box->refresh(id, full_name, is_group);
-	}
-}
-
-void LLNameBox::setName(const std::string& name, BOOL is_group)
-{
-	if (mLink)
-	{
-		std::string url;
-
-		if (is_group)
-			url = "[secondlife:///app/group/" + mNameID.asString() + "/about " + name + "]";
-		else
-			url = "[secondlife:///app/agent/" + mNameID.asString() + "/about " + name + "]";
-
-		setText(url);
-	}
-	else
-	{
-		setText(name);
-	}
+	static const LLUICachedControl<LLColor4> color("HTMLAgentColor");
+	setColor(link ? color : LLUI::sColorsGroup->getColor("LabelTextColor"));
+	setDisabledColor(link ? color : LLUI::sColorsGroup->getColor("LabelDisabledColor"));
 }
 
 // virtual
-void LLNameBox::initFromXML(LLXMLNodePtr node, LLView* parent)
+BOOL LLNameBox::handleRightMouseDown(S32 x, S32 y, MASK mask)
 {
-	LLTextBox::initFromXML(node, parent);
-	node->getAttributeBOOL("link", mLink);
-	node->getAttributeString("initial_value", mInitialValue);
+	auto handled = LLTextBox::handleRightMouseDown(x, y, mask);
+	if (mAllowInteract && !handled)
+	{
+		if (mNameID.notNull())
+		{
+			showMenu(this, sMenus[getSelectedType()], x, y);
+			handled = true;
+		}
+	}
+	return handled;
+}
+
+// virtual
+BOOL LLNameBox::handleHover(S32 x, S32 y, MASK mask)
+{
+	auto handled = LLTextBox::handleHover(x, y, mask);
+	if (mClickForProfile && mAllowInteract)
+	{
+		getWindow()->setCursor(UI_CURSOR_HAND);
+		handled = true;
+	}
+	return handled;
+}
+
+// virtual
+LLXMLNodePtr LLNameBox::getXML(bool save_children) const
+{
+	LLXMLNodePtr node = LLTextBox::getXML();
+
+	node->setName("name_box");
+	node->createChild("initial_value", TRUE)->setStringValue(mInitialValue);
+	node->createChild("rlv_sensitive", TRUE)->setBoolValue(mRLVSensitive);
+	node->createChild("click_for_profile", TRUE)->setBoolValue(mClickForProfile);
+	node->createChild("name_system", TRUE)->setStringValue(mNameSystem);
+
+	return node;
 }
 
 // static
 LLView* LLNameBox::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory)
 {
-	LLNameBox* name_box = new LLNameBox("name_box");
+	S8 type = AVATAR;
+	node->getAttributeS8("id_type", type);
+	LLUUID id;
+	node->getAttributeUUID("id", id);
+	std::string loading;
+	node->getAttributeString("initial_value", loading);
+	bool rlv_sensitive = false;
+	node->getAttribute_bool("rlv_sensitive", rlv_sensitive);
+	std::string name_system;
+	node->getAttributeString("name_system", name_system);
+	bool click_for_profile = true;
+	node->getAttribute_bool("click_for_profile", click_for_profile);
+	LLNameBox* name_box = new LLNameBox("name_box", id, (Type)type, loading, rlv_sensitive, name_system, click_for_profile);
 	name_box->initFromXML(node,parent);
+
 	return name_box;
 }
-

@@ -42,7 +42,7 @@ class LLMeshSkinInfo;
 class LLVolume;
 class LLVolumeFace;
 
-const U32 JOINT_COUNT = 52;
+constexpr U32 JOINT_COUNT = 52;
 
 class LLDrawPoolAvatar : public LLFacePool
 {
@@ -67,6 +67,8 @@ public:
 	virtual S32 getVertexShaderLevel() const;
 
 	LLDrawPoolAvatar();
+	~LLDrawPoolAvatar();
+	/*virtual*/ BOOL isDead();
 
 	static const LLMatrix4a& getModelView();
 

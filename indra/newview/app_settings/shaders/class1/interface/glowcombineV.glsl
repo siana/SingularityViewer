@@ -26,16 +26,13 @@
 uniform mat4 modelview_projection_matrix;
 
 ATTRIBUTE vec3 position;
-ATTRIBUTE vec2 texcoord0;
-ATTRIBUTE vec2 texcoord1;
 
 VARYING vec2 vary_texcoord0;
-VARYING vec2 vary_texcoord1;
 
 void main()
 {
-	gl_Position = modelview_projection_matrix * vec4(position.xyz, 1.0);
-	vary_texcoord0 = texcoord0;
-	vary_texcoord1 = texcoord1;
+	vec4 pos = modelview_projection_matrix * vec4(position.xyz, 1.0);
+	gl_Position = pos;	
+	vary_texcoord0 = (pos.xy*0.5+0.5);
 }
 

@@ -11,12 +11,9 @@
 			<text name="ContentRating">Einstuf.:</text>
 			<text name="ContentRatingText">Adult</text>
 			<text name="Owner:">Eigentümer:</text>
-			<text name="OwnerText">Leyla Linden</text>
-			<button label="Profil..." label_selected="Profil..." name="Profile..."/>
 			<text name="Group:">Gruppe:</text>
 			
 			<button label="Einstellen..." label_selected="Einstellen..." name="Set..."/>
-			<button label="Info" name="group_profile"/>
 			<check_box label="Übertragung an Gruppe zulassen" name="check deed" tool_tip="Ein Gruppen-Officer kann dieses Land der Gruppe übertragen. Das Land wird dann über die Landzuteilung der Gruppe verwaltet."/>
 			<button label="Übertragen..." label_selected="Übertragen..." name="Deed..." tool_tip="Sie können Land nur übertragen, wenn Sie in der ausgewählten Gruppe Officer sind."/>
 			<check_box label="Eigentümer leistet Beitrag durch Übertragung" name="check contrib" tool_tip="Wenn das Land an die Gruppe übertragen wird, trägt der frühere Eigentümer ausreichend Landnutzungsrechte bei, um es zu halten."/>
@@ -49,8 +46,6 @@
 			<string name="auction_id_text">Auktions-ID: [ID]</string>
 			<string name="need_tier_to_modify">Bestätigen Sie den Kauf, um dieses Land zu bearbeiten.</string>
 			<string name="group_owned_text">(In Gruppenbesitz)</string>
-			<string name="profile_text">Profil...</string>
-			<string name="info_text">Info...</string>
 			<string name="public_text">(öffentlich)</string>
 			<string name="none_text">(keiner)</string>
 			<string name="sale_pending_text">(Wird verkauft)</string>
@@ -62,7 +57,7 @@
 			<text name="estate_name_lbl">Name:</text>
 			<text name="estate_name_text">Mainland</text>
 			<text name="estate_owner_lbl">Eigentümer:</text>
-			<text name="estate_owner_text">(keiner)</text>
+			<name_box name="estate_owner_text">(keiner)</text>
 			<text_editor name="covenant_editor">Für diesen Grundbesitz fehlt der Vertrag.</text_editor>
 			<text name="covenant_timestamp_text">Letzte Änderung am Mittwoch, den 31. Dez. 1969, 16:00:00</text>
 			<text name="region_section_lbl">Region:</text>

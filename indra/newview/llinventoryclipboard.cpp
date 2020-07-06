@@ -62,7 +62,7 @@ void LLInventoryClipboard::store(const LLUUID& object)
 	mObjects.push_back(object);
 }
 
-void LLInventoryClipboard::store(const std::vector<LLUUID>& inv_objects)
+void LLInventoryClipboard::store(const uuid_vec_t& inv_objects)
 {
 	reset();
 	S32 count = inv_objects.size();
@@ -82,7 +82,7 @@ void LLInventoryClipboard::cut(const LLUUID& object)
 	mCutMode = true;
 	add(object);
 }
-void LLInventoryClipboard::retrieve(std::vector<LLUUID>& inv_objects) const
+void LLInventoryClipboard::retrieve(uuid_vec_t& inv_objects) const
 {
 	inv_objects.clear();
 	S32 count = mObjects.size();
@@ -107,7 +107,7 @@ BOOL LLInventoryClipboard::hasContents() const
 // returns true if the input uuid is in the list of clipboard objects.
 bool LLInventoryClipboard::isOnClipboard(const LLUUID& object) const
 {
-	std::vector<LLUUID>::const_iterator iter = std::find(mObjects.begin(), mObjects.end(), object);
+	auto iter = std::find(mObjects.begin(), mObjects.end(), object);
 	return (iter != mObjects.end());
 }
 

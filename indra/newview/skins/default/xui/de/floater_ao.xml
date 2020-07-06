@@ -20,8 +20,7 @@
 
   <button name="newcard" label="Neue Notecard Vorlage"/>
 
-  <button label="Mehr &gt;&gt;" name="more_btn" tool_tip="Erweiterte Optionen"/>
-  <button label="&lt;&lt; Weniger" name="less_btn" tool_tip="Erweiterte Optionen"/>
+  <button label="Mehr &gt;&gt;" label_selected="&lt;&lt; Weniger" name="more_btn" tool_tip="Erweiterte Optionen"/>
 
   <tab_container label="Standard" name="tabcontainer">
     <panel label="Standardanimationen" name="tabdefaultanims">

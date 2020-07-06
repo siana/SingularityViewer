@@ -156,7 +156,7 @@ void LLViewerCamera::updateFrustumPlanes(LLCamera& camera, BOOL ortho, BOOL zfli
 {
 	LLVector3 frust[8];
 
-	LLRect view_port(gGLViewport[0],gGLViewport[1]+gGLViewport[3],gGLViewport[0]+gGLViewport[2],gGLViewport[1]);
+	const LLRect& view_port = gGLViewport;
 
 	if (no_hacks)
 	{
@@ -280,11 +280,8 @@ void LLViewerCamera::setPerspective(BOOL for_selection,
 		{
 			z_far = MAX_FAR_CLIP;
 		}
-		glViewport(x, y_from_bot, width, height);
-		gGLViewport[0] = x;
-		gGLViewport[1] = y_from_bot;
-		gGLViewport[2] = width;
-		gGLViewport[3] = height;
+		gGLViewport.set(x, y_from_bot + height, x + width, y_from_bot);
+		gGL.setViewport(gGLViewport);
 	}
 	
 	if (mZoomFactor > 1.f)
@@ -352,7 +349,7 @@ void LLViewerCamera::projectScreenToPosAgent(const S32 screen_x, const S32 scree
 {
 	gGL.unprojectf(
 		LLVector3(screen_x,screen_y,0.f),
-		gGLModelView, gGLProjection, LLRect(gGLViewport[0],gGLViewport[1]+gGLViewport[3],gGLViewport[0]+gGLViewport[2],gGLViewport[1]),
+		gGLModelView, gGLProjection, gGLViewport,
 		*pos_agent );
 }
 

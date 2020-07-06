@@ -27,8 +27,6 @@ uniform mat4 modelview_projection_matrix;
 
 ATTRIBUTE vec3 position;
 
-uniform vec2 screen_res;
-
 uniform vec2 delta;
 
 VARYING vec2 tc0;
@@ -45,7 +43,7 @@ void main()
 {
 	gl_Position = vec4(position, 1.0); 
 	
-	vec2 tc = (position.xy*0.5+0.5)*screen_res;
+	vec2 tc = (position.xy*0.5+0.5);
 	tc0 = tc+vec2(-delta.x,-delta.y);
 	tc1 = tc+vec2(0,-delta.y);
 	tc2 = tc+vec2(delta.x,-delta.y);

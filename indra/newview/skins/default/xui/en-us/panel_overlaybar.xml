@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<panel follows="left|right|bottom|top" height="200" left="-1" mouse_opaque="false"
+<panel follows="left|right|bottom|top" height="300" left="-1" mouse_opaque="false"
      user_resize="false" name="overlay" use_bounding_rect="true" width="728">
-	<layout_stack bottom="0" follows="left|right|bottom" height="220" left="0"
+	<layout_stack bottom="0" follows="left|right|bottom" height="300" left="0"
 	     mouse_opaque="false" name="overlay_layout_panel" orientation="horizontal"
 	     right="-1" use_bounding_rect="true">
 		<layout_panel auto_resize="true" bottom="0" left="0" min_width="420" mouse_opaque="false"

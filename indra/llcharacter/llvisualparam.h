@@ -30,10 +30,6 @@
 #include "v3math.h"
 #include "llstring.h"
 #include "llxmltree.h"
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
 
 class LLPolyMesh;
 class LLXmlTreeNode;
@@ -107,10 +103,22 @@ LL_ALIGN_PREFIX(16)
 class LLVisualParam
 {
 public:
-	typedef	boost::function<LLVisualParam*(S32)> visual_param_mapper;
+	typedef	std::function<LLVisualParam*(S32)> visual_param_mapper;
 
 	LLVisualParam();
 	virtual ~LLVisualParam();
+
+	// <alchemy>
+	void* operator new(size_t size)
+	{
+		return ll_aligned_malloc_16(size);
+	}
+
+	void operator delete(void* ptr)
+	{
+		ll_aligned_free_16(ptr);
+	}
+	// </alchemy>
 
 	// Special: These functions are overridden by child classes
 	// (They can not be virtual because they use specific derived Info classes)

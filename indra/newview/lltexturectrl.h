@@ -150,6 +150,8 @@ public:
 	void			onFloaterCommit(ETexturePickOp op);
 	void			onFloaterCommit(ETexturePickOp op, LLUUID id); // tag: vaa emerald local_asset_browser
 
+	bool			canChange() { return mEnable; } // <edit/>
+
 	// This call is returned when a drag is detected. Your callback
 	// should return TRUE if the drag is acceptable.
 	void setDragCallback(drag_n_drop_callback cb)	{ mDragCallback = cb; }

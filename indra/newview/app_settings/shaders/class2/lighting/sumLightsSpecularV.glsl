@@ -1,5 +1,5 @@
 /**
- * @file sumLightsV.glsl
+ * @file sumLightsSpecularV.glsl
  *
  * $LicenseInfo:firstyear=2005&license=viewerlgpl$
  * Second Life Viewer Source Code
@@ -24,7 +24,6 @@
  */
  
 
-
 float calcDirectionalLightSpecular(inout vec4 specular, vec3 view, vec3 n, vec3 l, vec3 lightCol, float da);
 vec3 calcPointLightSpecular(inout vec4 specular, vec3 view, vec3 v, vec3 n, vec3 l, float r, float pw, vec3 lightCol);
 
@@ -47,9 +46,9 @@ vec4 sumLightsSpecular(vec3 pos, vec3 norm, vec4 color, inout vec4 specularColor
 	vec4 specularSum = vec4(0.0);
 	
 	// Collect normal lights (need to be divided by two, as we later multiply by 2)
-	col.rgb += light_diffuse[1].rgb * calcDirectionalLightSpecular(specularColor, view, norm, light_position[1].xyz,light_diffuse[1].rgb, 1.0);
+	col.rgb += calcPointLightSpecular(specularSum, view, pos, norm, light_position[1].xyz, light_attenuation[1].x, light_attenuation[1].y, light_diffuse[1].rgb);
 	col.rgb += calcPointLightSpecular(specularSum, view, pos, norm, light_position[2].xyz, light_attenuation[2].x, light_attenuation[2].y, light_diffuse[2].rgb); 
-	col.rgb += calcPointLightSpecular(specularSum, view, pos, norm, light_position[3].xyz, light_attenuation[3].x, light_attenuation[3].y, light_diffuse[3].rgb); 
+	col.rgb += calcPointLightSpecular(specularSum, view, pos, norm, light_position[3].xyz, light_attenuation[3].x, light_attenuation[3].y, light_diffuse[3].rgb);
 	col.rgb = scaleDownLight(col.rgb);
 						
 	// Add windlight lights
@@ -58,6 +57,7 @@ vec4 sumLightsSpecular(vec3 pos, vec3 norm, vec4 color, inout vec4 specularColor
 
 	col.rgb = min(col.rgb*color.rgb, 1.0);
 	specularColor.rgb = min(specularColor.rgb*specularSum.rgb, 1.0);
+
 	col.rgb += specularColor.rgb;
 
 	return col;	

@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <floater name="floater_report_abuse" title="Missbrauch melden">
     <string name="Screenshot">Foto</string>
-	
+	<string name="Ridiculous1">Belästigung &gt; Nutzer leckt wiederholt Finger und berührt mich</string>
+	<string name="Ridiculous2">Land &gt; Anmaßung &gt; Nutzer will nicht auf seiner Seite des Fahrzeug bleiben</string>
+	<string name="Ridiculous3">Freud &gt; Nutzer bekundet Interesse an Ihrer Mutter</string>	
 	<check_box label="Screenshot einschließen" name="screen_check"/>
 	<text name="reporter_title">Melder:</text>
 	<text name="reporter_field">Loremipsum Dolorsitamut</text>

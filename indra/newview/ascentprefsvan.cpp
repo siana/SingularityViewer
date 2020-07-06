@@ -62,6 +62,8 @@ LLPrefsAscentVan::LLPrefsAscentVan()
 	getChild<LLUICtrl>("tag_spoofing_combobox")->setCommitCallback(boost::bind(&LLPrefsAscentVan::onCommitClientTag, this, _1));
 
 	getChild<LLUICtrl>("custom_tag_label_box")->setCommitCallback(boost::bind(&LLControlGroup::setString, boost::ref(gSavedSettings), "AscentCustomTagLabel", _2));
+	commit_callback_t lineEditorControl(boost::bind(&LLControlGroup::setString, boost::ref(gSavedSettings), boost::bind(&LLUICtrl::getName, _1), _2));
+	getChild<LLUICtrl>("UISndRestart")->setCommitCallback(lineEditorControl);
 
 	getChild<LLUICtrl>("update_clientdefs")->setCommitCallback(boost::bind(LLPrefsAscentVan::onManualClientUpdate));
 
@@ -126,10 +128,12 @@ void LLPrefsAscentVan::refreshValues()
 	mCustomizeAnim = gSavedSettings.getBOOL("LiruCustomizeAnim");
 	mAnnounceSnapshots = gSavedSettings.getBOOL("AnnounceSnapshots");
 	mAnnounceStreamMetadata = gSavedSettings.getBOOL("AnnounceStreamMetadata");
-	mUnfocusedFloatersOpaque = gSavedSettings.getBOOL("FloaterUnfocusedBackgroundOpaque");
-	mCompleteNameProfiles   = gSavedSettings.getBOOL("SinguCompleteNameProfiles");
+	mInactiveFloaterTransparency = gSavedSettings.getF32("InactiveFloaterTransparency");
+	mActiveFloaterTransparency = gSavedSettings.getF32("ActiveFloaterTransparency");
 	mScriptErrorsStealFocus = gSavedSettings.getBOOL("LiruScriptErrorsStealFocus");
 	mConnectToNeighbors = gSavedSettings.getBOOL("AlchemyConnectToNeighbors");
+	mRestartMinimized		= gSavedSettings.getBOOL("LiruRegionRestartMinimized");
+	mRestartSound			= gSavedSettings.getString("UISndRestart");
 
     //Tags\Colors ----------------------------------------------------------------------------
     mAscentBroadcastTag     = gSavedSettings.getBOOL("AscentBroadcastTag");
@@ -169,6 +173,7 @@ void LLPrefsAscentVan::refreshValues()
 void LLPrefsAscentVan::refresh()
 {
     //Main -----------------------------------------------------------------------------------
+	getChildView("UISndRestart")->setValue(mRestartSound);
 
     //Tags\Colors ----------------------------------------------------------------------------
     LLComboBox* combo = getChild<LLComboBox>("tag_spoofing_combobox");
@@ -197,10 +202,12 @@ void LLPrefsAscentVan::cancel()
 	gSavedSettings.setBOOL("LiruCustomizeAnim", mCustomizeAnim);
 	gSavedSettings.setBOOL("AnnounceSnapshots", mAnnounceSnapshots);
 	gSavedSettings.setBOOL("AnnounceStreamMetadata", mAnnounceStreamMetadata);
-	gSavedSettings.setBOOL("FloaterUnfocusedBackgroundOpaque", mUnfocusedFloatersOpaque);
-	gSavedSettings.setBOOL("SinguCompleteNameProfiles",     mCompleteNameProfiles);
+	gSavedSettings.setF32("InactiveFloaterTransparency", mInactiveFloaterTransparency);
+	gSavedSettings.setF32("ActiveFloaterTransparency", mActiveFloaterTransparency);
 	gSavedSettings.setBOOL("LiruScriptErrorsStealFocus",    mScriptErrorsStealFocus);
 	gSavedSettings.setBOOL("AlchemyConnectToNeighbors",     mConnectToNeighbors);
+	gSavedSettings.setBOOL("LiruRegionRestartMinimized", mRestartMinimized);
+	gSavedSettings.setString("UISndRestart", mRestartSound);
 
     //Tags\Colors ----------------------------------------------------------------------------
     gSavedSettings.setBOOL("AscentBroadcastTag",         mAscentBroadcastTag);

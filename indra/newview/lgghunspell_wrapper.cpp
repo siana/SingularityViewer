@@ -948,7 +948,7 @@ void lggHunSpell_Wrapper::editCustomButton()
 			//glggHunSpell->addWordToCustomDictionary("temp");
 	}
 	
-	gViewerWindow->getWindow()->ShellEx(dicdicpath);
+	LLWindow::ShellEx(dicdicpath);
 }
 
 void lggHunSpell_Wrapper::setSpellCheckHighlight(BOOL highlight)

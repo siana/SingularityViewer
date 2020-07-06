@@ -232,7 +232,7 @@ void RlvUIEnabler::onToggleShowInv(bool fQuitting)
 	//
 	if (!fEnable)
 	{
-		LLInventoryView::closeAll();
+		LLPanelMainInventory::closeAll();
 		LFFloaterInvPanel::closeAll();
 
 		// Singu Note: Hide our standalone inventory favorites floater if present

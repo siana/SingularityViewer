@@ -72,7 +72,6 @@ LLFloaterLandmark::LLFloaterLandmark(const LLSD& data)
 	mFilterEdit(NULL),
 	mContextConeOpacity(0.f),
 	mInventoryPanel(NULL),
-	mSavedFolderState(NULL),
 	mNoCopyLandmarkSelected( FALSE )
 {
 	LLUICtrlFactory::getInstance()->buildFloater(this,"floater_landmark_ctrl.xml");
@@ -105,7 +104,7 @@ BOOL LLFloaterLandmark::postBuild()
 		mInventoryPanel->setAllowMultiSelect(FALSE);
 
 		// store this filter as the default one
-		mInventoryPanel->getRootFolder()->getFilter()->markDefault();
+		mInventoryPanel->getRootFolder()->getFilter().markDefault();
 
 		// Commented out to stop opening all folders with textures
 		mInventoryPanel->openDefaultFolderForType(LLAssetType::AT_LANDMARK);
@@ -115,7 +114,6 @@ BOOL LLFloaterLandmark::postBuild()
 		mInventoryPanel->setSelection(findItemID(mImageAssetID, FALSE), TAKE_FOCUS_NO);
 	}
 
-	mSavedFolderState = new LLSaveFolderState();
 	mNoCopyLandmarkSelected = FALSE;
 	
 	getChild<LLButton>("Close")->setClickedCallback(boost::bind(&LLFloaterLandmark::onBtnClose,this));
@@ -127,15 +125,11 @@ BOOL LLFloaterLandmark::postBuild()
 
 	setCanMinimize(FALSE);
 
-	mSavedFolderState->setApply(FALSE);
-
 	return true;
 }
 
 LLFloaterLandmark::~LLFloaterLandmark()
 {
-	delete mSavedFolderState;
-	mSavedFolderState = NULL;
 }
 
 void LLFloaterLandmark::setActive( BOOL active )					
@@ -394,35 +388,13 @@ void LLFloaterLandmark::onShowFolders(LLUICtrl* ctrl)
 
 void LLFloaterLandmark::onFilterEdit(const LLSD& value )
 {
-	std::string upper_case_search_string = value.asString();
-	LLStringUtil::toUpper(upper_case_search_string);
-
-	if (upper_case_search_string.empty())
+	if (!mInventoryPanel)
 	{
-		if (mInventoryPanel->getFilterSubString().empty())
-		{
-			// current filter and new filter empty, do nothing
-			return;
-		}
-
-		mSavedFolderState->setApply(TRUE);
-		mInventoryPanel->getRootFolder()->applyFunctorRecursively(*mSavedFolderState);
-		// add folder with current item to list of previously opened folders
-		LLOpenFoldersWithSelection opener;
-		mInventoryPanel->getRootFolder()->applyFunctorRecursively(opener);
-		mInventoryPanel->getRootFolder()->scrollToShowSelection();
-
-	}
-	else if (mInventoryPanel->getFilterSubString().empty())
-	{
-		// first letter in search term, save existing folder open state
-		if (!mInventoryPanel->getRootFolder()->isFilterModified())
-		{
-			mSavedFolderState->setApply(FALSE);
-			mInventoryPanel->getRootFolder()->applyFunctorRecursively(*mSavedFolderState);
-		}
+		return;
 	}
 
-	mInventoryPanel->setFilterSubString(upper_case_search_string);
+	// set new filter string
+	// Internally handles saving/restoring folder states.
+	mInventoryPanel->setFilterSubString(value.asString());
 }
 

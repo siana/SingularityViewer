@@ -26,7 +26,7 @@
 
   	<tab_container name="actions_tab_container">
 		<panel label="Inventario" name="server_tab">
-      <filter_editor label="Escribe aquí para buscar" name="inventory search editor"/>
+			<filter_editor label="Escribe aquí para buscar" name="inventory search editor"/>
 		</panel>
 		<panel label="Computador" name="local_tab">
 			<!-- tag: vaa emerald local_asset_browser [begin] -->
@@ -41,6 +41,11 @@
 				<column name="unit_id_HIDDEN" label="ID"/>
 			</scroll_list>
 			<!-- tag: vaa emerald local_asset_browser [end] -->
+		</panel>
+		<panel label="Bake" name="bake">
+			<scroll_list name="l_bake_use_texture_combo_box" tool_tip="Selecciona la textura Bake">
+				<scroll_list.column name="type" label="Tipo"/>
+			</scroll_list>
 		</panel>
 	</tab_container>
 </floater>

@@ -45,7 +45,7 @@ public:
 	const std::string&	String() const { return string;		}
 	size_t				Hash()	 const { return string_hash;  }
 
-	bool operator==(const LLStaticHashedString& b) const { return String() == b.String(); }
+	bool operator==(const LLStaticHashedString& b) const { return Hash() == b.Hash(); }
 
 protected:
 

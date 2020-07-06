@@ -43,11 +43,9 @@
 #endif
 
 #if defined(LL_WINDOWS) && defined(_DEBUG)
-# if _MSC_VER >= 1400 // Visual C++ 2005 or later
 #  define _CRTDBG_MAP_ALLOC
 #  include <stdlib.h>
 #  include <crtdbg.h>
-# endif
 #endif
 
 #include "llpreprocessor.h"
@@ -68,5 +66,6 @@
 #include "lldefs.h"
 #include "llerror.h"
 #include "llfile.h"
+#include "llformat.h"
 
 #endif

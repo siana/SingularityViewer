@@ -27,11 +27,6 @@
 #ifndef LL_LLLANDMARKLIST_H
 #define LL_LLLANDMARKLIST_H
 
-#ifndef BOOST_FUNCTION_HPP_INCLUDED
-#include <boost/function.hpp>
-#define BOOST_FUNCTION_HPP_INCLUDED
-#endif
-#include <map>
 #include "lllandmark.h"
 #include "lluuid.h"
 #include "llassetstorage.h"
@@ -43,7 +38,7 @@ class LLInventoryItem;
 class LLLandmarkList
 {
 public:
-	typedef boost::function<void(LLLandmark*)> loaded_callback_t;
+	typedef std::function<void(LLLandmark*)> loaded_callback_t;
 
 	LLLandmarkList() {}
 	~LLLandmarkList();
@@ -53,7 +48,7 @@ public:
 	//const LLLandmark*	getNext()	{ return mList.getNextData(); }
 
 	BOOL assetExists(const LLUUID& asset_uuid);
-	LLLandmark* getAsset(const LLUUID& asset_uuid, loaded_callback_t cb = NULL);
+	LLLandmark* getAsset(const LLUUID& asset_uuid, loaded_callback_t cb = nullptr);
 	static void processGetAssetReply(
 		LLVFS *vfs,
 		const LLUUID& uuid,
@@ -73,7 +68,7 @@ protected:
 	typedef std::map<LLUUID, LLLandmark*> landmark_list_t;
 	landmark_list_t mList;
 
-	typedef std::set<LLUUID> landmark_bad_list_t;
+	typedef uuid_set_t landmark_bad_list_t;
 	landmark_bad_list_t mBadList;
 	
 	typedef std::map<LLUUID,F32> landmark_requested_list_t;

@@ -89,7 +89,7 @@ BOOL LLXmlParser::parseFile(const std::string &path)
 		S32 bytes_read = 0;
 		
 		fseek(file, 0L, SEEK_END);
-		S32 buffer_size = ftell(file);
+		size_t buffer_size = ftell(file);
 		fseek(file, 0L, SEEK_SET);
 
 		void* buffer = XML_GetBuffer(mParser, buffer_size);

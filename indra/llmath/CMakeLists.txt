@@ -13,20 +13,23 @@ set(llmath_SOURCE_FILES
     llbbox.cpp
     llbboxlocal.cpp
     llcalc.cpp
+    llcalcparser.cpp
     llcamera.cpp
     llcoordframe.cpp
     llline.cpp
     llmatrix3a.cpp
+    llmatrix4a.cpp
     llmodularmath.cpp
     llperlin.cpp
     llquaternion.cpp
+    llrigginginfo.cpp
     llrect.cpp
-    llsdutil_math.cpp
     llsphere.cpp
     llvector4a.cpp
     llvolume.cpp
     llvolumemgr.cpp
     llvolumeoctree.cpp
+    llsdutil_math.cpp
     m3math.cpp
     m4math.cpp
     raytrace.cpp
@@ -66,7 +69,7 @@ set(llmath_HEADER_FILES
     llquaternion2.h
     llquaternion2.inl
     llrect.h
-    llsdutil_math.h
+    llrigginginfo.h
     llsimdmath.h
     llsimdtypes.h
     llsimdtypes.inl
@@ -78,11 +81,13 @@ set(llmath_HEADER_FILES
     llvolume.h
     llvolumemgr.h
     llvolumeoctree.h
+    llsdutil_math.h
     m3math.h
     m4math.h
     raytrace.h
     v2math.h
     v3color.h
+    v3colorutil.h
     v3dmath.h
     v3math.h
     v4color.h
@@ -97,4 +102,9 @@ set_source_files_properties(${llmath_HEADER_FILES}
 list(APPEND llmath_SOURCE_FILES ${llmath_HEADER_FILES})
 
 add_library (llmath ${llmath_SOURCE_FILES})
-add_dependencies(llmath prepare)
+
+target_link_libraries(
+    llmath
+    PUBLIC
+    llcommon
+    )

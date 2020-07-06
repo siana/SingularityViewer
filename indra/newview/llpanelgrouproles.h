@@ -175,9 +175,6 @@ public:
 	static void onMemberSelect(LLUICtrl*, void*);
 	void handleMemberSelect();
 
-	static void onMemberDoubleClick(void*);
-	void handleMemberDoubleClick();
-
 	static void onInviteMember(void*);
 	void handleInviteMember();
 

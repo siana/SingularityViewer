@@ -35,8 +35,6 @@
 
 #include "linden_common.h"
 
-#include "llmultifloater.h"
-
 #include "llfocusmgr.h"
 
 #include "lluictrlfactory.h"
@@ -56,9 +54,12 @@
 #include "llcontrol.h"
 #include "lltabcontainer.h"
 #include "v2math.h"
+#include "lltrans.h"
+#include "llmultifloater.h"
 #include "llfasttimer.h"
 #include "airecursive.h"
 #include "llnotifications.h"
+
 
 const S32 MINIMIZED_WIDTH = 160;
 const S32 CLOSE_BOX_FROM_TOP = 1;
@@ -104,14 +105,14 @@ std::string	LLFloater::sButtonNames[BUTTON_COUNT] =
 std::string	LLFloater::sButtonToolTips[BUTTON_COUNT] = 
 {
 #ifdef LL_DARWIN
-	"Close (Cmd-W)",	//BUTTON_CLOSE
+	"BUTTON_CLOSE_DARWIN",	//"Close (Cmd-W)",	//BUTTON_CLOSE
 #else
-	"Close (Ctrl-W)",	//BUTTON_CLOSE
+	"BUTTON_CLOSE_WIN",		//"Close (Ctrl-W)",	//BUTTON_CLOSE
 #endif
-	"Restore",	//BUTTON_RESTORE
-	"Minimize",	//BUTTON_MINIMIZE
-	"Tear Off",	//BUTTON_TEAR_OFF
-	"Edit",		//BUTTON_EDIT
+	"BUTTON_RESTORE",		//"Restore",	//BUTTON_RESTORE
+	"BUTTON_MINIMIZE",		//"Minimize",	//BUTTON_MINIMIZE
+	"BUTTON_TEAR_OFF",		//"Tear Off",	//BUTTON_TEAR_OFF
+	"BUTTON_EDIT",			//"Edit",		//BUTTON_EDIT
 };
 
 
@@ -129,6 +130,31 @@ BOOL			LLFloater::sEditModeEnabled;
 LLFloater::handle_map_t	LLFloater::sFloaterMap;
 
 LLFloaterView* gFloaterView = NULL;
+
+//static
+void LLFloater::initClass()
+{
+	// translate tooltips for floater buttons
+	for (S32 i = 0; i < BUTTON_COUNT; i++)
+	{
+		sButtonToolTips[i] = LLTrans::getString( sButtonToolTips[i] );
+	}
+
+	LLControlVariable* ctrl = LLUI::sConfigGroup->getControl("ActiveFloaterTransparency");
+	if (ctrl)
+	{
+		ctrl->getSignal()->connect(boost::bind(&LLFloater::updateActiveFloaterTransparency));
+		updateActiveFloaterTransparency();
+	}
+
+	ctrl = LLUI::sConfigGroup->getControl("InactiveFloaterTransparency");
+	if (ctrl)
+	{
+		ctrl->getSignal()->connect(boost::bind(&LLFloater::updateInactiveFloaterTransparency));
+		updateInactiveFloaterTransparency();
+	}
+
+}
 
 LLFloater::LLFloater() :
 	//FIXME: we should initialize *all* member variables here
@@ -353,6 +379,18 @@ void LLFloater::initFloater(const std::string& title,
 	{
 		gFloaterView->addChild(this);
 	}
+}
+
+// static
+void LLFloater::updateActiveFloaterTransparency()
+{
+	sActiveControlTransparency = LLUI::sConfigGroup->getF32("ActiveFloaterTransparency");
+}
+
+// static
+void LLFloater::updateInactiveFloaterTransparency()
+{
+	sInactiveControlTransparency = LLUI::sConfigGroup->getF32("InactiveFloaterTransparency");
 }
 
 void LLFloater::addResizeCtrls()
@@ -636,6 +674,31 @@ void LLFloater::close(bool app_quitting)
 			}
 		}
 
+		//If floater is a dependent, remove it from parent (dependee)
+		LLFloater* dependee = mDependeeHandle.get();
+		if (dependee)
+		{
+			dependee->removeDependentFloater(this);
+		}
+
+		// now close dependent floater
+		for (handle_set_iter_t dependent_it = mDependents.begin();
+			dependent_it != mDependents.end(); )
+		{
+			LLFloater* floaterp = dependent_it->get();
+			if (floaterp)
+			{
+				++dependent_it;
+				floaterp->close(app_quitting);
+			}
+			else
+			{
+				mDependents.erase(dependent_it++);
+			}
+		}
+
+		cleanupHandles();
+
 		if (!app_quitting && !getControlName().empty())
 			setControlValue(false);
 
@@ -720,11 +783,6 @@ void LLFloater::applyRectControl()
 
 void LLFloater::applyTitle()
 {
-	if (gNoRender)
-	{
-		return;
-	}
-
 	if (!mDragHandle)
 	{
 		return;
@@ -753,7 +811,7 @@ void LLFloater::setTitle( const std::string& title )
 	applyTitle();
 }
 
-std::string LLFloater::getTitle()
+std::string LLFloater::getTitle() const
 {
 	if (mTitle.empty())
 	{
@@ -771,7 +829,7 @@ void LLFloater::setShortTitle( const std::string& short_title )
 	applyTitle();
 }
 
-std::string LLFloater::getShortTitle()
+std::string LLFloater::getShortTitle() const
 {
 	if (mShortTitle.empty())
 	{
@@ -782,8 +840,6 @@ std::string LLFloater::getShortTitle()
 		return mShortTitle;
 	}
 }
-
-
 
 BOOL LLFloater::canSnapTo(const LLView* other_view)
 {
@@ -1023,7 +1079,8 @@ void LLFloater::setFocus( BOOL b )
 	if (b)
 	{
 		// only push focused floaters to front of stack if not in midst of ctrl-tab cycle
-		if (!getHost() && !((LLFloaterView*)getParent())->getCycleMode())
+		LLFloaterView * parent = dynamic_cast<LLFloaterView *>(getParent());
+		if (!getHost() && parent && !parent->getCycleMode())
 		{
 			if (!isFrontmost())
 			{
@@ -1040,6 +1097,7 @@ void LLFloater::setFocus( BOOL b )
 			last_focus->setFocus(TRUE);
 		}
 	}
+	updateTransparency(b ? TT_ACTIVE : TT_INACTIVE);
 }
 
 // virtual
@@ -1081,8 +1139,9 @@ void LLFloater::setForeground(BOOL front)
 			releaseFocus();
 		}
 
-		if (front || !LLUI::sConfigGroup->getBOOL("FloaterUnfocusedBackgroundOpaque")) // Singu Note: This can be removed when InactiveFloaterTransparency is added
-			setBackgroundOpaque( front );
+		setBackgroundOpaque( front );
+		// Singu Note: Upstream isn't doing this, I can't see where they were actually going inactive. Maybe setFocus(false) isn't being called, but we have parity there..
+		updateTransparency(front || getIsChrome() ? TT_ACTIVE : TT_INACTIVE);
 	}
 }
 
@@ -1191,7 +1250,7 @@ void LLFloater::removeDependentFloater(LLFloater* floaterp)
 	floaterp->mDependeeHandle = LLHandle<LLFloater>();
 }
 
-BOOL LLFloater::offerClickToButton(S32 x, S32 y, MASK mask, EFloaterButtons index)
+BOOL LLFloater::offerClickToButton(S32 x, S32 y, MASK mask, EFloaterButton index)
 {
 	if( mButtonsEnabled[index] )
 	{
@@ -1297,7 +1356,14 @@ void LLFloater::setFrontmost(BOOL take_focus)
 	{
 		// there are more than one floater view
 		// so we need to query our parent directly
-		((LLFloaterView*)getParent())->bringToFront(this, take_focus);
+		LLFloaterView * parent = dynamic_cast<LLFloaterView*>( getParent() );
+		if (parent)
+		{
+			parent->bringToFront(this, take_focus);
+		}
+
+		// Make sure to set the appropriate transparency type (STORM-732).
+		updateTransparency(hasFocus() || getIsChrome() ? TT_ACTIVE : TT_INACTIVE);
 	}
 }
 
@@ -1432,42 +1498,45 @@ void LLFloater::onClickClose()
 // virtual
 void LLFloater::draw()
 {
+	const F32 alpha = getCurrentTransparency();
+
 	// draw background
 	if( isBackgroundVisible() )
 	{
+		drawShadow(this);
+
 		S32 left = LLPANEL_BORDER_WIDTH;
 		S32 top = getRect().getHeight() - LLPANEL_BORDER_WIDTH;
 		S32 right = getRect().getWidth() - LLPANEL_BORDER_WIDTH;
 		S32 bottom = LLPANEL_BORDER_WIDTH;
 
-		static LLColor4 shadow_color = LLUI::sColorsGroup->getColor("ColorDropShadow");
-		static F32 shadow_offset = (F32)LLUI::sConfigGroup->getS32("DropShadowFloater");
-		if (!isBackgroundOpaque())
-		{
-			shadow_offset *= 0.2f;
-			shadow_color.mV[VALPHA] *= 0.5f;
-		}
-		gl_drop_shadow(left, top, right, bottom, 
-			shadow_color, 
-			ll_round(shadow_offset));
-
 		// No transparent windows in simple UI
+		LLColor4 color;
 		if (isBackgroundOpaque())
 		{
-			gl_rect_2d( left, top, right, bottom, getBackgroundColor() );
+			color = getBackgroundColor();
 		}
 		else
 		{
-			gl_rect_2d( left, top, right, bottom, getTransparentColor() );
+			color = getTransparentColor();
 		}
 
-		if(gFocusMgr.childHasKeyboardFocus(this) && !getIsChrome() && !getCurrentTitle().empty())
 		{
+			// We're not using images, use old-school flat colors
+			gl_rect_2d( left, top, right, bottom, color % alpha );
+
 			// draw highlight on title bar to indicate focus.  RDW
-			const LLFontGL* font = LLResMgr::getInstance()->getRes( LLFONT_SANSSERIF );
-			LLRect r = getRect();
-			gl_rect_2d_offset_local(0, r.getHeight(), r.getWidth(), r.getHeight() - (S32)font->getLineHeight() - 1, 
-				LLUI::sColorsGroup->getColor("TitleBarFocusColor"), 0, TRUE);
+			if(gFocusMgr.childHasKeyboardFocus(this)
+				&& !getIsChrome()
+				&& !getCurrentTitle().empty())
+			{
+				static auto titlebar_focus_color = LLUI::sColorsGroup->getColor("TitleBarFocusColor");
+
+				const LLFontGL* font = LLFontGL::getFontSansSerif();
+				LLRect r = getRect();
+				gl_rect_2d_offset_local(0, r.getHeight(), r.getWidth(), r.getHeight() - (S32)font->getLineHeight() - 1, 
+					titlebar_focus_color % alpha, 0, TRUE);
+			}
 		}
 	}
 
@@ -1522,6 +1591,49 @@ void LLFloater::draw()
 			setCanTearOff(FALSE);
 		}
 	}
+}
+
+void	LLFloater::drawShadow(LLPanel* panel)
+{
+	S32 left = LLPANEL_BORDER_WIDTH;
+	S32 top = panel->getRect().getHeight() - LLPANEL_BORDER_WIDTH;
+	S32 right = panel->getRect().getWidth() - LLPANEL_BORDER_WIDTH;
+	S32 bottom = LLPANEL_BORDER_WIDTH;
+
+	static LLUICachedControl<S32> shadow_offset_S32 ("DropShadowFloater", 0);
+	static LLColor4 shadow_color = LLUI::sColorsGroup->getColor("ColorDropShadow");
+	F32 shadow_offset = (F32)shadow_offset_S32;
+
+	if (!panel->isBackgroundOpaque())
+	{
+		shadow_offset *= 0.2f;
+		shadow_color.mV[VALPHA] *= 0.5f;
+	}
+	gl_drop_shadow(left, top, right, bottom,
+		shadow_color % getCurrentTransparency(),
+		ll_round(shadow_offset));
+}
+
+void LLFloater::updateTransparency(LLView* view, ETypeTransparency transparency_type)
+{
+	if (view)
+	{
+		if (view->isCtrl())
+		{
+			static_cast<LLUICtrl*>(view)->setTransparencyType(transparency_type);
+		}
+
+		for (LLView* pChild : *view->getChildList())
+		{
+			if ((pChild->getChildCount()) || (pChild->isCtrl()))
+				updateTransparency(pChild, transparency_type);
+		}
+	}
+}
+
+void LLFloater::updateTransparency(ETypeTransparency transparency_type)
+{
+	updateTransparency(this, transparency_type);
 }
 
 void	LLFloater::setCanMinimize(BOOL can_minimize)
@@ -2319,7 +2431,7 @@ LLRect LLFloaterView::getSnapRect() const
 	return snap_rect;
 }
 
-LLFloater *LLFloaterView::getFocusedFloater()
+LLFloater *LLFloaterView::getFocusedFloater() const
 {
 	for ( child_list_const_iter_t child_it = getChildList()->begin(); child_it != getChildList()->end(); ++child_it)
 	{
@@ -2332,7 +2444,7 @@ LLFloater *LLFloaterView::getFocusedFloater()
 	return NULL;
 }
 
-LLFloater *LLFloaterView::getFrontmost()
+LLFloater *LLFloaterView::getFrontmost() const
 {
 	for ( child_list_const_iter_t child_it = getChildList()->begin(); child_it != getChildList()->end(); ++child_it)
 	{
@@ -2345,7 +2457,7 @@ LLFloater *LLFloaterView::getFrontmost()
 	return NULL;
 }
 
-LLFloater *LLFloaterView::getBackmost()
+LLFloater *LLFloaterView::getBackmost() const
 {
 	LLFloater* back_most = NULL;
 	for ( child_list_const_iter_t child_it = getChildList()->begin(); child_it != getChildList()->end(); ++child_it)
@@ -2380,7 +2492,7 @@ void LLFloaterView::syncFloaterTabOrder()
 	}
 }
 
-LLFloater*	LLFloaterView::getParentFloater(LLView* viewp)
+LLFloater*	LLFloaterView::getParentFloater(LLView* viewp) const
 {
 	LLView* parentp = viewp->getParent();
 
@@ -2501,7 +2613,7 @@ LLView* LLFloater::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *f
 	return floaterp;
 }
 
-LLFastTimer::DeclareTimer POST_BUILD("Floater Post Build");
+LLTrace::BlockTimerStatHandle POST_BUILD("Floater Post Build");
 void LLFloater::initFloaterXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory, BOOL open)	/* Flawfinder: ignore */
 {
 	std::string name(getName());
@@ -2573,7 +2685,7 @@ void LLFloater::initFloaterXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactor
 
 	BOOL result;
 	{
-		LLFastTimer ft(POST_BUILD);
+		LL_RECORD_BLOCK_TIME(POST_BUILD);
 
 		result = postBuild();
 	}

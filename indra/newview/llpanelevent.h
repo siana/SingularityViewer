@@ -51,7 +51,6 @@ public:
 	/*virtual*/ ~LLPanelEvent();
 
 	/*virtual*/ BOOL postBuild();
-	/*virtual*/ void draw();
 
 	void setEventID(const U32 event_id);
 	void sendEventInfoRequest();

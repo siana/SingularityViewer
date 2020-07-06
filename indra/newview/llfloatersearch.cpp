@@ -113,20 +113,8 @@ LLFloaterSearch::_Params::_Params()
 }
 
 LLFloaterSearch::LLFloaterSearch(const Params& key) :
-	LLFloaterWebContent(key),
-	mSearchGodLevel(0)
+	LLFloaterWebContent(key)
 {
-	// declare a map that transforms a category name into
-	// the URL suffix that is used to search that category
-	mCategoryPaths = LLSD::emptyMap();
-	mCategoryPaths["all"]          = "search";
-	mCategoryPaths["people"]       = "search/people";
-	mCategoryPaths["places"]       = "search/places";
-	mCategoryPaths["events"]       = "search/events";
-	mCategoryPaths["groups"]       = "search/groups";
-	mCategoryPaths["wiki"]         = "search/wiki";
-	mCategoryPaths["destinations"] = "destinations";
-	mCategoryPaths["classifieds"]  = "classifieds";
 	LLUICtrlFactory::getInstance()->buildFloater(this, "floater_web_content.xml");
 }
 
@@ -143,8 +131,8 @@ BOOL LLFloaterSearch::postBuild()
 	getChildView("popexternal")->setEnabled(false);
 	setRectControl("FloaterSearchRect");
 	applyRectControl();
-	search(SearchQuery());
-	gSavedSettings.getControl("SearchURL")->getSignal()->connect(boost::bind(&LLFloaterSearch::search, this, SearchQuery()));
+	search(SearchQuery(), mWebBrowser);
+	gSavedSettings.getControl("SearchURL")->getSignal()->connect(boost::bind(LLFloaterSearch::search, SearchQuery(), mWebBrowser));
 
 	return TRUE;
 }
@@ -156,32 +144,11 @@ void LLFloaterSearch::showInstance(const SearchQuery& search, bool web)
 	{
 		LLFloaterSearch* floater = getInstance();
 		floater->open(); // May not be open
-		floater->search(search);
+		floater->search(search, floater->mWebBrowser);
 	}
 	else
 	{
-		const std::string category(search.category());
-		if (category.empty())
-			LLFloaterDirectory::searchInAll(search.query);
-		else if (category == "all")
-			LLFloaterDirectory::showFindAll(search.query);
-		else if (category == "people")
-			LLFloaterDirectory::showPeople(search.query);
-		else if (category == "places")
-			LLFloaterDirectory::showPlaces(search.query);
-		else if (category == "events")
-			LLFloaterDirectory::showEvents(search.query);
-		else if (category == "groups")
-			LLFloaterDirectory::showGroups(search.query);
-		/* Singu TODO: Wiki tab in secondlife legacy search floater?
-		else if (category == "wiki")
-			LLFloaterDirectory::showWiki(search.query);*/
-		else if (category == "destinations")
-			LLFloaterDirectory::showDestinations();
-		else if (category == "classifieds")
-			LLFloaterDirectory::showClassified(search.query);
-		else
-			LLNotificationsUtil::add("UnsupportedCommandSLURL"); // Singu Note: Perhaps we should use a special notification here?
+		LLFloaterDirectory::search(search);
 	}
 }
 
@@ -192,7 +159,7 @@ void LLFloaterSearch::showInstance(const SearchQuery& search, bool web)
 	p.allow_address_entry = false;
 
 	LLFloaterWebContent::onOpen(p);
-	search(p.search);
+	search(p.search, mWebBrowser);
 }*/
 
 void LLFloaterSearch::onClose(bool app_quitting)
@@ -208,31 +175,30 @@ void LLFloaterSearch::onClose(bool app_quitting)
 	destroy();
 }
 
-void LLFloaterSearch::godLevelChanged(U8 godlevel)
-{
-	// search results can change based upon god level - if the user
-	// changes god level, then give them a warning (we don't refresh
-	// the search as this might undo any page navigation or
-	// AJAX-driven changes since the last search).
-
-	//FIXME: set status bar text
-
-	//getChildView("refresh_search")->setVisible( (godlevel != mSearchGodLevel));
-}
-
-void LLFloaterSearch::search(const SearchQuery &p)
+// static
+void LLFloaterSearch::search(const SearchQuery &p, LLMediaCtrl* mWebBrowser)
 {
 	if (! mWebBrowser || !p.validateBlock())
 	{
 		return;
 	}
 
-	// reset the god level warning as we're sending the latest state
-	//getChildView("refresh_search")->setVisible(FALSE);
-	mSearchGodLevel = gAgent.getGodLevel();
-
 	// work out the subdir to use based on the requested category
 	LLSD subs;
+	// declare a map that transforms a category name into
+	// the URL suffix that is used to search that category
+	static LLSD mCategoryPaths = LLSD::emptyMap();
+	if (mCategoryPaths.size() == 0)
+	{
+		mCategoryPaths["all"]          = "search";
+		mCategoryPaths["people"]       = "search/people";
+		mCategoryPaths["places"]       = "search/places";
+		mCategoryPaths["events"]       = "search/events";
+		mCategoryPaths["groups"]       = "search/groups";
+		mCategoryPaths["wiki"]         = "search/wiki";
+		mCategoryPaths["destinations"] = "destinations";
+		mCategoryPaths["classifieds"]  = "classifieds";
+	}
 	if (mCategoryPaths.has(p.category))
 	{
 		subs["CATEGORY"] = mCategoryPaths[p.category].asString();

@@ -185,6 +185,11 @@ void LLWindowCallbacks::handleResumeWatchdog(LLWindow *window)
 
 }
 
+bool LLWindowCallbacks::handleDPIScaleChange(LLWindow *window, float xDPIScale, float yDPIScale, U32 width, U32 height)
+{
+	return false;
+}
+
 std::string LLWindowCallbacks::translateString(const char* tag)
 {
     return std::string();

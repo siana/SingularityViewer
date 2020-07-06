@@ -21,9 +21,9 @@
 	<text name="estate_owner_label">
 		Propietario del Estado:
 	</text>
-	<text name="estate_owner_text">
+	<name_box name="estate_owner_text">
 		(desconocido)
-	</text>
+	</name_box>
 	<text name="resellable_changeable_label">
 		El Terreno comprado en esta región:
 	</text>

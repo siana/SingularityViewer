@@ -49,15 +49,12 @@ class LLPanelFace;
 /**
  * Menu for adjusting the post process settings of the world
  */
-class LLFloaterPostProcess : public LLFloater
+class LLFloaterPostProcess : public LLFloater, public LLFloaterSingleton<LLFloaterPostProcess>
 {
 public:
 
-	LLFloaterPostProcess();
+	LLFloaterPostProcess(const LLSD&);
 	virtual ~LLFloaterPostProcess();
-
-	/// one and one instance only
-	static LLFloaterPostProcess* instance();
 
 	/// post process callbacks
 	static void onControlChanged(LLUICtrl* ctrl, const LLSD& v);
@@ -68,18 +65,12 @@ public:
 	/// prompts a user when overwriting an effect
 	bool saveAlertCallback(const LLSD& notification, const LLSD& response);
 
-	/// show off our menu
-	static void show();
-
 	/// stuff to do on exit
 	virtual void onClose(bool app_quitting);
 
 	/// sync up sliders
 	void syncMenu();
 
-/*
-	void refresh();
-*/
 public:
 	
 	static LLFloaterPostProcess* sPostProcess;

@@ -467,24 +467,24 @@ void LLConditionVariableImpl::wait(LLMutex& lock)
 #endif
 #endif
 
-LLFastTimer::DeclareTimer FT_WAIT_FOR_MUTEX("LLMutex::lock()");
-void LLMutex::lock_main(LLFastTimer::DeclareTimer* timer)
+LLTrace::BlockTimerStatHandle FT_WAIT_FOR_MUTEX("LLMutex::lock()");
+void LLMutex::lock_main(LLTrace::BlockTimerStatHandle* timer)
 {
 	llassert(!isSelfLocked());
-	LLFastTimer ft1(timer ? *timer : FT_WAIT_FOR_MUTEX);
+	LL_RECORD_BLOCK_TIME(timer ? *timer : FT_WAIT_FOR_MUTEX);
 	LLMutexImpl::lock();
 }
 
-LLFastTimer::DeclareTimer FT_WAIT_FOR_CONDITION("LLCondition::wait()");
+LLTrace::BlockTimerStatHandle FT_WAIT_FOR_CONDITION("LLCondition::wait()");
 void LLCondition::wait_main()
 {
 	llassert(isSelfLocked());
-	LLFastTimer ft1(FT_WAIT_FOR_CONDITION);
+	LL_RECORD_BLOCK_TIME(FT_WAIT_FOR_CONDITION);
 	LLConditionVariableImpl::wait(*this);
 	llassert(isSelfLocked());
 }
 
-LLFastTimer::DeclareTimer FT_WAIT_FOR_MUTEXLOCK("LLMutexLock::lock()");
+LLTrace::BlockTimerStatHandle FT_WAIT_FOR_MUTEXLOCK("LLMutexLock::lock()");
 void LLMutexLock::lock()
 {
 	if (mMutex)

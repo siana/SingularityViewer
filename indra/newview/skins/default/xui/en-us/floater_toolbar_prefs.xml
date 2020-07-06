@@ -58,6 +58,7 @@
   <check_box bottom_delta="-20" label="TP History" name="teleport_history_btn" follows="left|right" control_name="ToolbarVisibleTeleportHistory"/>
   <check_box bottom_delta="-20" label="Map" name="map_btn" follows="left|right" control_name="ToolbarVisibleWorldMap"/>
   <check_box bottom_delta="-20" label="Mini-Map" name="minimap_btn" follows="left|right" control_name="ToolbarVisibleMiniMap"/>
+  <check_box bottom_delta="-20" label="Experiences" name="experiences_btn" follows="left|right" control_name="ToolbarVisibleExperiences"/>
   <!-- [RLVa:LF] -->
   <check_box bottom_delta="-20" label="RLVa Restrictions" name="rlv_restrictions_btn" follows="left|right" control_name="ToolbarVisibleRLVRestrictions"/>
   <check_box bottom_delta="-20" label="RLVa Locks" name="rlv_locks_btn" follows="left|right" control_name="ToolbarVisibleRLVLocks"/>
@@ -65,8 +66,8 @@
   <!-- [/RLVa:LF] -->
   <check_box bottom_delta="-20" label="Memory Leak" name="memleak_btn" follows="left|right" control_name="ToolbarVisibleMemLeak" visibility_control="QAMode"/>
   <check_box bottom_delta="-20" label="Message Log" name="message_log_btn" follows="left|right" control_name="ToolbarVisibleMessageLog"/>
-  <check_box bottom_delta="-20" label="Statistics" name="stats_btn" follows="left|right" control_name="ToolbarVisibleStatBar"/>
-  <check_box bottom="-38" label="Notifications Console" name="notifications_console_btn" follows="left|right" control_name="ToolbarVisibleNotificationsConsole" left_delta="160"/>
+  <check_box bottom="-38" label="Statistics" name="stats_btn" follows="left|right" control_name="ToolbarVisibleStatBar" left_delta="160"/>
+  <check_box bottom_delta="-20" label="Notifications Console" name="notifications_console_btn" follows="left|right" control_name="ToolbarVisibleNotificationsConsole"/>
   <check_box bottom_delta="-20" label="Debug Console" name="debug_console_btn" follows="left|right" control_name="ToolbarVisibleDebugConsole"/>
   <check_box bottom_delta="-20" label="Region Console" name="region_console_btn" follows="left|right" control_name="ToolbarVisibleRegionDebugConsole"/>
   <check_box bottom_delta="-20" label="Fast Timers" name="fast_timers_btn" follows="left|right" control_name="ToolbarVisibleFastTimers"/>
@@ -75,20 +76,21 @@
   <check_box bottom_delta="-20" label="Texture Console" name="texture_console_btn" follows="left|right" control_name="ToolbarVisibleTextureConsole"/>
   <check_box bottom_delta="-20" label="Texture Category Console" name="texture_category_console_btn" follows="left|right" control_name="ToolbarVisibleTextureCategoryConsole" visibility_control="AuditTexture"/>
   <check_box bottom_delta="-20" label="Texture Size Console" name="texture_size_console_btn" follows="left|right" control_name="ToolbarVisibleTextureSizeConsole" visibility_control="AuditTexture"/>
-  <check_box bottom_delta="-20" label="Inventory" name="directory_btn" follows="left|right" control_name="ToolbarVisibleInventory"/>
   <check_box bottom_delta="-20" label="Default Avatars" name="default_avatars_btn" follows="left|right" control_name="ToolbarVisibleAvatar"/>
   <check_box bottom_delta="-20" label="Make Outfit" name="make_outfit_btn" follows="left|right" control_name="ToolbarVisibleOutfit"/>
   <check_box bottom_delta="-20" label="Outfits" name="outfits_btn" follows="left|right" control_name="ToolbarVisibleInventoryOutfits"/>
   <check_box bottom_delta="-20" label="Favorites" name="favs_btn" follows="left|right" control_name="ToolbarVisibleInventoryFavs"/>
-  <check_box bottom_delta="-20" label="Outbox" name="outbox_btn" follows="left|right" control_name="ToolbarVisibleOutbox"/>
+  <check_box bottom_delta="-20" label="Inventory" name="inventory_btn" follows="left|right" control_name="ToolbarVisibleInventory"/>
+  <check_box bottom_delta="-20" label="Received Items" name="received_items_btn" follows="left|right" control_name="ToolbarVisibleInventoryReceivedItems"/>
+  <check_box bottom="-38" label="Marketplace Listings" name="marketplace_listings_btn" follows="left|right" control_name="ToolbarVisibleMarketplaceListings" left_delta="160"/>
+  <check_box bottom_delta="-20" label="Marketplace" name="marketplace_btn" follows="left|right" control_name="ToolbarVisibleMarketplace"/>
   <check_box bottom_delta="-20" label="Preferences" name="preferences_btn" follows="left|right" control_name="ToolbarVisiblePreferences"/>
-  <check_box bottom="-38" label="Joystick Config" name="joystick_btn" follows="left|right" control_name="ToolbarVisibleJoystick" left_delta="160"/>
+  <check_box bottom_delta="-20" label="Joystick Config" name="joystick_btn" follows="left|right" control_name="ToolbarVisibleJoystick"/>
   <check_box bottom_delta="-20" label="Autoreplace" name="auto_replace_btn" follows="left|right" control_name="ToolbarVisibleAutoReplace"/>
   <check_box bottom_delta="-20" label="Display Name" name="display_name_btn" follows="left|right" control_name="ToolbarVisibleDisplayName"/>
   <check_box bottom_delta="-20" label="Floater Test" name="floater_test_btn" follows="left|right" control_name="ToolbarVisibleTest"/>
   <check_box bottom_delta="-20" label="Edit UI" name="edit_ui_btn" follows="left|right" control_name="ToolbarVisibleEditUI"/>
   <check_box bottom_delta="-20" label="Font Test" name="font_test_btn" follows="left|right" control_name="ToolbarVisibleFontTest"/>
-  <check_box bottom_delta="-20" label="Lag Meter" name="lag_meter_btn" follows="left|right" control_name="ToolbarVisibleLagMeter"/>
   <check_box bottom_delta="-20" label="Report Abuse" name="abuse_btn" follows="left|right" control_name="ToolbarVisibleComplaintReporter"/>
   <!-- Singu TODO: Re-implement f1 help.
   <check_box bottom_delta="-20" label="Help" name="help_btn" follows="left|right" control_name="ToolbarVisibleHelp"/>

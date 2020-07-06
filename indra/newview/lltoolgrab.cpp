@@ -141,7 +141,7 @@ BOOL LLToolGrab::handleMouseDown(S32 x, S32 y, MASK mask)
 	if (!gAgent.leftButtonGrabbed())
 	{
 		// can grab transparent objects (how touch event propagates, scripters rely on this)
-		gViewerWindow->pickAsync(x, y, mask, pickCallback, TRUE, TRUE);
+		gViewerWindow->pickAsync(x, y, mask, pickCallback, TRUE, FALSE, FALSE, TRUE);
 	}
 	return TRUE;
 }
@@ -403,7 +403,7 @@ void LLToolGrab::startGrab()
 	mDragStartPointGlobal = grab_start_global;
 	mDragStartFromCamera = grab_start_global - gAgentCamera.getCameraPositionGlobal();
 
-	send_ObjectGrab_message(objectp, mGrabPick, grab_offset);
+	send_ObjectGrab_message(objectp, true, &mGrabPick, grab_offset);
 
 	mGrabOffsetFromCenterInitial = grab_offset;
 	mGrabHiddenOffsetFromCamera = mDragStartFromCamera;
@@ -1079,7 +1079,7 @@ void LLToolGrab::stopGrab()
 	case GRAB_ACTIVE_CENTER:
 	case GRAB_NONPHYSICAL:
 	case GRAB_LOCKED:
-		send_ObjectDeGrab_message(objectp, pick);
+		send_ObjectGrab_message(objectp, false, &pick);
 		mVerticalDragging = FALSE;
 		break;
 
@@ -1133,64 +1133,45 @@ LLVector3d LLToolGrab::getGrabPointGlobal()
 }
 
 
-void send_ObjectGrab_message(LLViewerObject* object, const LLPickInfo & pick, const LLVector3 &grab_offset)
+void send_ObjectGrab_message(LLViewerObject* object, bool grab, const LLPickInfo* const pick, const LLVector3 &grab_offset)
 {
 	if (!object) return;
 
 	LLMessageSystem	*msg = gMessageSystem;
 
-	msg->newMessageFast(_PREHASH_ObjectGrab);
+	msg->newMessageFast(grab ? _PREHASH_ObjectGrab : _PREHASH_ObjectDeGrab);
 	msg->nextBlockFast( _PREHASH_AgentData);
 	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
 	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
 	msg->nextBlockFast( _PREHASH_ObjectData);
 	msg->addU32Fast(    _PREHASH_LocalID, object->mLocalID);
-	msg->addVector3Fast(_PREHASH_GrabOffset, grab_offset);
-	msg->nextBlock("SurfaceInfo");
-	msg->addVector3("UVCoord", LLVector3(pick.mUVCoords));
-	msg->addVector3("STCoord", LLVector3(pick.mSTCoords));
-	msg->addS32Fast(_PREHASH_FaceIndex, pick.mObjectFace);
-	msg->addVector3("Position", pick.mIntersection);
-	msg->addVector3("Normal", pick.mNormal);
-	msg->addVector3("Binormal", pick.mBinormal);
+	if (grab) msg->addVector3Fast(_PREHASH_GrabOffset, grab_offset);
+	if (pick)
+	{
+		msg->nextBlock("SurfaceInfo");
+		msg->addVector3("UVCoord", LLVector3(pick->mUVCoords));
+		msg->addVector3("STCoord", LLVector3(pick->mSTCoords));
+		msg->addS32Fast(_PREHASH_FaceIndex, pick->mObjectFace);
+		msg->addVector3("Position", pick->mIntersection);
+		msg->addVector3("Normal", pick->mNormal);
+		msg->addVector3("Binormal", pick->mBinormal);
+	}
 	msg->sendMessage( object->getRegion()->getHost());
 
 	/*  Diagnostic code
-	LL_INFOS() << "mUVCoords: " << pick.mUVCoords
-			<< ", mSTCoords: " << pick.mSTCoords
-			<< ", mObjectFace: " << pick.mObjectFace
-			<< ", mIntersection: " << pick.mIntersection
-			<< ", mNormal: " << pick.mNormal
-			<< ", mBinormal: " << pick.mBinormal
+	if (pick)
+	{
+		LL_INFOS() << "mUVCoords: " << pick->mUVCoords
+			<< ", mSTCoords: " << pick->mSTCoords
+			<< ", mObjectFace: " << pick->mObjectFace
+			<< ", mIntersection: " << pick->mIntersection
+			<< ", mNormal: " << pick->mNormal
+			<< ", mBinormal: " << pick->mBinormal
 			<< LL_ENDL;
+	}
 
 	LL_INFOS() << "Avatar pos: " << gAgent.getPositionAgent() << LL_ENDL;
 	LL_INFOS() << "Object pos: " << object->getPosition() << LL_ENDL;
 	*/
 }
-
-
-void send_ObjectDeGrab_message(LLViewerObject* object, const LLPickInfo & pick)
-{
-	if (!object) return;
-
-	LLMessageSystem	*msg = gMessageSystem;
-
-	msg->newMessageFast(_PREHASH_ObjectDeGrab);
-	msg->nextBlockFast(_PREHASH_AgentData);
-	msg->addUUIDFast(_PREHASH_AgentID, gAgent.getID());
-	msg->addUUIDFast(_PREHASH_SessionID, gAgent.getSessionID());
-	msg->nextBlockFast(_PREHASH_ObjectData);
-	msg->addU32Fast(_PREHASH_LocalID, object->mLocalID);
-	msg->nextBlock("SurfaceInfo");
-	msg->addVector3("UVCoord", LLVector3(pick.mUVCoords));
-	msg->addVector3("STCoord", LLVector3(pick.mSTCoords));
-	msg->addS32Fast(_PREHASH_FaceIndex, pick.mObjectFace);
-	msg->addVector3("Position", pick.mIntersection);
-	msg->addVector3("Normal", pick.mNormal);
-	msg->addVector3("Binormal", pick.mBinormal);
-	msg->sendMessage(object->getRegion()->getHost());
-}
-
-
 

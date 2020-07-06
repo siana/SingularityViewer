@@ -93,22 +93,7 @@ LLDir_Linux::LLDir_Linux()
 #else
 	mAppRODataDir = tmp_str;
 #endif
-    std::string::size_type build_dir_pos = mExecutableDir.rfind("/build-linux-");
-    if (build_dir_pos != std::string::npos)
-    {
-		// ...we're in a dev checkout
-		mSkinBaseDir = mExecutableDir.substr(0, build_dir_pos) + "/indra/newview/skins";
-		if (LLFile::isdir(mSkinBaseDir))
-			LL_INFOS() << "Running in dev checkout with mSkinBaseDir "
-			 << mSkinBaseDir << LL_ENDL;
-		else
-			mSkinBaseDir = "";
-    }
-    if (mSkinBaseDir.empty())
-    {
-		// ...normal installation running
-		mSkinBaseDir = mAppRODataDir + mDirDelimiter + "skins";
-    }	
+	mSkinBaseDir = mAppRODataDir + mDirDelimiter + "skins";
 
 	mOSUserDir = getCurrentUserHome(tmp_str);
 	mOSUserAppDir = "";
@@ -223,7 +208,7 @@ void LLDir_Linux::initAppDirs(const std::string &app_name,
 		}
 	}
 	
-	mCAFile = getExpandedFilename(LL_PATH_APP_SETTINGS, "CA.pem");
+	mCAFile = getExpandedFilename(LL_PATH_APP_SETTINGS, "ca-bundle.crt");
 }
 
 U32 LLDir_Linux::countFilesInDir(const std::string &dirname, const std::string &mask)
@@ -257,7 +242,7 @@ std::string LLDir_Linux::getCurPath()
 }
 
 
-BOOL LLDir_Linux::fileExists(const std::string &filename) const
+bool LLDir_Linux::fileExists(const std::string &filename) const
 {
 	struct stat stat_data;
 	// Check the age of the file
@@ -277,7 +262,7 @@ BOOL LLDir_Linux::fileExists(const std::string &filename) const
 /*virtual*/ std::string LLDir_Linux::getLLPluginLauncher()
 {
 	return gDirUtilp->getExecutableDir() + gDirUtilp->getDirDelimiter() +
-		"SLPlugin";
+		"llplugin/SLPlugin";
 }
 
 /*virtual*/ std::string LLDir_Linux::getLLPluginFilename(std::string base_name)

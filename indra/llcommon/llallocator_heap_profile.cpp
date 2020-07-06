@@ -40,7 +40,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/range/iterator_range.hpp>
 
-static const std::string HEAP_PROFILE_MAGIC_STR = "heap profile:";
+static const std::string HEAP_PROFILE_MAGIC_STR("heap profile:");
 
 static bool is_separator(char c)
 {
@@ -70,7 +70,7 @@ void LLAllocatorHeapProfile::parse(std::string const & prof_text)
 	range_t prof_range(prof_begin, prof_text.end());
     boost::algorithm::split(prof_lines,
         prof_range,
-        boost::bind(std::equal_to<llwchar>(), '\n', _1));
+        std::bind(std::equal_to<llwchar>(), '\n', std::placeholders::_1));
 
     std::vector< range_t >::const_iterator i;
     for(i = prof_lines.begin(); i != prof_lines.end() && !i->empty(); ++i)

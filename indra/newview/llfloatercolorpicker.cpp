@@ -78,6 +78,15 @@ const F32 CONTEXT_FADE_TIME = 0.08f;
 
 LLFloaterColorPicker::LLFloaterColorPicker (LLColorSwatchCtrl* swatch, BOOL show_apply_immediate )
 	: LLFloater (std::string("Color Picker Floater")),
+	  origR(1.f),
+	  origG(1.f),
+	  origB(1.f),
+	  curR(1.f),
+	  curG(1.f),
+	  curB(1.f),
+	  curH(0.f),
+	  curS(0.f),
+	  curL(1.f),
 	  mComponents			( 3 ),
 	  mMouseDownInLumRegion	( FALSE ),
 	  mMouseDownInHueRegion	( FALSE ),
@@ -108,7 +117,11 @@ LLFloaterColorPicker::LLFloaterColorPicker (LLColorSwatchCtrl* swatch, BOOL show
 	  mPaletteRegionHeight	( 40 ),
 	  mSwatch				( swatch ),
 	  mActive				( TRUE ),
+	  mApplyImmediateCheck(nullptr),
 	  mCanApplyImmediately	( show_apply_immediate ),
+	  mSelectBtn(nullptr),
+	  mCancelBtn(nullptr),
+	  mPipetteBtn(nullptr),
 	  mContextConeOpacity	( 0.f )
 {
 	// build the majority of the gui using the factory builder
@@ -490,47 +503,40 @@ void LLFloaterColorPicker::draw()
 	if (hasFocus() && mSwatch->isInVisibleChain() && mContextConeOpacity > 0.001f)
 	{
 		gGL.getTexUnit(0)->unbind(LLTexUnit::TT_TEXTURE);
-		LLGLEnable(GL_CULL_FACE);
-		gGL.begin(LLRender::QUADS);
+		LLGLEnable<GL_CULL_FACE> cull;
+		gGL.begin(LLRender::TRIANGLE_STRIP);
 		{
-			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
-			gGL.vertex2i(swatch_rect.mLeft, swatch_rect.mTop);
-			gGL.vertex2i(swatch_rect.mRight, swatch_rect.mTop);
-			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
-			gGL.vertex2i(local_rect.mRight, local_rect.mTop);
-			gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
-
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
 			gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
-			gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
-			gGL.vertex2i(swatch_rect.mLeft, swatch_rect.mBottom);
 			gGL.vertex2i(swatch_rect.mLeft, swatch_rect.mTop);
-
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
-			gGL.vertex2i(local_rect.mRight, local_rect.mBottom);
 			gGL.vertex2i(local_rect.mRight, local_rect.mTop);
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
 			gGL.vertex2i(swatch_rect.mRight, swatch_rect.mTop);
-			gGL.vertex2i(swatch_rect.mRight, swatch_rect.mBottom);
-
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
-			gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
 			gGL.vertex2i(local_rect.mRight, local_rect.mBottom);
 			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
 			gGL.vertex2i(swatch_rect.mRight, swatch_rect.mBottom);
+			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
+			gGL.vertex2i(local_rect.mLeft, local_rect.mBottom);
+			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
 			gGL.vertex2i(swatch_rect.mLeft, swatch_rect.mBottom);
+			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_OUT_ALPHA * mContextConeOpacity);
+			gGL.vertex2i(local_rect.mLeft, local_rect.mTop);
+			gGL.color4f(0.f, 0.f, 0.f, CONTEXT_CONE_IN_ALPHA * mContextConeOpacity);
+			gGL.vertex2i(swatch_rect.mLeft, swatch_rect.mTop);
 		}
 		gGL.end();
 	}
 
 	if (gFocusMgr.childHasMouseCapture(getDragHandle()))
 	{
-		mContextConeOpacity = lerp(mContextConeOpacity, gSavedSettings.getF32("PickerContextOpacity"), LLCriticalDamp::getInterpolant(CONTEXT_FADE_TIME));
+		mContextConeOpacity = lerp(mContextConeOpacity, gSavedSettings.getF32("PickerContextOpacity"), LLSmoothInterpolation::getInterpolant(CONTEXT_FADE_TIME));
 	}
 	else
 	{
-		mContextConeOpacity = lerp(mContextConeOpacity, 0.f, LLCriticalDamp::getInterpolant(CONTEXT_FADE_TIME));
+		mContextConeOpacity = lerp(mContextConeOpacity, 0.f, LLSmoothInterpolation::getInterpolant(CONTEXT_FADE_TIME));
 	}
 
 	mPipetteBtn->setToggleState(LLToolMgr::getInstance()->getCurrentTool() == LLToolPipette::getInstance());

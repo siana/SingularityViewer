@@ -37,6 +37,7 @@
 #define BOOST_FUNCTION_HPP_INCLUDED
 #endif
 #include <boost/signals2.hpp>
+#include "llinitparam.h"
 #include "lltexture.h"
 
 extern const LLColor4 UI_VERTEX_COLOR;
@@ -44,6 +45,12 @@ extern const LLColor4 UI_VERTEX_COLOR;
 class LLUIImage : public LLRefCount
 {
 public:
+	enum EScaleStyle
+	{
+		SCALE_INNER,
+		SCALE_OUTER
+	};
+
 	typedef boost::signals2::signal<void (void)> image_loaded_signal_t;
 
 	LLUIImage(const std::string& name, LLPointer<LLTexture> image);
@@ -51,6 +58,7 @@ public:
 
 	void setClipRegion(const LLRectf& region);
 	void setScaleRegion(const LLRectf& region);
+	void setScaleStyle(EScaleStyle style);
 
 	LLPointer<LLTexture> getImage() { return mImage; }
 	const LLPointer<LLTexture>& getImage() const { return mImage; }
@@ -66,7 +74,9 @@ public:
 	void drawBorder(S32 x, S32 y, S32 width, S32 height, const LLColor4& color, S32 border_width) const;
 	void drawBorder(const LLRect& rect, const LLColor4& color, S32 border_width) const { drawBorder(rect.mLeft, rect.mBottom, rect.getWidth(), rect.getHeight(), color, border_width); }
 	void drawBorder(S32 x, S32 y, const LLColor4& color, S32 border_width) const { drawBorder(x, y, getWidth(), getHeight(), color, border_width); }
-	
+
+	void draw3D(const LLVector3& origin_agent, const LLVector3& x_axis, const LLVector3& y_axis, const LLRect& rect, const LLColor4& color);
+
 	const std::string& getName() const { return mName; }
 
 	virtual S32 getWidth() const;
@@ -83,14 +93,43 @@ public:
 protected:
 	image_loaded_signal_t* mImageLoaded;
 
-	std::string			mName;
-	LLRectf				mScaleRegion;
-	LLRectf				mClipRegion;
-	LLPointer<LLTexture> mImage;
-	BOOL				mUniformScaling;
-	BOOL				mNoClip;
+	std::string				mName;
+	LLRectf					mScaleRegion;
+	LLRectf					mClipRegion;
+	LLPointer<LLTexture>	mImage;
+	EScaleStyle				mScaleStyle;
 };
 
+namespace LLInitParam
+{
+	template<>
+	class ParamValue<LLUIImage*> 
+	:	public CustomParamValue<LLUIImage*>
+	{
+		typedef boost::add_reference<boost::add_const<LLUIImage*>::type>::type	T_const_ref;
+		typedef CustomParamValue<LLUIImage*> super_t;
+	public:
+		Optional<std::string> name;
+
+		ParamValue(LLUIImage* const& image = NULL)
+		:	super_t(image)
+		{
+			updateBlockFromValue(false);
+			addSynonym(name, "name");
+		}
+
+		void updateValueFromBlock();
+		void updateBlockFromValue(bool make_block_authoritative);
+	};
+
+	// Need custom comparison function for our test app, which only loads
+	// LLUIImage* as NULL.
+	template<>
+	struct ParamCompare<LLUIImage*, false>
+	{
+		static bool equals(LLUIImage* const &a, LLUIImage* const &b);
+	};
+}
 
 typedef LLPointer<LLUIImage> LLUIImagePtr;
 #endif

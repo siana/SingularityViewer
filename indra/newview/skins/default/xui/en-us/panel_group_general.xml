@@ -19,24 +19,24 @@ Hover your mouse over the options for more help.
 	     h_pad="0" halign="left" height="16" label="Type your new group name here"
 	     left="7" max_length="35" mouse_opaque="true" name="group_name_editor"
 	     prevalidate="ascii" v_pad="0" width="300" spell_check="true" />
-	<text bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
+	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom="-20" drop_shadow_visible="true" follows="left|top"
 	     font="SansSerifBig" h_pad="0" halign="left" height="16" left="7"
-	     mouse_opaque="true" name="group_name" v_pad="0" width="300">
+	     mouse_opaque="true" name="group_name" v_pad="0" id_type="1">
 		Type your new group name here
-	</text>
+	</name_box>
 	<text font="SansSerifSmall" name="prepend_founded_by">
 		Founded by
 	</text>
 	<name_box bg_visible="false" border_drop_shadow_visible="false" border_visible="false"
 	     bottom_delta="-6" drop_shadow_visible="true" follows="left|top"
-	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="63"
-	     mouse_opaque="true" name="founder_name" v_pad="0" width="200" initial_value="Loading..."
+	     font="SansSerifSmall" h_pad="0" halign="left" height="16" left_delta="66"
+	     mouse_opaque="true" name="founder_name" v_pad="0" initial_value="Loading..."
   />
 	<text font="SansSerifSmall" name="group_key_text" follows="left|top" left="7" bottom="-50">
 		Group Key:
 	</text>
-      <name_editor bevel_style="in" border_style="line"
+      <line_editor bevel_style="in" border_style="line"
 			     border_thickness="1" bottom="-55" enabled="false" follows="left|top"
 			     font="SansSerifSmall" height="16" is_unicode="false" left_delta="65"
 			     max_length="254" mouse_opaque="false" name="group_key"

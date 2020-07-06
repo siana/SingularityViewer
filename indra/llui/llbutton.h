@@ -74,6 +74,87 @@ class LLButton
 : public LLUICtrl
 {
 public:
+	struct Params
+		: public LLInitParam::Block<Params, LLUICtrl::Params>
+	{
+		// text label
+		Optional<std::string>	label_selected;
+		Optional<bool>			label_shadow;
+		Optional<bool>			auto_resize;
+		Optional<bool>			use_ellipses;
+
+		// images
+		Optional<LLUIImage*>	image_unselected,
+			image_selected,
+			image_hover_selected,
+			image_hover_unselected,
+			image_disabled_selected,
+			image_disabled,
+			image_flash,
+			image_pressed,
+			image_pressed_selected,
+			image_overlay,
+			image_overlay_selected;
+
+		Optional<std::string>	image_overlay_alignment;
+		Optional<bool>			image_overlay_enable;
+
+		// colors
+		Optional<LLUIColor>		label_color,
+			label_color_selected,
+			label_color_disabled,
+			label_color_disabled_selected,
+			image_color,
+			image_color_disabled,
+			image_overlay_color,
+			image_overlay_selected_color,
+			image_overlay_disabled_color,
+			flash_color;
+
+		// layout
+		Optional<S32>			pad_right;
+		Optional<S32>			pad_left;
+		Optional<S32>			pad_bottom; // under text label
+
+		//image overlay paddings
+		Optional<S32>			image_top_pad;
+		Optional<S32>			image_bottom_pad;
+
+		/**
+		 * Space between image_overlay and label
+		 */
+		Optional<S32>			imgoverlay_label_space;
+
+		// callbacks
+		Optional<CommitCallbackParam>	click_callback, // alias -> commit_callback
+			mouse_down_callback,
+			mouse_up_callback,
+			mouse_held_callback;
+
+		// misc
+		Optional<bool>			is_toggle,
+			scale_image,
+			commit_on_return,
+			display_pressed_state;
+
+		Optional<F32>				hover_glow_amount;
+		//Optional<TimeIntervalParam>	held_down_delay;
+
+		Optional<bool>				use_draw_context_alpha;
+
+		//Optional<LLBadge::Params>	badge;
+
+		Optional<bool>				handle_right_mouse;
+
+		Optional<bool>				button_flash_enable;
+		Optional<S32>				button_flash_count;
+		Optional<F32>				button_flash_rate;
+		Optional<bool>				fade_when_disabled;
+		Optional<std::string>		help_url;
+
+		Params();
+	};
+
 	// simple button with text label
 	LLButton(const std::string& name, const LLRect &rect = LLRect(), const std::string& control_name = std::string(), 
 			 commit_callback_t commit_callback = NULL);
@@ -86,6 +167,11 @@ public:
 			 const LLFontGL* mGLFont = NULL,
 			 const std::string& unselected_label = LLStringUtil::null,
 			 const std::string& selected_label = LLStringUtil::null );
+
+	void initFromParams(const Params& p);
+	static const LLButton::Params& getDefaultParams();
+	LLButton(const Params& p = getDefaultParams());
+
 public:
 
 	~LLButton();
@@ -93,7 +179,6 @@ public:
 	typedef boost::function<void(void*)> button_callback_t;
 
 	void			addImageAttributeToXML(LLXMLNodePtr node, const LLPointer<LLUIImage>, const std::string& xmlTagName) const;
-	void 			init(const std::string& control_name);
 	virtual LLXMLNodePtr getXML(bool save_children = true) const;
 	static LLView* 	fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFactory *factory);
 
@@ -161,7 +246,6 @@ public:
 	const std::string	getLabelUnselected() const { return wstring_to_utf8str(mUnselectedLabel); }
 	const std::string	getLabelSelected() const { return wstring_to_utf8str(mSelectedLabel); }
 
-	void			setImageColor(const std::string& color_control);
 	void			setImageColor(const LLColor4& c);
 	/*virtual*/ void	setColor(const LLColor4& c);
 
@@ -205,9 +289,7 @@ public:
 	void			setImageDisabled(LLPointer<LLUIImage> image);
 	void			setImageDisabledSelected(LLPointer<LLUIImage> image);
 	void			setImageFlash(LLPointer<LLUIImage> image);
-	void			setImagePressed(LLPointer<LLUIImage> image);
-	
-	static void		onHeldDown(void *userdata);  // to be called by gIdleCallbacks
+
 	void			setHelpURLCallback(const std::string &help_url);
 	const std::string&	getHelpURL() const { return mHelpURL; }
 
@@ -237,12 +319,13 @@ protected:
 	
 	const LLFontGL	*mGLFont;
 	
-	S32							mMouseDownFrame;
+	U64							mMouseDownFrame;
 	S32 						mMouseHeldDownCount; 	// Counter for parameter passed to held-down callback
 	F32							mHeldDownDelay;			// seconds, after which held-down callbacks get called
 	S32							mHeldDownFrameDelay;	// frames, after which held-down callbacks get called
 
 	LLPointer<LLUIImage>	mImageOverlay;
+	LLPointer<LLUIImage>	mImageOverlaySelected;
 	LLFontGL::HAlign			mImageOverlayAlignment;
 	LLUIColor					mImageOverlayColor;
 	LLUIColor					mImageOverlaySelectedColor;

@@ -33,33 +33,20 @@
 #ifndef LL_LLNETMAP_H
 #define LL_LLNETMAP_H
 
-#include "llmath.h"
+#include "lfidbearer.h"
 #include "llpanel.h"
-#include "llmemberlistener.h"
-#include "v3math.h"
-#include "v3dmath.h"
-#include "v4color.h"
-#include "llpointer.h"
-#include "llcoord.h"
 
 
 class LLTextBox;
 class LLImageRaw;
 class LLViewerTexture;
 class LLFloaterMap;
-class LLMenuGL;
 // [SL:KB] - Patch: World-MinimapOverlay | Checked: 2012-06-20 (Catznip-3.3.0)
 class LLViewerRegion;
 class LLAvatarName;
 // [/SL:KB]
 
-enum EMiniMapCenter
-{
-	MAP_CENTER_NONE = 0,
-	MAP_CENTER_CAMERA = 1
-};
-
-class LLNetMap : public LLPanel
+class LLNetMap final : public LLPanel, public LFIDBearer
 {
 public:
 	LLNetMap(const std::string& name);
@@ -81,8 +68,8 @@ public:
 	/*virtual*/ BOOL	handleRightMouseDown( S32 x, S32 y, MASK mask );
 	/*virtual*/ BOOL	handleDoubleClick( S32 x, S32 y, MASK mask );
 
-	static void mm_setcolor(LLUUID key,LLColor4 col); //moymod
-
+	LLUUID getStringUUIDSelectedItem() const override final { return mClosestAgentAtLastRightClick; }
+	uuid_vec_t getSelectedIDs() const override final { return mClosestAgentsAtLastClick; }
 
 // [SL:KB] - Patch: World-MinimapOverlay | Checked: 2012-06-20 (Catznip-3.3.0)
 	void			refreshParcelOverlay() { mUpdateParcelImage = true; }
@@ -127,6 +114,15 @@ protected:
 private:
 // [/SL:KB]
 
+	LLTextBox *mELabel = nullptr,
+		*mNLabel = nullptr,
+		*mWLabel = nullptr,
+		*mSLabel = nullptr,
+		*mNELabel = nullptr,
+		*mNWLabel = nullptr,
+		*mSWLabel = nullptr,
+		*mSELabel = nullptr;
+
 	F32				mScale;					// Size of a region in pixels
 	F32				mPixelsPerMeter;		// world meters to map pixels
 	F32				mObjectMapTPM;			// texels per meter on map
@@ -152,125 +148,12 @@ private:
 // [/SL:KB]
 
 	static std::map<LLUUID, LLVector3d> mClosestAgentsToCursor; // <exodus/>
+	static uuid_vec_t					mClosestAgentsAtLastClick; // <exodus/>
 
 	LLUUID			mClosestAgentToCursor;
 	LLUUID			mClosestAgentAtLastRightClick;
 
-	static void showAgentProfile(void*);
-	BOOL isAgentUnderCursor() { return mClosestAgentToCursor.notNull(); }
-
-	class LLScaleMap : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLCenterMap : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLCheckCenterMap : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLChatRings : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLCheckChatRings : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLStopTracking : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLEnableTracking : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLShowAgentProfile : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	class LLCamFollow : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-	//moymod - Custom minimap markers :o
-	class mmsetred : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmsetgreen : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmsetblue : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmsetyellow : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmsetcustom : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmsetunmark : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	class mmenableunmark : public LLMemberListener<LLNetMap> //moymod
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-
-	class LLEnableProfile : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-	
-	class LLToggleControl : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-
-// [SL:KB] - Patch: World-MiniMap | Checked: 2012-07-08 (Catznip-3.3.0)
-	class OverlayToggle : public LLMemberListener<LLNetMap>
-	{
-	public:
-		/*virtual*/ bool handleEvent(LLPointer<LLOldEvents::LLEvent> event, const LLSD& userdata);
-	};
-// [/SL:KB]
-
+	BOOL isAgentUnderCursor() const { return mClosestAgentToCursor.notNull(); }
 	LLMenuGL*		mPopupMenu;
 };
 

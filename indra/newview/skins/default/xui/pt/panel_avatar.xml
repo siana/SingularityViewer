@@ -17,11 +17,8 @@
 			<text name="partner_label" tool_tip="Parceiro Second Life. Para mais informações, veja www.secondlife.com/partner">
 				Parceiro:
 			</text>
-			<button label="i" label_selected="i" name="partner_info" tool_tip="Clique para abrir o perfil do(a) parceiro(a)" left_delta="64"/>
 			<button label="?" label_selected="?" name="partner_help"/>
-			<line_editor name="partner_edit" tool_tip="Parceiro Second Life. Para mais informações, veja www.secondlife.com/partner" width="186">
-				[NAME]
-			</line_editor>
+			<name_editor name="partner_edit" width="186"/>
 			<text name="Photo:">
 				Foto:
 			</text>

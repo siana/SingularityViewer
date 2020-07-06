@@ -38,8 +38,10 @@
 class LLUICtrl;
 class LLView;
 class LLParcelSelection;
+class LLPickInfo;
 class LLObjectSelection;
 class LLSelectNode;
+class LLViewerObject;
 
 void pre_init_menus();
 void init_menus();
@@ -48,7 +50,6 @@ void cleanup_menus();
 void show_debug_menus(); // checks for if menus should be shown first.
 void show_context_menu( S32 x, S32 y, MASK mask );
 void show_build_mode_context_menu(S32 x, S32 y, MASK mask);
-BOOL enable_save_into_inventory(void*);
 void handle_reset_view();
 void handle_cut(void*);
 void handle_copy(void*);
@@ -89,13 +90,14 @@ BOOL enable_god_full(void* user_data);
 BOOL enable_god_liaison(void* user_data);
 BOOL enable_god_basic(void* user_data);
 void set_underclothes_menu_options();
+void check_merchant_status(bool force = false);
 
 void exchange_callingcard(const LLUUID& dest_id);
 
 void handle_gestures(void*);
 void handle_sit_down(void*);
 void handle_object_build(void*);
-void handle_object_touch();
+void handle_object_touch(LLViewerObject*, const LLPickInfo* const = nullptr);
 bool enable_object_open();
 void handle_object_open();
 
@@ -133,10 +135,10 @@ void handle_toggle_flycam();
 void handle_fake_away_status(void*);
 
 void handle_object_sit_or_stand();
-void handle_give_money_dialog();
-bool enable_pay_object();
+void handle_give_money_dialog(LLViewerObject*);
+bool enable_pay_object(LLViewerObject*);
 bool enable_buy_object();
-bool handle_go_to();
+void handle_go_to(const LLVector3d& pos);
 
 // Export to XML or Collada
 void handle_export_selected( void * );
@@ -158,11 +160,8 @@ protected:
 	LLSafeHandle<LLObjectSelection> mObjectSelection;
 };
 
-extern const std::string SAVE_INTO_INVENTORY;
-
 extern LLMenuBarGL*		gMenuBarView;
 //extern LLView*			gMenuBarHolder;
-extern LLMenuGL*		gPopupMenuView;
 extern LLViewerMenuHolderGL*	gMenuHolder;
 extern LLMenuBarGL*		gLoginMenuBarView;
 
@@ -183,8 +182,8 @@ extern LLContextMenu* gAttachScreenPieMenu;
 extern LLContextMenu* gDetachScreenPieMenu;
 extern LLContextMenu* gAttachPieMenu;
 extern LLContextMenu* gDetachPieMenu;
-extern LLContextMenu* gAttachBodyPartPieMenus[8];
-extern LLContextMenu* gDetachBodyPartPieMenus[8];
+extern LLContextMenu* gAttachPieMenu2;
+extern LLContextMenu* gDetachPieMenu2;
 
 extern LLMenuItemCallGL* gAFKMenu;
 extern LLMenuItemCallGL* gBusyMenu;

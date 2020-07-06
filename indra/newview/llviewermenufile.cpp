@@ -35,6 +35,7 @@
 
 // project includes
 #include "llagent.h"
+#include "llagentbenefits.h"
 #include "llagentcamera.h"
 #include "statemachine/aifilepicker.h"
 #include "llfloaterbvhpreview.h"
@@ -68,7 +69,6 @@
 
 // linden libraries
 #include "llassetuploadresponders.h"
-#include "lleconomy.h"
 #include "llhttpclient.h"
 #include "llmemberlistener.h"
 #include "llnotificationsutil.h"
@@ -95,20 +95,26 @@ class LLFileEnableSaveAs : public view_listener_t
 {
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
-		bool new_value = gFloaterView->getFrontmost() &&
-						 gFloaterView->getFrontmost()->canSaveAs();
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
-		return true;
-	}
-};
-
-class LLFileEnableUpload : public view_listener_t
-{
-	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
-	{
-		bool new_value = gStatusBar && LLGlobalEconomy::Singleton::getInstance() &&
-						 gStatusBar->getBalance() >= LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
-		gMenuHolder->findControl(userdata["control"].asString())->setValue(new_value);
+		LLFloater* frontmost = gFloaterView->getFrontmost();
+		if (frontmost && frontmost->hasChild("Save Preview As...", true)) // If we're the tearoff.
+		{
+			// Get the next frontmost sibling.
+			const LLView::child_list_const_iter_t kids_end = gFloaterView->endChild();
+			LLView::child_list_const_iter_t kid = std::find(gFloaterView->beginChild(), kids_end, frontmost);
+			if (kids_end != kid)
+			{
+				for (++kid; kid != kids_end; ++kid)
+				{
+					LLView* viewp = *kid;
+					if (viewp->getVisible() && !viewp->isDead())
+					{
+						frontmost = static_cast<LLFloater*>(viewp);
+						break;
+					}
+				}
+			}
+		}
+		gMenuHolder->findControl(userdata["control"].asString())->setValue(frontmost && frontmost->canSaveAs());
 		return true;
 	}
 };
@@ -392,11 +398,15 @@ class LLFileUploadBulk : public view_listener_t
 		//
 		// Also fix single upload to charge first, then refund
 		// <edit>
-		S32 expected_upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
-		const char* notification_type = expected_upload_cost ? "BulkTemporaryUpload" : "BulkTemporaryUploadFree";
-		LLSD args;
-		args["UPLOADCOST"] = gHippoGridManager->getConnectedGrid()->getUploadFee();
-		LLNotificationsUtil::add(notification_type, args, LLSD(), onConfirmBulkUploadTemp);
+		const auto grid(gHippoGridManager->getConnectedGrid());
+		if (grid->isSecondLife()) // For SL, we can't do temp uploads anymore.
+		{
+			doBulkUpload();
+		}
+		else
+		{
+			LLNotificationsUtil::add("BulkTemporaryUpload", LLSD(), LLSD(), onConfirmBulkUploadTemp);
+		}
 		return true;
 	}
 
@@ -411,10 +421,15 @@ class LLFileUploadBulk : public view_listener_t
 		else					// cancel
 			return false;
 
+		doBulkUpload(enabled);
+		return true;
+	}
+
+	static void doBulkUpload(bool temp = false)
+	{
 		AIFilePicker* filepicker = AIFilePicker::create();
 		filepicker->open(FFLOAD_ALL, "", "openfile", true);
-		filepicker->run(boost::bind(&LLFileUploadBulk::onConfirmBulkUploadTemp_continued, enabled, filepicker));
-		return true;
+		filepicker->run(boost::bind(&LLFileUploadBulk::onConfirmBulkUploadTemp_continued, temp, filepicker));
 	}
 
 	static void onConfirmBulkUploadTemp_continued(bool enabled, AIFilePicker* filepicker)
@@ -437,7 +452,6 @@ class LLFileUploadBulk : public view_listener_t
 				
 				std::string display_name = LLStringUtil::null;
 				LLAssetStorage::LLStoreAssetCallback callback = NULL;
-				S32 expected_upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload();
 				void *userdata = NULL;
 				gSavedSettings.setBOOL("TemporaryUpload", enabled);
 				upload_new_resource(
@@ -446,13 +460,13 @@ class LLFileUploadBulk : public view_listener_t
 					asset_name,
 					0,
 					LLFolderType::FT_NONE,
-					LLInventoryType::IT_NONE,
+					LLInventoryType::EType::IT_NONE,
 					LLFloaterPerms::getNextOwnerPerms("Uploads"),
 					LLFloaterPerms::getGroupPerms("Uploads"),
 					LLFloaterPerms::getEveryonePerms("Uploads"),
 					display_name,
 					callback,
-					expected_upload_cost,
+					0,
 					userdata);
 
 			}
@@ -547,6 +561,7 @@ class LLFileTakeSnapshotToDisk : public view_listener_t
 	bool handleEvent(LLPointer<LLEvent> event, const LLSD& userdata)
 	{
 		LLPointer<LLImageRaw> raw = new LLImageRaw;
+		raw->enableOverSize();
 
 		S32 width = gViewerWindow->getWindowDisplayWidth();
 		S32 height = gViewerWindow->getWindowDisplayHeight();
@@ -896,6 +911,9 @@ void upload_new_resource(const std::string& src_filename, std::string name,
 		error = TRUE;;
 	}
 
+	// Now that we've determined the type, figure out the cost
+	if (!error) LLAgentBenefitsMgr::current().findUploadCost(asset_type, expected_upload_cost);
+
 	// gen a new transaction ID for this asset
 	tid.generate();
 
@@ -935,10 +953,10 @@ void upload_new_resource(const std::string& src_filename, std::string name,
 		// <edit> hack to create scripts and gestures
 		if(exten == "lsl" || exten == "gesture" || exten == "notecard") // added notecard Oct 15 2009
 		{
-			LLInventoryType::EType inv_type = LLInventoryType::IT_GESTURE;
-			if (exten == "lsl") inv_type = LLInventoryType::IT_LSL;
-			else if(exten == "gesture") inv_type = LLInventoryType::IT_GESTURE;
-			else if(exten == "notecard") inv_type = LLInventoryType::IT_NOTECARD;
+			LLInventoryType::EType inv_type = LLInventoryType::EType::IT_GESTURE;
+			if (exten == "lsl") inv_type = LLInventoryType::EType::IT_LSL;
+			else if(exten == "gesture") inv_type = LLInventoryType::EType::IT_GESTURE;
+			else if(exten == "notecard") inv_type = LLInventoryType::EType::IT_NOTECARD;
 			create_inventory_item(	gAgent.getID(),
 									gAgent.getSessionID(),
 									gInventory.findCategoryUUIDForType(LLFolderType::assetTypeToFolderType(asset_type)),
@@ -1326,7 +1344,7 @@ void assign_defaults_and_show_upload_message(LLAssetType::EType asset_type,
 											 const std::string& display_name,
 											 std::string& description)
 {
-	if (LLInventoryType::IT_NONE == inventory_type)
+	if (LLInventoryType::EType::IT_NONE == inventory_type)
 	{
 		inventory_type = LLInventoryType::defaultForAssetType(asset_type);
 	}
@@ -1367,7 +1385,6 @@ void init_menu_file()
 	(new LLFileSavePreview())->registerListener(gMenuHolder, "File.SavePreview");
 	(new LLFileTakeSnapshotToDisk())->registerListener(gMenuHolder, "File.TakeSnapshotToDisk");
 	(new LLFileQuit())->registerListener(gMenuHolder, "File.Quit");
-	(new LLFileEnableUpload())->registerListener(gMenuHolder, "File.EnableUpload");
 	(new LLFileEnableUploadModel())->registerListener(gMenuHolder, "File.EnableUploadModel");
 
 	(new LLFileEnableSaveAs())->registerListener(gMenuHolder, "File.EnableSaveAs");
@@ -1384,9 +1401,9 @@ void NewResourceItemCallback::fire(const LLUUID& new_item_id)
 	std::string type("Uploads");
 	switch(new_item->getInventoryType())
 	{
-		case LLInventoryType::IT_LSL:      type = "Scripts"; break;
-		case LLInventoryType::IT_GESTURE:  type = "Gestures"; break;
-		case LLInventoryType::IT_NOTECARD: type = "Notecard"; break;
+		case LLInventoryType::EType::IT_LSL:      type = "Scripts"; break;
+		case LLInventoryType::EType::IT_GESTURE:  type = "Gestures"; break;
+		case LLInventoryType::EType::IT_NOTECARD: type = "Notecard"; break;
 		default: break;
 	}
 	LLPermissions perms = new_item->getPermissions();

@@ -53,181 +53,128 @@ private:
 
 //----------------------------------------------------------------------------
 
-class LLGLSDefault
+struct LLGLSDefault
 {
-protected:
-	LLGLEnable mColorMaterial;
-	LLGLDisable mAlphaTest, mBlend, mCullFace, mDither, mFog, 
-		mLineSmooth, mLineStipple, mNormalize, mPolygonSmooth,
-		mGLMultisample;
-public:
-	LLGLSDefault()
-		:
-		// Enable
-		mColorMaterial(GL_COLOR_MATERIAL),
-		// Disable
-		mAlphaTest(GL_ALPHA_TEST),
-		mBlend(GL_BLEND), 
-		mCullFace(GL_CULL_FACE),
-		mDither(GL_DITHER),
-		mFog(GL_FOG), 
-		mLineSmooth(GL_LINE_SMOOTH),
-		mLineStipple(GL_LINE_STIPPLE),
-		mNormalize(GL_NORMALIZE),
-		mPolygonSmooth(GL_POLYGON_SMOOTH),
-		mGLMultisample(GL_MULTISAMPLE_ARB)
-	{ }
+private:
+	LLGLEnable<GL_COLOR_MATERIAL> mColorMaterial;
+	LLGLDisable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLDisable<GL_BLEND> mBlend;
+	LLGLDisable<GL_CULL_FACE> mCullFace;
+	LLGLDisable<GL_DITHER> mDither;
+	LLGLDisable<GL_FOG> mFog;
+	LLGLDisable<GL_LINE_SMOOTH> mLineSmooth;
+	LLGLDisable<GL_LINE_STIPPLE> mLineStipple;
+	LLGLDisable<GL_NORMALIZE> mNormalize;
+	LLGLDisable<GL_POLYGON_SMOOTH> mPolygonSmooth;
+	LLGLDisable<GL_MULTISAMPLE_ARB> mGLMultisample;
+	LLGLDisable<GL_LIGHTING> lighting;
 };
 
-class LLGLSObjectSelect
-{ 
-protected:
-	LLGLDisable mBlend, mFog, mAlphaTest;
-	LLGLEnable mCullFace;
-public:
-	LLGLSObjectSelect()
-		: mBlend(GL_BLEND), mFog(GL_FOG), 
-		  mAlphaTest(GL_ALPHA_TEST),
-		  mCullFace(GL_CULL_FACE)
-	{ }
+struct LLGLSObjectSelect
+{
+private:
+	LLGLDisable<GL_BLEND> mBlend;
+	LLGLDisable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLDisable<GL_FOG> mFog;
+	LLGLEnable<GL_CULL_FACE> mCullFace;
 };
 
-class LLGLSObjectSelectAlpha
+struct LLGLSObjectSelectAlpha
 {
-protected:
-	LLGLEnable mAlphaTest;
-public:
-	LLGLSObjectSelectAlpha()
-		: mAlphaTest(GL_ALPHA_TEST)
-	{}
+private:
+	LLGLEnable<GL_ALPHA_TEST> mAlphaTest;
 };
 
 //----------------------------------------------------------------------------
 
-class LLGLSUIDefault
+struct LLGLSUIDefault
 { 
-protected:
-	LLGLEnable mBlend, mAlphaTest;
-	LLGLDisable mCullFace;
+private:
+	LLGLEnable<GL_BLEND> mBlend;
+	LLGLEnable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLDisable<GL_CULL_FACE> mCullFace;
+	LLGLDisable<GL_MULTISAMPLE_ARB> mMSAA;
+	//LLGLEnable<GL_SCISSOR_TEST> mScissor;
 	LLGLDepthTest mDepthTest;
-	LLGLDisable mMSAA;
 public:
-	LLGLSUIDefault() 
-		: mBlend(GL_BLEND), mAlphaTest(GL_ALPHA_TEST),
-		  mCullFace(GL_CULL_FACE),
-		  mDepthTest(GL_FALSE, GL_TRUE, GL_LEQUAL),
-		  mMSAA(GL_MULTISAMPLE_ARB)
+	LLGLSUIDefault()
+		: mDepthTest(GL_FALSE, GL_TRUE, GL_LEQUAL)
 	{}
 };
 
-class LLGLSNoAlphaTest // : public LLGLSUIDefault
+struct LLGLSNoAlphaTest // : public LLGLSUIDefault
 {
-protected:
-	LLGLDisable mAlphaTest;
-public:
-	LLGLSNoAlphaTest()
-		: mAlphaTest(GL_ALPHA_TEST)
-	{}
+private:
+	LLGLDisable<GL_ALPHA_TEST> mAlphaTest;
 };
 
 //----------------------------------------------------------------------------
 
-class LLGLSFog
+struct LLGLSFog
 {
-protected:
-	LLGLEnable mFog;
-public:
-	LLGLSFog()
-		: mFog(GL_FOG)
-	{}
+private:
+	LLGLEnable<GL_FOG> mFog;
 };
 
-class LLGLSNoFog
+struct LLGLSNoFog
 {
-protected:
-	LLGLDisable mFog;
-public:
-	LLGLSNoFog()
-		: mFog(GL_FOG)
-	{}
+private:
+	LLGLDisable<GL_FOG> mFog;
 };
 
 //----------------------------------------------------------------------------
 
-class LLGLSPipeline
+struct LLGLSPipeline
 { 
-protected:
-	LLGLEnable mCullFace;
+private:
+	LLGLEnable<GL_CULL_FACE> mCullFace;
 	LLGLDepthTest mDepthTest;
 public:
 	LLGLSPipeline()
-		: mCullFace(GL_CULL_FACE),
-		  mDepthTest(GL_TRUE, GL_TRUE, GL_LEQUAL)
-	{ }		
+		: mDepthTest(GL_TRUE, GL_TRUE, GL_LEQUAL)
+	{}		
 };
 
-class LLGLSPipelineAlpha // : public LLGLSPipeline
+struct LLGLSPipelineAlpha // : public LLGLSPipeline
 { 
-protected:
-	LLGLEnable mBlend, mAlphaTest;
-public:
-	LLGLSPipelineAlpha()
-		: mBlend(GL_BLEND),
-		  mAlphaTest(GL_ALPHA_TEST)
-	{ }
+private:
+	LLGLEnable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLEnable<GL_BLEND> mBlend;
 };
 
-class LLGLSPipelineEmbossBump
+struct LLGLSPipelineEmbossBump
 {
-protected:
-	LLGLDisable mFog;
-public:
-	LLGLSPipelineEmbossBump()
-		: mFog(GL_FOG)
-	{ }
+private:
+	LLGLDisable<GL_FOG> mFog;
 };
 
-class LLGLSPipelineSelection
+struct LLGLSPipelineSelection
 { 
-protected:
-	LLGLDisable mCullFace;
-public:
-	LLGLSPipelineSelection()
-		: mCullFace(GL_CULL_FACE)
-	{}
+private:
+	LLGLDisable<GL_CULL_FACE> mCullFace;
 };
 
-class LLGLSPipelineAvatar
+struct LLGLSPipelineAvatar
 {
-protected:
-	LLGLEnable mNormalize;
-public:
-	LLGLSPipelineAvatar()
-		: mNormalize(GL_NORMALIZE)
-	{}
+private:
+	LLGLEnable<GL_NORMALIZE> mNormalize;
 };
 
-class LLGLSPipelineSkyBox
+struct LLGLSPipelineSkyBox
 { 
-protected:
-	LLGLDisable mAlphaTest, mCullFace, mFog;
-public:
-	LLGLSPipelineSkyBox()
-		: mAlphaTest(GL_ALPHA_TEST), mCullFace(GL_CULL_FACE), mFog(GL_FOG)
-	{ }
+private:
+	LLGLDisable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLDisable<GL_CULL_FACE> mCullFace;
+	LLGLDisable<GL_FOG> mFog;
+	LLGLDisable<GL_LIGHTING> mLighting;
 };
 
-class LLGLSTracker
+struct LLGLSTracker
 {
-protected:
-	LLGLEnable mCullFace, mBlend, mAlphaTest;
-public:
-	LLGLSTracker() :
-		mCullFace(GL_CULL_FACE),
-		mBlend(GL_BLEND),
-		mAlphaTest(GL_ALPHA_TEST)
-		
-	{ }
+private:
+	LLGLEnable<GL_ALPHA_TEST> mAlphaTest;
+	LLGLEnable<GL_BLEND> mBlend;
+	LLGLEnable<GL_CULL_FACE> mCullFace;
 };
 
 //----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <panel border="true" bottom="-409" height="408" label="General" left="102" name="general_panel" width="517">
-  <radio_group bottom="-44" height="40" left="109" name="default_start_location" width="199">
+  <radio_group bottom="-44" height="40" left="109" name="default_start_location" width="220">
     <radio_item bottom="-20" height="20" name="home" tool_tip="Log into my home location by default.">My Home</radio_item>
     <radio_item bottom="-20" height="20" left="93" name="last" tool_tip="Log into my last location by default.">My Last Location</radio_item>
   </radio_group>
@@ -23,12 +23,12 @@
 	<check_box bottom_delta="0" follows="top" height="16" initial_value="false" label="Hide All Group Titles" left="101" name="show_all_title_checkbox"/>
 	<check_box bottom_delta="-18" follows="top" height="16" initial_value="false" label="Hide My Group Title" left="101" name="show_my_title_checkbox"/>
 	<text bottom="-180" height="12" left="10" name="UI Size:">UI Size:</text>
-	<slider bottom="-180" can_edit_text="true" height="16" increment="0.025" initial_val="1" left="98" max_val="1.4" min_val="0.75" name="ui_scale_slider" value="1" width="227" />
+	<slider bottom="-180" can_edit_text="true" height="16" increment="0.025" initial_val="1" left="98" max_val="2.4" min_val="0.5" name="ui_scale_slider" value="1" width="227" />
 	<check_box bottom="-195" height="16" initial_value="false" label="Use resolution independent scale" left="101" name="ui_auto_scale"/>
 	<check_box bottom="-219" height="16" left="10" label="Go away when idle" name="away_when_idle_checkbox"/>
 	<spinner bottom="-220" decimal_digits="0" height="16" increment="1" initial_val="300" label="Away Timeout:" label_width="91" left="136" max_val="600" min_val="0" name="afk_timeout_spinner" width="137"/>
 	<check_box bottom="-257" height="16" initial_value="false" label="Notify when in-world currency is exchanged" left="10" name="notify_money_change_checkbox"/>
-	<check_box bottom="-257" height="16" label="without filling up the corner" left="245" name="no_transaction_clutter_checkbox" tool_tip="Still present the notifications, but have them pop up in the bottom right momentarily, then leave, so the transaction draws attention but doesn't get in the way."/>
+	<check_box bottom="-257" height="16" label="without filling up the corner" left="280" name="no_transaction_clutter_checkbox" tool_tip="Still present the notifications, but have them pop up in the bottom right momentarily, then leave, so the transaction draws attention but doesn't get in the way."/>
 	<text bottom="-291" height="10" left="10" name="maturity_desired_label">Rating:</text>
 	<text bottom="-291" height="10" left="101" name="maturity_desired_prompt">I want to access content rated:</text>
 	<combo_box bottom="-297" follows="left|top" height="18" left="267" name="maturity_desired_combobox" width="120" control_name="PreferredMaturity">
@@ -66,10 +66,9 @@
 		<combo_item name="(Korean)" value="ko">한국어(Korean)*</combo_item>
 	</combo_box>
 	<string name="region_name_prompt">&lt;Type region name&gt;</string>
-	<combo_box bottom="-328" height="18" left="103" name="crash_behavior_combobox" width="115">
-		<combo_item name="Askbeforesending" value="Ask before sending">Ask before sending</combo_item>
-		<combo_item name="Alwayssend" value="Always send">Always send</combo_item>
-		<combo_item name="Neversend" value="Never send">Never send</combo_item>
+	<combo_box bottom="-328" height="18" left="103" name="crash_behavior_combobox" width="140">
+		<combo_item name="Neversend" value="0">Never send</combo_item>
+		<combo_item name="Alwayssend" value="1">Always send</combo_item>
 	</combo_box>
   <check_box bottom="-385" height="16" initial_value="false" label="Share language with objects" left="101" name="language_is_public" tool_tip="This lets in-world objects know your preferred language."/>
   <button bottom="-425" height="25" label="Reset All Settings" name="clear_settings" width="200" />

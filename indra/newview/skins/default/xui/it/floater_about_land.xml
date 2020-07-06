@@ -23,14 +23,11 @@
 			<text name="Owner:">
 				Proprietario:
 			</text>
-			<text name="OwnerText" left="119" width="227">
-				Leyla Linden
-			</text>
-			<button label="Profilo..." label_selected="Profilo..." name="Profile..."/>
+			<name_box name="OwnerText" left="119" width="227"/>
 			<text name="Group:">
 				Gruppo:
 			</text>
-			<text left="119" name="GroupText" width="227" />
+			<name_box left="119" name="GroupText" width="227"/>
 			<button label="Imposta..." label_selected="Imposta..." name="Set..."/>
 			<check_box left="119" label="Permetti cessione al gruppo" name="check deed" tool_tip="Un funzionario del gruppo può cedere questa terra al gruppo stesso cosicchè essa sarà  supportata  dalle terre del gruppo."/>
 			<button label="Cedi..." label_selected="Cedi..." name="Deed..." tool_tip="Puoi solo offrire terra se sei un funzionario del gruppo selezionato."/>
@@ -101,12 +98,6 @@
 			<string name="group_owned_text">
 				(Posseduta dal gruppo)
 			</string>
-			<string name="profile_text">
-				Profilo...
-			</string>
-			<string name="info_text">
-				Info...
-			</string>
 			<string name="public_text">
 				(pubblica)
 			</string>
@@ -134,9 +125,9 @@ Vai al menu Mondo &gt; Informazioni sul terreno oppure seleziona un altro appezz
 			<text name="estate_owner_lbl">
 				Proprietario:
 			</text>
-			<text name="estate_owner_text">
+			<name_box name="estate_owner_text">
 				(nessuno)
-			</text>
+			</name_box>
 			<text_editor name="covenant_editor">
 				Non c&apos;è nessun regolamento imposto in questa regione.
 			</text_editor>

@@ -42,6 +42,7 @@
 class LLFolderView;
 class LLFolderBridge;
 class LLViewerInventoryCategory;
+class LLAvatarName;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Class LLViewerInventoryItem
@@ -50,7 +51,7 @@ class LLViewerInventoryCategory;
 // their inventory.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class LLViewerInventoryItem : public LLInventoryItem, public boost::signals2::trackable
+class LLViewerInventoryItem final : public LLInventoryItem, public boost::signals2::trackable
 {
 public:
 	typedef std::vector<LLPointer<LLViewerInventoryItem> > item_array_t;
@@ -59,21 +60,26 @@ protected:
 	~LLViewerInventoryItem( void ); // ref counted
 	
 public:
-	virtual LLAssetType::EType getType() const;
-	virtual const LLUUID& getAssetUUID() const;
+    LLAssetType::EType getType() const override;
+    const LLUUID& getAssetUUID() const override;
 	virtual const LLUUID& getProtectedAssetUUID() const; // returns LLUUID::null if current agent does not have permission to expose this asset's UUID to the user
-	virtual const std::string& getName() const;
-	virtual const LLPermissions& getPermissions() const;
+    const std::string& getName() const override;
+	virtual S32 getSortField() const;
+	//virtual void setSortField(S32 sortField);
+	virtual void getSLURL(); //Caches SLURL for landmark. //*TODO: Find a better way to do it and remove this method from here.
+    const LLPermissions& getPermissions() const override;
 	virtual const bool getIsFullPerm() const; // 'fullperm' in the popular sense: modify-ok & copy-ok & transfer-ok, no special god rules applied
-	virtual const LLUUID& getCreatorUUID() const;
-	virtual const std::string& getDescription() const;
-	virtual const LLSaleInfo& getSaleInfo() const;
-	virtual LLInventoryType::EType getInventoryType() const;
+    const LLUUID& getCreatorUUID() const override;
+    const std::string& getDescription() const override;
+    const LLSaleInfo& getSaleInfo() const override;
+    LLInventoryType::EType getInventoryType() const override;
 	virtual bool isWearableType() const;
 	virtual LLWearableType::EType getWearableType() const;
-	virtual U32 getFlags() const;
-	virtual time_t getCreationDate() const;
-	virtual U32 getCRC32() const; // really more of a checksum.
+    U32 getFlags() const override;
+    time_t getCreationDate() const override;
+    U32 getCRC32() const override; // really more of a checksum.
+
+	static BOOL extractSortFieldAndDisplayName(const std::string& name, S32* sortField, std::string* displayName);
 
 	// construct a complete viewer inventory item
 	LLViewerInventoryItem(const LLUUID& uuid, const LLUUID& parent_uuid,
@@ -107,7 +113,7 @@ public:
 	LLViewerInventoryItem(const LLInventoryItem* other);
 
 	void copyViewerItem(const LLViewerInventoryItem* other);
-	/*virtual*/ void copyItem(const LLInventoryItem* other);
+	/*virtual*/ void copyItem(const LLInventoryItem* other) override;
 
 	// construct a new clone of this item - it creates a new viewer
 	// inventory item using the copy constructor, and returns it.
@@ -115,15 +121,15 @@ public:
 	void cloneViewerItem(LLPointer<LLViewerInventoryItem>& newitem) const;
 
 	// virtual methods
-	virtual void updateParentOnServer(BOOL restamp) const;
-	virtual void updateServer(BOOL is_new) const;
+    void updateParentOnServer(BOOL restamp) const override;
+    void updateServer(BOOL is_new) const override;
 	void fetchFromServer(void) const;
 
-	virtual void packMessage(LLMessageSystem* msg) const;
-	virtual BOOL unpackMessage(LLMessageSystem* msg, const char* block, S32 block_num = 0);
+    void packMessage(LLMessageSystem* msg) const override;
+    BOOL unpackMessage(LLMessageSystem* msg, const char* block, S32 block_num = 0) override;
 	virtual BOOL unpackMessage(const LLSD& item);
-	virtual BOOL importFile(LLFILE* fp);
-	virtual BOOL importLegacyStream(std::istream& input_stream);
+    BOOL importFile(LLFILE* fp) override;
+    BOOL importLegacyStream(std::istream& input_stream) override;
 
 	// file handling on the viewer. These are not meant for anything
 	// other than cacheing.
@@ -155,7 +161,7 @@ public:
 	PermissionMask getPermissionMask() const;
 
 	// callback
-	void onCallingCardNameLookup(const LLUUID& id, const std::string& name, bool is_group);
+	void onCallingCardNameLookup(const LLUUID& id, const LLAvatarName& name);
 
 	// If this is a broken link, try to fix it and any other identical link.
 	BOOL regenerateLink();
@@ -179,7 +185,7 @@ public:
 // new ones as needed.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class LLViewerInventoryCategory  : public LLInventoryCategory
+class LLViewerInventoryCategory final : public LLInventoryCategory
 {
 public:
 	typedef std::vector<LLPointer<LLViewerInventoryCategory> > cat_array_t;
@@ -199,10 +205,10 @@ public:
 	LLViewerInventoryCategory(const LLViewerInventoryCategory* other);
 	void copyViewerCategory(const LLViewerInventoryCategory* other);
 
-	virtual void updateParentOnServer(BOOL restamp_children) const;
-	virtual void updateServer(BOOL is_new) const;
+    void updateParentOnServer(BOOL restamp_children) const override;
+    void updateServer(BOOL is_new) const override;
 
-	virtual void packMessage(LLMessageSystem* msg) const;
+    void packMessage(LLMessageSystem* msg) const override;
 
 	const LLUUID& getOwnerID() const { return mOwnerID; }
 
@@ -229,8 +235,11 @@ public:
 	bool importFileLocal(LLFILE* fp);
 	void determineFolderType();
 	void changeType(LLFolderType::EType new_folder_type);
-	virtual void unpackMessage(LLMessageSystem* msg, const char* block, S32 block_num = 0);
+    void unpackMessage(LLMessageSystem* msg, const char* block, S32 block_num = 0) override;
 	virtual BOOL unpackMessage(const LLSD& category);
+
+	// returns true if the category object will accept the incoming item
+	bool acceptItem(LLInventoryItem* inv_item);
 
 private:
 	friend class LLInventoryModel;
@@ -251,37 +260,37 @@ public:
 
 class LLViewerJointAttachment;
 
-//void rez_attachment_cb(const LLUUID& inv_item, LLViewerJointAttachment *attachmentp);
-// [SL:KB] - Patch: Appearance-DnDWear | Checked: 2010-09-28 (Catznip-3.0.0a) | Added: Catznip-2.2.0a
+// [SL:KB] - Patch: Appearance-DnDWear | Checked: 2010-09-28 (Catznip-3.4)
 void rez_attachment_cb(const LLUUID& inv_item, LLViewerJointAttachment *attachmentp, bool replace = false);
 // [/SL:KB]
+//void rez_attachment_cb(const LLUUID& inv_item, LLViewerJointAttachment *attachmentp);
 
 void activate_gesture_cb(const LLUUID& inv_item);
 
 void create_gesture_cb(const LLUUID& inv_item);
 
-class AddFavoriteLandmarkCallback : public LLInventoryCallback
+class AddFavoriteLandmarkCallback final : public LLInventoryCallback
 {
 public:
 	AddFavoriteLandmarkCallback() : mTargetLandmarkId(LLUUID::null) {}
 	void setTargetLandmarkId(const LLUUID& target_uuid) { mTargetLandmarkId = target_uuid; }
 
 private:
-	void fire(const LLUUID& inv_item);
+	void fire(const LLUUID& inv_item) override;
 
 	LLUUID mTargetLandmarkId;
 };
 
-typedef boost::function<void(const LLUUID&)> inventory_func_type;
-typedef boost::function<void(const LLSD&)> llsd_func_type;
-typedef boost::function<void()> nullary_func_type;
+typedef std::function<void(const LLUUID&)> inventory_func_type;
+typedef std::function<void(const LLSD&)> llsd_func_type;
+typedef std::function<void()> nullary_func_type;
 
 void no_op_inventory_func(const LLUUID&); // A do-nothing inventory_func
 void no_op_llsd_func(const LLSD&); // likewise for LLSD
 void no_op(); // A do-nothing nullary func.
 
 // Shim between inventory callback and boost function/callable
-class LLBoostFuncInventoryCallback: public LLInventoryCallback
+class LLBoostFuncInventoryCallback : public LLInventoryCallback
 {
 public:
 
@@ -293,7 +302,7 @@ public:
 	}
 
 	// virtual
-	void fire(const LLUUID& item_id)
+	void fire(const LLUUID& item_id) override
 	{
 		mFireFunc(item_id);
 	}

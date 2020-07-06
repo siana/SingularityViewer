@@ -32,6 +32,8 @@
 
 class LLVFile;
 
+class LLViewerAssetRequest;
+
 class LLViewerAssetStorage : public LLAssetStorage
 {
 public:
@@ -41,7 +43,6 @@ public:
 	LLViewerAssetStorage(LLMessageSystem *msg, LLXferManager *xfer,
 				   LLVFS *vfs, LLVFS *static_vfs);
 
-	using LLAssetStorage::storeAssetData;
 	virtual void storeAssetData(
 		const LLTransactionID& tid,
 		LLAssetType::EType atype,
@@ -51,7 +52,7 @@ public:
 		bool is_priority = false,
 		bool store_local = false,
 		bool user_waiting=FALSE,
-		F64 timeout=LL_ASSET_STORAGE_TIMEOUT);
+		F64Seconds timeout=LL_ASSET_STORAGE_TIMEOUT);
 	
 	virtual void storeAssetData(
 		const std::string& filename,
@@ -62,18 +63,35 @@ public:
 		bool temp_file = false,
 		bool is_priority = false,
 		bool user_waiting=FALSE,
-		F64 timeout=LL_ASSET_STORAGE_TIMEOUT);
+		F64Seconds timeout=LL_ASSET_STORAGE_TIMEOUT);
 
 protected:
-	using LLAssetStorage::_queueDataRequest;
-
 	// virtual
 	void _queueDataRequest(const LLUUID& uuid,
 						   LLAssetType::EType type,
-						   void (*callback) (LLVFS *vfs, const LLUUID&, LLAssetType::EType, void *, S32, LLExtStat),
+                           LLGetAssetCallback callback,
 						   void *user_data,
 						   BOOL duplicate,
 						   BOOL is_priority);
+
+    void queueRequestUDP(const LLUUID& uuid,
+                          LLAssetType::EType type,
+                          LLGetAssetCallback callback,
+                          void *user_data,
+                          BOOL duplicate,
+                          BOOL is_priority);
+
+    void capsRecvForRegion(const LLUUID& uuid, LLAssetType::EType atype, const LLUUID& region_id);
+    
+    void assetRequestCoro(LLViewerAssetRequest *req,
+                          const LLUUID uuid,
+                          LLAssetType::EType atype,
+                          LLGetAssetCallback callback,
+                          void *user_data);
+
+    std::string getAssetURL(const std::string& cap_url, const LLUUID& uuid, LLAssetType::EType atype);
+    
+    std::string mViewerAssetUrl;
 };
 
 #endif

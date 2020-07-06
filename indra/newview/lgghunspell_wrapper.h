@@ -19,9 +19,14 @@
 #define ASPELL_WRAPPER 1
 
 #if LL_WINDOWS
-#include "hunspell/hunspelldll.h"
+#pragma push_macro("near")
+#ifdef near
+#undef near
+#endif 
+#include <hunspell/hunspell.hxx>
+#pragma pop_macro("near")
 #else
-#include "hunspell/hunspell.hxx"
+#include <hunspell/hunspell.hxx>
 #endif
 
 class lggHunSpell_Wrapper

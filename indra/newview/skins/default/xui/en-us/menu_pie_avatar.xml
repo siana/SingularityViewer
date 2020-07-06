@@ -17,7 +17,7 @@
 		<on_click function="Avatar.AddFriend" />
 		<on_enable function="Avatar.EnableAddFriend" />
 	</menu_item_call>
-	<menu_item_call enabled="false" label="Pay..." mouse_opaque="true" name="Pay...">
+  <menu_item_call enabled="false" label="Pay..." mouse_opaque="true" name="Pay...">
 		<on_click function="PayObject" />
 		<on_enable function="EnablePayObject" />
 	</menu_item_call>
@@ -33,6 +33,17 @@
 			<on_click function="Avatar.InviteToGroup" />
 		</menu_item_call>
 		<pie_menu label="Tools" name="Tools">
+      <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
+        <on_click function="Avatar.ReloadTextures" />
+      </menu_item_call>
+      <menu_item_call enabled="true" label="Reset Skeleton" mouse_opaque="true" name="Reset Skeleton">
+        <on_click function="Avatar.ResetSkeleton" />
+        <on_enable function="Avatar.EnableResetSkeleton" />
+      </menu_item_call>
+      <menu_item_call enabled="true" label="Reset Skeleton And Animations" mouse_opaque="true" name="Reset Skeleton And Animations">
+        <on_click function="Avatar.ResetSkeletonAndAnimations" />
+        <on_enable function="Avatar.EnableResetSkeleton" />
+      </menu_item_call>
 			<menu_item_call enabled="false" hidden="false" label="S. Count" mouse_opaque="true" name="ScriptCount">
 				<on_click function="Object.ScriptCount" />
 				<on_visible function="Object.VisibleScriptCount" />
@@ -46,9 +57,6 @@
 			<menu_item_call enabled="true" label="Derender" mouse_opaque="true" name="Derender">
 				<on_click function="Object.DERENDER" />
 			</menu_item_call>
-      <menu_item_call enabled="true" label="Reload" mouse_opaque="true" name="Reload Textures">
-        <on_click function="Avatar.ReloadTextures" />
-      </menu_item_call>
 		</pie_menu>
 		<menu_item_call enabled="false" label="Eject..." mouse_opaque="true" name="Eject...">
 			<on_click function="Avatar.Eject" />
@@ -58,6 +66,9 @@
 		<menu_item_call enabled="true" label="Inspect" mouse_opaque="true" name="Object Inspect">
 			<on_click function="ShowFloater" userdata="show inspect" />
 			<on_enable function="Object.EnableInspect" />
+		</menu_item_call>
+		<menu_item_call label="Follow" name="Follow">
+			<on_click function="Object.Follow"/>
 		</menu_item_call>
 	</pie_menu>
 	<menu_item_call enabled="false" label="Send IM..." mouse_opaque="true" name="Send IM...">

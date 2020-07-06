@@ -108,8 +108,16 @@ typedef U8 LLPCode;
 
 #define	LL_ARRAY_SIZE( _kArray ) ( sizeof( (_kArray) ) / sizeof( _kArray[0] ) )
 
-#if LL_LINUX && __GNUC__ <= 2
-typedef int intptr_t;
+#if __GNUG__ && __GNUC__ < 5
+namespace std
+{
+    template<typename T>
+    struct is_trivially_copyable
+    {
+        static const bool value = __has_trivial_copy(T);
+        operator bool() { return value; }
+    };
+}
 #endif
 
 #endif

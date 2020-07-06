@@ -64,6 +64,8 @@ this feature is still a work in progress.
 #include "llviewermenufile.h"
 #include "llfloaterimagepreview.h"
 #include "llfile.h"
+#include "llsdparam.h"
+#include "llsdserialize.h"
 
 /* including to force rebakes when needed */
 #include "llvoavatarself.h"
@@ -93,21 +95,29 @@ bool    LocalAssetBrowser::mSculptUpdated;
 	containing one loaded local texture.
 */
 
-LocalBitmap::LocalBitmap(std::string fullpath)
+LocalBitmap::Params::Params(const std::string& path)
+: fullpath("path", path)
+, keep_updating("update", gSavedSettings.getBOOL("LocalBitmapUpdate"))
+, type("type", TYPE_TEXTURE)
+, id("id", LLUUID::generateNewID())
 {
+}
+
+LocalBitmap::LocalBitmap(const Params& p)
+{
+	llassert(!p.fullpath().empty());
 	valid = false;
-	if ( gDirUtilp->fileExists(fullpath) )
+	if ( gDirUtilp->fileExists(p.fullpath) )
 	{
 		/* taking care of basic properties */
-		id.generate();
-		filename	    = fullpath;
-		keep_updating = gSavedSettings.getBOOL("LocalBitmapUpdate");
+		id            = p.id;
+		filename	  = p.fullpath;
+		keep_updating = p.keep_updating;
 		linkstatus    = keep_updating ? LINK_ON : LINK_OFF;
 		shortname     = gDirUtilp->getBaseFileName(filename, true);
-		bitmap_type   = TYPE_TEXTURE;
+		bitmap_type   = p.type;
 		sculpt_dirty  = false;
 		volume_dirty  = false;
-		valid         = false;
 
 		/* taking care of extension type now to avoid switch madness */
 		std::string temp_exten = gDirUtilp->getExtension(filename);
@@ -131,7 +141,7 @@ LocalBitmap::LocalBitmap(std::string fullpath)
 		if (decodeSelf(raw_image))
 		{
 			/* creating a shell LLViewerTexture and fusing raw image into it */
-			LLViewerFetchedTexture* viewer_image = new LLViewerFetchedTexture( "file://"+filename, id, LOCAL_USE_MIPMAPS );
+			LLViewerFetchedTexture* viewer_image = new LLViewerFetchedTexture( "file://"+filename, FTT_LOCAL_FILE, id, LOCAL_USE_MIPMAPS );
 			viewer_image->createGLTexture( LOCAL_DISCARD_LEVEL, raw_image );
 			viewer_image->setCachedRawImage(-1,raw_image);
 
@@ -139,10 +149,11 @@ LocalBitmap::LocalBitmap(std::string fullpath)
 			viewer_image->ref();
 
 			/* finalizing by adding LLViewerTexture instance into gTextureList */
-			gTextureList.addImage(viewer_image);
+			gTextureList.addImage(viewer_image, TEX_LIST_STANDARD);
 
 			/* filename is valid, bitmap is decoded and valid, i can haz liftoff! */
 			valid = true;
+			LocalAssetBrowser::add(*this);
 		}
 	}
 }
@@ -183,7 +194,7 @@ void LocalBitmap::updateSelf()
 			linkstatus = LINK_ON;
 		}
 
-		LLViewerFetchedTexture* image = gTextureList.findImage(id);
+		LLViewerFetchedTexture* image = gTextureList.findImage(id, TEX_LIST_STANDARD);
 		if (!image->forSculpt())
 			image->createGLTexture(LOCAL_DISCARD_LEVEL, new_imgraw);
 		else
@@ -293,64 +304,64 @@ void LocalBitmap::setType( S32 type )
 	bitmap_type = type;
 }
 
+void LocalBitmap::setID(const LLUUID& uuid)
+{
+	LLViewerFetchedTexture* image = gTextureList.findImage(id, TEX_LIST_STANDARD);
+	gTextureList.deleteImage(image);
+	id = uuid;
+	image->setID(id);
+	gTextureList.addImage(image, TEX_LIST_STANDARD);
+}
+
 /* [information query functions] */
-std::string LocalBitmap::getShortName()
+std::string LocalBitmap::getShortName() const
 {
 	return shortname;
 }
 
-std::string LocalBitmap::getFileName()
+std::string LocalBitmap::getFileName() const
 {
 	return filename;
 }
 
-LLUUID LocalBitmap::getID()
+LLUUID LocalBitmap::getID() const
 {
 	return id;
 }
 
-LLSD LocalBitmap::getLastModified()
+LLSD LocalBitmap::getLastModified() const
 {
 	return last_modified;
 }
 
-std::string LocalBitmap::getLinkStatus()
+std::string LocalBitmap::getLinkStatus() const
 {
 	switch(linkstatus)
 	{
-		case LINK_ON:
-			return "On";
-
-		case LINK_OFF:
-			return "Off";
-
-		case LINK_BROKEN:
-			return "Broken";
-
-		case LINK_UPDATING:
-			return "Updating";
-
-		default:
-			return "Unknown";
+		case LINK_ON: return "On";
+		case LINK_OFF: return "Off";
+		case LINK_BROKEN: return "Broken";
+		case LINK_UPDATING: return "Updating";
+		default: return "Unknown";
 	}
 }
 
-bool LocalBitmap::getUpdateBool()
+bool LocalBitmap::getUpdateBool() const
 {
 	return keep_updating;
 }
 
-bool LocalBitmap::getIfValidBool()
+bool LocalBitmap::getIfValidBool() const
 {
 	return valid;
 }
 
-S32 LocalBitmap::getType()
+S32 LocalBitmap::getType() const
 {
 	return bitmap_type;
 }
 
-std::vector<LLFace*> LocalBitmap::getFaceUsesThis(LLDrawable* drawable)
+std::vector<LLFace*> LocalBitmap::getFaceUsesThis(LLDrawable* drawable) const
 {
 	std::vector<LLFace*> matching_faces;
 
@@ -365,7 +376,7 @@ std::vector<LLFace*> LocalBitmap::getFaceUsesThis(LLDrawable* drawable)
 	return matching_faces;
 }
 
-std::vector<affected_object> LocalBitmap::getUsingObjects(bool seek_by_type, bool seek_textures, bool seek_sculptmaps)
+std::vector<affected_object> LocalBitmap::getUsingObjects(bool seek_by_type, bool seek_textures, bool seek_sculptmaps) const
 {
 	std::vector<affected_object> affected_vector;
 	
@@ -413,21 +424,29 @@ std::vector<affected_object> LocalBitmap::getUsingObjects(bool seek_by_type, boo
 	return affected_vector;
 }
 
-void LocalBitmap::getDebugInfo()
+void LocalBitmap::getDebugInfo() const
 {
 	/* debug function: dumps everything human readable into llinfos */
-	LL_INFOS() << "===[local bitmap debug]==="               << "\n"
-			<< "path: "          << filename        << "\n"
-			<< "name: "          << shortname       << "\n"
-			<< "extension: "     << extension       << "\n"
-			<< "uuid: "          << id              << "\n"
-			<< "last modified: " << last_modified   << "\n"
-			<< "link status: "   << getLinkStatus() << "\n"
-			<< "keep updated: "  << keep_updating   << "\n"
-			<< "type: "          << bitmap_type     << "\n"
-			<< "is valid: "      << valid           << "\n"
+	LL_INFOS() << "===[local bitmap debug]==="               << '\n'
+			<< "path: "          << filename        << '\n'
+			<< "name: "          << shortname       << '\n'
+			<< "extension: "     << extension       << '\n'
+			<< "uuid: "          << id              << '\n'
+			<< "last modified: " << last_modified   << '\n'
+			<< "link status: "   << getLinkStatus() << '\n'
+			<< "keep updated: "  << keep_updating   << '\n'
+			<< "type: "          << bitmap_type     << '\n'
+			<< "is valid: "      << valid           << '\n'
 			<< "=========================="               << LL_ENDL;
-	
+}
+
+LLSD LocalBitmap::asLLSD() const
+{
+	return LLSD()
+		.with("path", filename)
+		.with("id", id)
+		.with("update", keep_updating)
+		.with("type", bitmap_type);
 }
 
 /*=======================================*/
@@ -439,15 +458,47 @@ void LocalBitmap::getDebugInfo()
 	Sits in memory until the viewer is closed.
 */
 
+const std::string LocalAssetBrowser::getFileName() const
+{
+	return gDirUtilp->getExpandedFilename(LL_PATH_USER_SETTINGS, "local_assets.xml");
+}
+
 LocalAssetBrowser::LocalAssetBrowser()
 {
+	gLocalBrowser = this;
 	mLayerUpdated = false;
 	mSculptUpdated = false;
+
+	// Load bitmaps
+	llifstream file(getFileName());
+	if (!file) return;
+	LLSD saved_assets;
+	LLSDSerialize::fromXML(saved_assets, file);
+	file.close();
+	for (auto it = saved_assets.beginArray(), end = saved_assets.endArray(); it < end; ++it)
+	{
+		const auto&& p = LLSDParamAdapter<LocalBitmap::Params>(*it);
+		LocalBitmap bm(p); // Creating one adds it to the list
+	}
+
+	if (!loaded_bitmaps.empty()) PingTimer();
 }
 
 LocalAssetBrowser::~LocalAssetBrowser()
 {
-
+	// Save bitmaps
+	llofstream file(getFileName());
+	if (!file)
+	{
+		LL_WARNS() << "Could not open file " << getFileName() << " for saving." << LL_ENDL;
+		return;
+	}
+	LLSD saved_assets(LLSD::emptyArray());
+	for (const auto& bitmap : loaded_bitmaps)
+		saved_assets.append(bitmap.asLLSD());
+	LLSDSerialize::toPrettyXML(saved_assets, file);
+	file.close();
+	gLocalBrowser = nullptr;
 }
 
 void LocalAssetBrowser::AddBitmap()
@@ -463,20 +514,13 @@ void LocalAssetBrowser::AddBitmap_continued(AIFilePicker* filepicker)
 		return;
 
 	bool change_happened = false;
-	std::vector<std::string> const& filenames(filepicker->getFilenames());
-	for(std::vector<std::string>::const_iterator filename = filenames.begin(); filename != filenames.end(); ++filename)
-	{
-		LocalBitmap unit(*filename);
-		if (unit.getIfValidBool())
-		{
-			loaded_bitmaps.push_back(unit);
+
+	for(const auto& filename : filepicker->getFilenames())
+		if (LocalBitmap(filename).getIfValidBool())
 			change_happened = true;
-		}
-	}
 
 	if (change_happened) onChangeHappened();
 }
-
 void LocalAssetBrowser::DelBitmap( std::vector<LLScrollListItem*> delete_vector, S32 column )
 {
 	bool change_happened = false;
@@ -492,7 +536,7 @@ void LocalAssetBrowser::DelBitmap( std::vector<LLScrollListItem*> delete_vector,
 			{
 				if ((*iter).getID() == id)
 				{	
-					LLViewerFetchedTexture* image = gTextureList.findImage(id);
+					LLViewerFetchedTexture* image = gTextureList.findImage(id, TEX_LIST_STANDARD);
 					gTextureList.deleteImage( image );
 					image->unref();
 					iter = loaded_bitmaps.erase(iter);
@@ -592,21 +636,21 @@ void LocalAssetBrowser::UpdateTextureCtrlList(LLScrollListCtrl* ctrl)
 	if (ctrl) // checking again in case called externally for some silly reason.
 	{
 		ctrl->clearRows(); 
-		if ( !loaded_bitmaps.empty() )
+		for (const auto& bitmap : loaded_bitmaps)
 		{
-			for (local_list_iter iter = loaded_bitmaps.begin(); iter != loaded_bitmaps.end(); ++iter)
-			{
-				LLSD element;
-				element["columns"][0]["column"] = "unit_name";
-				element["columns"][0]["type"] = "text";
-				element["columns"][0]["value"] = (*iter).shortname;
+			auto row = LLScrollListItem::Params();
+			row.value(bitmap.id);
+			row.columns.add(LLScrollListCell::Params()
+				.column("unit_name")
+				.type("text")
+				.value(bitmap.shortname));
 
-				element["columns"][1]["column"] = "unit_id_HIDDEN";
-				element["columns"][1]["type"] = "text";
-				element["columns"][1]["value"] = (*iter).id;
+			row.columns.add(LLScrollListCell::Params()
+				.column("unit_id_HIDDEN")
+				.type("text")
+				.value(bitmap.id));
 
-				ctrl->addElement(element);
-			}
+			ctrl->addRow(row);
 		}
 	}
 }
@@ -651,9 +695,9 @@ void LocalAssetBrowser::PerformSculptUpdates(LocalBitmap& unit)
 			// update code [begin]
 			if (unit.volume_dirty)
 			{
-				LLImageRaw* rawimage = gTextureList.findImage(unit.getID())->getCachedRawImage();
+				LLImageRaw* rawimage = gTextureList.findImage(unit.getID(), TEX_LIST_STANDARD)->getCachedRawImage();
 
-				aobj.object->getVolume()->sculpt(rawimage->getWidth(), rawimage->getHeight(), rawimage->getComponents(), rawimage->getData(), 0);
+				aobj.object->getVolume()->sculpt(rawimage->getWidth(), rawimage->getHeight(), rawimage->getComponents(), rawimage->getData(), 0, true);
 				unit.volume_dirty = false;
 			}
 
@@ -731,6 +775,11 @@ FloaterLocalAssetBrowser::FloaterLocalAssetBrowser()
 
 	// checkbox callbacks
 	mUpdateChkBox->setCommitCallback(boost::bind(&FloaterLocalAssetBrowser::onClickUpdateChkbox,this));
+
+	// Allow changing the ID!
+	mUUIDTxt->setCommitCallback(boost::bind(&FloaterLocalAssetBrowser::onUpdateID, this, _2));
+	mUUIDTxt->setCommitOnReturn(true);
+	mUUIDTxt->setCommitOnFocusLost(true);
 }
 
 void FloaterLocalAssetBrowser::show(void*)
@@ -798,6 +847,21 @@ void FloaterLocalAssetBrowser::onCommitTypeCombo()
 	}
 }
 
+void FloaterLocalAssetBrowser::onUpdateID(const LLSD& val)
+{
+	const auto& id = val.asUUID();
+	const auto& col = mBitmapList->getFirstSelected()->getColumn(BITMAPLIST_COL_ID);
+	const auto& old_id = col->getValue().asString();
+	if (id.isNull() && id.asString() != old_id) // Just reset if invalid or unchanged
+		mUUIDTxt->setValue(old_id);
+	else
+	{
+		gLocalBrowser->GetBitmapUnit(LLUUID(old_id))->setID(id);
+		mTextureView->setImageAssetID(id);
+		col->setValue(id);
+	}
+}
+
 void FloaterLocalAssetBrowser::FloaterResize(bool expand)
 {
 	mMoreBtn->setVisible(!expand);
@@ -855,10 +919,9 @@ void FloaterLocalAssetBrowser::UpdateRightSide()
 	*/
 	if (!mTextureView->getVisible()) return;
 
-	if (!mBitmapList->getAllSelected().empty())
+	if (const auto& selected = mBitmapList->getFirstSelected())
 	{
-		LocalBitmap* unit = gLocalBrowser->GetBitmapUnit( LLUUID(mBitmapList->getSelectedItemLabel(BITMAPLIST_COL_ID)) );
-		
+		LocalBitmap* unit = gLocalBrowser->GetBitmapUnit(LLUUID(selected->getColumn(BITMAPLIST_COL_ID)->getValue().asString()));
 		if ( unit )
 		{
 			mTextureView->setImageAssetID(unit->getID());
@@ -873,6 +936,7 @@ void FloaterLocalAssetBrowser::UpdateRightSide()
 			mTextureView->setEnabled(true);
 			mUpdateChkBox->setEnabled(true);
 			mTypeComboBox->setEnabled(true);
+			mUUIDTxt->setEnabled(true);
 		}
 	}
 	else
@@ -884,12 +948,14 @@ void FloaterLocalAssetBrowser::UpdateRightSide()
 
 		mTypeComboBox->selectFirstItem();
 		mTypeComboBox->setEnabled(false);
+		mUUIDTxt->setEnabled(false);
 
-		mPathTxt->setText(LLStringExplicit("None"));
-		mUUIDTxt->setText(LLStringExplicit("None"));
-		mNameTxt->setText(LLStringExplicit("None"));
-		mLinkTxt->setText(LLStringExplicit("None"));
-		mTimeTxt->setText(LLStringExplicit("None"));
+		const auto none = LLStringExplicit("None");
+		mPathTxt->setText(none);
+		mUUIDTxt->setText(none);
+		mNameTxt->setText(none);
+		mLinkTxt->setText(none);
+		mTimeTxt->setText(none);
 	}
 }
 
@@ -931,7 +997,7 @@ void LocalAssetBrowserTimer::stop()
 	mEventTimer.stop();
 }
 
-bool LocalAssetBrowserTimer::isRunning()
+bool LocalAssetBrowserTimer::isRunning() const
 {
 	return mEventTimer.getStarted();
 }

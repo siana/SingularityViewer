@@ -41,21 +41,7 @@
 
 #include "linden_common.h"
 
-// We may want to take the windows.h include out, but it used to be in 
-// linden_common.h, and hence in all the libraries.  This is better. JC
-#if LL_WINDOWS
-	// Limit Windows API to small and manageable set.
-	// If you get undefined symbols, find the appropriate
-	// Windows header file and include that in your .cpp file.
-	#define WIN32_LEAN_AND_MEAN
-	#include <winsock2.h>
-	#include <windows.h>
-#endif
-
-// Work around stupid Microsoft STL warning
-#ifdef LL_WINDOWS
-#pragma warning (disable : 4702) // warning C4702: unreachable code
-#endif
+#include "llwin32headerslean.h"
 
 #include <algorithm>
 #include <deque>

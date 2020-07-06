@@ -505,7 +505,7 @@ void LLEnvManagerNew::onRegionSettingsResponse(const LLSD& content)
 	mRegionSettingsChangeSignal();
 
 	// reset
-	if (!gHippoGridManager->getConnectedGrid()->isAurora()) // On Aurora, the region says when to refresh
+	if (!gHippoGridManager->getConnectedGrid()->isWhiteCore()) // On WhiteCore, the region says when to refresh
 		mInterpNextChangeMessage = false;
 }
 
@@ -704,7 +704,7 @@ void LLEnvManagerNew::onRegionChange()
 	}
 }
 
-// Aurora-sim windlight refresh
+// WhiteCore windlight refresh
 class WindLightRefresh : public LLHTTPNode
 {
 	/*virtual*/ void post(LLHTTPNode::ResponsePtr response,	const LLSD& context, const LLSD& input) const

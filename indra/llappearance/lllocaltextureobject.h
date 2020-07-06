@@ -61,7 +61,7 @@ public:
 	BOOL addTexLayer(LLTexLayerTemplate *new_tex_layer, LLWearable *wearable);
 	BOOL removeTexLayer(U32 index);
 
-	void setID(LLUUID new_id);
+	void setID(const LLUUID& new_id);
 	void setDiscard(S32 new_discard);
 	void setBakedReady(BOOL ready);
 

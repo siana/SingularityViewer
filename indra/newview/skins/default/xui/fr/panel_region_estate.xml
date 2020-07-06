@@ -12,9 +12,9 @@
 	<text name="owner_text">
 		Propriétaire :
 	</text>
-	<text name="estate_owner">
+	<name_box name="estate_owner">
 		(inconnu)
-	</text>
+	</name_box>
 	<text name="Only Allow">
 		Conditions d&apos;accès des résidents :
 	</text>

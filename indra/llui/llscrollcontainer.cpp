@@ -218,6 +218,15 @@ BOOL LLScrollContainer::handleKeyHere(KEY key, MASK mask)
 	return FALSE;
 }
 
+BOOL LLScrollContainer::handleUnicodeCharHere(llwchar uni_char)
+{
+	if (mScrolledView && mScrolledView->handleUnicodeCharHere(uni_char))
+	{
+		return TRUE;
+	}
+	return FALSE;
+}
+
 BOOL LLScrollContainer::handleScrollWheel( S32 x, S32 y, S32 clicks )
 {
 	// Give event to my child views - they may have scroll bars
@@ -262,7 +271,6 @@ BOOL LLScrollContainer::handleDragAndDrop(S32 x, S32 y, MASK mask,
 												  EAcceptance* accept,
 												  std::string& tooltip_msg)
 {
-	//S32 scrollbar_size = SCROLLBAR_SIZE;
 	// Scroll folder view if needed.  Never accepts a drag or drop.
 	*accept = ACCEPT_NO;
 	BOOL handled = autoScroll(x, y);
@@ -413,6 +421,7 @@ void LLScrollContainer::calcVisibleSize( S32 *visible_width, S32 *visible_height
 	}
 }
 
+
 void LLScrollContainer::draw()
 {
 	S32 scrollbar_size = SCROLLBAR_SIZE;
@@ -525,7 +534,7 @@ bool LLScrollContainer::addChild(LLView* view, S32 tab_group)
 
 void LLScrollContainer::updateScroll()
 {
-	if (!mScrolledView)
+	if (!getVisible() || !mScrolledView)
 	{
 		return;
 	}
@@ -626,6 +635,7 @@ LLRect LLScrollContainer::getVisibleContentRect()
 	visible_rect.translate(-contents_rect.mLeft, -contents_rect.mBottom);
 	return visible_rect;
 }
+
 LLRect LLScrollContainer::getContentWindowRect()
 {
 	updateScroll();
@@ -729,6 +739,13 @@ S32 LLScrollContainer::getBorderWidth() const
 	return 0;
 }
 
+void LLScrollContainer::setSize(S32 size)
+{
+	mSize = size;
+	mScrollbar[VERTICAL]->setThickness(size);
+	mScrollbar[HORIZONTAL]->setThickness(size);
+}
+
 // virtual
 LLXMLNodePtr LLScrollContainer::getXML(bool save_children) const
 {
@@ -801,7 +818,7 @@ LLView* LLScrollContainer::fromXML(LLXMLNodePtr node, LLView *parent, LLUICtrlFa
 		panelp = new LLPanel(std::string("dummy"), LLRect::null, FALSE);
 	}
 
-	ret->mScrolledView = panelp;
+	ret->addChild(panelp);
 
 	return ret;
 }

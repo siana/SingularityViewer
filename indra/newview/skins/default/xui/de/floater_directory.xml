@@ -55,6 +55,12 @@
 			<string name="redirect_404_url">http://secondlife.com/app/search/notfound.html</string>
       <string name="default_search_page">"http://secondlife.com/app/search/index.php?"</string>
     </panel>
+    <panel label="Alle" name="web_panel">
+      <button label="Öffne Web Search Dialog" name="web_search_floater_btn"/>
+      <web_browser name="web_search_browser" trusted_content="true"/>
+      <string name="loading_text">Wird geladen...</string>
+      <string name="done_text">Fertig</string>
+    </panel>
 		<panel label="Anzeigen" name="classified_panel">
 			<string name="searching_text">Suchen...</string>
 			<string name="not_found_text">Nicht gefunden.</string>
@@ -282,12 +288,6 @@ Um direkt zu kaufen, klicken Sie auf dem betreffenden Land in der Titelleiste au
       <button tool_tip="Zurücksetzen" name="reset_btn"/>
       <web_browser name="market_browser" trusted_content="true"/>
       
-      <string name="loading_text">Wird geladen...</string>
-      <string name="done_text">Fertig</string>
-    </panel>
-    <panel label="Web" name="web_panel">
-      <button label="Öffne Web Search Dialog" name="web_search_floater_btn"/>
-      <web_browser name="web_search_browser" trusted_content="true"/>
       <string name="loading_text">Wird geladen...</string>
       <string name="done_text">Fertig</string>
     </panel>

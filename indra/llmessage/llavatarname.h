@@ -94,7 +94,7 @@ public:
 		{
 			case 1 : return getCompleteName();
 			case 2 : return getDisplayName();
-			case 3 : return getLegacyName() + (mIsDisplayNameDefault ? "" : " (" + mDisplayName + ")"); break;
+			case 3 : return getLegacyName() + (mIsDisplayNameDefault ? "" : " (" + mDisplayName + ')'); break;
 			default : return getLegacyName();
 		}
 	}

@@ -2,9 +2,9 @@
 <floater name="active_speakers" title="Falantes Ativos">
   <layout_stack name="active_speakers_stack">
     <layout_panel name="active_speakers_panel">
-      <scroll_list name="speakers_list">
+      <name_list name="speakers_list">
         <column label="Nome" name="speaker_name"/>
-      </scroll_list>
+      </name_list>
       <button label="" name="mute_btn" tool_tip="Emudecer a voz para este residente"/>
     </layout_panel>
   </layout_stack>

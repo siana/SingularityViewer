@@ -295,7 +295,7 @@ void LLFloaterExploreSounds::handle_play_locally(void* user_data)
 	std::vector<LLScrollListItem*> selection = list->getAllSelected();
 	std::vector<LLScrollListItem*>::iterator selection_iter = selection.begin();
 	std::vector<LLScrollListItem*>::iterator selection_end = selection.end();
-	std::vector<LLUUID> asset_list;
+	uuid_vec_t asset_list;
 	for( ; selection_iter != selection_end; ++selection_iter)
 	{
 		LLSoundHistoryItem item = floater->getItem((*selection_iter)->getValue());
@@ -353,7 +353,7 @@ void LLFloaterExploreSounds::handle_stop(void* user_data)
 	std::vector<LLScrollListItem*> selection = list->getAllSelected();
 	std::vector<LLScrollListItem*>::iterator selection_iter = selection.begin();
 	std::vector<LLScrollListItem*>::iterator selection_end = selection.end();
-	std::vector<LLUUID> asset_list;
+	uuid_vec_t asset_list;
 	for( ; selection_iter != selection_end; ++selection_iter)
 	{
 		LLSoundHistoryItem item = floater->getItem((*selection_iter)->getValue());

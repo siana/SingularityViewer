@@ -48,11 +48,11 @@
 #include "llviewermenufile.h"	// upload_new_resource()
 #include "lluictrlfactory.h"
 #include "llstring.h"
-#include "lleconomy.h"
 
 // linden includes
 #include "llassetstorage.h"
 #include "llinventorytype.h"
+#include "llagentbenefits.h"
 
 #include "hippogridmanager.h"
 
@@ -134,11 +134,35 @@ BOOL LLFloaterNameDesc::postBuild()
 	// Cancel button
 	getChild<LLUICtrl>("cancel_btn")->setCommitCallback(boost::bind(&LLFloaterNameDesc::onBtnCancel, this));
 
-	getChild<LLUICtrl>("ok_btn")->setLabelArg("[UPLOADFEE]", llformat("%s%d", gHippoGridManager->getConnectedGrid()->getCurrencySymbol().c_str(), LLGlobalEconomy::Singleton::getInstance()->getPriceUpload()));
+	S32 expected_upload_cost = getExpectedUploadCost();
+	getChild<LLUICtrl>("ok_btn")->setLabelArg("[UPLOADFEE]", llformat("%s%d", gHippoGridManager->getConnectedGrid()->getCurrencySymbol().c_str(), expected_upload_cost));
 
 	setDefaultBtn("ok_btn");
 
 	return TRUE;
+}
+
+S32 LLFloaterNameDesc::getExpectedUploadCost() const
+{
+    std::string exten = gDirUtilp->getExtension(mFilename);
+	LLAssetType::EType asset_type = exten == "wav" ? LLAssetType::AT_SOUND
+		: (exten == "anim" || exten == "bvh") ? LLAssetType::AT_ANIMATION
+		: exten != "lsl" ? LLAssetType::AT_TEXTURE
+		: LLAssetType::AT_NONE;
+	S32 upload_cost = -1;
+
+	if (asset_type != LLAssetType::AT_NONE)
+	{
+		if (!LLAgentBenefitsMgr::current().findUploadCost(asset_type, upload_cost))
+		{
+			LL_WARNS() << "Unable to find upload cost for asset type " << asset_type << LL_ENDL;
+		}
+	}
+	/*else
+	{
+		LL_WARNS() << "Unable to find upload cost for " << mFilename << LL_ENDL;
+	}*/
+	return upload_cost;
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +197,8 @@ void LLFloaterNameDesc::onBtnOK()
 	getChildView("ok_btn")->setEnabled(FALSE); // don't allow inadvertent extra uploads
 	
 	LLAssetStorage::LLStoreAssetCallback callback = NULL;
-	S32 expected_upload_cost = LLGlobalEconomy::Singleton::getInstance()->getPriceUpload(); // kinda hack - assumes that unsubclassed LLFloaterNameDesc is only used for uploading chargeable assets, which it is right now (it's only used unsubclassed for the sound upload dialog, and THAT should be a subclass).
+	S32 expected_upload_cost = getExpectedUploadCost();
+
 	void *nruserdata = NULL;
 	std::string display_name = LLStringUtil::null;
 

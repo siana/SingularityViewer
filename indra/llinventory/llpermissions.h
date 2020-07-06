@@ -31,7 +31,6 @@
 #include "llsd.h"
 #include "lluuid.h"
 #include "llxmlnode.h"
-#include "reflective.h"
 #include "llinventorytype.h"
 
 // prototypes
@@ -89,7 +88,7 @@ enum ExportPolicy {
 // logical consistency.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class LLPermissions : public LLReflective
+class LLPermissions
 {
 private:
 	LLUUID			mCreator;				// null if object created by system
@@ -329,17 +328,14 @@ public:
 	BOOL	importFile(LLFILE* fp);
 	BOOL	exportFile(LLFILE* fp) const;
 
-	BOOL	importStream(std::istream& input_stream);
-	BOOL	exportStream(std::ostream& output_stream) const;
+	BOOL	importLegacyStream(std::istream& input_stream);
+	BOOL	exportLegacyStream(std::ostream& output_stream) const;
 
 	bool operator==(const LLPermissions &rhs) const;
 	bool operator!=(const LLPermissions &rhs) const;
 
 	friend std::ostream& operator<<(std::ostream &s, const LLPermissions &perm);
 
-	// Reflection.
-	friend class LLMetaClassT<LLPermissions>;
-	virtual const LLMetaClass& getMetaClass() const;
 };
 
 // Inlines

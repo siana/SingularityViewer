@@ -272,13 +272,11 @@ BOOL LLPanelFriends::postBuild()
 {
 	mFriendsList = getChild<LLScrollListCtrl>("friend_list");
 	mFriendsList->setCommitOnSelectionChange(true);
-	/* Singu TODO: Update to C++11 and make everything cleaner here
 	auto single_selection(boost::bind(&LLScrollListCtrl::getCurrentID, mFriendsList));
 	auto selection(boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList));
-	*/
 	mFriendsList->setCommitCallback(boost::bind(&LLPanelFriends::onSelectName, this));
 	//getChild<LLUICtrl>("buddy_group_combobox")->setCommitCallback(boost::bind(&LLPanelFriends::setContactGroup, this, _2));
-	mFriendsList->setDoubleClickCallback(boost::bind(LLAvatarActions::startIM, boost::bind(&LLScrollListCtrl::getCurrentID, mFriendsList)));
+	mFriendsList->setDoubleClickCallback(boost::bind(LLAvatarActions::startIM, single_selection));
 
 	// <dogmode>
 	// Contact search and group system.
@@ -294,13 +292,13 @@ BOOL LLPanelFriends::postBuild()
 	U32 changed_mask = LLFriendObserver::ADD | LLFriendObserver::REMOVE | LLFriendObserver::ONLINE;
 	refreshNames(changed_mask);
 
-	getChild<LLUICtrl>("im_btn")->setCommitCallback(boost::bind(&LLPanelFriends::onClickIM, this, boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList)));
-	//getChild<LLUICtrl>("assign_btn")->setCommitCallback(boost::bind(ASFloaterContactGroups::show, boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList)));
-	getChild<LLUICtrl>("profile_btn")->setCommitCallback(boost::bind(LLAvatarActions::showProfiles, boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList), false));
-	getChild<LLUICtrl>("offer_teleport_btn")->setCommitCallback(boost::bind(static_cast<void(*)(const uuid_vec_t&)>(LLAvatarActions::offerTeleport), boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList)));
-	getChild<LLUICtrl>("pay_btn")->setCommitCallback(boost::bind(LLAvatarActions::pay, boost::bind(&LLScrollListCtrl::getCurrentID, mFriendsList)));
+	getChild<LLUICtrl>("im_btn")->setCommitCallback(boost::bind(&LLPanelFriends::onClickIM, this, selection));
+	//getChild<LLUICtrl>("assign_btn")->setCommitCallback(boost::bind(ASFloaterContactGroups::show, selection));
+	getChild<LLUICtrl>("profile_btn")->setCommitCallback(boost::bind(LLAvatarActions::showProfiles, selection, false));
+	getChild<LLUICtrl>("offer_teleport_btn")->setCommitCallback(boost::bind(static_cast<void(*)(const uuid_vec_t&)>(LLAvatarActions::offerTeleport), selection));
+	getChild<LLUICtrl>("pay_btn")->setCommitCallback(boost::bind(LLAvatarActions::pay, single_selection));
 	getChild<LLUICtrl>("add_btn")->setCommitCallback(boost::bind(&LLPanelFriends::onClickAddFriend, this));
-	getChild<LLUICtrl>("remove_btn")->setCommitCallback(boost::bind(LLAvatarActions::removeFriendsDialog, boost::bind(&LLScrollListCtrl::getSelectedIDs, mFriendsList)));
+	getChild<LLUICtrl>("remove_btn")->setCommitCallback(boost::bind(LLAvatarActions::removeFriendsDialog, selection));
 	//getChild<LLUICtrl>("export_btn")->setCommitCallback(boost::bind(&LLPanelFriends::onClickExport, this)); Making Dummy View -HgB
 	//getChild<LLUICtrl>("import_btn")->setCommitCallback(boost::bind(&LLPanelFriends::onClickImport, this)); Making Dummy View -HgB
 

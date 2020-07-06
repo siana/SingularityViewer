@@ -28,31 +28,28 @@
 #include "linden_common.h"
 
 #include "llbase64.h"
-
-#include <string>
-#include "apr_base64.h"
+#include <openssl/evp.h>
 
 // static
 std::string LLBase64::encode(const U8* input, size_t input_size)
 {
 	if (!(input && input_size > 0)) return LLStringUtil::null;
-
-	// Yes, it returns int.
-	int b64_buffer_length = apr_base64_encode_len(input_size);
-	char* b64_buffer = new char[b64_buffer_length];
 	
-	// This is faster than apr_base64_encode() if you know
-	// you're not on an EBCDIC machine.  Also, the output is
-	// null terminated, even though the documentation doesn't
-	// specify.  See apr_base64.c for details. JC
-	b64_buffer_length = apr_base64_encode_binary(
-		b64_buffer,
-		input,
-		input_size);
-	std::string result;
-	result.assign(b64_buffer);
-	delete[] b64_buffer;
-
+	BIO *b64 = BIO_new(BIO_f_base64());
+	BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+	
+	BIO *bio = BIO_new(BIO_s_mem());
+	BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL);
+	bio = BIO_push(b64, bio);
+	BIO_write(bio, input, input_size);
+	
+	(void)BIO_flush(bio);
+	
+	char *new_data;
+	size_t bytes_written = BIO_get_mem_data(bio, &new_data);
+	std::string result(new_data, bytes_written);
+	BIO_free_all(bio);
+	
 	return result;
 }
 
@@ -70,9 +67,16 @@ std::string LLBase64::encode(const std::string& in_str)
 size_t LLBase64::decode(const std::string& input, U8 * buffer, size_t buffer_size)
 {
 	if (input.empty()) return 0;
-
-	size_t bytes_written = apr_base64_decode_binary(buffer, input.data());
-
+	
+	BIO *b64 = BIO_new(BIO_f_base64());
+	BIO_set_flags(b64, BIO_FLAGS_BASE64_NO_NL);
+	
+	// BIO_new_mem_buf is not const aware, but it doesn't modify the buffer
+	BIO *bio = BIO_new_mem_buf(const_cast<char*>(input.c_str()), input.length());
+	bio = BIO_push(b64, bio);
+	size_t bytes_written = BIO_read(bio, buffer, buffer_size);
+	BIO_free_all(bio);
+	
 	return bytes_written;
 }
 
